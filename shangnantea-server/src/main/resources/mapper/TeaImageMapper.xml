@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shangnantea.mapper.TeaImageMapper">
+    
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.shangnantea.model.entity.tea.TeaImage">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="tea_id" property="teaId" jdbcType="VARCHAR"/>
+        <result column="url" property="url" jdbcType="VARCHAR"/>
+        <result column="sort_order" property="sortOrder" jdbcType="INTEGER"/>
+        <result column="is_main" property="isMain" jdbcType="INTEGER"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+    
+    <!-- 公共列 -->
+    <sql id="Base_Column_List">
+        id, tea_id, url, sort_order, is_main, create_time
+    </sql>
+    
+    <!-- 根据ID查询图片 -->
+    <select id="selectById" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM tea_images
+        WHERE id = #{id,jdbcType=INTEGER}
+    </select>
+    
+    <!-- 根据茶叶ID查询图片列表 -->
+    <select id="selectByTeaId" resultMap="BaseResultMap" parameterType="java.lang.String">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM tea_images
+        WHERE tea_id = #{teaId,jdbcType=VARCHAR}
+        ORDER BY is_main DESC, sort_order ASC, id ASC
+    </select>
+    
+    <!-- 查询茶叶主图 -->
+    <select id="selectMainByTeaId" resultMap="BaseResultMap" parameterType="java.lang.String">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM tea_images
+        WHERE tea_id = #{teaId,jdbcType=VARCHAR} AND is_main = 1
+        LIMIT 1
+    </select>
+    
+    <!-- 批量插入图片 -->
+    <insert id="batchInsert" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO tea_images (
+            tea_id, url, sort_order, is_main, create_time
+        ) VALUES 
+        <foreach collection="list" item="item" separator=",">
+            (
+                #{item.teaId,jdbcType=VARCHAR}, 
+                #{item.url,jdbcType=VARCHAR}, 
+                #{item.sortOrder,jdbcType=INTEGER}, 
+                #{item.isMain,jdbcType=INTEGER}, 
+                #{item.createTime,jdbcType=TIMESTAMP}
+            )
+        </foreach>
+    </insert>
+    
+    <!-- 插入图片 -->
+    <insert id="insert" parameterType="com.shangnantea.model.entity.tea.TeaImage" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO tea_images (
+            tea_id, url, sort_order, is_main, create_time
+        ) VALUES (
+            #{teaId,jdbcType=VARCHAR}, 
+            #{url,jdbcType=VARCHAR}, 
+            #{sortOrder,jdbcType=INTEGER}, 
+            #{isMain,jdbcType=INTEGER}, 
+            #{createTime,jdbcType=TIMESTAMP}
+        )
+    </insert>
+    
+    <!-- 设置主图 -->
+    <update id="setMainImage">
+        UPDATE tea_images
+        SET is_main = CASE 
+            WHEN id = #{id,jdbcType=INTEGER} THEN 1
+            ELSE 0
+        END
+        WHERE tea_id = (SELECT tea_id FROM tea_images WHERE id = #{id,jdbcType=INTEGER})
+    </update>
+    
+    <!-- 更新排序 -->
+    <update id="updateSortOrder">
+        UPDATE tea_images
+        SET sort_order = #{sortOrder,jdbcType=INTEGER}
+        WHERE id = #{id,jdbcType=INTEGER}
+    </update>
+    
+    <!-- 删除图片 -->
+    <delete id="deleteById" parameterType="java.lang.Integer">
+        DELETE FROM tea_images
+        WHERE id = #{id,jdbcType=INTEGER}
+    </delete>
+    
+    <!-- 根据茶叶ID删除图片 -->
+    <delete id="deleteByTeaId" parameterType="java.lang.String">
+        DELETE FROM tea_images
+        WHERE tea_id = #{teaId,jdbcType=VARCHAR}
+    </delete>
+</mapper> 

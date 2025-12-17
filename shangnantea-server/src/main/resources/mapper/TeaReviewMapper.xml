@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shangnantea.mapper.TeaReviewMapper">
+    
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.shangnantea.model.entity.tea.TeaReview">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="tea_id" property="teaId" jdbcType="VARCHAR"/>
+        <result column="user_id" property="userId" jdbcType="VARCHAR"/>
+        <result column="order_id" property="orderId" jdbcType="VARCHAR"/>
+        <result column="content" property="content" jdbcType="VARCHAR"/>
+        <result column="rating" property="rating" jdbcType="INTEGER"/>
+        <result column="images" property="images" jdbcType="VARCHAR"/>
+        <result column="reply" property="reply" jdbcType="VARCHAR"/>
+        <result column="reply_time" property="replyTime" jdbcType="TIMESTAMP"/>
+        <result column="is_anonymous" property="isAnonymous" jdbcType="INTEGER"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+    
+    <!-- 详情映射（包含用户信息） -->
+    <resultMap id="DetailResultMap" extends="BaseResultMap" type="com.shangnantea.model.entity.tea.TeaReview">
+        <result column="username" property="username" jdbcType="VARCHAR"/>
+        <result column="nickname" property="nickname" jdbcType="VARCHAR"/>
+        <result column="avatar" property="avatar" jdbcType="VARCHAR"/>
+        <result column="tea_name" property="teaName" jdbcType="VARCHAR"/>
+    </resultMap>
+    
+    <!-- 公共列 -->
+    <sql id="Base_Column_List">
+        id, tea_id, user_id, order_id, content, rating, images, reply, reply_time, 
+        is_anonymous, create_time, update_time
+    </sql>
+    
+    <!-- 根据ID查询评价 -->
+    <select id="selectById" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM tea_reviews
+        WHERE id = #{id,jdbcType=INTEGER}
+    </select>
+    
+    <!-- 根据茶叶ID查询评价列表 -->
+    <select id="selectByTeaId" resultMap="BaseResultMap" parameterType="java.lang.String">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM tea_reviews
+        WHERE tea_id = #{teaId,jdbcType=VARCHAR}
+        ORDER BY create_time DESC
+        <if test="limit != null">
+            LIMIT #{limit,jdbcType=INTEGER}
+        </if>
+    </select>
+    
+    <!-- 根据用户ID查询评价列表 -->
+    <select id="selectByUserId" resultMap="BaseResultMap" parameterType="java.lang.String">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM tea_reviews
+        WHERE user_id = #{userId,jdbcType=VARCHAR}
+        ORDER BY create_time DESC
+    </select>
+    
+    <!-- 根据订单ID查询评价 -->
+    <select id="selectByOrderId" resultMap="BaseResultMap" parameterType="java.lang.String">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM tea_reviews
+        WHERE order_id = #{orderId,jdbcType=VARCHAR}
+        LIMIT 1
+    </select>
+    
+    <!-- 查询茶叶的评分统计 -->
+    <select id="selectRatingStats" resultType="java.util.Map">
+        SELECT 
+        COUNT(id) as total,
+        AVG(rating) as avg_rating,
+        SUM(CASE WHEN rating = 5 THEN 1 ELSE 0 END) as five_star,
+        SUM(CASE WHEN rating = 4 THEN 1 ELSE 0 END) as four_star,
+        SUM(CASE WHEN rating = 3 THEN 1 ELSE 0 END) as three_star,
+        SUM(CASE WHEN rating = 2 THEN 1 ELSE 0 END) as two_star,
+        SUM(CASE WHEN rating = 1 THEN 1 ELSE 0 END) as one_star
+        FROM tea_reviews
+        WHERE tea_id = #{teaId,jdbcType=VARCHAR}
+    </select>
+    
+    <!-- 分页查询茶叶评价 -->
+    <select id="selectByTeaIdWithPage" resultMap="BaseResultMap">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM tea_reviews
+        WHERE tea_id = #{teaId,jdbcType=VARCHAR}
+        <if test="rating != null">
+            AND rating = #{rating,jdbcType=INTEGER}
+        </if>
+        <if test="hasContent != null and hasContent == true">
+            AND content != '' AND content IS NOT NULL
+        </if>
+        <if test="hasImage != null and hasImage == true">
+            AND images != '' AND images IS NOT NULL
+        </if>
+        ORDER BY 
+        <choose>
+            <when test="orderBy == 'rating'">
+                rating DESC, 
+            </when>
+        </choose>
+        create_time DESC
+        LIMIT #{offset,jdbcType=INTEGER}, #{limit,jdbcType=INTEGER}
+    </select>
+    
+    <!-- 插入评价 -->
+    <insert id="insert" parameterType="com.shangnantea.model.entity.tea.TeaReview" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO tea_reviews (
+            tea_id, user_id, order_id, content, rating, images, is_anonymous, create_time, update_time
+        ) VALUES (
+            #{teaId,jdbcType=VARCHAR}, 
+            #{userId,jdbcType=VARCHAR}, 
+            #{orderId,jdbcType=VARCHAR}, 
+            #{content,jdbcType=VARCHAR}, 
+            #{rating,jdbcType=INTEGER}, 
+            #{images,jdbcType=VARCHAR}, 
+            #{isAnonymous,jdbcType=INTEGER}, 
+            #{createTime,jdbcType=TIMESTAMP}, 
+            #{updateTime,jdbcType=TIMESTAMP}
+        )
+    </insert>
+    
+    <!-- 商家回复评价 -->
+    <update id="reply">
+        UPDATE tea_reviews
+        SET reply = #{reply,jdbcType=VARCHAR},
+        reply_time = now(),
+        update_time = now()
+        WHERE id = #{id,jdbcType=INTEGER}
+    </update>
+    
+    <!-- 删除评价 -->
+    <delete id="deleteById" parameterType="java.lang.Integer">
+        DELETE FROM tea_reviews
+        WHERE id = #{id,jdbcType=INTEGER}
+    </delete>
+    
+    <!-- 统计茶叶评价数量 -->
+    <select id="countByTeaId" resultType="java.lang.Integer" parameterType="java.lang.String">
+        SELECT COUNT(*)
+        FROM tea_reviews
+        WHERE tea_id = #{teaId,jdbcType=VARCHAR}
+    </select>
+    
+    <!-- 统计平均评分 -->
+    <select id="avgRatingByTeaId" resultType="java.math.BigDecimal" parameterType="java.lang.String">
+        SELECT IFNULL(AVG(rating), 5)
+        FROM tea_reviews
+        WHERE tea_id = #{teaId,jdbcType=VARCHAR}
+    </select>
+</mapper> 

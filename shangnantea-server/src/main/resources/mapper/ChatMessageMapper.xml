@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shangnantea.mapper.ChatMessageMapper">
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.shangnantea.model.entity.message.ChatMessage">
+        <id column="id" property="id"/>
+        <result column="session_id" property="sessionId"/>
+        <result column="sender_id" property="senderId"/>
+        <result column="content" property="content"/>
+        <result column="is_read" property="isRead"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 所有列 -->
+    <sql id="Base_Column_List">
+        id, session_id, sender_id, content, is_read, create_time, update_time
+    </sql>
+
+    <!-- 插入记录 -->
+    <insert id="insert" parameterType="com.shangnantea.model.entity.message.ChatMessage">
+        INSERT INTO chat_messages (
+            id, session_id, sender_id, content, is_read, create_time, update_time
+        ) VALUES (
+            #{id}, #{sessionId}, #{senderId}, #{content}, #{isRead}, #{createTime}, #{updateTime}
+        )
+    </insert>
+
+    <!-- 根据主键删除记录 -->
+    <delete id="deleteById" parameterType="java.lang.Long">
+        DELETE FROM chat_messages WHERE id = #{id}
+    </delete>
+
+    <!-- 根据主键批量删除记录 -->
+    <delete id="deleteByIds" parameterType="java.util.List">
+        DELETE FROM chat_messages WHERE id IN
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!-- 根据主键更新记录 -->
+    <update id="updateById" parameterType="com.shangnantea.model.entity.message.ChatMessage">
+        UPDATE chat_messages
+        <set>
+            <if test="sessionId != null">session_id = #{sessionId},</if>
+            <if test="senderId != null">sender_id = #{senderId},</if>
+            <if test="content != null">content = #{content},</if>
+            <if test="isRead != null">is_read = #{isRead},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据主键查询记录 -->
+    <select id="selectById" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM chat_messages
+        WHERE id = #{id}
+    </select>
+
+    <!-- 根据主键批量查询记录 -->
+    <select id="selectByIds" parameterType="java.util.List" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM chat_messages
+        WHERE id IN
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <!-- 查询所有记录 -->
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM chat_messages
+    </select>
+
+    <!-- 统计记录总数 -->
+    <select id="count" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM chat_messages
+    </select>
+</mapper> 

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shangnantea.mapper.ForumTopicMapper">
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.shangnantea.model.entity.forum.ForumTopic">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="description" property="description"/>
+        <result column="icon" property="icon"/>
+        <result column="cover" property="cover"/>
+        <result column="user_id" property="userId"/>
+        <result column="sort_order" property="sortOrder"/>
+        <result column="post_count" property="postCount"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 所有列 -->
+    <sql id="Base_Column_List">
+        id, name, description, icon, cover, user_id, sort_order, post_count, status, create_time, update_time
+    </sql>
+
+    <!-- 插入记录 -->
+    <insert id="insert" parameterType="com.shangnantea.model.entity.forum.ForumTopic">
+        INSERT INTO forum_topics (
+            id, name, description, icon, cover, user_id, sort_order, post_count, status, create_time, update_time
+        ) VALUES (
+            #{id}, #{name}, #{description}, #{icon}, #{cover}, #{userId}, #{sortOrder}, #{postCount}, 
+            #{status}, #{createTime}, #{updateTime}
+        )
+    </insert>
+
+    <!-- 根据主键删除记录 -->
+    <delete id="deleteById" parameterType="java.lang.Integer">
+        DELETE FROM forum_topics WHERE id = #{id}
+    </delete>
+
+    <!-- 根据主键批量删除记录 -->
+    <delete id="deleteByIds" parameterType="java.util.List">
+        DELETE FROM forum_topics WHERE id IN
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!-- 根据主键更新记录 -->
+    <update id="updateById" parameterType="com.shangnantea.model.entity.forum.ForumTopic">
+        UPDATE forum_topics
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="icon != null">icon = #{icon},</if>
+            <if test="cover != null">cover = #{cover},</if>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="sortOrder != null">sort_order = #{sortOrder},</if>
+            <if test="postCount != null">post_count = #{postCount},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据主键查询记录 -->
+    <select id="selectById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM forum_topics
+        WHERE id = #{id}
+    </select>
+
+    <!-- 根据主键批量查询记录 -->
+    <select id="selectByIds" parameterType="java.util.List" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM forum_topics
+        WHERE id IN
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <!-- 查询所有记录 -->
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM forum_topics
+    </select>
+
+    <!-- 统计记录总数 -->
+    <select id="count" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM forum_topics
+    </select>
+</mapper> 

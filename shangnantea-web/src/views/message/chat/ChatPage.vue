@@ -1,0 +1,1587 @@
+<template>
+  <div class="chat-page">
+    <!-- 
+    聊天功能设计：
+    1. 会话列表：
+       - 聊天对象列表（用户、商家、客服）
+       - 最新消息预览和时间
+       - 未读消息计数
+       - 会话置顶功能
+       - 搜索会话功能
+    
+    2. 聊天界面：
+       - 消息气泡展示（自己/对方）
+       - 消息时间戳
+       - 图片消息支持
+       - 消息发送状态（发送中/已发送/已读）
+       - 历史消息加载
+    
+    3. 输入区域：
+       - 文本输入框
+       - 表情选择器
+       - 图片上传按钮
+       - 发送按钮
+    
+    4. 管理功能：
+       - 删除会话
+       - 清空聊天记录
+       - 举报功能
+    -->
+    
+    <div class="chat-layout">
+      <!-- 会话列表区域 -->
+      <div class="chat-sessions">
+        <div class="search-bar">
+          <el-input 
+            v-model="searchQuery" 
+            placeholder="搜索联系人或消息" 
+            clearable
+            prefix-icon="Search">
+          </el-input>
+        </div>
+        
+        <div class="session-list">
+          <div 
+            v-for="session in filteredSessions" 
+            :key="session.sessionId"
+            class="session-item"
+            :class="{ 'session-active': currentSessionId === session.sessionId }"
+            @click="selectSession(session)">
+            
+            <div class="session-avatar">
+              <el-badge 
+                :value="session.unreadCount" 
+                :hidden="!session.unreadCount"
+                type="danger">
+                <SafeImage :src="session.avatar || ''" type="avatar" :alt="session.name" style="width:40px;height:40px;border-radius:50%;object-fit:cover;" />
+              </el-badge>
+            </div>
+            
+            <div class="session-info">
+              <div class="session-name">{{ session.name }}</div>
+              <div class="session-preview">{{ session.lastMessage }}</div>
+            </div>
+            
+            <div class="session-meta">
+              <div class="session-time">{{ formatTime(session.lastTime) }}</div>
+              <div class="session-actions">
+                <el-popover
+                  placement="top"
+                  width="auto"
+                  trigger="click"
+                  @show="stopPropagation">
+                  <template #reference>
+                    <el-button 
+                      circle
+                      size="small"
+                      class="more-action"
+                      @click.stop>
+                      <el-icon><MoreFilled /></el-icon>
+                    </el-button>
+                  </template>
+                  <div class="action-buttons">
+                    <el-button 
+                      size="small" 
+                      type="danger" 
+                      @click="deleteSession(session.sessionId)">
+                      删除会话
+                    </el-button>
+                  </div>
+                </el-popover>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 无会话时显示 -->
+          <el-empty 
+            v-if="filteredSessions.length === 0" 
+            description="暂无聊天会话"
+            :image-size="100">
+          </el-empty>
+        </div>
+      </div>
+      
+      <!-- 聊天内容区域 -->
+      <div class="chat-content">
+        <!-- 聊天头部 -->
+        <div class="chat-header" v-if="currentSession">
+          <h3 class="chat-title">{{ currentSession.name }}</h3>
+          <div class="chat-actions">
+            <el-dropdown trigger="click">
+              <el-button icon="el-icon-more" circle></el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item @click="clearMessages">清空聊天记录</el-dropdown-item>
+                  <el-dropdown-item @click="reportUser">举报用户</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </div>
+        </div>
+        
+        <div class="chat-header" v-else>
+          <h3 class="chat-title">请选择一个联系人开始聊天</h3>
+        </div>
+        
+        <!-- 消息列表 -->
+        <div 
+          class="chat-messages" 
+          ref="messagesContainer"
+          v-if="currentSession">
+          
+          <!-- 加载更多按钮 -->
+          <div class="load-more" v-if="hasMoreMessages">
+            <el-button 
+              type="text" 
+              size="small" 
+              @click="loadMoreMessages"
+              :loading="loadingMessages">
+              加载更多消息
+            </el-button>
+          </div>
+          
+          <!-- 消息列表 -->
+          <div class="messages-list">
+            <div 
+              v-for="message in currentMessages" 
+              :key="message.id"
+              class="message-item"
+              :class="{
+                'message-self': message.isSelf,
+                'message-other': !message.isSelf
+              }">
+              
+              <!-- 时间分割线 -->
+              <div class="message-time-divider" v-if="message.showTimeDivider">
+                <span>{{ formatMessageTime(message.createTime) }}</span>
+              </div>
+              
+              <!-- 消息内容 -->
+              <div class="message-container">
+                <!-- 头像（对方） -->
+                <div class="message-avatar" v-if="!message.isSelf">
+                  <SafeImage :src="currentSession?.avatar || ''" type="avatar" :alt="currentSession?.name" style="width:40px;height:40px;border-radius:50%;object-fit:cover;" />
+                </div>
+                
+                <!-- 消息气泡 -->
+                <div class="message-content">
+                  <div class="message-bubble">
+                    <!-- 文本消息 -->
+                    <div class="message-text" v-if="message.type === 'text'">
+                      {{ message.content }}
+                    </div>
+                    
+                    <!-- 图片消息 -->
+                    <div class="message-image" v-else-if="message.type === 'image'">
+                      <SafeImage :src="message.content" type="post" :alt="`图片消息`" style="max-width:200px;max-height:200px;border-radius:4px;" />
+                    </div>
+                  </div>
+                  
+                  <!-- 消息状态 -->
+                  <div class="message-status" v-if="message.isSelf">
+                    <el-icon v-if="message.status === 'sending'"><Loading /></el-icon>
+                    <el-icon v-else-if="message.status === 'sent'"><Check /></el-icon>
+                    <el-icon v-else-if="message.status === 'read'"><CircleCheck /></el-icon>
+                    <el-icon v-else-if="message.status === 'failed'" class="status-failed"><Warning /></el-icon>
+                  </div>
+                </div>
+                
+                <!-- 头像（自己） -->
+                <div class="message-avatar" v-if="message.isSelf">
+                  <SafeImage src="/images/avatars/default.jpg" type="avatar" alt="我" style="width:40px;height:40px;border-radius:50%;object-fit:cover;" />
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 无消息时显示 -->
+          <div class="empty-messages" v-if="currentMessages.length === 0">
+            <el-empty description="暂无消息记录" :image-size="100"></el-empty>
+          </div>
+        </div>
+        
+        <!-- 无选中会话时显示 -->
+        <div class="select-tip" v-else>
+          <SafeImage src="/images/chat/start.jpg" type="banner" alt="开始聊天" class="tip-image" />
+          <p>选择一个联系人开始聊天</p>
+        </div>
+        
+        <!-- 输入区域 -->
+        <div class="chat-input" v-if="currentSession">
+          <!-- 工具栏 -->
+          <div class="input-toolbar">
+            <el-tooltip content="发送图片" placement="top">
+              <el-button 
+                type="text" 
+                @click="triggerImageUpload"
+                class="toolbar-button">
+                <el-icon><Picture /></el-icon>
+              </el-button>
+            </el-tooltip>
+            
+            <el-tooltip content="表情" placement="top">
+              <el-button 
+                type="text" 
+                @click="toggleEmojiPicker"
+                class="toolbar-button">
+                <el-icon><Smile /></el-icon>
+                表情
+              </el-button>
+            </el-tooltip>
+            
+            <!-- 隐藏的文件上传组件 -->
+            <input 
+              type="file" 
+              ref="imageInput"
+              accept="image/*"
+              style="display: none"
+              @change="handleImageUpload" />
+          </div>
+          
+          <!-- 表情选择器 -->
+          <div class="emoji-picker" v-if="showEmojiPicker">
+            <div class="emoji-container">
+              <span 
+                v-for="emoji in emojiList" 
+                :key="emoji"
+                class="emoji-item"
+                @click="insertEmoji(emoji)">
+                {{ emoji }}
+              </span>
+            </div>
+          </div>
+          
+          <!-- 文本输入区 -->
+          <el-input 
+            type="textarea" 
+            :rows="3" 
+            placeholder="请输入消息..." 
+            v-model="messageInput"
+            resize="none"
+            @keydown.enter.exact.prevent="sendMessage">
+          </el-input>
+          
+          <!-- 发送按钮 -->
+          <div class="input-actions">
+            <el-button 
+              type="primary" 
+              @click="sendMessage"
+              :disabled="!messageInput.trim() && !imageFile">
+              发送
+            </el-button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { ref, reactive, computed, nextTick, onMounted, onBeforeUnmount, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { 
+  Check, CircleCheck, Warning, Picture, Smile, Loading, 
+  MoreFilled
+} from '@element-plus/icons-vue'
+import SafeImage from '@/components/common/form/SafeImage.vue'
+import { timeFormat } from '@/utils/timeFormat'
+
+export default {
+  name: 'ChatPage',
+  components: {
+    Check,
+    CircleCheck,
+    Warning,
+    Picture,
+    Smile,
+    Loading,
+    MoreFilled,
+    SafeImage
+  },
+  setup() {
+    const route = useRoute()
+    const router = useRouter()
+    
+    // DOM引用
+    const messagesContainer = ref(null)
+    const imageInput = ref(null)
+    
+    // 搜索关键词
+    const searchQuery = ref('')
+    
+    // 会话管理
+    const mockSessions = ref([])
+    const currentSessionId = ref(null)
+    const messagesMap = reactive({})
+    const messageInput = ref('')
+    const imageFile = ref(null)
+    const loadingMessages = ref(false)
+    const hasMoreMessages = ref(false)
+    const showEmojiPicker = ref(false)
+    const defaultAvatar = '/images/avatars/default.jpg'
+    const currentUserAvatar = '/images/avatars/default.jpg'
+    
+    // 表情列表
+    const emojiList = [
+      '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', 
+      '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', 
+      '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩',
+      '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣',
+      '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬',
+      '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗',
+      '👋', '👍', '👎', '❤️', '💋', '👏', '🙏', '🤝', '💪', '✌️'
+    ]
+    
+    // 获取所有会话列表
+    const fetchSessions = async () => {
+      try {
+        // 在实际项目中，这里应该调用后端API
+        // 模拟API响应
+        const response = {
+          code: 0,
+          data: [
+            {
+              sessionId: '1',
+              type: 'user',
+              userId: '101',
+              name: '张三',
+              avatar: 'h//element-plus-lo.svg',
+              lastMessage: '请问你有空吗？我想咨询一下关于铁观音的问题',
+              lastTime: Date.now() - 3600000, // 1小时前
+              unreadCount: 2
+            },
+            {
+              sessionId: '2',
+              type: 'shop',
+              userId: '201',
+              name: '品茶轩',
+              avatar: 'https://element-plus.org/images/element-plus-logo.svg',
+              lastMessage: '您的订单已发货，请注意查收',
+              lastTime: Date.now() - 86400000, // 1天前
+              unreadCount: 0
+            },
+            {
+              sessionId: '3',
+              type: 'system',
+              userId: 'system',
+              name: '系统通知',
+              avatar: 'https://element-plus.org/images/element-plus-logo.svg',
+              lastMessage: '欢迎使用商南茶文化平台，祝您购物愉快！',
+              lastTime: Date.now() - 7 * 86400000, // 7天前
+              unreadCount: 1
+            }
+          ]
+        }
+        
+        mockSessions.value = response.data
+        
+        // 如果有未读消息的会话，默认选中第一个有未读消息的会话
+        const unreadSession = mockSessions.value.find(session => session.unreadCount > 0)
+        if (unreadSession) {
+          selectSession(unreadSession)
+        } else if (mockSessions.value.length > 0) {
+          // 否则选中第一个会话
+          selectSession(mockSessions.value[0])
+        }
+      } catch (error) {
+        console.error('获取会话列表失败：', error)
+        ElMessage.error('获取会话列表失败，请稍后重试')
+      }
+    }
+    
+    // 获取指定会话的消息列表
+    const fetchMessages = async (sessionId, isLoadMore = false) => {
+      if (!sessionId) return
+      
+      try {
+        loadingMessages.value = true
+        
+        // 获取已有的消息，用于加载更多的情况
+        const existingMessages = messagesMap[sessionId] || []
+        const oldestMsgId = existingMessages.length > 0 ? existingMessages[0].id : null
+        
+        // 在实际项目中，这里应该调用后端API，传入lastMsgId用于分页
+        // 模拟API响应
+        let mockMessages = []
+        
+        if (sessionId === '1') {
+          mockMessages = [
+            {
+              id: '101',
+              sessionId: '1',
+              senderId: '101',
+              content: '你好，我想咨询一下关于铁观音的问题',
+              type: 'text',
+              createTime: Date.now() - 7200000, // 2小时前
+              status: 'read',
+              isSelf: false
+            },
+            {
+              id: '102',
+              sessionId: '1',
+              senderId: 'self',
+              content: '您好，有什么可以帮到您的？',
+              type: 'text',
+              createTime: Date.now() - 7180000, // 1小时59分钟前
+              status: 'read',
+              isSelf: true
+            },
+            {
+              id: '103',
+              sessionId: '1',
+              senderId: '101',
+              content: '铁观音应该怎么泡最好喝？',
+              type: 'text',
+              createTime: Date.now() - 3660000, // 1小时1分钟前
+              status: 'read',
+              isSelf: false
+            },
+            {
+              id: '104',
+              sessionId: '1',
+              senderId: '101',
+              content: '另外，你们店里有什么好的铁观音推荐？',
+              type: 'text',
+              createTime: Date.now() - 3600000, // 1小时前
+              status: 'read',
+              isSelf: false
+            }
+          ]
+        } else if (sessionId === '2') {
+          mockMessages = [
+            {
+              id: '201',
+              sessionId: '2',
+              senderId: '201',
+              content: '您购买的铁观音已经发货了',
+              type: 'text',
+              createTime: Date.now() - 172800000, // 2天前
+              status: 'read',
+              isSelf: false
+            },
+            {
+              id: '202',
+              sessionId: '2',
+              senderId: 'self',
+              content: '好的，谢谢，请问有快递单号吗？',
+              type: 'text',
+              createTime: Date.now() - 100800000, // 1天4小时前
+              status: 'read',
+              isSelf: true
+            },
+            {
+              id: '203',
+              sessionId: '2',
+              senderId: '201',
+              content: '单号是SF1234567890，请注意查收',
+              type: 'text',
+              createTime: Date.now() - 90000000, // 1天1小时前
+              status: 'read',
+              isSelf: false
+            },
+            {
+              id: '204',
+              sessionId: '2',
+              senderId: '201',
+              content: '您的订单已发货，请注意查收',
+              type: 'text',
+              createTime: Date.now() - 86400000, // 1天前
+              status: 'unread',
+              isSelf: false
+            }
+          ]
+        } else if (sessionId === '3') {
+          mockMessages = [
+            {
+              id: '301',
+              sessionId: '3',
+              senderId: 'system',
+              content: '欢迎使用商南茶文化平台！',
+              type: 'text',
+              createTime: Date.now() - 30 * 86400000, // 30天前
+              status: 'read',
+              isSelf: false
+            },
+            {
+              id: '302',
+              sessionId: '3',
+              senderId: 'system',
+              content: '感谢您注册成为我们的用户，祝您购物愉快！',
+              type: 'text',
+              createTime: Date.now() - 30 * 86400000, // 30天前
+              status: 'read',
+              isSelf: false
+            },
+            {
+              id: '303',
+              sessionId: '3',
+              senderId: 'system',
+              content: '您有一张优惠券已到账，请查收！',
+              type: 'text',
+              createTime: Date.now() - 7 * 86400000, // 7天前
+              status: 'unread',
+              isSelf: false
+            }
+          ]
+        }
+        
+        // 处理加载更多的情况
+        if (isLoadMore && existingMessages.length > 0) {
+          // 模拟加载更早的消息
+          const earlierMessages = [
+            {
+              id: `${sessionId}01-earlier`,
+              sessionId,
+              senderId: sessionId === 'self' ? 'other' : 'self',
+              content: '这是更早的消息1',
+              type: 'text',
+              createTime: existingMessages[0].createTime - 86400000, // 比最早的消息早1天
+              status: 'read',
+              isSelf: sessionId !== 'self'
+            },
+            {
+              id: `${sessionId}02-earlier`,
+              sessionId,
+              senderId: sessionId === 'self' ? 'other' : 'self',
+              content: '这是更早的消息2',
+              type: 'text',
+              createTime: existingMessages[0].createTime - 82800000, // 比最早的消息早23小时
+              status: 'read',
+              isSelf: sessionId !== 'self'
+            }
+          ]
+          
+          // 将新消息添加到现有消息前面
+          messagesMap[sessionId] = [...earlierMessages, ...existingMessages]
+        } else {
+          // 首次加载或刷新消息
+          messagesMap[sessionId] = mockMessages
+        }
+        
+        // 模拟是否还有更多消息可以加载
+        hasMoreMessages.value = isLoadMore ? false : true
+        
+        // 更新会话的未读状态
+        if (!isLoadMore) {
+          markSessionAsRead(sessionId)
+        }
+        
+        // 如果不是加载更多，滚动到底部
+        if (!isLoadMore) {
+          await nextTick()
+          scrollToBottom()
+        }
+      } catch (error) {
+        console.error('获取消息列表失败：', error)
+        ElMessage.error('获取消息列表失败，请稍后重试')
+      } finally {
+        loadingMessages.value = false
+      }
+    }
+    
+    // 标记会话为已读
+    const markSessionAsRead = (sessionId) => {
+      const session = mockSessions.value.find(s => s.sessionId === sessionId)
+      if (session && session.unreadCount > 0) {
+        session.unreadCount = 0
+        // 在实际项目中，这里应该调用后端API标记会话为已读
+      }
+    }
+    
+    // 加载更多消息
+    const loadMoreMessages = () => {
+      if (!currentSessionId.value || loadingMessages.value) return
+      fetchMessages(currentSessionId.value, true)
+    }
+    
+    // 选择会话
+    const selectSession = (session) => {
+      if (!session) return
+      
+      const sessionId = session.sessionId
+      if (currentSessionId.value === sessionId) return
+      
+      currentSessionId.value = sessionId
+      
+      // 如果该会话的消息尚未加载，则加载消息
+      if (!messagesMap[sessionId]) {
+        fetchMessages(sessionId)
+      } else {
+        // 如果已加载，则标记为已读并滚动到底部
+        markSessionAsRead(sessionId)
+        nextTick(() => {
+          scrollToBottom()
+        })
+      }
+    }
+    
+    // 删除会话
+    const deleteSession = (sessionId) => {
+      ElMessageBox.confirm('确定要删除此会话吗？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        mockSessions.value = mockSessions.value.filter(s => s.sessionId !== sessionId)
+        delete messagesMap[sessionId]
+        
+        if (currentSessionId.value === sessionId) {
+          currentSessionId.value = null
+          if (mockSessions.value.length > 0) {
+            selectSession(mockSessions.value[0])
+          }
+        }
+        
+        ElMessage.success('会话已删除')
+        // 在实际项目中，这里应该调用后端API删除会话
+      }).catch(() => {
+        // 用户取消删除
+      })
+    }
+    
+    // 清空聊天记录
+    const clearMessages = () => {
+      if (!currentSessionId.value) return
+      
+      ElMessageBox.confirm('确定要清空聊天记录吗？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        messagesMap[currentSessionId.value] = []
+        ElMessage.success('聊天记录已清空')
+        // 在实际项目中，这里应该调用后端API清空聊天记录
+      }).catch(() => {
+        // 用户取消清空
+      })
+    }
+    
+    // 举报用户
+    const reportUser = () => {
+      if (!currentSessionId.value) return
+      
+      ElMessageBox.prompt('请输入举报原因', '举报用户', {
+        confirmButtonText: '提交',
+        cancelButtonText: '取消',
+        inputPlaceholder: '请详细描述您的举报原因'
+      }).then(({ value }) => {
+        if (!value.trim()) {
+          ElMessage.warning('举报原因不能为空')
+          return
+        }
+        
+        ElMessage.success('举报已提交，我们会尽快处理')
+        // 在实际项目中，这里应该调用后端API提交举报
+      }).catch(() => {
+        // 用户取消举报
+      })
+    }
+    
+    // 发送消息
+    const sendMessage = async () => {
+      if (!currentSessionId.value) return
+      if (!messageInput.value.trim() && !imageFile.value) return
+      
+      try {
+        const now = Date.now()
+        const messageId = `msg-${now}`
+        
+        let messageType = 'text'
+        let messageContent = messageInput.value.trim()
+        
+        // 如果有图片文件，则处理图片消息
+        if (imageFile.value) {
+          messageType = 'image'
+          // 在实际项目中，这里应该上传图片到服务器，获取图片URL
+          // 模拟图片上传
+          messageContent = URL.createObjectURL(imageFile.value)
+          imageFile.value = null
+        }
+        
+        // 创建消息对象
+        const message = {
+          id: messageId,
+          sessionId: currentSessionId.value,
+          senderId: 'self',
+          content: messageContent,
+          type: messageType,
+          createTime: now,
+          status: 'sending',
+          isSelf: true
+        }
+        
+        // 添加到消息列表
+        if (!messagesMap[currentSessionId.value]) {
+          messagesMap[currentSessionId.value] = []
+        }
+        messagesMap[currentSessionId.value].push(message)
+        
+        // 清空输入框
+      messageInput.value = ''
+        
+        // 滚动到底部
+        await nextTick()
+        scrollToBottom()
+        
+        // 模拟发送消息的网络延迟
+        setTimeout(() => {
+          // 更新消息状态为已发送
+          const msgIndex = messagesMap[currentSessionId.value].findIndex(m => m.id === messageId)
+          if (msgIndex !== -1) {
+            messagesMap[currentSessionId.value][msgIndex].status = 'sent'
+          }
+          
+          // 更新当前会话的最后消息和时间
+          const session = mockSessions.value.find(s => s.sessionId === currentSessionId.value)
+          if (session) {
+            session.lastMessage = messageType === 'text' ? messageContent : '[图片]'
+            session.lastTime = now
+          }
+          
+          // 在实际项目中，这里应该调用后端API发送消息
+        }, 1000)
+        
+        // 模拟对方已读的延迟
+        setTimeout(() => {
+          const msgIndex = messagesMap[currentSessionId.value].findIndex(m => m.id === messageId)
+          if (msgIndex !== -1) {
+            messagesMap[currentSessionId.value][msgIndex].status = 'read'
+          }
+        }, 3000)
+        
+        // 模拟对方回复
+        if (messageType === 'text' && Math.random() > 0.3) {
+          setTimeout(() => {
+            const currentSession = mockSessions.value.find(s => s.sessionId === currentSessionId.value)
+            if (!currentSession) return
+            
+            const replyMessages = [
+              '好的，我明白了',
+              '谢谢您的信息',
+              '我们会尽快处理',
+              '请稍等，我查询一下',
+              '有什么需要我帮忙的吗？'
+            ]
+            
+            const replyMessageId = `reply-${Date.now()}`
+            const replyMessage = {
+              id: replyMessageId,
+              sessionId: currentSessionId.value,
+              senderId: currentSession.userId,
+              content: replyMessages[Math.floor(Math.random() * replyMessages.length)],
+              type: 'text',
+              createTime: Date.now(),
+              status: 'unread',
+              isSelf: false
+            }
+            
+            messagesMap[currentSessionId.value].push(replyMessage)
+            
+            // 更新当前会话的最后消息和时间
+            currentSession.lastMessage = replyMessage.content
+            currentSession.lastTime = replyMessage.createTime
+            
+            // 滚动到底部
+            nextTick(() => {
+              scrollToBottom()
+            })
+          }, 5000 + Math.random() * 5000)
+        }
+      } catch (error) {
+        console.error('发送消息失败：', error)
+        ElMessage.error('发送消息失败，请稍后重试')
+      }
+    }
+    
+    // 触发图片上传
+    const triggerImageUpload = () => {
+      if (!currentSessionId.value) return
+      if (imageInput.value) {
+        imageInput.value.click()
+      }
+    }
+    
+    // 处理图片上传
+    const handleImageUpload = (event) => {
+      const file = event.target.files[0]
+      if (!file) return
+      
+      // 检查文件类型
+      if (!file.type.startsWith('image/')) {
+        ElMessage.error('只能上传图片文件')
+        return
+      }
+      
+      // 检查文件大小，限制为5MB
+      if (file.size > 5 * 1024 * 1024) {
+        ElMessage.error('图片大小不能超过5MB')
+        return
+      }
+      
+      imageFile.value = file
+      sendMessage()
+      
+      // 清空input，以便于下次选择同一文件时也能触发change事件
+      event.target.value = ''
+    }
+    
+    // 滚动到底部
+    const scrollToBottom = () => {
+      if (messagesContainer.value) {
+        messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
+      }
+    }
+    
+    // 表情相关
+    const toggleEmojiPicker = () => {
+      showEmojiPicker.value = !showEmojiPicker.value
+    }
+    
+    const insertEmoji = (emoji) => {
+      messageInput.value += emoji
+    }
+    
+    // 阻止事件冒泡
+    const stopPropagation = (event) => {
+      event.stopPropagation()
+    }
+    
+    // 格式化时间
+    const formatTime = (timestamp) => {
+      if (!timestamp) return ''
+      
+      const date = new Date(timestamp)
+      const now = new Date()
+      const diff = now - date
+      
+      // 今天内的消息显示时:分
+      if (diff < 86400000 && date.getDate() === now.getDate()) {
+        return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
+      }
+      
+      // 昨天的消息
+      if (diff < 2 * 86400000 && date.getDate() === now.getDate() - 1) {
+        return '昨天'
+      }
+      
+      // 一周内的消息显示周几
+      if (diff < 7 * 86400000) {
+        const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+        return weekdays[date.getDay()]
+      }
+      
+      // 更早的消息显示年-月-日
+      return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`
+    }
+    
+    // 格式化消息时间
+    const formatMessageTime = (timestamp) => {
+      if (!timestamp) return ''
+      
+      const date = new Date(timestamp)
+      return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
+    }
+    
+    // 过滤会话列表
+    const filteredSessions = computed(() => {
+      if (!searchQuery.value.trim()) {
+        return mockSessions.value
+      }
+      
+      const query = searchQuery.value.toLowerCase()
+      return mockSessions.value.filter(session => {
+        return session.name.toLowerCase().includes(query) ||
+               (session.lastMessage && session.lastMessage.toLowerCase().includes(query))
+      })
+    })
+    
+    // 当前会话
+    const currentSession = computed(() => {
+      return mockSessions.value.find(s => s.sessionId === currentSessionId.value) || null
+    })
+    
+    // 当前会话的消息列表
+    const currentMessages = computed(() => {
+      return messagesMap[currentSessionId.value] || []
+    })
+    
+    // 初始化函数，根据路由参数自动打开特定会话
+    const initializeChatFromRouteParams = () => {
+      // 检查URL中是否包含shopId参数
+      const shopId = route.query.shopId
+      // 检查URL中是否包含userId参数
+      const userId = route.query.userId
+      
+      if (shopId) {
+        // 根据shopId找到对应店铺的会话
+        // 在实际应用中，这里可能需要先检查是否已有此会话，没有则创建新会话
+        const shopSession = mockSessions.value.find(session => 
+          session.targetType === 'shop' && session.targetId.toString() === shopId.toString()
+        )
+        
+        if (shopSession) {
+          // 如果找到对应会话，自动选择该会话
+          selectSession(shopSession)
+        } else {
+          // 如果没有找到，创建新的店铺客服会话
+          createShopServiceSession(shopId)
+        }
+      } else if (userId) {
+        // 根据userId找到对应用户的会话
+        const userSession = mockSessions.value.find(session => 
+          session.targetType === 'user' && session.targetId.toString() === userId.toString()
+        )
+        
+        if (userSession) {
+          // 如果找到对应会话，自动选择该会话
+          selectSession(userSession)
+        } else {
+          // 如果没有找到，创建新的用户会话
+          createUserChatSession(userId)
+        }
+      }
+    }
+    
+    // 创建新的店铺客服会话
+    const createShopServiceSession = (shopId) => {
+      // 模拟创建新的店铺客服会话
+      // 实际应用中应该调用API获取店铺信息和创建会话
+      
+      // 模拟店铺信息，实际应用中应从API获取
+      const shopInfo = {
+        id: shopId,
+        name: shopId === '101' ? '秦岭茗茶' : 
+              shopId === '102' ? '云雾茶庄' : 
+              shopId === '103' ? '福建茶行' : `店铺${shopId}`,
+        avatar: shopId === '101' ? 'https://via.placeholder.com/50x50?text=秦岭' :
+               shopId === '102' ? 'https://via.placeholder.com/50x50?text=云雾' :
+               shopId === '103' ? 'https://via.placeholder.com/50x50?text=福建' : 'https://via.placeholder.com/50x50?text=店铺'
+      }
+      
+      // 创建新会话
+      const newSession = {
+        sessionId: `shop_${shopId}_${Date.now()}`,
+        targetId: shopId,
+        targetType: 'shop',
+        name: `${shopInfo.name}客服`,
+        avatar: shopInfo.avatar,
+        lastMessage: '您好，有什么可以帮到您的吗？',
+        lastTime: new Date().toISOString(),
+        unreadCount: 0,
+        messages: [
+          {
+            id: `msg_${Date.now()}`,
+            sessionId: `shop_${shopId}_${Date.now()}`,
+            content: '您好，有什么可以帮到您的吗？',
+            type: 'text',
+            createTime: new Date().toISOString(),
+            status: 'read',
+            isSelf: false,
+            showTimeDivider: true
+          }
+        ]
+      }
+      
+      // 添加到会话列表
+      mockSessions.value.unshift(newSession)
+      
+      // 选择新创建的会话
+      selectSession(newSession)
+      
+      // 显示欢迎消息
+      ElMessage.success(`已连接到${shopInfo.name}客服`)
+    }
+    
+    // 创建新的用户聊天会话
+    const createUserChatSession = (userId) => {
+      // 模拟创建新的用户聊天会话
+      // 实际应用中应该调用API获取用户信息和创建会话
+      
+      // 模拟用户信息，实际应用中应从API获取
+      const userInfo = {
+        id: userId,
+        name: userId === '1' ? '茶香四溢' : 
+              userId === '2' ? '茶艺小能手' : 
+              userId === '3' ? '普洱控' : `用户${userId}`,
+        avatar: userId === '1' ? 'https://via.placeholder.com/50x50?text=茶香' :
+               userId === '2' ? 'https://via.placeholder.com/50x50?text=茶艺' :
+               userId === '3' ? 'https://via.placeholder.com/50x50?text=普洱' : 'https://via.placeholder.com/50x50?text=用户'
+      }
+      
+      // 创建新会话
+      const newSession = {
+        sessionId: `user_${userId}_${Date.now()}`,
+        targetId: userId,
+        targetType: 'user',
+        name: userInfo.name,
+        avatar: userInfo.avatar,
+        lastMessage: '',
+        lastTime: new Date().toISOString(),
+        unreadCount: 0,
+        messages: []
+      }
+      
+      // 添加到会话列表
+      mockSessions.value.unshift(newSession)
+      
+      // 选择新创建的会话
+      selectSession(newSession)
+      
+      // 显示提示消息
+      ElMessage.success(`已开始与${userInfo.name}的聊天`)
+    }
+    
+    // 在组件挂载时检查路由参数
+    onMounted(() => {
+      // 先加载所有会话
+      fetchSessions()
+      
+      // 然后处理路由参数，自动打开特定会话
+      initializeChatFromRouteParams()
+      
+      // 监听路由变化，以处理在聊天页面内导航到不同会话的情况
+      if (route.query.shopId || route.query.userId) {
+        initializeChatFromRouteParams()
+      }
+    })
+    
+    // 监听路由参数变化
+    watch(() => route.query.shopId, (newShopId) => {
+      if (newShopId) {
+        initializeChatFromRouteParams()
+      }
+    })
+    
+    // 监听userId路由参数变化
+    watch(() => route.query.userId, (newUserId) => {
+      if (newUserId) {
+        initializeChatFromRouteParams()
+      }
+    })
+    
+    return {
+      // 引用
+      messagesContainer,
+      imageInput,
+      
+      // 状态
+      searchQuery,
+      messageInput,
+      mockSessions,
+      currentSessionId,
+      loadingMessages,
+      hasMoreMessages,
+      showEmojiPicker,
+      defaultAvatar,
+      currentUserAvatar,
+      emojiList,
+      
+      // 计算属性
+      filteredSessions,
+      currentSession,
+      currentMessages,
+      
+      // 方法
+      fetchSessions,
+      fetchMessages,
+      markSessionAsRead,
+      loadMoreMessages,
+      selectSession,
+      deleteSession,
+      clearMessages,
+      reportUser,
+      sendMessage,
+      triggerImageUpload,
+      handleImageUpload,
+      toggleEmojiPicker,
+      insertEmoji,
+      stopPropagation,
+      formatTime,
+      formatMessageTime,
+      initializeChatFromRouteParams,
+      createShopServiceSession,
+      createUserChatSession
+    }
+  }
+}
+</script>
+
+<style lang="scss" scoped>
+.chat-page {
+  position: relative;
+  
+  .chat-layout {
+    display: flex;
+    height: 650px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    
+    // 会话列表区域
+    .chat-sessions {
+      width: 300px;
+      border-right: 1px solid #eee;
+      display: flex;
+      flex-direction: column;
+      background-color: #f7f7f7;
+      
+      .search-bar {
+        padding: 15px;
+        border-bottom: 1px solid #eee;
+        background-color: #fff;
+      }
+      
+      .session-list {
+        flex: 1;
+        overflow-y: auto;
+        
+        .session-item {
+          display: flex;
+          padding: 12px 15px;
+          cursor: pointer;
+          transition: background-color 0.2s;
+          border-bottom: 1px solid #f0f0f0;
+          background-color: #fff;
+          
+          &:hover {
+            background-color: #f9f9f9;
+          }
+          
+          &.session-active {
+            background-color: #f0f7ff;
+          }
+          
+          .session-avatar {
+            margin-right: 12px;
+            
+            img {
+              width: 48px;
+              height: 48px;
+              border-radius: 50%;
+              object-fit: cover;
+            }
+          }
+          
+          .session-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
+            
+            .session-name {
+              font-size: 15px;
+              font-weight: 500;
+              color: var(--text-primary);
+              margin-bottom: 4px;
+            }
+            
+            .session-preview {
+              font-size: 13px;
+              color: var(--text-secondary);
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              max-width: 150px;
+            }
+          }
+          
+          .session-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: space-between;
+            
+            .session-time {
+              font-size: 12px;
+              color: var(--text-placeholder);
+              margin-bottom: 4px;
+            }
+            
+            .session-actions {
+              visibility: hidden;
+              
+              .more-action {
+                padding: 0;
+                background: transparent;
+                border: none;
+                font-size: 16px;
+                color: var(--text-secondary);
+              }
+            }
+            
+            .action-buttons {
+              display: flex;
+              flex-direction: column;
+              
+              button {
+                margin: 3px 0;
+              }
+            }
+          }
+          
+          &:hover .session-actions {
+            visibility: visible;
+          }
+        }
+      }
+    }
+    
+    // 聊天内容区域
+    .chat-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background-color: #f7f7f7;
+      
+      .chat-header {
+        padding: 15px;
+        border-bottom: 1px solid #eee;
+        background-color: #fff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        
+        .chat-title {
+          margin: 0;
+          font-size: 16px;
+          font-weight: 500;
+          color: var(--text-primary);
+          text-align: center;
+          flex: 1;
+        }
+        
+        .chat-actions {
+          :deep(.el-button) {
+            padding: 6px;
+            font-size: 16px;
+          }
+        }
+      }
+      
+      .chat-messages {
+        flex: 1;
+        padding: 15px;
+        overflow-y: auto;
+        
+        .load-more {
+          text-align: center;
+          padding: 10px 0;
+          
+          .el-button {
+            font-size: 13px;
+          }
+        }
+        
+        .messages-list {
+          display: flex;
+          flex-direction: column;
+          
+          .message-item {
+            margin-bottom: 15px;
+            
+            .message-time-divider {
+              text-align: center;
+              margin: 10px 0;
+              
+              span {
+                display: inline-block;
+                padding: 2px 10px;
+                font-size: 12px;
+                color: var(--text-secondary);
+                background-color: rgba(0, 0, 0, 0.05);
+                border-radius: 10px;
+              }
+            }
+            
+            .message-container {
+              display: flex;
+              
+              &.message-self {
+                justify-content: flex-end;
+              }
+              
+              .message-avatar {
+                width: 36px;
+                height: 36px;
+                margin: 0 8px;
+                
+                img {
+                  width: 36px;
+                  height: 36px;
+                  border-radius: 50%;
+                  object-fit: cover;
+                }
+              }
+              
+              .message-content {
+                display: flex;
+                flex-direction: column;
+                max-width: 70%;
+                
+                .message-bubble {
+                  padding: 8px 12px;
+                  border-radius: 8px;
+                  position: relative;
+                  
+                  .message-text {
+                    font-size: 14px;
+                    line-height: 1.5;
+                    word-break: break-word;
+                  }
+                  
+                  .message-image {
+                    width: 100%;
+                    
+                    :deep(.el-image) {
+                      max-width: 240px;
+                      max-height: 240px;
+                      border-radius: 8px;
+                      overflow: hidden;
+                      
+                      img {
+                        width: 100%;
+                        height: 100%;
+                        object-fit: cover;
+                      }
+                    }
+                    
+                    .image-error {
+                      display: flex;
+                      flex-direction: column;
+                      align-items: center;
+                      justify-content: center;
+                      padding: 20px;
+                      background-color: #f5f5f5;
+                      border-radius: 8px;
+                      
+                      .el-icon {
+                        font-size: 24px;
+                        color: #f56c6c;
+                        margin-bottom: 5px;
+                      }
+                      
+                      span {
+                        font-size: 12px;
+                        color: var(--text-secondary);
+                      }
+                    }
+                  }
+                }
+                
+                .message-status {
+                  display: flex;
+                  justify-content: flex-end;
+                  margin-top: 2px;
+                  font-size: 12px;
+                  color: var(--text-secondary);
+                  
+                  .el-icon {
+                    font-size: 12px;
+                  }
+                  
+                  .status-failed {
+                    color: #f56c6c;
+                  }
+                }
+              }
+            }
+            
+            &.message-self {
+              .message-content {
+                align-items: flex-end;
+                
+                .message-bubble {
+                  background-color: #95ec69;
+                  color: #000;
+                  
+                  &::after {
+                    content: '';
+                    position: absolute;
+                    right: -6px;
+                    top: 6px;
+                    border-width: 6px 0 6px 6px;
+                    border-style: solid;
+                    border-color: transparent transparent transparent #95ec69;
+                  }
+                }
+              }
+            }
+            
+            &.message-other {
+              .message-content {
+                align-items: flex-start;
+                
+                .message-bubble {
+                  background-color: #ffffff;
+                  color: #333;
+                  
+                  &::before {
+                    content: '';
+                    position: absolute;
+                    left: -6px;
+                    top: 6px;
+                    border-width: 6px 6px 6px 0;
+                    border-style: solid;
+                    border-color: transparent #ffffff transparent transparent;
+                  }
+                }
+              }
+            }
+          }
+        }
+        
+        .empty-messages {
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+      }
+      
+      .select-tip {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-secondary);
+        
+        .tip-image {
+          width: 120px;
+          margin-bottom: 20px;
+          opacity: 0.6;
+        }
+        
+        p {
+          font-size: 16px;
+        }
+      }
+      
+      .chat-input {
+        padding: 15px;
+        border-top: 1px solid #eee;
+        background-color: #fff;
+        position: relative;
+        
+        .input-toolbar {
+          display: flex;
+          margin-bottom: 10px;
+          
+          .el-button {
+            padding: 4px 8px;
+            
+            .el-icon {
+              font-size: 18px;
+              color: var(--text-secondary);
+            }
+          }
+          
+          .toolbar-button {
+            display: flex;
+            align-items: center;
+            background-color: #f5f7fa;
+            border-radius: 4px;
+            padding: 6px 10px;
+            margin-right: 10px;
+            transition: all 0.3s;
+            
+            &:hover {
+              background-color: #e4e7ed;
+            }
+            
+            .el-icon {
+              margin-right: 4px;
+              font-size: 16px;
+              color: #606266;
+            }
+          }
+        }
+        
+        .emoji-picker {
+          position: absolute;
+          bottom: 100%;
+          left: 15px;
+          background-color: #fff;
+          border: 1px solid #eee;
+          border-radius: 8px;
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+          padding: 10px;
+          z-index: 100;
+          margin-bottom: 8px;
+          
+          &::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 14px;
+            border-width: 8px 8px 0;
+            border-style: solid;
+            border-color: #fff transparent transparent;
+          }
+          
+          .emoji-container {
+            display: flex;
+            flex-wrap: wrap;
+            width: 300px;
+            max-height: 180px;
+            overflow-y: auto;
+            
+            .emoji-item {
+              width: 35px;
+              height: 35px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 20px;
+              cursor: pointer;
+              transition: background-color 0.2s;
+              
+              &:hover {
+                background-color: #f5f5f5;
+                border-radius: 4px;
+              }
+            }
+          }
+        }
+        
+        :deep(.el-textarea__inner) {
+          resize: none;
+          min-height: 60px;
+          font-size: 14px;
+        }
+        
+        .input-actions {
+          display: flex;
+          justify-content: flex-end;
+          margin-top: 10px;
+        }
+      }
+    }
+  }
+}
+
+// 定制滚动条样式
+.session-list,
+.chat-messages,
+.emoji-container {
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background-color: #ddd;
+    border-radius: 3px;
+    
+    &:hover {
+      background-color: #ccc;
+    }
+  }
+  
+  &::-webkit-scrollbar-track {
+    background-color: #f7f7f7;
+  }
+}
+</style> 

@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shangnantea.mapper.OrderMapper">
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.shangnantea.model.entity.order.Order">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="shop_id" property="shopId"/>
+        <result column="tea_id" property="teaId"/>
+        <result column="tea_name" property="teaName"/>
+        <result column="spec_id" property="specId"/>
+        <result column="spec_name" property="specName"/>
+        <result column="tea_image" property="teaImage"/>
+        <result column="quantity" property="quantity"/>
+        <result column="price" property="price"/>
+        <result column="total_amount" property="totalAmount"/>
+        <result column="address_id" property="addressId"/>
+        <result column="status" property="status"/>
+        <result column="payment_time" property="paymentTime"/>
+        <result column="payment_method" property="paymentMethod"/>
+        <result column="logistics_company" property="logisticsCompany"/>
+        <result column="logistics_number" property="logisticsNumber"/>
+        <result column="shipping_time" property="shippingTime"/>
+        <result column="completion_time" property="completionTime"/>
+        <result column="cancel_time" property="cancelTime"/>
+        <result column="cancel_reason" property="cancelReason"/>
+        <result column="buyer_message" property="buyerMessage"/>
+        <result column="buyer_rate" property="buyerRate"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 所有列 -->
+    <sql id="Base_Column_List">
+        id, user_id, shop_id, tea_id, tea_name, spec_id, spec_name, tea_image, quantity, 
+        price, total_amount, address_id, status, payment_time, payment_method, logistics_company, 
+        logistics_number, shipping_time, completion_time, cancel_time, cancel_reason, 
+        buyer_message, buyer_rate, create_time, update_time
+    </sql>
+
+    <!-- 插入记录 -->
+    <insert id="insert" parameterType="com.shangnantea.model.entity.order.Order">
+        INSERT INTO orders (
+            id, user_id, shop_id, tea_id, tea_name, spec_id, spec_name, tea_image, quantity, 
+            price, total_amount, address_id, status, payment_time, payment_method, logistics_company, 
+            logistics_number, shipping_time, completion_time, cancel_time, cancel_reason, 
+            buyer_message, buyer_rate, create_time, update_time
+        ) VALUES (
+            #{id}, #{userId}, #{shopId}, #{teaId}, #{teaName}, #{specId}, #{specName}, #{teaImage}, #{quantity}, 
+            #{price}, #{totalAmount}, #{addressId}, #{status}, #{paymentTime}, #{paymentMethod}, #{logisticsCompany}, 
+            #{logisticsNumber}, #{shippingTime}, #{completionTime}, #{cancelTime}, #{cancelReason}, 
+            #{buyerMessage}, #{buyerRate}, #{createTime}, #{updateTime}
+        )
+    </insert>
+
+    <!-- 根据主键删除记录 -->
+    <delete id="deleteById" parameterType="java.lang.String">
+        DELETE FROM orders WHERE id = #{id}
+    </delete>
+
+    <!-- 根据主键批量删除记录 -->
+    <delete id="deleteByIds" parameterType="java.util.List">
+        DELETE FROM orders WHERE id IN
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!-- 根据主键更新记录 -->
+    <update id="updateById" parameterType="com.shangnantea.model.entity.order.Order">
+        UPDATE orders
+        <set>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="shopId != null">shop_id = #{shopId},</if>
+            <if test="teaId != null">tea_id = #{teaId},</if>
+            <if test="teaName != null">tea_name = #{teaName},</if>
+            <if test="specId != null">spec_id = #{specId},</if>
+            <if test="specName != null">spec_name = #{specName},</if>
+            <if test="teaImage != null">tea_image = #{teaImage},</if>
+            <if test="quantity != null">quantity = #{quantity},</if>
+            <if test="price != null">price = #{price},</if>
+            <if test="totalAmount != null">total_amount = #{totalAmount},</if>
+            <if test="addressId != null">address_id = #{addressId},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="paymentTime != null">payment_time = #{paymentTime},</if>
+            <if test="paymentMethod != null">payment_method = #{paymentMethod},</if>
+            <if test="logisticsCompany != null">logistics_company = #{logisticsCompany},</if>
+            <if test="logisticsNumber != null">logistics_number = #{logisticsNumber},</if>
+            <if test="shippingTime != null">shipping_time = #{shippingTime},</if>
+            <if test="completionTime != null">completion_time = #{completionTime},</if>
+            <if test="cancelTime != null">cancel_time = #{cancelTime},</if>
+            <if test="cancelReason != null">cancel_reason = #{cancelReason},</if>
+            <if test="buyerMessage != null">buyer_message = #{buyerMessage},</if>
+            <if test="buyerRate != null">buyer_rate = #{buyerRate},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据主键查询记录 -->
+    <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM orders
+        WHERE id = #{id}
+    </select>
+
+    <!-- 根据主键批量查询记录 -->
+    <select id="selectByIds" parameterType="java.util.List" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM orders
+        WHERE id IN
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <!-- 查询所有记录 -->
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM orders
+    </select>
+
+    <!-- 统计记录总数 -->
+    <select id="count" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM orders
+    </select>
+    
+    <!-- 根据状态查询订单 -->
+    <select id="selectByStatus" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM orders
+        WHERE status = #{status}
+    </select>
+    
+    <!-- 根据用户ID和状态查询订单 -->
+    <select id="selectByUserIdAndStatus" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM orders
+        WHERE user_id = #{userId}
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+        ORDER BY create_time DESC
+    </select>
+    
+    <!-- 根据店铺ID和状态查询订单 -->
+    <select id="selectByShopIdAndStatus" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM orders
+        WHERE shop_id = #{shopId}
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+        ORDER BY create_time DESC
+    </select>
+    
+    <!-- 查询待付款订单 (状态码0) -->
+    <select id="selectPendingPaymentOrders" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM orders
+        WHERE status = 0
+        ORDER BY create_time DESC
+    </select>
+    
+    <!-- 查询待发货订单 (状态码1) -->
+    <select id="selectPendingShipmentOrders" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM orders
+        WHERE status = 1
+        ORDER BY payment_time DESC
+    </select>
+    
+    <!-- 查询待收货订单 (状态码2) -->
+    <select id="selectPendingReceiptOrders" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM orders
+        WHERE status = 2
+        ORDER BY shipping_time DESC
+    </select>
+    
+    <!-- 查询已完成订单 (状态码3) -->
+    <select id="selectCompletedOrders" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM orders
+        WHERE status = 3
+        ORDER BY completion_time DESC
+    </select>
+    
+    <!-- 查询已取消订单 (状态码4) -->
+    <select id="selectCancelledOrders" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM orders
+        WHERE status = 4
+        ORDER BY cancel_time DESC
+    </select>
+    
+    <!-- 查询已退款订单 (状态码5) -->
+    <select id="selectRefundedOrders" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM orders
+        WHERE status = 5
+        ORDER BY update_time DESC
+    </select>
+</mapper> 

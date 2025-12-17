@@ -1,0 +1,1242 @@
+<template>
+  <div class="forum-list-page">
+    <!-- 页面标题 -->
+    <div class="page-header">
+      <div class="container">
+        <h1 class="page-title">茶友论坛</h1>
+        <p class="page-description">茶友交流的专业平台，分享茶文化与品茶心得</p>
+      </div>
+    </div>
+
+    <div class="container main-content">
+      <el-row :gutter="20">
+        <!-- 左侧版块导航 -->
+        <el-col :xs="24" :sm="6" :md="5" :lg="4">
+          <div class="sidebar topics-sidebar">
+            <div class="sidebar-header">
+              <h3 class="sidebar-title">版块导航</h3>
+            </div>
+            <div class="topic-list">
+              <div 
+                class="topic-item" 
+                :class="{ active: currentTopicId === 'all' }" 
+                @click="switchTopic('all')"
+              >
+                <el-icon><Grid /></el-icon>
+                <span>全部帖子</span>
+                <span class="count">{{ pagination.total }}</span>
+              </div>
+              <div 
+                v-for="topic in topicList" 
+                :key="topic.id" 
+                class="topic-item" 
+                :class="{ active: currentTopicId === topic.id }"
+                @click="switchTopic(topic.id)"
+              >
+                <SafeImage :src="topic.icon" type="banner" :alt="topic.name" class="topic-icon" style="width:16px;height:16px;margin-right:6px;" />
+                <span>{{ topic.name }}</span>
+                <span class="count">{{ topic.postCount }}</span>
+              </div>
+            </div>
+          </div>
+        </el-col>
+        
+        <!-- 中间帖子列表 -->
+        <el-col :xs="24" :sm="18" :md="14" :lg="15">
+          <div class="main-posts">
+            <!-- 排序和刷新 -->
+            <div class="posts-header">
+              <div class="topic-info" v-if="currentTopicId !== 'all'">
+                <h2 class="current-topic">{{ getCurrentTopicName() }}</h2>
+                <p class="topic-desc">{{ getCurrentTopicDesc() }}</p>
+              </div>
+              <div class="header-actions">
+                <el-dropdown trigger="click" @command="handleSortChange">
+                  <span class="sort-dropdown">
+                    {{ sortOptions[currentSort] || '最新发布' }} <el-icon><ArrowDown /></el-icon>
+                  </span>
+                  <template #dropdown>
+                    <el-dropdown-menu>
+                      <el-dropdown-item v-for="(label, value) in sortOptions" :key="value" :command="value">
+                        {{ label }}
+                      </el-dropdown-item>
+                    </el-dropdown-menu>
+                  </template>
+                </el-dropdown>
+                
+                <el-button type="primary" plain size="small" @click="refreshPosts" :loading="loading.posts">
+                  <el-icon><Refresh /></el-icon> 刷新
+                </el-button>
+              </div>
+            </div>
+            
+            <!-- 帖子卡片列表 -->
+            <div class="posts-container">
+              <post-card 
+                v-for="post in postList" 
+                :key="post.id" 
+                :post="post"
+                @reply="handleReply" 
+                @favorite="handleFavorite"
+              />
+              
+              <!-- 分页 -->
+              <div class="pagination-container" v-if="postList.length > 0">
+                <el-pagination
+                  v-model:current-page="pagination.currentPage"
+                  v-model:page-size="pagination.pageSize"
+                  :page-sizes="[10, 20, 30, 50]"
+                  layout="total, sizes, prev, pager, next, jumper"
+                  :total="pagination.total"
+                  @size-change="handleSizeChange"
+                  @current-change="handleCurrentChange"
+                />
+              </div>
+              
+              <!-- 无数据提示 -->
+              <el-empty v-if="postList.length === 0" description="暂无帖子数据" />
+            </div>
+          </div>
+        </el-col>
+        
+        <!-- 右侧用户信息和我的帖子 -->
+        <el-col :xs="24" :sm="24" :md="5" :lg="5">
+          <div class="sidebar user-sidebar">
+            <!-- 用户信息 -->
+            <div class="user-info-card">
+              <div class="user-info">
+                <div class="avatar">
+                  <SafeImage :src="currentUser.avatar" type="avatar" :alt="currentUser.username" style="width:40px;height:40px;border-radius:50%;object-fit:cover;" />
+                </div>
+                <div class="info">
+                  <div class="name">
+                    {{ currentUser.username }}
+                    <el-icon color="#409EFF" v-if="currentUser.gender === 1"><Male /></el-icon>
+                    <el-icon color="#FF4949" v-if="currentUser.gender === 2"><Female /></el-icon>
+                  </div>
+                  <div class="stats">
+                    社区等级 Lv{{ currentUser.level || 1 }}
+                  </div>
+                </div>
+              </div>
+              <!-- 发帖按钮 -->
+              <el-button type="primary" class="post-btn" @click="showPostDialog">
+                <el-icon><EditPen /></el-icon> 发表新帖
+              </el-button>
+            </div>
+            
+            <!-- 我的帖子 -->
+            <div class="my-posts-card">
+              <div class="sidebar-header">
+                <h3 class="sidebar-title">我的帖子</h3>
+              </div>
+              <div v-if="myPosts.length > 0" class="my-posts-list">
+                <div 
+                  v-for="post in myPosts" 
+                  :key="post.id" 
+                  class="my-post-item"
+                >
+                  <div class="post-content" @click="viewPost(post.id)">
+                    <div class="title">{{ post.title }}</div>
+                    <div class="summary">{{ post.summary }}</div>
+                  </div>
+                  <div class="post-actions">
+                    <el-button 
+                      type="danger" 
+                      link 
+                      size="small" 
+                      @click.stop="confirmDeletePost(post)"
+                    >
+                      <el-icon><Delete /></el-icon>
+                    </el-button>
+                  </div>
+                </div>
+              </div>
+              <el-empty v-else description="您还没有发表过帖子" />
+            </div>
+      </div>
+        </el-col>
+      </el-row>
+      
+      <!-- 新建帖子对话框 -->
+      <el-dialog
+        title="发布新帖"
+        v-model="dialogVisible.post"
+        width="650px"
+      >
+        <p class="dialog-message">论坛功能正在完善中，即将推出发帖功能，敬请期待！</p>
+        <template #footer>
+          <span class="dialog-footer">
+            <el-button @click="dialogVisible.post = false">关闭</el-button>
+          </span>
+        </template>
+      </el-dialog>
+      
+      <!-- 删除帖子确认对话框 -->
+      <el-dialog
+        title="删除帖子"
+        v-model="dialogVisible.delete"
+        width="400px"
+      >
+        <p class="dialog-message">确定要删除这篇帖子吗？此操作不可恢复。</p>
+        <template #footer>
+          <span class="dialog-footer">
+            <el-button @click="dialogVisible.delete = false">取消</el-button>
+            <el-button type="danger" @click="deletePost" :loading="loading.delete">确认删除</el-button>
+          </span>
+        </template>
+      </el-dialog>
+    </div>
+  </div>
+</template>
+
+<script>
+import { ref, reactive, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
+import { Refresh, ArrowDown, Grid, EditPen, Delete, Male, Female } from '@element-plus/icons-vue'
+import PostCard from '@/components/forum/PostCard.vue'
+import SafeImage from '@/components/common/form/SafeImage.vue'
+
+export default {
+  name: 'ForumListPage',
+  components: {
+    PostCard,
+    Refresh, ArrowDown, Grid, EditPen, Delete, Male, Female,
+    SafeImage
+  },
+  setup() {
+    const router = useRouter()
+    
+    // 默认图片常量
+    const defaultAvatar = '/mock-images/avatar-default.jpg'
+    const defaultCover = '/mock-images/tea-default.jpg'
+    const defaultIcon = '/mock-images/icon-default.jpg'
+    
+    // 当前选中的版块ID
+    const currentTopicId = ref('all')
+    
+    // 当前用户信息
+    const currentUser = ref({
+      id: 'user123',
+      username: '茶韵悠长',
+      avatar: 'https://via.placeholder.com/80x80?text=茶韵',
+      gender: 1, // 1-男，2-女
+      level: 3
+    })
+    
+    // 待删除的帖子
+    const postToDelete = ref(null)
+    
+    // 加载状态
+    const loading = reactive({
+      topics: false,
+      posts: false,
+      delete: false
+    })
+    
+    // 对话框状态
+    const dialogVisible = reactive({
+      post: false,
+      delete: false
+    })
+    
+    // 排序选项
+    const currentSort = ref('latest')
+    const sortOptions = {
+      latest: '最新发布',
+      popular: '最多浏览',
+      hot: '热门讨论'
+    }
+    
+    // 分页数据
+    const pagination = reactive({
+      currentPage: 1,
+      pageSize: 10,
+      total: 0
+    })
+    
+    /* UI-DEV-START */
+    // 模拟数据 - 版块列表
+    const topicList = ref([
+      {
+        id: 1,
+        name: '茶叶知识',
+        description: '分享茶叶相关知识、冲泡技巧等',
+        icon: 'https://via.placeholder.com/50x50?text=知识',
+        cover: 'https://via.placeholder.com/400x200?text=茶叶知识',
+        postCount: 128,
+        viewCount: 3426
+      },
+      {
+        id: 2,
+        name: '茶友交流',
+        description: '茶友们的交流互动平台',
+        icon: 'https://via.placeholder.com/50x50?text=交流',
+        cover: 'https://via.placeholder.com/400x200?text=茶友交流',
+        postCount: 95,
+        viewCount: 2187
+      },
+      {
+        id: 3,
+        name: '茶具讨论',
+        description: '探讨各类茶具的选购与使用',
+        icon: 'https://via.placeholder.com/50x50?text=茶具',
+        cover: 'https://via.placeholder.com/400x200?text=茶具讨论',
+        postCount: 64,
+        viewCount: 1543
+      },
+      {
+        id: 4,
+        name: '茶文化探索',
+        description: '深入了解中国传统茶文化',
+        icon: 'https://via.placeholder.com/50x50?text=文化',
+        cover: 'https://via.placeholder.com/400x200?text=茶文化探索',
+        postCount: 76,
+        viewCount: 1892
+      },
+      {
+        id: 5,
+        name: '茶园风采',
+        description: '分享各地茶园风光与采茶经验',
+        icon: 'https://via.placeholder.com/50x50?text=茶园',
+        cover: 'https://via.placeholder.com/400x200?text=茶园风采',
+        postCount: 42,
+        viewCount: 980
+      },
+      {
+        id: 6,
+        name: '品鉴交流',
+        description: '茶叶品鉴心得与体验分享',
+        icon: 'https://via.placeholder.com/50x50?text=品鉴',
+        cover: 'https://via.placeholder.com/400x200?text=品鉴交流',
+        postCount: 58,
+        viewCount: 1256
+      }
+    ])
+    
+    // 模拟数据 - 帖子列表
+    const postList = ref([
+      {
+        id: 1,
+        title: '如何正确冲泡绿茶？',
+        summary: '绿茶的冲泡温度一般控制在80℃左右较为适宜，水温过高会破坏茶叶中的营养物质，使茶汤变苦涩...',
+        content: '绿茶的冲泡温度一般控制在80℃左右较为适宜，水温过高会破坏茶叶中的营养物质，使茶汤变苦涩...(此处省略详细内容)',
+        topicId: 1,
+        topicName: '茶叶知识',
+        authorId: 'cy100002',
+        authorName: '茶韵悠长',
+        authorAvatar: 'https://via.placeholder.com/40x40?text=茶韵',
+        authorGender: 1,
+        coverImage: 'https://via.placeholder.com/200x120?text=绿茶冲泡',
+        isSticky: 1,
+        isEssence: 1,
+        viewCount: 358,
+        replyCount: 42,
+        likeCount: 86,
+        createTime: '2025-03-16 09:30:00'
+      },
+      {
+        id: 2,
+        title: '分享：商南茶的特有风味与鉴别方法',
+        summary: '商南茶作为陕西名茶，具有独特的风味特征，本文将详细介绍如何通过外形、香气和滋味来鉴别正宗商南茶...',
+        topicId: 1,
+        topicName: '茶叶知识',
+        authorId: 'cy100003',
+        authorName: '茶香四溢',
+        authorAvatar: 'https://via.placeholder.com/40x40?text=茶香',
+        authorGender: 2,
+        coverImage: null,
+        isSticky: 0,
+        isEssence: 1,
+        viewCount: 246,
+        replyCount: 28,
+        likeCount: 54,
+        createTime: '2025-03-15 14:25:00'
+      },
+      {
+        id: 3,
+        title: '我收藏的陶瓷茶具展示',
+        summary: '多年来收藏了不少精美的陶瓷茶具，今天跟大家分享一下我的收藏心得和使用体验...',
+        topicId: 3,
+        topicName: '茶具讨论',
+        authorId: 'cy100004',
+        authorName: '紫砂爱好者',
+        authorAvatar: 'https://via.placeholder.com/40x40?text=紫砂',
+        authorGender: 1,
+        coverImage: 'https://via.placeholder.com/200x120?text=陶瓷茶具',
+        isSticky: 0,
+        isEssence: 1,
+        viewCount: 189,
+        replyCount: 35,
+        likeCount: 47,
+        createTime: '2025-03-14 16:40:00'
+      },
+      {
+        id: 4,
+        title: '春茶采摘季：商南茶园实地探访',
+        summary: '刚刚参加了商南茶园的春茶采摘活动，分享一下现场照片和采茶过程中的所见所闻...',
+        topicId: 5,
+        topicName: '茶园风采',
+        authorId: 'cy100005',
+        authorName: '采茶姑娘',
+        authorAvatar: 'https://via.placeholder.com/40x40?text=采茶',
+        authorGender: 2,
+        coverImage: 'https://via.placeholder.com/200x120?text=春茶采摘',
+        isSticky: 1,
+        isEssence: 0,
+        viewCount: 276,
+        replyCount: 31,
+        likeCount: 64,
+        createTime: '2025-03-13 10:15:00'
+      },
+      {
+        id: 5,
+        title: '茶文化中的礼仪与传统',
+        summary: '中国茶文化源远流长，其中蕴含了丰富的礼仪和传统，本文将介绍茶道中的基本礼仪和文化内涵...',
+        topicId: 4,
+        topicName: '茶文化探索',
+        authorId: 'cy100006',
+        authorName: '茶道传人',
+        authorAvatar: 'https://via.placeholder.com/40x40?text=茶道',
+        authorGender: 1,
+        coverImage: 'https://via.placeholder.com/200x120?text=茶道礼仪',
+        isSticky: 0,
+        isEssence: 1,
+        viewCount: 205,
+        replyCount: 26,
+        likeCount: 43,
+        createTime: '2025-03-12 15:30:00'
+      },
+      {
+        id: 6,
+        title: '【新人报到】初识商南茶，请多指教',
+        summary: '作为一个茶叶新手，刚接触商南茶不久，希望能在这里学习更多关于茶叶的知识，请各位前辈多多指教...',
+        topicId: 2,
+        topicName: '茶友交流',
+        authorId: 'cy100007',
+        authorName: '茶叶新手',
+        authorAvatar: 'https://via.placeholder.com/40x40?text=新手',
+        authorGender: 1,
+        coverImage: null,
+        isSticky: 0,
+        isEssence: 0,
+        viewCount: 156,
+        replyCount: 40,
+        likeCount: 28,
+        createTime: '2025-03-11 09:45:00'
+      },
+      {
+        id: 7,
+        title: '品鉴会活动：商南毛尖VS信阳毛尖',
+        summary: '上周参加了一场商南毛尖与信阳毛尖的品鉴对比活动，分享一下两种茶叶的风味差异和个人体验...',
+        topicId: 6,
+        topicName: '品鉴交流',
+        authorId: 'cy100008',
+        authorName: '茶香品鉴师',
+        authorAvatar: 'https://via.placeholder.com/40x40?text=品鉴',
+        authorGender: 1,
+        coverImage: 'https://via.placeholder.com/200x120?text=茶叶品鉴',
+        isSticky: 0,
+        isEssence: 0,
+        viewCount: 178,
+        replyCount: 22,
+        likeCount: 37,
+        createTime: '2025-03-10 14:20:00'
+      },
+      {
+        id: 8,
+        title: '宜兴紫砂壶的保养与使用技巧',
+        summary: '紫砂壶是众多茶友钟爱的茶具，正确的使用和保养可以让紫砂壶越用越好，本文分享个人多年养壶心得...',
+        topicId: 3,
+        topicName: '茶具讨论',
+        authorId: 'cy100009',
+        authorName: '紫砂匠人',
+        authorAvatar: 'https://via.placeholder.com/40x40?text=匠人',
+        authorGender: 1,
+        coverImage: 'https://via.placeholder.com/200x120?text=紫砂壶',
+        isSticky: 0,
+        isEssence: 0,
+        viewCount: 198,
+        replyCount: 25,
+        likeCount: 41,
+        createTime: '2025-03-09 11:35:00'
+      },
+      {
+        id: 9,
+        title: '茶叶存储的正确方法与常见误区',
+        summary: '茶叶的保存直接影响其品质，本文介绍不同茶类的存储方法，以及日常存茶过程中应该避免的误区...',
+        topicId: 1,
+        topicName: '茶叶知识',
+        authorId: 'cy100010',
+        authorName: '茶叶保鲜师',
+        authorAvatar: 'https://via.placeholder.com/40x40?text=保鲜',
+        authorGender: 1,
+        coverImage: null,
+        isSticky: 0,
+        isEssence: 0,
+        viewCount: 167,
+        replyCount: 19,
+        likeCount: 32,
+        createTime: '2025-03-08 13:50:00'
+      },
+      {
+        id: 10,
+        title: '【讨论】你最喜欢什么类型的茶？',
+        summary: '每个人的口味不同，喜欢的茶叶类型也各异，欢迎在此分享你最喜爱的茶类和理由，交流品茶心得...',
+        topicId: 2,
+        topicName: '茶友交流',
+        authorId: 'cy100011',
+        authorName: '茶香满园',
+        authorAvatar: 'https://via.placeholder.com/40x40?text=茶香',
+        authorGender: 2,
+        coverImage: 'https://via.placeholder.com/200x120?text=茶类讨论',
+        isSticky: 0,
+        isEssence: 0,
+        viewCount: 224,
+        replyCount: 58,
+        likeCount: 46,
+        createTime: '2025-03-07 16:15:00'
+      }
+    ])
+    
+    // 模拟 - 我的帖子
+    const myPosts = ref([
+      {
+        id: 1,
+        title: '如何正确冲泡绿茶？',
+        summary: '绿茶的冲泡温度一般控制在80℃左右较为适宜，水温过高会破坏茶叶中的营养物质...',
+        topicId: 1,
+        createTime: '2025-03-16 09:30:00'
+      },
+      {
+        id: 12,
+        title: '商南茶的采摘与制作过程分享',
+        summary: '上个月有幸参观了商南茶的采摘与制作过程，分享一些见闻和照片...',
+        topicId: 5,
+        createTime: '2025-03-02 14:20:00'
+      },
+      {
+        id: 15,
+        title: '茶友交流活动：线下品茶会邀请',
+        summary: '计划在下个月组织一次线下品茶交流活动，欢迎各位茶友参加...',
+        topicId: 2,
+        createTime: '2025-02-25 16:45:00'
+      }
+    ])
+    
+    pagination.total = 65 // 模拟总帖子数
+    /* UI-DEV-END */
+    
+    /*
+    // 真实代码(开发UI时注释)
+    const topicList = ref([])
+    const postList = ref([])
+    const myPosts = ref([])
+    const currentUser = ref({})
+    
+    // 获取当前用户信息
+    const fetchCurrentUser = async () => {
+      try {
+        const result = await store.dispatch('user/getUserInfo')
+        currentUser.value = result
+      } catch (error) {
+        console.error('获取用户信息失败', error)
+      }
+    }
+    
+    // 获取我的帖子
+    const fetchMyPosts = async () => {
+      try {
+        const result = await store.dispatch('forum/getMyPosts', { limit: 3 })
+        myPosts.value = result
+      } catch (error) {
+        console.error('获取我的帖子失败', error)
+      }
+    }
+    
+    // 获取版块列表
+    const fetchTopics = async () => {
+      try {
+        loading.topics = true
+        const result = await store.dispatch('forum/getTopics')
+        topicList.value = result
+      } catch (error) {
+        ElMessage.error('获取版块列表失败')
+      } finally {
+        loading.topics = false
+      }
+    }
+    
+    // 获取帖子列表
+    const fetchPosts = async () => {
+      try {
+        loading.posts = true
+        const params = {
+          page: pagination.currentPage,
+          limit: pagination.pageSize,
+          sort: currentSort.value,
+          topicId: currentTopicId.value === 'all' ? null : currentTopicId.value
+        }
+        const result = await store.dispatch('forum/getPosts', params)
+        postList.value = result.list
+        pagination.total = result.total
+      } catch (error) {
+        ElMessage.error('获取帖子列表失败')
+      } finally {
+        loading.posts = false
+      }
+    }
+    
+    // 初始化数据
+    onMounted(() => {
+      fetchCurrentUser()
+      fetchMyPosts()
+      fetchTopics()
+      fetchPosts()
+    })
+    */
+    
+    // 获取版块名称
+    const getTopicName = (topicId) => {
+      const topic = topicList.value.find(item => item.id === topicId)
+      return topic ? topic.name : '未知版块'
+    }
+    
+    // 获取当前版块名称
+    const getCurrentTopicName = () => {
+      if (currentTopicId.value === 'all') {
+        return '全部帖子'
+      }
+      return getTopicName(currentTopicId.value)
+    }
+    
+    // 获取当前版块描述
+    const getCurrentTopicDesc = () => {
+      if (currentTopicId.value === 'all') {
+        return ''
+      }
+      const topic = topicList.value.find(item => item.id === currentTopicId.value)
+      return topic ? topic.description : ''
+    }
+    
+    // 切换版块
+    const switchTopic = (topicId) => {
+      currentTopicId.value = topicId
+      pagination.currentPage = 1
+      
+      /* UI-DEV-START */
+      loading.posts = true
+      setTimeout(() => {
+        if (topicId === 'all') {
+          // 显示全部帖子
+          postList.value = [...postList.value].sort(() => Math.random() - 0.5)
+        } else {
+          // 筛选版块帖子
+          const originalList = [
+            {
+              id: 1,
+              title: '如何正确冲泡绿茶？',
+              summary: '绿茶的冲泡温度一般控制在80℃左右较为适宜，水温过高会破坏茶叶中的营养物质，使茶汤变苦涩...',
+              topicId: 1,
+              topicName: '茶叶知识',
+              authorId: 'cy100002',
+              authorName: '茶韵悠长',
+              authorAvatar: 'https://via.placeholder.com/40x40?text=茶韵',
+              authorGender: 1,
+              coverImage: 'https://via.placeholder.com/200x120?text=绿茶冲泡',
+              viewCount: 358,
+              replyCount: 42,
+              likeCount: 86,
+              createTime: '2025-03-16 09:30:00'
+            },
+            // ... 其他帖子
+          ]
+          postList.value = originalList.filter(post => post.topicId === topicId)
+        }
+        loading.posts = false
+      }, 800)
+      /* UI-DEV-END */
+      
+      /*
+      // 真实代码(开发UI时注释)
+      fetchPosts()
+      */
+    }
+    
+    // 刷新版块列表
+    const refreshTopics = () => {
+      /* UI-DEV-START */
+      loading.topics = true
+      setTimeout(() => {
+        // 模拟数据刷新，随机调整顺序
+        topicList.value = [...topicList.value].sort(() => Math.random() - 0.5)
+        loading.topics = false
+        ElMessage.success('版块列表已刷新')
+      }, 800)
+      /* UI-DEV-END */
+      
+      /*
+      // 真实代码(开发UI时注释)
+      fetchTopics()
+      */
+    }
+    
+    // 刷新帖子列表
+    const refreshPosts = () => {
+      /* UI-DEV-START */
+      loading.posts = true
+      setTimeout(() => {
+        // 模拟数据刷新，随机调整顺序
+        postList.value = [...postList.value].sort(() => Math.random() - 0.5)
+        loading.posts = false
+        ElMessage.success('帖子列表已刷新')
+      }, 800)
+      /* UI-DEV-END */
+      
+      /*
+      // 真实代码(开发UI时注释)
+      fetchPosts()
+      */
+    }
+    
+    // 处理排序变更
+    const handleSortChange = (sort) => {
+      currentSort.value = sort
+      
+      /* UI-DEV-START */
+      loading.posts = true
+      setTimeout(() => {
+        // 模拟排序效果
+        if (sort === 'popular') {
+          postList.value = [...postList.value].sort((a, b) => b.viewCount - a.viewCount)
+        } else if (sort === 'hot') {
+          postList.value = [...postList.value].sort((a, b) => b.replyCount - a.replyCount)
+        } else {
+          // 默认按发布时间排序
+          postList.value = [...postList.value].sort((a, b) => new Date(b.createTime) - new Date(a.createTime))
+        }
+        loading.posts = false
+      }, 500)
+      /* UI-DEV-END */
+      
+      /*
+      // 真实代码(开发UI时注释)
+      pagination.currentPage = 1
+      fetchPosts()
+      */
+    }
+    
+    // 处理分页大小变更
+    const handleSizeChange = (size) => {
+      pagination.pageSize = size
+      /* UI-DEV-START */
+      refreshPosts()
+      /* UI-DEV-END */
+      
+      /*
+      // 真实代码(开发UI时注释)
+      fetchPosts()
+      */
+    }
+    
+    // 处理页码变更
+    const handleCurrentChange = (page) => {
+      pagination.currentPage = page
+      /* UI-DEV-START */
+      refreshPosts()
+      /* UI-DEV-END */
+      
+      /*
+      // 真实代码(开发UI时注释)
+      fetchPosts()
+      */
+    }
+    
+    // 查看版块
+    const viewTopic = (topicId) => {
+      router.push(`/forum/topic/${topicId}`)
+    }
+    
+    // 查看帖子详情
+    const viewPost = (postId) => {
+      router.push(`/forum/${postId}`)
+    }
+    
+    // 查看更多我的帖子
+    const viewMoreMyPosts = () => {
+      router.push('/user/settings/posts')
+    }
+    
+    // 显示发帖对话框
+    const showPostDialog = () => {
+      dialogVisible.post = true
+    }
+    
+    // 帖子回复
+    const handleReply = (post) => {
+      router.push(`/forum/${post.id}#reply-section`)
+    }
+    
+    // 帖子收藏
+    const handleFavorite = (post) => {
+      /* UI-DEV-START */
+      post.favorited = !post.favorited
+      if (post.favorited) {
+        ElMessage.success('收藏成功')
+      } else {
+        ElMessage.success('已取消收藏')
+      }
+      /* UI-DEV-END */
+      
+      /*
+      // 真实代码(开发UI时注释)
+      if (post.favorited) {
+        store.dispatch('forum/cancelFavorite', post.id).then(() => {
+          post.favorited = false
+          ElMessage.success('已取消收藏')
+        })
+      } else {
+        store.dispatch('forum/addFavorite', post.id).then(() => {
+          post.favorited = true
+          ElMessage.success('收藏成功')
+        })
+      }
+      */
+    }
+    
+    // 确认删除帖子
+    const confirmDeletePost = (post) => {
+      postToDelete.value = post
+      dialogVisible.delete = true
+    }
+    
+    // 删除帖子
+    const deletePost = () => {
+      if (!postToDelete.value) return
+      
+      loading.delete = true
+      
+      /* UI-DEV-START */
+      setTimeout(() => {
+        // 从我的帖子列表中移除
+        myPosts.value = myPosts.value.filter(item => item.id !== postToDelete.value.id)
+        // 从主帖子列表中移除
+        postList.value = postList.value.filter(item => item.id !== postToDelete.value.id)
+        
+        ElMessage.success('帖子删除成功')
+        dialogVisible.delete = false
+        loading.delete = false
+        postToDelete.value = null
+      }, 800)
+      /* UI-DEV-END */
+      
+      /*
+      // 真实代码(开发UI时注释)
+      store.dispatch('forum/deletePost', postToDelete.value.id).then(() => {
+        // 从我的帖子列表中移除
+        myPosts.value = myPosts.value.filter(item => item.id !== postToDelete.value.id)
+        // 如果在当前列表中，也需要移除
+        postList.value = postList.value.filter(item => item.id !== postToDelete.value.id)
+        
+        ElMessage.success('帖子删除成功')
+        dialogVisible.delete = false
+        postToDelete.value = null
+      }).catch(() => {
+        ElMessage.error('删除失败，请重试')
+      }).finally(() => {
+        loading.delete = false
+      })
+      */
+    }
+    
+    // 格式化日期
+    const formatDate = (dateString) => {
+      const date = new Date(dateString)
+      const now = new Date()
+      const diff = now - date
+      
+      // 一小时内显示"刚刚"
+      if (diff < 60 * 60 * 1000) {
+        return '刚刚'
+      }
+      
+      // 一天内显示"x小时前"
+      if (diff < 24 * 60 * 60 * 1000) {
+        const hours = Math.floor(diff / (60 * 60 * 1000))
+        return `${hours}小时前`
+      }
+      
+      // 一周内显示"x天前"
+      if (diff < 7 * 24 * 60 * 60 * 1000) {
+        const days = Math.floor(diff / (24 * 60 * 60 * 1000))
+        return `${days}天前`
+      }
+      
+      // 其他情况显示具体日期
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+    }
+    
+    // 回到首页
+    const goHome = () => {
+      router.push('/tea-culture')
+    }
+    
+    return {
+      topicList,
+      postList,
+      myPosts,
+      currentUser,
+      currentTopicId,
+      loading,
+      dialogVisible,
+      currentSort,
+      sortOptions,
+      pagination,
+      defaultAvatar,
+      defaultCover,
+      defaultIcon,
+      getTopicName,
+      getCurrentTopicName,
+      getCurrentTopicDesc,
+      switchTopic,
+      refreshTopics,
+      refreshPosts,
+      handleSortChange,
+      handleSizeChange,
+      handleCurrentChange,
+      viewTopic,
+      viewPost,
+      showPostDialog,
+      handleReply,
+      handleFavorite,
+      confirmDeletePost,
+      deletePost,
+      formatDate,
+      goHome,
+      Refresh,
+      ArrowDown,
+      Grid,
+      EditPen,
+      Delete,
+      Male,
+      Female,
+      SafeImage
+    }
+  }
+}
+</script>
+
+<style lang="scss" scoped>
+.forum-list-page {
+  min-height: 100vh;
+  background-color: #f5f7fa;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 15px;
+}
+
+.page-header {
+  background-color: #fff;
+  padding: 30px 0;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  
+  .page-title {
+    font-size: 28px;
+    font-weight: 600;
+    margin: 0 0 10px;
+    color: var(--el-text-color-primary);
+  }
+  
+  .page-description {
+    font-size: 16px;
+    color: var(--el-text-color-secondary);
+    margin-bottom: 0;
+  }
+}
+
+.main-content {
+  margin-bottom: 40px;
+}
+
+// 侧边栏样式
+.sidebar {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  margin-bottom: 20px;
+  overflow: hidden;
+  
+  .sidebar-header {
+    padding: 15px;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    
+    .sidebar-title {
+      font-size: 16px;
+      font-weight: 500;
+      margin: 0;
+      color: var(--el-text-color-primary);
+    }
+  }
+}
+
+// 版块导航样式
+.topics-sidebar {
+  .topic-list {
+    padding: 5px 0;
+    
+    .topic-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 15px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      position: relative;
+      
+      &:hover {
+        background-color: #f9f9f9;
+      }
+      
+      &.active {
+        background-color: var(--el-color-primary-light-9);
+        color: var(--el-color-primary);
+        font-weight: 500;
+        
+        &::before {
+          content: '';
+          position: absolute;
+          left: 0;
+          top: 0;
+          bottom: 0;
+          width: 3px;
+          background-color: var(--el-color-primary);
+        }
+      }
+      
+      .topic-icon {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+        margin-right: 10px;
+      }
+      
+      .el-icon {
+        margin-right: 10px;
+        font-size: 18px;
+      }
+      
+      span {
+        flex: 1;
+      }
+      
+      .count {
+        flex: 0;
+        font-size: 12px;
+        color: var(--el-text-color-secondary);
+      }
+    }
+  }
+}
+
+// 用户信息侧边栏
+.user-sidebar {
+  .user-info-card {
+    padding: 15px;
+    border-bottom: 1px solid #f0f0f0;
+    
+    .user-info {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+      
+      .avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        overflow: hidden;
+        margin-right: 12px;
+        
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+      }
+      
+      .info {
+        flex: 1;
+        
+        .name {
+          font-size: 16px;
+          font-weight: 500;
+          margin-bottom: 4px;
+          display: flex;
+          align-items: center;
+          gap: 5px;
+        }
+        
+        .stats {
+          font-size: 13px;
+          color: var(--el-text-color-secondary);
+        }
+      }
+    }
+    
+    .post-btn {
+      width: 100%;
+    }
+  }
+  
+  .my-posts-card {
+    .my-posts-list {
+      padding: 0 15px 15px;
+      
+      .my-post-item {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        padding: 15px 0;
+        border-bottom: 1px solid #f0f0f0;
+        
+        &:last-child {
+          border-bottom: none;
+        }
+        
+        .post-content {
+          flex: 1;
+          overflow: hidden;
+          cursor: pointer;
+          
+          .title {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 5px;
+            color: var(--el-text-color-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+          
+          .summary {
+            font-size: 12px;
+            color: var(--el-text-color-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+        }
+        
+        .post-actions {
+          flex-shrink: 0;
+          margin-left: 10px;
+        }
+      }
+    }
+  }
+}
+
+// 主帖子区域
+.main-posts {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+    margin-bottom: 20px;
+  overflow: hidden;
+  
+  .posts-header {
+    padding: 15px;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    
+    .topic-info {
+      margin-right: 20px;
+      
+      .current-topic {
+        font-size: 18px;
+        font-weight: 500;
+        margin: 0 0 5px;
+    color: var(--el-text-color-primary);
+      }
+      
+      .topic-desc {
+        font-size: 13px;
+        color: var(--el-text-color-secondary);
+        margin: 0;
+      }
+    }
+    
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      
+      .sort-dropdown {
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        color: var(--el-text-color-regular);
+        
+        .el-icon {
+          margin-left: 4px;
+        }
+      }
+    }
+  }
+  
+  .posts-container {
+    padding: 15px;
+  }
+}
+
+// 分页样式
+.pagination-container {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+// 对话框
+.dialog-message {
+  text-align: center;
+  padding: 20px 0;
+    font-size: 16px;
+    color: var(--el-text-color-secondary);
+}
+
+// 响应式调整
+@media (max-width: 992px) {
+  .user-sidebar {
+    margin-top: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    padding: 20px 0;
+    
+    .page-title {
+      font-size: 24px;
+    }
+  }
+  
+  .posts-header {
+    flex-direction: column;
+    align-items: flex-start;
+    
+    .topic-info {
+      margin-right: 0;
+      margin-bottom: 15px;
+    }
+  }
+}
+</style> 

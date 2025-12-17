@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shangnantea.mapper.TeaSpecificationMapper">
+    
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.shangnantea.model.entity.tea.TeaSpecification">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="tea_id" property="teaId" jdbcType="VARCHAR"/>
+        <result column="spec_name" property="specName" jdbcType="VARCHAR"/>
+        <result column="price" property="price" jdbcType="DECIMAL"/>
+        <result column="stock" property="stock" jdbcType="INTEGER"/>
+        <result column="is_default" property="isDefault" jdbcType="INTEGER"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+    
+    <!-- 公共列 -->
+    <sql id="Base_Column_List">
+        id, tea_id, spec_name, price, stock, is_default, create_time, update_time
+    </sql>
+    
+    <!-- 根据ID查询规格 -->
+    <select id="selectById" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM tea_specifications
+        WHERE id = #{id,jdbcType=INTEGER}
+    </select>
+    
+    <!-- 根据茶叶ID查询规格列表 -->
+    <select id="selectByTeaId" resultMap="BaseResultMap" parameterType="java.lang.String">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM tea_specifications
+        WHERE tea_id = #{teaId,jdbcType=VARCHAR}
+        ORDER BY is_default DESC, id ASC
+    </select>
+    
+    <!-- 查询茶叶默认规格 -->
+    <select id="selectDefaultByTeaId" resultMap="BaseResultMap" parameterType="java.lang.String">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM tea_specifications
+        WHERE tea_id = #{teaId,jdbcType=VARCHAR} AND is_default = 1
+        LIMIT 1
+    </select>
+    
+    <!-- 批量插入规格 -->
+    <insert id="batchInsert" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO tea_specifications (
+            tea_id, spec_name, price, stock, is_default, create_time, update_time
+        ) VALUES 
+        <foreach collection="list" item="item" separator=",">
+            (
+                #{item.teaId,jdbcType=VARCHAR}, 
+                #{item.specName,jdbcType=VARCHAR}, 
+                #{item.price,jdbcType=DECIMAL}, 
+                #{item.stock,jdbcType=INTEGER}, 
+                #{item.isDefault,jdbcType=INTEGER}, 
+                #{item.createTime,jdbcType=TIMESTAMP}, 
+                #{item.updateTime,jdbcType=TIMESTAMP}
+            )
+        </foreach>
+    </insert>
+    
+    <!-- 插入规格 -->
+    <insert id="insert" parameterType="com.shangnantea.model.entity.tea.TeaSpecification" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO tea_specifications (
+            tea_id, spec_name, price, stock, is_default, create_time, update_time
+        ) VALUES (
+            #{teaId,jdbcType=VARCHAR}, 
+            #{specName,jdbcType=VARCHAR}, 
+            #{price,jdbcType=DECIMAL}, 
+            #{stock,jdbcType=INTEGER}, 
+            #{isDefault,jdbcType=INTEGER}, 
+            #{createTime,jdbcType=TIMESTAMP}, 
+            #{updateTime,jdbcType=TIMESTAMP}
+        )
+    </insert>
+    
+    <!-- 更新规格 -->
+    <update id="update" parameterType="com.shangnantea.model.entity.tea.TeaSpecification">
+        UPDATE tea_specifications
+        <set>
+            <if test="specName != null">spec_name = #{specName,jdbcType=VARCHAR},</if>
+            <if test="price != null">price = #{price,jdbcType=DECIMAL},</if>
+            <if test="stock != null">stock = #{stock,jdbcType=INTEGER},</if>
+            <if test="isDefault != null">is_default = #{isDefault,jdbcType=INTEGER},</if>
+            update_time = now()
+        </set>
+        WHERE id = #{id,jdbcType=INTEGER}
+    </update>
+    
+    <!-- 更新库存 -->
+    <update id="updateStock">
+        UPDATE tea_specifications
+        SET stock = stock - #{quantity,jdbcType=INTEGER},
+        update_time = now()
+        WHERE id = #{id,jdbcType=INTEGER} AND stock &gt;= #{quantity,jdbcType=INTEGER}
+    </update>
+    
+    <!-- 删除规格 -->
+    <delete id="deleteById" parameterType="java.lang.Integer">
+        DELETE FROM tea_specifications
+        WHERE id = #{id,jdbcType=INTEGER}
+    </delete>
+    
+    <!-- 根据茶叶ID删除规格 -->
+    <delete id="deleteByTeaId" parameterType="java.lang.String">
+        DELETE FROM tea_specifications
+        WHERE tea_id = #{teaId,jdbcType=VARCHAR}
+    </delete>
+    
+    <!-- 设置默认规格 -->
+    <update id="setDefault">
+        UPDATE tea_specifications
+        SET is_default = CASE 
+            WHEN id = #{id,jdbcType=INTEGER} THEN 1
+            ELSE 0
+        END,
+        update_time = now()
+        WHERE tea_id = (SELECT tea_id FROM tea_specifications WHERE id = #{id,jdbcType=INTEGER})
+    </update>
+</mapper> 

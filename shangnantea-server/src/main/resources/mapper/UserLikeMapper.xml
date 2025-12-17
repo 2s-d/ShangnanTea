@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shangnantea.mapper.UserLikeMapper">
+    
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.shangnantea.model.entity.user.UserLike">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="user_id" property="userId" jdbcType="VARCHAR"/>
+        <result column="target_type" property="targetType" jdbcType="VARCHAR"/>
+        <result column="target_id" property="targetId" jdbcType="VARCHAR"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+    
+    <!-- 公共列 -->
+    <sql id="Base_Column_List">
+        id, user_id, target_type, target_id, create_time
+    </sql>
+    
+    <!-- 根据ID查询点赞 -->
+    <select id="selectById" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM user_likes
+        WHERE id = #{id,jdbcType=INTEGER}
+    </select>
+    
+    <!-- 查询用户的点赞列表 -->
+    <select id="selectByUserId" resultMap="BaseResultMap" parameterType="java.lang.String">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM user_likes
+        WHERE user_id = #{userId,jdbcType=VARCHAR}
+        ORDER BY create_time DESC
+    </select>
+    
+    <!-- 根据用户ID和点赞类型查询点赞列表 -->
+    <select id="selectByUserIdAndType" resultMap="BaseResultMap">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM user_likes
+        WHERE user_id = #{userId,jdbcType=VARCHAR} AND target_type = #{targetType,jdbcType=VARCHAR}
+        ORDER BY create_time DESC
+    </select>
+    
+    <!-- 查询用户是否点赞了某个对象 -->
+    <select id="selectByUserIdAndTarget" resultMap="BaseResultMap">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM user_likes
+        WHERE user_id = #{userId,jdbcType=VARCHAR} AND target_type = #{targetType,jdbcType=VARCHAR} AND target_id = #{targetId,jdbcType=VARCHAR}
+        LIMIT 1
+    </select>
+    
+    <!-- 获取被点赞对象的点赞数量 -->
+    <select id="countByTarget" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM user_likes
+        WHERE target_type = #{targetType,jdbcType=VARCHAR} AND target_id = #{targetId,jdbcType=VARCHAR}
+    </select>
+    
+    <!-- 插入点赞 -->
+    <insert id="insert" parameterType="com.shangnantea.model.entity.user.UserLike" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user_likes (
+            user_id, target_type, target_id, create_time
+        ) VALUES (
+            #{userId,jdbcType=VARCHAR}, 
+            #{targetType,jdbcType=VARCHAR}, 
+            #{targetId,jdbcType=VARCHAR}, 
+            #{createTime,jdbcType=TIMESTAMP}
+        )
+    </insert>
+    
+    <!-- 删除点赞 -->
+    <delete id="deleteById" parameterType="java.lang.Integer">
+        DELETE FROM user_likes
+        WHERE id = #{id,jdbcType=INTEGER}
+    </delete>
+    
+    <!-- 取消点赞 -->
+    <delete id="deleteByUserIdAndTarget">
+        DELETE FROM user_likes
+        WHERE user_id = #{userId,jdbcType=VARCHAR} AND target_type = #{targetType,jdbcType=VARCHAR} AND target_id = #{targetId,jdbcType=VARCHAR}
+    </delete>
+    
+    <!-- 删除用户的所有点赞 -->
+    <delete id="deleteByUserId" parameterType="java.lang.String">
+        DELETE FROM user_likes
+        WHERE user_id = #{userId,jdbcType=VARCHAR}
+    </delete>
+</mapper> 

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shangnantea.mapper.TeaCategoryMapper">
+    
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.shangnantea.model.entity.tea.TeaCategory">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="name" property="name" jdbcType="VARCHAR"/>
+        <result column="parent_id" property="parentId" jdbcType="INTEGER"/>
+        <result column="sort_order" property="sortOrder" jdbcType="INTEGER"/>
+        <result column="icon" property="icon" jdbcType="VARCHAR"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+    
+    <!-- 公共列 -->
+    <sql id="Base_Column_List">
+        id, name, parent_id, sort_order, icon, create_time, update_time
+    </sql>
+    
+    <!-- 根据ID查询茶叶分类 -->
+    <select id="selectById" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM tea_categories
+        WHERE id = #{id,jdbcType=INTEGER}
+    </select>
+    
+    <!-- 查询所有顶级分类 -->
+    <select id="selectTopCategories" resultMap="BaseResultMap">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM tea_categories
+        WHERE parent_id = 0 OR parent_id IS NULL
+        ORDER BY sort_order ASC, id ASC
+    </select>
+    
+    <!-- 根据父ID查询子分类 -->
+    <select id="selectByParentId" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM tea_categories
+        WHERE parent_id = #{parentId,jdbcType=INTEGER}
+        ORDER BY sort_order ASC, id ASC
+    </select>
+    
+    <!-- 查询所有分类 -->
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM tea_categories
+        ORDER BY sort_order ASC, id ASC
+    </select>
+    
+    <!-- 插入分类 -->
+    <insert id="insert" parameterType="com.shangnantea.model.entity.tea.TeaCategory" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO tea_categories (
+            name, parent_id, sort_order, icon, create_time, update_time
+        ) VALUES (
+            #{name,jdbcType=VARCHAR}, 
+            #{parentId,jdbcType=INTEGER}, 
+            #{sortOrder,jdbcType=INTEGER}, 
+            #{icon,jdbcType=VARCHAR}, 
+            #{createTime,jdbcType=TIMESTAMP}, 
+            #{updateTime,jdbcType=TIMESTAMP}
+        )
+    </insert>
+    
+    <!-- 更新分类 -->
+    <update id="update" parameterType="com.shangnantea.model.entity.tea.TeaCategory">
+        UPDATE tea_categories
+        <set>
+            <if test="name != null">name = #{name,jdbcType=VARCHAR},</if>
+            <if test="parentId != null">parent_id = #{parentId,jdbcType=INTEGER},</if>
+            <if test="sortOrder != null">sort_order = #{sortOrder,jdbcType=INTEGER},</if>
+            <if test="icon != null">icon = #{icon,jdbcType=VARCHAR},</if>
+            update_time = now()
+        </set>
+        WHERE id = #{id,jdbcType=INTEGER}
+    </update>
+    
+    <!-- 删除分类 -->
+    <delete id="deleteById" parameterType="java.lang.Integer">
+        DELETE FROM tea_categories
+        WHERE id = #{id,jdbcType=INTEGER}
+    </delete>
+    
+    <!-- 查询分类下茶叶数量 -->
+    <select id="countTeaByCategoryId" resultType="java.lang.Integer" parameterType="java.lang.Integer">
+        SELECT COUNT(*) 
+        FROM teas
+        WHERE category_id = #{categoryId,jdbcType=INTEGER} AND is_deleted = 0
+    </select>
+</mapper> 

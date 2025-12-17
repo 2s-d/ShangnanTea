@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shangnantea.mapper.UserNotificationMapper">
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.shangnantea.model.entity.message.UserNotification">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="title" property="title"/>
+        <result column="content" property="content"/>
+        <result column="type" property="type"/>
+        <result column="related_id" property="relatedId"/>
+        <result column="status" property="status"/>
+        <result column="is_read" property="isRead"/>
+        <result column="read_time" property="readTime"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 所有列 -->
+    <sql id="Base_Column_List">
+        id, user_id, title, content, type, related_id, status, is_read, read_time, create_time, update_time
+    </sql>
+
+    <!-- 插入记录 -->
+    <insert id="insert" parameterType="com.shangnantea.model.entity.message.UserNotification">
+        INSERT INTO user_notifications (
+            id, user_id, title, content, type, related_id, status, is_read, read_time, create_time, update_time
+        ) VALUES (
+            #{id}, #{userId}, #{title}, #{content}, #{type}, #{relatedId}, #{status}, 
+            #{isRead}, #{readTime}, #{createTime}, #{updateTime}
+        )
+    </insert>
+
+    <!-- 根据主键删除记录 -->
+    <delete id="deleteById" parameterType="java.lang.Long">
+        DELETE FROM user_notifications WHERE id = #{id}
+    </delete>
+
+    <!-- 根据主键批量删除记录 -->
+    <delete id="deleteByIds" parameterType="java.util.List">
+        DELETE FROM user_notifications WHERE id IN
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!-- 根据主键更新记录 -->
+    <update id="updateById" parameterType="com.shangnantea.model.entity.message.UserNotification">
+        UPDATE user_notifications
+        <set>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="title != null">title = #{title},</if>
+            <if test="content != null">content = #{content},</if>
+            <if test="type != null">type = #{type},</if>
+            <if test="relatedId != null">related_id = #{relatedId},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="isRead != null">is_read = #{isRead},</if>
+            <if test="readTime != null">read_time = #{readTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据主键查询记录 -->
+    <select id="selectById" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM user_notifications
+        WHERE id = #{id}
+    </select>
+
+    <!-- 根据主键批量查询记录 -->
+    <select id="selectByIds" parameterType="java.util.List" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM user_notifications
+        WHERE id IN
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <!-- 查询所有记录 -->
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM user_notifications
+    </select>
+
+    <!-- 统计记录总数 -->
+    <select id="count" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM user_notifications
+    </select>
+</mapper> 

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shangnantea.mapper.UserAddressMapper">
+    
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.shangnantea.model.entity.user.UserAddress">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="user_id" property="userId" jdbcType="VARCHAR"/>
+        <result column="receiver_name" property="receiverName" jdbcType="VARCHAR"/>
+        <result column="receiver_phone" property="receiverPhone" jdbcType="VARCHAR"/>
+        <result column="province" property="province" jdbcType="VARCHAR"/>
+        <result column="city" property="city" jdbcType="VARCHAR"/>
+        <result column="district" property="district" jdbcType="VARCHAR"/>
+        <result column="detail_address" property="detailAddress" jdbcType="VARCHAR"/>
+        <result column="is_default" property="isDefault" jdbcType="INTEGER"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+    
+    <!-- 公共列 -->
+    <sql id="Base_Column_List">
+        id, user_id, receiver_name, receiver_phone, province, city, district, 
+        detail_address, is_default, create_time, update_time
+    </sql>
+    
+    <!-- 根据ID查询地址 -->
+    <select id="selectById" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM user_addresses
+        WHERE id = #{id,jdbcType=INTEGER}
+    </select>
+    
+    <!-- 查询用户的所有地址 -->
+    <select id="selectByUserId" resultMap="BaseResultMap" parameterType="java.lang.String">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM user_addresses
+        WHERE user_id = #{userId,jdbcType=VARCHAR}
+        ORDER BY is_default DESC, update_time DESC
+    </select>
+    
+    <!-- 查询用户的默认地址 -->
+    <select id="selectDefaultByUserId" resultMap="BaseResultMap" parameterType="java.lang.String">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM user_addresses
+        WHERE user_id = #{userId,jdbcType=VARCHAR} AND is_default = 1
+        LIMIT 1
+    </select>
+    
+    <!-- 插入地址 -->
+    <insert id="insert" parameterType="com.shangnantea.model.entity.user.UserAddress" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user_addresses (
+            user_id, receiver_name, receiver_phone, province, city, district, 
+            detail_address, is_default, create_time, update_time
+        ) VALUES (
+            #{userId,jdbcType=VARCHAR}, 
+            #{receiverName,jdbcType=VARCHAR}, 
+            #{receiverPhone,jdbcType=VARCHAR}, 
+            #{province,jdbcType=VARCHAR}, 
+            #{city,jdbcType=VARCHAR}, 
+            #{district,jdbcType=VARCHAR}, 
+            #{detailAddress,jdbcType=VARCHAR}, 
+            #{isDefault,jdbcType=INTEGER}, 
+            #{createTime,jdbcType=TIMESTAMP}, 
+            #{updateTime,jdbcType=TIMESTAMP}
+        )
+    </insert>
+    
+    <!-- 更新地址 -->
+    <update id="update" parameterType="com.shangnantea.model.entity.user.UserAddress">
+        UPDATE user_addresses
+        <set>
+            <if test="receiverName != null">receiver_name = #{receiverName,jdbcType=VARCHAR},</if>
+            <if test="receiverPhone != null">receiver_phone = #{receiverPhone,jdbcType=VARCHAR},</if>
+            <if test="province != null">province = #{province,jdbcType=VARCHAR},</if>
+            <if test="city != null">city = #{city,jdbcType=VARCHAR},</if>
+            <if test="district != null">district = #{district,jdbcType=VARCHAR},</if>
+            <if test="detailAddress != null">detail_address = #{detailAddress,jdbcType=VARCHAR},</if>
+            <if test="isDefault != null">is_default = #{isDefault,jdbcType=INTEGER},</if>
+            update_time = now()
+        </set>
+        WHERE id = #{id,jdbcType=INTEGER}
+    </update>
+    
+    <!-- 将用户的所有地址设为非默认 -->
+    <update id="resetDefaultByUserId" parameterType="java.lang.String">
+        UPDATE user_addresses
+        SET is_default = 0,
+        update_time = now()
+        WHERE user_id = #{userId,jdbcType=VARCHAR} AND is_default = 1
+    </update>
+    
+    <!-- 删除地址 -->
+    <delete id="deleteById" parameterType="java.lang.Integer">
+        DELETE FROM user_addresses
+        WHERE id = #{id,jdbcType=INTEGER}
+    </delete>
+    
+    <!-- 删除用户的所有地址 -->
+    <delete id="deleteByUserId" parameterType="java.lang.String">
+        DELETE FROM user_addresses
+        WHERE user_id = #{userId,jdbcType=VARCHAR}
+    </delete>
+</mapper> 

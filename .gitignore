@@ -1,0 +1,62 @@
+# ==================== 通用忽略 ====================
+# 操作系统文件
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# 编辑器配置
+.idea/
+.vscode/
+*.iml
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# ==================== 前端项目忽略 ====================
+# 依赖目录
+shangnantea-web/node_modules/
+.pnp/
+.pnp.js
+
+# 构建输出
+shangnantea-web/dist/
+shangnantea-web/build/
+
+# 本地环境文件
+.env.local
+.env.*.local
+
+# 日志文件
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# 测试覆盖率
+coverage/
+
+# 缓存文件
+.eslintcache
+.cache/
+
+# ==================== 后端项目忽略 ====================
+# Maven构建输出
+shangnantea-server/target/
+
+# 日志文件
+*.log
+
+# ==================== 备份文件 ====================
+*.bak
+*.backup
+*.tmp
+*.temp
+
+# ==================== 其他 ====================
+# 上传的文件目录（如果有）
+uploads/
+files/
+
