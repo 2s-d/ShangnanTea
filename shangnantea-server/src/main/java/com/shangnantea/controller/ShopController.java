@@ -62,6 +62,16 @@ public class ShopController {
         Shop shop = shopService.getShopByUserId(userId);
         return Result.success(shop);
     }
+
+    /**
+     * 兼容前端路径：/shop/my
+     *
+     * @return 店铺信息
+     */
+    @GetMapping("/my")
+    public Result<Shop> getMyShopCompat() {
+        return getMyShop();
+    }
     
     /**
      * 创建/更新店铺信息(商家)

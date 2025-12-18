@@ -100,6 +100,25 @@ public class ForumController {
         ForumPost post = forumService.getPostById(id);
         return Result.success(post);
     }
+
+    /**
+     * 兼容前端路径：/forum/posts（骨架接口：topicId 可选）
+     *
+     * @param topicId 主题ID（可选）
+     * @param page 页码
+     * @param size 每页数量
+     * @return 分页结果
+     */
+    @GetMapping("/posts")
+    public Result<PageResult<ForumPost>> listPostsCompat(
+            @RequestParam(required = false) Integer topicId,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size) {
+        if (topicId != null) {
+            return listPostsByTopic(topicId, page, size);
+        }
+        return Result.success(PageResult.of(java.util.Collections.emptyList(), 0, page, size));
+    }
     
     /**
      * 获取主题下的帖子列表

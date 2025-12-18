@@ -20,8 +20,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,7 +29,7 @@ import java.util.Map;
  * 用户控制器
  */
 @RestController
-@RequestMapping("/user")
+@RequestMapping({"/user", "/api/user"})
 @Validated
 public class UserController {
     
@@ -207,6 +207,106 @@ public class UserController {
             return Result.failure(ResultCode.UNAUTHORIZED, "未登录");
         }
         return Result.success(convertToUserVO(user));
+    }
+
+    /**
+     * 获取用户地址列表（骨架接口：仅保证结构不缺失）
+     *
+     * @return 地址列表
+     */
+    @GetMapping("/addresses")
+    public Result<Object> listAddresses() {
+        // TODO-SCRIPT: 后续对接 UserAddressService，返回 List<UserAddress>
+        return Result.success(java.util.Collections.emptyList());
+    }
+
+    /**
+     * 新增收货地址（骨架接口）
+     *
+     * @param body 地址数据
+     * @return 创建结果
+     */
+    @PostMapping("/addresses")
+    public Result<Object> addAddress(@RequestBody(required = false) Map<String, Object> body) {
+        // TODO-SCRIPT: 后续对接地址新增逻辑
+        return Result.success(body == null ? new HashMap<>() : body);
+    }
+
+    /**
+     * 更新收货地址（骨架接口）
+     *
+     * @param id 地址ID
+     * @param body 地址数据
+     * @return 更新结果
+     */
+    @PutMapping("/addresses/{id}")
+    public Result<Boolean> updateAddress(@PathVariable String id, @RequestBody(required = false) Map<String, Object> body) {
+        // TODO-SCRIPT: 后续对接地址更新逻辑
+        return Result.success(true);
+    }
+
+    /**
+     * 删除收货地址（骨架接口）
+     *
+     * @param id 地址ID
+     * @return 删除结果
+     */
+    @DeleteMapping("/addresses/{id}")
+    public Result<Boolean> deleteAddress(@PathVariable String id) {
+        // TODO-SCRIPT: 后续对接地址删除逻辑
+        return Result.success(true);
+    }
+
+    /**
+     * 设置默认地址（骨架接口）
+     *
+     * @param id 地址ID
+     * @return 设置结果
+     */
+    @PutMapping("/addresses/{id}/default")
+    public Result<Boolean> setDefaultAddress(@PathVariable String id) {
+        // TODO-SCRIPT: 后续对接默认地址设置逻辑
+        return Result.success(true);
+    }
+
+    /**
+     * 获取用户偏好设置（骨架接口）
+     *
+     * @return 偏好设置
+     */
+    @GetMapping("/preferences")
+    public Result<Object> getPreferences() {
+        Map<String, Object> data = new HashMap<>();
+        data.put("theme", "light");
+        data.put("language", "zh-CN");
+        return Result.success(data);
+    }
+
+    /**
+     * 更新用户偏好设置（骨架接口）
+     *
+     * @param body 偏好设置
+     * @return 更新结果
+     */
+    @PutMapping("/preferences")
+    public Result<Object> updatePreferences(@RequestBody(required = false) Map<String, Object> body) {
+        return Result.success(body == null ? new HashMap<>() : body);
+    }
+
+    /**
+     * 商家认证提交/查询（骨架接口）
+     */
+    @PostMapping("/shop-certification")
+    public Result<Boolean> submitShopCertification(@RequestBody(required = false) Map<String, Object> body) {
+        return Result.success(true);
+    }
+
+    @GetMapping("/shop-certification")
+    public Result<Object> getShopCertification() {
+        Map<String, Object> data = new HashMap<>();
+        data.put("status", 0);
+        data.put("message", "待后端接入");
+        return Result.success(data);
     }
     
     /**

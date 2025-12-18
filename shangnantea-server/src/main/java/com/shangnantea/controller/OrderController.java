@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 订单控制器
@@ -47,6 +48,61 @@ public class OrderController {
         
         Order createdOrder = orderService.createOrder(order);
         return Result.success(createdOrder);
+    }
+
+    /**
+     * 兼容前端路径：/order/list（骨架接口）
+     *
+     * @return 分页列表
+     */
+    @GetMapping("/list")
+    public Result<PageResult<Order>> listOrdersCompat(
+            @RequestParam(required = false) Integer status,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size) {
+        // TODO-SCRIPT: 后续根据角色（用户/商家/管理员）切换到 /my /shop /admin/list
+        return Result.success(PageResult.of(java.util.Collections.emptyList(), 0, page, size));
+    }
+
+    /**
+     * 兼容前端路径：/order/pay（骨架接口）
+     */
+    @PostMapping("/pay")
+    public Result<Boolean> payOrderCompat(@RequestBody(required = false) Map<String, Object> body) {
+        // TODO-SCRIPT: 后续实现支付流程（仅返回结构）
+        return Result.success(true);
+    }
+
+    /**
+     * 兼容前端路径：/order/cancel（骨架接口）
+     */
+    @PostMapping("/cancel")
+    public Result<Boolean> cancelOrderCompat(@RequestBody(required = false) Map<String, Object> body) {
+        return Result.success(true);
+    }
+
+    /**
+     * 兼容前端路径：/order/confirm（骨架接口）
+     */
+    @PostMapping("/confirm")
+    public Result<Boolean> confirmOrderCompat(@RequestBody(required = false) Map<String, Object> body) {
+        return Result.success(true);
+    }
+
+    /**
+     * 兼容前端路径：/order/review（骨架接口）
+     */
+    @PostMapping("/review")
+    public Result<Boolean> reviewOrderCompat(@RequestBody(required = false) Map<String, Object> body) {
+        return Result.success(true);
+    }
+
+    /**
+     * 兼容前端路径：/order/refund（骨架接口）
+     */
+    @PostMapping("/refund")
+    public Result<Boolean> refundOrderCompat(@RequestBody(required = false) Map<String, Object> body) {
+        return Result.success(true);
     }
     
     /**
@@ -202,7 +258,36 @@ public class OrderController {
         ShoppingCart savedCart = orderService.addToCart(cart);
         return Result.success(savedCart);
     }
-    
+
+    /**
+     * 兼容前端路径：/order/cart/add
+     */
+    @PostMapping("/cart/add")
+    public Result<ShoppingCart> addToCartCompat(@RequestBody(required = false) ShoppingCart cart) {
+        if (cart == null) {
+            return Result.success(null);
+        }
+        return addToCart(cart);
+    }
+
+    /**
+     * 兼容前端路径：/order/cart/update
+     */
+    @PutMapping("/cart/update")
+    public Result<Boolean> updateCartCompat(@RequestBody(required = false) ShoppingCart cart) {
+        // TODO-SCRIPT: 后续对接真实更新逻辑
+        return Result.success(true);
+    }
+
+    /**
+     * 兼容前端路径：/order/cart/remove
+     */
+    @DeleteMapping("/cart/remove")
+    public Result<Boolean> removeFromCartCompat(@RequestParam(required = false) Integer id) {
+        // TODO-SCRIPT: 后续对接真实删除逻辑
+        return Result.success(true);
+    }
+
     /**
      * 更新购物车
      *

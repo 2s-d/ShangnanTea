@@ -2,7 +2,7 @@ package com.shangnantea.model.dto;
 
 import lombok.Data;
 
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 
 /**
  * 登录数据传输对象

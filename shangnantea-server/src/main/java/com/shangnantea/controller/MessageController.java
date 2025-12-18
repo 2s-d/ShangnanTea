@@ -16,7 +16,7 @@ import java.util.List;
  * 消息控制器
  */
 @RestController
-@RequestMapping("/api/messages")
+@RequestMapping({"/api/messages", "/api/message"})
 public class MessageController {
 
     @Autowired
@@ -72,6 +72,23 @@ public class MessageController {
         // TODO: 设置发送者ID为当前登录用户ID
         message.setSenderId("当前登录用户ID"); // 应从登录信息中获取
         return Result.success(messageService.sendMessage(message));
+    }
+
+    /**
+     * 兼容前端占位：/message/send
+     */
+    @PostMapping("/send")
+    public Result<ChatMessage> sendMessageCompat(@RequestBody ChatMessage message) {
+        return sendMessage(message);
+    }
+
+    /**
+     * 兼容前端占位：/message/delete
+     */
+    @PostMapping("/delete")
+    public Result<Boolean> deleteMessageCompat(@RequestBody(required = false) Object body) {
+        // TODO-SCRIPT: 后续实现消息删除/批量删除
+        return Result.success(true);
     }
 
     /**

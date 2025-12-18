@@ -4,7 +4,8 @@ import com.shangnantea.common.constants.Constants;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+import javax.crypto.SecretKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -69,10 +70,12 @@ public class JwtTokenUtil {
      * @return 所有声明
      */
     private Claims getAllClaimsFromToken(String token) {
+        SecretKey key = Keys.hmacShaKeyFor(secret.getBytes());
         return Jwts.parser()
-                .setSigningKey(secret.getBytes())
-                .parseClaimsJws(token)
-                .getBody();
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 
     /**
@@ -123,13 +126,14 @@ public class JwtTokenUtil {
         Date now = new Date();
         Date expirationDate = new Date(now.getTime() + expiration);
 
+        SecretKey key = Keys.hmacShaKeyFor(secret.getBytes());
         return Jwts.builder()
-                .setClaims(claims)
-                .setSubject(userId)
-                .setIssuedAt(now)
-                .setExpiration(expirationDate)
-                .setIssuer(Constants.Security.JWT_ISSUER)
-                .signWith(SignatureAlgorithm.HS512, secret.getBytes())
+                .claims(claims)
+                .subject(userId)
+                .issuedAt(now)
+                .expiration(expirationDate)
+                .issuer(Constants.Security.JWT_ISSUER)
+                .signWith(key)
                 .compact();
     }
 

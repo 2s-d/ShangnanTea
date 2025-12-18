@@ -6,7 +6,8 @@ import com.shangnantea.service.UserService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+import javax.crypto.SecretKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -251,10 +252,12 @@ public class JwtUtil {
     private Claims getClaimsFromToken(String token) {
         Claims claims;
         try {
+            SecretKey key = Keys.hmacShaKeyFor(secret.getBytes());
             claims = Jwts.parser()
-                    .setSigningKey(secret.getBytes())
-                    .parseClaimsJws(token)
-                    .getBody();
+                    .verifyWith(key)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
         } catch (ExpiredJwtException e) {
             // 令牌过期，但仍返回声明以便查看内容
             claims = e.getClaims();
@@ -272,14 +275,15 @@ public class JwtUtil {
     private String doGenerateToken(Map<String, Object> claims, String subject) {
         Date now = new Date();
         Date expirationDate = new Date(now.getTime() + expiration);
+        SecretKey key = Keys.hmacShaKeyFor(secret.getBytes());
         
         return Jwts.builder()
-                .setClaims(claims)
-                .setSubject(subject)  // 用户ID
-                .setIssuedAt(now)  // 发行时间
-                .setExpiration(expirationDate)  // 过期时间
-                .setIssuer(Constants.Security.JWT_ISSUER)  // 发行者
-                .signWith(SignatureAlgorithm.HS512, secret.getBytes())
+                .claims(claims)
+                .subject(subject)  // 用户ID
+                .issuedAt(now)  // 发行时间
+                .expiration(expirationDate)  // 过期时间
+                .issuer(Constants.Security.JWT_ISSUER)  // 发行者
+                .signWith(key)
                 .compact();
     }
 } 
