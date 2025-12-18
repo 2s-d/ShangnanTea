@@ -8,7 +8,7 @@
         class="image-uploader__item"
       >
         <SafeImage 
-          src="/mock-images/default.jpg" 
+          :src="file.url || ''" 
           alt="预览图" 
           type="tea"
           class="image-uploader__img" 
@@ -60,7 +60,7 @@
       :append-to-body="true"
       class="image-uploader__preview-dialog"
     >
-      <SafeImage src="/mock-images/default.jpg" alt="大图预览" type="tea" class="image-uploader__preview-img" style="max-width:100%;max-height:80vh;"/>
+      <SafeImage :src="previewUrl || ''" alt="大图预览" type="tea" class="image-uploader__preview-img" style="max-width:100%;max-height:80vh;"/>
     </el-dialog>
   </div>
 </template>

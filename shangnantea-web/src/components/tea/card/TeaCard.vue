@@ -36,35 +36,18 @@
 </template>
 
 <script>
-/* UI-DEV-START */
-import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { ShoppingCart } from '@element-plus/icons-vue'
-import SafeImage from '@/components/common/form/SafeImage.vue'
-/* UI-DEV-END */
-
-/*
-// 真实代码（开发UI时注释）
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { ElMessage } from 'element-plus'
 import { ShoppingCart } from '@element-plus/icons-vue'
-*/
+import SafeImage from '@/components/common/form/SafeImage.vue'
 
 export default {
   name: 'TeaCard',
   components: {
-    /* UI-DEV-START */
     ShoppingCart,
     SafeImage
-    /* UI-DEV-END */
-    
-    /*
-    // 真实代码（开发UI时注释）
-    ShoppingCart
-    */
   },
   props: {
     tea: {
@@ -74,31 +57,8 @@ export default {
   },
   setup(props) {
     const router = useRouter()
-    const loading = ref(false)
-    
-    /* UI-DEV-START */
-    // 判断是否为平台直售茶叶
-    const isPlatformTea = computed(() => props.tea.shop_id === 'PLATFORM')
-    
-    // 查看详情
-    const viewDetail = () => {
-      router.push(`/tea/${props.tea.id}`)
-    }
-    
-    // 加入购物车
-    const addToCart = async () => {
-      loading.value = true
-      // 模拟网络请求
-      setTimeout(() => {
-        loading.value = false
-        ElMessage.success('已添加到购物车')
-      }, 500)
-    }
-    /* UI-DEV-END */
-    
-    /*
-    // 真实代码（开发UI时注释）
     const store = useStore()
+    const loading = ref(false)
     
     // 判断是否为平台直售茶叶
     const isPlatformTea = computed(() => props.tea.shop_id === 'PLATFORM')
@@ -112,10 +72,9 @@ export default {
     const addToCart = async () => {
       loading.value = true
       try {
-        await store.dispatch('cart/addToCart', {
-          tea_id: props.tea.id,
-          quantity: 1,
-          spec_id: null // 默认规格
+        await store.dispatch('order/addToCart', {
+          teaId: props.tea.id,
+          quantity: 1
         })
         ElMessage.success('已添加到购物车')
       } catch (error) {
@@ -124,7 +83,6 @@ export default {
         loading.value = false
       }
     }
-    */
     
     return {
       loading,

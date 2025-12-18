@@ -66,39 +66,19 @@
 </template>
 
 <script>
-/* UI-DEV-START */
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { Check, Goods, ShoppingCart, Timer } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-/* UI-DEV-END */
-
-/*
-// 真实代码（开发UI时注释）
-import { computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { useStore } from 'vuex'
-import { Check, Goods, ShoppingCart, Timer } from '@element-plus/icons-vue'
-*/
 
 export default {
   name: 'ShopCard',
   components: {
-    /* UI-DEV-START */
     Check,
     Goods,
     ShoppingCart,
     Timer,
     SafeImage
-    /* UI-DEV-END */
-    
-    /*
-    // 真实代码（开发UI时注释）
-    Check,
-    Goods,
-    ShoppingCart,
-    Timer
-    */
   },
   props: {
     shop: {
@@ -113,7 +93,6 @@ export default {
   setup(props) {
     const router = useRouter()
     
-    /* UI-DEV-START */
     // 获取店铺的两件茶叶展示
     const featuredTeas = computed(() => {
       return props.shopTeas.slice(0, 2)
@@ -135,34 +114,6 @@ export default {
     const goToShopDetail = () => {
       router.push(`/shop/${props.shop.id}`)
     }
-    /* UI-DEV-END */
-    
-    /*
-    // 真实代码（开发UI时注释）
-    const store = useStore()
-    
-    // 获取店铺的两件茶叶展示
-    const featuredTeas = computed(() => {
-      return props.shopTeas.slice(0, 2)
-    })
-    
-    // 计算店铺茶叶数量
-    const shopTeaCount = computed(() => {
-      return props.shopTeas.length || store.getters['shop/getShopTeaCount'](props.shop.id)
-    })
-    
-    // 格式化时间
-    const formatTime = (timeString) => {
-      if (!timeString) return '未知'
-      const date = new Date(timeString)
-      return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
-    }
-    
-    // 跳转到店铺详情
-    const goToShopDetail = () => {
-      router.push(`/shop/${props.shop.id}`)
-    }
-    */
     
     return {
       featuredTeas,
