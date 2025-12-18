@@ -13,7 +13,7 @@ import Directives from './directives'
 // 导入数据版本管理工具
 import { checkAndMigrateData } from './utils/versionManager'
 // 导入开发工具
-import { isDevMode, initDevTools } from './utils/devUtils'
+import { initDevTools } from './utils/devUtils'
 // 导入全局样式
 import './assets/styles/global.scss'
 import { message } from '@/components/common'
@@ -33,12 +33,6 @@ messageManager.clearAllMessageStates()
 // 初始化用户认证状态
 const initAuthState = async () => {
   try {
-    // 如果在开发模式下，跳过真实的用户认证
-    if (isDevMode()) {
-      console.log('开发模式：跳过用户认证')
-      return
-    }
-    
     // 初始化认证状态，加载用户信息
     await store.dispatch('user/initAuth')
     console.log('用户认证状态初始化完成')

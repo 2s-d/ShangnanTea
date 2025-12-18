@@ -3,8 +3,6 @@ import { useTokenStorage } from '@/composables/useStorage'
 import { message } from '@/components/common'
 import { ROLES } from '@/composables/useAuth'
 import store from '@/store'
-// 导入开发工具
-import { isDevMode, getDevRole } from '@/utils/devUtils'
 
 // 导入组件 - 使用实际存在的路径
 import CultureHomePage from '@/views/forum/culturehome/CultureHomePage.vue'
@@ -372,52 +370,6 @@ const whiteList = [
 ]
 
 // 全局前置守卫
-/* UI-DEV-START */
-// 纯UI开发阶段的路由守卫 - 始终通过验证
-router.beforeEach((to, from, next) => {
-  // 设置页面标题
-  document.title = to.meta.title ? to.meta.title : '商南茶文化推广与销售平台'
-  
-  // 开发模式下跳过所有权限验证
-  if (isDevMode()) {
-    console.log('开发模式：跳过登录验证')
-    next()
-    return
-  }
-  
-  // 以下是正常的登录验证逻辑(在开发模式下不会执行到这里)
-  // 白名单路由直接通过
-  if (whiteList.includes(to.path)) {
-    next()
-    return
-  }
-  
-  // 验证token
-  const userInfo = verifyToken()
-  if (!userInfo) {
-    // 重定向到登录页
-    next({
-      path: '/login',
-      query: { redirect: to.fullPath }
-    })
-    return
-  }
-  
-  // 验证权限
-  if (to.meta.roles && to.meta.roles.length > 0) {
-    if (!to.meta.roles.includes(userInfo.role)) {
-      message.error('您没有访问该页面的权限')
-      next('/403')
-      return
-    }
-  }
-  
-  next()
-})
-/* UI-DEV-END */
-
-/* 
-// 真实代码(开发UI时注释)
 router.beforeEach(async (to, from, next) => {
   // 设置页面标题
   document.title = to.meta.title ? to.meta.title : '商南茶文化推广与销售平台'
@@ -473,6 +425,5 @@ router.beforeEach(async (to, from, next) => {
     next('/login')
   }
 })
-*/
 
 export default router 
