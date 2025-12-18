@@ -317,20 +317,16 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-/* UI-DEV-START */
 import { Setting, Plus, Search } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-/* UI-DEV-END */
 
 export default {
   name: 'ShopManagePage',
   components: {
-    /* UI-DEV-START */
     Setting,
     Plus,
     Search,
     SafeImage
-    /* UI-DEV-END */
   },
   setup() {
     const router = useRouter()
@@ -369,7 +365,7 @@ export default {
       { id: 7, name: '花茶' }
     ]
     
-    /* UI-DEV-START */
+    // TODO-SCRIPT: 店铺管理需要后端接口与 Vuex shop 模块；移除 UI-DEV 模拟流程
     // 加载店铺信息
     const loadShopInfo = () => {
       loading.value = true

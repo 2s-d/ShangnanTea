@@ -203,12 +203,10 @@
 </template>
 
 <script>
-/* UI-DEV-START */
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Refresh } from '@element-plus/icons-vue'
-/* UI-DEV-END */
 
 /*
 // 真实代码（开发UI时注释）
@@ -231,7 +229,6 @@ import { Refresh } from '@element-plus/icons-vue'
 export default {
   name: 'OrderManagePage',
   setup() {
-    /* UI-DEV-START */
     const router = useRouter()
     const loading = ref(false)
     const submitting = ref(false)
@@ -646,10 +643,8 @@ export default {
     onMounted(() => {
       fetchOrders()
     })
-    /* UI-DEV-END */
     
     return {
-      /* UI-DEV-START */
       loading,
       submitting,
       orderList,
@@ -677,7 +672,6 @@ export default {
       openRefundDetail,
       formatRefundApplyTime,
       getReceiverInfo
-      /* UI-DEV-END */
     }
   }
 }

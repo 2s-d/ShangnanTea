@@ -155,8 +155,8 @@ export default {
     
     const relatedArticles = ref([])
 
-    // 添加默认图片常量
-    const defaultImage = '/mock-images/article-default.jpg'
+    // 添加默认图片常量（生产形态：不使用 mock-images）
+    const defaultImage = ''
 
     // 格式化日期
     const formatDate = (date) => {
@@ -167,70 +167,24 @@ export default {
 
     // 加载文章详情
     const loadArticleDetail = async () => {
-      /* UI-DEV-START */
+      // TODO-SCRIPT: 文章详情/相关文章需要后端接口与 Vuex forum 模块（当前 store/modules/forum.js 仅保留首页数据）
+      // 生产形态：不在 UI 层 setTimeout 造数据与伪成功
       loading.value = true
-      // 模拟API请求延迟
-      await new Promise(resolve => setTimeout(resolve, 800))
-      
-      // 模拟文章数据
       article.value = {
-        id: route.params.id || 1,
-        title: '商南茶的历史与文化',
-        subtitle: '探寻千年茶乡的古韵今香',
-        content: `<p class="content-paragraph">商南茶的历史可以追溯到唐代，当时已有文人墨客记载了商南地区所产茶叶的独特品质。商南县位于秦岭南麓，属于亚热带气候，山高谷深、云雾缭绕，海拔高、湿度大、温差大，非常适合茶树的生长。</p>
-                  <h3 class="content-subtitle">地理环境的独特优势</h3>
-                  <p class="content-paragraph">商南县地处北纬33度，属于世界公认的茶叶黄金生产带。这里的山地土壤有机质含量丰富，PH值在5-6.5之间，特别适合茶树生长。商南四面环山、中间为谷地，形成了特有的小气候环境，使商南茶形成了其独特的品质特征。</p>
-                  <p class="content-paragraph">商南茶以其清香、回甘、耐泡等特点而闻名，被誉为"秦岭明珠"。特别是高山云雾茶，滋味醇厚，香气高扬，具有极高的品饮和收藏价值。</p>
-                  <h3 class="content-subtitle">商南茶文化的传承</h3>
-                  <p class="content-paragraph">千百年来，商南茶不仅是一种饮品，更是当地文化的重要组成部分。在商南，几乎每家每户都有种茶、制茶的传统，茶文化已经深深融入到当地人的日常生活中。</p>
-                  <p class="content-paragraph">每年春季，是商南茶最为繁忙的季节，当地人会按照传统工艺采摘和制作春茶。采茶时要选择清晨露水未干时进行，这时采摘的茶叶鲜嫩，含水量适中，最适合加工成高品质茶叶。</p>
-                  <h3 class="content-subtitle">现代商南茶产业</h3>
-                  <p class="content-paragraph">近年来，随着人们对健康饮品需求的增加，商南茶产业得到了长足发展。当地政府大力扶持茶产业，推动茶园标准化建设，引导农民科学种植，使商南茶的品质和知名度不断提升。</p>
-                  <p class="content-paragraph">如今，商南茶已成为当地经济的重要支柱产业，带动了旅游、文化等相关产业的发展，为当地脱贫致富做出了重要贡献。</p>`,
-        author: '茶史专家',
-        publishTime: '2025-03-16',
-        viewCount: 126,
-        likeCount: 35,
-        tags: ['商南茶', '茶文化', '历史', '传统工艺', '产业发展'],
-        source: '商南茶文化研究所',
-        coverImage: 'https://via.placeholder.com/800x400?text=商南茶的历史与文化'
+        id: route.params.id || 0,
+        title: '文章标题加载中...',
+        subtitle: '',
+        content: '内容加载中...',
+        author: '未知',
+        publishTime: new Date(),
+        viewCount: 0,
+        likeCount: 0,
+        tags: [],
+        source: '',
+        coverImage: ''
       }
-      
-      // 模拟相关文章
-      relatedArticles.value = [
-        {
-          id: 2,
-          title: '正确冲泡商南绿茶的方法与技巧',
-          summary: '本文详细介绍了商南绿茶的正确冲泡方式，包括水温、茶具选择和冲泡时间等关键因素。',
-          coverImage: 'https://via.placeholder.com/400x300?text=商南绿茶冲泡方法',
-          publishTime: '2025-03-12',
-          viewCount: 98
-        },
-        {
-          id: 3,
-          title: '商南茶的保健功效与科学依据',
-          summary: '深入探讨商南茶的营养成分及其对人体健康的多种益处，包括抗氧化、助消化等功效。',
-          coverImage: 'https://via.placeholder.com/400x300?text=商南茶保健功效',
-          publishTime: '2025-03-10',
-          viewCount: 112
-        },
-        {
-          id: 4,
-          title: '从农田到茶杯：商南茶的生产全过程',
-          summary: '全面记录商南茶从种植、采摘到加工、包装的完整生产链条，展现传统与现代工艺的结合。',
-          coverImage: 'https://via.placeholder.com/400x300?text=商南茶生产过程',
-          publishTime: '2025-03-05',
-          viewCount: 86
-        }
-      ]
-      
+      relatedArticles.value = []
       loading.value = false
-
-      // 防止ResizeObserver错误，延迟处理DOM更新
-      await nextTick()
-      // 添加一个安全检查，避免ResizeObserver循环
-      suppressResizeObserverError()
-      /* UI-DEV-END */
       
       /* 
       // 真实代码(开发UI时注释)
@@ -281,16 +235,9 @@ export default {
 
     // 处理收藏
     const handleLike = () => {
-      /* UI-DEV-START */
-      isLiked.value = !isLiked.value
-      if (isLiked.value) {
-        article.value.likeCount++
-        ElMessage.success('收藏成功')
-      } else {
-        article.value.likeCount--
-        ElMessage.success('已取消收藏')
-      }
-      /* UI-DEV-END */
+      // TODO-SCRIPT: 收藏/取消收藏需要后端接口与 Vuex forum 模块；不在 UI 层伪造成功/改计数
+      ElMessage.info('收藏功能待后端接口接入')
+      return
       
       /* 
       // 真实代码(开发UI时注释)

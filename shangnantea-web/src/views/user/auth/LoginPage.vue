@@ -80,7 +80,6 @@ import { useRouter, useRoute } from 'vue-router'
 import { useStore } from 'vuex'
 import { message } from '@/components/common'
 import { checkAndMigrateData } from '@/utils/versionManager'
-import { isDevMode, setDevRole } from '@/utils/devUtils'
 
 export default {
   name: 'LoginPage',
@@ -130,38 +129,23 @@ export default {
     
     // 处理登录
     const handleLogin = async () => {
-      /* UI-DEV-START */
-      // 开发时始终允许登录，无需真实验证
-      if (isDevMode()) {
-        console.log('开发模式：模拟登录成功')
-        
-        // 获取选择的角色（可选，如果有角色选择界面）
-        const selectedRole = loginForm.role || 2 // 默认为普通用户
-        
-        // 设置开发角色
-        setDevRole(selectedRole)
-        
-        // 跳转到首页或指定页面
-        const redirect = route.query.redirect || '/tea-culture'
-        router.push(redirect)
-        return
-      }
-      /* UI-DEV-END */
-      
-      /* 
-      // 真实代码(开发UI时注释)
       try {
+        loading.value = true
+
         await store.dispatch('user/login', {
           username: loginForm.username,
-          password: loginForm.password
+          password: loginForm.password,
+          role: loginForm.role
         })
         
         const redirect = route.query.redirect || '/tea-culture'
         router.push(redirect)
       } catch (error) {
         console.error('登录失败:', error)
+        message.error(error?.message || '登录失败，请重试')
+      } finally {
+        loading.value = false
       }
-      */
     }
     
     // 忘记密码

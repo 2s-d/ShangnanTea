@@ -140,17 +140,6 @@
 </template>
 
 <script>
-/* UI-DEV-START */
-import { ref, reactive, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { Back, Check, Star, ChatLineRound } from '@element-plus/icons-vue'
-import TeaCard from '@/components/tea/card/TeaCard.vue'
-import SafeImage from '@/components/common/form/SafeImage.vue'
-/* UI-DEV-END */
-
-/*
-// 真实代码（开发UI时注释）
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useStore } from 'vuex'
@@ -158,156 +147,64 @@ import { ElMessage } from 'element-plus'
 import { Back, Check, Star, ChatLineRound } from '@element-plus/icons-vue'
 import TeaCard from '@/components/tea/card/TeaCard.vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-*/
 
 export default {
   name: "ShopDetailPage",
   components: {
-    /* UI-DEV-START */
     Back,
     Check,
     Star,
     ChatLineRound,
     TeaCard,
     SafeImage
-    /* UI-DEV-END */
-    
-    /*
-    // 真实代码（开发UI时注释）
-    Back,
-    Check,
-    Star,
-    ChatLineRound,
-    TeaCard,
-    SafeImage
-    */
   },
   setup() {
+    const store = useStore()
     const router = useRouter()
     const route = useRoute()
-    const loading = ref(true)
+    const loading = computed(() => store.state.shop.loading)
     const activeTab = ref('products')
-    const shop = ref(null)
-    const shopTeas = ref([])
+    const shop = computed(() => store.state.shop.currentShop)
+    const shopTeas = computed(() => store.state.shop.shopTeas || [])
+
+    // TODO: 关注店铺功能待 user 模块 + 后端接口接入，这里先保留 UI 状态
     const isFollowing = ref(false)
     const followLoading = ref(false)
     const defaultLogo = '/placeholder-shop.jpg'
     const defaultShopLogo = '/images/shops/default.jpg'
     
-    /* UI-DEV-START */
-    // 加载店铺数据
-    const loadShopDetail = () => {
-      loading.value = true
-      
-      // 模拟API调用延迟
-      setTimeout(() => {
-        const shopId = route.params.id
-        
-        // 确保不是展示平台直售店铺
-        if (shopId === 'PLATFORM') {
-          ElMessage.error('平台直售不是实体店铺，无法查看详情')
-          router.push('/shop/list')
-          return
-        }
-        
-        // 模拟店铺数据
-        shop.value = {
-          id: shopId,
-          owner_id: 'cy100003',
-          shop_name: '商南茶业旗舰店',
-          logo: '/mock-images/shop-logo-1.jpg',
-          banner: '/mock-images/shop-banner-1.jpg',
-          description: '专营商南特产茶叶，传承百年制茶工艺，提供优质商南绿茶、红茶等各类茶品，欢迎品鉴选购！',
-          announcement: '本店新到一批明前春茶，欢迎品尝选购！',
-          contact_phone: '13800001001',
-          province: '陕西省',
-          city: '商洛市',
-          district: '商南县',
-          address: '城关街道茶叶市场12号',
-          status: 1,
-          rating: 4.8,
-          rating_count: 56,
-          follow_count: 120,
-          sales_count: 389,
-          create_time: '2023-06-15 09:03:26',
-          update_time: '2025-03-26 09:03:26',
-          certification: {
-            status: 'verified',
-            type: '企业认证',
-            expireTime: '2025-12-31'
-          }
-        }
-        
-        // 模拟店铺茶叶数据 - 确保只显示属于该店铺的茶叶（非平台直售）
-        const teasCount = Math.floor(Math.random() * 6) + 5  // 5-10个茶叶
-        const teas = []
-        
-        for (let i = 1; i <= teasCount; i++) {
-          const price = Math.floor(Math.random() * 400) + 100
-          
-          teas.push({
-            id: `tea${shopId.substring(4)}${i}`,
-            name: `${shop.value.shop_name.substring(0, 4)}${i % 2 === 0 ? '特级绿茶' : '特级红茶'} ${i}号`,
-            shop_id: shopId, // 确保茶叶属于当前店铺
-            shop_name: shop.value.shop_name,
-            category_id: i % 2 === 0 ? 1 : 2, // 1=绿茶，2=红茶
-            price: price,
-            discount_price: Math.random() > 0.5 ? Math.floor(price * 0.8) : null,
-            brief: `来自商南高山的${i % 2 === 0 ? '绿茶' : '红茶'}，品质上乘，口感醇厚`,
-            image_url: `/mock-images/tea-${i % 8 + 1}.jpg`,
-            description: '高山茶叶，品质保证',
-            origin: '陕西省商洛市商南县',
-            stock: Math.floor(Math.random() * 100) + 20,
-            sales: Math.floor(Math.random() * 200) + 10,
-            main_image: `/mock-images/tea-${i % 8 + 1}.jpg`,
-            status: 1,
-            create_time: '2025-03-26 09:03:26',
-            update_time: '2025-03-26 09:03:26'
-          })
-        }
-        
-        shopTeas.value = teas
-        
-        // 随机设置是否关注
-        isFollowing.value = Math.random() > 0.5
-        
-        loading.value = false
-      }, 800)
+    const loadShopDetail = async (shopId) => {
+      if (!shopId) return
+
+      if (shopId === 'PLATFORM') {
+        ElMessage.error('平台直售不是实体店铺，无法查看详情')
+        router.push('/shop/list')
+        return
+      }
+
+      try {
+        await store.dispatch('shop/fetchShopDetail', shopId)
+        await store.dispatch('shop/fetchShopTeas', { shopId })
+      } catch (error) {
+        ElMessage.error(error.message || '加载店铺数据失败')
+      }
     }
-    
-    // 切换关注状态
-    const toggleFollow = () => {
-      followLoading.value = true
-      
-      // 模拟API调用
-      setTimeout(() => {
-        isFollowing.value = !isFollowing.value
-        
-        // 更新关注数
-        if (isFollowing.value) {
-          shop.value.follow_count = (shop.value.follow_count || 0) + 1
-        } else {
-          shop.value.follow_count = Math.max((shop.value.follow_count || 0) - 1, 0)
-        }
-        
-        ElMessage.success(isFollowing.value ? '已关注店铺' : '已取消关注')
-        followLoading.value = false
-      }, 500)
+
+    const toggleFollow = async () => {
+      ElMessage.info('关注店铺功能待后端接口完成后接入')
     }
-    
+
     // 格式化时间
     const formatTime = (timeString) => {
       if (!timeString) return '未知'
       const date = new Date(timeString)
       return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
     }
-    
+
     // 联系店铺客服
     const contactShop = () => {
-      // 跳转到消息中心的私信聊天页面，传递店铺ID
-      router.push(`/message/center/chat?shopId=${shop.value.id}`)
+      router.push(`/message/center/chat?shopId=${route.params.id}`)
     }
-    /* UI-DEV-END */
     
     /*
     // 真实代码（开发UI时注释）
@@ -397,15 +294,15 @@ export default {
     }
     
     onMounted(() => {
-      /* UI-DEV-START */
-      loadShopDetail()
-      /* UI-DEV-END */
-      
-      /*
-      // 真实代码（开发UI时注释）
-      // 通过路由watch自动触发loadShopDetail
-      */
+      loadShopDetail(route.params.id)
     })
+
+    watch(
+      () => route.params.id,
+      (shopId) => {
+        loadShopDetail(shopId)
+      }
+    )
     
     return {
       shop,

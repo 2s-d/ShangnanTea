@@ -114,13 +114,11 @@
 </template>
 
 <script>
-/* UI-DEV-START */
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { InfoFilled, Timer } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-/* UI-DEV-END */
 
 /*
 // 真实代码（开发UI时注释）
@@ -135,11 +133,9 @@ import SafeImage from '@/components/common/form/SafeImage.vue'
 export default {
   name: 'PaymentPage',
   components: {
-    /* UI-DEV-START */
     InfoFilled,
     Timer,
     SafeImage
-    /* UI-DEV-END */
     
     /*
     // 真实代码（开发UI时注释）
@@ -151,8 +147,7 @@ export default {
   setup() {
     const router = useRouter()
     const route = useRoute()
-    
-    /* UI-DEV-START */
+
     // 从路由参数获取订单ID数组
     const orderIds = ref(route.query.orderIds ? route.query.orderIds.split(',') : ['ORD' + Date.now()])
     const loading = ref(false)
@@ -278,7 +273,7 @@ export default {
         clearInterval(countdownTimer)
       }
     })
-    /* UI-DEV-END */
+
     
     /*
     // 真实代码（开发UI时注释）
@@ -516,9 +511,7 @@ export default {
     
     // 初始化
     onMounted(() => {
-      /* UI-DEV-START */
       loadOrderData()
-      /* UI-DEV-END */
       
       /*
       // 真实代码（开发UI时注释）
@@ -526,8 +519,9 @@ export default {
       */
     })
     
-    const defaultTeaImage = '/mock-images/tea-default.jpg'
-    const defaultPaymentImage = '/mock-images/payment-default.jpg'
+    // 默认图片（生产形态：不使用 mock-images）
+    const defaultTeaImage = ''
+    const defaultPaymentImage = ''
     
     return {
       teaItems,

@@ -1,4 +1,20 @@
-import { login, register, logout, getCurrentUser, updateUserInfo, changePassword } from '@/api/user'
+import { 
+  login, 
+  register, 
+  logout, 
+  getCurrentUser, 
+  updateUserInfo, 
+  changePassword,
+  getAddressList,
+  addAddress as addAddressApi,
+  updateAddress as updateAddressApi,
+  deleteAddress as deleteAddressApi,
+  setDefaultAddress as setDefaultAddressApi,
+  getUserPreferences as getUserPreferencesApi,
+  updateUserPreferences as updateUserPreferencesApi,
+  submitShopCertification as submitShopCertificationApi,
+  getShopCertificationStatus as getShopCertificationStatusApi
+} from '@/api/user'
 import { useTokenStorage } from '@/composables/useStorage'
 import router from '@/router'
 import userMessages from '@/utils/userMessages'
@@ -10,7 +26,20 @@ const tokenStorage = useTokenStorage()
 const state = () => ({
   userInfo: null,
   isLoggedIn: false,
-  loading: false
+  loading: false,
+  // 用户偏好设置（主题/展示等）
+  preferences: {
+    theme: 'light',
+    primaryColor: '#409EFF',
+    fontSize: 14,
+    fontFamily: '',
+    enableAnimation: true,
+    listMode: 'grid',
+    pageSize: 20
+  },
+  // 地址相关状态
+  addressList: [],
+  defaultAddressId: null
 })
 
 const getters = {
@@ -24,7 +53,16 @@ const getters = {
   isUser: state => state.userInfo?.role === 2,
   
   // 检查是否是商家
-  isShop: state => state.userInfo?.role === 3
+  isShop: state => state.userInfo?.role === 3,
+  
+  // 获取默认地址
+  defaultAddress: state => {
+    if (state.defaultAddressId) {
+      return state.addressList.find(addr => addr.id === state.defaultAddressId) || null
+    }
+    // 如果没有设置defaultAddressId，查找isDefault为true的地址
+    return state.addressList.find(addr => addr.isDefault) || null
+  }
 }
 
 const mutations = {
@@ -47,6 +85,82 @@ const mutations = {
   // 设置加载状态
   SET_LOADING(state, status) {
     state.loading = status
+  },
+
+  /**
+   * 设置用户偏好设置
+   * @param {Object} state Vuex state
+   * @param {Object} preferences 偏好设置
+   */
+  SET_PREFERENCES(state, preferences) {
+    state.preferences = {
+      ...state.preferences,
+      ...(preferences || {})
+    }
+  },
+  
+  // === 地址相关mutations ===
+  
+  // 设置地址列表
+  SET_ADDRESS_LIST(state, list) {
+    state.addressList = list || []
+    // 自动识别默认地址
+    const defaultAddr = list?.find(addr => addr.isDefault)
+    state.defaultAddressId = defaultAddr?.id || null
+  },
+  
+  // 添加地址
+  ADD_ADDRESS(state, address) {
+    state.addressList.push(address)
+    // 如果设置为默认，更新defaultAddressId
+    if (address.isDefault) {
+      // 取消其他地址的默认状态
+      state.addressList.forEach(addr => {
+        if (addr.id !== address.id) {
+          addr.isDefault = false
+        }
+      })
+      state.defaultAddressId = address.id
+    }
+  },
+  
+  // 更新地址
+  UPDATE_ADDRESS(state, updatedAddress) {
+    const index = state.addressList.findIndex(addr => addr.id === updatedAddress.id)
+    if (index !== -1) {
+      state.addressList.splice(index, 1, updatedAddress)
+      // 如果设置为默认，更新defaultAddressId
+      if (updatedAddress.isDefault) {
+        // 取消其他地址的默认状态
+        state.addressList.forEach(addr => {
+          if (addr.id !== updatedAddress.id) {
+            addr.isDefault = false
+          }
+        })
+        state.defaultAddressId = updatedAddress.id
+      } else if (state.defaultAddressId === updatedAddress.id) {
+        // 如果取消默认，清空defaultAddressId
+        state.defaultAddressId = null
+      }
+    }
+  },
+  
+  // 删除地址
+  REMOVE_ADDRESS(state, addressId) {
+    state.addressList = state.addressList.filter(addr => addr.id !== addressId)
+    // 如果删除的是默认地址，清空defaultAddressId
+    if (state.defaultAddressId === addressId) {
+      state.defaultAddressId = null
+    }
+  },
+  
+  // 设置默认地址
+  SET_DEFAULT_ADDRESS(state, addressId) {
+    // 取消所有地址的默认状态
+    state.addressList.forEach(addr => {
+      addr.isDefault = addr.id === addressId
+    })
+    state.defaultAddressId = addressId
   }
 }
 
@@ -128,6 +242,72 @@ const actions = {
       // 显示注册失败消息
       userMessages.business.showRegisterFailure(error.message)
       throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+
+  /**
+   * 提交商家认证申请
+   * @param {Object} context Vuex context
+   * @param {Object} certificationData 认证数据
+   * @returns {Promise<Object>} 提交结果
+   */
+  async submitShopCertification({ commit }, certificationData) {
+    commit('SET_LOADING', true)
+    try {
+      return await submitShopCertificationApi(certificationData)
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+
+  /**
+   * 获取商家认证状态
+   * @param {Object} context Vuex context
+   * @returns {Promise<Object>} 状态数据
+   */
+  async fetchShopCertificationStatus({ commit }) {
+    commit('SET_LOADING', true)
+    try {
+      return await getShopCertificationStatusApi()
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+
+  /**
+   * 获取用户偏好设置（主题/展示等）
+   * @param {Object} context Vuex context
+   * @returns {Promise<Object>} preferences
+   */
+  async fetchUserPreferences({ commit }) {
+    commit('SET_LOADING', true)
+    try {
+      const result = await getUserPreferencesApi()
+      // 兼容：后端可能返回 { data: {...} } 或直接返回 {...}
+      const preferences = result?.data || result?.preferences || result
+      commit('SET_PREFERENCES', preferences)
+      return preferences
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+
+  /**
+   * 保存用户偏好设置（主题/展示等）
+   * @param {Object} context Vuex context
+   * @param {Object} preferences 偏好设置
+   * @returns {Promise<Object>} 保存结果
+   */
+  async saveUserPreferences({ commit }, preferences) {
+    commit('SET_LOADING', true)
+    try {
+      const result = await updateUserPreferencesApi(preferences)
+      // 以服务端回写为准（若后端仅返回 success，则直接使用入参）
+      const saved = result?.data || result?.preferences || result || preferences
+      commit('SET_PREFERENCES', saved)
+      return saved
     } finally {
       commit('SET_LOADING', false)
     }
@@ -320,6 +500,175 @@ const actions = {
     
     // 显示认证错误消息
     userMessages.business.showSessionExpired()
+  },
+  
+  // === 地址相关actions ===
+  
+  /**
+   * 获取地址列表
+   * @param {Object} context Vuex context
+   * @returns {Promise} 地址列表
+   */
+  async fetchAddresses({ commit }) {
+    commit('SET_LOADING', true)
+    try {
+      const res = await getAddressList()
+      const addressList = res.data || []
+      commit('SET_ADDRESS_LIST', addressList)
+      return addressList
+    } catch (error) {
+      console.error('获取地址列表失败:', error)
+      // 开发环境使用Mock数据
+      if (process.env.NODE_ENV === 'development') {
+        const mockAddresses = [
+          {
+            id: 1,
+            userId: 1,
+            name: '张三',
+            phone: '13800138000',
+            province: '陕西省',
+            city: '商洛市',
+            district: '商南县',
+            detail: '城关镇XX路XX号',
+            isDefault: true,
+            createTime: '2024-01-01 10:00:00'
+          },
+          {
+            id: 2,
+            userId: 1,
+            name: '李四',
+            phone: '13900139000',
+            province: '陕西省',
+            city: '西安市',
+            district: '雁塔区',
+            detail: 'XX街道XX小区XX栋XX号',
+            isDefault: false,
+            createTime: '2024-01-15 14:30:00'
+          }
+        ]
+        commit('SET_ADDRESS_LIST', mockAddresses)
+        return mockAddresses
+      }
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+  
+  /**
+   * 添加地址
+   * @param {Object} context Vuex context
+   * @param {Object} addressData 地址数据
+   * @returns {Promise} 添加的地址
+   */
+  async addAddress({ commit }, addressData) {
+    commit('SET_LOADING', true)
+    try {
+      const res = await addAddressApi(addressData)
+      const newAddress = res.data
+      commit('ADD_ADDRESS', newAddress)
+      return newAddress
+    } catch (error) {
+      console.error('添加地址失败:', error)
+      // 开发环境使用Mock数据
+      if (process.env.NODE_ENV === 'development') {
+        const mockAddress = {
+          id: Date.now(),
+          userId: 1,
+          ...addressData,
+          createTime: new Date().toISOString()
+        }
+        commit('ADD_ADDRESS', mockAddress)
+        return mockAddress
+      }
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+  
+  /**
+   * 更新地址
+   * @param {Object} context Vuex context
+   * @param {Object} addressData 地址数据（必须包含id）
+   * @returns {Promise} 更新后的地址
+   */
+  async updateAddress({ commit }, addressData) {
+    if (!addressData.id) {
+      throw new Error('更新地址必须提供地址ID')
+    }
+    
+    commit('SET_LOADING', true)
+    try {
+      const res = await updateAddressApi(addressData.id, addressData)
+      const updatedAddress = res.data
+      commit('UPDATE_ADDRESS', updatedAddress)
+      return updatedAddress
+    } catch (error) {
+      console.error('更新地址失败:', error)
+      // 开发环境使用Mock数据
+      if (process.env.NODE_ENV === 'development') {
+        const updatedAddress = {
+          ...addressData,
+          updateTime: new Date().toISOString()
+        }
+        commit('UPDATE_ADDRESS', updatedAddress)
+        return updatedAddress
+      }
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+  
+  /**
+   * 删除地址
+   * @param {Object} context Vuex context
+   * @param {String|Number} addressId 地址ID
+   * @returns {Promise} 删除结果
+   */
+  async deleteAddress({ commit }, addressId) {
+    commit('SET_LOADING', true)
+    try {
+      await deleteAddressApi(addressId)
+      commit('REMOVE_ADDRESS', addressId)
+      return true
+    } catch (error) {
+      console.error('删除地址失败:', error)
+      // 开发环境使用Mock数据
+      if (process.env.NODE_ENV === 'development') {
+        commit('REMOVE_ADDRESS', addressId)
+        return true
+      }
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+  
+  /**
+   * 设置默认地址
+   * @param {Object} context Vuex context
+   * @param {String|Number} addressId 地址ID
+   * @returns {Promise} 设置结果
+   */
+  async setDefaultAddress({ commit }, addressId) {
+    commit('SET_LOADING', true)
+    try {
+      await setDefaultAddressApi(addressId)
+      commit('SET_DEFAULT_ADDRESS', addressId)
+      return true
+    } catch (error) {
+      console.error('设置默认地址失败:', error)
+      // 开发环境使用Mock数据
+      if (process.env.NODE_ENV === 'development') {
+        commit('SET_DEFAULT_ADDRESS', addressId)
+        return true
+      }
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
   }
 }
 

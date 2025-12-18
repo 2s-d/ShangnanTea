@@ -19,7 +19,9 @@ export const API = {
     FOLLOWS: '/user/follows',
     LIKES: '/user/likes',
     // 商家认证相关
-    SHOP_CERTIFICATION: '/user/shop-certification'
+    SHOP_CERTIFICATION: '/user/shop-certification',
+    // 用户偏好设置（主题/展示等）
+    PREFERENCES: '/user/preferences'
   },
 
   // === 茶叶模块API ===
@@ -60,7 +62,8 @@ export const API = {
     PAY: '/order/pay',
     CANCEL: '/order/cancel',
     CONFIRM: '/order/confirm',
-    REVIEW: '/order/review'
+    REVIEW: '/order/review',
+    REFUND: '/order/refund'
   },
 
   // === 论坛模块API ===
@@ -84,7 +87,15 @@ export const API = {
     // 通知相关
     NOTIFICATIONS: '/message/notifications',
     READ: '/message/read',
-    UNREAD_COUNT: '/message/unread/count'
+    UNREAD_COUNT: '/message/unread/count',
+    /**
+     * 兼容字段：历史代码可能使用 LIST/DETAIL/DELETE
+     * - LIST/DETAIL 默认指代 messages 列表与详情
+     * - DELETE 为兼容占位，具体后端实现以实际接口为准
+     */
+    LIST: '/message/messages',
+    DETAIL: '/message/messages/',
+    DELETE: '/message/delete'
   },
 
   // === 系统通用API ===

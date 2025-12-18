@@ -353,14 +353,12 @@
 </template>
 
 <script>
-/* UI-DEV-START */
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Plus } from '@element-plus/icons-vue'
 import { useImageUpload } from '@/composables/useImageUpload'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-/* UI-DEV-END */
 
 /*
 // 真实代码（开发UI时注释）
@@ -375,11 +373,9 @@ import { useImageUpload } from '@/composables/useImageUpload'
 export default {
   name: 'TeaManagePage',
   components: {
-    /* UI-DEV-START */
     Search,
     Plus,
     SafeImage
-    /* UI-DEV-END */
   },
   setup() {
     const router = useRouter()

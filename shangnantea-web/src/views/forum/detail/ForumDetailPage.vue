@@ -188,9 +188,9 @@ export default {
     const route = useRoute()
     const router = useRouter()
     
-    // 默认图片
-    const defaultAvatar = '/mock-images/avatar-default.jpg'
-    const defaultCover = '/mock-images/tea-default.jpg'
+    // 默认图片（生产形态：不使用 mock-images）
+    const defaultAvatar = ''
+    const defaultCover = ''
     
     // 获取帖子ID
     const postId = computed(() => route.params.id)
@@ -199,36 +199,11 @@ export default {
     const liked = ref(false)
     const favorited = ref(false)
     
-    /* UI-DEV-START */
-    // 模拟帖子数据
-    const post = ref({
-      id: 1,
-      title: '如何正确冲泡绿茶？详细教程分享',
-      content: `<p>绿茶的冲泡温度一般控制在80℃左右较为适宜，水温过高会破坏茶叶中的营养物质，使茶汤变苦涩。</p>
-                <p>以下是冲泡绿茶的详细步骤：</p>
-                <h3>1. 准备工作</h3>
-                <p>选择合适的茶具，建议使用玻璃杯或白瓷盖碗，这样可以欣赏到绿茶的色泽。茶叶用量一般为3-5克（约一茶匙）。</p>
-                <h3>2. 温杯洗茶</h3>
-                <p>先用80℃左右的热水温杯，倒掉后放入茶叶，再次倒入少量热水快速洗茶，然后倒掉。这一步可以除去茶叶表面的浮尘。</p>
-                <h3>3. 冲泡</h3>
-                <p>将80℃的水沿杯壁缓缓注入，水量为杯子的三分之二左右。注水高度保持在离茶叶3-5厘米，避免直接冲击茶叶，以防破坏其形态。</p>
-                <h3>4. 出汤</h3>
-                <p>绿茶的第一泡一般泡30-60秒即可，时间不宜过长，否则茶汤会变苦。后续每泡可适当增加10-15秒。</p>
-                <p>绿茶一般可以冲泡3-4次，第一泡茶汤鲜爽，香气最佳；第二泡滋味醇厚；第三泡以后香气逐渐减弱。</p>
-                <p>希望这个教程对大家有所帮助，欢迎在评论区分享你的冲泡心得！</p>`,
-      topicId: 1,
-      topicName: '茶叶知识',
-      authorId: 'cy100002',
-      authorName: '茶韵悠长',
-      authorAvatar: 'https://via.placeholder.com/40x40?text=茶韵',
-      isSticky: 1,
-      isEssence: 1,
-      viewCount: 362,
-      replyCount: 42,
-      likeCount: 86,
-      createTime: '2025-03-16 09:30:00'
-    })
-    /* UI-DEV-END */
+    /**
+     * 帖子数据（生产形态：不在 UI 层造数据）
+     * TODO-SCRIPT: 需要 forum 模块 API + Vuex 接入（当前 store/modules/forum.js 仅保留首页数据）
+     */
+    const post = ref(null)
     
     /*
     // 真实代码(开发UI时注释)
@@ -261,13 +236,9 @@ export default {
     
     // 点赞帖子
     const likePost = () => {
-      /* UI-DEV-START */
-      if (!liked.value) {
-        post.value.likeCount++
-        liked.value = true
-        ElMessage.success('点赞成功')
-      }
-      /* UI-DEV-END */
+      // TODO-SCRIPT: 点赞需要后端接口与 Vuex forum 模块；不在 UI 层伪造成功/修改计数
+      ElMessage.info('点赞功能待后端接口接入')
+      return
       
       /*
       // 真实代码(开发UI时注释)
@@ -293,8 +264,9 @@ export default {
     
     // 收藏/取消收藏
     const toggleFavorite = () => {
-      favorited.value = !favorited.value
-      ElMessage.success(favorited.value ? '收藏成功' : '已取消收藏')
+      // TODO-SCRIPT: 收藏需要后端接口与 Vuex forum 模块；不在 UI 层伪造成功
+      ElMessage.info('收藏功能待后端接口接入')
+      return
     }
     
     // 显示分享对话框
@@ -329,107 +301,14 @@ export default {
     const replyContent = ref('')
     const currentReply = ref(null)
     const submitting = ref(false)
-    
-    /* UI-DEV-START */
-    // 模拟回复数据
-    const replyList = ref([
-      {
-        id: 1,
-        postId: 1,
-        userId: 'cy100003',
-        userName: '茶香四溢',
-        userAvatar: 'https://via.placeholder.com/40x40?text=茶香',
-        content: '感谢分享！我一直以为绿茶需要用沸水冲泡，难怪总是很苦，原来是水温太高了。',
-        parentId: null,
-        toUserId: null,
-        likeCount: 15,
-        liked: false,
-        createTime: '2025-03-16 10:15:00'
-      },
-      {
-        id: 2,
-        postId: 1,
-        userId: 'cy100004',
-        userName: '绿茶爱好者',
-        userAvatar: 'https://via.placeholder.com/40x40?text=绿茶',
-        content: '我想补充一点，不同产地的绿茶冲泡水温也有细微差别，龙井一般75-85℃，碧螺春可以80-90℃，具体还是要看茶叶的嫩度。',
-        parentId: null,
-        toUserId: null,
-        likeCount: 23,
-        liked: false,
-        createTime: '2025-03-16 10:30:00'
-      },
-      {
-        id: 3,
-        postId: 1,
-        userId: 'cy100005',
-        userName: '茶道初学者',
-        userAvatar: 'https://via.placeholder.com/40x40?text=初学',
-        content: '请问冲泡时间真的很重要吗？我经常忘记时间，导致茶叶泡太久...',
-        parentId: null,
-        toUserId: null,
-        likeCount: 8,
-        liked: false,
-        createTime: '2025-03-16 11:05:00'
-      },
-      {
-        id: 4,
-        postId: 1,
-        userId: 'cy100002',
-        userName: '茶韵悠长',
-        userAvatar: 'https://via.placeholder.com/40x40?text=茶韵',
-        content: '冲泡时间非常重要！绿茶第一泡最好控制在1分钟以内，泡久了会苦涩。可以用手机计时或购买专门的茶艺计时器。',
-        parentId: 3,
-        toUserId: 'cy100005',
-        likeCount: 12,
-        liked: false,
-        createTime: '2025-03-16 11:15:00'
-      },
-      {
-        id: 5,
-        postId: 1,
-        userId: 'cy100006',
-        userName: '遇见好茶',
-        userAvatar: 'https://via.placeholder.com/40x40?text=好茶',
-        content: '楼主的讲解很详细，对于新手非常友好。我想问一下，这些方法适用于所有绿茶吗？比如碧螺春、龙井、毛尖等。',
-        parentId: null,
-        toUserId: null,
-        likeCount: 6,
-        liked: false,
-        createTime: '2025-03-16 13:20:00'
-      }
-    ])
-    
-    // 模拟推荐帖子
-    const recommendList = ref([
-      {
-        id: 11,
-        title: '不同季节的绿茶冲泡技巧有何不同？',
-        authorName: '四季茶友',
-        viewCount: 183
-      },
-      {
-        id: 12,
-        title: '茶具选择指南：如何选择适合绿茶的茶具',
-        authorName: '茶具控',
-        viewCount: 246
-      },
-      {
-        id: 13,
-        title: '绿茶品鉴基础：从外形、香气到口感的完整评价',
-        authorName: '品茶师',
-        viewCount: 328
-      },
-      {
-        id: 14,
-        title: '商南绿茶的特色与冲泡要点',
-        authorName: '商南茶农',
-        viewCount: 159
-      }
-    ])
-    
-    pagination.total = 42 // 模拟总回复数
-    /* UI-DEV-END */
+
+    /**
+     * 回复/推荐列表（生产形态：不在 UI 层造数据与伪分页）
+     * TODO-SCRIPT: 需要 forum 模块 API + Vuex 接入（回复列表/推荐列表/排序/分页）
+     */
+    const replyList = ref([])
+    const recommendList = ref([])
+    pagination.total = 0
     
     /*
     // 真实代码(开发UI时注释)
@@ -478,17 +357,10 @@ export default {
     // 处理排序变更
     const handleSortChange = (sort) => {
       currentSort.value = sort
-      
-      /* UI-DEV-START */
-      // 模拟排序效果
-      if (sort === 'time') {
-        replyList.value = [...replyList.value].sort((a, b) => new Date(a.createTime) - new Date(b.createTime))
-      } else if (sort === 'timeDesc') {
-        replyList.value = [...replyList.value].sort((a, b) => new Date(b.createTime) - new Date(a.createTime))
-      } else if (sort === 'hot') {
-        replyList.value = [...replyList.value].sort((a, b) => b.likeCount - a.likeCount)
-      }
-      /* UI-DEV-END */
+
+      // TODO-SCRIPT: 排序需要后端接口或由 Vuex 拉取并排序；不在 UI 层伪造排序结果
+      ElMessage.info('排序功能待后端接口接入')
+      return
       
       /*
       // 真实代码(开发UI时注释)
@@ -517,13 +389,9 @@ export default {
     
     // 点赞回复
     const likeReply = (reply) => {
-      /* UI-DEV-START */
-      if (!reply.liked) {
-        reply.likeCount++
-        reply.liked = true
-        ElMessage.success('点赞成功')
-      }
-      /* UI-DEV-END */
+      // TODO-SCRIPT: 点赞回复需要后端接口与 Vuex forum 模块；不在 UI 层伪造成功/修改计数
+      ElMessage.info('点赞功能待后端接口接入')
+      return
       
       /*
       // 真实代码(开发UI时注释)
@@ -564,38 +432,11 @@ export default {
       }
       
       submitting.value = true
-      
-      /* UI-DEV-START */
-      setTimeout(() => {
-        // 模拟新回复数据
-        const newReply = {
-          id: replyList.value.length + 100,
-          postId: post.value.id,
-          userId: 'current-user',
-          userName: '当前用户',
-          userAvatar: defaultAvatar,
-          content: replyContent.value,
-          parentId: currentReply.value ? currentReply.value.id : null,
-          toUserId: currentReply.value ? currentReply.value.userId : null,
-          likeCount: 0,
-          liked: false,
-          createTime: new Date().toISOString().replace('T', ' ').substring(0, 19)
-        }
-        
-        // 添加到回复列表顶部
-        replyList.value.unshift(newReply)
-        
-        // 增加帖子回复计数
-        post.value.replyCount++
-        
-        // 重置表单
-        replyContent.value = ''
-        currentReply.value = null
-        submitting.value = false
-        
-        ElMessage.success('回复发布成功')
-      }, 800)
-      /* UI-DEV-END */
+
+      // TODO-SCRIPT: 发表回复需要后端接口与 Vuex forum 模块；不在 UI 层 setTimeout 伪发布
+      submitting.value = false
+      ElMessage.info('回复功能待后端接口接入')
+      return
       
       /*
       // 真实代码(开发UI时注释)

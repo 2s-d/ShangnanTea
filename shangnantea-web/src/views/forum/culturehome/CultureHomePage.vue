@@ -144,117 +144,18 @@ export default {
     const router = useRouter()
     const refreshing = ref(false)
     
-    /* UI-DEV-START */
-    // 轮播图数据
-    const bannerData = ref([
-      {
-        imageUrl: 'https://via.placeholder.com/1600x400?text=商南茶文化',
-        title: '商南茶文化',
-        subtitle: '千年茶乡，一片叶子的传奇'
-      },
-      {
-        imageUrl: 'https://via.placeholder.com/1600x400?text=茶道体验',
-        title: '茶道体验',
-        subtitle: '感受茶的灵魂与精髓'
-      },
-      {
-        imageUrl: 'https://via.placeholder.com/1600x400?text=茶园风光',
-        title: '茶园风光',
-        subtitle: '云雾缭绕的秦岭山脉茶园'
-      }
-    ])
-    
-    // 文章数据
+    /**
+     * 首页数据（生产形态：不在 UI 层造数据）
+     * TODO-SCRIPT: 需要 forum 模块 API + Vuex 接入（轮播/文章分类列表/推荐茶叶）
+     */
+    const bannerData = ref([])
     const articleData = ref({
-      // 茶叶历史
-      history: [
-        { id: 1, title: '商南茶产业的历史发展与演变', date: '12.30' },
-        { id: 2, title: '秦岭深处的千年茶文化传承', date: '12.15' },
-        { id: 3, title: '从传统制茶到现代工艺的演变', date: '12.10' },
-        { id: 4, title: '商南茶业发展阶段和创新历程', date: '12.03' },
-        { id: 5, title: '2024年商南茶产新品研发报告', date: '11.30' },
-        { id: 6, title: '商南茶发展历程和名优产品', date: '11.25' },
-        { id: 7, title: '秦岭南侧的茶叶种植历史', date: '11.20' },
-        { id: 8, title: '商南茶种植和茶产品发展趋势', date: '11.15' }
-      ],
-      
-      // 茶艺茶道
-      art: [
-        { id: 9, title: '秦岭茶：传统茶艺的展现', date: '12.18' },
-        { id: 10, title: '商南茶的正确冲泡和饮用方法', date: '12.13' },
-        { id: 11, title: '商南茶道的艺术表现形式', date: '12.8' },
-        { id: 12, title: '陕南茶席布置与茶道艺术', date: '12.3' },
-        { id: 13, title: '茶道礼仪：如何品品茶道', date: '11.28' },
-        { id: 14, title: '商南茶道茶艺的推广与普及', date: '11.23' },
-        { id: 15, title: '茶艺：商南茶的冲泡技巧', date: '11.18' },
-        { id: 16, title: '茶道和礼法：商南茶文化的核心', date: '11.13' }
-      ],
-      
-      // 茶叶百科
-      encyclopedia: [
-        { id: 17, title: '商南绿茶的品鉴特征与冲泡方法', date: '12.17' },
-        { id: 18, title: '商南茶叶等级与口感特点解析', date: '12.12' },
-        { id: 19, title: '商南茶叶的功效与健康价值', date: '12.7' },
-        { id: 20, title: '你知道茶叶中的氨基酸吗？', date: '12.2' },
-        { id: 21, title: '商南茶叶的采摘和存储技巧', date: '11.27' },
-        { id: 22, title: '绿茶、红茶、乌龙茶的区别', date: '11.22' },
-        { id: 23, title: '茶叶季节：如何判断新茶', date: '11.17' },
-        { id: 24, title: '商南茶叶特性与常见问题解答', date: '11.12' }
-      ],
-      
-      // 茶文化传承
-      heritage: [
-        { id: 25, title: '商南茶文化：从唐代流传至今的韵味', date: '12.19' },
-        { id: 26, title: '传统茶艺表演的现代传承与创新', date: '12.11' },
-        { id: 27, title: '商南茶乡旅游文化发展', date: '12.6' },
-        { id: 28, title: '古老茶道的现代转型之路', date: '12.1' },
-        { id: 29, title: '商南茶文化人物故事与经典', date: '11.26' },
-        { id: 30, title: '商南茶文化：从传统到现代', date: '11.21' },
-        { id: 31, title: '茶礼仪：商南茶文化的心灵体现', date: '11.16' },
-        { id: 32, title: '茶与山水：秦岭商南茶的自然传承', date: '11.11' }
-      ]
+      history: [],
+      art: [],
+      encyclopedia: [],
+      heritage: []
     })
-    
-    // 推荐茶叶数据
-    const recommendTeas = ref([
-      {
-        id: 'tea1000001',
-        name: '商南翠峰',
-        price: '128',
-        image: 'https://via.placeholder.com/180x180?text=商南翠峰'
-      },
-      {
-        id: 'tea1000002',
-        name: '丹江银针',
-        price: '198',
-        image: 'https://via.placeholder.com/180x180?text=丹江银针'
-      },
-      {
-        id: 'tea1000003',
-        name: '秦山云雾',
-        price: '108',
-        image: 'https://via.placeholder.com/180x180?text=秦山云雾'
-      },
-      {
-        id: 'tea1000004',
-        name: '商山毛尖',
-        price: '158',
-        image: 'https://via.placeholder.com/180x180?text=商山毛尖'
-      },
-      {
-        id: 'tea1000005',
-        name: '商州碧绿',
-        price: '178',
-        image: 'https://via.placeholder.com/180x180?text=商州碧绿'
-      },
-      {
-        id: 'tea1000006',
-        name: '商南云雾',
-        price: '198',
-        image: 'https://via.placeholder.com/180x180?text=商南云雾'
-      }
-    ])
-    /* UI-DEV-END */
+    const recommendTeas = ref([])
     
     /* 
     // 真实代码(开发UI时注释)
@@ -318,28 +219,11 @@ export default {
     // 刷新文章列表
     const refreshArticles = async () => {
       refreshing.value = true
-      
-      /* UI-DEV-START */
-      // 模拟加载延迟
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // 随机调整文章顺序，模拟刷新效果
-      const shuffleArticles = (array) => {
-        for (let i = array.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [array[i], array[j]] = [array[j], array[i]];
-        }
-        return array;
-      }
-      
-      // 复制现有文章数据并随机排序
-      articleData.value = {
-        history: shuffleArticles([...articleData.value.history]),
-        art: shuffleArticles([...articleData.value.art]),
-        encyclopedia: shuffleArticles([...articleData.value.encyclopedia]),
-        heritage: shuffleArticles([...articleData.value.heritage])
-      }
-      /* UI-DEV-END */
+
+      // TODO-SCRIPT: 刷新文章需要后端接口；不在 UI 层 setTimeout/洗牌伪造刷新
+      ElMessage.info('刷新功能待后端接口接入')
+      refreshing.value = false
+      return
       
       /* 
       // 真实代码(开发UI时注释)
@@ -350,8 +234,6 @@ export default {
         ElMessage.error('刷新文章失败，请稍后再试')
       }
       */
-      
-      refreshing.value = false
     }
     
     // AR虚拟试饮功能
@@ -359,36 +241,13 @@ export default {
       ElMessage.info('AR虚拟试饮功能正在开发中，敬请期待...')
     }
     
-    // 添加默认图片常量
-    const defaultTeaImage = '/mock-images/tea-default.jpg'
-    const defaultCover = '/mock-images/tea-default.jpg'
-    const defaultAvatar = '/mock-images/avatar-default.jpg'
+    // 默认图片（生产形态：不使用 mock-images）
+    const defaultTeaImage = ''
+    const defaultCover = ''
+    const defaultAvatar = ''
 
-    // 模拟文章列表数据
-    const articleList = ref([
-      {
-        id: 1,
-        title: '商南茶文化的历史渊源',
-        cover: defaultCover,
-        author: '茶史专家',
-        authorAvatar: defaultAvatar,
-        publishTime: '2025-03-15',
-        views: 1234,
-        likes: 56,
-        comments: 23
-      },
-      {
-        id: 2,
-        title: '商南绿茶制作工艺',
-        cover: defaultCover,
-        author: '制茶大师',
-        authorAvatar: defaultAvatar,
-        publishTime: '2025-03-14',
-        views: 890,
-        likes: 45,
-        comments: 12
-      }
-    ])
+    // 文章列表占位（待后端接入）
+    const articleList = ref([])
     
     return {
       bannerData,

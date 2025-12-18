@@ -279,7 +279,10 @@
 <script>
 import { ref, reactive, computed, nextTick, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessageBox } from 'element-plus'
+import { useStore } from 'vuex'
+import { message } from '@/components/common'
+import { handleAsyncOperation } from '@/utils/messageHelper'
 import { 
   Check, CircleCheck, Warning, Picture, Smile, Loading, 
   MoreFilled
@@ -302,6 +305,7 @@ export default {
   setup() {
     const route = useRoute()
     const router = useRouter()
+    const store = useStore()
     
     // DOM引用
     const messagesContainer = ref(null)
@@ -313,6 +317,7 @@ export default {
     // 会话管理
     const mockSessions = ref([])
     const currentSessionId = ref(null)
+    const currentTargetUserId = ref(null)
     const messagesMap = reactive({})
     const messageInput = ref('')
     const imageFile = ref(null)
@@ -337,56 +342,29 @@ export default {
     const fetchSessions = async () => {
       try {
         // 在实际项目中，这里应该调用后端API
-        // 模拟API响应
-        const response = {
-          code: 0,
-          data: [
-            {
-              sessionId: '1',
-              type: 'user',
-              userId: '101',
-              name: '张三',
-              avatar: 'h//element-plus-lo.svg',
-              lastMessage: '请问你有空吗？我想咨询一下关于铁观音的问题',
-              lastTime: Date.now() - 3600000, // 1小时前
-              unreadCount: 2
-            },
-            {
-              sessionId: '2',
-              type: 'shop',
-              userId: '201',
-              name: '品茶轩',
-              avatar: 'https://element-plus.org/images/element-plus-logo.svg',
-              lastMessage: '您的订单已发货，请注意查收',
-              lastTime: Date.now() - 86400000, // 1天前
-              unreadCount: 0
-            },
-            {
-              sessionId: '3',
-              type: 'system',
-              userId: 'system',
-              name: '系统通知',
-              avatar: 'https://element-plus.org/images/element-plus-logo.svg',
-              lastMessage: '欢迎使用商南茶文化平台，祝您购物愉快！',
-              lastTime: Date.now() - 7 * 86400000, // 7天前
-              unreadCount: 1
-            }
-          ]
-        }
-        
-        mockSessions.value = response.data
-        
-        // 如果有未读消息的会话，默认选中第一个有未读消息的会话
+        // 生产版：走 Vuex→API 获取会话列表（不使用本地 mock）
+        const data = await handleAsyncOperation(
+          store.dispatch('message/fetchChatSessions'),
+          {
+            successMessage: null,
+            errorMessage: '获取会话列表失败，请稍后重试'
+          }
+        )
+
+        mockSessions.value = data || store.state.message.chatSessions || []
+
+        // 默认选中：优先未读，否则第一个
         const unreadSession = mockSessions.value.find(session => session.unreadCount > 0)
         if (unreadSession) {
           selectSession(unreadSession)
         } else if (mockSessions.value.length > 0) {
-          // 否则选中第一个会话
           selectSession(mockSessions.value[0])
         }
+
+        return
       } catch (error) {
         console.error('获取会话列表失败：', error)
-        ElMessage.error('获取会话列表失败，请稍后重试')
+        message.error('获取会话列表失败，请稍后重试')
       }
     }
     
@@ -396,185 +374,38 @@ export default {
       
       try {
         loadingMessages.value = true
-        
-        // 获取已有的消息，用于加载更多的情况
-        const existingMessages = messagesMap[sessionId] || []
-        const oldestMsgId = existingMessages.length > 0 ? existingMessages[0].id : null
-        
-        // 在实际项目中，这里应该调用后端API，传入lastMsgId用于分页
-        // 模拟API响应
-        let mockMessages = []
-        
-        if (sessionId === '1') {
-          mockMessages = [
+
+        /**
+         * 生产版：通过 Vuex(message) → API 获取聊天记录
+         * TODO-SCRIPT: 需要接口契约明确 sessionId 如何映射到对端 userId/targetId。
+         */
+        const session = (mockSessions.value || []).find(s => s.sessionId === sessionId)
+        const targetUserId = session?.userId || session?.targetId
+        if (targetUserId) {
+          await handleAsyncOperation(
+            store.dispatch('message/fetchChatHistory', { userId: targetUserId, params: {} }),
             {
-              id: '101',
-              sessionId: '1',
-              senderId: '101',
-              content: '你好，我想咨询一下关于铁观音的问题',
-              type: 'text',
-              createTime: Date.now() - 7200000, // 2小时前
-              status: 'read',
-              isSelf: false
-            },
-            {
-              id: '102',
-              sessionId: '1',
-              senderId: 'self',
-              content: '您好，有什么可以帮到您的？',
-              type: 'text',
-              createTime: Date.now() - 7180000, // 1小时59分钟前
-              status: 'read',
-              isSelf: true
-            },
-            {
-              id: '103',
-              sessionId: '1',
-              senderId: '101',
-              content: '铁观音应该怎么泡最好喝？',
-              type: 'text',
-              createTime: Date.now() - 3660000, // 1小时1分钟前
-              status: 'read',
-              isSelf: false
-            },
-            {
-              id: '104',
-              sessionId: '1',
-              senderId: '101',
-              content: '另外，你们店里有什么好的铁观音推荐？',
-              type: 'text',
-              createTime: Date.now() - 3600000, // 1小时前
-              status: 'read',
-              isSelf: false
+              successMessage: null,
+              errorMessage: '获取聊天记录失败，请稍后重试'
             }
-          ]
-        } else if (sessionId === '2') {
-          mockMessages = [
-            {
-              id: '201',
-              sessionId: '2',
-              senderId: '201',
-              content: '您购买的铁观音已经发货了',
-              type: 'text',
-              createTime: Date.now() - 172800000, // 2天前
-              status: 'read',
-              isSelf: false
-            },
-            {
-              id: '202',
-              sessionId: '2',
-              senderId: 'self',
-              content: '好的，谢谢，请问有快递单号吗？',
-              type: 'text',
-              createTime: Date.now() - 100800000, // 1天4小时前
-              status: 'read',
-              isSelf: true
-            },
-            {
-              id: '203',
-              sessionId: '2',
-              senderId: '201',
-              content: '单号是SF1234567890，请注意查收',
-              type: 'text',
-              createTime: Date.now() - 90000000, // 1天1小时前
-              status: 'read',
-              isSelf: false
-            },
-            {
-              id: '204',
-              sessionId: '2',
-              senderId: '201',
-              content: '您的订单已发货，请注意查收',
-              type: 'text',
-              createTime: Date.now() - 86400000, // 1天前
-              status: 'unread',
-              isSelf: false
-            }
-          ]
-        } else if (sessionId === '3') {
-          mockMessages = [
-            {
-              id: '301',
-              sessionId: '3',
-              senderId: 'system',
-              content: '欢迎使用商南茶文化平台！',
-              type: 'text',
-              createTime: Date.now() - 30 * 86400000, // 30天前
-              status: 'read',
-              isSelf: false
-            },
-            {
-              id: '302',
-              sessionId: '3',
-              senderId: 'system',
-              content: '感谢您注册成为我们的用户，祝您购物愉快！',
-              type: 'text',
-              createTime: Date.now() - 30 * 86400000, // 30天前
-              status: 'read',
-              isSelf: false
-            },
-            {
-              id: '303',
-              sessionId: '3',
-              senderId: 'system',
-              content: '您有一张优惠券已到账，请查收！',
-              type: 'text',
-              createTime: Date.now() - 7 * 86400000, // 7天前
-              status: 'unread',
-              isSelf: false
-            }
-          ]
+          )
+
+          // 将 Vuex 的 chatHistory 投影到页面使用的 messagesMap（尽量不改模板结构）
+          const history = store.state.message.chatHistory || []
+          messagesMap[sessionId] = history.map(msg => ({
+            ...msg,
+            sessionId,
+            isSelf: typeof msg.isSelf === 'boolean' ? msg.isSelf : msg.senderId === 'self'
+          }))
+
+          return
         }
-        
-        // 处理加载更多的情况
-        if (isLoadMore && existingMessages.length > 0) {
-          // 模拟加载更早的消息
-          const earlierMessages = [
-            {
-              id: `${sessionId}01-earlier`,
-              sessionId,
-              senderId: sessionId === 'self' ? 'other' : 'self',
-              content: '这是更早的消息1',
-              type: 'text',
-              createTime: existingMessages[0].createTime - 86400000, // 比最早的消息早1天
-              status: 'read',
-              isSelf: sessionId !== 'self'
-            },
-            {
-              id: `${sessionId}02-earlier`,
-              sessionId,
-              senderId: sessionId === 'self' ? 'other' : 'self',
-              content: '这是更早的消息2',
-              type: 'text',
-              createTime: existingMessages[0].createTime - 82800000, // 比最早的消息早23小时
-              status: 'read',
-              isSelf: sessionId !== 'self'
-            }
-          ]
-          
-          // 将新消息添加到现有消息前面
-          messagesMap[sessionId] = [...earlierMessages, ...existingMessages]
-        } else {
-          // 首次加载或刷新消息
-          messagesMap[sessionId] = mockMessages
-        }
-        
-        // 模拟是否还有更多消息可以加载
-        hasMoreMessages.value = isLoadMore ? false : true
-        
-        // 更新会话的未读状态
-        if (!isLoadMore) {
-          markSessionAsRead(sessionId)
-        }
-        
-        // 如果不是加载更多，滚动到底部
-        if (!isLoadMore) {
-          await nextTick()
-          scrollToBottom()
-        }
+
+        message.warning('会话信息不完整，无法加载聊天记录（缺少 userId/targetId）')
+        return
       } catch (error) {
         console.error('获取消息列表失败：', error)
-        ElMessage.error('获取消息列表失败，请稍后重试')
+        message.error('获取消息列表失败，请稍后重试')
       } finally {
         loadingMessages.value = false
       }
@@ -603,6 +434,9 @@ export default {
       if (currentSessionId.value === sessionId) return
       
       currentSessionId.value = sessionId
+      // 记录会话对端用户ID（用于拉取历史与发送消息）
+      // TODO-SCRIPT: 需要统一 session 字段命名（userId/targetId），并在后端接口中固定。
+      currentTargetUserId.value = session.userId || session.targetId || null
       
       // 如果该会话的消息尚未加载，则加载消息
       if (!messagesMap[sessionId]) {
@@ -623,18 +457,10 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        mockSessions.value = mockSessions.value.filter(s => s.sessionId !== sessionId)
-        delete messagesMap[sessionId]
-        
-        if (currentSessionId.value === sessionId) {
-          currentSessionId.value = null
-          if (mockSessions.value.length > 0) {
-            selectSession(mockSessions.value[0])
-          }
-        }
-        
-        ElMessage.success('会话已删除')
-        // 在实际项目中，这里应该调用后端API删除会话
+        // 生产版：删除会话必须由后端确认后再刷新列表，前端不做本地“假删除”
+        // TODO-SCRIPT: 需要后端提供删除会话接口（例如 DELETE /message/sessions/:id）
+        message.info('删除会话：待后端接口接入（当前不执行本地删除，避免产生假状态）')
+        return
       }).catch(() => {
         // 用户取消删除
       })
@@ -649,9 +475,10 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        messagesMap[currentSessionId.value] = []
-        ElMessage.success('聊天记录已清空')
-        // 在实际项目中，这里应该调用后端API清空聊天记录
+        // 生产版：清空聊天记录必须由后端确认后再刷新历史，前端不做本地“假清空”
+        // TODO-SCRIPT: 需要后端提供清空接口（例如 POST /message/history/clear）
+        message.info('清空聊天记录：待后端接口接入（当前不执行本地清空，避免产生假状态）')
+        return
       }).catch(() => {
         // 用户取消清空
       })
@@ -666,13 +493,18 @@ export default {
         cancelButtonText: '取消',
         inputPlaceholder: '请详细描述您的举报原因'
       }).then(({ value }) => {
+        // 生产版：举报需要后端记录与审核，前端不做本地“假提交成功”状态变更
+        // TODO-SCRIPT: 需要后端提供举报接口（例如 POST /message/report）
+        // 这里先保留输入流程，但不提交到本地状态，避免伪成功
         if (!value.trim()) {
-          ElMessage.warning('举报原因不能为空')
+          message.warning('举报原因不能为空')
           return
         }
         
-        ElMessage.success('举报已提交，我们会尽快处理')
-        // 在实际项目中，这里应该调用后端API提交举报
+        // 生产版：举报需要后端记录与审核，前端不做本地“假提交成功”状态变更
+        // TODO-SCRIPT: 需要后端提供举报接口（例如 POST /message/report）
+        message.info('举报：待后端接口接入（已记录原因输入，但当前不提交）')
+        return
       }).catch(() => {
         // 用户取消举报
       })
@@ -724,73 +556,34 @@ export default {
         await nextTick()
         scrollToBottom()
         
-        // 模拟发送消息的网络延迟
-        setTimeout(() => {
-          // 更新消息状态为已发送
-          const msgIndex = messagesMap[currentSessionId.value].findIndex(m => m.id === messageId)
-          if (msgIndex !== -1) {
-            messagesMap[currentSessionId.value][msgIndex].status = 'sent'
-          }
-          
-          // 更新当前会话的最后消息和时间
-          const session = mockSessions.value.find(s => s.sessionId === currentSessionId.value)
-          if (session) {
-            session.lastMessage = messageType === 'text' ? messageContent : '[图片]'
-            session.lastTime = now
-          }
-          
-          // 在实际项目中，这里应该调用后端API发送消息
-        }, 1000)
-        
-        // 模拟对方已读的延迟
-        setTimeout(() => {
-          const msgIndex = messagesMap[currentSessionId.value].findIndex(m => m.id === messageId)
-          if (msgIndex !== -1) {
-            messagesMap[currentSessionId.value][msgIndex].status = 'read'
-          }
-        }, 3000)
-        
-        // 模拟对方回复
-        if (messageType === 'text' && Math.random() > 0.3) {
-          setTimeout(() => {
-            const currentSession = mockSessions.value.find(s => s.sessionId === currentSessionId.value)
-            if (!currentSession) return
-            
-            const replyMessages = [
-              '好的，我明白了',
-              '谢谢您的信息',
-              '我们会尽快处理',
-              '请稍等，我查询一下',
-              '有什么需要我帮忙的吗？'
-            ]
-            
-            const replyMessageId = `reply-${Date.now()}`
-            const replyMessage = {
-              id: replyMessageId,
-              sessionId: currentSessionId.value,
-              senderId: currentSession.userId,
-              content: replyMessages[Math.floor(Math.random() * replyMessages.length)],
-              type: 'text',
-              createTime: Date.now(),
-              status: 'unread',
-              isSelf: false
-            }
-            
-            messagesMap[currentSessionId.value].push(replyMessage)
-            
-            // 更新当前会话的最后消息和时间
-            currentSession.lastMessage = replyMessage.content
-            currentSession.lastTime = replyMessage.createTime
-            
-            // 滚动到底部
-            nextTick(() => {
-              scrollToBottom()
-            })
-          }, 5000 + Math.random() * 5000)
+        /**
+         * 生产版：发送消息走 Vuex(message) → API
+         * TODO-SCRIPT: 需要接口契约确认 sendMessage 的参数结构（receiverId/sessionId 等）。
+         */
+        if (!currentTargetUserId.value) {
+          message.warning('缺少会话目标用户ID，暂无法发送消息')
+          return
         }
+
+        await handleAsyncOperation(
+          store.dispatch('message/sendMessage', {
+            receiverId: currentTargetUserId.value,
+            content: messageContent,
+            type: messageType
+          }),
+          {
+            successMessage: null,
+            errorMessage: '发送消息失败，请稍后重试',
+            successCallback: async () => {
+              await fetchMessages(currentSessionId.value, false)
+              await nextTick()
+              scrollToBottom()
+            }
+          }
+        )
       } catch (error) {
         console.error('发送消息失败：', error)
-        ElMessage.error('发送消息失败，请稍后重试')
+        message.error('发送消息失败，请稍后重试')
       }
     }
     
@@ -809,13 +602,13 @@ export default {
       
       // 检查文件类型
       if (!file.type.startsWith('image/')) {
-        ElMessage.error('只能上传图片文件')
+        message.error('只能上传图片文件')
         return
       }
       
       // 检查文件大小，限制为5MB
       if (file.size > 5 * 1024 * 1024) {
-        ElMessage.error('图片大小不能超过5MB')
+        message.error('图片大小不能超过5MB')
         return
       }
       
@@ -990,7 +783,7 @@ export default {
       selectSession(newSession)
       
       // 显示欢迎消息
-      ElMessage.success(`已连接到${shopInfo.name}客服`)
+      message.success(`已连接到${shopInfo.name}客服`)
     }
     
     // 创建新的用户聊天会话
@@ -1029,7 +822,7 @@ export default {
       selectSession(newSession)
       
       // 显示提示消息
-      ElMessage.success(`已开始与${userInfo.name}的聊天`)
+      message.success(`已开始与${userInfo.name}的聊天`)
     }
     
     // 在组件挂载时检查路由参数

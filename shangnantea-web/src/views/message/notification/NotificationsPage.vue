@@ -35,9 +35,6 @@
               <el-empty 
                 description="该功能正在开发中，敬请期待..." 
                 :image-size="200">
-                <template #image>
-                  <SafeImage src="/mock-images/default.jpg" type="banner" alt="功能开发中" class="dev-logo"/>
-                </template>
               </el-empty>
             </div>
           </template>
@@ -53,15 +50,13 @@ import { useRoute, useRouter } from 'vue-router'
 import SystemNotificationsPage from './SystemNotificationsPage.vue'
 import ChatPage from '../chat/ChatPage.vue'
 import { Bell, ChatLineRound } from '@element-plus/icons-vue'
-import SafeImage from '@/components/common/form/SafeImage.vue'
 
 export default {
   name: 'NotificationsPage',
   components: {
     SystemNotificationsPage,
     ChatPage,
-    Bell, ChatLineRound,
-    SafeImage
+    Bell, ChatLineRound
   },
   setup() {
     const router = useRouter()

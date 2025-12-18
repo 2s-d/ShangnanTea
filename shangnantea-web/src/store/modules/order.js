@@ -5,6 +5,8 @@ import {
   getOrderDetail, 
   payOrder, 
   cancelOrder,
+  confirmOrder,
+  refundOrder,
   // 引入购物车相关API
   getCartItems,
   addToCart,
@@ -280,14 +282,46 @@ const actions = {
       commit('SET_LOADING', false)
     }
   },
+
+  // 确认收货
+  async confirmReceipt({ commit }, id) {
+    try {
+      commit('SET_LOADING', true)
+
+      await confirmOrder(id)
+
+      // 更新订单状态：已完成
+      commit('UPDATE_ORDER_STATUS', { id, status: 3 })
+
+      return true
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+
+  /**
+   * 申请退款（生产版：走后端接口，不在前端本地模拟状态）
+   * @param {Object} context Vuex context
+   * @param {Object} payload { orderId, reason }
+   * @returns {Promise} 接口返回
+   */
+  async applyRefund({ commit }, { orderId, reason }) {
+    try {
+      commit('SET_LOADING', true)
+      const res = await refundOrder({ orderId, reason })
+      return res.data
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
   
   // 更新分页
-  setPage({ commit, dispatch }, page) {
+  setPage({ commit, dispatch, state }, { page, extraParams = {} }) {
     commit('SET_PAGINATION', {
       ...state.pagination,
       currentPage: page
     })
-    return dispatch('fetchOrders')
+    return dispatch('fetchOrders', extraParams)
   }
 }
 

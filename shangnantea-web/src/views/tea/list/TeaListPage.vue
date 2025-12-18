@@ -151,50 +151,29 @@
 </template>
 
 <script>
-/* UI-DEV-START */
-import { ref, reactive, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { Search, Shop, List } from '@element-plus/icons-vue'
-import TeaCard from '@/components/tea/card/TeaCard.vue'
-/* UI-DEV-END */
-
-/*
-// 真实代码（开发UI时注释）
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useStore } from 'vuex'
 import { ElMessage } from 'element-plus'
-import { Search, Shop, List } from '@element-plus/icons-vue'
+import { Search, Shop } from '@element-plus/icons-vue'
 import TeaCard from '@/components/tea/card/TeaCard.vue'
-*/
 
 export default {
   name: "TeaListPage",
   components: {
-    /* UI-DEV-START */
     Shop,
     Search,
     TeaCard
-    /* UI-DEV-END */
-    
-    /*
-    // 真实代码（开发UI时注释）
-    Shop,
-    Search,
-    List,
-    TeaCard
-    */
   },
   setup() {
+    const store = useStore()
     const router = useRouter()
-    const loading = ref(false)
+    const route = useRoute()
+
     const searchQuery = ref('')
     const sortOption = ref('default')
     const viewMode = ref('grid')
     const currentPage = ref(1)
-    const pageSize = ref(12)
-    const totalCount = ref(0)
     
     // 筛选选项
     const filters = reactive({
@@ -203,131 +182,14 @@ export default {
       source: 'all'
     })
     
-    /* UI-DEV-START */
-    // 模拟数据 - 茶叶分类
-    const categoryOptions = [
-      { id: 1, name: '绿茶' },
-      { id: 2, name: '红茶' },
-      { id: 3, name: '黑茶' },
-      { id: 4, name: '白茶' },
-      { id: 5, name: '黄茶' },
-      { id: 6, name: '青茶' },
-      { id: 7, name: '花茶' }
-    ]
-    
-    // 模拟数据 - 茶叶列表
-    const teas = ref([])
-    
-    // 生成模拟茶叶数据
-    const generateMockTeas = () => {
-      const mockTeas = []
-      // 更新店铺ID格式，确保平台ID为'PLATFORM'，商铺ID为'SHOP0001'格式
-      const shopSources = ['PLATFORM', 'SHOP0001', 'SHOP0002', 'SHOP0003']
-      
-      for (let i = 1; i <= 24; i++) {
-        const price = Math.floor(Math.random() * 800) + 200
-        const hasDiscount = Math.random() > 0.5
-        // 确保店铺名称与shop_id匹配
-        const shopIndex = Math.floor(Math.random() * shopSources.length)
-        const shopId = shopSources[shopIndex]
-        const shopName = shopId === 'PLATFORM' ? '平台直售' : `商南茶业${shopIndex}号店`
-        
-        mockTeas.push({
-          id: `TEA${i.toString().padStart(4, '0')}`,
-          shop_id: shopId,
-          shop_name: shopName,
-          category_id: Math.floor(Math.random() * 7) + 1,
-          name: `${shopName}${categoryOptions[Math.floor(Math.random() * 7)].name} - ${i}号`,
-          brief: `产自商南高山，${Math.floor(Math.random() * 3) + 1}年陈茶，口感醇厚`,
-          image_url: `/mock-images/tea-${(i % 8) + 1}.jpg`,
-          price: price,
-          discount_price: hasDiscount ? Math.floor(price * 0.8) : null,
-          stock: Math.floor(Math.random() * 999) + 1,
-          sales: Math.floor(Math.random() * 500)
-        })
-      }
-      
-      return mockTeas
-    }
-    
-    // 模拟加载数据
-    const loadTeas = () => {
-      loading.value = true
-      
-      // 模拟网络请求延迟
-      setTimeout(() => {
-        const allTeas = generateMockTeas()
-        
-        // 应用筛选
-        let filteredTeas = [...allTeas]
-        
-        // 分类筛选
-        if (filters.categories.length > 0) {
-          filteredTeas = filteredTeas.filter(tea => filters.categories.includes(tea.category_id))
-        }
-        
-        // 价格筛选
-        filteredTeas = filteredTeas.filter(tea => {
-          const teaPrice = tea.discount_price || tea.price
-          return teaPrice >= filters.priceRange[0] && teaPrice <= filters.priceRange[1]
-        })
-        
-        // 来源筛选
-        if (filters.source === 'platform') {
-          filteredTeas = filteredTeas.filter(tea => tea.shop_id === 'PLATFORM')
-        } else if (filters.source === 'shop') {
-          filteredTeas = filteredTeas.filter(tea => tea.shop_id !== 'PLATFORM')
-        }
-        
-        // 搜索筛选
-        if (searchQuery.value) {
-          filteredTeas = filteredTeas.filter(tea => 
-            tea.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-          )
-        }
-        
-        // 排序
-        switch (sortOption.value) {
-          case 'sales':
-            filteredTeas.sort((a, b) => b.sales - a.sales)
-            break
-          case 'price_asc':
-            filteredTeas.sort((a, b) => (a.discount_price || a.price) - (b.discount_price || b.price))
-            break
-          case 'price_desc':
-            filteredTeas.sort((a, b) => (b.discount_price || b.price) - (a.discount_price || a.price))
-            break
-          case 'newest':
-            // 假设ID越大越新
-            filteredTeas.sort((a, b) => b.id.localeCompare(a.id))
-            break
-          default:
-            // 默认综合排序，这里用随机
-            filteredTeas.sort(() => Math.random() - 0.5)
-        }
-        
-        // 分页
-        totalCount.value = filteredTeas.length
-        const start = (currentPage.value - 1) * pageSize.value
-        const end = start + pageSize.value
-        teas.value = filteredTeas.slice(start, end)
-        
-        loading.value = false
-      }, 800)
-    }
-    /* UI-DEV-END */
-    
-    /*
-    // 真实代码（开发UI时注释）
-    const store = useStore()
-    const route = useRoute()
-    
     // 从store获取分类数据
     const categoryOptions = computed(() => store.state.tea.categories)
     
     // 从store获取茶叶列表
-    const teas = computed(() => store.state.tea.teas)
-    const totalCount = computed(() => store.state.tea.total)
+    const teas = computed(() => store.state.tea.teaList)
+    const totalCount = computed(() => store.state.tea.pagination.total)
+    const pageSize = computed(() => store.state.tea.pagination.pageSize)
+    const loading = computed(() => store.state.tea.loading)
     
     // 监听路由参数变化
     watch(
@@ -360,22 +222,19 @@ export default {
     
     // 加载茶叶数据
     const loadTeas = async () => {
-      loading.value = true
-      
       try {
-        await store.dispatch('tea/fetchTeas', {
-          page: currentPage.value,
-          pageSize: pageSize.value,
-          search: searchQuery.value,
-          sort: sortOption.value,
-          categories: filters.categories,
-          priceRange: filters.priceRange,
-          source: filters.source
+        // 将UI筛选条件映射到 store.filters（尽量保持兼容现有 store 结构）
+        await store.dispatch('tea/updateFilters', {
+          keyword: searchQuery.value,
+          // 当前 store 只支持单个 category 字段，这里用“第一个选中分类”作为查询条件
+          category: filters.categories.length > 0 ? filters.categories[0] : '',
+          priceRange: filters.priceRange
         })
+
+        // store 内部使用 pagination + filters 组装请求参数
+        await store.dispatch('tea/fetchTeas')
       } catch (error) {
         ElMessage.error(error.message || '加载茶叶数据失败')
-      } finally {
-        loading.value = false
       }
     }
     
@@ -395,7 +254,6 @@ export default {
       
       router.replace({ query })
     }
-    */
     
     // 页面跳转
     const goToShopList = () => {
@@ -405,27 +263,13 @@ export default {
     // 搜索处理
     const handleSearch = () => {
       currentPage.value = 1
-      /* UI-DEV-START */
-      loadTeas()
-      /* UI-DEV-END */
-      
-      /*
-      // 真实代码（开发UI时注释）
       updateQueryParams()
-      */
     }
     
     // 应用筛选 - 直接应用，不再需要按钮
     const applyFilters = () => {
       currentPage.value = 1
-      /* UI-DEV-START */
-      loadTeas()
-      /* UI-DEV-END */
-      
-      /*
-      // 真实代码（开发UI时注释）
       updateQueryParams()
-      */
     }
     
     // 重置筛选 - 内部使用，不再作为按钮
@@ -434,46 +278,26 @@ export default {
       filters.priceRange = [0, 1000]
       filters.source = 'all'
       currentPage.value = 1
-      /* UI-DEV-START */
-      loadTeas()
-      /* UI-DEV-END */
-      
-      /*
-      // 真实代码（开发UI时注释）
       updateQueryParams()
-      */
     }
     
     // 页面变化
     const handlePageChange = (page) => {
       currentPage.value = page
-      /* UI-DEV-START */
-      loadTeas()
-      /* UI-DEV-END */
-      
-      /*
-      // 真实代码（开发UI时注释）
+      store.dispatch('tea/setPage', page)
       updateQueryParams()
-      */
     }
     
     // 处理排序变更
     const handleSortChange = () => {
       currentPage.value = 1
+      // 当前 store 尚未支持 sort 字段，这里先触发重新加载
       loadTeas()
     }
     
     // 初始化
     onMounted(() => {
-      /* UI-DEV-START */
-      loadTeas()
-      /* UI-DEV-END */
-      
-      /*
-      // 真实代码（开发UI时注释）
-      // loadTeas会通过路由watch触发
       store.dispatch('tea/fetchCategories')
-      */
     })
     
     return {

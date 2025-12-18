@@ -344,65 +344,10 @@ export default {
     // 加载版块列表
     const loadTopics = async () => {
       topicLoading.value = true
-      
-      /* UI-DEV-START */
-      // 模拟API调用延迟
-      await new Promise(resolve => setTimeout(resolve, 800))
-      
-      // 模拟版块数据
-      topicsList.value = [
-        {
-          id: 1,
-          name: '茶叶知识',
-          description: '分享茶叶相关知识、冲泡技巧等',
-          icon: '/icons/knowledge.png',
-          cover: '/covers/tea_knowledge.jpg',
-          user_id: 'cy100001',
-          sort_order: 1,
-          post_count: 28,
-          status: 1,
-          create_time: '2025-03-26 09:03:26',
-          update_time: '2025-03-26 09:03:26'
-        },
-        {
-          id: 2,
-          name: '茶友交流',
-          description: '茶友们的交流互动平台',
-          icon: '/icons/chat.png',
-          cover: '/covers/tea_chat.jpg',
-          user_id: 'cy100001',
-          sort_order: 2,
-          post_count: 15,
-          status: 1,
-          create_time: '2025-03-26 09:03:26',
-          update_time: '2025-03-26 09:03:26'
-        },
-        {
-          id: 3,
-          name: '茶具讨论',
-          description: '关于茶具选择、使用和保养的交流',
-          icon: '/icons/teaware.png',
-          cover: '/covers/teaware.jpg',
-          user_id: 'cy100001',
-          sort_order: 3,
-          post_count: 8,
-          status: 1,
-          create_time: '2025-03-28 15:30:26',
-          update_time: '2025-03-28 15:30:26'
-        }
-      ]
-      /* UI-DEV-END */
-      
-      /* 
-      // 真实代码(开发UI时注释)
-      try {
-        const result = await store.dispatch('forum/getForumTopics')
-        topicsList.value = result
-      } catch (error) {
-        message.error('获取版块列表失败')
-      }
-      */
-      
+
+      // TODO-SCRIPT: 论坛管理功能需要后端接口与 Vuex forum 模块支持（当前 store/modules/forum.js 仅保留首页数据）
+      // 生产形态：不在 UI 层 setTimeout 伪造数据与成功状态
+      topicsList.value = []
       topicLoading.value = false
     }
     
@@ -440,39 +385,10 @@ export default {
       await topicFormRef.value.validate(async (valid) => {
         if (valid) {
           const actionType = editTopicMode.value ? '更新' : '添加'
-          
-          /* UI-DEV-START */
-          // 模拟API调用延迟
-          await new Promise(resolve => setTimeout(resolve, 800))
-          
-          if (editTopicMode.value) {
-            // 更新现有版块
-            const index = topicsList.value.findIndex(item => item.id === currentTopic.value.id)
-            if (index !== -1) {
-              topicsList.value[index] = {
-                ...currentTopic.value,
-                ...topicForm.value,
-                update_time: new Date().toISOString().replace('T', ' ').substr(0, 19)
-              }
-            }
-          } else {
-            // 添加新版块
-            const newId = Math.max(...topicsList.value.map(item => item.id)) + 1
-            topicsList.value.push({
-              id: newId,
-              ...topicForm.value,
-              user_id: 'cy100001',
-              post_count: 0,
-              status: 1,
-              create_time: new Date().toISOString().replace('T', ' ').substr(0, 19),
-              update_time: new Date().toISOString().replace('T', ' ').substr(0, 19)
-            })
-          }
-          
-          // 模拟成功消息
-          ElMessage.success(`${actionType}版块成功`)
-          addTopicDialogVisible.value = false
-          /* UI-DEV-END */
+
+          // TODO-SCRIPT: 版块新增/编辑需要后端接口与 Vuex forum 模块；不在 UI 层 setTimeout 伪提交/本地更新
+          ElMessage.info(`${actionType}版块功能待后端接口接入`)
+          return
           
           /* 
           // 真实代码(开发UI时注释)
@@ -501,20 +417,10 @@ export default {
     const changeTopicStatus = async (topic) => {
       const newStatus = topic.status === 1 ? 0 : 1
       const actionText = newStatus === 1 ? '启用' : '禁用'
-      
-      /* UI-DEV-START */
-      // 模拟API调用延迟
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
-      // 更新本地数据
-      const index = topicsList.value.findIndex(item => item.id === topic.id)
-      if (index !== -1) {
-        topicsList.value[index].status = newStatus
-      }
-      
-      // 模拟成功消息
-      ElMessage.success(`${actionText}版块成功`)
-      /* UI-DEV-END */
+
+      // TODO-SCRIPT: 版块启用/禁用需要后端接口与 Vuex forum 模块支持
+      ElMessage.info(`${actionText}版块功能待后端接口接入`)
+      return
       
       /* 
       // 真实代码(开发UI时注释)
@@ -544,16 +450,10 @@ export default {
         }
       )
         .then(async () => {
-          /* UI-DEV-START */
-          // 模拟API调用延迟
-          await new Promise(resolve => setTimeout(resolve, 500))
-          
-          // 从列表中删除
-          topicsList.value = topicsList.value.filter(item => item.id !== topic.id)
-          
-          // 模拟成功消息
-          ElMessage.success('删除版块成功')
-          /* UI-DEV-END */
+
+          // TODO-SCRIPT: 删除版块需要后端接口与权限控制；不在 UI 层做本地伪删除
+          ElMessage.info('删除版块功能待后端接口接入')
+          return
           
           /* 
           // 真实代码(开发UI时注释)
@@ -575,10 +475,12 @@ export default {
     const loadPosts = async () => {
       postsLoading.value = true
       
-      /* UI-DEV-START */
-      // 模拟API调用延迟
-      await new Promise(resolve => setTimeout(resolve, 800))
-      
+      // TODO-SCRIPT: 帖子管理列表需要后端接口与 Vuex forum 模块（当前仅保留首页数据）
+      // 生产形态：不在 UI 层 setTimeout 伪造数据与成功状态
+      postsList.value = []
+      postsTotalCount.value = 0
+
+      /*
       // 模拟帖子数据
       const mockPosts = [
         {
@@ -653,7 +555,7 @@ export default {
       
       postsList.value = mockPosts
       postsTotalCount.value = 28 // 模拟总数
-      /* UI-DEV-END */
+      */
       
       /* 
       // 真实代码(开发UI时注释)
@@ -721,19 +623,9 @@ export default {
     
     // 审核通过帖子
     const approvePost = async (post) => {
-      /* UI-DEV-START */
-      // 模拟API调用延迟
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
-      // 更新本地数据
-      const index = postsList.value.findIndex(item => item.id === post.id)
-      if (index !== -1) {
-        postsList.value[index].status = 1
-      }
-      
-      // 模拟成功消息
-      ElMessage.success('帖子审核通过')
-      /* UI-DEV-END */
+      // TODO-SCRIPT: 审核帖子需要后端接口与 Vuex forum 模块；不在 UI 层伪造成功/本地改状态
+      ElMessage.info('帖子审核功能待后端接口接入')
+      return
       
       /* 
       // 真实代码(开发UI时注释)
@@ -751,20 +643,9 @@ export default {
     const toggleTopPost = async (post) => {
       const newTopStatus = !post.is_top
       const actionText = newTopStatus ? '置顶' : '取消置顶'
-      
-      /* UI-DEV-START */
-      // 模拟API调用延迟
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
-      // 更新本地数据
-      const index = postsList.value.findIndex(item => item.id === post.id)
-      if (index !== -1) {
-        postsList.value[index].is_top = newTopStatus
-      }
-      
-      // 模拟成功消息
-      ElMessage.success(`帖子${actionText}成功`)
-      /* UI-DEV-END */
+      // TODO-SCRIPT: 置顶/取消置顶需要后端接口与 Vuex forum 模块；不在 UI 层伪造成功/本地改状态
+      ElMessage.info(`帖子${actionText}功能待后端接口接入`)
+      return
       
       /* 
       // 真实代码(开发UI时注释)
@@ -786,20 +667,9 @@ export default {
     const toggleEssencePost = async (post) => {
       const newEssenceStatus = !post.is_essence
       const actionText = newEssenceStatus ? '加精' : '取消加精'
-      
-      /* UI-DEV-START */
-      // 模拟API调用延迟
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
-      // 更新本地数据
-      const index = postsList.value.findIndex(item => item.id === post.id)
-      if (index !== -1) {
-        postsList.value[index].is_essence = newEssenceStatus
-      }
-      
-      // 模拟成功消息
-      ElMessage.success(`帖子${actionText}成功`)
-      /* UI-DEV-END */
+      // TODO-SCRIPT: 加精/取消加精需要后端接口与 Vuex forum 模块；不在 UI 层伪造成功/本地改状态
+      ElMessage.info(`帖子${actionText}功能待后端接口接入`)
+      return
       
       /* 
       // 真实代码(开发UI时注释)
@@ -829,16 +699,9 @@ export default {
         }
       )
         .then(async () => {
-          /* UI-DEV-START */
-          // 模拟API调用延迟
-          await new Promise(resolve => setTimeout(resolve, 500))
-          
-          // 从列表中删除
-          postsList.value = postsList.value.filter(item => item.id !== post.id)
-          
-          // 模拟成功消息
-          ElMessage.success('删除帖子成功')
-          /* UI-DEV-END */
+          // TODO-SCRIPT: 删除帖子需要后端接口与权限控制；不在 UI 层做本地伪删除
+          ElMessage.info('删除帖子功能待后端接口接入')
+          return
           
           /* 
           // 真实代码(开发UI时注释)

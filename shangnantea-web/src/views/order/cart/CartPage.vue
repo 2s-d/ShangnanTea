@@ -169,12 +169,11 @@
 </template>
 
 <script>
-/* UI-DEV-START */
 import { ref, computed, onMounted, provide, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { useStore } from 'vuex'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-/* UI-DEV-END */
 
 /*
 // 真实代码（开发UI时注释）
@@ -191,6 +190,7 @@ export default {
     SafeImage
   },
   setup() {
+    const store = useStore()
     const router = useRouter()
     const loading = ref(false)
     const cartItems = ref([])
@@ -204,140 +204,27 @@ export default {
     const availableSpecs = ref([])
     const tempSelectedSpecId = ref(null)
     
-    /* UI-DEV-START */
-    // 模拟茶叶详情数据
-    const teasData = {
-      'TEA0001': {
-        id: 'TEA0001',
-        tea_name: '商南毛尖特级绿茶',
-        image: '/mock-images/tea-1.jpg',
-        shop_id: 'PLATFORM',
-        specifications: [
-          { id: 1, tea_id: 'TEA0001', spec_name: '250g/罐', price: 128.00, stock: 100, is_default: 1 },
-          { id: 2, tea_id: 'TEA0001', spec_name: '500g/罐', price: 238.00, stock: 80, is_default: 0 },
-          { id: 3, tea_id: 'TEA0001', spec_name: '1000g/礼盒装', price: 458.00, stock: 50, is_default: 0 }
-        ]
-      },
-      'TEA0002': {
-        id: 'TEA0002',
-        tea_name: '丹江银针白茶',
-        image: '/mock-images/tea-2.jpg',
-        shop_id: 'SHOP0001',
-        shop_name: '丹江茶叶直营店',
-        specifications: [
-          { id: 1, tea_id: 'TEA0002', spec_name: '50g/盒', price: 98.00, stock: 100, is_default: 0 },
-          { id: 2, tea_id: 'TEA0002', spec_name: '100g/盒', price: 198.00, stock: 80, is_default: 1 },
-          { id: 3, tea_id: 'TEA0002', spec_name: '200g/盒', price: 368.00, stock: 50, is_default: 0 }
-        ]
-      },
-      'TEA0003': {
-        id: 'TEA0003',
-        tea_name: '商南云雾茶',
-        image: '/mock-images/tea-3.jpg',
-        shop_id: 'SHOP0002',
-        shop_name: '商南茶叶旗舰店',
-        specifications: [
-          { id: 1, tea_id: 'TEA0003', spec_name: '200g/罐', price: 88.00, stock: 100, is_default: 1 },
-          { id: 2, tea_id: 'TEA0003', spec_name: '400g/罐', price: 168.00, stock: 80, is_default: 0 },
-          { id: 3, tea_id: 'TEA0003', spec_name: '800g/礼盒装', price: 328.00, stock: 50, is_default: 0 }
-        ]
-      }
-    }
-    
-    // 模拟购物车数据 - 完全遵循数据库shopping_cart表的结构
-    const generateCartItems = () => {
-      return [
-        {
-          id: 'cart1',
-          user_id: 'user123',
-          tea_id: 'TEA0001',
-          spec_id: 1,
-          quantity: 2,
-          created_at: '2023-10-01 10:00:00',
-          updated_at: '2023-10-01 10:00:00',
-          // 前端显示需要的附加数据（实际应当从后端返回）
-          tea_name: '商南毛尖特级绿茶',
-          image: '/mock-images/tea-1.jpg',
-          price: 128.00,
-          spec_name: '250g/罐',
-          selected: true,
-          shop_id: 'PLATFORM'
-        },
-        {
-          id: 'cart2',
-          user_id: 'user123',
-          tea_id: 'TEA0002',
-          spec_id: 2,
-          quantity: 1,
-          created_at: '2023-10-02 14:30:00',
-          updated_at: '2023-10-02 14:30:00',
-          // 前端显示需要的附加数据
-          tea_name: '丹江银针白茶',
-          image: '/mock-images/tea-2.jpg',
-          price: 198.00,
-          spec_name: '100g/盒',
-          selected: true,
-          shop_id: 'SHOP0001',
-          shop_name: '丹江茶叶直营店'
-        },
-        {
-          id: 'cart3',
-          user_id: 'user123',
-          tea_id: 'TEA0003',
-          spec_id: 1,
-          quantity: 3,
-          created_at: '2023-10-03 16:45:00',
-          updated_at: '2023-10-03 16:45:00',
-          // 前端显示需要的附加数据
-          tea_name: '商南云雾茶',
-          image: '/mock-images/tea-3.jpg',
-          price: 88.00,
-          spec_name: '200g/罐',
-          selected: false,
-          shop_id: 'SHOP0002',
-          shop_name: '商南茶叶旗舰店'
-        }
-      ]
-    }
-    
-    // 初始化购物车数据
-    const initCartData = () => {
-      loading.value = true
-      // 模拟API调用延迟
-      setTimeout(() => {
-        cartItems.value = generateCartItems()
-        updateSelectAllStatus()
-        loading.value = false
-        
-        // 计算购物车项的数量（不同商品的数量，而不是总数量）
-        const itemCount = cartItems.value.length
-        
-        // 更新购物车数量标识
-        updateCartCountBadge(itemCount)
-      }, 800)
-    }
-    /* UI-DEV-END */
-    
-    /*
-    // 真实代码（开发UI时注释）
-    const store = useStore()
-    
-    // 初始化购物车数据
+    /**
+     * 初始化购物车数据（生产链路：Vuex→API）
+     * 注意：这里仅做“去除 UI-DEV mock”的改造，不在页面内造数据。
+     */
     const initCartData = async () => {
       loading.value = true
       try {
-        await store.dispatch('cart/getCartItems')
-        cartItems.value = store.state.cart.items
+        await store.dispatch('order/fetchCartItems')
+        const items = store.state.order.cartItems || []
+        // 选择状态不应由 UI 伪造；若后端暂未提供 selected，则默认全选展示层为 true（仅影响 UI 勾选）
+        cartItems.value = items.map((i) => ({
+          ...i,
+          selected: typeof i.selected === 'boolean' ? i.selected : true
+        }))
         updateSelectAllStatus()
-        // 初始化后立即更新购物车数量
-        updateCartCountBadge()
       } catch (error) {
-        ElMessage.error(error.message || '获取购物车数据失败')
+        ElMessage.error(error?.message || '获取购物车数据失败')
       } finally {
         loading.value = false
       }
     }
-    */
     
     // 判断是否为平台直售商品
     const isPlatformProduct = (shopId) => {
@@ -394,86 +281,26 @@ export default {
     }
     
     // 处理数量变化
-    const handleQuantityChange = (item) => {
-      /* UI-DEV-START */
-      // 模拟API调用
-      console.log('更新商品数量:', item.id, item.quantity)
-      ElMessage.success('商品数量已更新')
-      // 数量变化不影响购物车项数量，无需更新购物车数量标识
-      /* UI-DEV-END */
-      
-      /*
-      // 真实代码（开发UI时注释）
-      store.dispatch('cart/updateCartItem', {
-        id: item.id,
-        quantity: item.quantity
-      }).then(() => {
-        // 数量变化不影响购物车项数量，无需更新购物车数量标识
-      }).catch(error => {
-        ElMessage.error(error.message || '更新数量失败')
-        // 恢复原数量
-        initCartData()
-      })
-      */
+    const handleQuantityChange = async (item) => {
+      try {
+        await store.dispatch('order/updateCartItem', {
+          id: item.id,
+          quantity: item.quantity
+        })
+        ElMessage.success('商品数量已更新')
+      } catch (error) {
+        ElMessage.error(error?.message || '更新数量失败')
+        // 恢复：重新拉取购物车
+        await initCartData()
+      }
     }
     
     // 选择规格
     const selectSpecification = (item) => {
-      /* UI-DEV-START */
-      // 获取茶叶完整数据，包括所有可用规格
-      const tea = teasData[item.tea_id]
-      if (!tea) {
-        ElMessage.error('获取茶叶规格信息失败')
-        return
-      }
-      
-      // 设置当前选择的茶叶信息
-      currentSpecTea.value = {
-        ...tea,
-        price: item.price,
-        spec_name: item.spec_name
-      }
-      
-      // 设置当前购物车项ID，用于稍后更新
-      currentCartItemId.value = item.id
-      
-      // 设置可用的规格列表
-      availableSpecs.value = tea.specifications
-      
-      // 设置当前选中的规格ID
-      tempSelectedSpecId.value = item.spec_id
-      
-      // 显示规格选择对话框
-      specDialogVisible.value = true
-      /* UI-DEV-END */
-      
-      /*
-      // 真实代码（开发UI时注释）
-      store.dispatch('cart/fetchTeaSpecifications', item.tea_id).then(specs => {
-        // 设置当前选择的茶叶信息
-        currentSpecTea.value = {
-          tea_id: item.tea_id,
-          tea_name: item.tea_name,
-          image: item.image,
-          price: item.price,
-          spec_name: item.spec_name
-        }
-        
-        // 设置当前购物车项ID，用于稍后更新
-        currentCartItemId.value = item.id
-        
-        // 设置可用的规格列表
-        availableSpecs.value = specs
-        
-        // 设置当前选中的规格ID
-        tempSelectedSpecId.value = item.spec_id
-        
-        // 显示规格选择对话框
-        specDialogVisible.value = true
-      }).catch(error => {
-        ElMessage.error(error.message || '获取规格信息失败')
-      })
-      */
+      // TODO-SCRIPT: 规格列表需要后端提供（购物车项返回 specifications 或提供专用接口）
+      // 目前不在 UI 层构造规格/价格，避免伪成功
+      ElMessage.info('规格选择功能待后端接口接入')
+      return
     }
     
     // 确认规格变更
@@ -482,53 +309,10 @@ export default {
         ElMessage.warning('请选择规格')
         return
       }
-      
-      /* UI-DEV-START */
-      // 获取新规格信息
-      const newSpec = availableSpecs.value.find(s => s.id === tempSelectedSpecId.value)
-      if (!newSpec) {
-        ElMessage.error('规格信息不存在')
-        return
-      }
-      
-      // 更新购物车项的规格信息
-      const cartItemIndex = cartItems.value.findIndex(item => item.id === currentCartItemId.value)
-      if (cartItemIndex === -1) {
-        ElMessage.error('购物车项不存在')
-        return
-      }
-      
-      // 更新规格相关信息
-      cartItems.value[cartItemIndex].spec_id = newSpec.id
-      cartItems.value[cartItemIndex].spec_name = newSpec.spec_name
-      cartItems.value[cartItemIndex].price = newSpec.price
-      cartItems.value[cartItemIndex].updated_at = new Date().toISOString()
-      
-      // 关闭对话框
+
+      // TODO-SCRIPT: 购物车规格切换需要后端接口（更新 specId 并返回最新价格/库存）
+      ElMessage.info('规格切换待后端接口接入')
       specDialogVisible.value = false
-      
-      // 提示成功
-      ElMessage.success('规格已更新')
-      /* UI-DEV-END */
-      
-      /*
-      // 真实代码（开发UI时注释）
-      store.dispatch('cart/updateCartItemSpec', {
-        cartId: currentCartItemId.value,
-        specId: tempSelectedSpecId.value
-      }).then(() => {
-        // 关闭对话框
-        specDialogVisible.value = false
-        
-        // 提示成功
-        ElMessage.success('规格已更新')
-        
-        // 重新加载购物车数据
-        initCartData()
-      }).catch(error => {
-        ElMessage.error(error.message || '更新规格失败')
-      })
-      */
     }
     
     // 移除商品
@@ -538,25 +322,13 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        /* UI-DEV-START */
-        // 模拟API调用
-        cartItems.value = cartItems.value.filter(item => item.id !== id)
-        updateSelectAllStatus()
-        ElMessage.success('商品已从购物车移除')
-        // 更新购物车数量标识（使用购物车项数量）
-        updateCartCountBadge(cartItems.value.length)
-        /* UI-DEV-END */
-        
-        /*
-        // 真实代码（开发UI时注释）
-        store.dispatch('cart/removeCartItem', id).then(() => {
+        store.dispatch('order/removeFromCart', id).then(async () => {
           ElMessage.success('商品已从购物车移除')
-          // 更新购物车数量标识
-          updateCartCountBadge()
-        }).catch(error => {
-          ElMessage.error(error.message || '移除商品失败')
+          // 刷新本地列表（不依赖 UI 伪造状态）
+          await initCartData()
+        }).catch((error) => {
+          ElMessage.error(error?.message || '移除商品失败')
         })
-        */
       }).catch(() => {
         // 用户取消操作
       })
@@ -574,33 +346,16 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        /* UI-DEV-START */
-        // 模拟API调用
         const selectedIds = cartItems.value
-          .filter(item => item.selected)
-          .map(item => item.id)
-        
-        cartItems.value = cartItems.value.filter(item => !item.selected)
-        updateSelectAllStatus()
-        ElMessage.success('选中商品已删除')
-        // 更新购物车数量标识（使用购物车项数量）
-        updateCartCountBadge(cartItems.value.length)
-        /* UI-DEV-END */
-        
-        /*
-        // 真实代码（开发UI时注释）
-        const selectedIds = cartItems.value
-          .filter(item => item.selected)
-          .map(item => item.id)
-        
-        store.dispatch('cart/removeCartItems', selectedIds).then(() => {
+          .filter((item) => item.selected)
+          .map((item) => item.id)
+
+        Promise.all(selectedIds.map((id) => store.dispatch('order/removeFromCart', id))).then(async () => {
           ElMessage.success('选中商品已删除')
-          // 更新购物车数量标识
-          updateCartCountBadge()
-        }).catch(error => {
-          ElMessage.error(error.message || '删除商品失败')
+          await initCartData()
+        }).catch((error) => {
+          ElMessage.error(error?.message || '删除商品失败')
         })
-        */
       }).catch(() => {
         // 用户取消操作
       })
@@ -612,22 +367,10 @@ export default {
         ElMessage.warning('请先选择要结算的商品')
         return
       }
-      
-      /* UI-DEV-START */
-      // 模拟结算流程
-      console.log('结算选中商品:', cartItems.value.filter(item => item.selected))
-      // 跳转到结算页面，不添加direct参数表示购物车结算
-      router.push('/order/checkout')
-      /* UI-DEV-END */
-      
-      /*
-      // 真实代码（开发UI时注释）
-      // 将选中的商品ID保存到结算状态
-      const selectedItems = cartItems.value.filter(item => item.selected)
-      store.commit('order/SET_SELECTED_CART_ITEMS', selectedItems)
-      // 跳转到结算页面，不添加direct参数表示购物车结算
-      router.push('/order/checkout')
-      */
+
+      // TODO-SCRIPT: 结算页需要支持从购物车选择的项（建议通过 query 传 selectedIds，或在 Vuex 中存储临时选择）
+      const selectedIds = cartItems.value.filter((item) => item.selected).map((item) => item.id)
+      router.push({ path: '/order/checkout', query: { selectedIds: selectedIds.join(',') } })
     }
     
     // 跳转到茶叶详情页

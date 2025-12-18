@@ -141,12 +141,11 @@
 </template>
 
 <script>
-/* UI-DEV-START */
 import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useStore } from 'vuex'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-/* UI-DEV-END */
 
 /*
 // 真实代码（开发UI时注释）
@@ -160,9 +159,7 @@ import { ArrowLeft } from '@element-plus/icons-vue'
 export default {
   name: 'OrderDetailPage',
   components: {
-    /* UI-DEV-START */
     SafeImage
-    /* UI-DEV-END */
     
     /*
     // 真实代码（开发UI时注释）
@@ -170,81 +167,34 @@ export default {
     */
   },
   setup() {
-    /* UI-DEV-START */
     const router = useRouter()
     const route = useRoute()
-    const loading = ref(false)
+    const store = useStore()
+    const loading = computed(() => store.state.order.loading)
     
     // 从路由参数获取订单ID
     const orderId = route.params.id
     
-    // 模拟订单详情数据
-    // 注意：系统使用单品订单模式，每个订单只对应一个茶叶商品
-    const orderDetail = ref({
-      order_id: 'ORD20230420003',
-      user_id: 1,
-      order_status: 3, // 待收货
-      tea_id: 104,
-      tea_name: '商南翠绿',
-      spec_id: 1004,
-      spec_name: '500g礼盒装',
-      tea_image: '/images/tea4.jpg',
-      quantity: 1,
-      price: 438.00,
-      total_amount: 458.00,
-      shipping_fee: 20.00,
-      payment_method: 'alipay',
-      address_id: 1,
-      create_time: '2023-04-20 09:12:37',
-      update_time: '2023-04-20 14:25:41',
-      pay_time: '2023-04-20 09:15:22',
-      is_reviewed: false
-    })
+    /**
+     * 生产形态：不在 UI 层造假数据；通过 Vuex -> API -> 后端返回数据
+     * TODO-SCRIPT: 订单详情页需对接 order/fetchOrderDetail，并补齐地址/物流等接口
+     */
+    const orderDetail = ref(null)
     
-    // 模拟地址数据
     const address = ref({
-      id: 1,
-      user_id: 1,
-      name: '张三',
-      phone: '13812345678',
-      province: '陕西省',
-      city: '商洛市',
-      district: '商南县',
-      detail: '城关镇文化路28号',
-      is_default: 1
+      name: '',
+      phone: '',
+      province: '',
+      city: '',
+      district: '',
+      detail: ''
     })
     
-    // 模拟物流数据
     const logistics = ref({
-      company: '顺丰速运',
-      tracking_number: 'SF1234567890',
-      ship_time: '2023-04-21 10:30:45',
-      traces: [
-        {
-          time: '2023-04-23 09:30:00',
-          content: '您的快递已签收，感谢使用顺丰速运'
-        },
-        {
-          time: '2023-04-22 18:40:00',
-          content: '快件正在派送中，请保持电话畅通'
-        },
-        {
-          time: '2023-04-22 13:20:00',
-          content: '快件已到达【商洛转运中心】'
-        },
-        {
-          time: '2023-04-22 02:15:00',
-          content: '快件已到达【西安转运中心】'
-        },
-        {
-          time: '2023-04-21 20:30:00',
-          content: '快件已从【发货地】发出，正在运往【西安转运中心】'
-        },
-        {
-          time: '2023-04-21 10:30:45',
-          content: '商家已发货'
-        }
-      ]
+      company: '',
+      tracking_number: '',
+      ship_time: '',
+      traces: []
     })
     
     // 获取订单状态文本
@@ -325,13 +275,15 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        // 模拟取消订单
-        setTimeout(() => {
-          orderDetail.value.order_status = 4 // 已取消状态码修改为4
-          orderDetail.value.update_time = new Date().toISOString()
-          
-          ElMessage.success('订单已取消')
-        }, 500)
+        // 生产形态：不在 UI 层 setTimeout 伪成功，不本地修改订单状态
+        store.dispatch('order/cancelOrder', orderId)
+          .then(() => {
+            ElMessage.success('订单已取消')
+            loadOrderDetail()
+          })
+          .catch((error) => {
+            ElMessage.error(`取消订单失败: ${error.message || '请稍后再试'}`)
+          })
       }).catch(() => {
         // 用户取消操作，不做任何处理
       })
@@ -344,13 +296,15 @@ export default {
         cancelButtonText: '取消',
         type: 'info'
       }).then(() => {
-        // 模拟确认收货
-        setTimeout(() => {
-          orderDetail.value.order_status = 3 // 已完成状态码修改为3
-          orderDetail.value.update_time = new Date().toISOString()
-          
-          ElMessage.success('确认收货成功')
-        }, 500)
+        // 生产形态：不在 UI 层 setTimeout 伪成功，不本地修改订单状态
+        store.dispatch('order/confirmReceipt', orderId)
+          .then(() => {
+            ElMessage.success('确认收货成功')
+            loadOrderDetail()
+          })
+          .catch((error) => {
+            ElMessage.error(`确认收货失败: ${error.message || '请稍后再试'}`)
+          })
       }).catch(() => {
         // 用户取消操作，不做任何处理
       })
@@ -384,11 +338,8 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        // 模拟删除订单
-        setTimeout(() => {
-          ElMessage.success('订单已删除')
-          goBack() // 删除后返回订单列表
-        }, 500)
+        // TODO-SCRIPT: 删除订单需要后端接口支持（生产形态：不在 UI 层伪删除/伪成功）
+        ElMessage.info('删除订单功能待后端接口接入')
       }).catch(() => {
         // 用户取消操作，不做任何处理
       })
@@ -396,19 +347,18 @@ export default {
     
     // 加载订单详情
     const loadOrderDetail = () => {
-      loading.value = true
-      
-      // 模拟加载数据
-      setTimeout(() => {
-        // 在实际应用中，这里会根据ID查询订单详情
-        // 如果订单ID不匹配，可以设置orderDetail.value = null表示订单不存在
-        
-        loading.value = false
-      }, 800)
+      store.dispatch('order/fetchOrderDetail', orderId)
+        .then((data) => {
+          orderDetail.value = data
+        })
+        .catch((error) => {
+          ElMessage.error(`获取订单详情失败: ${error.message || '请稍后再试'}`)
+          orderDetail.value = null
+        })
     }
     
-    // 添加默认图片常量
-    const defaultTeaImage = '/mock-images/tea-default.jpg'
+    // 默认图片（生产形态：不使用 mock-images）
+    const defaultTeaImage = ''
     
     // 初始化
     onMounted(() => {
@@ -420,7 +370,7 @@ export default {
       
       loadOrderDetail()
     })
-    /* UI-DEV-END */
+    
     
     /*
     // 真实代码（开发UI时注释）
@@ -645,7 +595,6 @@ export default {
     */
     
     return {
-      /* UI-DEV-START */
       loading,
       orderDetail,
       address,
@@ -666,7 +615,6 @@ export default {
       buyAgain,
       deleteOrder,
       defaultTeaImage
-      /* UI-DEV-END */
       
       /*
       // 真实代码（开发UI时注释）

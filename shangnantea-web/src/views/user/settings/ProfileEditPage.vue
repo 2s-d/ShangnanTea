@@ -115,66 +115,28 @@
 </template>
 
 <script>
-/* UI-DEV-START */
 import { ref, reactive, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
-import { Sunny, Moon, MagicStick, Grid, List } from '@element-plus/icons-vue'
-import { useRouter } from 'vue-router'
-/* UI-DEV-END */
-
-/* 
-// 真实代码(开发UI时注释)
-import { ref, reactive, onMounted, computed } from 'vue'
 import { useStore } from 'vuex'
-import { ElMessage } from 'element-plus'
-import { Sunny, Moon, Monitor, Grid, Menu } from '@element-plus/icons-vue'
-*/
+import { useRouter } from 'vue-router'
+import { Sunny, Moon, MagicStick, Grid, List } from '@element-plus/icons-vue'
+import { message } from '@/components/common'
+import { handleAsyncOperation } from '@/utils/messageHelper'
 
 export default {
   name: 'ProfileEditPage',
   components: {
-    /* UI-DEV-START */
     Sunny, Moon, MagicStick, Grid, List
-    /* UI-DEV-END */
-    
-    /* 
-    // 真实代码(开发UI时注释)
-    Sunny, Moon, Monitor, Grid, Menu
-    */
   },
   setup() {
     const formRef = ref(null)
     const loading = ref(false)
     const submitting = ref(false)
+    const store = useStore()
     
     // 默认主题色
     const DEFAULT_PRIMARY_COLOR = '#409EFF'
     
-    /* UI-DEV-START */
-    // 模拟区域数据
-    const regionOptions = ref([
-      {
-        value: 'beijing',
-        label: '北京',
-        children: [
-          { value: 'beijing', label: '北京市' }
-        ]
-      },
-      {
-        value: 'shaanxi',
-        label: '陕西',
-        children: [
-          { value: 'xian', label: '西安市' },
-          { value: 'shangluo', label: '商洛市', 
-            children: [
-              { value: 'shangnan', label: '商南县' }
-            ]
-          }
-        ]
-      }
-    ])
-    
-    // 个性化偏好设置
+    // 个性化偏好设置（页面内编辑用副本；保存时统一走 Vuex）
     const preferences = reactive({
       theme: 'light',
       primaryColor: DEFAULT_PRIMARY_COLOR,
@@ -182,58 +144,8 @@ export default {
       fontFamily: '',
       enableAnimation: true,
       listMode: 'grid',
-      pageSize: 20,
-      region: ['shaanxi', 'shangluo', 'shangnan']
+      pageSize: 20
     })
-    
-    // 模拟获取用户设置
-    const initMockData = () => {
-      loading.value = true
-      setTimeout(() => {
-        // 假设从localStorage获取设置
-        const savedPreferences = localStorage.getItem('userPreferences')
-        if (savedPreferences) {
-          try {
-            const parsed = JSON.parse(savedPreferences)
-            Object.assign(preferences, parsed)
-            
-            // 初始化时应用主题设置
-            applyThemeSettings(preferences.theme)
-          } catch (e) {
-            console.error('解析保存的偏好设置失败', e)
-          }
-        }
-        loading.value = false
-      }, 800)
-    }
-    /* UI-DEV-END */
-    
-    /* 
-    // 真实代码(开发UI时注释)
-    const store = useStore()
-    
-    // 从vuex获取区域数据
-    const regionOptions = computed(() => store.state.app.regionOptions || [])
-    
-    // 从vuex获取用户设置
-    const getUserPreferences = async () => {
-      try {
-        loading.value = true
-        // TODO-VUEX: 调用store.dispatch('user/getUserSettings')
-        const settings = await store.dispatch('user/getUserSettings')
-        if (settings && settings.preferences) {
-          Object.assign(preferences, settings.preferences)
-          
-          // 初始化时应用主题设置
-          applyThemeSettings(preferences.theme)
-        }
-      } catch (error) {
-        ElMessage.error('获取设置失败: ' + error.message)
-      } finally {
-        loading.value = false
-      }
-    }
-    */
     
     // 应用主题设置
     const applyThemeSettings = (theme) => {
@@ -270,14 +182,16 @@ export default {
     
     // 保存设置
     const savePreferences = async () => {
-      /* UI-DEV-START */
-      // 模拟保存
-      submitting.value = true
-      await new Promise(resolve => setTimeout(resolve, 800))
-      
       try {
-        // 保存到localStorage（模拟）
-        localStorage.setItem('userPreferences', JSON.stringify(preferences))
+      submitting.value = true
+        const payload = { ...preferences }
+        await handleAsyncOperation(
+          store.dispatch('user/saveUserPreferences', payload),
+          {
+            successMessage: '设置已保存',
+            errorMessage: '保存设置失败，请稍后再试'
+          }
+        )
         
         // 应用主题设置
         applyThemeSettings(preferences.theme)
@@ -294,45 +208,12 @@ export default {
           document.documentElement.style.removeProperty('--el-font-family')
           document.body.style.fontFamily = ''
         }
-        
-        submitting.value = false
-        ElMessage.success('设置已保存')
       } catch (e) {
-        ElMessage.error('保存设置失败')
+        // handleAsyncOperation 已负责提示；这里仅保证不吞异常
+        console.error('保存偏好设置失败：', e)
       } finally {
         submitting.value = false
       }
-      /* UI-DEV-END */
-      
-      /* 
-      // 真实代码(开发UI时注释)
-      try {
-        submitting.value = true
-        // TODO-VUEX: 调用store.dispatch('user/saveUserSettings', { preferences })
-        await store.dispatch('user/saveUserSettings', { 
-          preferences: { ...preferences }
-        })
-        
-        // 应用主题设置
-        applyThemeSettings(preferences.theme)
-        
-        // 应用设置到全局
-        store.commit('app/SET_THEME', preferences.theme)
-        store.commit('app/SET_PRIMARY_COLOR', preferences.primaryColor)
-        store.commit('app/SET_FONT_SIZE', preferences.fontSize)
-        
-        // 应用字体设置
-        if (preferences.fontFamily) {
-          store.commit('app/SET_FONT_FAMILY', preferences.fontFamily)
-        }
-        
-        ElMessage.success('设置已保存')
-      } catch (error) {
-        ElMessage.error('保存设置失败: ' + error.message)
-      } finally {
-        submitting.value = false
-      }
-      */
     }
     
     // 重置所有设置
@@ -345,7 +226,7 @@ export default {
       preferences.listMode = 'grid'
       preferences.pageSize = 20
       
-      ElMessage.info('已恢复默认设置，请点击保存以应用')
+      message.info('已恢复默认设置，请点击保存以应用')
     }
     
     // 路由
@@ -355,14 +236,29 @@ export default {
     }
     
     onMounted(() => {
-      /* UI-DEV-START */
-      initMockData()
-      /* UI-DEV-END */
-      
-      /* 
-      // 真实代码(开发UI时注释)
-      getUserPreferences()
-      */
+      loading.value = true
+      handleAsyncOperation(
+        store.dispatch('user/fetchUserPreferences'),
+        {
+          successMessage: null,
+          errorMessage: '获取设置失败，请稍后再试',
+          successCallback: (result) => {
+            const source = result || store.state.user.preferences
+            Object.assign(preferences, source || {})
+            // 初始化时应用主题设置
+            applyThemeSettings(preferences.theme)
+            // 初始化时应用颜色/字体设置
+            document.documentElement.style.setProperty('--el-color-primary', preferences.primaryColor)
+            document.documentElement.style.setProperty('--el-font-size-base', preferences.fontSize + 'px')
+            if (preferences.fontFamily) {
+              document.documentElement.style.setProperty('--el-font-family', preferences.fontFamily)
+              document.body.style.fontFamily = preferences.fontFamily
+            }
+          }
+        }
+      ).finally(() => {
+        loading.value = false
+      })
     })
     
     return {
@@ -370,7 +266,6 @@ export default {
       loading,
       submitting,
       preferences,
-      regionOptions,
       resetThemeColor,
       savePreferences,
       resetPreferences,

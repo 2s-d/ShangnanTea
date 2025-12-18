@@ -78,189 +78,34 @@
 </template>
 
 <script>
-/* UI-DEV-START */
-import { ref, reactive, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { Search, Mug } from '@element-plus/icons-vue'
-import ShopCard from '@/components/shop/card/ShopCard.vue'
-/* UI-DEV-END */
-
-/*
-// 真实代码（开发UI时注释）
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useStore } from 'vuex'
 import { ElMessage } from 'element-plus'
 import { Search, Mug } from '@element-plus/icons-vue'
 import ShopCard from '@/components/shop/card/ShopCard.vue'
-*/
 
 export default {
   name: "ShopListPage",
   components: {
-    /* UI-DEV-START */
     Search,
     Mug,
     ShopCard
-    /* UI-DEV-END */
-    
-    /*
-    // 真实代码（开发UI时注释）
-    Search,
-    Mug,
-    ShopCard
-    */
   },
   setup() {
+    const store = useStore()
     const router = useRouter()
-    const loading = ref(false)
+    const route = useRoute()
+
     const searchQuery = ref('')
     const sortOption = ref('default')
     const currentPage = ref(1)
-    const pageSize = ref(5) // 每页5个店铺
-    const totalCount = ref(0)
-    
-    // 店铺列表
-    const shops = ref([])
-    // 店铺茶叶
-    const shopTeas = ref({})
-    
-    /* UI-DEV-START */
-    // 生成模拟店铺数据
-    const generateMockShops = () => {
-      const mockShops = []
-      
-      for (let i = 1; i <= 8; i++) {
-        mockShops.push({
-          id: `shop${100000 + i}`,
-          owner_id: `cy1000${i+2}`,
-          shop_name: `商南茶业专营店${i}号`,
-          logo: `/mock-images/shop-logo-${i % 4 + 1}.jpg`,
-          banner: `/mock-images/shop-banner-${i % 4 + 1}.jpg`,
-          description: `专营商南特产茶叶，传承百年制茶工艺，提供优质商南${i % 2 === 0 ? '绿茶' : '红茶'}。`,
-          announcement: `本店新到一批${i % 2 === 0 ? '明前春茶' : '特级红茶'}，欢迎品尝选购！`,
-          contact_phone: `1380000${1000 + i}`,
-          province: '陕西省',
-          city: '商洛市',
-          district: '商南县',
-          address: `城关街道茶叶市场${i}号`,
-          status: 1,
-          rating: 4 + Math.random(),
-          rating_count: Math.floor(Math.random() * 50) + 5,
-          sales_count: Math.floor(Math.random() * 500) + 50,
-          create_time: `2025-0${i % 3 + 1}-${10 + i} 09:00:00`,
-          update_time: '2025-03-26 09:03:26',
-          certification: {
-            status: Math.random() > 0.3 ? 'verified' : 'pending',
-            type: '企业认证',
-            expireTime: '2025-12-31'
-          }
-        })
-      }
-      
-      return mockShops
-    }
-    
-    // 生成模拟茶叶数据
-    const generateMockTeas = () => {
-      const teasByShop = {}
-      
-      // 先生成所有店铺
-      const mockShops = generateMockShops()
-      shops.value = mockShops
-      
-      // 为每个店铺生成2-5个茶叶
-      mockShops.forEach(shop => {
-        const teasCount = Math.floor(Math.random() * 4) + 2  // 2-5个茶叶
-        const shopTeas = []
-        
-        for (let i = 1; i <= teasCount; i++) {
-          const teaId = `tea${shop.id.substring(4)}${i}`
-          const price = Math.floor(Math.random() * 500) + 100
-          
-          shopTeas.push({
-            id: teaId,
-            name: `${shop.shop_name.substring(0, 4)}${i % 2 === 0 ? '特级绿茶' : '特级红茶'} ${i}号`,
-            shop_id: shop.id,
-            category_id: i % 2 === 0 ? 1 : 2, // 1=绿茶，2=红茶
-            price: price,
-            discount_price: Math.random() > 0.5 ? Math.floor(price * 0.8) : null,
-            description: '高山茶叶，品质保证',
-            origin: '陕西省商洛市商南县',
-            stock: Math.floor(Math.random() * 100) + 20,
-            sales: Math.floor(Math.random() * 200) + 10,
-            main_image: `/mock-images/tea-${i % 8 + 1}.jpg`,
-            status: 1,
-            create_time: '2025-03-26 09:03:26',
-            update_time: '2025-03-26 09:03:26'
-          })
-        }
-        
-        teasByShop[shop.id] = shopTeas
-      })
-      
-      return teasByShop
-    }
-    
-    // 获取指定店铺的茶叶
-    const getShopTeas = (shopId) => {
-      return shopTeas.value[shopId] || []
-    }
-    
-    // 加载店铺数据
-    const loadShops = () => {
-      loading.value = true
-      
-      // 模拟API调用延迟
-      setTimeout(() => {
-        // 如果还没有生成过模拟数据，先生成
-        if (Object.keys(shopTeas.value).length === 0) {
-          shopTeas.value = generateMockTeas()
-        }
-        
-        // 应用筛选
-        let filteredShops = [...shops.value]
-        
-        // 搜索过滤
-        if (searchQuery.value) {
-          filteredShops = filteredShops.filter(shop => 
-            shop.shop_name.toLowerCase().includes(searchQuery.value.toLowerCase())
-          )
-        }
-        
-        // 排序
-        switch (sortOption.value) {
-          case 'sales':
-            filteredShops.sort((a, b) => b.sales_count - a.sales_count)
-            break
-          case 'rating':
-            filteredShops.sort((a, b) => b.rating - a.rating)
-            break
-          default:
-            // 默认排序，可以是综合排序，这里简单处理
-            filteredShops.sort((a, b) => a.id.localeCompare(b.id))
-        }
-        
-        // 分页
-        totalCount.value = filteredShops.length
-        const start = (currentPage.value - 1) * pageSize.value
-        const end = start + pageSize.value
-        shops.value = filteredShops.slice(start, end)
-        
-        loading.value = false
-      }, 800)
-    }
-    /* UI-DEV-END */
-    
-    /*
-    // 真实代码（开发UI时注释）
-    const store = useStore()
-    const route = useRoute()
-    
-    // 从store获取店铺列表
-    const shops = computed(() => store.state.shop.shops)
-    const totalCount = computed(() => store.state.shop.total)
+
+    // 从store获取店铺列表/分页/加载态
+    const shops = computed(() => store.state.shop.shopList)
+    const totalCount = computed(() => store.state.shop.pagination.total)
+    const pageSize = computed(() => store.state.shop.pagination.pageSize)
+    const loading = computed(() => store.state.shop.loading)
     
     // 监听路由参数变化
     watch(
@@ -278,24 +123,23 @@ export default {
     
     // 获取指定店铺的茶叶
     const getShopTeas = (shopId) => {
-      return store.getters['shop/getShopTeasPreview'](shopId)
+      // 生产结构下：列表页不再本地造“店铺下的茶叶预览数据”
+      // 后续对接后端后，可在此处实现“按店铺加载预览茶叶”的逻辑（通过 Vuex action）
+      return []
     }
     
     // 加载店铺列表
     const loadShops = async () => {
-      loading.value = true
-      
       try {
         await store.dispatch('shop/fetchShops', {
+          // 兼容后端可能的分页参数命名
           page: currentPage.value,
-          pageSize: pageSize.value,
+          size: pageSize.value,
           search: searchQuery.value,
           sort: sortOption.value
         })
       } catch (error) {
         ElMessage.error(error.message || '加载店铺数据失败')
-      } finally {
-        loading.value = false
       }
     }
     
@@ -310,45 +154,24 @@ export default {
       
       router.replace({ query })
     }
-    */
     
     // 搜索处理
     const handleSearch = () => {
       currentPage.value = 1
-      /* UI-DEV-START */
-      loadShops()
-      /* UI-DEV-END */
-      
-      /*
-      // 真实代码（开发UI时注释）
       updateQueryParams()
-      */
     }
     
     // 排序变更处理
     const handleSortChange = () => {
       currentPage.value = 1
-      /* UI-DEV-START */
-      loadShops()
-      /* UI-DEV-END */
-      
-      /*
-      // 真实代码（开发UI时注释）
       updateQueryParams()
-      */
     }
     
     // 页面变化
     const handlePageChange = (page) => {
       currentPage.value = page
-      /* UI-DEV-START */
-      loadShops()
-      /* UI-DEV-END */
-      
-      /*
-      // 真实代码（开发UI时注释）
+      store.dispatch('shop/setPage', { page, extraParams: { search: searchQuery.value, sort: sortOption.value } })
       updateQueryParams()
-      */
     }
     
     // 跳转到茶叶列表
@@ -358,14 +181,7 @@ export default {
     
     // 初始化
     onMounted(() => {
-      /* UI-DEV-START */
-      loadShops()
-      /* UI-DEV-END */
-      
-      /*
-      // 真实代码（开发UI时注释）
-      // loadShops会通过路由watch触发
-      */
+      // loadShops 会由 route.query watch 触发（immediate: true）
     })
     
     return {

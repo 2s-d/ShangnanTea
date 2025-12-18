@@ -105,10 +105,13 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessageBox } from 'element-plus'
 import { Bell, ShoppingCart, ChatDotRound, Star, User, Check, Delete } from '@element-plus/icons-vue'
+import { useStore } from 'vuex'
+import { message } from '@/components/common'
+import { handleAsyncOperation } from '@/utils/messageHelper'
 
 export default {
   name: 'SystemNotificationsPage',
@@ -117,6 +120,7 @@ export default {
   },
   setup() {
     const router = useRouter()
+    const store = useStore()
     
     // 分页参数
     const currentPage = ref(1)
@@ -127,117 +131,32 @@ export default {
     const readStatus = ref('all')
     const typeFilter = ref('')
     
-    // 通知列表数据
-    const notifications = ref([])
-    const loading = ref(false)
+    // 通知列表数据（以 Vuex 为单一数据源）
+    const notifications = computed(() => store.state.message.messages || [])
+    const loading = computed(() => store.state.message.loading)
     
     // 获取通知列表
     const fetchNotifications = async () => {
-      loading.value = true
-      try {
-        // 实际项目中这里会调用API
-        // const response = await notificationAPI.getNotifications({
-        //   page: currentPage.value,
-        //   pageSize: pageSize.value,
-        //   readStatus: readStatus.value,
-        //   type: typeFilter.value
-        // })
-        
-        /* UI-DEV-START */
-        // 模拟API请求延迟
-        await new Promise(resolve => setTimeout(resolve, 500))
-        
-        // 模拟数据
-        const mockData = getMockNotifications()
-        notifications.value = mockData.list
-        totalNotifications.value = mockData.total
-        /* UI-DEV-END */
-        
-      } catch (error) {
-        ElMessage.error('获取通知列表失败')
-        console.error(error)
-      } finally {
-        loading.value = false
-      }
-    }
-    
-    // 根据数据库表user_notifications结构生成模拟数据
-    const getMockNotifications = () => {
-      const mockNotifications = [
+      // 同步分页参数到 Vuex
+      store.commit('message/SET_PAGINATION', {
+        total: store.state.message.pagination.total,
+        currentPage: currentPage.value,
+        pageSize: pageSize.value
+      })
+
+      await handleAsyncOperation(
+        store.dispatch('message/fetchNotifications', {
+          readStatus: readStatus.value,
+          type: typeFilter.value
+        }),
         {
-          id: 1,
-          userId: 1,
-          title: '系统公告：茶文化平台全新升级',
-          content: '尊敬的用户，我们的茶文化平台已完成全面升级，新增了更多功能，欢迎体验！',
-          type: 'system',
-          isRead: false,
-          createTime: '2025-03-20 10:15:30'
-        },
-        {
-          id: 2,
-          userId: 1,
-          title: '订单状态更新：您的订单已发货',
-          content: '您购买的【龙井茶叶礼盒装】已发货，快递单号：SF1234567890，请注意查收。',
-          type: 'order',
-          related_id: 10086,
-          isRead: true,
-          createTime: '2025-03-19 16:42:15'
-        },
-        {
-          id: 3,
-          userId: 1,
-          title: '新的帖子回复',
-          content: '用户【茶艺小能手】回复了您的帖子【新手冲泡白茶总是苦涩，有什么技巧吗？】',
-          type: 'forum',
-          related_id: 3,
-          isRead: false,
-          createTime: '2025-03-18 14:28:52'
-        },
-        {
-          id: 4,
-          userId: 1,
-          title: '您的帖子收到了新的点赞',
-          content: '您的帖子【分享我最近喝过的安化黑茶，口感超赞！】收到了3个新的点赞。',
-          type: 'like',
-          related_id: 1,
-          isRead: false,
-          createTime: '2025-03-17 09:36:21'
-        },
-        {
-          id: 5,
-          userId: 1,
-          title: '您有了新的粉丝',
-          content: '用户【普洱控】关注了您，去看看Ta的主页吧！',
-          type: 'follow',
-          related_id: 503,
-          isRead: true,
-          createTime: '2025-03-16 20:15:43'
-        },
-        {
-          id: 6,
-          userId: 1,
-          title: '订单状态更新：您的订单已签收',
-          content: '您购买的【武夷山金骏眉红茶】已签收，如有问题请及时联系客服。',
-          type: 'order',
-          related_id: 10085,
-          isRead: true,
-          createTime: '2025-03-15 11:08:36'
-        },
-        {
-          id: 7,
-          userId: 1,
-          title: '系统公告：春节期间发货安排',
-          content: '尊敬的用户，春节期间（2025年2月8日至2025年2月15日）平台暂停发货，2月16日恢复正常，感谢理解。',
-          type: 'system',
-          isRead: true,
-          createTime: '2025-02-05 08:30:00'
+          successMessage: null,
+          errorMessage: '获取通知列表失败，请稍后再试',
+          successCallback: (data) => {
+            totalNotifications.value = data?.total || 0
+          }
         }
-      ]
-      
-      return {
-        list: mockNotifications,
-        total: mockNotifications.length
-      }
+      )
     }
     
     // 过滤通知
@@ -267,20 +186,15 @@ export default {
     // 标记单条通知为已读
     const markAsRead = async (id) => {
       try {
-        // 实际项目中这里会调用API
-        // await notificationAPI.markAsRead(id)
-        
-        /* UI-DEV-START */
-        // 模拟API调用
-        const index = notifications.value.findIndex(item => item.id === id)
-        if (index !== -1) {
-          notifications.value[index].isRead = true
-        }
-        /* UI-DEV-END */
-        
-        ElMessage.success('已标记为已读')
+        await handleAsyncOperation(
+          store.dispatch('message/markAsRead', id),
+          {
+            successMessage: '已标记为已读',
+            errorMessage: '操作失败，请稍后再试',
+            successCallback: () => fetchNotifications()
+          }
+        )
       } catch (error) {
-        ElMessage.error('操作失败')
         console.error(error)
       }
     }
@@ -288,19 +202,20 @@ export default {
     // 标记所有通知为已读
     const markAllAsRead = async () => {
       try {
-        // 实际项目中这里会调用API
-        // await notificationAPI.markAllAsRead()
-        
-        /* UI-DEV-START */
-        // 模拟API调用
-        notifications.value.forEach(item => {
-          item.isRead = true
-        })
-        /* UI-DEV-END */
-        
-        ElMessage.success('已全部标记为已读')
+        const unreadIds = notifications.value.filter(item => !item.isRead).map(item => item.id)
+        if (!unreadIds.length) {
+          return
+        }
+
+        await handleAsyncOperation(
+          store.dispatch('message/markAsRead', unreadIds),
+          {
+            successMessage: '已全部标记为已读',
+            errorMessage: '操作失败，请稍后再试',
+            successCallback: () => fetchNotifications()
+          }
+        )
       } catch (error) {
-        ElMessage.error('操作失败')
         console.error(error)
       }
     }
@@ -308,18 +223,15 @@ export default {
     // 删除单条通知
     const deleteNotification = async (id) => {
       try {
-        // 实际项目中这里会调用API
-        // await notificationAPI.deleteNotification(id)
-        
-        /* UI-DEV-START */
-        // 模拟API调用
-        notifications.value = notifications.value.filter(item => item.id !== id)
-        totalNotifications.value--
-        /* UI-DEV-END */
-        
-        ElMessage.success('通知已删除')
+        await handleAsyncOperation(
+          store.dispatch('message/deleteMessage', id),
+          {
+            successMessage: '通知已删除',
+            errorMessage: '删除失败，请稍后再试',
+            successCallback: () => fetchNotifications()
+          }
+        )
       } catch (error) {
-        ElMessage.error('删除失败')
         console.error(error)
       }
     }
@@ -340,18 +252,20 @@ export default {
     // 删除所有通知
     const deleteAllNotifications = async () => {
       try {
-        // 实际项目中这里会调用API
-        // await notificationAPI.deleteAllNotifications()
-        
-        /* UI-DEV-START */
-        // 模拟API调用
-        notifications.value = []
-        totalNotifications.value = 0
-        /* UI-DEV-END */
-        
-        ElMessage.success('已清空所有通知')
+        const allIds = notifications.value.map(item => item.id)
+        if (!allIds.length) {
+          return
+        }
+
+        await handleAsyncOperation(
+          store.dispatch('message/deleteMessagesBulk', allIds),
+          {
+            successMessage: '已清空所有通知',
+            errorMessage: '操作失败，请稍后再试',
+            successCallback: () => fetchNotifications()
+          }
+        )
       } catch (error) {
-        ElMessage.error('操作失败')
         console.error(error)
       }
     }
@@ -433,6 +347,12 @@ export default {
     
     // 初始化
     onMounted(() => {
+      fetchNotifications()
+    })
+
+    // 筛选变化自动刷新（回到第一页）
+    watch([readStatus, typeFilter], () => {
+      currentPage.value = 1
       fetchNotifications()
     })
     

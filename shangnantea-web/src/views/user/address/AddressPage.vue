@@ -176,7 +176,7 @@ export default {
             errorMessage: '获取地址列表失败，请稍后再试'
           }
         )
-        addresses.value = store.state.user.addresses || []
+        addresses.value = store.state.user.addressList || []
       } catch (error) {
         console.error('获取地址列表失败', error)
         // 当获取失败时，初始化为空数组，确保页面不会崩溃

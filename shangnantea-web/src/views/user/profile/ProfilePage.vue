@@ -72,7 +72,6 @@ import { message } from '@/components/common'
 import messageManager from '@/utils/messageManager'
 import { handleAsyncOperation, STANDARD_MESSAGES } from '@/utils/messageHelper'
 import { uploadImage } from '@/api/upload'
-import { isDevMode } from '@/utils/devUtils'
 import messageMessages from '@/utils/messageMessages'
 import { useFormValidation } from '@/composables/useFormValidation'
 
@@ -100,24 +99,7 @@ export default {
       bio: ''
     })
     
-    /* UI-DEV-START */
-    const mockUserInfo = {
-      id: 'user10001',
-      username: 'testuser',
-      nickname: '测试用户',
-      email: 'test@example.com',
-      phone: '13800138000',
-      avatar: '/images/avatar/default.png',
-      role: 2,
-      createTime: '2023-03-15T08:00:00.000Z',
-      status: 1,
-      is_verified: 1,
-      last_login_time: '2023-06-20T10:30:00.000Z',
-      gender: 1,
-      birthday: '1990-01-01',
-      bio: '这是一个测试用户的个人简介，用于UI开发阶段展示。'
-    }
-    /* UI-DEV-END */
+    // TODO-SCRIPT: 用户信息应从 Vuex user 模块获取（user/getUserInfo），此处不在 UI 层保留 mock 声明
     
     const { rules: validationRules } = useFormValidation()
     
@@ -157,29 +139,10 @@ export default {
     }
     
     const userInfo = computed(() => {
-      const info = store.state.user.userInfo;
-      /* UI-DEV-START */
-      if (isDevMode() && (!info || Object.keys(info).length === 0)) {
-        return mockUserInfo;
-      }
-      /* UI-DEV-END */
-      return info;
+      return store.state.user.userInfo
     })
     
     const handleInitForm = () => {
-      /* UI-DEV-START */
-      if (isDevMode() && (!userInfo.value || Object.keys(userInfo.value).length === 0)) {
-        formData.username = mockUserInfo.username || '';
-        formData.nickname = mockUserInfo.nickname || '';
-        formData.email = mockUserInfo.email || '';
-        formData.phone = mockUserInfo.phone || '';
-        formData.gender = mockUserInfo.gender || 0;
-        formData.birthday = mockUserInfo.birthday || '';
-        formData.bio = mockUserInfo.bio || '';
-        return;
-      }
-      /* UI-DEV-END */
-      
       if (userInfo.value) {
         formData.username = userInfo.value.username || '';
         formData.nickname = userInfo.value.nickname || '';
@@ -194,16 +157,6 @@ export default {
     }
     
     const handleFetchUserInfo = async () => {
-      /* UI-DEV-START */
-      if (isDevMode()) {
-        console.log('开发模式：使用模拟用户数据');
-        store.commit('user/SET_USER_INFO', mockUserInfo);
-        handleInitForm();
-        loading.value = false;
-        return;
-      }
-      /* UI-DEV-END */
-      
       try {
         loading.value = true;
         
@@ -233,40 +186,6 @@ export default {
     }
     
     const handleSaveUserInfo = async () => {
-      /* UI-DEV-START */
-      if (isDevMode()) {
-        try {
-          await userForm.value.validate(async valid => {
-            if (!valid) return;
-            
-            saving.value = true;
-            loading.value = true;
-            
-            setTimeout(() => {
-              const updatedUserInfo = {
-                ...mockUserInfo,
-                nickname: formData.nickname,
-                email: formData.email,
-                phone: formData.phone,
-                gender: formData.gender,
-                birthday: formData.birthday,
-                bio: formData.bio
-              };
-              store.commit('user/SET_USER_INFO', updatedUserInfo);
-              message.success('个人信息更新成功');
-              saving.value = false;
-              loading.value = false;
-            }, 1000);
-          });
-          return;
-        } catch (error) {
-          saving.value = false;
-          loading.value = false;
-          console.error('保存用户信息失败:', error);
-        }
-      }
-      /* UI-DEV-END */
-      
       try {
         await userForm.value.validate(async valid => {
           if (!valid) return
@@ -306,12 +225,6 @@ export default {
     }, { immediate: true, deep: true })
     
     onMounted(() => {
-      /* UI-DEV-START */
-      if (isDevMode()) {
-        store.commit('user/SET_USER_INFO', mockUserInfo);
-      }
-      /* UI-DEV-END */
-      
       handleFetchUserInfo()
     })
     

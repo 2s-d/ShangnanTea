@@ -2,7 +2,7 @@ import request from './index'
 import { API } from './apiConstants'
 
 /**
- * 获取消息列表
+ * 获取消息列表（兼容：历史实现）
  * @param {Object} params 查询参数
  * @returns {Promise} 消息列表
  */
@@ -15,7 +15,7 @@ export function getMessages(params) {
 }
 
 /**
- * 获取消息详情
+ * 获取消息详情（兼容：历史实现）
  * @param {number} id 消息ID
  * @returns {Promise} 消息详情
  */
@@ -79,18 +79,31 @@ export function getUnreadCount() {
 }
 
 /**
- * 获取系统通知
+ * 获取系统通知（推荐新接口：notifications）
  * @param {Object} params 查询参数
  * @returns {Promise} 系统通知列表
  */
 export function getSystemNotifications(params) {
   return request({
-    url: API.MESSAGE.LIST,
+    url: API.MESSAGE.NOTIFICATIONS,
     method: 'get',
     params: {
       ...params,
       type: 'system'
     }
+  })
+}
+
+/**
+ * 获取通知列表（推荐）
+ * @param {Object} params 查询参数
+ * @returns {Promise} 通知列表
+ */
+export function getNotifications(params) {
+  return request({
+    url: API.MESSAGE.NOTIFICATIONS,
+    method: 'get',
+    params
   })
 }
 

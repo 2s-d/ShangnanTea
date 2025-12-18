@@ -494,68 +494,16 @@ export default {
       content: [{ required: true, message: '请输入文章内容', trigger: 'blur' }]
     }
     
-    const articles = ref([
-      /* UI-DEV-START */
-      // 模拟文章数据
-      {
-        id: 1,
-        title: '商南茶的历史与文化',
-        subtitle: '探寻千年茶乡的古韵今香',
-        author: '茶史专家',
-        category: '茶文化',
-        publish_time: '2025-03-16 09:03:26',
-        status: 1,
-        view_count: 126,
-        like_count: 35,
-        is_top: 0,
-        is_recommend: 0
-      },
-      {
-        id: 2,
-        title: '正确冲泡商南绿茶的方法与技巧',
-        subtitle: '冲泡技巧教学',
-        author: '茶艺师',
-        category: '茶艺茶道',
-        publish_time: '2025-03-12 15:20:00',
-        status: 1,
-        view_count: 98,
-        like_count: 22,
-        is_top: 0,
-        is_recommend: 1
-      },
-      {
-        id: 3,
-        title: '商南茶的保健功效与科学依据',
-        subtitle: '茶叶健康研究',
-        author: '营养专家',
-        category: '茶叶百科',
-        publish_time: '2025-03-10 09:30:00',
-        status: 1,
-        view_count: 112,
-        like_count: 41,
-        is_top: 1,
-        is_recommend: 1
-      },
-      {
-        id: 4,
-        title: '从农田到茶杯：商南茶的生产全过程',
-        subtitle: '茶叶生产工艺解析',
-        author: '制茶师',
-        category: '茶文化传承',
-        publish_time: '2025-03-05 14:20:00',
-        status: 0, // 草稿
-        view_count: 0,
-        like_count: 0,
-        is_top: 0,
-        is_recommend: 0
-      }
-      /* UI-DEV-END */
-    ])
+    /**
+     * 数据列表（生产形态：不在 UI 层造数据）
+     * TODO-SCRIPT: 茶文化内容管理需要后端接口与 Vuex forum 模块（文章列表/区块列表/编辑/保存/推荐/删除）
+     */
+    const articles = ref([])
     
     const articlePagination = reactive({
       currentPage: 1,
       pageSize: 10,
-      total: 4 // 模拟总数
+      total: 0
     })
     
     // 筛选后的文章列表
@@ -672,35 +620,9 @@ export default {
         articleSubmitting.value = true
         
         try {
-          /* UI-DEV-START */
-          // 模拟提交
-          await new Promise(resolve => setTimeout(resolve, 1000))
-          
-          if (articleForm.value.id) {
-            // 更新现有文章
-            const index = articles.value.findIndex(item => item.id === articleForm.value.id)
-            if (index !== -1) {
-              articles.value[index] = { ...articleForm.value }
-            }
-            ElMessage.success('文章已更新')
-          } else {
-            // 创建新文章
-            const newArticle = {
-              ...articleForm.value,
-              id: Math.floor(Math.random() * 1000) + 100, // 模拟ID生成
-              create_time: new Date().toISOString(),
-              update_time: new Date().toISOString(),
-              publish_time: new Date().toISOString(),
-              view_count: 0,
-              like_count: 0
-            }
-            articles.value.unshift(newArticle)
-            articlePagination.value.total++
-            ElMessage.success('文章已创建')
-          }
-          /* UI-DEV-END */
-          
-          articleFormVisible.value = false
+          // TODO-SCRIPT: 提交文章表单需要后端接口与 Vuex forum 模块；不在 UI 层 setTimeout 伪提交/本地创建更新
+          ElMessage.info('文章管理功能待后端接口接入')
+          return
         } catch (error) {
           ElMessage.error('操作失败，请重试')
         } finally {
@@ -733,42 +655,11 @@ export default {
     // 原始区块内容
     const rawBlockContent = ref('')
     
-    // 区块数据
-    const homeBlocks = ref([
-      /* UI-DEV-START */
-      // 模拟区块数据
-      {
-        id: 1,
-        section: 'banner',
-        title: '商南茶文化',
-        sub_title: '千年茶乡，一片叶子的传奇',
-        content: '[{"url":"/banners/b1.jpg","link":"/articles/1","title":"探寻茶源"},{"url":"/banners/b2.jpg","link":"/teas/category/1","title":"品味名茶"}]',
-        sort_order: 1,
-        status: 1,
-        update_time: '2025-03-26 09:03:26'
-      },
-      {
-        id: 2,
-        section: 'recommend',
-        title: '精选好茶',
-        sub_title: '甄选商南优质茶品',
-        content: '[{"id":"tea1000001","title":"商南翠峰","image":"/images/tea1_main.png","price":128.00}]',
-        sort_order: 2,
-        status: 1,
-        update_time: '2025-03-26 09:03:26'
-      },
-      {
-        id: 3,
-        section: 'culture_intro',
-        title: '茶文化简介',
-        sub_title: '了解商南茶文化历史',
-        content: '{"text":"商南茶文化源远流长，历史可追溯至唐代...","image":"/images/tea_culture.jpg"}',
-        sort_order: 3,
-        status: 0,
-        update_time: '2025-03-20 15:30:26'
-      }
-      /* UI-DEV-END */
-    ])
+    /**
+     * 区块数据（生产形态：不在 UI 层造数据）
+     * TODO-SCRIPT: 主页区块管理需要后端接口与 Vuex forum 模块
+     */
+    const homeBlocks = ref([])
     
     // 获取区块友好名称
     const getBlockName = (section) => {
@@ -857,39 +748,10 @@ export default {
       blockSubmitting.value = true
       
       try {
-        /* UI-DEV-START */
-        // 生成区块内容
-        let content = ''
-        
-        if (currentBlock.value.section === 'banner') {
-          content = JSON.stringify(bannerItems.value)
-        } else if (currentBlock.value.section === 'recommend') {
-          content = JSON.stringify(recommendItems.value)
-        } else {
-          content = rawBlockContent.value
-        }
-        
-        // 更新区块数据
-        const index = homeBlocks.value.findIndex(item => item.id === currentBlock.value.id)
-        if (index !== -1) {
-          homeBlocks.value[index] = {
-            ...currentBlock.value,
-            title: blockForm.value.title,
-            sub_title: blockForm.value.sub_title,
-            sort_order: blockForm.value.sort_order,
-            status: blockForm.value.status,
-            content: content,
-            update_time: new Date().toISOString()
-          }
-        }
-        
-        // 模拟延迟
-        setTimeout(() => {
-          ElMessage.success('区块内容已更新')
-          blockSubmitting.value = false
-          blockFormVisible.value = false
-        }, 800)
-        /* UI-DEV-END */
+        // TODO-SCRIPT: 保存区块需要后端接口；不在 UI 层构造 content/本地更新/延迟伪成功
+        ElMessage.info('保存区块功能待后端接口接入')
+        blockSubmitting.value = false
+        return
       } catch (error) {
         ElMessage.error('操作失败，请重试')
         blockSubmitting.value = false
@@ -909,8 +771,8 @@ export default {
       router.push('/forum/manage')
     }
     
-    // 添加默认图片常量
-    const defaultCover = '/mock-images/tea-default.jpg'
+    // 添加默认图片常量（生产形态：不使用 mock-images）
+    const defaultCover = ''
     
     // 加载页面数据
     onMounted(() => {

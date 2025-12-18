@@ -132,7 +132,7 @@ const actions = {
   },
   
   // 更新茶叶
-  async updateTea({ commit, dispatch }, teaData) {
+  async updateTea({ commit, dispatch, state }, teaData) {
     const res = await updateTea(teaData)
     
     // 如果当前查看的就是这个茶叶，更新当前茶叶
@@ -157,7 +157,7 @@ const actions = {
   },
   
   // 更新分页
-  setPage({ commit, dispatch }, page) {
+  setPage({ commit, dispatch, state }, page) {
     commit('SET_PAGINATION', {
       ...state.pagination,
       currentPage: page

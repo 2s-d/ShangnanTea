@@ -54,13 +54,14 @@ const mutations = {
 
 const actions = {
   // 获取商店列表
-  async fetchShops({ commit, state }) {
+  async fetchShops({ commit, state }, extraParams = {}) {
     try {
       commit('SET_LOADING', true)
       
       const params = {
         page: state.pagination.currentPage,
-        size: state.pagination.pageSize
+        size: state.pagination.pageSize,
+        ...extraParams
       }
       
       const res = await getShops(params)
@@ -76,6 +77,21 @@ const actions = {
     } finally {
       commit('SET_LOADING', false)
     }
+  },
+
+  /**
+   * 更新分页并重新拉取店铺列表
+   * @param {Object} context Vuex context
+   * @param {number} page 页码
+   * @param {Object} extraParams 额外查询参数（可选）
+   * @returns {Promise} 列表数据
+   */
+  async setPage({ commit, dispatch, state }, { page, extraParams = {} }) {
+    commit('SET_PAGINATION', {
+      ...state.pagination,
+      currentPage: page
+    })
+    return await dispatch('fetchShops', extraParams)
   },
   
   // 获取商店详情

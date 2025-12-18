@@ -197,13 +197,11 @@
 </template>
 
 <script>
-/* UI-DEV-START */
 import { ref, computed, onMounted, reactive } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { ArrowLeft, Plus } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-/* UI-DEV-END */
 
 /*
 // 真实代码（开发UI时注释）
@@ -217,11 +215,9 @@ import { ArrowLeft, Plus } from '@element-plus/icons-vue'
 export default {
   name: 'CheckoutPage',
   components: {
-    /* UI-DEV-START */
     ArrowLeft,
     Plus,
     SafeImage
-    /* UI-DEV-END */
     
     /*
     // 真实代码（开发UI时注释）
@@ -233,69 +229,19 @@ export default {
     const router = useRouter()
     const route = useRoute()
     
-    /* UI-DEV-START */
-    // 纯UI开发时的模拟数据和状态
+    /**
+     * 纯 UI 占位数据（生产形态：不在 UI 层造数据）
+     * TODO-SCRIPT: 结算页需要接入 Vuex（user 地址、order 购物车/下单、common 地区数据）
+     */
     const loading = ref(false)
     const submitting = ref(false)
     
     // 收货地址相关
-    const addresses = ref([
-      {
-        id: 1,
-        name: '张三',
-        phone: '13800138000',
-        province: '陕西省',
-        city: '商洛市',
-        district: '商南县',
-        detail: '城关镇商城路123号',
-        isDefault: true,
-        formattedAddress: '陕西省 商洛市 商南县 城关镇商城路123号'
-      },
-      {
-        id: 2,
-        name: '李四',
-        phone: '13900139000',
-        province: '陕西省',
-        city: '西安市',
-        district: '雁塔区',
-        detail: '高新路88号科技大厦B座701',
-        isDefault: false,
-        formattedAddress: '陕西省 西安市 雁塔区 高新路88号科技大厦B座701'
-      }
-    ])
+    const addresses = ref([])
     const selectedAddressId = ref(null)
     
     // 订单商品相关
-    const orderItems = ref([
-      {
-        id: 'cart1',
-        teaId: 1,
-        teaName: '商南毛尖',
-        image: '/images/tea1.jpg',
-        price: 128.00,
-        quantity: 2,
-        specName: '特级（100g）',
-        shopId: 'PLATFORM',
-        shopType: 'platform',
-        shopName: '商南茶文化平台',
-        selected: true,
-        remark: ''
-      },
-      {
-        id: 'cart2',
-        teaId: 3,
-        teaName: '丹江红茶',
-        image: '/images/tea3.jpg',
-        price: 98.00,
-        quantity: 1,
-        specName: '特级（50g）',
-        shopId: 'shop1',
-        shopType: 'shop',
-        shopName: '丹江茶叶专营店',
-        selected: true,
-        remark: ''
-      }
-    ])
+    const orderItems = ref([])
     
     // 支付方式相关
     const paymentMethod = ref('alipay')
@@ -344,52 +290,11 @@ export default {
       ]
     }
     
-    // 模拟省市区数据
-    const regionOptions = ref([
-      {
-        value: '610000',
-        label: '陕西省',
-        children: [
-          {
-            value: '610300',
-            label: '宝鸡市',
-            children: [
-              { value: '610324', label: '扶风县' },
-              { value: '610326', label: '眉县' }
-            ]
-          },
-          {
-            value: '611000',
-            label: '商洛市',
-            children: [
-              { value: '611026', label: '柞水县' },
-              { value: '611021', label: '洛南县' },
-              { value: '611022', label: '丹凤县' },
-              { value: '611023', label: '商南县' },
-              { value: '611024', label: '山阳县' },
-              { value: '611025', label: '镇安县' },
-              { value: '611002', label: '商州区' }
-            ]
-          },
-          {
-            value: '610100',
-            label: '西安市',
-            children: [
-              { value: '610113', label: '雁塔区' },
-              { value: '610103', label: '碑林区' },
-              { value: '610104', label: '莲湖区' },
-              { value: '610111', label: '灞桥区' },
-              { value: '610112', label: '未央区' }
-            ]
-          }
-        ]
-      }
-    ])
+    const regionOptions = ref([])
     
-    // 添加默认图片常量
-    const defaultTeaImage = '/mock-images/tea-default.jpg'
-    const defaultPaymentImage = '/mock-images/payment-default.jpg'
-    /* UI-DEV-END */
+    // 添加默认图片常量（生产形态：不使用 mock-images）
+    const defaultTeaImage = ''
+    const defaultPaymentImage = ''
     
     /*
     // 真实代码（开发UI时注释）
@@ -523,21 +428,7 @@ export default {
     
     // 初始化
     onMounted(() => {
-      /* UI-DEV-START */
-      // 模拟加载数据
-      loading.value = true
-      setTimeout(() => {
-        // 默认选中默认地址
-        const defaultAddress = addresses.value.find(addr => addr.isDefault)
-        if (defaultAddress) {
-          selectedAddressId.value = defaultAddress.id
-        } else if (addresses.value.length > 0) {
-          selectedAddressId.value = addresses.value[0].id
-        }
-        
-        loading.value = false
-      }, 800)
-      /* UI-DEV-END */
+      // TODO-SCRIPT: 初始化数据应由 Vuex actions 拉取（地址/购物车/地区数据）
       
       /*
       // 真实代码（开发UI时注释）
@@ -569,49 +460,9 @@ export default {
       await addressFormRef.value.validate(async (valid) => {
         if (!valid) return
         
-        /* UI-DEV-START */
-        // 模拟保存地址
-        addressSubmitting.value = true
-        
-        setTimeout(() => {
-          // 从表单区域值中提取省市区
-          const [province, city, district] = addressForm.region
-          
-          // 构建新地址对象
-          const newAddress = {
-            id: addresses.value.length + 1,
-            name: addressForm.name,
-            phone: addressForm.phone,
-            province: '陕西省',
-            city: '商洛市',
-            district: '商南县',
-            detail: addressForm.detail,
-            isDefault: addressForm.isDefault,
-            formattedAddress: `陕西省 商洛市 商南县 ${addressForm.detail}`
-          }
-          
-          // 如果设为默认地址，清除其他默认标记
-          if (newAddress.isDefault) {
-            addresses.value.forEach(addr => {
-              addr.isDefault = false
-            })
-          }
-          
-          // 添加到地址列表
-          addresses.value.push(newAddress)
-          
-          // 选中新地址
-          selectedAddressId.value = newAddress.id
-          
-          // 关闭对话框
-          addressDialogVisible.value = false
-          
-          // 提示成功
-          ElMessage.success('地址添加成功')
-          
-          addressSubmitting.value = false
-        }, 800)
-        /* UI-DEV-END */
+        // TODO-SCRIPT: 新增地址应走 Vuex（user/addAddress + refresh），不在 UI 层 setTimeout 伪保存
+        ElMessage.info('新增地址功能待后端接口接入')
+        return
         
         /*
         // 真实代码（开发UI时注释）
@@ -663,22 +514,9 @@ export default {
         return
       }
       
-      /* UI-DEV-START */
-      // 模拟提交订单
-      submitting.value = true
-      
-      setTimeout(() => {
-        submitting.value = false
-        
-        // 模拟生成订单ID
-        const orderId = 'ORD' + Date.now()
-        
-        // 跳转到支付页面，传递订单ID
-        router.push(`/order/payment?orderId=${orderId}`)
-        
-        ElMessage.success('订单提交成功，请完成支付')
-      }, 1000)
-      /* UI-DEV-END */
+      // TODO-SCRIPT: 下单应走 Vuex（order/createOrder），不在 UI 层 setTimeout 伪下单/伪生成订单号
+      ElMessage.info('提交订单功能待后端接口接入')
+      return
       
       /*
       // 真实代码（开发UI时注释）

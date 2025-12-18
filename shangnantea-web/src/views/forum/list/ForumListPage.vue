@@ -208,10 +208,10 @@ export default {
   setup() {
     const router = useRouter()
     
-    // 默认图片常量
-    const defaultAvatar = '/mock-images/avatar-default.jpg'
-    const defaultCover = '/mock-images/tea-default.jpg'
-    const defaultIcon = '/mock-images/icon-default.jpg'
+    // 默认图片常量（生产形态：不使用 mock-images）
+    const defaultAvatar = ''
+    const defaultCover = ''
+    const defaultIcon = ''
     
     // 当前选中的版块ID
     const currentTopicId = ref('all')
@@ -256,9 +256,18 @@ export default {
       total: 0
     })
     
-    /* UI-DEV-START */
+    /**
+     * 列表数据（生产形态：不在 UI 层造数据）
+     * TODO-SCRIPT: 需要 forum 模块 API + Vuex 接入（版块列表/帖子列表/我的帖子/分页/排序/当前用户）
+     */
+    const topicList = ref([])
+    const postList = ref([])
+    const myPosts = ref([])
+    pagination.total = 0
+
+    /*
     // 模拟数据 - 版块列表
-    const topicList = ref([
+    const topicListMock = ref([
       {
         id: 1,
         name: '茶叶知识',
@@ -316,7 +325,7 @@ export default {
     ])
     
     // 模拟数据 - 帖子列表
-    const postList = ref([
+    const postListMock = ref([
       {
         id: 1,
         title: '如何正确冲泡绿茶？',
@@ -501,7 +510,7 @@ export default {
     ])
     
     // 模拟 - 我的帖子
-    const myPosts = ref([
+    const myPostsMock = ref([
       {
         id: 1,
         title: '如何正确冲泡绿茶？',
@@ -526,7 +535,7 @@ export default {
     ])
     
     pagination.total = 65 // 模拟总帖子数
-    /* UI-DEV-END */
+    */
     
     /*
     // 真实代码(开发UI时注释)
@@ -624,40 +633,9 @@ export default {
     const switchTopic = (topicId) => {
       currentTopicId.value = topicId
       pagination.currentPage = 1
-      
-      /* UI-DEV-START */
-      loading.posts = true
-      setTimeout(() => {
-        if (topicId === 'all') {
-          // 显示全部帖子
-          postList.value = [...postList.value].sort(() => Math.random() - 0.5)
-        } else {
-          // 筛选版块帖子
-          const originalList = [
-            {
-              id: 1,
-              title: '如何正确冲泡绿茶？',
-              summary: '绿茶的冲泡温度一般控制在80℃左右较为适宜，水温过高会破坏茶叶中的营养物质，使茶汤变苦涩...',
-              topicId: 1,
-              topicName: '茶叶知识',
-              authorId: 'cy100002',
-              authorName: '茶韵悠长',
-              authorAvatar: 'https://via.placeholder.com/40x40?text=茶韵',
-              authorGender: 1,
-              coverImage: 'https://via.placeholder.com/200x120?text=绿茶冲泡',
-              viewCount: 358,
-              replyCount: 42,
-              likeCount: 86,
-              createTime: '2025-03-16 09:30:00'
-            },
-            // ... 其他帖子
-          ]
-          postList.value = originalList.filter(post => post.topicId === topicId)
-        }
-        loading.posts = false
-      }, 800)
-      /* UI-DEV-END */
-      
+
+      // TODO-SCRIPT: 论坛版块/帖子列表需要后端接口与 Vuex forum 模块支持（当前 store/modules/forum.js 仅保留首页数据）
+      ElMessage.info('论坛列表功能待后端接口接入')
       /*
       // 真实代码(开发UI时注释)
       fetchPosts()
@@ -666,16 +644,8 @@ export default {
     
     // 刷新版块列表
     const refreshTopics = () => {
-      /* UI-DEV-START */
-      loading.topics = true
-      setTimeout(() => {
-        // 模拟数据刷新，随机调整顺序
-        topicList.value = [...topicList.value].sort(() => Math.random() - 0.5)
-        loading.topics = false
-        ElMessage.success('版块列表已刷新')
-      }, 800)
-      /* UI-DEV-END */
-      
+      // TODO-SCRIPT: 版块列表刷新需要后端接口
+      ElMessage.info('版块列表刷新待后端接口接入')
       /*
       // 真实代码(开发UI时注释)
       fetchTopics()
@@ -684,16 +654,8 @@ export default {
     
     // 刷新帖子列表
     const refreshPosts = () => {
-      /* UI-DEV-START */
-      loading.posts = true
-      setTimeout(() => {
-        // 模拟数据刷新，随机调整顺序
-        postList.value = [...postList.value].sort(() => Math.random() - 0.5)
-        loading.posts = false
-        ElMessage.success('帖子列表已刷新')
-      }, 800)
-      /* UI-DEV-END */
-      
+      // TODO-SCRIPT: 帖子列表刷新需要后端接口
+      ElMessage.info('帖子列表刷新待后端接口接入')
       /*
       // 真实代码(开发UI时注释)
       fetchPosts()
@@ -703,23 +665,9 @@ export default {
     // 处理排序变更
     const handleSortChange = (sort) => {
       currentSort.value = sort
-      
-      /* UI-DEV-START */
-      loading.posts = true
-      setTimeout(() => {
-        // 模拟排序效果
-        if (sort === 'popular') {
-          postList.value = [...postList.value].sort((a, b) => b.viewCount - a.viewCount)
-        } else if (sort === 'hot') {
-          postList.value = [...postList.value].sort((a, b) => b.replyCount - a.replyCount)
-        } else {
-          // 默认按发布时间排序
-          postList.value = [...postList.value].sort((a, b) => new Date(b.createTime) - new Date(a.createTime))
-        }
-        loading.posts = false
-      }, 500)
-      /* UI-DEV-END */
-      
+
+      // TODO-SCRIPT: 排序需要后端接口支持（按 sort + pagination 查询）
+      ElMessage.info('排序功能待后端接口接入')
       /*
       // 真实代码(开发UI时注释)
       pagination.currentPage = 1
@@ -730,10 +678,8 @@ export default {
     // 处理分页大小变更
     const handleSizeChange = (size) => {
       pagination.pageSize = size
-      /* UI-DEV-START */
+      // TODO-SCRIPT: 分页需要后端接口支持
       refreshPosts()
-      /* UI-DEV-END */
-      
       /*
       // 真实代码(开发UI时注释)
       fetchPosts()
@@ -743,10 +689,8 @@ export default {
     // 处理页码变更
     const handleCurrentChange = (page) => {
       pagination.currentPage = page
-      /* UI-DEV-START */
+      // TODO-SCRIPT: 分页需要后端接口支持
       refreshPosts()
-      /* UI-DEV-END */
-      
       /*
       // 真实代码(开发UI时注释)
       fetchPosts()
@@ -780,15 +724,9 @@ export default {
     
     // 帖子收藏
     const handleFavorite = (post) => {
-      /* UI-DEV-START */
-      post.favorited = !post.favorited
-      if (post.favorited) {
-        ElMessage.success('收藏成功')
-      } else {
-        ElMessage.success('已取消收藏')
-      }
-      /* UI-DEV-END */
-      
+      // TODO-SCRIPT: 收藏/取消收藏需要后端接口与 Vuex forum 模块
+      ElMessage.info('收藏功能待后端接口接入')
+      return
       /*
       // 真实代码(开发UI时注释)
       if (post.favorited) {
@@ -816,21 +754,13 @@ export default {
       if (!postToDelete.value) return
       
       loading.delete = true
-      
-      /* UI-DEV-START */
-      setTimeout(() => {
-        // 从我的帖子列表中移除
-        myPosts.value = myPosts.value.filter(item => item.id !== postToDelete.value.id)
-        // 从主帖子列表中移除
-        postList.value = postList.value.filter(item => item.id !== postToDelete.value.id)
-        
-        ElMessage.success('帖子删除成功')
-        dialogVisible.delete = false
-        loading.delete = false
-        postToDelete.value = null
-      }, 800)
-      /* UI-DEV-END */
-      
+
+      // TODO-SCRIPT: 删除帖子需要后端接口与权限控制；这里不做本地伪删除，避免假状态
+      ElMessage.info('删除功能待后端接口接入')
+      loading.delete = false
+      dialogVisible.delete = false
+      postToDelete.value = null
+      return
       /*
       // 真实代码(开发UI时注释)
       store.dispatch('forum/deletePost', postToDelete.value.id).then(() => {

@@ -52,6 +52,54 @@
 
 **清除UI交互代码中的假数据和伪代码，恢复成生产版本**
 
+---
+
+## 1.2.1.0 生产版本形态判定（必须先过 A/B，再进入 Playwright 用例阶段）
+
+> 目标：避免“闷头清到 0 报错，但最终形态不是生产版本”的风险。
+
+### A. 结构性判定（可脚本化、可量化，目标为 0）
+
+**定义**：代码中不应再存在明确的 UI-DEV/伪代码标记与典型 mock 痕迹。
+
+**强制指标（目标为 0）**：
+- `UI_DEV_MARKERS`：`/* UI-DEV-START */` / `/* UI-DEV-END */`
+- `IS_DEVMODE_CALL`：`isDevMode(...)`
+- `DEVUTILS_IMPORT`：`@/utils/devUtils`
+- `SET_TIMEOUT`：`setTimeout(...)`（业务流程伪延迟）
+- `GENERATE_MOCK`：`generateMock*()`（本地生成假数据）
+- `MOCK_IMAGES`：`/mock-images/`（假图片资源）
+- `DEV_TOKEN`：`dev_token_` / `mock_token_` 等
+
+**执行方式（只检查不写入）**：
+
+```bash
+cd shangnantea/shangnantea-web
+npm run safe:ui-dev:prod-check:views
+```
+
+**产物**：
+- 报告：`tests/test-data-templates/ui-dev-prod-check-report.md`
+- 运行日志：`tests/test-data-templates/ui-dev-clean-runlog.md`
+
+### B. 数据流判定（人工清单口径，必须满足）
+
+**定义**：生产版本的数据流必须符合：
+
+```
+组件 → Composables/Vuex Actions → API → 后端
+```
+
+**必须满足的口径**：
+- 组件层不再 `ref([...mock])` 造业务数据（列表/详情数据必须来自 Vuex state/computed）
+- 组件层不再“本地伪成功”（不直接改数组/状态模拟删除/收藏/退款/发帖成功等）
+- 所有业务动作必须 `dispatch('模块/action')`，由 action 调 API
+- 暂无后端接口的功能：**保留入口**，但只允许提示“待后端接入”，不得伪造成功与本地状态
+
+**记录方式**：
+- 在对应模块的任务分解文档 “检查测试/错误总结” 中记录该页面是否已满足以上口径
+- 同类问题多时，把人工改法抽象为脚本规则或 TODO 类型，减少后续成本
+
 #### 1.2.1.1 前端代码恢复
 
 **目标**：将前端代码恢复成正常的生产版本

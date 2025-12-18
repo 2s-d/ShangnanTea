@@ -194,4 +194,30 @@ export function getShopCertificationStatus() {
     url: API.USER.SHOP_CERTIFICATION,
     method: 'get'
   })
-} 
+}
+
+// === 用户偏好设置相关API ===
+
+/**
+ * 获取当前用户的偏好设置（主题/展示等）
+ * @returns {Promise} 偏好设置对象
+ */
+export function getUserPreferences() {
+  return request({
+    url: API.USER.PREFERENCES,
+    method: 'get'
+  })
+}
+
+/**
+ * 更新当前用户的偏好设置（主题/展示等）
+ * @param {Object} preferences 偏好设置对象
+ * @returns {Promise} 更新结果
+ */
+export function updateUserPreferences(preferences) {
+  return request({
+    url: API.USER.PREFERENCES,
+    method: 'put',
+    data: preferences
+  })
+}

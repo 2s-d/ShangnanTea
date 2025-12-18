@@ -98,15 +98,17 @@ export default {
   setup() {
     const router = useRouter()
     const route = useRoute()
-    const avatarImage = '/mock-images/avatar-default.jpg'
+    // 生产形态：不使用 mock-images；交给 SafeImage/默认值兜底
+    const avatarImage = ''
     
     // 用户信息
     const userInfo = ref({
-      username: 'testuser',
-      nickname: '测试用户',
+      // 生产形态：不在 UI 层造“测试用户”数据；保持字段结构，避免模板取值异常
+      username: '',
+      nickname: '',
       avatar: '',
-      gender: 1, // 1-男，2-女
-      bio: '这是一个测试用户的个人简介，用于展示个人主页的布局效果。'
+      gender: 0, // 1-男，2-女；0/空表示未知
+      bio: ''
     })
     
     // 菜单项和对应组件映射
@@ -177,9 +179,7 @@ export default {
     
     // 加载用户信息（实际项目中会从API获取）
     const loadUserInfo = async () => {
-      /* UI-DEV-START */
-      // 开发时使用模拟数据，实际项目中会从API获取
-      /* UI-DEV-END */
+      // TODO-SCRIPT: 用户信息应通过 Vuex user 模块从后端获取（user/getUserProfile）
       
       /* 
       // 真实代码(开发UI时注释)
@@ -192,9 +192,9 @@ export default {
       */
     }
     
-    // 默认图片
-    const defaultAvatar = '/mock-images/avatar-default.jpg'
-    const defaultImage = '/mock-images/default.jpg'
+    // 默认图片（生产形态：不使用 mock-images）
+    const defaultAvatar = ''
+    const defaultImage = ''
     
     return {
       activeMenu,

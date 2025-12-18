@@ -1,5 +1,14 @@
-import { getMessages, getMessageDetail, sendMessage, markAsRead, 
-         deleteMessages, getUnreadCount, getChatSessions, getChatHistory } from '@/api/message'
+import {
+  getMessages,
+  getMessageDetail,
+  sendMessage,
+  markAsRead,
+  deleteMessages,
+  getUnreadCount,
+  getChatSessions,
+  getChatHistory,
+  getNotifications
+} from '@/api/message'
 
 const state = () => ({
   // 消息列表
@@ -71,6 +80,52 @@ const mutations = {
 }
 
 const actions = {
+  /**
+   * 获取系统通知/通知列表（推荐入口）
+   * @param {Object} context Vuex context
+   * @param {Object} params 查询参数
+   * @returns {Promise<Object>} 通知数据
+   */
+  async fetchNotifications({ commit, state }, params = {}) {
+    try {
+      commit('SET_LOADING', true)
+      const queryParams = {
+        page: state.pagination.currentPage,
+        size: state.pagination.pageSize,
+        ...params
+      }
+
+      const res = await getNotifications(queryParams)
+
+      // 兼容：后端可能返回 { data: { list, total } } 或直接 { list, total }
+      const data = res?.data || res
+      commit('SET_MESSAGES', data?.list || [])
+      commit('SET_PAGINATION', {
+        total: data?.total || 0,
+        currentPage: state.pagination.currentPage,
+        pageSize: state.pagination.pageSize
+      })
+
+      return data
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+
+  /**
+   * 批量删除通知/消息
+   * @param {Object} context Vuex context
+   * @param {Array<number|string>} ids 要删除的消息ID列表
+   * @returns {Promise<boolean>} 是否成功
+   */
+  async deleteMessagesBulk({ commit, state }, ids) {
+    const messageIds = Array.isArray(ids) ? ids : [ids]
+    await deleteMessages(messageIds)
+    // 更新本地状态（以当前 state 为基准过滤）
+    commit('SET_MESSAGES', (state.messages || []).filter(msg => !messageIds.includes(msg.id)))
+    return true
+  },
+
   // 获取消息列表
   async fetchMessages({ commit, state }, params = {}) {
     try {

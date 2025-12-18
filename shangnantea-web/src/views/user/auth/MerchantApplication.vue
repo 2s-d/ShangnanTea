@@ -125,11 +125,9 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useStore } from 'vuex'
 import { uploadImage } from '@/api/upload'
-import { submitShopCertification, getShopCertificationStatus } from '@/api/user'
 import { Plus } from '@element-plus/icons-vue'
 import { handleAsyncOperation } from '@/utils/messageHelper'
 import shopMessages from '@/utils/shopMessages'
-import { isDevMode } from '@/utils/devUtils'
 import { regionData, getStaticRegionData } from '@/utils/region'
 import { message } from '@/components/common'
 import SafeImage from '@/components/common/form/SafeImage.vue'
@@ -316,22 +314,8 @@ export default {
         submitting.value = true
         
         try {
-          /* UI-DEV-START */
-          if (isDevMode()) {
-            // 模拟提交成功
-            setTimeout(() => {
-              hasApplied.value = true
-              applicationStatus.value = 0 // 审核中
-              applicationTime.value = new Date().toLocaleString()
-              shopMessages.business.showCertificationSubmitted()
-              submitting.value = false
-            }, 1500)
-            return
-          }
-          /* UI-DEV-END */
-          
           const result = await handleAsyncOperation(
-            submitShopCertification(applicationForm),
+            store.dispatch('user/submitShopCertification', applicationForm),
             {
               loadingMessage: shopMessages.api.showSubmittingCertification,
               successMessage: shopMessages.business.showCertificationSubmitted,
@@ -361,25 +345,8 @@ export default {
     // 获取认证状态
     const fetchCertificationStatus = async () => {
       try {
-        /* UI-DEV-START */
-        if (isDevMode()) {
-          // 模拟状态获取
-          const mockStatus = {
-            status: 0, // 0-审核中, 1-已通过, 2-已拒绝
-            createTime: '2023-10-15 14:30:00',
-            rejectReason: '提供的营业执照信息不清晰，请重新上传'
-          }
-          
-          hasApplied.value = true
-          applicationStatus.value = mockStatus.status
-          applicationTime.value = mockStatus.createTime
-          rejectReason.value = mockStatus.rejectReason
-          return
-        }
-        /* UI-DEV-END */
-        
         const result = await handleAsyncOperation(
-          getShopCertificationStatus(),
+          store.dispatch('user/fetchShopCertificationStatus'),
           {
             loadingMessage: shopMessages.api.showLoadingCertifications,
             errorMessage: '获取认证状态失败'

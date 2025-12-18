@@ -159,3 +159,16 @@ export function reviewOrder(data) {
     data
   })
 } 
+
+/**
+ * 申请退款
+ * @param {Object} data 退款数据 {orderId, reason}
+ * @returns {Promise} 申请结果
+ */
+export function refundOrder(data) {
+  return request({
+    url: API.ORDER.REFUND,
+    method: 'post',
+    data
+  })
+}

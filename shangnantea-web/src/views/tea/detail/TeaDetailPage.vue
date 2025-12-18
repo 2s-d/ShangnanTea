@@ -36,14 +36,14 @@
         <div class="tea-images">
           <div class="main-image">
             <el-carousel indicator-position="outside" height="400px">
-              <el-carousel-item v-for="(image, index) in tea.images" :key="index">
+              <el-carousel-item v-for="(image, index) in teaImages" :key="index">
                 <SafeImage :src="image" type="tea" :alt="tea.name" class="carousel-image tea-image" />
               </el-carousel-item>
             </el-carousel>
           </div>
           <div class="thumbnail-list">
             <div 
-              v-for="(image, index) in tea.images" 
+              v-for="(image, index) in teaImages" 
               :key="index" 
               class="thumbnail"
               :class="{ active: currentImageIndex === index }"
@@ -191,13 +191,13 @@
               </el-descriptions>
             </div>
           </el-tab-pane>
-          <el-tab-pane :label="`用户评价(${tea.reviews.length})`" name="reviews">
+          <el-tab-pane :label="`用户评价(${(tea.reviews || []).length})`" name="reviews">
             <div class="review-list">
-              <div v-if="tea.reviews.length === 0" class="empty-reviews">
+              <div v-if="(tea.reviews || []).length === 0" class="empty-reviews">
                 暂无评价，购买后可以添加评价
               </div>
               <div v-else class="review-items">
-                <div v-for="review in tea.reviews" :key="review.id" class="review-item">
+                <div v-for="review in (tea.reviews || [])" :key="review.id" class="review-item">
                   <div class="review-header">
                     <div class="user-info">
                       <SafeImage :src="review.user_avatar" type="avatar" :alt="review.user_name" style="width:40px;height:40px;border-radius:50%;object-fit:cover;" class="user-avatar" />
@@ -270,47 +270,29 @@
 </template>
 
 <script>
-/* UI-DEV-START */
-import { ref, computed, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { Back, ShoppingCart, Star, ChatLineRound } from '@element-plus/icons-vue'
-import SafeImage from '@/components/common/form/SafeImage.vue'
-/* UI-DEV-END */
-
-/*
-// 真实代码（开发UI时注释）
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useStore } from 'vuex'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Back, ShoppingCart, Star } from '@element-plus/icons-vue'
-*/
+import { Back, ShoppingCart, Star, ChatLineRound } from '@element-plus/icons-vue'
+import SafeImage from '@/components/common/form/SafeImage.vue'
 
 export default {
   name: "TeaDetailPage",
   components: {
-    /* UI-DEV-START */
     Back,
     ShoppingCart,
     Star,
     ChatLineRound,
     SafeImage
-    /* UI-DEV-END */
-    
-    /*
-    // 真实代码（开发UI时注释）
-    Back,
-    ShoppingCart,
-    Star
-    */
   },
   setup() {
+    const store = useStore()
     const router = useRouter()
     const route = useRoute()
-    const loading = ref(true)
+    const loading = computed(() => store.state.tea.loading)
     const submitting = ref(false)
-    const tea = ref(null)
+    const tea = computed(() => store.state.tea.currentTea)
     const activeTab = ref('detail')
     const selectedSpecId = ref(null)
     const quantity = ref(1)
@@ -322,97 +304,6 @@ export default {
     const activeReplyId = ref(null) // 当前正在回复的评论ID
     const replyContent = ref('') // 回复内容
     const submittingReply = ref(false) // 提交回复的loading状态
-    
-    /* UI-DEV-START */
-    // 模拟判断当前用户是否为商店所有者
-    const isShopOwner = ref(true) // 始终为true，方便测试UI功能
-    
-    // 显示回复表单
-    const showReplyForm = (review) => {
-      console.log('显示回复表单', review.id)
-      activeReplyId.value = review.id
-      replyContent.value = ''
-    }
-    
-    // 取消回复
-    const cancelReply = () => {
-      activeReplyId.value = null
-      replyContent.value = ''
-    }
-    
-    // 提交回复
-    const submitReply = (review) => {
-      if (!replyContent.value.trim()) {
-        ElMessage.warning('请输入回复内容')
-        return
-      }
-      
-      submittingReply.value = true
-      
-      // 模拟API调用
-      setTimeout(() => {
-        // 在UI上立即更新评论对象
-        review.has_reply = true
-        review.reply = replyContent.value
-        review.reply_time = new Date().toLocaleString()
-        
-        // 重置状态
-        activeReplyId.value = null
-        replyContent.value = ''
-        submittingReply.value = false
-        
-        ElMessage.success('回复成功')
-      }, 800)
-    }
-    
-    // 生成模拟评论数据函数
-    const generateMockReviews = (count) => {
-      const reviews = [];
-      const avatars = [
-        'https://img.zcool.cn/community/031d14260114a3b5b3086ed12789e6.jpg',
-        'https://img.zcool.cn/community/031a6aa60114a3b5b3086ed127c771.jpg',
-        'https://img.zcool.cn/community/031139460114a3b5b3086ed12789e6.jpg',
-        'https://img.zcool.cn/community/031d14260114a3b5b3086ed12789e6.jpg'
-      ];
-      const reviewImages = [
-        'https://img.zcool.cn/community/01f6c65fb0dd1ca8012066210a4c8f.jpg',
-        'https://img.zcool.cn/community/0152bc5fb0dd1ca801206621f21b74.jpg',
-        'https://img.zcool.cn/community/01c1c85fb0dd1ca801206621a014c4.jpg'
-      ];
-      const userNames = ['茶韵悠悠', '茶香四溢', '品茶人生', '茶之韵味', '清茗一笑', '茶道至简'];
-      
-      for (let i = 1; i <= count; i++) {
-        const hasReply = Math.random() > 0.5;
-        const hasPics = Math.random() > 0.6;
-        
-        reviews.push({
-          id: i,
-          tea_id: 'tea1000001',
-          user_id: `USER${i.toString().padStart(3, '0')}`,
-          user_name: userNames[Math.floor(Math.random() * userNames.length)],
-          user_avatar: avatars[Math.floor(Math.random() * avatars.length)],
-          rating: Math.floor(Math.random() * 2) + 4, // 4-5星
-          content: `这款茶叶品质非常好，${i % 2 === 0 ? '香气高雅持久' : '滋味鲜爽甘醇'}，${i % 3 === 0 ? '价格也很合理' : '包装非常精美'}，值得推荐！`,
-          images: hasPics ? [
-            reviewImages[i % 3],
-            i % 2 === 0 ? reviewImages[(i + 1) % 3] : null
-          ].filter(Boolean) : [],
-          has_reply: hasReply,
-          reply: hasReply ? `感谢您的喜爱和评价，我们将继续${i % 2 === 0 ? '保持品质' : '改进服务'}，为您提供更好的茶叶产品！` : '',
-          reply_time: hasReply ? `2023-${(6 + i % 6).toString().padStart(2, '0')}-${(i + 5).toString().padStart(2, '0')} ${10 + i}:${30 + i}:00` : null,
-          create_time: `2023-${(5 + i % 6).toString().padStart(2, '0')}-${(i + 1).toString().padStart(2, '0')} ${8 + i}:${20 + i}:00`,
-          update_time: `2023-${(5 + i % 6).toString().padStart(2, '0')}-${(i + 1).toString().padStart(2, '0')} ${8 + i}:${30 + i}:00`,
-          is_anonymous: 0,
-        });
-      }
-      
-      return reviews;
-    };
-    /* UI-DEV-END */
-    
-    /*
-    // 真实代码（开发UI时注释）
-    const store = useStore()
     
     // 判断当前用户是否为商店所有者
     const isShopOwner = computed(() => {
@@ -442,205 +333,59 @@ export default {
       submittingReply.value = true
       
       try {
-        await store.dispatch('tea/replyReview', {
-          reviewId: review.id,
-          content: replyContent.value
-        })
-        
-        // 更新本地评论数据
-        review.has_reply = true
-        review.reply = replyContent.value
-        review.reply_time = new Date().toLocaleString()
-        
-        // 重置状态
-        activeReplyId.value = null
-        replyContent.value = ''
-        
-        ElMessage.success('回复成功')
+        // 生产版：等待后端与 Vuex action 对接（不在前端伪造“回复成功”状态）
+        ElMessage.info('回复评价功能待后端接口完成后接入')
       } catch (error) {
         ElMessage.error(error.message || '回复失败')
       } finally {
         submittingReply.value = false
       }
     }
-    */
     
-    // 茶叶分类
-    const categories = [
-      { id: 1, name: '绿茶' },
-      { id: 2, name: '红茶' },
-      { id: 3, name: '黑茶' },
-      { id: 4, name: '白茶' },
-      { id: 5, name: '黄茶' },
-      { id: 6, name: '青茶' },
-      { id: 7, name: '花茶' }
-    ]
+    // 茶叶分类（从 Vuex 获取）
+    const categories = computed(() => store.state.tea.categories || [])
     
     // 获取茶叶类别名称
     const getCategoryName = (categoryId) => {
-      const category = categories.find(c => c.id === categoryId)
+      const category = categories.value.find(c => c.id === categoryId)
       return category ? category.name : '未知分类'
     }
     
     // 切换收藏状态
     const toggleFavorite = async () => {
-      favoriteLoading.value = true
-      
-      /* UI-DEV-START */
-      // 模拟API调用延迟
-      setTimeout(() => {
-        // 切换收藏状态
-        isFavorite.value = !isFavorite.value
-        
-        // 构建模拟的收藏数据结构 - 符合user_favorites表结构
-        const favoriteData = {
-          id: Math.random().toString(36).substring(2, 10), // 模拟ID
-          user_id: 'user123', // 模拟用户ID
-          item_id: tea.value.id, // 茶叶ID
-          item_type: 'tea', // 收藏项类型，固定为"tea"
-          create_time: new Date().toISOString() // 创建时间
-        };
-        
-        // 记录操作的数据 - 仅开发测试用
-        console.log('收藏操作数据:', favoriteData);
-        
-        // 显示消息
-        ElMessage.success(isFavorite.value ? '已添加到收藏' : '已取消收藏')
-        
-        favoriteLoading.value = false
-      }, 600)
-      /* UI-DEV-END */
-      
-      /*
-      // 真实代码（开发UI时注释）
-      try {
-        // 调用Vuex action处理收藏/取消收藏操作
-        // 根据user_favorites表结构传递数据
-        const result = await store.dispatch(isFavorite.value ? 'favorites/removeFavorite' : 'favorites/addFavorite', {
-          item_id: tea.value.id,
-          item_type: 'tea'
-        });
-        
-        // 更新收藏状态
-        isFavorite.value = !isFavorite.value;
-        
-        // 显示消息
-        ElMessage.success(isFavorite.value ? '已添加到收藏' : '已取消收藏');
-      } catch (error) {
-        ElMessage.error(error.message || '操作失败，请稍后重试');
-      } finally {
-        favoriteLoading.value = false;
-      }
-      */
+      ElMessage.info('收藏功能待后端接口完成后接入')
     }
     
-    // 模拟检查是否已收藏
-    const checkIsFavorite = () => {
-      /* UI-DEV-START */
-      // 模拟API调用
-      setTimeout(() => {
-        // 随机设置收藏状态，模拟从服务器获取
-        isFavorite.value = Math.random() > 0.5;
-        
-        // 输出模拟的查询参数 - 仅开发测试用
-        console.log('检查收藏状态参数:', {
-          user_id: 'user123', // 模拟用户ID
-          item_id: tea.value?.id, // 茶叶ID
-          item_type: 'tea' // 收藏项类型
-        });
-      }, 1000)
-      /* UI-DEV-END */
-      
-      /*
-      // 真实代码（开发UI时注释）
-      // 如果用户未登录，直接返回
-      if (!store.getters['user/isLoggedIn']) {
-        isFavorite.value = false;
-        return;
-      }
-      
+    // 加载茶叶详情（生产版：走 Vuex）
+    const loadTeaDetail = async () => {
       try {
-        // 调用Vuex action检查是否已收藏
-        const result = await store.dispatch('favorites/checkFavorite', {
-          item_id: tea.value.id,
-          item_type: 'tea'
-        });
-        
-        // 更新收藏状态
-        isFavorite.value = result.isFavorite;
-      } catch (error) {
-        console.error('检查收藏状态失败:', error);
-        isFavorite.value = false;
-      }
-      */
-    }
-    
-    // 模拟加载茶叶详情
-    const loadTeaDetail = () => {
-      loading.value = true
-      
-      // 模拟API调用延迟
-      setTimeout(() => {
         const teaId = route.params.id
-        
-        // 创建模拟数据 - 更新了店铺相关信息和结构
-        tea.value = {
-          id: teaId,
-          name: '商南特级绿茶 - 明前春茶',
-          category_id: 1,
-          category_name: '绿茶',
-          price: 298,
-          discount_price: 238,
-          brief: '商南高山云雾茶，清香回甘，明前采摘',
-          description: `
-            <h3>茶叶简介</h3>
-            <p>商南云雾茶产于海拔1200米以上的高山，四季云雾缭绕，日照充足，昼夜温差大，是培育优质茶叶的理想环境。</p>
-            <h3>品质特点</h3>
-            <p>本款明前春茶，芽头饱满，香气高扬，清爽甘醇，汤色嫩绿，叶底明亮。</p>
-            <h3>冲泡建议</h3>
-            <p>建议以80℃温水冲泡，投茶量5克，杯具以透明玻璃杯为佳，可以欣赏到茶叶舒展的美感。</p>
-          `,
-          stock: 120,
-          sales: 256,
-          origin: '陕西省商洛市商南县',
-          main_image: 'https://img.zcool.cn/community/01a9d75fb0dd1ca801206621a38d83.jpg',
-          images: [
-            { id: 1, url: 'https://img.zcool.cn/community/01a9d75fb0dd1ca801206621a38d83.jpg', sort_order: 0, is_main: 1 },
-            { id: 2, url: 'https://img.zcool.cn/community/01f6c65fb0dd1ca8012066210a4c8f.jpg', sort_order: 1, is_main: 0 },
-            { id: 3, url: 'https://img.zcool.cn/community/0152bc5fb0dd1ca801206621f21b74.jpg', sort_order: 2, is_main: 0 },
-            { id: 4, url: 'https://img.zcool.cn/community/01c1c85fb0dd1ca801206621a014c4.jpg', sort_order: 3, is_main: 0 }
-          ],
-          specifications: [
-            { id: 1, tea_id: teaId, spec_name: '特级（50g）', price: 238, stock: 120, is_default: 1 },
-            { id: 2, tea_id: teaId, spec_name: '特级（100g）', price: 458, stock: 85, is_default: 0 },
-            { id: 3, tea_id: teaId, spec_name: '特级（200g礼盒装）', price: 888, stock: 32, is_default: 0 }
-          ],
-          status: 1,
-          shop_id: Math.random() > 0.5 ? 'PLATFORM' : 'shop100001',
-          shop_name: '商南茶业旗舰店',
-          shop_logo: 'https://img.zcool.cn/community/01233056fb62fe32f875520f7b67cb.jpg',
-          shop_rating: 4.8,
-          shop_desc: '专营商南特产茶叶，传承百年制茶工艺，提供优质商南绿茶、红茶等各类茶品。',
-          platform_logo: 'https://img.zcool.cn/community/01f6c65fb0dd1ca8012066210a4c8f.jpg',
-          reviews: generateMockReviews(6)
-        }
-        
-        // 默认选中默认规格
-        const defaultSpec = tea.value.specifications.find(spec => spec.is_default === 1)
+        await store.dispatch('tea/fetchTeaDetail', teaId)
+
+        const specs = store.state.tea.currentTea?.specifications || []
+        const defaultSpec = specs.find(spec => spec.is_default === 1)
         if (defaultSpec) {
           selectedSpecId.value = defaultSpec.id
+        } else if (specs.length > 0) {
+          selectedSpecId.value = specs[0].id
         }
-        
-        // 检查是否已收藏
-        checkIsFavorite()
-        
-        loading.value = false
-      }, 800)
+      } catch (e) {
+        ElMessage.error(e?.message || '加载茶叶详情失败')
+      }
     }
     
     // 计算属性 - 是否为平台直售
     const isPlatformTea = computed(() => {
       return tea.value && tea.value.shop_id === 'PLATFORM';
+    })
+
+    // 兼容后端返回的图片结构（可能是 string[] 或 {url}[]）
+    const teaImages = computed(() => {
+      const imgs = tea.value?.images || []
+      if (!Array.isArray(imgs)) return []
+      if (imgs.length === 0) return []
+      if (typeof imgs[0] === 'string') return imgs
+      return imgs.map(i => i?.url).filter(Boolean)
     })
     
     // 计算属性 - 当前选中的规格
@@ -675,30 +420,15 @@ export default {
       }
       
       submitting.value = true
-      
-      /* UI-DEV-START */
-      // 模拟API调用
-      setTimeout(() => {
-        ElMessage.success('成功加入购物车')
-        submitting.value = false
-      }, 600)
-      /* UI-DEV-END */
-      
-      /*
-      // 真实代码（开发UI时注释）
       try {
-        await store.dispatch('cart/addToCart', {
-          tea_id: tea.value.id,
-          quantity: quantity.value,
-          spec_id: selectedSpecId.value
-        })
+        // 生产版：通过 order 模块 action 走后端
+        await store.dispatch('order/addToCart', { teaId: tea.value.id, quantity: quantity.value })
         ElMessage.success('成功加入购物车')
       } catch (error) {
         ElMessage.error(error.message || '加入购物车失败')
       } finally {
         submitting.value = false
       }
-      */
     }
     
     // 立即购买
@@ -713,38 +443,15 @@ export default {
         return
       }
       
-      /* UI-DEV-START */
-      // 模拟加入购物车然后跳转
-      submitting.value = true
-      setTimeout(() => {
-        submitting.value = false
-        // 跳转到结算页面，添加direct=1参数表示直接购买
-        router.push('/order/checkout?direct=1')
-      }, 600)
-      /* UI-DEV-END */
-      
-      /*
-      // 真实代码（开发UI时注释）
       try {
         submitting.value = true
-        // 直接购买时，需要先将商品添加到Vuex的直接购买状态
-        await store.dispatch('order/setDirectBuyItem', {
-          tea_id: tea.value.id,
-          quantity: quantity.value,
-          spec_id: selectedSpecId.value,
-          tea_name: tea.value.tea_name,
-          image: tea.value.image,
-          price: selectedSpec.value.price,
-          spec_name: selectedSpec.value.spec_name,
-          shop_id: tea.value.shop_id
-        })
-        // 跳转到结算页面，添加direct=1参数表示直接购买
+        // TODO: 直接购买的生产版流程需要订单模块提供“direct buy”能力；目前先跳转结算页
         router.push('/order/checkout?direct=1')
       } catch (error) {
         ElMessage.error(error.message || '立即购买失败')
+      } finally {
         submitting.value = false
       }
-      */
     }
     
     // 跳转到店铺详情
@@ -782,24 +489,20 @@ export default {
     const defaultAvatar = '@/assets/images/avatars/default.jpg'
     
     onMounted(() => {
-      /* UI-DEV-START */
+      store.dispatch('tea/fetchCategories')
       loadTeaDetail()
-      /* UI-DEV-END */
-      
-      /*
-      // 真实代码（开发UI时注释）
-      if (route.params.id) {
+    })
+
+    watch(
+      () => route.params.id,
+      () => {
         loadTeaDetail()
       }
-      
-      // TODO-VUEX: 初始化Vuex模块
-      // 在实际实现中，需要确保favorites模块已注册
-      // store.dispatch('favorites/init');
-      */
-    })
+    )
     
     return {
       tea,
+      teaImages,
       loading,
       submitting,
       activeTab,
