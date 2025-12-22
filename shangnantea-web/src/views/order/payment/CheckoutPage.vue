@@ -57,6 +57,14 @@
               <div class="item-info">
                 <div class="item-name">{{ item.teaName }}</div>
                 <div class="item-spec">规格：{{ item.specName }}</div>
+                <div class="item-stock" v-if="item.stock !== undefined">
+                  <el-tag 
+                    :type="item.stock >= item.quantity ? 'success' : 'danger'" 
+                    size="small"
+                  >
+                    库存：{{ item.stock }}
+                  </el-tag>
+                </div>
                 <div class="item-shop">{{ item.shopType === 'platform' ? '平台自营' : item.shopName }}</div>
                 <div class="item-remark">
                   <el-input
@@ -199,18 +207,12 @@
 <script>
 import { ref, computed, onMounted, reactive } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { useStore } from 'vuex'
+
 import { ArrowLeft, Plus } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-
-/*
-// 真实代码（开发UI时注释）
-import { ref, computed, onMounted, reactive } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { useStore } from 'vuex'
-import { ElMessage } from 'element-plus'
-import { ArrowLeft, Plus } from '@element-plus/icons-vue'
-*/
+import { orderSuccessMessages, orderErrorMessages } from '@/utils/orderMessages'
+import { orderPromptMessages } from '@/utils/promptMessages'
 
 export default {
   name: 'CheckoutPage',
@@ -218,16 +220,11 @@ export default {
     ArrowLeft,
     Plus,
     SafeImage
-    
-    /*
-    // 真实代码（开发UI时注释）
-    ArrowLeft,
-    Plus
-    */
   },
   setup() {
     const router = useRouter()
     const route = useRoute()
+    const store = useStore()
     
     /**
      * 纯 UI 占位数据（生产形态：不在 UI 层造数据）
@@ -296,8 +293,69 @@ export default {
     const defaultTeaImage = ''
     const defaultPaymentImage = ''
     
+    // 加载地址和订单数据
+    const loadAddresses = async () => {
+      try {
+        loading.value = true
+        await store.dispatch('user/fetchAddresses')
+        addresses.value = store.state.user.addresses || []
+        
+        // 默认选中默认地址
+        const defaultAddress = addresses.value.find(addr => addr.isDefault)
+        if (defaultAddress) {
+          selectedAddressId.value = defaultAddress.id
+        } else if (addresses.value.length > 0) {
+          selectedAddressId.value = addresses.value[0].id
+        }
+      } catch (error) {
+        orderErrorMessages.showAddressLoadFailed()
+      } finally {
+        loading.value = false
+      }
+    }
+
+    // 加载订单商品：从购物车选择的商品或直接购买
+    const loadOrderItems = async () => {
+      try {
+        loading.value = true
+        
+        // 从路由参数判断是否是直接购买
+        const isDirect = route.query.direct === '1'
+        
+        if (isDirect) {
+          // 直接购买的情况，从缓存获取直接购买的商品
+          const directBuyItem = store.state.order.directBuyItem
+          if (!directBuyItem) {
+            orderErrorMessages.showProductInfoExpired()
+            router.push('/tea/mall')
+            return
+          }
+          orderItems.value = [directBuyItem]
+        } else {
+          // 购物车结算的情况
+          await store.dispatch('order/fetchCartItems')
+          const selectedIdsStr = route.query.selectedIds || ''
+          const selectedIds = selectedIdsStr
+            ? selectedIdsStr.split(',').filter(Boolean)
+            : []
+          const items = await store.dispatch('order/getSelectedCartItems', selectedIds)
+          if (!items || items.length === 0) {
+            orderPromptMessages.showSelectionRequired()
+            router.push('/order/cart')
+            return
+          }
+          orderItems.value = items
+        }
+      } catch (error) {
+        orderErrorMessages.showProductInfoLoadFailed()
+        router.push('/order/cart')
+      } finally {
+        loading.value = false
+      }
+    }
+    
     /*
-    // 真实代码（开发UI时注释）
+    // 已删除：注释代码已合并到上面的loadOrderItems函数中
     const store = useStore()
     const loading = ref(false)
     const submitting = ref(false)
@@ -327,7 +385,7 @@ export default {
           selectedAddressId.value = addresses.value[0].id
         }
       } catch (error) {
-        ElMessage.error('获取地址失败')
+        orderErrorMessages.showAddressLoadFailed()
       } finally {
         loading.value = false
       }
@@ -344,7 +402,7 @@ export default {
           // 直接购买的情况，从缓存获取直接购买的商品
           const directBuyItem = store.state.order.directBuyItem
           if (!directBuyItem) {
-            ElMessage.error('商品信息已失效，请重新选择')
+            orderErrorMessages.showProductInfoExpired()
             router.push('/tea/mall')
             return
           }
@@ -353,14 +411,14 @@ export default {
           // 购物车结算的情况
           const items = await store.dispatch('order/getSelectedCartItems')
           if (!items || items.length === 0) {
-            ElMessage.error('请先选择结算的商品')
+            orderPromptMessages.showSelectionRequired()
             router.push('/order/cart')
             return
           }
           orderItems.value = items
         }
       } catch (error) {
-        ElMessage.error('获取商品信息失败')
+        orderErrorMessages.showProductInfoLoadFailed()
         router.push('/order/cart')
       } finally {
         loading.value = false
@@ -428,14 +486,8 @@ export default {
     
     // 初始化
     onMounted(() => {
-      // TODO-SCRIPT: 初始化数据应由 Vuex actions 拉取（地址/购物车/地区数据）
-      
-      /*
-      // 真实代码（开发UI时注释）
       loadAddresses()
       loadOrderItems()
-      loadRegionData()
-      */
     })
     
     // 计算属性：是否可以提交订单
@@ -460,12 +512,6 @@ export default {
       await addressFormRef.value.validate(async (valid) => {
         if (!valid) return
         
-        // TODO-SCRIPT: 新增地址应走 Vuex（user/addAddress + refresh），不在 UI 层 setTimeout 伪保存
-        ElMessage.info('新增地址功能待后端接口接入')
-        return
-        
-        /*
-        // 真实代码（开发UI时注释）
         try {
           addressSubmitting.value = true
           
@@ -492,54 +538,35 @@ export default {
           addressDialogVisible.value = false
           
           // 提示成功
-          ElMessage.success('地址添加成功')
+          orderSuccessMessages.showAddressAdded()
         } catch (error) {
-          ElMessage.error('保存地址失败')
+          orderErrorMessages.showAddressSaveFailed(error.message)
         } finally {
           addressSubmitting.value = false
         }
-        */
       })
     }
     
     // 提交订单
     const submitOrder = async () => {
       if (!canSubmitOrder.value) {
-        ElMessage.warning('请完善订单信息')
+        orderPromptMessages.showOrderInfoIncomplete()
         return
       }
       
       if (!selectedAddressId.value) {
-        ElMessage.warning('请选择收货地址')
+        orderPromptMessages.showAddressRequired()
         return
       }
       
-      // TODO-SCRIPT: 下单应走 Vuex（order/createOrder），不在 UI 层 setTimeout 伪下单/伪生成订单号
-      ElMessage.info('提交订单功能待后端接口接入')
-      return
-      
-      /*
-      // 真实代码（开发UI时注释）
+      submitting.value = true
       try {
-        submitting.value = true
-        
-        // 获取选中的地址
-        const address = addresses.value.find(addr => addr.id === selectedAddressId.value)
-        if (!address) {
-          ElMessage.warning('请选择有效的收货地址')
-          return
-        }
-        
-        // 构建订单数据，参考 orders 表的字段
         const orderData = {
-          // 必要字段
-          user_id: store.state.user.userInfo.id, // 由后端从token自动获取
           address_id: selectedAddressId.value,
           payment_method: paymentMethod.value,
-          order_status: 1, // 1-待支付
           order_amount: totalAmount.value,
           shipping_fee: shippingFee.value,
-          // 商品项，与 order_items 表对应
+          fromCart: true,
           items: orderItems.value.map(item => ({
             tea_id: item.tea_id,
             spec_id: item.spec_id,
@@ -549,25 +576,20 @@ export default {
             remark: item.remark || ''
           }))
         }
-        
-        // 创建订单
         const result = await store.dispatch('order/createOrder', orderData)
-        
-        // 如果是从购物车结算，清空已购买的购物车商品
-        if (!route.query.direct) {
-          await store.dispatch('cart/removeCartItems', orderItems.value.map(item => item.id))
-        }
-        
-        // 跳转到支付页面，传递订单ID
-        router.push(`/order/payment?orderId=${result.order_id}`)
-        
-        ElMessage.success('订单提交成功，请完成支付')
+        orderSuccessMessages.showOrderSubmitted()
+        router.push(`/order/detail/${result?.order_id || result?.id || ''}`)
       } catch (error) {
-        ElMessage.error(error.message || '提交订单失败')
+        // 处理库存不足错误
+        if (error.stockInfo) {
+          const stockInfo = error.stockInfo
+          orderErrorMessages.showStockInsufficient(stockInfo.availableStock || 0, stockInfo.quantity || 0)
+        } else {
+          orderErrorMessages.showOrderSubmitFailed(error?.message)
+        }
       } finally {
         submitting.value = false
       }
-      */
     }
     
     return {

@@ -26,6 +26,11 @@
         <result column="cancel_reason" property="cancelReason"/>
         <result column="buyer_message" property="buyerMessage"/>
         <result column="buyer_rate" property="buyerRate"/>
+        <result column="refund_status" property="refundStatus"/>
+        <result column="refund_reason" property="refundReason"/>
+        <result column="refund_reject_reason" property="refundRejectReason"/>
+        <result column="refund_apply_time" property="refundApplyTime"/>
+        <result column="refund_process_time" property="refundProcessTime"/>
         <result column="create_time" property="createTime"/>
         <result column="update_time" property="updateTime"/>
     </resultMap>
@@ -35,7 +40,8 @@
         id, user_id, shop_id, tea_id, tea_name, spec_id, spec_name, tea_image, quantity, 
         price, total_amount, address_id, status, payment_time, payment_method, logistics_company, 
         logistics_number, shipping_time, completion_time, cancel_time, cancel_reason, 
-        buyer_message, buyer_rate, create_time, update_time
+        buyer_message, buyer_rate, refund_status, refund_reason, refund_reject_reason,
+        refund_apply_time, refund_process_time, create_time, update_time
     </sql>
 
     <!-- 插入记录 -->

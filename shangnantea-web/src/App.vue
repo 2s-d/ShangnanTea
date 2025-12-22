@@ -15,8 +15,8 @@
       </div>
     </template>
     
-    <!-- 开发环境下的消息监控面板 -->
-    <message-monitor v-if="isDev" />
+    <!-- 开发环境下的错误监控面板 -->
+    <error-monitor v-if="isDev" />
   </div>
 </template>
 
@@ -26,16 +26,15 @@ import { useRoute } from 'vue-router'
 import Footer from '@/components/common/layout/Footer.vue'
 import NavBar from '@/components/common/layout/NavBar.vue'
 import { checkAndMigrateData } from '@/utils/versionManager'
-import MessageMonitor from '@/components/common/feedback/MessageMonitor.vue'
+import ErrorMonitor from '@/components/dev/ErrorMonitor.vue'
 import { clearAllMessageStates } from '@/utils/messageManager'
-import { setDevMode } from '@/utils/devUtils'
 
 export default {
   name: 'App',
   components: {
     NavBar,
     Footer,
-    MessageMonitor
+    ErrorMonitor
   },
   setup() {
     const route = useRoute()
@@ -55,10 +54,6 @@ export default {
       
       // 清除所有消息状态，防止旧消息被显示
       clearAllMessageStates();
-      
-      // 设置为开发模式，避免路由验证报错
-      setDevMode(true)
-      console.log('已设置为开发模式，跳过权限验证')
     })
     
     return {

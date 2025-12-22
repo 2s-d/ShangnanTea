@@ -188,8 +188,10 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessageBox } from 'element-plus'
 import SafeImage from '@/components/common/form/SafeImage.vue'
+import { orderSuccessMessages, orderErrorMessages } from '@/utils/orderMessages'
+import { orderPromptMessages } from '@/utils/promptMessages'
 
 // TODO: 退款申请功能需后端提供接口与数据结构支持（前端不在UI层模拟退款流程）
 
@@ -199,6 +201,17 @@ export default {
     SafeImage
   },
   setup() {
+    /**
+     * 订单列表页面权限控制说明（P2-6：订单权限控制的完整性）
+     * 
+     * 权限规则：
+     * - 普通用户(role=2)：只能查看自己的订单（后端通过userId过滤）
+     * - 商家(role=3)：可以查看自己店铺的订单（后端通过shopId过滤）
+     * - 管理员(role=1)：应访问 /order/manage 查看所有订单
+     * 
+     * 路由权限：meta.roles: [ROLES.USER, ROLES.SHOP]
+     * 后端验证：API根据token中的userId/shopId自动过滤数据
+     */
     const store = useStore()
     const router = useRouter()
     const searchText = ref('')
@@ -218,45 +231,8 @@ export default {
 
 
     
-    // 根据状态过滤订单
-    const filteredOrders = computed(() => {
-      let result = orders.value
-      
-      // 根据选项卡过滤
-      if (activeTab.value !== 'all') {
-        if (activeTab.value === 'to-review') {
-          // 待评价：已完成且未评价的订单
-          result = result.filter(order => order.order_status === 3 && !order.is_reviewed)
-        } else {
-          const statusMap = {
-            'unpaid': 0,    // 待付款
-            'unshipped': 1, // 待发货
-            'shipped': 2,   // 待收货
-          }
-          result = result.filter(order => order.order_status === statusMap[activeTab.value])
-        }
-      }
-      
-      // 根据搜索文本过滤
-      if (searchText.value) {
-        const keyword = searchText.value.toLowerCase()
-        result = result.filter(order => {
-          // 搜索订单号
-          if (order.order_id.toLowerCase().includes(keyword)) {
-            return true
-          }
-          
-          // 搜索商品名称
-          if (order.tea_name.toLowerCase().includes(keyword)) {
-            return true
-          }
-          
-          return false
-        })
-      }
-      
-      return result
-    })
+    // 列表直接来自 Vuex，筛选交给后端
+    const filteredOrders = computed(() => orders.value)
 
     const openRefundDialog = (orderId) => {
       refundOrderId.value = orderId
@@ -266,12 +242,12 @@ export default {
 
     const submitRefund = async () => {
       if (!refundOrderId.value) {
-        ElMessage.warning('订单信息异常，请刷新后重试')
+        orderPromptMessages.showOrderInfoInvalid()
         return
       }
 
       if (!refundReason.value.trim() || refundReason.value.trim().length < 5) {
-        ElMessage.warning('退款原因不能少于5个字')
+        orderPromptMessages.showRefundReasonTooShort()
         return
       }
 
@@ -281,10 +257,10 @@ export default {
           orderId: refundOrderId.value,
           reason: refundReason.value.trim()
         })
-        ElMessage.success('退款申请已提交，等待商家审核')
+        orderSuccessMessages.showRefundSubmitted()
         refundDialogVisible.value = false
       } catch (e) {
-        ElMessage.error(e?.message || '退款申请提交失败')
+        orderErrorMessages.showRefundSubmitFailed(e?.message)
       } finally {
         refundSubmitting.value = false
       }
@@ -332,26 +308,36 @@ export default {
     // 处理搜索
     const handleSearch = () => {
       currentPage.value = 1 // 重置到第一页
+      store.dispatch('order/updateFilters', {
+        keyword: searchText.value
+      })
       store.dispatch('order/fetchOrders', {
         page: currentPage.value,
-        size: pageSize.value,
-        keyword: searchText.value
+        size: pageSize.value
       })
     }
     
     // 处理分页变化
     const handleCurrentChange = (page) => {
       currentPage.value = page
-      store.dispatch('order/setPage', { page, extraParams: { keyword: searchText.value } })
+      store.dispatch('order/setPage', { page })
     }
     
     // 处理标签页切换
     const handleTabChange = () => {
       currentPage.value = 1 // 重置到第一页
+      // 映射标签到后端状态码
+      let status = ''
+      if (activeTab.value === 'unpaid') status = 0
+      else if (activeTab.value === 'unshipped') status = 1
+      else if (activeTab.value === 'shipped') status = 2
+      else if (activeTab.value === 'to-review') status = 3
+      store.dispatch('order/updateFilters', {
+        status
+      })
       store.dispatch('order/fetchOrders', {
         page: currentPage.value,
-        size: pageSize.value,
-        keyword: searchText.value
+        size: pageSize.value
       })
     }
     
@@ -375,11 +361,11 @@ export default {
       })
       
       await store.dispatch('order/cancelOrder', orderId)
-      ElMessage.success('订单已取消')
+      orderSuccessMessages.showOrderCanceled()
       store.dispatch('order/fetchOrders', { page: currentPage.value, size: pageSize.value, keyword: searchText.value })
       } catch (error) {
         if (error !== 'cancel') {
-          ElMessage.error('取消订单失败')
+          orderErrorMessages.showOrderCancelFailed()
         }
       }
     }
@@ -394,18 +380,18 @@ export default {
       })
       
       await store.dispatch('order/confirmReceipt', orderId)
-      ElMessage.success('确认收货成功')
+      orderSuccessMessages.showOrderConfirmed()
       store.dispatch('order/fetchOrders', { page: currentPage.value, size: pageSize.value, keyword: searchText.value })
       } catch (error) {
         if (error !== 'cancel') {
-          ElMessage.error('确认收货失败')
+          orderErrorMessages.showOrderConfirmFailed()
         }
       }
     }
     
     // 查看物流
     const viewLogistics = (orderId) => {
-      ElMessage.info('查看物流信息功能开发中')
+      orderPromptMessages.showViewLogisticsDev()
       // router.push(`/order/logistics/${orderId}`)
     }
 
@@ -416,22 +402,26 @@ export default {
     
     // 删除订单
     const deleteOrder = (orderId) => {
-      ElMessage.info('删除订单功能待后端接口完成后接入')
+      orderPromptMessages.showDeleteOrderDev()
     }
     
     // 添加修改地址功能
     const modifyAddress = (orderId) => {
-      ElMessage.info('修改地址功能开发中')
+      orderPromptMessages.showModifyAddressDev()
     }
     
     // 添加联系商家功能
     const contactShop = (shopId) => {
-      ElMessage.info('联系商家功能开发中')
+      orderPromptMessages.showContactShopDev()
     }
     
     // 初始化
     onMounted(() => {
-      store.dispatch('order/fetchOrders', { page: currentPage.value, size: pageSize.value, keyword: searchText.value })
+      store.dispatch('order/updateFilters', {
+        keyword: '',
+        status: ''
+      })
+      store.dispatch('order/fetchOrders', { page: currentPage.value, size: pageSize.value })
     })
     
 

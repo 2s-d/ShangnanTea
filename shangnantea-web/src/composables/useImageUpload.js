@@ -2,7 +2,9 @@
  * 图片上传相关操作的组合式函数
  */
 import { ref, computed } from 'vue'
-import { message } from '@/components/common'
+
+import { showByCode, isSuccess } from '@/utils/apiMessages'
+import commonMessages from '@/utils/promptMessages'
 
 /**
  * 使用图片上传功能
@@ -55,7 +57,10 @@ export function useImageUpload(options = {}) {
     
     const isValid = config.acceptTypes.includes(file.type)
     if (!isValid) {
-      message.error('不支持的文件类型，请上传正确格式的图片')
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      // TODO: [common] 迁移到 showByCode(response.code) - error
+      commonMessages.error.showFileTypeInvalid()
     }
     return isValid
   }
@@ -68,7 +73,9 @@ export function useImageUpload(options = {}) {
   const validateFileSize = (file) => {
     const isValid = file.size / 1024 / 1024 <= config.maxSize
     if (!isValid) {
-      message.error(`文件大小不能超过${config.maxSize}MB`)
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      commonMessages.error.showFileSizeExceeded(config.maxSize)
     }
     return isValid
   }
@@ -80,7 +87,7 @@ export function useImageUpload(options = {}) {
    */
   const beforeUpload = (file) => {
     if (isMaxCount.value && !currentFile.value) {
-      message.warning(`最多只能上传${config.maxCount}张图片`)
+      commonMessages.prompt.showFileCountLimit(config.maxCount)
       return false
     }
     
@@ -97,7 +104,7 @@ export function useImageUpload(options = {}) {
     
     // 检查文件数量限制
     if (config.multiple && fileList.value.length + files.length > config.maxCount) {
-      message.warning(`最多只能上传${config.maxCount}张图片`)
+      commonMessages.prompt.showFileCountLimit(config.maxCount)
       e.target.value = ''
       return
     }
@@ -227,7 +234,9 @@ export function useImageUpload(options = {}) {
         config.onError(error, fileItem)
       }
       
-      message.error('上传失败: ' + (error.message || '未知错误'))
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      commonMessages.error.showUploadFailed(error.message || '未知错误')
       return Promise.reject(error)
     } finally {
       uploading.value = false
@@ -239,7 +248,7 @@ export function useImageUpload(options = {}) {
    */
   const uploadAll = async () => {
     if (!config.uploadApi) {
-      message.warning('未配置上传API')
+      commonMessages.prompt.showUploadApiNotConfigured()
       return []
     }
     

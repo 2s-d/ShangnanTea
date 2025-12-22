@@ -12,17 +12,10 @@ import CommonComponents from './components/common'
 import Directives from './directives'
 // 导入数据版本管理工具
 import { checkAndMigrateData } from './utils/versionManager'
-// 导入开发工具
-import { initDevTools } from './utils/devUtils'
 // 导入全局样式
 import './assets/styles/global.scss'
 import { message } from '@/components/common'
 import messageManager from '@/utils/messageManager'
-
-// 检查开发环境，初始化开发工具
-if (process.env.NODE_ENV === 'development') {
-  initDevTools()
-}
 
 // 在应用初始化前检查并迁移本地存储数据
 checkAndMigrateData();
@@ -50,7 +43,7 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 
 // 配置Element Plus选项
 const elementPlusOptions = {
-  size: 'medium', 
+  size: 'default', 
   zIndex: 3000,
   // 表单验证选项
   form: {

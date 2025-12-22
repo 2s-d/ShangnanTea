@@ -653,33 +653,40 @@ API文件按模块划分，与Vuex模块一一对应：
 
 ## 9. 消息提示系统
 
-### 7.1 三层消息架构
+### 9.1 消息架构
 
-消息系统分为三个层级：
+消息系统按模块分类，每个模块有三种消息类型：
 
-1. **API层**：处理网络请求相关消息
-2. **业务层（Vuex）**：处理业务操作结果消息
-3. **UI层**：处理界面交互提示消息
+1. **success**：操作成功消息
+2. **error**：错误/失败消息  
+3. **prompt**：提示/验证消息
 
-### 7.2 消息工具使用
+### 9.2 消息工具使用
 
 ```javascript
-// 在Vuex中使用
-import { teaMessages } from '@/utils/messages'
+// 导入模块消息工具
+import userMessages from '@/utils/userMessages'
+import teaMessages from '@/utils/teaMessages'
 
-teaMessages.business.showListSuccess(10)
+// 成功消息
+userMessages.success.showLoginSuccess()
+teaMessages.success.showAddToCartSuccess()
 
-// 在组件中使用
-import { userMessages } from '@/utils/messages'
+// 错误消息
+userMessages.error.showLoginFailure('用户名或密码错误')
+teaMessages.error.showLoadFailed()
 
-userMessages.ui.showUsernameRequired()
+// 提示消息
+userMessages.prompt.showUsernameRequired()
 ```
 
-### 7.3 消息规范
+### 9.3 消息规范
 
-- **API层消息**：网络错误、请求超时等
-- **业务层消息**：操作成功/失败、业务规则验证
-- **UI层消息**：表单验证、操作确认
+- **success**：操作成功反馈（登录成功、添加成功等）
+- **error**：操作失败/错误提示（登录失败、网络错误等）
+- **prompt**：用户提示（表单验证、确认提示等）
+
+详细使用指南请参考：`docs/tasks/message-utils-guide.md`
 
 ---
 
@@ -837,7 +844,7 @@ userMessages.ui.showUsernameRequired()
 - `shangnantea-technical-architecture.md` - 技术架构设计
 - `shangnantea-features.md` - 功能模块规划
 - `shangnantea-service-controller-structure.md` - 服务层架构
-- `message-system-guide.md` - 消息系统使用指南
+- `docs/tasks/message-utils-guide.md` - 消息提示工具使用指南
 - `composition-api-migration.md` - 组合式API迁移指南
 
 ### 14.2 工具和资源

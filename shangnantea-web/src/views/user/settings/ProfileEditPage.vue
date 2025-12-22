@@ -119,8 +119,10 @@ import { ref, reactive, onMounted } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
 import { Sunny, Moon, MagicStick, Grid, List } from '@element-plus/icons-vue'
-import { message } from '@/components/common'
+
 import { handleAsyncOperation } from '@/utils/messageHelper'
+import { showByCode, isSuccess } from '@/utils/apiMessages'
+import { userPromptMessages as userMessages } from '@/utils/promptMessages'
 
 export default {
   name: 'ProfileEditPage',
@@ -226,7 +228,10 @@ export default {
       preferences.listMode = 'grid'
       preferences.pageSize = 20
       
-      message.info('已恢复默认设置，请点击保存以应用')
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      // TODO: [user] 迁移到 showByCode(response.code) - success
+      userMessages.success.showSettingsRestored()
     }
     
     // 路由

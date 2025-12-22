@@ -3,7 +3,7 @@
  * 提供常用的表单验证规则和方法
  */
 import { reactive } from 'vue'
-import { message } from '@/components/common'
+import commonMessages from '@/utils/promptMessages'
 
 /**
  * 使用表单验证
@@ -120,7 +120,9 @@ export function useFormValidation() {
    */
   const validateForm = async (formRef, onValid) => {
     if (!formRef) {
-      message.error('表单引用不存在')
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      commonMessages.error.showFormRefNotFound()
       return false
     }
     

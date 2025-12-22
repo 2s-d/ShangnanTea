@@ -29,18 +29,18 @@
 
 ```javascript
 <script>
-import { userMessages } from '@/utils/messages'
+import userMessages from '@/utils/userMessages'
 
 export default {
   methods: {
     handleLoginSuccess() {
-      // 使用业务层消息显示登录成功
-      userMessages.business.showLoginSuccess('张三')
+      // 使用成功消息显示登录成功
+      userMessages.success.showLoginSuccess('张三')
     },
     validateForm() {
-      // 使用UI层消息显示表单验证结果
+      // 使用提示消息显示表单验证结果
       if (!this.username) {
-        userMessages.ui.showUsernameRequired()
+        userMessages.prompt.showUsernameRequired()
         return false
       }
       return true

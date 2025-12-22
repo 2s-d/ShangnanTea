@@ -5,8 +5,12 @@
   "description": "商南茶文化推广与销售平台前端",
   "scripts": {
     "serve": "vue-cli-service serve",
+    "mock": "vue-cli-service serve --mode mock",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
+    "test:e2e": "npx playwright test",
+    "test:e2e:ui": "npx playwright test --ui",
+    "test:e2e:report": "npx playwright show-report e2e-report",
     "safe:ui-dev:check": "node tools/safe-ui-dev-clean.js --check --path=src",
     "safe:ui-dev:write": "node tools/safe-ui-dev-clean.js --write --path=src",
     "safe:ui-dev:check:views": "node tools/safe-ui-dev-clean.js --check --path=src/views --out=tests/test-data-templates/ui-dev-clean-report.md --log=tests/test-data-templates/ui-dev-clean-runlog.md",
@@ -14,7 +18,9 @@
     "safe:ui-dev:write:views:verify": "node tools/safe-ui-dev-clean.js --write --verify --rollback-on-error --path=src/views --out=tests/test-data-templates/ui-dev-clean-report.md --log=tests/test-data-templates/ui-dev-clean-runlog.md",
     "safe:ui-dev:prod-check:views": "node tools/safe-ui-dev-clean.js --prod-check --path=src/views --out=tests/test-data-templates/ui-dev-prod-check-report.md --log=tests/test-data-templates/ui-dev-clean-runlog.md",
     "check:build": "node tools/check-build-errors.js",
-    "check:build:quick": "node tools/check-build-errors.js --quick"
+    "check:build:quick": "node tools/check-build-errors.js --quick",
+    "test:task-group": "node tools/test-task-group.js",
+    "test:browser": "node tools/run-browser-test.js"
   },
   "dependencies": {
     "axios": "^0.27.2",
@@ -30,6 +36,7 @@
   "devDependencies": {
     "@babel/core": "^7.26.10",
     "@babel/eslint-parser": "^7.26.10",
+    "@playwright/test": "^1.57.0",
     "@vue/cli-plugin-babel": "~5.0.6",
     "@vue/cli-plugin-eslint": "~5.0.6",
     "@vue/cli-plugin-router": "~5.0.6",

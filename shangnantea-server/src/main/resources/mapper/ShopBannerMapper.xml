@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shangnantea.mapper.ShopBannerMapper">
+    
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.shangnantea.model.entity.shop.ShopBanner">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="shop_id" property="shopId" jdbcType="VARCHAR"/>
+        <result column="image_url" property="imageUrl" jdbcType="VARCHAR"/>
+        <result column="link_url" property="linkUrl" jdbcType="VARCHAR"/>
+        <result column="title" property="title" jdbcType="VARCHAR"/>
+        <result column="sort_order" property="sortOrder" jdbcType="INTEGER"/>
+        <result column="status" property="status" jdbcType="TINYINT"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+    
+    <!-- 公共列 -->
+    <sql id="Base_Column_List">
+        id, shop_id, image_url, link_url, title, sort_order, status, create_time, update_time
+    </sql>
+    
+    <!-- 根据ID查询 -->
+    <select id="selectById" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        SELECT <include refid="Base_Column_List"/>
+        FROM shop_banners
+        WHERE id = #{id,jdbcType=INTEGER}
+    </select>
+    
+    <!-- 根据店铺ID查询Banner列表 -->
+    <select id="selectByShopId" resultMap="BaseResultMap" parameterType="java.lang.String">
+        SELECT <include refid="Base_Column_List"/>
+        FROM shop_banners
+        WHERE shop_id = #{shopId,jdbcType=VARCHAR} AND status = 1
+        ORDER BY sort_order ASC, create_time DESC
+    </select>
+    
+</mapper>

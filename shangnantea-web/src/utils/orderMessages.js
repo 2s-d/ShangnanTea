@@ -1,619 +1,472 @@
 /**
  * 订单模块消息工具
- * 按照三层架构设计消息：
- * 1. API层：处理网络请求相关消息
- * 2. Vuex业务层：处理业务操作结果消息
- * 3. UI交互层：处理界面交互提示消息
  * 
- * 整合了购物车和支付相关消息，为订单模块提供完整的消息工具
+ * 分类说明：
+ * - SUCCESS: 操作成功反馈
+ * - ERROR: 操作失败/错误提示
+ * - PROMPT: 用户提示（表单验证+确认）
  */
-import messageManager from './messageManager'
 
-// 订单模块常用消息
+import { successMessage, errorMessage, promptMessage } from './messageManager'
+
+// 订单模块消息常量
 export const ORDER_MESSAGES = {
-  // API层消息
-  API: {
-    // 订单相关
-    LOADING_ORDERS: '正在加载订单列表...',
-    LOADING_ORDER_DETAIL: '正在加载订单详情...',
-    CREATING_ORDER: '正在创建订单...',
-    CANCELING_ORDER: '正在取消订单...',
-    CONFIRMING_ORDER: '正在确认收货...',
-    SHIPPING_ORDER: '正在发货...',
-    LOADING_LOGISTICS: '正在加载物流信息...',
-    LOADING_FAILED: '加载失败',
-    CREATE_FAILED: '创建订单失败',
-    CANCEL_FAILED: '取消订单失败',
-    CONFIRM_FAILED: '确认收货失败',
-    SHIPPING_FAILED: '发货失败',
-    
-    // 购物车相关
-    LOADING_CART: '正在加载购物车...',
-    ADDING_TO_CART: '正在添加到购物车...',
-    UPDATING_CART: '正在更新购物车...',
-    REMOVING_FROM_CART: '正在从购物车移除商品...',
-    CLEARING_CART: '正在清空购物车...',
-    CART_LOAD_FAILED: '购物车加载失败',
-    CART_ADD_FAILED: '添加到购物车失败',
-    CART_UPDATE_FAILED: '购物车更新失败',
-    CART_REMOVE_FAILED: '从购物车移除失败',
-    CART_CLEAR_FAILED: '清空购物车失败',
-    
-    // 支付相关
-    PAYMENT_PROCESSING: '正在处理支付请求...',
+  // 成功消息
+  SUCCESS: {
+    ORDER_CREATED: '订单创建成功',
+    ORDER_SUBMITTED: '订单提交成功',
+    ORDER_CANCELED: '订单已取消',
+    ORDER_CONFIRMED: '确认收货成功',
+    ORDER_SHIPPED: '发货成功',
+    ORDER_REVIEWED: '订单评价成功',
+    ORDER_PAID: '订单已支付',
+    LOGISTICS_UPLOADED: '物流单号已上传',
+    LOGISTICS_REFRESHED: '已刷新物流信息',
+    ADDED_TO_CART: '已加入购物车',
+    CART_QUANTITY_UPDATED: '商品数量已更新',
+    CART_SPEC_UPDATED: '规格已更新',
+    ITEM_REMOVED: '商品已从购物车移除',
+    SELECTED_ITEMS_DELETED: '选中商品已删除',
+    CART_CLEARED: '购物车已清空',
     PAYMENT_SUCCESS: '支付成功',
-    PAYMENT_FAILED: '支付失败',
-    PAYMENT_CANCELED: '支付已取消',
-    PAYMENT_TIMEOUT: '支付超时',
-    LOADING_PAYMENT_METHODS: '正在加载支付方式...',
-    PAYMENT_METHODS_LOAD_FAILED: '加载支付方式失败'
+    REFUND_SUBMITTED: '退款申请已提交，等待商家审核',
+    BATCH_SHIP_SUCCESS: '批量发货成功',
+    REFUND_APPROVED: '已同意退款申请',
+    REFUND_REJECTED: '已拒绝退款申请',
+    EXPORT_SUCCESS: '订单导出成功',
+    ADDRESS_ADDED: '地址添加成功',
+    REVIEW_SUBMITTED: '评价提交成功，感谢您的反馈'
   },
   
-  // 业务层消息
-  BUSINESS: {
-    // 订单相关
-    ORDER_CREATED: '订单创建成功',
-    ORDER_CANCELED: '订单已取消',
-    ORDER_CONFIRMED: '已确认收货',
-    ORDER_SHIPPED: '订单已发货',
-    ORDER_REVIEWED: '订单评价成功',
-    ORDER_DETAIL_LOADED: '订单详情加载完成',
-    ORDER_LIST_LOADED: '订单列表加载完成',
-    ORDER_STATUS_UPDATED: '订单状态已更新',
-    LOGISTICS_UPDATED: '物流信息已更新',
-    LOGISTICS_UPLOADED: '物流单号已上传',
+  // 错误消息
+  ERROR: {
+    ORDER_CREATE_FAILED: '创建订单失败',
+    ORDER_CANCEL_FAILED: '取消订单失败',
+    ORDER_CONFIRM_FAILED: '确认收货失败',
+    ORDER_SHIP_FAILED: '发货失败，请稍后重试',
     ORDER_NOT_FOUND: '订单不存在',
-    ORDER_OPERATION_UNAUTHORIZED: '您没有权限操作此订单',
-    
-    // 购物车相关
-    ADDED_TO_CART: '已加入购物车',
-    ADD_TO_CART_FAILED: '加入购物车失败',
-    CART_QUANTITY_UPDATED: '购物车数量已更新',
-    ITEM_REMOVED: '已从购物车中移除',
-    CART_CLEARED: '购物车已清空',
-    CART_SELECTED_UPDATED: '已更新商品选中状态',
-    CART_LOADED: '购物车已加载',
+    ORDER_UNAUTHORIZED: '您没有权限操作此订单',
+    ORDER_DETAIL_LOAD_FAILED: '获取订单详情失败',
+    ORDER_ID_REQUIRED: '订单ID不能为空',
+    ORDER_SUBMIT_FAILED: '提交订单失败',
+    CART_LOAD_FAILED: '获取购物车数据失败',
+    CART_ADD_FAILED: '加入购物车失败',
+    CART_UPDATE_FAILED: '更新数量失败',
+    CART_REMOVE_FAILED: '移除商品失败',
+    CART_DELETE_FAILED: '删除商品失败',
+    CART_CLEAR_FAILED: '清空购物车失败',
     CART_ITEM_OUT_OF_STOCK: '商品库存不足',
     CART_ITEM_LIMIT_REACHED: '已达到购买数量上限',
     CART_ITEM_INVALID: '商品已下架或不可用',
-    
-    // 支付相关
-    PAYMENT_COMPLETED: '支付已完成',
-    PAYMENT_FAILED_BUSINESS: '支付失败，请稍后重试',
-    ORDER_PAID: '订单已支付',
-    ORDER_PAYMENT_FAILED: '订单支付失败',
-    ORDER_CREATION_SUCCESS: '订单创建成功',
-    ORDER_CREATION_FAILED: '订单创建失败',
+    SPEC_LOAD_FAILED: '获取规格列表失败',
+    SPEC_UPDATE_FAILED: '规格更新失败',
+    LOGISTICS_LOAD_FAILED: '获取物流信息失败',
+    PAYMENT_FAILED: '支付失败，请稍后重试',
+    PAYMENT_CANCELED: '支付已取消',
+    PAYMENT_TIMEOUT: '支付超时，订单已自动取消',
+    PAYMENT_ORDER_LOAD_FAILED: '加载订单信息失败',
     INSUFFICIENT_BALANCE: '余额不足',
-    PAYMENT_METHOD_CHANGED: '支付方式已更改',
-    PAYMENT_STATUS_UPDATED: '支付状态已更新'
+    REFUND_SUBMIT_FAILED: '退款申请提交失败',
+    REFUND_PROCESS_FAILED: '退款申请失败',
+    REFUND_DETAIL_LOAD_FAILED: '获取退款详情失败，将显示订单基本信息',
+    BATCH_SHIP_FAILED: '批量发货失败，请稍后重试',
+    STATISTICS_LOAD_FAILED: '加载统计数据失败',
+    EXPORT_FAILED: '导出失败',
+    ADDRESS_LOAD_FAILED: '获取地址失败',
+    ADDRESS_SAVE_FAILED: '保存地址失败',
+    PRODUCT_INFO_EXPIRED: '商品信息已失效，请重新选择',
+    PRODUCT_INFO_LOAD_FAILED: '获取商品信息失败'
   },
   
-  // UI交互层消息
-  UI: {
-    // 订单相关
+  // 提示消息
+  PROMPT: {
     ADDRESS_REQUIRED: '请选择收货地址',
     ADDRESS_INVALID: '收货地址不完整',
     ORDER_EMPTY: '订单不能为空',
+    ORDER_INFO_INVALID: '订单信息异常，请刷新后重试',
+    ORDER_NOT_FOUND: '未找到当前订单信息',
     CANCEL_REASON_REQUIRED: '请选择取消原因',
-    SHIPPING_INFO_REQUIRED: '请填写物流信息',
     LOGISTICS_COMPANY_REQUIRED: '请选择物流公司',
-    LOGISTICS_NUMBER_REQUIRED: '请填写物流单号',
+    LOGISTICS_NUMBER_REQUIRED: '请输入物流单号',
     LOGISTICS_NUMBER_INVALID: '物流单号格式不正确',
     REVIEW_CONTENT_REQUIRED: '请填写评价内容',
     REVIEW_RATING_REQUIRED: '请为商品评分',
-    CANCEL_CONFIRM: '确定要取消该订单吗？',
-    CONFIRM_RECEIVE_CONFIRM: '确认已收到商品吗？确认后无法撤销',
-    DELETE_ORDER_CONFIRM: '确定要删除该订单记录吗？',
-    PAYMENT_REQUIRED: '请先完成支付',
     REVIEW_LIMIT_EXCEEDED: '评价内容不能超过500字',
-    
-    // 购物车相关
+    REVIEW_CONTENT_TOO_SHORT: '评价内容不能少于5个字',
+    REVIEW_NOT_ALLOWED: '当前订单状态不支持评价',
+    ALREADY_REVIEWED: '该订单已评价',
+    IMAGE_LIMIT_EXCEEDED: '最多只能上传6张图片',
+    RATING_REQUIRED: '请为商品评分',
     QUANTITY_INVALID: '商品数量不正确',
-    SELECTION_REQUIRED: '请选择要结算的商品',
-    ITEM_SELECTED: '已选择{count}件商品',
+    SELECTION_REQUIRED: '请先选择要结算的商品',
+    DELETE_SELECTION_REQUIRED: '请先选择要删除的商品',
+    SHIP_SELECTION_REQUIRED: '请先选择需要发货的订单',
     CART_EMPTY: '购物车是空的',
-    PROCEED_CHECKOUT_WARNING: '请先添加商品到购物车',
-    REMOVE_CONFIRM: '确定要从购物车中移除此商品吗？',
-    CLEAR_CONFIRM: '确定要清空购物车吗？',
-    MAX_QUANTITY_LIMIT: '单个商品最多购买{limit}件',
-    OUT_OF_STOCK: '{teaName}库存不足，当前库存{stock}件',
-    
-    // 支付相关
     SELECT_PAYMENT_METHOD: '请选择支付方式',
-    CONFIRM_PAYMENT: '确认支付¥{amount}？',
-    PROCESSING_PAYMENT: '支付处理中，请稍候...',
-    PAYMENT_AMOUNT_INVALID: '支付金额不正确',
-    COUPON_APPLIED: '优惠券已应用，优惠{discount}元',
-    COUPON_INVALID: '优惠券{code}无效或已过期',
-    PAYMENT_INFO_INCOMPLETE: '请完善支付信息'
+    SELECT_EXPORT_FORMAT: '请选择导出格式',
+    CANCEL_CONFIRM: '确定要取消该订单吗？',
+    CONFIRM_RECEIVE: '确认已收到商品吗？确认后无法撤销',
+    DELETE_ORDER_CONFIRM: '确定要删除该订单记录吗？',
+    REMOVE_CART_CONFIRM: '确定要从购物车中移除此商品吗？',
+    CLEAR_CART_CONFIRM: '确定要清空购物车吗？',
+    CONFIRM_PAYMENT: '确认支付吗？',
+    SPEC_REQUIRED: '请选择规格',
+    NO_SPEC_AVAILABLE: '该商品暂无可用规格',
+    STOCK_INSUFFICIENT: '库存不足',
+    REFUND_REASON_TOO_SHORT: '退款原因不能少于5个字',
+    REFUND_NOT_SUPPORTED: '当前订单状态不支持退款',
+    NO_LOGISTICS_INFO: '暂无物流信息',
+    ORDER_INFO_INCOMPLETE: '请完善订单信息',
+    // 开发中功能提示
+    CONTACT_SELLER_DEV: '联系卖家功能开发中',
+    BUY_AGAIN_DEV: '再次购买功能开发中',
+    DELETE_ORDER_DEV: '删除订单功能待后端接口接入',
+    VIEW_LOGISTICS_DEV: '查看物流信息功能开发中',
+    MODIFY_ADDRESS_DEV: '修改地址功能开发中',
+    CONTACT_SHOP_DEV: '联系商家功能开发中'
   }
 }
 
-// 订单API层消息工具
-const apiMessages = {
-  // 显示API加载消息
-  showLoading(message) {
-    messageManager.api.showLoading(message)
+// 成功消息函数
+export const orderSuccessMessages = {
+  showOrderCreated(orderNo) {
+    successMessage.show(orderNo ? `订单${orderNo}创建成功` : ORDER_MESSAGES.SUCCESS.ORDER_CREATED)
   },
-  
-  // 显示API成功消息
-  showSuccess(message) {
-    messageManager.api.showSuccess(message)
-  },
-  
-  // 显示API错误消息
-  showError(message) {
-    messageManager.api.showError(message)
-  },
-  
-  // 订单相关预定义API消息
-  showLoadingOrders() {
-    this.showLoading(ORDER_MESSAGES.API.LOADING_ORDERS)
-  },
-  
-  showLoadingOrderDetail() {
-    this.showLoading(ORDER_MESSAGES.API.LOADING_ORDER_DETAIL)
-  },
-  
-  showCreatingOrder() {
-    this.showLoading(ORDER_MESSAGES.API.CREATING_ORDER)
-  },
-  
-  showCancelingOrder() {
-    this.showLoading(ORDER_MESSAGES.API.CANCELING_ORDER)
-  },
-  
-  showConfirmingOrder() {
-    this.showLoading(ORDER_MESSAGES.API.CONFIRMING_ORDER)
-  },
-  
-  showShippingOrder() {
-    this.showLoading(ORDER_MESSAGES.API.SHIPPING_ORDER)
-  },
-  
-  showLoadingLogistics() {
-    this.showLoading(ORDER_MESSAGES.API.LOADING_LOGISTICS)
-  },
-  
-  showLoadingFailed(error) {
-    const errorMsg = error?.message || ORDER_MESSAGES.API.LOADING_FAILED
-    this.showError(errorMsg)
-  },
-  
-  showCreateFailed(error) {
-    const errorMsg = error?.message || ORDER_MESSAGES.API.CREATE_FAILED
-    this.showError(errorMsg)
-  },
-  
-  showCancelFailed(error) {
-    const errorMsg = error?.message || ORDER_MESSAGES.API.CANCEL_FAILED
-    this.showError(errorMsg)
-  },
-  
-  showConfirmFailed(error) {
-    const errorMsg = error?.message || ORDER_MESSAGES.API.CONFIRM_FAILED
-    this.showError(errorMsg)
-  },
-  
-  showShippingFailed(error) {
-    const errorMsg = error?.message || ORDER_MESSAGES.API.SHIPPING_FAILED
-    this.showError(errorMsg)
-  },
-  
-  // 购物车相关预定义API消息
-  showLoadingCart() {
-    this.showLoading(ORDER_MESSAGES.API.LOADING_CART)
-  },
-  
-  showAddingToCart() {
-    this.showLoading(ORDER_MESSAGES.API.ADDING_TO_CART)
-  },
-  
-  showUpdatingCart() {
-    this.showLoading(ORDER_MESSAGES.API.UPDATING_CART)
-  },
-  
-  showRemovingFromCart() {
-    this.showLoading(ORDER_MESSAGES.API.REMOVING_FROM_CART)
-  },
-  
-  showClearingCart() {
-    this.showLoading(ORDER_MESSAGES.API.CLEARING_CART)
-  },
-  
-  showCartLoadFailed(error) {
-    const errorMsg = error?.message || ORDER_MESSAGES.API.CART_LOAD_FAILED
-    this.showError(errorMsg)
-  },
-  
-  showCartAddFailed(error) {
-    const errorMsg = error?.message || ORDER_MESSAGES.API.CART_ADD_FAILED
-    this.showError(errorMsg)
-  },
-  
-  showCartUpdateFailed(error) {
-    const errorMsg = error?.message || ORDER_MESSAGES.API.CART_UPDATE_FAILED
-    this.showError(errorMsg)
-  },
-  
-  showCartRemoveFailed(error) {
-    const errorMsg = error?.message || ORDER_MESSAGES.API.CART_REMOVE_FAILED
-    this.showError(errorMsg)
-  },
-  
-  showCartClearFailed(error) {
-    const errorMsg = error?.message || ORDER_MESSAGES.API.CART_CLEAR_FAILED
-    this.showError(errorMsg)
-  },
-  
-  // 支付相关预定义API消息
-  showPaymentProcessing() {
-    this.showLoading(ORDER_MESSAGES.API.PAYMENT_PROCESSING)
-  },
-  
-  showPaymentSuccess() {
-    this.showSuccess(ORDER_MESSAGES.API.PAYMENT_SUCCESS)
-  },
-  
-  showPaymentFailed(error) {
-    const errorMsg = error?.message || ORDER_MESSAGES.API.PAYMENT_FAILED
-    this.showError(errorMsg)
-  },
-  
-  showPaymentCanceled() {
-    this.showError(ORDER_MESSAGES.API.PAYMENT_CANCELED)
-  },
-  
-  showPaymentTimeout() {
-    this.showError(ORDER_MESSAGES.API.PAYMENT_TIMEOUT)
-  },
-  
-  showLoadingPaymentMethods() {
-    this.showLoading(ORDER_MESSAGES.API.LOADING_PAYMENT_METHODS)
-  },
-  
-  showPaymentMethodsLoadFailed(error) {
-    const errorMsg = error?.message || ORDER_MESSAGES.API.PAYMENT_METHODS_LOAD_FAILED
-    this.showError(errorMsg)
-  }
-}
-
-// 订单业务层消息工具
-const businessMessages = {
-  // 显示业务成功消息
-  showSuccess(message) {
-    messageManager.business.showSuccess(message)
-  },
-  
-  // 显示业务错误消息
-  showError(message) {
-    messageManager.business.showError(message)
-  },
-  
-  // 显示业务警告消息
-  showWarning(message) {
-    messageManager.business.showWarning(message)
-  },
-  
-  // 显示业务信息消息
-  showInfo(message) {
-    messageManager.business.showInfo(message)
-  },
-  
-  // 订单相关预定义业务消息
-  showOrderCreated() {
-    this.showSuccess(ORDER_MESSAGES.BUSINESS.ORDER_CREATED)
-  },
-  
   showOrderCanceled() {
-    this.showSuccess(ORDER_MESSAGES.BUSINESS.ORDER_CANCELED)
+    successMessage.show(ORDER_MESSAGES.SUCCESS.ORDER_CANCELED)
   },
-  
   showOrderConfirmed() {
-    this.showSuccess(ORDER_MESSAGES.BUSINESS.ORDER_CONFIRMED)
+    successMessage.show(ORDER_MESSAGES.SUCCESS.ORDER_CONFIRMED)
   },
-  
   showOrderShipped() {
-    this.showSuccess(ORDER_MESSAGES.BUSINESS.ORDER_SHIPPED)
+    successMessage.show(ORDER_MESSAGES.SUCCESS.ORDER_SHIPPED)
   },
-  
   showOrderReviewed() {
-    this.showSuccess(ORDER_MESSAGES.BUSINESS.ORDER_REVIEWED)
+    successMessage.show(ORDER_MESSAGES.SUCCESS.ORDER_REVIEWED)
   },
-  
-  showOrderStatusUpdated(status) {
-    const statusText = status ? `为${status}` : ''
-    this.showSuccess(`${ORDER_MESSAGES.BUSINESS.ORDER_STATUS_UPDATED}${statusText}`)
-  },
-  
-  showLogisticsUpdated() {
-    this.showSuccess(ORDER_MESSAGES.BUSINESS.LOGISTICS_UPDATED)
-  },
-  
-  showLogisticsUploaded() {
-    this.showSuccess(ORDER_MESSAGES.BUSINESS.LOGISTICS_UPLOADED)
-  },
-  
-  showOrderNotFound() {
-    this.showWarning(ORDER_MESSAGES.BUSINESS.ORDER_NOT_FOUND)
-  },
-  
-  showOrderOperationUnauthorized() {
-    this.showWarning(ORDER_MESSAGES.BUSINESS.ORDER_OPERATION_UNAUTHORIZED)
-  },
-  
-  // 购物车相关预定义业务消息
-  showAddToCartSuccess(teaName, quantity = 1) {
-    const message = quantity > 1 
-      ? `已将${teaName} ${quantity}件加入购物车`
-      : `已将${teaName}加入购物车`
-    this.showSuccess(message)
-  },
-  
-  showAddToCartFailure(reason) {
-    const errorMsg = reason || ORDER_MESSAGES.BUSINESS.ADD_TO_CART_FAILED
-    this.showError(errorMsg)
-  },
-  
-  showQuantityUpdated(teaName, quantity) {
-    const message = teaName 
-      ? `${teaName}数量已更新为${quantity}`
-      : ORDER_MESSAGES.BUSINESS.CART_QUANTITY_UPDATED
-    this.showSuccess(message)
-  },
-  
-  showItemRemoved(teaName) {
-    const message = teaName 
-      ? `已将${teaName}从购物车中移除`
-      : ORDER_MESSAGES.BUSINESS.ITEM_REMOVED
-    this.showSuccess(message)
-  },
-  
-  showCartCleared() {
-    this.showSuccess(ORDER_MESSAGES.BUSINESS.CART_CLEARED)
-  },
-  
-  showCartItemLimitReached(limit) {
-    this.showWarning(`${ORDER_MESSAGES.BUSINESS.CART_ITEM_LIMIT_REACHED}(${limit}件)`)
-  },
-  
-  showCartItemOutOfStock(teaName, stock) {
-    const message = teaName && stock !== undefined
-      ? `${teaName}库存不足，当前库存${stock}件`
-      : ORDER_MESSAGES.BUSINESS.CART_ITEM_OUT_OF_STOCK
-    this.showWarning(message)
-  },
-  
-  showCartItemInvalid() {
-    this.showWarning(ORDER_MESSAGES.BUSINESS.CART_ITEM_INVALID)
-  },
-  
-  // 支付相关预定义业务消息
-  showPaymentSuccess(orderNo) {
-    const message = orderNo
-      ? `订单${orderNo}支付成功`
-      : ORDER_MESSAGES.BUSINESS.PAYMENT_COMPLETED
-    this.showSuccess(message)
-  },
-  
-  showPaymentFailure(reason) {
-    const errorMsg = reason || ORDER_MESSAGES.BUSINESS.PAYMENT_FAILED_BUSINESS
-    this.showError(errorMsg)
-  },
-  
   showOrderPaid(orderNo, amount) {
-    const message = orderNo && amount
-      ? `订单${orderNo}已支付成功，金额￥${amount}`
-      : ORDER_MESSAGES.BUSINESS.ORDER_PAID
-    this.showSuccess(message)
+    const msg = orderNo && amount ? `订单${orderNo}已支付成功，金额￥${amount}` : ORDER_MESSAGES.SUCCESS.ORDER_PAID
+    successMessage.show(msg)
   },
-  
-  showOrderPaymentFailed(reason) {
-    const errorMsg = reason || ORDER_MESSAGES.BUSINESS.ORDER_PAYMENT_FAILED
-    this.showError(errorMsg)
+  showLogisticsUploaded() {
+    successMessage.show(ORDER_MESSAGES.SUCCESS.LOGISTICS_UPLOADED)
   },
-  
-  showOrderCreationSuccess(orderNo) {
-    const message = orderNo
-      ? `订单${orderNo}创建成功`
-      : ORDER_MESSAGES.BUSINESS.ORDER_CREATION_SUCCESS
-    this.showSuccess(message)
+  showLogisticsRefreshed() {
+    successMessage.show(ORDER_MESSAGES.SUCCESS.LOGISTICS_REFRESHED)
   },
-  
-  showOrderCreationFailed(reason) {
-    const errorMsg = reason || ORDER_MESSAGES.BUSINESS.ORDER_CREATION_FAILED
-    this.showError(errorMsg)
+  showAddedToCart(teaName, quantity = 1) {
+    const msg = teaName ? `已将${teaName} ${quantity > 1 ? quantity + '件' : ''}加入购物车` : ORDER_MESSAGES.SUCCESS.ADDED_TO_CART
+    successMessage.show(msg)
   },
-  
-  showBalanceInsufficient(balance, amount) {
-    const message = balance !== undefined && amount !== undefined
-      ? `余额不足，当前余额￥${balance}，需支付￥${amount}`
-      : ORDER_MESSAGES.BUSINESS.INSUFFICIENT_BALANCE
-    this.showWarning(message)
+  showCartQuantityUpdated() {
+    successMessage.show(ORDER_MESSAGES.SUCCESS.CART_QUANTITY_UPDATED)
   },
-  
-  showPaymentMethodChanged(method) {
-    const methodText = method || ''
-    this.showInfo(`${ORDER_MESSAGES.BUSINESS.PAYMENT_METHOD_CHANGED}${methodText ? '为' + methodText : ''}`)
+  showCartSpecUpdated() {
+    successMessage.show(ORDER_MESSAGES.SUCCESS.CART_SPEC_UPDATED)
   },
-  
-  showPaymentStatusUpdated(status) {
-    const statusText = status || ''
-    this.showInfo(`${ORDER_MESSAGES.BUSINESS.PAYMENT_STATUS_UPDATED}${statusText ? '为' + statusText : ''}`)
+  showItemRemoved() {
+    successMessage.show(ORDER_MESSAGES.SUCCESS.ITEM_REMOVED)
+  },
+  showSelectedItemsDeleted() {
+    successMessage.show(ORDER_MESSAGES.SUCCESS.SELECTED_ITEMS_DELETED)
+  },
+  showCartCleared() {
+    successMessage.show(ORDER_MESSAGES.SUCCESS.CART_CLEARED)
+  },
+  showPaymentSuccess() {
+    successMessage.show(ORDER_MESSAGES.SUCCESS.PAYMENT_SUCCESS)
+  },
+  showRefundSubmitted() {
+    successMessage.show(ORDER_MESSAGES.SUCCESS.REFUND_SUBMITTED)
+  },
+  showBatchShipSuccess() {
+    successMessage.show(ORDER_MESSAGES.SUCCESS.BATCH_SHIP_SUCCESS)
+  },
+  showRefundApproved() {
+    successMessage.show(ORDER_MESSAGES.SUCCESS.REFUND_APPROVED)
+  },
+  showRefundRejected() {
+    successMessage.show(ORDER_MESSAGES.SUCCESS.REFUND_REJECTED)
+  },
+  showExportSuccess() {
+    successMessage.show(ORDER_MESSAGES.SUCCESS.EXPORT_SUCCESS)
+  },
+  showAddressAdded() {
+    successMessage.show(ORDER_MESSAGES.SUCCESS.ADDRESS_ADDED)
+  },
+  showOrderSubmitted() {
+    successMessage.show(ORDER_MESSAGES.SUCCESS.ORDER_SUBMITTED)
+  },
+  showReviewSubmitted() {
+    successMessage.show(ORDER_MESSAGES.SUCCESS.REVIEW_SUBMITTED)
   }
 }
 
-// 订单UI交互层消息工具
-const uiMessages = {
-  // 显示UI成功消息
-  showSuccess(message) {
-    messageManager.ui.showSuccess(message)
+// 错误消息函数
+export const orderErrorMessages = {
+  showOrderCreateFailed(reason) {
+    errorMessage.show(reason || ORDER_MESSAGES.ERROR.ORDER_CREATE_FAILED)
   },
-  
-  // 显示UI错误消息
-  showError(message) {
-    messageManager.ui.showError(message)
+  showOrderCancelFailed(reason) {
+    errorMessage.show(reason || ORDER_MESSAGES.ERROR.ORDER_CANCEL_FAILED)
   },
-  
-  // 显示UI警告消息
-  showWarning(message) {
-    messageManager.ui.showWarning(message)
+  showOrderConfirmFailed(reason) {
+    errorMessage.show(reason || ORDER_MESSAGES.ERROR.ORDER_CONFIRM_FAILED)
   },
-  
-  // 显示UI信息消息
-  showInfo(message) {
-    messageManager.ui.showInfo(message)
+  showOrderShipFailed(reason) {
+    errorMessage.show(reason || ORDER_MESSAGES.ERROR.ORDER_SHIP_FAILED)
   },
-  
-  // 显示确认消息
-  showConfirm(message) {
-    return messageManager.ui.showConfirm(message)
+  showOrderNotFound() {
+    errorMessage.warning(ORDER_MESSAGES.ERROR.ORDER_NOT_FOUND)
   },
-  
-  // 订单相关预定义UI消息
+  showOrderUnauthorized() {
+    errorMessage.warning(ORDER_MESSAGES.ERROR.ORDER_UNAUTHORIZED)
+  },
+  showOrderDetailLoadFailed(reason) {
+    errorMessage.show(reason || ORDER_MESSAGES.ERROR.ORDER_DETAIL_LOAD_FAILED)
+  },
+  showOrderIdRequired() {
+    errorMessage.show(ORDER_MESSAGES.ERROR.ORDER_ID_REQUIRED)
+  },
+  showCartLoadFailed(reason) {
+    errorMessage.show(reason || ORDER_MESSAGES.ERROR.CART_LOAD_FAILED)
+  },
+  showCartAddFailed(reason) {
+    errorMessage.show(reason || ORDER_MESSAGES.ERROR.CART_ADD_FAILED)
+  },
+  showCartUpdateFailed(reason) {
+    errorMessage.show(reason || ORDER_MESSAGES.ERROR.CART_UPDATE_FAILED)
+  },
+  showCartRemoveFailed(reason) {
+    errorMessage.show(reason || ORDER_MESSAGES.ERROR.CART_REMOVE_FAILED)
+  },
+  showCartDeleteFailed(reason) {
+    errorMessage.show(reason || ORDER_MESSAGES.ERROR.CART_DELETE_FAILED)
+  },
+  showCartClearFailed(reason) {
+    errorMessage.show(reason || ORDER_MESSAGES.ERROR.CART_CLEAR_FAILED)
+  },
+  showCartItemOutOfStock(stock) {
+    const msg = stock !== undefined ? `库存不足，当前可用库存：${stock}` : ORDER_MESSAGES.ERROR.CART_ITEM_OUT_OF_STOCK
+    errorMessage.warning(msg)
+  },
+  showCartItemLimitReached(limit) {
+    errorMessage.warning(`${ORDER_MESSAGES.ERROR.CART_ITEM_LIMIT_REACHED}(${limit}件)`)
+  },
+  showCartItemInvalid() {
+    errorMessage.warning(ORDER_MESSAGES.ERROR.CART_ITEM_INVALID)
+  },
+  showSpecLoadFailed(reason) {
+    errorMessage.show(reason || ORDER_MESSAGES.ERROR.SPEC_LOAD_FAILED)
+  },
+  showSpecUpdateFailed(reason) {
+    errorMessage.show(reason || ORDER_MESSAGES.ERROR.SPEC_UPDATE_FAILED)
+  },
+  showLogisticsLoadFailed(reason) {
+    errorMessage.show(reason || ORDER_MESSAGES.ERROR.LOGISTICS_LOAD_FAILED)
+  },
+  showPaymentFailed(reason) {
+    errorMessage.show(reason || ORDER_MESSAGES.ERROR.PAYMENT_FAILED)
+  },
+  showPaymentCanceled() {
+    errorMessage.show(ORDER_MESSAGES.ERROR.PAYMENT_CANCELED)
+  },
+  showPaymentTimeout() {
+    errorMessage.warning(ORDER_MESSAGES.ERROR.PAYMENT_TIMEOUT)
+  },
+  showPaymentOrderLoadFailed(reason) {
+    errorMessage.show(reason || ORDER_MESSAGES.ERROR.PAYMENT_ORDER_LOAD_FAILED)
+  },
+  showInsufficientBalance(balance, amount) {
+    const msg = balance !== undefined && amount !== undefined 
+      ? `余额不足，当前余额￥${balance}，需支付￥${amount}` 
+      : ORDER_MESSAGES.ERROR.INSUFFICIENT_BALANCE
+    errorMessage.warning(msg)
+  },
+  showRefundSubmitFailed(reason) {
+    errorMessage.show(reason || ORDER_MESSAGES.ERROR.REFUND_SUBMIT_FAILED)
+  },
+  showRefundProcessFailed(action, reason) {
+    const msg = reason ? `${action}退款申请失败: ${reason}` : ORDER_MESSAGES.ERROR.REFUND_PROCESS_FAILED
+    errorMessage.show(msg)
+  },
+  showRefundDetailLoadFailed() {
+    errorMessage.warning(ORDER_MESSAGES.ERROR.REFUND_DETAIL_LOAD_FAILED)
+  },
+  showBatchShipFailed(reason) {
+    errorMessage.show(reason || ORDER_MESSAGES.ERROR.BATCH_SHIP_FAILED)
+  },
+  showStatisticsLoadFailed(reason) {
+    errorMessage.show(reason || ORDER_MESSAGES.ERROR.STATISTICS_LOAD_FAILED)
+  },
+  showExportFailed(reason) {
+    errorMessage.show(reason || ORDER_MESSAGES.ERROR.EXPORT_FAILED)
+  },
+  showAddressLoadFailed(reason) {
+    errorMessage.show(reason || ORDER_MESSAGES.ERROR.ADDRESS_LOAD_FAILED)
+  },
+  showAddressSaveFailed(reason) {
+    errorMessage.show(reason || ORDER_MESSAGES.ERROR.ADDRESS_SAVE_FAILED)
+  },
+  showProductInfoExpired() {
+    errorMessage.show(ORDER_MESSAGES.ERROR.PRODUCT_INFO_EXPIRED)
+  },
+  showProductInfoLoadFailed(reason) {
+    errorMessage.show(reason || ORDER_MESSAGES.ERROR.PRODUCT_INFO_LOAD_FAILED)
+  },
+  showOrderSubmitFailed(reason) {
+    errorMessage.show(reason || ORDER_MESSAGES.ERROR.ORDER_SUBMIT_FAILED)
+  },
+  showStockInsufficient(availableStock, quantity) {
+    const msg = availableStock !== undefined && quantity !== undefined
+      ? `商品库存不足，当前可用库存：${availableStock}，您需要：${quantity}`
+      : ORDER_MESSAGES.ERROR.CART_ITEM_OUT_OF_STOCK
+    errorMessage.show(msg)
+  },
+  showReviewSubmitFailed(reason) {
+    errorMessage.show(reason || '评价提交失败，请稍后重试')
+  }
+}
+
+// 提示消息函数
+export const orderPromptMessages = {
   showAddressRequired() {
-    this.showWarning(ORDER_MESSAGES.UI.ADDRESS_REQUIRED)
+    promptMessage.show(ORDER_MESSAGES.PROMPT.ADDRESS_REQUIRED)
   },
-  
   showAddressInvalid() {
-    this.showWarning(ORDER_MESSAGES.UI.ADDRESS_INVALID)
+    promptMessage.show(ORDER_MESSAGES.PROMPT.ADDRESS_INVALID)
   },
-  
   showOrderEmpty() {
-    this.showWarning(ORDER_MESSAGES.UI.ORDER_EMPTY)
+    promptMessage.show(ORDER_MESSAGES.PROMPT.ORDER_EMPTY)
   },
-  
+  showOrderInfoInvalid() {
+    promptMessage.show(ORDER_MESSAGES.PROMPT.ORDER_INFO_INVALID)
+  },
+  showOrderNotFound() {
+    promptMessage.show(ORDER_MESSAGES.PROMPT.ORDER_NOT_FOUND)
+  },
   showCancelReasonRequired() {
-    this.showWarning(ORDER_MESSAGES.UI.CANCEL_REASON_REQUIRED)
+    promptMessage.show(ORDER_MESSAGES.PROMPT.CANCEL_REASON_REQUIRED)
   },
-  
-  showShippingInfoRequired() {
-    this.showWarning(ORDER_MESSAGES.UI.SHIPPING_INFO_REQUIRED)
-  },
-  
   showLogisticsCompanyRequired() {
-    this.showWarning(ORDER_MESSAGES.UI.LOGISTICS_COMPANY_REQUIRED)
+    promptMessage.show(ORDER_MESSAGES.PROMPT.LOGISTICS_COMPANY_REQUIRED)
   },
-  
   showLogisticsNumberRequired() {
-    this.showWarning(ORDER_MESSAGES.UI.LOGISTICS_NUMBER_REQUIRED)
+    promptMessage.show(ORDER_MESSAGES.PROMPT.LOGISTICS_NUMBER_REQUIRED)
   },
-  
   showLogisticsNumberInvalid() {
-    this.showWarning(ORDER_MESSAGES.UI.LOGISTICS_NUMBER_INVALID)
+    promptMessage.show(ORDER_MESSAGES.PROMPT.LOGISTICS_NUMBER_INVALID)
   },
-  
   showReviewContentRequired() {
-    this.showWarning(ORDER_MESSAGES.UI.REVIEW_CONTENT_REQUIRED)
+    promptMessage.show(ORDER_MESSAGES.PROMPT.REVIEW_CONTENT_REQUIRED)
   },
-  
   showReviewRatingRequired() {
-    this.showWarning(ORDER_MESSAGES.UI.REVIEW_RATING_REQUIRED)
+    promptMessage.show(ORDER_MESSAGES.PROMPT.REVIEW_RATING_REQUIRED)
   },
-  
-  showCancelConfirm() {
-    return this.showConfirm(ORDER_MESSAGES.UI.CANCEL_CONFIRM)
-  },
-  
-  showConfirmReceiveConfirm() {
-    return this.showConfirm(ORDER_MESSAGES.UI.CONFIRM_RECEIVE_CONFIRM)
-  },
-  
-  showDeleteOrderConfirm() {
-    return this.showConfirm(ORDER_MESSAGES.UI.DELETE_ORDER_CONFIRM)
-  },
-  
-  showPaymentRequired() {
-    this.showWarning(ORDER_MESSAGES.UI.PAYMENT_REQUIRED)
-  },
-  
   showReviewLimitExceeded() {
-    this.showWarning(ORDER_MESSAGES.UI.REVIEW_LIMIT_EXCEEDED)
+    promptMessage.show(ORDER_MESSAGES.PROMPT.REVIEW_LIMIT_EXCEEDED)
   },
-  
-  // 购物车相关预定义UI消息
   showQuantityInvalid() {
-    this.showWarning(ORDER_MESSAGES.UI.QUANTITY_INVALID)
+    promptMessage.show(ORDER_MESSAGES.PROMPT.QUANTITY_INVALID)
   },
-  
   showSelectionRequired() {
-    this.showWarning(ORDER_MESSAGES.UI.SELECTION_REQUIRED)
+    promptMessage.show(ORDER_MESSAGES.PROMPT.SELECTION_REQUIRED)
   },
-  
-  showItemSelected(count) {
-    const message = ORDER_MESSAGES.UI.ITEM_SELECTED.replace('{count}', count)
-    this.showInfo(message)
+  showDeleteSelectionRequired() {
+    promptMessage.show(ORDER_MESSAGES.PROMPT.DELETE_SELECTION_REQUIRED)
   },
-  
+  showShipSelectionRequired() {
+    promptMessage.show(ORDER_MESSAGES.PROMPT.SHIP_SELECTION_REQUIRED)
+  },
   showCartEmpty() {
-    this.showWarning(ORDER_MESSAGES.UI.CART_EMPTY)
+    promptMessage.show(ORDER_MESSAGES.PROMPT.CART_EMPTY)
   },
-  
-  showProceedCheckoutWarning() {
-    this.showWarning(ORDER_MESSAGES.UI.PROCEED_CHECKOUT_WARNING)
-  },
-  
-  showRemoveConfirm() {
-    return this.showConfirm(ORDER_MESSAGES.UI.REMOVE_CONFIRM)
-  },
-  
-  showClearConfirm() {
-    return this.showConfirm(ORDER_MESSAGES.UI.CLEAR_CONFIRM)
-  },
-  
-  showMaxQuantityLimit(limit) {
-    const message = ORDER_MESSAGES.UI.MAX_QUANTITY_LIMIT.replace('{limit}', limit)
-    this.showWarning(message)
-  },
-  
-  showOutOfStock(teaName, stock) {
-    const message = ORDER_MESSAGES.UI.OUT_OF_STOCK
-      .replace('{teaName}', teaName)
-      .replace('{stock}', stock)
-    this.showWarning(message)
-  },
-  
-  // 支付相关预定义UI消息
   showSelectPaymentMethod() {
-    this.showWarning(ORDER_MESSAGES.UI.SELECT_PAYMENT_METHOD)
+    promptMessage.show(ORDER_MESSAGES.PROMPT.SELECT_PAYMENT_METHOD)
   },
-  
+  showSelectExportFormat() {
+    promptMessage.show(ORDER_MESSAGES.PROMPT.SELECT_EXPORT_FORMAT)
+  },
+  showCancelConfirm() {
+    promptMessage.info(ORDER_MESSAGES.PROMPT.CANCEL_CONFIRM)
+  },
+  showConfirmReceive() {
+    promptMessage.info(ORDER_MESSAGES.PROMPT.CONFIRM_RECEIVE)
+  },
+  showDeleteOrderConfirm() {
+    promptMessage.info(ORDER_MESSAGES.PROMPT.DELETE_ORDER_CONFIRM)
+  },
+  showRemoveCartConfirm() {
+    promptMessage.info(ORDER_MESSAGES.PROMPT.REMOVE_CART_CONFIRM)
+  },
+  showClearCartConfirm() {
+    promptMessage.info(ORDER_MESSAGES.PROMPT.CLEAR_CART_CONFIRM)
+  },
   showConfirmPayment(amount) {
-    const message = ORDER_MESSAGES.UI.CONFIRM_PAYMENT.replace('{amount}', amount)
-    return this.showConfirm(message)
+    promptMessage.info(amount ? `确认支付¥${amount}？` : ORDER_MESSAGES.PROMPT.CONFIRM_PAYMENT)
   },
-  
-  showProcessingPayment() {
-    this.showInfo(ORDER_MESSAGES.UI.PROCESSING_PAYMENT)
+  showSpecRequired() {
+    promptMessage.show(ORDER_MESSAGES.PROMPT.SPEC_REQUIRED)
   },
-  
-  showPaymentAmountInvalid() {
-    this.showWarning(ORDER_MESSAGES.UI.PAYMENT_AMOUNT_INVALID)
+  showNoSpecAvailable() {
+    promptMessage.show(ORDER_MESSAGES.PROMPT.NO_SPEC_AVAILABLE)
   },
-  
-  showCouponApplied(code, discount) {
-    const message = ORDER_MESSAGES.UI.COUPON_APPLIED.replace('{discount}', discount)
-    this.showSuccess(message)
+  showStockInsufficient(stock) {
+    const msg = stock !== undefined ? `库存不足，当前可用库存：${stock}` : ORDER_MESSAGES.PROMPT.STOCK_INSUFFICIENT
+    promptMessage.show(msg)
   },
-  
-  showCouponInvalid(code) {
-    const message = ORDER_MESSAGES.UI.COUPON_INVALID.replace('{code}', code)
-    this.showWarning(message)
+  showRefundReasonTooShort() {
+    promptMessage.show(ORDER_MESSAGES.PROMPT.REFUND_REASON_TOO_SHORT)
   },
-  
-  showPaymentInfoIncomplete(field) {
-    const message = field
-      ? `${ORDER_MESSAGES.UI.PAYMENT_INFO_INCOMPLETE}：${field}`
-      : ORDER_MESSAGES.UI.PAYMENT_INFO_INCOMPLETE
-    this.showWarning(message)
+  showRefundNotSupported() {
+    promptMessage.info(ORDER_MESSAGES.PROMPT.REFUND_NOT_SUPPORTED)
+  },
+  showNoLogisticsInfo() {
+    promptMessage.info(ORDER_MESSAGES.PROMPT.NO_LOGISTICS_INFO)
+  },
+  // 开发中功能提示
+  showContactSellerDev() {
+    promptMessage.info(ORDER_MESSAGES.PROMPT.CONTACT_SELLER_DEV)
+  },
+  showBuyAgainDev() {
+    promptMessage.info(ORDER_MESSAGES.PROMPT.BUY_AGAIN_DEV)
+  },
+  showDeleteOrderDev() {
+    promptMessage.info(ORDER_MESSAGES.PROMPT.DELETE_ORDER_DEV)
+  },
+  showViewLogisticsDev() {
+    promptMessage.info(ORDER_MESSAGES.PROMPT.VIEW_LOGISTICS_DEV)
+  },
+  showModifyAddressDev() {
+    promptMessage.info(ORDER_MESSAGES.PROMPT.MODIFY_ADDRESS_DEV)
+  },
+  showContactShopDev() {
+    promptMessage.info(ORDER_MESSAGES.PROMPT.CONTACT_SHOP_DEV)
+  },
+  showOrderInfoIncomplete() {
+    promptMessage.show(ORDER_MESSAGES.PROMPT.ORDER_INFO_INCOMPLETE)
+  },
+  showReviewContentTooShort() {
+    promptMessage.show(ORDER_MESSAGES.PROMPT.REVIEW_CONTENT_TOO_SHORT)
+  },
+  showReviewNotAllowed() {
+    promptMessage.show(ORDER_MESSAGES.PROMPT.REVIEW_NOT_ALLOWED)
+  },
+  showAlreadyReviewed() {
+    promptMessage.show(ORDER_MESSAGES.PROMPT.ALREADY_REVIEWED)
+  },
+  showImageLimitExceeded() {
+    promptMessage.show(ORDER_MESSAGES.PROMPT.IMAGE_LIMIT_EXCEEDED)
+  },
+  showRatingRequired() {
+    promptMessage.show(ORDER_MESSAGES.PROMPT.RATING_REQUIRED)
   }
 }
 
-// 导出所有消息工具
+// 默认导出
 export default {
-  api: apiMessages,
-  business: businessMessages,
-  ui: uiMessages,
+  success: orderSuccessMessages,
+  error: orderErrorMessages,
+  prompt: orderPromptMessages,
   ORDER_MESSAGES
 }

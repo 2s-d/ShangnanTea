@@ -78,8 +78,10 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useStore } from 'vuex'
-import { message } from '@/components/common'
+
 import { checkAndMigrateData } from '@/utils/versionManager'
+import { showByCode, isSuccess } from '@/utils/apiMessages'
+import { userPromptMessages as userMessages } from '@/utils/promptMessages'
 
 export default {
   name: 'LoginPage',
@@ -141,23 +143,25 @@ export default {
         const redirect = route.query.redirect || '/tea-culture'
         router.push(redirect)
       } catch (error) {
+        // store中已处理消息提示，这里只记录日志
         console.error('登录失败:', error)
-        message.error(error?.message || '登录失败，请重试')
       } finally {
         loading.value = false
       }
     }
     
-    // 忘记密码
+    // 忘记密码 - 跳转到密码找回页面
     const forgotPassword = () => {
-      message.info('忘记密码功能尚未开放，请联系管理员重置密码')
+      router.push('/reset-password')
     }
     
     // 开发者选项：重置本地存储
     const resetLocalStorage = () => {
       if (confirm('确定要重置所有本地存储数据吗？这将清除所有登录状态和用户数据。')) {
         localStorage.clear()
-        message.success('本地存储已重置，页面将刷新')
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        userMessages.success.showStorageReset()
         setTimeout(() => {
           window.location.reload()
         }, 1000)
@@ -173,10 +177,15 @@ export default {
         // 使用非静默模式(false)执行迁移，允许显示消息
         checkAndMigrateData(false)
         
-        message.success('数据迁移已触发')
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        // TODO: [user] 迁移到 showByCode(response.code) - success
+        userMessages.success.showDataMigrationTriggered()
       } catch (e) {
         console.error('数据迁移失败:', e)
-        message.error('数据迁移失败: ' + e.message)
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        userMessages.error.showDataMigrationFailed(e.message)
       }
     }
     

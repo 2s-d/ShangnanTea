@@ -11,11 +11,10 @@
         
         <el-select v-model="typeFilter" placeholder="消息类型" clearable size="small">
           <el-option label="全部类型" value=""></el-option>
-          <el-option label="系统公告" value="system"></el-option>
-          <el-option label="订单通知" value="order"></el-option>
-          <el-option label="帖子回复" value="forum"></el-option>
-          <el-option label="点赞提醒" value="like"></el-option>
-          <el-option label="关注提醒" value="follow"></el-option>
+          <el-option label="帖子回复" value="post_reply"></el-option>
+          <el-option label="系统公告" value="system_announcement"></el-option>
+          <el-option label="外部链接" value="external_link"></el-option>
+          <el-option label="商家认证" value="merchant_verification"></el-option>
         </el-select>
       </div>
       
@@ -36,20 +35,20 @@
           v-for="notification in filteredNotifications" 
           :key="notification.id" 
           class="notification-item"
-          :class="{ 'notification-unread': !notification.isRead }"
+          :class="{ 'notification-unread': notification.isRead === 0 }"
         >
           <div class="notification-icon" :class="getNotificationIconClass(notification.type)">
-            <el-icon v-if="notification.type === 'system'"><Bell /></el-icon>
-            <el-icon v-if="notification.type === 'order'"><ShoppingCart /></el-icon>
-            <el-icon v-if="notification.type === 'forum'"><ChatDotRound /></el-icon>
-            <el-icon v-if="notification.type === 'like'"><Star /></el-icon>
-            <el-icon v-if="notification.type === 'follow'"><User /></el-icon>
+            <el-icon v-if="notification.type === 'post_reply'"><ChatDotRound /></el-icon>
+            <el-icon v-if="notification.type === 'system_announcement'"><Bell /></el-icon>
+            <el-icon v-if="notification.type === 'external_link'"><Star /></el-icon>
+            <el-icon v-if="notification.type === 'merchant_verification'"><User /></el-icon>
+            <el-icon v-else><Bell /></el-icon>
           </div>
           
           <div class="notification-content" @click="openNotification(notification)">
             <div class="notification-title">
               {{ notification.title }}
-              <span class="unread-dot" v-if="!notification.isRead"></span>
+              <span class="unread-dot" v-if="notification.isRead === 0"></span>
             </div>
             <div class="notification-message">{{ notification.content }}</div>
             <div class="notification-time">{{ formatDate(notification.createTime) }}</div>
@@ -59,7 +58,7 @@
             <el-tooltip 
               content="标记为已读" 
               placement="top" 
-              v-if="!notification.isRead">
+              v-if="notification.isRead === 0">
               <el-button 
                 type="info" 
                 circle 
@@ -108,15 +107,16 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
-import { Bell, ShoppingCart, ChatDotRound, Star, User, Check, Delete } from '@element-plus/icons-vue'
+import { Bell, ChatDotRound, Star, User, Check, Delete } from '@element-plus/icons-vue'
 import { useStore } from 'vuex'
-import { message } from '@/components/common'
 import { handleAsyncOperation } from '@/utils/messageHelper'
+import { messageSuccessMessages, messageErrorMessages } from '@/utils/messageMessages'
+import { messagePromptMessages } from '@/utils/promptMessages'
 
 export default {
   name: 'SystemNotificationsPage',
   components: {
-    Bell, ShoppingCart, ChatDotRound, Star, User, Check, Delete
+    Bell, ChatDotRound, Star, User, Check, Delete
   },
   setup() {
     const router = useRouter()
@@ -165,9 +165,9 @@ export default {
       
       // 按已读/未读状态过滤
       if (readStatus.value === 'read') {
-        result = result.filter(item => item.isRead)
+        result = result.filter(item => item.isRead === 1)
       } else if (readStatus.value === 'unread') {
-        result = result.filter(item => !item.isRead)
+        result = result.filter(item => item.isRead === 0)
       }
       
       // 按类型过滤
@@ -180,18 +180,17 @@ export default {
     
     // 是否有未读通知
     const hasUnread = computed(() => {
-      return notifications.value.some(item => !item.isRead)
+      return notifications.value.some(item => item.isRead === 0)
     })
     
     // 标记单条通知为已读
     const markAsRead = async (id) => {
       try {
         await handleAsyncOperation(
-          store.dispatch('message/markAsRead', id),
+          store.dispatch('message/markNotificationAsRead', id),
           {
             successMessage: '已标记为已读',
-            errorMessage: '操作失败，请稍后再试',
-            successCallback: () => fetchNotifications()
+            errorMessage: '操作失败，请稍后再试'
           }
         )
       } catch (error) {
@@ -202,17 +201,16 @@ export default {
     // 标记所有通知为已读
     const markAllAsRead = async () => {
       try {
-        const unreadIds = notifications.value.filter(item => !item.isRead).map(item => item.id)
+        const unreadIds = notifications.value.filter(item => item.isRead === 0).map(item => item.id)
         if (!unreadIds.length) {
           return
         }
 
         await handleAsyncOperation(
-          store.dispatch('message/markAsRead', unreadIds),
+          store.dispatch('message/batchMarkAsRead', unreadIds),
           {
             successMessage: '已全部标记为已读',
-            errorMessage: '操作失败，请稍后再试',
-            successCallback: () => fetchNotifications()
+            errorMessage: '操作失败，请稍后再试'
           }
         )
       } catch (error) {
@@ -224,11 +222,10 @@ export default {
     const deleteNotification = async (id) => {
       try {
         await handleAsyncOperation(
-          store.dispatch('message/deleteMessage', id),
+          store.dispatch('message/deleteNotification', id),
           {
             successMessage: '通知已删除',
-            errorMessage: '删除失败，请稍后再试',
-            successCallback: () => fetchNotifications()
+            errorMessage: '删除失败，请稍后再试'
           }
         )
       } catch (error) {
@@ -258,11 +255,10 @@ export default {
         }
 
         await handleAsyncOperation(
-          store.dispatch('message/deleteMessagesBulk', allIds),
+          store.dispatch('message/batchDeleteNotifications', allIds),
           {
             successMessage: '已清空所有通知',
-            errorMessage: '操作失败，请稍后再试',
-            successCallback: () => fetchNotifications()
+            errorMessage: '操作失败，请稍后再试'
           }
         )
       } catch (error) {
@@ -273,35 +269,95 @@ export default {
     // 打开通知
     const openNotification = async (notification) => {
       // 标记为已读
-      if (!notification.isRead) {
+      if (notification.isRead === 0) {
         await markAsRead(notification.id)
       }
       
       // 根据通知类型跳转到相应页面
       switch (notification.type) {
-        case 'system':
-          // 系统通知一般不需要跳转
-          break
-        case 'order':
-          if (notification.related_id) {
-            router.push(`/order/detail/${notification.related_id}`)
+        case 'post_reply':
+          // 帖子回复通知，跳转到帖子详情页
+          if (notification.targetId && notification.targetType === 'post') {
+            router.push(`/forum/posts/${notification.targetId}`)
           }
           break
-        case 'forum':
-          if (notification.related_id) {
-            router.push(`/forum/${notification.related_id}`)
+        case 'system_announcement':
+          // 系统公告一般不需要跳转
+          break
+        case 'external_link':
+          // 外部链接通知，解析extraData中的链接
+          try {
+            const extraData = JSON.parse(notification.extraData || '{}')
+            if (extraData.externalUrl) {
+              window.open(extraData.externalUrl, '_blank')
+            }
+          } catch (e) {
+            console.warn('解析外部链接失败:', e)
           }
           break
-        case 'like':
-          if (notification.related_id) {
-            router.push(`/forum/${notification.related_id}`)
+        case 'merchant_verification':
+          // 商家认证通知，可能需要确认操作
+          try {
+            const extraData = JSON.parse(notification.extraData || '{}')
+            if (extraData.actionType === 'confirm') {
+              // 商家认证通过，需要确认通知并触发角色变更和店铺创建
+              await handleMerchantCertificationConfirm(notification)
+            } else {
+              // 普通商家认证通知，跳转到商家中心
+              router.push('/shop/my')
+            }
+          } catch (e) {
+            console.warn('解析操作数据失败:', e)
+            messageErrorMessages.showOperationFailed('处理商家认证通知失败')
           }
           break
-        case 'follow':
-          if (notification.related_id) {
-            router.push(`/profile/${notification.related_id}`)
+      }
+    }
+    
+    // 处理商家认证确认通知
+    const handleMerchantCertificationConfirm = async (notification) => {
+      try {
+        // 1. 标记通知为已读
+        await store.dispatch('message/markNotificationAsRead', notification.id)
+        
+        // 2. 确认通知（触发后端角色变更）
+        // 注意：实际项目中，角色变更应该由后端在审核通过时自动完成
+        // 这里只是确认通知，刷新用户信息以获取最新角色
+        await store.dispatch('user/fetchUserInfo')
+        
+        // 3. 检查用户角色是否已变更为商家（role === 3）
+        const userInfo = store.state.user.userInfo
+        if (userInfo && userInfo.role === 3) {
+          // 4. 检查是否已有店铺，如果没有则自动创建
+          try {
+            await store.dispatch('shop/fetchMyShop')
+            messageSuccessMessages.showOperationSuccess('商家认证已确认，欢迎使用商家中心！')
+            router.push('/shop/my')
+          } catch (error) {
+            // 如果没有店铺，自动创建
+            if (error.message && error.message.includes('获取我的店铺失败')) {
+              try {
+                await store.dispatch('shop/createShop', {
+                  name: '我的商南茶叶店',
+                  desc: '专业经营商南优质茶叶'
+                })
+                messageSuccessMessages.showOperationSuccess('商家认证已确认，店铺已自动创建！')
+                router.push('/shop/my')
+              } catch (createError) {
+                messageErrorMessages.showOperationFailed('创建店铺失败，请稍后手动创建')
+                router.push('/shop/my')
+              }
+            } else {
+              throw error
+            }
           }
-          break
+        } else {
+          // 角色尚未变更，提示用户
+          messagePromptMessages.showPleaseWait()
+        }
+      } catch (error) {
+        console.error('处理商家认证确认失败:', error)
+        messageErrorMessages.showOperationFailed('处理商家认证确认失败，请稍后再试')
       }
     }
     
@@ -335,11 +391,10 @@ export default {
     // 获取通知图标样式
     const getNotificationIconClass = (type) => {
       const classMap = {
-        system: 'icon-system',
-        order: 'icon-order',
-        forum: 'icon-forum',
-        like: 'icon-like',
-        follow: 'icon-follow'
+        post_reply: 'icon-forum',
+        system_announcement: 'icon-system',
+        external_link: 'icon-like',
+        merchant_verification: 'icon-follow'
       }
       
       return classMap[type] || 'icon-default'

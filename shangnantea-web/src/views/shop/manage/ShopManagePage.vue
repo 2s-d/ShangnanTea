@@ -25,16 +25,32 @@
           <div class="shop-info-content" v-if="shop">
             <div class="shop-info-left">
               <div class="shop-avatar">
-                <SafeImage :src="shop.logo" type="banner" :alt="shop.shop_name" style="width:80px;height:80px;border-radius:50%;object-fit:cover;" />
+                <el-upload
+                  class="logo-uploader"
+                  :show-file-list="false"
+                  :on-success="handleLogoSuccess"
+                  :before-upload="beforeLogoUpload"
+                  :http-request="handleLogoUploadRequest"
+                >
+                  <SafeImage 
+                    v-if="shop.logo || shop.shop_logo" 
+                    :src="shop.logo || shop.shop_logo" 
+                    type="banner" 
+                    :alt="shop.name || shop.shop_name" 
+                    class="shop-logo"
+                  />
+                  <el-icon v-else class="logo-uploader-icon"><Plus /></el-icon>
+                </el-upload>
+                <div class="logo-tip">点击上传Logo</div>
               </div>
             </div>
             
             <div class="shop-info-right">
-              <h3 class="shop-name">{{ shop.shop_name }}</h3>
+              <h3 class="shop-name">{{ shop.name || shop.shop_name }}</h3>
               
               <div class="shop-stats">
                 <div class="stat-item">
-                  <span class="stat-value">{{ shop.sales_count || 0 }}</span>
+                  <span class="stat-value">{{ shop.sales_count || shop.salesCount || 0 }}</span>
                   <span class="stat-label">销量</span>
                 </div>
                 <div class="stat-item">
@@ -42,17 +58,91 @@
                   <span class="stat-label">评分</span>
                 </div>
                 <div class="stat-item">
-                  <span class="stat-value">{{ shop.follow_count || 0 }}</span>
+                  <span class="stat-value">{{ shop.follower_count || shop.followerCount || 0 }}</span>
                   <span class="stat-label">关注数</span>
                 </div>
               </div>
               
               <div class="shop-description">
                 <span class="label">简介：</span>
-                <span>{{ shop.description || '暂无简介' }}</span>
+                <span>{{ shop.desc || shop.description || '暂无简介' }}</span>
               </div>
             </div>
           </div>
+        </el-card>
+
+        <!-- 任务组D：统计数据展示 -->
+        <el-card class="statistics-card" v-loading="statisticsLoading">
+          <template #header>
+            <div class="card-header">
+              <span>店铺统计</span>
+              <el-date-picker
+                v-model="dateRange"
+                type="daterange"
+                range-separator="至"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+                format="YYYY-MM-DD"
+                value-format="YYYY-MM-DD"
+                @change="handleDateRangeChange"
+                size="small"
+              />
+            </div>
+          </template>
+          
+          <div v-if="shopStatistics">
+            <!-- 概览数据 -->
+            <div class="statistics-overview">
+              <div class="overview-item">
+                <div class="overview-label">总销售额</div>
+                <div class="overview-value">¥{{ formatMoney(shopStatistics.overview?.totalSales || 0) }}</div>
+              </div>
+              <div class="overview-item">
+                <div class="overview-label">订单数</div>
+                <div class="overview-value">{{ shopStatistics.overview?.totalOrders || 0 }}</div>
+              </div>
+              <div class="overview-item">
+                <div class="overview-label">商品数</div>
+                <div class="overview-value">{{ shopStatistics.overview?.totalProducts || 0 }}</div>
+              </div>
+              <div class="overview-item">
+                <div class="overview-label">访问量</div>
+                <div class="overview-value">{{ shopStatistics.overview?.totalVisitors || 0 }}</div>
+              </div>
+            </div>
+            
+            <!-- 销售趋势 -->
+          <div class="statistics-trend" v-if="shopStatistics.trends && shopStatistics.trends.length > 0">
+              <h4 class="section-title">销售趋势（最近7天）</h4>
+            <el-table :data="shopStatistics.trends" border style="width: 100%">
+                <el-table-column prop="date" label="日期" width="120" />
+                <el-table-column prop="sales" label="销售额" width="120">
+                  <template #default="scope">
+                    ¥{{ formatMoney(scope.row.sales) }}
+                  </template>
+                </el-table-column>
+                <el-table-column prop="orders" label="订单数" width="100" />
+                <el-table-column prop="visitors" label="访问量" width="100" />
+              </el-table>
+            </div>
+            
+            <!-- 热门商品 -->
+            <div class="statistics-hot-products" v-if="shopStatistics.hotProducts && shopStatistics.hotProducts.length > 0">
+              <h4 class="section-title">热门商品（Top 5）</h4>
+              <el-table :data="shopStatistics.hotProducts" border style="width: 100%">
+                <el-table-column type="index" label="排名" width="60" />
+                <el-table-column prop="name" label="商品名称" />
+                <el-table-column prop="sales" label="销量" width="100" />
+                <el-table-column prop="revenue" label="销售额" width="120">
+                  <template #default="scope">
+                    ¥{{ formatMoney(scope.row.revenue) }}
+                  </template>
+                </el-table-column>
+              </el-table>
+            </div>
+          </div>
+          
+          <el-empty v-else description="暂无统计数据" />
         </el-card>
 
         <!-- 茶叶管理部分 -->
@@ -191,6 +281,145 @@
             </div>
           </div>
         </el-card>
+
+        <!-- 任务组B：Banner管理部分 -->
+        <el-card class="banner-manage-card">
+          <template #header>
+            <div class="card-header">
+              <span>Banner管理</span>
+              <el-button type="primary" size="small" @click="showAddBannerDialog">
+                <el-icon><Plus /></el-icon> 添加Banner
+              </el-button>
+            </div>
+          </template>
+          
+          <div class="banner-manage-content" v-loading="bannerLoading">
+            <div v-if="shopBanners.length === 0" class="empty-banner">
+              <el-empty description="暂无Banner，点击上方按钮添加" />
+            </div>
+            
+            <div v-else class="banner-list">
+              <div 
+                v-for="(banner, index) in shopBanners" 
+                :key="banner.id" 
+                class="banner-item"
+              >
+                <div class="banner-preview">
+                  <SafeImage 
+                    :src="banner.image_url" 
+                    type="banner" 
+                    :alt="banner.title"
+                    style="width: 100%; height: 150px; object-fit: cover; border-radius: 4px;"
+                  />
+                  <div class="banner-info">
+                    <div class="banner-title">{{ banner.title || '未命名Banner' }}</div>
+                    <div class="banner-link">{{ banner.link_url || '无链接' }}</div>
+                    <div class="banner-order">排序：{{ banner.order || index + 1 }}</div>
+                  </div>
+                </div>
+                
+                <div class="banner-actions">
+                  <el-button 
+                    type="primary" 
+                    link 
+                    size="small"
+                    @click="showEditBannerDialog(banner)"
+                  >
+                    编辑
+                  </el-button>
+                  <el-button 
+                    type="danger" 
+                    link 
+                    size="small"
+                    @click="handleDeleteBanner(banner)"
+                  >
+                    删除
+                  </el-button>
+                  <div class="banner-order-controls">
+                    <el-button 
+                      type="info" 
+                      link 
+                      size="small"
+                      :disabled="index === 0"
+                      @click="moveBanner(index, 'up')"
+                    >
+                      ↑
+                    </el-button>
+                    <el-button 
+                      type="info" 
+                      link 
+                      size="small"
+                      :disabled="index === shopBanners.length - 1"
+                      @click="moveBanner(index, 'down')"
+                    >
+                      ↓
+                    </el-button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </el-card>
+
+        <!-- 任务组B：公告管理部分 -->
+        <el-card class="announcement-manage-card">
+          <template #header>
+            <div class="card-header">
+              <span>公告管理</span>
+              <el-button type="primary" size="small" @click="showAddAnnouncementDialog">
+                <el-icon><Plus /></el-icon> 添加公告
+              </el-button>
+            </div>
+          </template>
+          
+          <div class="announcement-manage-content" v-loading="announcementLoading">
+            <div v-if="shopAnnouncements.length === 0" class="empty-announcement">
+              <el-empty description="暂无公告，点击上方按钮添加" />
+            </div>
+            
+            <div v-else class="announcement-list">
+              <div 
+                v-for="announcement in shopAnnouncements" 
+                :key="announcement.id" 
+                class="announcement-item"
+                :class="{ 'is-top': announcement.is_top }"
+              >
+                <div class="announcement-header">
+                  <div class="announcement-title">
+                    <el-tag v-if="announcement.is_top" type="warning" size="small">置顶</el-tag>
+                    <span>{{ announcement.title }}</span>
+                  </div>
+                  <div class="announcement-time">
+                    {{ formatTime(announcement.create_time) }}
+                  </div>
+                </div>
+                
+                <div class="announcement-content">
+                  {{ announcement.content }}
+                </div>
+                
+                <div class="announcement-actions">
+                  <el-button 
+                    type="primary" 
+                    link 
+                    size="small"
+                    @click="showEditAnnouncementDialog(announcement)"
+                  >
+                    编辑
+                  </el-button>
+                  <el-button 
+                    type="danger" 
+                    link 
+                    size="small"
+                    @click="handleDeleteAnnouncement(announcement)"
+                  >
+                    删除
+                  </el-button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </el-card>
       </div>
     </div>
     
@@ -310,15 +539,99 @@
         </div>
       </template>
     </el-dialog>
+
+    <!-- 任务组B：Banner表单对话框 -->
+    <el-dialog
+      v-model="bannerDialogVisible"
+      :title="isEditBanner ? '编辑Banner' : '添加Banner'"
+      width="600px"
+      destroy-on-close
+    >
+      <el-form 
+        ref="bannerFormRef" 
+        :model="currentBanner" 
+        label-width="100px"
+        v-if="currentBanner"
+      >
+        <el-form-item label="Banner标题" prop="title">
+          <el-input v-model="currentBanner.title" placeholder="请输入Banner标题" maxlength="50" />
+        </el-form-item>
+        
+        <el-form-item label="图片URL" prop="image_url">
+          <el-input v-model="currentBanner.image_url" placeholder="请输入图片URL" />
+        </el-form-item>
+        
+        <el-form-item label="链接地址" prop="link_url">
+          <el-input v-model="currentBanner.link_url" placeholder="请输入链接地址（可选）" />
+        </el-form-item>
+        
+        <el-form-item label="排序" prop="order">
+          <el-input-number v-model="currentBanner.order" :min="1" :max="10" />
+        </el-form-item>
+        
+        <el-form-item label="启用状态" prop="is_enabled">
+          <el-switch v-model="currentBanner.is_enabled" :active-value="1" :inactive-value="0" />
+        </el-form-item>
+      </el-form>
+      
+      <template #footer>
+        <el-button @click="bannerDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleSaveBanner">保存</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 任务组B：公告表单对话框 -->
+    <el-dialog
+      v-model="announcementDialogVisible"
+      :title="isEditAnnouncement ? '编辑公告' : '添加公告'"
+      width="700px"
+      destroy-on-close
+    >
+      <el-form 
+        ref="announcementFormRef" 
+        :model="currentAnnouncement" 
+        label-width="100px"
+        v-if="currentAnnouncement"
+      >
+        <el-form-item label="公告标题" prop="title">
+          <el-input v-model="currentAnnouncement.title" placeholder="请输入公告标题" maxlength="100" />
+        </el-form-item>
+        
+        <el-form-item label="公告内容" prop="content">
+          <el-input
+            v-model="currentAnnouncement.content"
+            type="textarea"
+            :rows="6"
+            placeholder="请输入公告内容"
+            maxlength="1000"
+            show-word-limit
+          />
+        </el-form-item>
+        
+        <el-form-item label="置顶" prop="is_top">
+          <el-switch v-model="currentAnnouncement.is_top" :active-value="1" :inactive-value="0" />
+        </el-form-item>
+      </el-form>
+      
+      <template #footer>
+        <el-button @click="announcementDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleSaveAnnouncement">保存</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { useStore } from 'vuex'
+import { ElMessageBox } from 'element-plus'
 import { Setting, Plus, Search } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
+import { API } from '@/api/apiConstants'
+
+import { showByCode, isSuccess } from '@/utils/apiMessages'
+import shopMessages from '@/utils/promptMessages'
 
 export default {
   name: 'ShopManagePage',
@@ -330,10 +643,11 @@ export default {
   },
   setup() {
     const router = useRouter()
+    const store = useStore()
     
-    // 店铺信息相关
-    const loading = ref(false)
-    const shop = ref(null)
+    // 从Vuex获取店铺信息
+    const loading = computed(() => store.state.shop.loading)
+    const shop = computed(() => store.state.shop.myShop)
     const defaultLogo = '/mock-images/shop-default.jpg'
     const defaultTeaImage = '/mock-images/tea-default.jpg'
     
@@ -344,8 +658,8 @@ export default {
     const categoryFilter = ref('')
     const currentPage = ref(1)
     const pageSize = ref(10)
-    const totalCount = ref(0)
-    const shopTeas = ref([])
+    const shopTeas = computed(() => store.state.shop.shopTeas || [])
+    const totalCount = computed(() => shopTeas.value.length) // 暂时使用列表长度，后续可添加分页
     
     // 对话框相关状态
     const dialogVisible = ref(false)
@@ -365,141 +679,54 @@ export default {
       { id: 7, name: '花茶' }
     ]
     
-    // TODO-SCRIPT: 店铺管理需要后端接口与 Vuex shop 模块；移除 UI-DEV 模拟流程
-    // 加载店铺信息
-    const loadShopInfo = () => {
-      loading.value = true
-      
-      // 模拟API调用延迟
-      setTimeout(() => {
-        // 模拟店铺数据
-        shop.value = {
-          id: 'shop100001',
-          owner_id: 'cy100003',
-          shop_name: '商南茶叶专营店',
-          logo: '/mock-images/shop-logo.png',
-          banner: '/mock-images/shop-banner.png',
-          description: '提供优质商南特产茶叶',
-          announcement: '本店所有茶叶均产自商南县高山茶园，保证品质。',
-          contact_phone: '13800000003',
-          province: '陕西省',
-          city: '商洛市',
-          district: '商南县',
-          address: '城关街道茶叶市场12号',
-          status: 1,
-          rating: 4.8,
-          rating_count: 24,
-          sales_count: 168,
-          follow_count: 56,
-          create_time: '2025-03-26 09:03:26',
-          update_time: '2025-03-26 09:03:26'
-        }
-        
-        loading.value = false
-      }, 800)
+    // 任务组0：使用Vuex加载店铺信息
+    const loadShopInfo = async () => {
+      try {
+        await store.dispatch('shop/fetchMyShop')
+      } catch (error) {
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        shopMessages.error.showShopInfoLoadFailed(error.message)
+      }
     }
     
-    // 加载茶叶列表
-    const loadShopTeas = () => {
-      teaLoading.value = true
-      
-      // 模拟API调用延迟
-      setTimeout(() => {
-        // 生成模拟数据
-        const mockTeas = generateMockTeas()
-        
-        // 应用筛选
-        let filteredTeas = [...mockTeas]
-        
-        // 状态筛选
-        if (statusFilter.value !== '') {
-          filteredTeas = filteredTeas.filter(tea => tea.status.toString() === statusFilter.value)
-        }
-        
-        // 分类筛选
-        if (categoryFilter.value !== '') {
-          filteredTeas = filteredTeas.filter(tea => tea.category_id === parseInt(categoryFilter.value))
-        }
-        
-        // 关键词搜索
-        if (searchQuery.value) {
-          const keyword = searchQuery.value.toLowerCase()
-          filteredTeas = filteredTeas.filter(tea => 
-            tea.name.toLowerCase().includes(keyword) || 
-            tea.id.toLowerCase().includes(keyword)
-          )
-        }
-        
-        // 计算总数
-        totalCount.value = filteredTeas.length
-        
-        // 分页
-        const start = (currentPage.value - 1) * pageSize.value
-        const end = start + pageSize.value
-        shopTeas.value = filteredTeas.slice(start, end)
-        
-        teaLoading.value = false
-      }, 600)
-    }
-    
-    // 生成模拟茶叶数据
-    const generateMockTeas = () => {
-      const teas = []
-      const shopId = shop.value ? shop.value.id : 'shop100001'
-      
-      // 生成10-20种茶叶
-      const teaCount = 15
-      
-      for (let i = 1; i <= teaCount; i++) {
-        const categoryId = Math.floor(Math.random() * 7) + 1
-        const basePrice = Math.floor(Math.random() * 300) + 100
-        const status = Math.random() > 0.3 ? 1 : 0 // 70%概率上架
-        const totalStock = Math.floor(Math.random() * 200) + 50
-        
-        // 生成规格
-        const specCount = Math.floor(Math.random() * 2) + 1
-        const specifications = []
-        
-        for (let j = 1; j <= specCount; j++) {
-          const isDefault = j === 1
-          const specPrice = j === 1 ? basePrice : Math.floor(basePrice * (1 + j * 0.2))
-          const specStock = Math.floor(totalStock / specCount)
-          
-          specifications.push({
-            id: i * 10 + j,
-            spec_name: j === 1 ? '默认规格' : `加量${j}0%装`,
-            price: specPrice,
-            stock: specStock,
-            is_default: isDefault
-          })
-        }
-        
-        const teaId = `tea${shopId.substring(4)}${i.toString().padStart(2, '0')}`
-        
-        teas.push({
-          id: teaId,
-          name: `商南${getCategoryName(categoryId)} - ${i}号`,
-          shop_id: shopId,
-          category_id: categoryId,
-          price: basePrice,
-          description: `商南${getCategoryName(categoryId)}，高山茶园精制而成，香气高雅持久，滋味醇厚。`,
-          detail: `产于商南县，特点：条索紧结，香气高雅，滋味醇厚回甘。冲泡方法：水温80-85℃，投茶量3-5克，冲泡时间30秒至1分钟。`,
-          origin: '商南县',
-          stock: totalStock,
-          sales: Math.floor(Math.random() * 100),
-          main_image: `/mock-images/tea-${(i % 8) + 1}.jpg`,
-          status: status,
-          create_time: new Date(Date.now() - Math.floor(Math.random() * 10000000000)).toISOString(),
-          update_time: new Date(Date.now() - Math.floor(Math.random() * 1000000000)).toISOString(),
-          specifications,
-          images: [
-            { id: i * 10 + 1, url: `/mock-images/tea-${(i % 8) + 1}.jpg`, is_main: true },
-            { id: i * 10 + 2, url: `/mock-images/tea-detail-${(i % 4) + 1}.jpg`, is_main: false }
-          ]
-        })
+    // 任务组0：使用Vuex加载店铺茶叶列表
+    const loadShopTeas = async () => {
+      if (!shop.value || !shop.value.id) {
+        shopMessages.prompt.showShopInfoLoadFirst()
+        return
       }
       
-      return teas
+      teaLoading.value = true
+      try {
+        const params = {
+          page: currentPage.value,
+          size: pageSize.value
+        }
+        
+        if (statusFilter.value) {
+          params.status = statusFilter.value
+        }
+        
+        if (categoryFilter.value) {
+          params.categoryId = categoryFilter.value
+        }
+        
+        if (searchQuery.value) {
+          params.keyword = searchQuery.value
+        }
+        
+        await store.dispatch('shop/fetchShopTeas', {
+          shopId: shop.value.id,
+          params
+        })
+      } catch (error) {
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        shopMessages.error.showTeaListLoadFailed(error.message)
+      } finally {
+        teaLoading.value = false
+      }
     }
     
     // 处理编辑
@@ -510,107 +737,137 @@ export default {
     }
     
     // 处理状态切换
-    const handleToggleStatus = (tea) => {
+    // 任务组C：处理状态切换（使用Vuex）
+    const handleToggleStatus = async (tea) => {
       const action = tea.status === 1 ? '下架' : '上架'
       const newStatus = tea.status === 1 ? 0 : 1
       
-      ElMessageBox.confirm(
-        `确定要${action}茶叶"${tea.name}"吗？`,
-        `${action}确认`,
-        {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }
-      ).then(() => {
-        // 模拟API调用
+      try {
+        await ElMessageBox.confirm(
+          `确定要${action}茶叶"${tea.name}"吗？`,
+          `${action}确认`,
+          {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }
+        )
+        
         teaLoading.value = true
-        setTimeout(() => {
-          // 更新本地数据
-          tea.status = newStatus
-          
-          // 提示成功
-          ElMessage.success(`${action}成功`)
-          teaLoading.value = false
-        }, 500)
-      }).catch(() => {
-        // 用户取消操作
-      })
+        await store.dispatch('shop/toggleShopTeaStatus', {
+          teaId: tea.id,
+          status: newStatus
+        })
+        
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        shopMessages.success.showTeaToggleSuccess(action)
+      } catch (error) {
+        if (error !== 'cancel') {
+          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+          shopMessages.error.showTeaToggleFailed(action, error.message)
+        }
+      } finally {
+        teaLoading.value = false
+      }
     }
     
-    // 处理删除
-    const handleDelete = (tea) => {
-      ElMessageBox.confirm(
-        `确定要删除茶叶"${tea.name}"吗？此操作不可恢复！`,
-        `删除确认`,
-        {
-          confirmButtonText: '确定删除',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }
-      ).then(() => {
-        // 模拟API调用
+    // 任务组C：处理删除（使用Vuex）
+    const handleDelete = async (tea) => {
+      try {
+        await ElMessageBox.confirm(
+          `确定要删除茶叶"${tea.name}"吗？此操作不可恢复！`,
+          `删除确认`,
+          {
+            confirmButtonText: '确定删除',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }
+        )
+        
         teaLoading.value = true
-        setTimeout(() => {
-          // 从列表中删除
-          const index = shopTeas.value.findIndex(t => t.id === tea.id)
-          if (index !== -1) {
-            shopTeas.value.splice(index, 1)
-          }
-          
-          // 提示成功
-          ElMessage.success('删除成功')
-          teaLoading.value = false
-          
-          // 如果当前页没有数据了，回到前一页
-          if (shopTeas.value.length === 0 && currentPage.value > 1) {
-            currentPage.value--
-            loadShopTeas()
-          }
-        }, 500)
-      }).catch(() => {
-        // 用户取消操作
-      })
+        await store.dispatch('shop/deleteShopTea', {
+          teaId: tea.id,
+          shopId: shop.value?.id
+        })
+        
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        shopMessages.success.showTeaDeleteSuccess()
+        
+        // 如果当前页没有数据了，回到前一页
+        if (shopTeas.value.length === 0 && currentPage.value > 1) {
+          currentPage.value--
+          await loadShopTeas()
+        }
+      } catch (error) {
+        if (error !== 'cancel') {
+          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+          shopMessages.error.showTeaDeleteFailed(error.message)
+        }
+      } finally {
+        teaLoading.value = false
+      }
     }
     
     // 对话框关闭
     const handleDialogClose = (done) => {
       if (submitting.value) {
-        ElMessage.warning('正在提交数据，请稍候...')
+        shopMessages.prompt.showSubmittingWait()
         return
       }
       done()
     }
     
-    // 保存处理
-    const handleSave = () => {
-      submitting.value = true
+    // 任务组C：保存处理（使用Vuex）
+    const handleSave = async () => {
+      if (!shop.value || !shop.value.id) {
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        shopMessages.error.showShopInfoNotExist()
+        return
+      }
       
-      setTimeout(() => {
+      submitting.value = true
+      try {
+        const teaData = {
+          ...currentTea.value,
+          shop_id: shop.value.id
+        }
+        
         if (isEdit.value) {
-          // 更新列表中的数据
-          const index = shopTeas.value.findIndex(t => t.id === currentTea.value.id)
-          if (index !== -1) {
-            shopTeas.value[index] = currentTea.value
-          }
-          ElMessage.success('茶叶更新成功')
+          // 更新茶叶
+          await store.dispatch('shop/updateShopTea', {
+            teaId: currentTea.value.id,
+            teaData
+          })
+          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+          shopMessages.success.showTeaUpdateSuccess()
         } else {
-          // 添加新茶叶
-          currentTea.value.id = `tea${shop.value.id.substring(4)}${Date.now().toString().substring(8, 13)}`
-          currentTea.value.shop_id = shop.value.id
-          currentTea.value.create_time = new Date().toISOString()
-          currentTea.value.update_time = new Date().toISOString()
-          
-          // 添加到列表首位
-          shopTeas.value.unshift(currentTea.value)
-          
-          ElMessage.success('茶叶添加成功')
+          // 添加茶叶
+          await store.dispatch('shop/addShopTea', {
+            shopId: shop.value.id,
+            teaData
+          })
+          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+          shopMessages.success.showTeaAddSuccess()
         }
         
         // 关闭对话框
         dialogVisible.value = false
+        // 重新加载列表
+        await loadShopTeas()
+      } catch (error) {
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        shopMessages.error.showTeaSaveFailed(error.message)
+      } finally {
         submitting.value = false
-      }, 800)
+      }
     }
     
     // 显示添加茶叶对话框
@@ -667,29 +924,29 @@ export default {
       return category ? category.name : '-'
     }
     
-    // 搜索处理
-    const handleSearch = () => {
+    // 任务组C：搜索处理
+    const handleSearch = async () => {
       currentPage.value = 1
-      loadShopTeas()
+      await loadShopTeas()
     }
     
-    // 筛选变更处理
-    const handleFilterChange = () => {
+    // 任务组C：筛选变更处理
+    const handleFilterChange = async () => {
       currentPage.value = 1
-      loadShopTeas()
+      await loadShopTeas()
     }
     
-    // 页码变更
-    const handlePageChange = (page) => {
+    // 任务组C：页码变更
+    const handlePageChange = async (page) => {
       currentPage.value = page
-      loadShopTeas()
+      await loadShopTeas()
     }
     
-    // 每页条数变更
-    const handleSizeChange = (size) => {
+    // 任务组C：每页条数变更
+    const handleSizeChange = async (size) => {
       pageSize.value = size
       currentPage.value = 1
-      loadShopTeas()
+      await loadShopTeas()
     }
     
     // 添加规格
@@ -729,9 +986,385 @@ export default {
       })
     }
     
+    // 任务组B：Banner管理相关
+    const bannerLoading = ref(false)
+    const shopBanners = computed(() => store.state.shop.shopBanners || [])
+    const bannerDialogVisible = ref(false)
+    const currentBanner = ref(null)
+    const isEditBanner = ref(false)
+    const bannerFormRef = ref(null)
+    
+    // 加载Banner列表
+    const loadBanners = async () => {
+      if (!shop.value || !shop.value.id) return
+      
+      bannerLoading.value = true
+      try {
+        await store.dispatch('shop/fetchShopBanners', shop.value.id)
+      } catch (error) {
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        shopMessages.error.showBannerListLoadFailed(error.message)
+      } finally {
+        bannerLoading.value = false
+      }
+    }
+    
+    // 显示添加Banner对话框
+    const showAddBannerDialog = () => {
+      isEditBanner.value = false
+      currentBanner.value = {
+        image_url: '',
+        link_url: '',
+        title: '',
+        order: shopBanners.value.length + 1,
+        is_enabled: 1
+      }
+      bannerDialogVisible.value = true
+    }
+    
+    // 显示编辑Banner对话框
+    const showEditBannerDialog = (banner) => {
+      isEditBanner.value = true
+      currentBanner.value = { ...banner }
+      bannerDialogVisible.value = true
+    }
+    
+    // 保存Banner
+    const handleSaveBanner = async () => {
+      if (!shop.value || !shop.value.id) {
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        shopMessages.error.showShopInfoNotExist()
+        return
+      }
+      
+      try {
+        const bannerData = {
+          image_url: currentBanner.value.image_url,
+          link_url: currentBanner.value.link_url,
+          title: currentBanner.value.title,
+          order: currentBanner.value.order,
+          is_enabled: currentBanner.value.is_enabled
+        }
+        
+        if (isEditBanner.value) {
+          await store.dispatch('shop/updateBanner', {
+            bannerId: currentBanner.value.id,
+            bannerData
+          })
+          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+          shopMessages.success.showBannerUpdateSuccess()
+        } else {
+          await store.dispatch('shop/uploadBanner', {
+            shopId: shop.value.id,
+            bannerData
+          })
+          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+          // TODO: [shop] 迁移到 showByCode(response.code) - success
+          shopMessages.success.showBannerAddSuccess()
+        }
+        
+        bannerDialogVisible.value = false
+        await loadBanners()
+      } catch (error) {
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        shopMessages.error.showBannerSaveFailed(error.message)
+      }
+    }
+    
+    // 删除Banner
+    const handleDeleteBanner = async (banner) => {
+      try {
+        await ElMessageBox.confirm(
+          `确定要删除Banner"${banner.title || '未命名'}"吗？`,
+          '删除确认',
+          {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }
+        )
+        
+        await store.dispatch('shop/deleteBanner', {
+          bannerId: banner.id,
+          shopId: shop.value.id
+        })
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        shopMessages.success.showBannerDeleteSuccess()
+      } catch (error) {
+        if (error !== 'cancel') {
+          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+          shopMessages.error.showBannerDeleteFailed(error.message)
+        }
+      }
+    }
+    
+    // 移动Banner顺序
+    const moveBanner = async (index, direction) => {
+      if (!shop.value || !shop.value.id) return
+      
+      const banners = [...shopBanners.value]
+      const newIndex = direction === 'up' ? index - 1 : index + 1
+      
+      if (newIndex < 0 || newIndex >= banners.length) return
+      
+      // 交换位置
+      [banners[index], banners[newIndex]] = [banners[newIndex], banners[index]]
+      
+      // 更新order
+      const orderData = banners.map((banner, i) => ({
+        id: banner.id,
+        order: i + 1
+      }))
+      
+      try {
+        await store.dispatch('shop/updateBannerOrder', {
+          orderData,
+          shopId: shop.value.id
+        })
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        shopMessages.success.showBannerOrderUpdateSuccess()
+      } catch (error) {
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        shopMessages.error.showBannerOrderUpdateFailed(error.message)
+      }
+    }
+    
+    // 任务组B：公告管理相关
+    const announcementLoading = ref(false)
+    const shopAnnouncements = computed(() => store.state.shop.shopAnnouncements || [])
+    const announcementDialogVisible = ref(false)
+    const currentAnnouncement = ref(null)
+    const isEditAnnouncement = ref(false)
+    const announcementFormRef = ref(null)
+    
+    // 加载公告列表
+    const loadAnnouncements = async () => {
+      if (!shop.value || !shop.value.id) return
+      
+      announcementLoading.value = true
+      try {
+        await store.dispatch('shop/fetchShopAnnouncements', shop.value.id)
+      } catch (error) {
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        shopMessages.error.showAnnouncementListLoadFailed(error.message)
+      } finally {
+        announcementLoading.value = false
+      }
+    }
+    
+    // 显示添加公告对话框
+    const showAddAnnouncementDialog = () => {
+      isEditAnnouncement.value = false
+      currentAnnouncement.value = {
+        title: '',
+        content: '',
+        is_top: 0
+      }
+      announcementDialogVisible.value = true
+    }
+    
+    // 显示编辑公告对话框
+    const showEditAnnouncementDialog = (announcement) => {
+      isEditAnnouncement.value = true
+      currentAnnouncement.value = { ...announcement }
+      announcementDialogVisible.value = true
+    }
+    
+    // 保存公告
+    const handleSaveAnnouncement = async () => {
+      if (!shop.value || !shop.value.id) {
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        shopMessages.error.showShopInfoNotExist()
+        return
+      }
+      
+      try {
+        const announcementData = {
+          title: currentAnnouncement.value.title,
+          content: currentAnnouncement.value.content,
+          is_top: currentAnnouncement.value.is_top ? 1 : 0
+        }
+        
+        if (isEditAnnouncement.value) {
+          await store.dispatch('shop/updateAnnouncement', {
+            announcementId: currentAnnouncement.value.id,
+            announcementData
+          })
+          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+          shopMessages.success.showAnnouncementUpdateSuccess()
+        } else {
+          await store.dispatch('shop/createAnnouncement', {
+            shopId: shop.value.id,
+            announcementData
+          })
+          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+          shopMessages.success.showAnnouncementAddSuccess()
+        }
+        
+        announcementDialogVisible.value = false
+        await loadAnnouncements()
+      } catch (error) {
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        shopMessages.error.showAnnouncementSaveFailed(error.message)
+      }
+    }
+    
+    // 删除公告
+    const handleDeleteAnnouncement = async (announcement) => {
+      try {
+        await ElMessageBox.confirm(
+          `确定要删除公告"${announcement.title}"吗？`,
+          '删除确认',
+          {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }
+        )
+        
+        await store.dispatch('shop/deleteAnnouncement', announcement.id)
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        shopMessages.success.showAnnouncementDeleteSuccess()
+      } catch (error) {
+        if (error !== 'cancel') {
+          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+          shopMessages.error.showAnnouncementDeleteFailed(error.message)
+        }
+      }
+    }
+    
+    // 格式化时间
+    const formatTime = (time) => {
+      if (!time) return '-'
+      const date = new Date(time)
+      return date.toLocaleString('zh-CN')
+    }
+    
+    // 任务组D：统计数据相关
+    const statisticsLoading = ref(false)
+    const shopStatistics = computed(() => store.state.shop.shopStatistics)
+    const dateRange = ref([])
+    
+    // 加载统计数据
+    const loadStatistics = async () => {
+      if (!shop.value || !shop.value.id) return
+      
+      statisticsLoading.value = true
+      try {
+        let startDate
+        let endDate
+        if (dateRange.value && dateRange.value.length === 2) {
+          startDate = dateRange.value[0]
+          endDate = dateRange.value[1]
+        }
+        await store.dispatch('shop/fetchShopStatistics', {
+          shopId: shop.value.id,
+          startDate,
+          endDate
+        })
+      } catch (error) {
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        shopMessages.error.showStatisticsLoadFailed(error.message)
+      } finally {
+        statisticsLoading.value = false
+      }
+    }
+    
+    // 日期范围变更处理
+    const handleDateRangeChange = () => {
+      loadStatistics()
+    }
+    
+    // 格式化金额
+    const formatMoney = (amount) => {
+      return Number(amount).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    }
+    
+    // 任务组E：Logo上传前验证（格式、大小）
+    const beforeLogoUpload = (file) => {
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
+      const isAllowedType = allowedTypes.includes(file.type)
+      const isLt2M = file.size / 1024 / 1024 < 2
+      
+      if (!isAllowedType) {
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        shopMessages.error.showLogoFormatError()
+        return false
+      }
+      if (!isLt2M) {
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        shopMessages.error.showLogoSizeError()
+        return false
+      }
+      return true
+    }
+    
+    // Logo上传成功处理
+    const handleLogoSuccess = async (response) => {
+      if (response.code === 200 && response.data) {
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        shopMessages.success.showLogoUploadSuccess()
+        // 更新店铺信息
+        await store.dispatch('shop/fetchMyShop')
+      } else {
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        shopMessages.error.showLogoUploadFailed(response.message)
+      }
+    }
+
+    // 任务组E：通过Vuex Action处理Logo上传，遵循组件 → Vuex → API 数据流
+    const handleLogoUploadRequest = async (param) => {
+      if (!shop.value || !shop.value.id) {
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        shopMessages.error.showLogoUploadNoShop()
+        param.onError(new Error('店铺信息不存在'))
+        return
+      }
+      try {
+        const res = await store.dispatch('shop/uploadShopLogo', {
+          shopId: shop.value.id,
+          file: param.file
+        })
+        // 触发 el-upload 的 on-success 回调
+        param.onSuccess({ code: 200, data: res })
+      } catch (error) {
+        console.error('Logo上传失败:', error)
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        shopMessages.error.showLogoUploadFailed(error.message)
+        param.onError(error)
+      }
+    }
+    
     onMounted(() => {
-      loadShopInfo()
-      loadShopTeas()
+      loadShopInfo().then(() => {
+        loadShopTeas()
+        loadBanners()
+        loadAnnouncements()
+        loadStatistics()
+      })
     })
     
     return {
@@ -759,6 +1392,11 @@ export default {
       handleFilterChange,
       handlePageChange,
       handleSizeChange,
+
+      // 任务组E：Logo上传
+      beforeLogoUpload,
+      handleLogoSuccess,
+      handleLogoUploadRequest,
       
       // 对话框相关
       dialogVisible,
@@ -773,7 +1411,37 @@ export default {
       handleSave,
       addSpec,
       removeSpec,
-      handleDefaultChange
+      handleDefaultChange,
+      // 任务组B：Banner管理
+      bannerLoading,
+      shopBanners,
+      bannerDialogVisible,
+      currentBanner,
+      isEditBanner,
+      bannerFormRef,
+      showAddBannerDialog,
+      showEditBannerDialog,
+      handleSaveBanner,
+      handleDeleteBanner,
+      moveBanner,
+      // 任务组B：公告管理
+      announcementLoading,
+      shopAnnouncements,
+      announcementDialogVisible,
+      currentAnnouncement,
+      isEditAnnouncement,
+      announcementFormRef,
+      showAddAnnouncementDialog,
+      showEditAnnouncementDialog,
+      handleSaveAnnouncement,
+      handleDeleteAnnouncement,
+      formatTime,
+      // 任务组D：统计数据
+      statisticsLoading,
+      shopStatistics,
+      dateRange,
+      handleDateRangeChange,
+      formatMoney
     }
   }
 }
@@ -833,6 +1501,36 @@ export default {
         
         .shop-info-left {
           margin-right: 20px;
+          
+          .logo-uploader {
+            position: relative;
+            
+            .shop-logo {
+              width: 80px;
+              height: 80px;
+              border-radius: 50%;
+              object-fit: cover;
+              cursor: pointer;
+              border: 2px dashed var(--el-border-color);
+              transition: border-color 0.3s;
+              
+              &:hover {
+                border-color: var(--el-color-primary);
+              }
+            }
+            
+            .logo-uploader-icon {
+              font-size: 28px;
+              color: var(--el-text-color-secondary);
+            }
+          }
+          
+          .logo-tip {
+            margin-top: 8px;
+            font-size: 12px;
+            color: var(--el-text-color-secondary);
+            text-align: center;
+          }
         }
         
         .shop-info-right {
@@ -914,6 +1612,183 @@ export default {
           margin-top: 20px;
           display: flex;
           justify-content: center;
+        }
+      }
+    }
+    
+    // 任务组B：Banner管理样式
+    .banner-manage-card {
+      margin-bottom: 20px;
+      
+      .banner-manage-content {
+        .empty-banner {
+          padding: 40px 0;
+        }
+        
+        .banner-list {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          
+          .banner-item {
+            display: flex;
+            gap: 16px;
+            padding: 16px;
+            border: 1px solid var(--el-border-color-light);
+            border-radius: 4px;
+            background-color: #fff;
+            
+            .banner-preview {
+              flex: 1;
+              
+              .banner-info {
+                margin-top: 12px;
+                
+                .banner-title {
+                  font-weight: 500;
+                  margin-bottom: 4px;
+                }
+                
+                .banner-link {
+                  font-size: 12px;
+                  color: var(--el-text-color-secondary);
+                  margin-bottom: 4px;
+                }
+                
+                .banner-order {
+                  font-size: 12px;
+                  color: var(--el-text-color-placeholder);
+                }
+              }
+            }
+            
+            .banner-actions {
+              display: flex;
+              flex-direction: column;
+              gap: 8px;
+              
+              .banner-order-controls {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    // 任务组B：公告管理样式
+    .announcement-manage-card {
+      margin-bottom: 20px;
+      
+      .announcement-manage-content {
+        .empty-announcement {
+          padding: 40px 0;
+        }
+        
+        .announcement-list {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          
+          .announcement-item {
+            padding: 16px;
+            border: 1px solid var(--el-border-color-light);
+            border-radius: 4px;
+            background-color: #fff;
+            
+            &.is-top {
+              border-color: var(--el-color-warning);
+              background-color: #fffbf0;
+            }
+            
+            .announcement-header {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 12px;
+              
+              .announcement-title {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-weight: 500;
+              }
+              
+              .announcement-time {
+                font-size: 12px;
+                color: var(--el-text-color-secondary);
+              }
+            }
+            
+            .announcement-content {
+              margin-bottom: 12px;
+              color: var(--el-text-color-regular);
+              line-height: 1.6;
+              white-space: pre-wrap;
+            }
+            
+            .announcement-actions {
+              display: flex;
+              gap: 8px;
+            }
+          }
+        }
+      }
+    }
+    
+    // 任务组D：统计数据样式
+    .statistics-card {
+      margin-bottom: 20px;
+      
+      .statistics-overview {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+        margin-bottom: 30px;
+        
+        .overview-item {
+          padding: 20px;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          border-radius: 8px;
+          color: #fff;
+          text-align: center;
+          
+          &:nth-child(2) {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+          }
+          
+          &:nth-child(3) {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+          }
+          
+          &:nth-child(4) {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+          }
+          
+          .overview-label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+          }
+          
+          .overview-value {
+            font-size: 24px;
+            font-weight: bold;
+          }
+        }
+      }
+      
+      .statistics-trend,
+      .statistics-hot-products {
+        margin-top: 30px;
+        
+        .section-title {
+          margin-bottom: 16px;
+          font-size: 16px;
+          font-weight: 500;
+          color: var(--el-text-color-primary);
         }
       }
     }

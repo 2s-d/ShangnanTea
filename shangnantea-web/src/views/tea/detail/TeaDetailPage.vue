@@ -118,9 +118,9 @@
           <div class="tea-specs">
             <div class="spec-label">规格：</div>
             <div class="spec-options">
-              <el-radio-group v-model="selectedSpecId">
+              <el-radio-group v-model="selectedSpecId" @change="handleSpecChange">
                 <el-radio-button 
-                  v-for="spec in tea.specifications" 
+                  v-for="spec in teaSpecifications" 
                   :key="spec.id" 
                   :label="spec.id"
                   :disabled="spec.stock <= 0"
@@ -181,7 +181,7 @@
                 <el-descriptions-item label="分类">{{ getCategoryName(tea.category_id) }}</el-descriptions-item>
                 <el-descriptions-item label="产地">商南县</el-descriptions-item>
                 <el-descriptions-item label="规格">
-                  <div v-for="spec in tea.specifications" :key="spec.id">
+                  <div v-for="spec in teaSpecifications" :key="spec.id">
                     {{ spec.spec_name }} - ¥{{ spec.price }}
                   </div>
                 </el-descriptions-item>
@@ -191,21 +191,40 @@
               </el-descriptions>
             </div>
           </el-tab-pane>
-          <el-tab-pane :label="`用户评价(${(tea.reviews || []).length})`" name="reviews">
+          <el-tab-pane :label="`用户评价(${reviewTotalCount})`" name="reviews">
+            <!-- 评价统计 -->
+            <div class="review-stats" v-if="reviewStats">
+              <div class="stats-overview">
+                <div class="average-rating">
+                  <span class="rating-value">{{ reviewStats.averageRating || 0 }}</span>
+                  <el-rate v-model="averageRatingNumber" disabled :max="5" />
+                  <span class="total-count">共{{ reviewStats.totalCount || 0 }}条评价</span>
+                </div>
+                <div class="rating-distribution" v-if="reviewStats.ratingDistribution">
+                  <div v-for="(count, rating) in reviewStats.ratingDistribution" :key="rating" class="distribution-item">
+                    <span class="rating-label">{{ rating }}星</span>
+                    <el-progress :percentage="(count / reviewStats.totalCount) * 100" :stroke-width="8" />
+                    <span class="count-label">{{ count }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 评价列表 -->
             <div class="review-list">
-              <div v-if="(tea.reviews || []).length === 0" class="empty-reviews">
+              <div v-if="teaReviews.length === 0" class="empty-reviews">
                 暂无评价，购买后可以添加评价
               </div>
               <div v-else class="review-items">
-                <div v-for="review in (tea.reviews || [])" :key="review.id" class="review-item">
+                <div v-for="review in teaReviews" :key="review.id" class="review-item">
                   <div class="review-header">
                     <div class="user-info">
-                      <SafeImage :src="review.user_avatar" type="avatar" :alt="review.user_name" style="width:40px;height:40px;border-radius:50%;object-fit:cover;" class="user-avatar" />
-                      <span class="user-name">{{ review.user_name }}</span>
+                      <SafeImage :src="review.avatar || review.user_avatar" type="avatar" :alt="review.username || review.user_name" style="width:40px;height:40px;border-radius:50%;object-fit:cover;" class="user-avatar" />
+                      <span class="user-name">{{ review.username || review.user_name }}</span>
                     </div>
                     <div class="review-rating">
-                      <el-rate v-model="review.rating" disabled />
-                      <span class="review-time">{{ review.create_time }}</span>
+                      <el-rate :model-value="review.rating" disabled />
+                      <span class="review-time">{{ formatTime(review.createTime || review.create_time) }}</span>
                     </div>
                   </div>
                   <div class="review-content">{{ review.content }}</div>
@@ -214,14 +233,24 @@
                       <SafeImage :src="img" type="tea" :alt="tea.name" class="tea-review-image" />
                     </div>
                   </div>
-                  <div class="review-reply" v-if="review.has_reply">
+                  <div class="review-actions">
+                    <el-button 
+                      type="text" 
+                      size="small" 
+                      @click="handleLikeReview(review)"
+                      :class="{ 'liked': review.isLiked }"
+                    >
+                      <el-icon><Like /></el-icon> {{ review.likeCount || 0 }}
+                    </el-button>
+                  </div>
+                  <div class="review-reply" v-if="review.reply">
                     <div class="reply-header">
                       <span class="shop-name">{{ isPlatformTea ? '平台回复' : tea.shop_name }}</span>
-                      <span class="reply-time">{{ review.reply_time }}</span>
+                      <span class="reply-time">{{ formatTime(review.replyTime || review.reply_time) }}</span>
                     </div>
                     <div class="reply-content">{{ review.reply }}</div>
                   </div>
-                  <div class="shop-actions" v-if="isShopOwner && !review.has_reply">
+                  <div class="shop-actions" v-if="isShopOwner && !review.reply">
                     <el-button 
                       type="primary" 
                       size="small" 
@@ -255,9 +284,47 @@
                   </div>
                 </div>
               </div>
+              
+              <!-- 评价分页 -->
+              <div class="review-pagination" v-if="reviewTotalCount > 0">
+                <el-pagination
+                  background
+                  layout="prev, pager, next"
+                  :total="reviewTotalCount"
+                  :page-size="reviewPageSize"
+                  :current-page="reviewCurrentPage"
+                  @current-change="handleReviewPageChange"
+                />
+              </div>
             </div>
           </el-tab-pane>
         </el-tabs>
+      </div>
+      
+      <!-- 任务组F：相似推荐 -->
+      <div class="recommend-section" v-if="similarTeas.length > 0">
+        <h2 class="section-title">相似推荐</h2>
+        <div class="recommend-list">
+          <div 
+            v-for="tea in similarTeas" 
+            :key="tea.id" 
+            class="recommend-item"
+            @click="goToTeaDetail(tea.id)"
+          >
+            <SafeImage :src="tea.main_image" type="tea" :alt="tea.name" class="recommend-image" />
+            <div class="recommend-info">
+              <div class="recommend-name">{{ tea.name }}</div>
+              <div class="recommend-price">
+                <span class="current-price">¥{{ tea.discount_price || tea.price }}</span>
+                <span v-if="tea.discount_price" class="original-price">¥{{ tea.price }}</span>
+              </div>
+              <div class="recommend-meta">
+                <span class="sales">销量: {{ tea.sales }}</span>
+                <el-rate :model-value="tea.rating" disabled :max="5" size="small" />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     
@@ -273,9 +340,11 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useStore } from 'vuex'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { Back, ShoppingCart, Star, ChatLineRound } from '@element-plus/icons-vue'
+import { ElMessageBox } from 'element-plus'
+import { Back, ShoppingCart, Star, ChatLineRound, Like } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
+import { showByCode, isSuccess } from '@/utils/apiMessages'
+import teaMessages from '@/utils/promptMessages'
 
 export default {
   name: "TeaDetailPage",
@@ -284,6 +353,7 @@ export default {
     ShoppingCart,
     Star,
     ChatLineRound,
+    Like,
     SafeImage
   },
   setup() {
@@ -297,7 +367,14 @@ export default {
     const selectedSpecId = ref(null)
     const quantity = ref(1)
     const currentImageIndex = ref(0)
-    const isFavorite = ref(false)
+    // 从Vuex获取收藏列表，判断当前茶叶是否已收藏
+    const favoriteList = computed(() => store.state.user.favoriteList || [])
+    const isFavorite = computed(() => {
+      if (!tea.value) return false
+      return favoriteList.value.some(item => 
+        item.targetType === 'tea' && item.targetId === tea.value.id
+      )
+    })
     const favoriteLoading = ref(false)
     
     // 回复相关状态
@@ -309,6 +386,29 @@ export default {
     const isShopOwner = computed(() => {
       const currentUserId = store.state.user.userInfo?.id
       return currentUserId && tea.value && currentUserId === tea.value.shopOwnerId
+    })
+    
+    // 任务组B：评价相关数据
+    const teaReviews = computed(() => store.state.tea.teaReviews || [])
+    const reviewStats = computed(() => store.state.tea.reviewStats)
+    const reviewTotalCount = computed(() => store.state.tea.reviewPagination?.total || 0)
+    const reviewCurrentPage = computed(() => store.state.tea.reviewPagination?.currentPage || 1)
+    const reviewPageSize = computed(() => store.state.tea.reviewPagination?.pageSize || 10)
+    const averageRatingNumber = computed(() => {
+      if (reviewStats.value && reviewStats.value.averageRating) {
+        return parseFloat(reviewStats.value.averageRating)
+      }
+      return 0
+    })
+    
+    // 任务组C：规格相关数据
+    const teaSpecifications = computed(() => {
+      // 优先使用Vuex中的规格列表，如果没有则使用currentTea中的规格
+      const specs = store.state.tea.currentTeaSpecs || []
+      if (specs.length > 0) {
+        return specs
+      }
+      return tea.value?.specifications || []
     })
     
     // 显示回复表单
@@ -326,19 +426,72 @@ export default {
     // 提交回复
     const submitReply = async (review) => {
       if (!replyContent.value.trim()) {
-        ElMessage.warning('请输入回复内容')
+        teaMessages.prompt.showReplyEmpty()
         return
       }
       
       submittingReply.value = true
       
       try {
-        // 生产版：等待后端与 Vuex action 对接（不在前端伪造“回复成功”状态）
-        ElMessage.info('回复评价功能待后端接口完成后接入')
+        await store.dispatch('tea/replyReview', {
+          reviewId: review.id,
+          reply: replyContent.value
+        })
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        teaMessages.success.showReplySuccess()
+        activeReplyId.value = null
+        replyContent.value = ''
       } catch (error) {
-        ElMessage.error(error.message || '回复失败')
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        teaMessages.error.showReplyFailed(error.message)
       } finally {
         submittingReply.value = false
+      }
+    }
+    
+    // 点赞评价
+    const handleLikeReview = async (review) => {
+      try {
+        await store.dispatch('tea/likeReview', review.id)
+      } catch (error) {
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        teaMessages.error.showLikeFailed(error.message)
+      }
+    }
+    
+    // 评价分页变化
+    const handleReviewPageChange = (page) => {
+      if (tea.value) {
+        store.dispatch('tea/fetchTeaReviews', {
+          teaId: tea.value.id,
+          page,
+          pageSize: reviewPageSize.value
+        })
+      }
+    }
+    
+    // 格式化时间
+    const formatTime = (time) => {
+      if (!time) return ''
+      const date = new Date(time)
+      const now = new Date()
+      const diff = now - date
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+      
+      if (days === 0) {
+        const hours = Math.floor(diff / (1000 * 60 * 60))
+        if (hours === 0) {
+          const minutes = Math.floor(diff / (1000 * 60))
+          return minutes <= 0 ? '刚刚' : `${minutes}分钟前`
+        }
+        return `${hours}小时前`
+      } else if (days < 7) {
+        return `${days}天前`
+      } else {
+        return date.toLocaleDateString('zh-CN')
       }
     }
     
@@ -353,7 +506,41 @@ export default {
     
     // 切换收藏状态
     const toggleFavorite = async () => {
-      ElMessage.info('收藏功能待后端接口完成后接入')
+      if (!tea.value) return
+      
+      favoriteLoading.value = true
+      try {
+        if (isFavorite.value) {
+          // 取消收藏：找到收藏记录并删除
+          const favoriteItem = favoriteList.value.find(item => 
+            item.targetType === 'tea' && item.targetId === tea.value.id
+          )
+          if (favoriteItem) {
+            await store.dispatch('user/removeFavorite', favoriteItem.id)
+            // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+            teaMessages.success.showRemovedFromFavorites()
+          }
+        } else {
+          // 添加收藏
+          await store.dispatch('user/addFavorite', {
+            targetId: tea.value.id,
+            targetType: 'tea',
+            targetName: tea.value.name,
+            targetImage: tea.value.main_image || tea.value.images?.[0] || ''
+          })
+          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+          // TODO: [tea] 迁移到 showByCode(response.code) - success
+          teaMessages.success.showAddedToFavorites()
+        }
+      } catch (error) {
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        teaMessages.error.showFavoriteFailed(error.message)
+      } finally {
+        favoriteLoading.value = false
+      }
     }
     
     // 加载茶叶详情（生产版：走 Vuex）
@@ -361,8 +548,26 @@ export default {
       try {
         const teaId = route.params.id
         await store.dispatch('tea/fetchTeaDetail', teaId)
-
-        const specs = store.state.tea.currentTea?.specifications || []
+        
+        // 任务组B：同时加载评价列表和统计数据
+        // 任务组C：同时加载规格列表
+        // 任务组D：加载图片列表（如果后端返回的tea.images为空，则从Vuex获取）
+        // 任务组F：加载相似推荐
+        await Promise.all([
+          store.dispatch('tea/fetchTeaReviews', { teaId, page: 1, pageSize: 10 }),
+          store.dispatch('tea/fetchReviewStats', teaId),
+          store.dispatch('tea/fetchTeaSpecifications', teaId),
+          store.dispatch('tea/fetchRecommendTeas', { type: 'similar', teaId, count: 6 })
+        ])
+        
+        // 任务组D：如果当前茶叶的images为空，尝试从Vuex获取
+        if ((!store.state.tea.currentTea?.images || store.state.tea.currentTea.images.length === 0) && 
+            store.state.tea.teaImages && store.state.tea.teaImages.length > 0) {
+          store.state.tea.currentTea.images = store.state.tea.teaImages
+        }
+        
+        // 任务组C：设置默认规格（从Vuex的currentTeaSpecs获取）
+        const specs = store.state.tea.currentTeaSpecs || []
         const defaultSpec = specs.find(spec => spec.is_default === 1)
         if (defaultSpec) {
           selectedSpecId.value = defaultSpec.id
@@ -370,29 +575,69 @@ export default {
           selectedSpecId.value = specs[0].id
         }
       } catch (e) {
-        ElMessage.error(e?.message || '加载茶叶详情失败')
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        teaMessages.error.showDetailFailed(e?.message)
       }
     }
     
     // 计算属性 - 是否为平台直售
     const isPlatformTea = computed(() => {
-      return tea.value && tea.value.shop_id === 'PLATFORM';
+      return tea.value && (tea.value.shopId === '0' || tea.value.shop_id === '0' || tea.value.shop_id === 'PLATFORM');
     })
 
     // 兼容后端返回的图片结构（可能是 string[] 或 {url}[]）
+    // 任务组D：图片列表（优先使用Vuex中的teaImages，如果没有则使用currentTea中的images）
     const teaImages = computed(() => {
+      // 优先使用Vuex中的teaImages
+      const vuexImages = store.state.tea.teaImages || []
+      if (vuexImages.length > 0) {
+        // 按order排序，然后提取url
+        return vuexImages
+          .sort((a, b) => (a.order || 0) - (b.order || 0))
+          .map(img => img.url)
+          .filter(Boolean)
+      }
+      
+      // 如果没有Vuex数据，使用currentTea中的images
       const imgs = tea.value?.images || []
       if (!Array.isArray(imgs)) return []
       if (imgs.length === 0) return []
       if (typeof imgs[0] === 'string') return imgs
-      return imgs.map(i => i?.url).filter(Boolean)
+      
+      // 如果是对象数组，按order排序后提取url
+      const imageObjects = imgs.filter(i => i && i.url)
+      if (imageObjects.length > 0) {
+        return imageObjects
+          .sort((a, b) => (a.order || 0) - (b.order || 0))
+          .map(i => i.url)
+          .filter(Boolean)
+      }
+      
+      return []
     })
     
     // 计算属性 - 当前选中的规格
     const selectedSpec = computed(() => {
-      if (!tea.value || !selectedSpecId.value) return null
-      return tea.value.specifications.find(spec => spec.id === selectedSpecId.value)
+      if (!selectedSpecId.value) return null
+      return teaSpecifications.value.find(spec => spec.id === selectedSpecId.value)
     })
+    
+    // 任务组C：规格选择变化处理
+    const handleSpecChange = (specId) => {
+      const spec = teaSpecifications.value.find(s => s.id === specId)
+      if (spec) {
+        store.commit('tea/SET_SELECTED_SPEC', spec)
+      }
+    }
+    
+    // 任务组F：相似推荐数据
+    const similarTeas = computed(() => store.state.tea.recommendTeas || [])
+    
+    // 任务组F：跳转到茶叶详情页
+    const goToTeaDetail = (teaId) => {
+      router.push(`/tea/${teaId}`)
+    }
     
     // 计算属性 - 当前库存
     const currentStock = computed(() => {
@@ -410,22 +655,30 @@ export default {
     // 加入购物车
     const addToCart = async () => {
       if (!canAddToCart.value) {
-        ElMessage.warning('该商品已售罄')
+        teaMessages.prompt.showSoldOut()
         return
       }
       
       if (!selectedSpecId.value) {
-        ElMessage.warning('请先选择规格')
+        teaMessages.prompt.showSelectSpec()
         return
       }
       
       submitting.value = true
       try {
-        // 生产版：通过 order 模块 action 走后端
-        await store.dispatch('order/addToCart', { teaId: tea.value.id, quantity: quantity.value })
-        ElMessage.success('成功加入购物车')
+        // 生产版：通过 order 模块 action 走后端，传递规格ID
+        await store.dispatch('order/addToCart', { 
+          teaId: tea.value.id, 
+          quantity: quantity.value,
+          specificationId: selectedSpecId.value
+        })
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        teaMessages.success.showAddedToCart()
       } catch (error) {
-        ElMessage.error(error.message || '加入购物车失败')
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        teaMessages.error.showCartFailed(error.message)
       } finally {
         submitting.value = false
       }
@@ -434,12 +687,12 @@ export default {
     // 立即购买
     const buyNow = async () => {
       if (!canAddToCart.value) {
-        ElMessage.warning('该商品已售罄')
+        teaMessages.prompt.showSoldOut()
         return
       }
       
       if (!selectedSpecId.value) {
-        ElMessage.warning('请先选择规格')
+        teaMessages.prompt.showSelectSpec()
         return
       }
       
@@ -448,7 +701,9 @@ export default {
         // TODO: 直接购买的生产版流程需要订单模块提供“direct buy”能力；目前先跳转结算页
         router.push('/order/checkout?direct=1')
       } catch (error) {
-        ElMessage.error(error.message || '立即购买失败')
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        teaMessages.error.showBuyFailed(error.message)
       } finally {
         submitting.value = false
       }
@@ -462,7 +717,10 @@ export default {
       }
       
       // 否则跳转到对应的店铺详情页
-      router.push(`/shop/${tea.value.shop_id}`);
+      const shopId = tea.value?.shopId || tea.value?.shop_id;
+      if (shopId) {
+        router.push(`/shop/${shopId}`);
+      }
     }
     
     // 联系店铺客服
@@ -473,7 +731,10 @@ export default {
       }
       
       // 跳转到消息中心的私信聊天页面，传递店铺ID
-      router.push(`/message/center/chat?shopId=${tea.value.shop_id}`);
+      const shopId = tea.value?.shopId || tea.value?.shop_id;
+      if (shopId) {
+        router.push(`/message/center/chat?shopId=${shopId}`);
+      }
     }
     
     // 返回上一页
@@ -531,7 +792,10 @@ export default {
       cancelReply,
       submitReply,
       defaultAvatar,
-      contactShop
+      contactShop,
+      // 任务组F：相似推荐
+      similarTeas,
+      goToTeaDetail
     }
   }
 }
@@ -989,6 +1253,92 @@ export default {
     
     .el-button {
       margin-top: 20px;
+    }
+  }
+  
+  // 任务组F：相似推荐样式
+  .recommend-section {
+    margin-top: 40px;
+    padding: 30px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+    
+    .section-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #303133;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #409eff;
+    }
+    
+    .recommend-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
+      
+      .recommend-item {
+        cursor: pointer;
+        transition: transform 0.3s, box-shadow 0.3s;
+        border-radius: 8px;
+        overflow: hidden;
+        background-color: #fff;
+        border: 1px solid #ebeef5;
+        
+        &:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .recommend-image {
+          width: 100%;
+          height: 200px;
+          object-fit: cover;
+        }
+        
+        .recommend-info {
+          padding: 15px;
+          
+          .recommend-name {
+            font-size: 14px;
+            color: #303133;
+            margin-bottom: 10px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+          
+          .recommend-price {
+            margin-bottom: 10px;
+            
+            .current-price {
+              font-size: 18px;
+              font-weight: 600;
+              color: #f56c6c;
+              margin-right: 8px;
+            }
+            
+            .original-price {
+              font-size: 14px;
+              color: #909399;
+              text-decoration: line-through;
+            }
+          }
+          
+          .recommend-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #909399;
+            
+            .sales {
+              flex: 1;
+            }
+          }
+        }
+      }
     }
   }
 }

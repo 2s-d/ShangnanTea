@@ -125,10 +125,46 @@
             </el-timeline>
           </div>
         </div>
-
-        <!-- 添加"查看详细物流"操作按钮，仅当订单是待收货状态时显示 -->
-        <div v-if="orderDetail.order_status === 2" class="detail-section action-section">
-          <el-button type="primary" @click="viewLogistics">查看详细物流</el-button>
+        
+        <!-- 退款信息 -->
+        <div v-if="refundInfo.status" class="detail-section">
+          <div class="section-title">退款信息</div>
+          <div class="info-item">
+            <span class="label">退款状态：</span>
+            <span class="value">
+              <el-tag v-if="refundInfo.status === 'pending'" type="warning">待审核</el-tag>
+              <el-tag v-else-if="refundInfo.status === 'approved'" type="success">已同意</el-tag>
+              <el-tag v-else-if="refundInfo.status === 'rejected'" type="danger">已拒绝</el-tag>
+              <span v-else>{{ refundInfo.status }}</span>
+            </span>
+          </div>
+          <div class="info-item">
+            <span class="label">退款原因：</span>
+            <span class="value">{{ refundInfo.reason || '未填写' }}</span>
+          </div>
+          <div class="info-item" v-if="refundInfo.process_reason">
+            <span class="label">审核意见：</span>
+            <span class="value">{{ refundInfo.process_reason }}</span>
+          </div>
+        </div>
+        
+        <!-- 操作按钮区域：待收货时支持查看物流与确认收货；已完成时显示评价按钮；可申请退款 -->
+        <div class="detail-section action-section">
+          <template v-if="orderDetail.order_status === 2">
+            <el-button type="primary" @click="viewLogistics">查看详细物流</el-button>
+            <el-button type="success" @click="confirmReceipt">确认收货</el-button>
+          </template>
+          <template v-else-if="canReview">
+            <el-button type="primary" @click="writeReview">待评价</el-button>
+            <el-button type="info" @click="viewLogistics">查看物流</el-button>
+          </template>
+          <el-button
+            v-if="canRequestRefund"
+            type="warning"
+            @click="openRefundDialog"
+          >
+            申请退款
+          </el-button>
         </div>
       </div>
 
@@ -137,6 +173,33 @@
         <el-button @click="goBack">返回订单列表</el-button>
       </div>
     </el-card>
+
+    <!-- 申请退款对话框 -->
+    <el-dialog
+      v-model="refundDialogVisible"
+      title="申请退款"
+      width="500px"
+      :close-on-click-modal="false"
+    >
+      <el-form>
+        <el-form-item label="退款原因" required>
+          <el-input
+            v-model="refundReason"
+            type="textarea"
+            :rows="4"
+            placeholder="请详细说明退款原因，至少5个字"
+            maxlength="200"
+            show-word-limit
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="refundDialogVisible = false">取消</el-button>
+        <el-button type="warning" :loading="refundSubmitting" @click="submitRefund">
+          提交申请
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -144,28 +207,15 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useStore } from 'vuex'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessageBox } from 'element-plus'
+import { orderSuccessMessages, orderErrorMessages } from '@/utils/orderMessages'
+import { orderPromptMessages } from '@/utils/promptMessages'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-
-/*
-// 真实代码（开发UI时注释）
-import { ref, onMounted, computed } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { useStore } from 'vuex'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { ArrowLeft } from '@element-plus/icons-vue'
-*/
-
 export default {
   name: 'OrderDetailPage',
   components: {
     SafeImage
-    
-    /*
-    // 真实代码（开发UI时注释）
-    ArrowLeft
-    */
-  },
+},
   setup() {
     const router = useRouter()
     const route = useRoute()
@@ -195,6 +245,12 @@ export default {
       tracking_number: '',
       ship_time: '',
       traces: []
+    })
+    
+    const refundInfo = ref({
+      status: '',
+      reason: '',
+      process_reason: ''
     })
     
     // 获取订单状态文本
@@ -278,11 +334,11 @@ export default {
         // 生产形态：不在 UI 层 setTimeout 伪成功，不本地修改订单状态
         store.dispatch('order/cancelOrder', orderId)
           .then(() => {
-            ElMessage.success('订单已取消')
+            orderSuccessMessages.showOrderCanceled()
             loadOrderDetail()
           })
           .catch((error) => {
-            ElMessage.error(`取消订单失败: ${error.message || '请稍后再试'}`)
+            orderErrorMessages.showOrderCancelFailed(error.message)
           })
       }).catch(() => {
         // 用户取消操作，不做任何处理
@@ -299,25 +355,96 @@ export default {
         // 生产形态：不在 UI 层 setTimeout 伪成功，不本地修改订单状态
         store.dispatch('order/confirmReceipt', orderId)
           .then(() => {
-            ElMessage.success('确认收货成功')
+            orderSuccessMessages.showOrderConfirmed()
             loadOrderDetail()
           })
           .catch((error) => {
-            ElMessage.error(`确认收货失败: ${error.message || '请稍后再试'}`)
+            orderErrorMessages.showOrderConfirmFailed(error.message)
           })
       }).catch(() => {
         // 用户取消操作，不做任何处理
       })
     }
     
-    // 查看物流
-    const viewLogistics = () => {
-      ElMessage.info('查看完整物流信息功能开发中')
+    // 查看物流：调用 Vuex action 获取最新物流信息并刷新本地展示
+    const viewLogistics = async () => {
+      try {
+        const data = await store.dispatch('order/fetchOrderLogistics', orderId)
+        if (data) {
+          logistics.value = {
+            company: data.company || logistics.value.company,
+            tracking_number: data.tracking_number || logistics.value.tracking_number,
+            ship_time: data.ship_time || logistics.value.ship_time,
+            traces: data.traces || logistics.value.traces
+          }
+          orderSuccessMessages.showLogisticsRefreshed()
+        } else {
+          orderPromptMessages.showNoLogisticsInfo()
+        }
+      } catch (error) {
+        orderErrorMessages.showLogisticsLoadFailed(error.message)
+      }
+    }
+    
+    const canRequestRefund = computed(() => {
+      if (!orderDetail.value) return false
+      const status = orderDetail.value.order_status
+      if (status === 5) return false
+      // 简单规则：待发货/待收货/已完成允许申请一次
+      return status === 1 || status === 2 || status === 3
+    })
+    
+    // 是否可以评价（订单状态为已完成）
+    const canReview = computed(() => {
+      if (!orderDetail.value) return false
+      return orderDetail.value.order_status === 3 // 已完成
+    })
+    
+    const refundDialogVisible = ref(false)
+    const refundSubmitting = ref(false)
+    const refundReason = ref('')
+    
+    const openRefundDialog = () => {
+      if (!canRequestRefund.value) {
+        orderPromptMessages.showRefundNotSupported()
+        return
+      }
+      refundReason.value = ''
+      refundDialogVisible.value = true
+    }
+    
+    const submitRefund = async () => {
+      if (!refundReason.value || refundReason.value.trim().length < 5) {
+        orderPromptMessages.showRefundReasonTooShort()
+        return
+      }
+      refundSubmitting.value = true
+      try {
+        await store.dispatch('order/requestRefund', {
+          orderId,
+          reason: refundReason.value.trim()
+        })
+        orderSuccessMessages.showRefundSubmitted()
+        refundDialogVisible.value = false
+        // 重新获取退款详情
+        const detail = await store.dispatch('order/fetchRefundDetail', orderId)
+        if (detail) {
+          refundInfo.value = {
+            status: detail.status || '',
+            reason: detail.reason || '',
+            process_reason: detail.process_reason || ''
+          }
+        }
+      } catch (error) {
+        orderErrorMessages.showRefundSubmitFailed(error.message)
+      } finally {
+        refundSubmitting.value = false
+      }
     }
     
     // 联系卖家
     const contactSeller = () => {
-      ElMessage.info('联系卖家功能开发中')
+      orderPromptMessages.showContactSellerDev()
     }
     
     // 评价商品
@@ -327,7 +454,7 @@ export default {
     
     // 再次购买
     const buyAgain = () => {
-      ElMessage.info('再次购买功能开发中')
+      orderPromptMessages.showBuyAgainDev()
       // 实际场景中，可能需要将所有商品添加到购物车，然后跳转到购物车页面
     }
     
@@ -339,7 +466,7 @@ export default {
         type: 'warning'
       }).then(() => {
         // TODO-SCRIPT: 删除订单需要后端接口支持（生产形态：不在 UI 层伪删除/伪成功）
-        ElMessage.info('删除订单功能待后端接口接入')
+        orderPromptMessages.showDeleteOrderDev()
       }).catch(() => {
         // 用户取消操作，不做任何处理
       })
@@ -350,9 +477,37 @@ export default {
       store.dispatch('order/fetchOrderDetail', orderId)
         .then((data) => {
           orderDetail.value = data
+          // 同步收货地址和物流信息
+          const addr = data?.address || {}
+          address.value = {
+            name: addr.name || '',
+            phone: addr.phone || '',
+            province: addr.province || '',
+            city: addr.city || '',
+            district: addr.district || '',
+            detail: addr.detail || ''
+          }
+          const logi = data?.logistics || {}
+          logistics.value = {
+            company: logi.company || '',
+            tracking_number: logi.tracking_number || '',
+            ship_time: logi.ship_time || '',
+            traces: logi.traces || []
+          }
+          // 拉取退款详情（如果有）
+          store.dispatch('order/fetchRefundDetail', orderId)
+            .then((detail) => {
+              if (detail) {
+                refundInfo.value = {
+                  status: detail.status || '',
+                  reason: detail.reason || '',
+                  process_reason: detail.process_reason || ''
+                }
+              }
+            })
         })
         .catch((error) => {
-          ElMessage.error(`获取订单详情失败: ${error.message || '请稍后再试'}`)
+          orderErrorMessages.showOrderDetailLoadFailed(error.message)
           orderDetail.value = null
         })
     }
@@ -363,242 +518,19 @@ export default {
     // 初始化
     onMounted(() => {
       if (!orderId) {
-        ElMessage.error('订单ID不能为空')
+        orderErrorMessages.showOrderIdRequired()
         goBack()
         return
       }
       
       loadOrderDetail()
     })
-    
-    
-    /*
-    // 真实代码（开发UI时注释）
-    const router = useRouter()
-    const route = useRoute()
-    const store = useStore()
-    const loading = ref(false)
-    
-    // 从路由参数获取订单ID
-    const orderId = route.params.id
-    
-    // 订单详情数据
-    const orderDetail = ref(null)
-    
-    // 收货地址
-    const address = ref({})
-    
-    // 物流信息
-    const logistics = ref({
-      company: '',
-      tracking_number: '',
-      ship_time: '',
-      traces: []
-    })
-    
-    // 获取订单状态文本
-    const getStatusText = (status) => {
-      const statusMap = {
-        1: '待付款',
-        2: '待发货',
-        3: '待收货',
-        4: '已完成',
-        5: '已取消',
-        6: '已退款'
-      }
-      return statusMap[status] || '未知状态'
-    }
-    
-    // 获取状态对应的类名
-    const getStatusClass = (status) => {
-      const classMap = {
-        1: 'status-unpaid',
-        2: 'status-unshipped',
-        3: 'status-shipped',
-        4: 'status-completed',
-        5: 'status-cancelled',
-        6: 'status-refunded'
-      }
-      return classMap[status] || ''
-    }
-    
-    // 获取支付方式文本
-    const getPaymentMethodText = (method) => {
-      const methodMap = {
-        'alipay': '支付宝',
-        'wechat': '微信支付',
-        'unionpay': '银联支付'
-      }
-      return methodMap[method] || '未知方式'
-    }
-    
-    // 计算商品总金额
-    const getProductsAmount = () => {
-      if (!orderDetail.value || !orderDetail.value.items) return 0
-      
-      return orderDetail.value.items.reduce((sum, item) => {
-        return sum + (item.price * item.quantity)
-      }, 0)
-    }
-    
-    // 格式化时间
-    const formatTime = (timeStr) => {
-      if (!timeStr) return '--'
-      
-      const date = new Date(timeStr)
-      return `${date.getFullYear()}-${padZero(date.getMonth() + 1)}-${padZero(date.getDate())} ${padZero(date.getHours())}:${padZero(date.getMinutes())}`
-    }
-    
-    // 数字补零
-    const padZero = (num) => {
-      return num < 10 ? `0${num}` : num
-    }
-    
-    // 返回订单列表
-    const goBack = () => {
-      router.push('/order/list')
-    }
-    
-    // 查看茶叶详情
-    const viewTeaDetail = (teaId) => {
-      router.push(`/tea/${teaId}`)
-    }
-    
-    // 继续支付
-    const continuePay = () => {
-      router.push(`/order/payment?orderId=${orderDetail.value.order_id}`)
-    }
-    
-    // 取消订单
-    const cancelOrder = async () => {
-      try {
-        await ElMessageBox.confirm('确定要取消该订单吗？取消后无法恢复', '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        })
-        
-        await store.dispatch('order/cancelOrder', orderId)
-        ElMessage.success('订单已取消')
-        loadOrderDetail() // 重新加载订单详情
-      } catch (error) {
-        if (error !== 'cancel') {
-          ElMessage.error('取消订单失败')
-        }
-      }
-    }
-    
-    // 确认收货
-    const confirmReceipt = async () => {
-      try {
-        await ElMessageBox.confirm('确认已收到商品吗？', '提示', {
-          confirmButtonText: '确认收货',
-          cancelButtonText: '取消',
-          type: 'info'
-        })
-        
-        await store.dispatch('order/confirmReceipt', orderId)
-        ElMessage.success('确认收货成功')
-        loadOrderDetail() // 重新加载订单详情
-      } catch (error) {
-        if (error !== 'cancel') {
-          ElMessage.error('确认收货失败')
-        }
-      }
-    }
-    
-    // 查看物流
-    const viewLogistics = () => {
-      router.push(`/order/logistics/${orderId}`)
-    }
-    
-    // 联系卖家
-    const contactSeller = () => {
-      // 这里可以实现跳转到消息页面或者打开联系窗口等功能
-      router.push(`/message/chat?order=${orderId}`)
-    }
-    
-    // 评价商品
-    const writeReview = () => {
-      router.push(`/order/review/${orderId}`)
-    }
-    
-    // 再次购买
-    const buyAgain = async () => {
-      try {
-        // 将订单中的商品添加到购物车
-        await store.dispatch('order/buyAgain', orderId)
-        ElMessage.success('已将商品添加到购物车')
-        router.push('/order/cart')
-      } catch (error) {
-        ElMessage.error('操作失败')
-      }
-    }
-    
-    // 删除订单
-    const deleteOrder = async () => {
-      try {
-        await ElMessageBox.confirm('确定要删除该订单吗？删除后无法恢复', '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        })
-        
-        await store.dispatch('order/deleteOrder', orderId)
-        ElMessage.success('订单已删除')
-        goBack() // 删除后返回订单列表
-      } catch (error) {
-        if (error !== 'cancel') {
-          ElMessage.error('删除订单失败')
-        }
-      }
-    }
-    
-    // 加载订单详情
-    const loadOrderDetail = async () => {
-      try {
-        loading.value = true
-        
-        // 获取订单详情
-        const orderData = await store.dispatch('order/getOrderById', orderId)
-        orderDetail.value = orderData
-        
-        // 获取地址信息
-        if (orderDetail.value && orderDetail.value.address_id) {
-          const addressData = await store.dispatch('user/getAddressById', orderDetail.value.address_id)
-          address.value = addressData
-        }
-        
-        // 如果订单状态为已发货或已完成，获取物流信息
-        if (orderDetail.value && (orderDetail.value.order_status === 3 || orderDetail.value.order_status === 4)) {
-          const logisticsData = await store.dispatch('order/getLogistics', orderId)
-          logistics.value = logisticsData
-        }
-      } catch (error) {
-        ElMessage.error('获取订单详情失败')
-        orderDetail.value = null
-      } finally {
-        loading.value = false
-      }
-    }
-    
-    // 初始化
-    onMounted(() => {
-      if (!orderId) {
-        ElMessage.error('订单ID不能为空')
-        goBack()
-        return
-      }
-      
-      loadOrderDetail()
-    })
-    */
-    
-    return {
+return {
       loading,
       orderDetail,
       address,
       logistics,
+      refundInfo,
       getStatusText,
       getStatusClass,
       getPaymentMethodText,
@@ -614,31 +546,15 @@ export default {
       writeReview,
       buyAgain,
       deleteOrder,
-      defaultTeaImage
-      
-      /*
-      // 真实代码（开发UI时注释）
-      loading,
-      orderDetail,
-      address,
-      logistics,
-      getStatusText,
-      getStatusClass,
-      getPaymentMethodText,
-      getProductsAmount,
-      formatTime,
-      goBack,
-      viewTeaDetail,
-      continuePay,
-      cancelOrder,
-      confirmReceipt,
-      viewLogistics,
-      contactSeller,
-      writeReview,
-      buyAgain,
-      deleteOrder
-      */
-    }
+      defaultTeaImage,
+      canRequestRefund,
+      canReview,
+      refundDialogVisible,
+      refundSubmitting,
+      refundReason,
+      openRefundDialog,
+      submitRefund
+}
   }
 }
 </script>

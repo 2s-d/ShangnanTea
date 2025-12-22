@@ -7,6 +7,14 @@ import {
   cancelOrder,
   confirmOrder,
   refundOrder,
+  reviewOrder,
+  processRefund,
+  getRefundDetail,
+  shipOrder,
+  batchShipOrders,
+  getOrderLogistics,
+  getOrderStatistics,
+  exportOrders,
   // 引入购物车相关API
   getCartItems,
   addToCart,
@@ -24,6 +32,10 @@ const state = () => ({
     currentPage: 1,
     pageSize: 10
   },
+  // 筛选条件
+  filters: {},
+  // 订单统计数据
+  orderStatistics: null,
   
   // 购物车相关状态
   cartItems: [],
@@ -104,6 +116,12 @@ const mutations = {
   // 通用mutations
   SET_LOADING(state, status) {
     state.loading = status
+  },
+  SET_FILTERS(state, filters) {
+    state.filters = { ...state.filters, ...filters }
+  },
+  SET_ORDER_STATISTICS(state, statistics) {
+    state.orderStatistics = statistics
   }
 }
 
@@ -116,9 +134,9 @@ const actions = {
       commit('SET_LOADING', true)
       
       const res = await getCartItems()
-      commit('SET_CART_ITEMS', res.data)
+      commit('SET_CART_ITEMS', res)
       
-      return res.data
+      return res
     } finally {
       commit('SET_LOADING', false)
     }
@@ -205,7 +223,7 @@ const actions = {
         await dispatch('clearCart')
       }
       
-      return res.data
+      return res
     } finally {
       commit('SET_LOADING', false)
     }
@@ -224,14 +242,14 @@ const actions = {
       
       const res = await getOrders(queryParams)
       
-      commit('SET_ORDER_LIST', res.data.list)
+      commit('SET_ORDER_LIST', res.list)
       commit('SET_PAGINATION', {
-        total: res.data.total,
+        total: res.total,
         currentPage: state.pagination.currentPage,
         pageSize: state.pagination.pageSize
       })
       
-      return res.data
+      return res
     } finally {
       commit('SET_LOADING', false)
     }
@@ -243,9 +261,9 @@ const actions = {
       commit('SET_LOADING', true)
       
       const res = await getOrderDetail(id)
-      commit('SET_CURRENT_ORDER', res.data)
+      commit('SET_CURRENT_ORDER', res)
       
-      return res.data
+      return res
     } finally {
       commit('SET_LOADING', false)
     }
@@ -261,7 +279,7 @@ const actions = {
       // 更新订单状态
       commit('UPDATE_ORDER_STATUS', { id: orderId, status: 1 }) // 1:待发货
       
-      return res.data
+      return res
     } finally {
       commit('SET_LOADING', false)
     }
@@ -309,7 +327,159 @@ const actions = {
     try {
       commit('SET_LOADING', true)
       const res = await refundOrder({ orderId, reason })
-      return res.data
+      return res
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+  
+  /**
+   * 提交订单评价
+   * @param {Object} payload { orderId, teaId, rating, content, images, isAnonymous }
+   */
+  async submitOrderReview({ commit }, payload) {
+    try {
+      commit('SET_LOADING', true)
+      const res = await reviewOrder(payload)
+      return res
+    } catch (error) {
+      console.error('提交评价失败:', error)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+  
+  // 更新筛选条件
+  updateFilters({ commit }, filters) {
+    commit('SET_FILTERS', filters)
+  },
+  
+  // === 发货相关 actions ===
+  
+  /**
+   * 单个订单发货
+   * @param {Object} payload { id, logisticsCompany, logisticsNumber }
+   */
+  async shipOrder({ commit }, { id, logisticsCompany, logisticsNumber }) {
+    try {
+      commit('SET_LOADING', true)
+      const res = await shipOrder({ id, logisticsCompany, logisticsNumber })
+      // 更新订单状态为待收货
+      commit('UPDATE_ORDER_STATUS', { id, status: 2 })
+      return res
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+  
+  /**
+   * 批量发货
+   * @param {Object} payload { orderIds, logisticsCompany, logisticsNumber }
+   */
+  async batchShipOrders({ commit, dispatch }, { orderIds, logisticsCompany, logisticsNumber }) {
+    try {
+      commit('SET_LOADING', true)
+      const res = await batchShipOrders({ orderIds, logisticsCompany, logisticsNumber })
+      // 更新所有订单状态为待收货
+      orderIds.forEach(id => {
+        commit('UPDATE_ORDER_STATUS', { id, status: 2 })
+      })
+      return res
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+  
+  /**
+   * 获取订单物流信息
+   * @param {string} id 订单ID
+   */
+  async fetchOrderLogistics({ commit }, id) {
+    try {
+      const res = await getOrderLogistics(id)
+      return res
+    } catch (error) {
+      console.error('获取物流信息失败:', error)
+      throw error
+    }
+  },
+  
+  // === 退款相关 actions ===
+  
+  /**
+   * 获取退款详情
+   * @param {string} orderId 订单ID
+   */
+  async fetchRefundDetail({ commit }, orderId) {
+    try {
+      const res = await getRefundDetail(orderId)
+      return res
+    } catch (error) {
+      console.error('获取退款详情失败:', error)
+      throw error
+    }
+  },
+  
+  /**
+   * 审批退款
+   * @param {Object} payload { orderId, approve, reason }
+   */
+  async processRefund({ commit }, { orderId, approve, reason }) {
+    try {
+      commit('SET_LOADING', true)
+      const res = await processRefund({ orderId, approve, reason })
+      // 更新订单状态
+      if (approve) {
+        commit('UPDATE_ORDER_STATUS', { id: orderId, status: 5 }) // 已退款
+      }
+      return res
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+  
+  // === 统计与导出 actions ===
+  
+  /**
+   * 获取订单统计数据
+   * @param {Object} params { startDate, endDate, shopId }
+   */
+  async fetchOrderStatistics({ commit }, params = {}) {
+    try {
+      const res = await getOrderStatistics(params)
+      commit('SET_ORDER_STATISTICS', res)
+      return res
+    } catch (error) {
+      console.error('获取订单统计失败:', error)
+      throw error
+    }
+  },
+  
+  /**
+   * 导出订单数据
+   * @param {Object} params { format, startDate, endDate, status, shopId }
+   */
+  async exportOrders({ commit }, params = {}) {
+    try {
+      commit('SET_LOADING', true)
+      const blob = await exportOrders(params)
+      
+      // 创建下载链接
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      const format = params.format || 'csv'
+      link.download = `orders_${new Date().toISOString().slice(0, 10)}.${format}`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+      
+      return true
+    } catch (error) {
+      console.error('导出订单失败:', error)
+      throw error
     } finally {
       commit('SET_LOADING', false)
     }

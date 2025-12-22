@@ -8,12 +8,14 @@
         <result column="user_id" property="userId" jdbcType="VARCHAR"/>
         <result column="item_type" property="itemType" jdbcType="VARCHAR"/>
         <result column="item_id" property="itemId" jdbcType="VARCHAR"/>
+        <result column="target_name" property="targetName" jdbcType="VARCHAR"/>
+        <result column="target_image" property="targetImage" jdbcType="VARCHAR"/>
         <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
     </resultMap>
     
     <!-- 公共列 -->
     <sql id="Base_Column_List">
-        id, user_id, item_type, item_id, create_time
+        id, user_id, item_type, item_id, target_name, target_image, create_time
     </sql>
     
     <!-- 根据ID查询收藏 -->

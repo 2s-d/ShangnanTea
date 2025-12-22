@@ -5,6 +5,21 @@
         <div class="card-header">
           <h2 class="page-title">订单管理</h2>
           <div class="header-actions">
+            <el-button
+              type="success"
+              size="small"
+              @click="openExportDialog"
+            >
+              导出订单
+            </el-button>
+            <el-button
+              type="primary"
+              size="small"
+              :disabled="!hasBatchSelection"
+              @click="openBatchShipDialog"
+            >
+              批量发货
+            </el-button>
             <el-tooltip content="刷新订单列表" placement="top">
               <el-button circle @click="refreshOrders" :loading="loading">
                 <el-icon><Refresh /></el-icon>
@@ -13,6 +28,93 @@
           </div>
         </div>
       </template>
+
+      <!-- 任务组D：订单统计数据展示 -->
+      <div class="statistics-section">
+        <el-card shadow="hover" class="statistics-card">
+          <template #header>
+            <div class="statistics-header">
+              <span class="statistics-title">订单统计</span>
+              <el-date-picker
+                v-model="statisticsDateRange"
+                type="daterange"
+                range-separator="至"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+                value-format="YYYY-MM-DD"
+                @change="handleStatisticsDateChange"
+                size="small"
+                style="width: 300px;"
+              />
+              <el-button type="primary" size="small" @click="loadStatistics">查询</el-button>
+            </div>
+          </template>
+          
+          <!-- 概览卡片 -->
+          <div v-if="orderStatistics" class="overview-cards">
+            <div class="overview-card">
+              <div class="overview-label">总订单数</div>
+              <div class="overview-value">{{ orderStatistics.overview?.total_orders || 0 }}</div>
+            </div>
+            <div class="overview-card">
+              <div class="overview-label">总金额</div>
+              <div class="overview-value">¥{{ (orderStatistics.overview?.total_amount || 0).toFixed(2) }}</div>
+            </div>
+            <div class="overview-card">
+              <div class="overview-label">待付款</div>
+              <div class="overview-value">{{ orderStatistics.overview?.pending_payment || 0 }}</div>
+            </div>
+            <div class="overview-card">
+              <div class="overview-label">待发货</div>
+              <div class="overview-value">{{ orderStatistics.overview?.pending_shipment || 0 }}</div>
+            </div>
+            <div class="overview-card">
+              <div class="overview-label">待收货</div>
+              <div class="overview-value">{{ orderStatistics.overview?.pending_receipt || 0 }}</div>
+            </div>
+            <div class="overview-card">
+              <div class="overview-label">已完成</div>
+              <div class="overview-value">{{ orderStatistics.overview?.completed || 0 }}</div>
+            </div>
+            <div class="overview-card">
+              <div class="overview-label">已取消</div>
+              <div class="overview-value">{{ orderStatistics.overview?.cancelled || 0 }}</div>
+            </div>
+            <div class="overview-card">
+              <div class="overview-label">已退款</div>
+              <div class="overview-value">{{ orderStatistics.overview?.refunded || 0 }}</div>
+            </div>
+          </div>
+          
+          <!-- 订单趋势 -->
+          <div v-if="orderStatistics?.trends" class="trend-section">
+            <h3 class="section-title">订单趋势（最近7天）</h3>
+            <el-table :data="orderStatistics.trends" border size="small" style="margin-top: 10px;">
+              <el-table-column prop="date" label="日期" width="120" />
+              <el-table-column prop="orders_count" label="订单数" width="100" />
+              <el-table-column prop="amount" label="金额" width="120">
+                <template #default="scope">
+                  ¥{{ (scope.row.amount || 0).toFixed(2) }}
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+          
+          <!-- 状态分布 -->
+          <div v-if="orderStatistics?.status_distribution" class="status-distribution-section">
+            <h3 class="section-title">订单状态分布</h3>
+            <el-table :data="orderStatistics.status_distribution" border size="small" style="margin-top: 10px;">
+              <el-table-column prop="status_name" label="状态" width="120" />
+              <el-table-column prop="count" label="数量" width="100" />
+              <el-table-column prop="percentage" label="占比" width="120">
+                <template #default="scope">
+                  {{ scope.row.percentage }}%
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+        </el-card>
+      </div>
 
       <!-- 搜索和筛选区域 -->
       <div class="search-filter-section">
@@ -43,6 +145,14 @@
               value-format="YYYY-MM-DD"
             />
           </el-form-item>
+          <el-form-item label="排序">
+            <el-select v-model="sortKey" placeholder="默认排序" clearable>
+              <el-option label="下单时间-最新优先" value="timeDesc" />
+              <el-option label="下单时间-最早优先" value="timeAsc" />
+              <el-option label="金额-从高到低" value="amountDesc" />
+              <el-option label="金额-从低到高" value="amountAsc" />
+            </el-select>
+          </el-form-item>
           <el-form-item>
             <el-button type="primary" @click="handleSearch">搜索</el-button>
             <el-button @click="resetSearch">重置</el-button>
@@ -53,12 +163,18 @@
       <!-- 订单列表 -->
       <div class="order-list-section">
         <el-table
+          @selection-change="handleSelectionChange"
           v-loading="loading"
           :data="orderList"
           style="width: 100%"
           border
           stripe
         >
+          <el-table-column
+            type="selection"
+            width="55"
+            :selectable="row => row.status === 1 && row.refund_status !== 1"
+          />
           <el-table-column prop="id" label="订单编号" min-width="180" show-overflow-tooltip>
             <template #default="scope">
               <el-link type="primary" @click="viewOrderDetail(scope.row.id)">{{ scope.row.id }}</el-link>
@@ -68,13 +184,13 @@
           <el-table-column prop="spec_name" label="规格" min-width="120" show-overflow-tooltip />
           <el-table-column prop="price" label="单价" min-width="100">
             <template #default="scope">
-              ¥{{ scope.row.price.toFixed(2) }}
+              ¥{{ (scope.row.price || 0).toFixed(2) }}
             </template>
           </el-table-column>
           <el-table-column prop="quantity" label="数量" min-width="80" />
           <el-table-column prop="total_amount" label="总金额" min-width="120">
             <template #default="scope">
-              ¥{{ scope.row.total_amount.toFixed(2) }}
+              ¥{{ (scope.row.total_amount || 0).toFixed(2) }}
             </template>
           </el-table-column>
           <el-table-column prop="status" label="订单状态" min-width="120">
@@ -82,7 +198,12 @@
               <el-tag :type="getStatusType(scope.row.status)" effect="light">
                 {{ getStatusText(scope.row.status) }}
               </el-tag>
-              <el-tag v-if="scope.row._temp_refund_applied" type="warning" effect="light" style="margin-left: 5px">
+              <el-tag
+                v-if="scope.row.refund_status === 1"
+                type="warning"
+                effect="light"
+                style="margin-left: 5px"
+              >
                 退款申请中
               </el-tag>
             </template>
@@ -93,7 +214,7 @@
               <!-- 待发货状态 -->
               <div v-if="scope.row.status === 1">
                 <el-button 
-                  v-if="!scope.row._temp_refund_applied" 
+                  v-if="scope.row.refund_status !== 1"
                   type="primary" 
                   size="small" 
                   @click="shipOrder(scope.row)"
@@ -101,7 +222,7 @@
                   发货
                 </el-button>
                 <el-button 
-                  v-if="scope.row._temp_refund_applied" 
+                  v-if="scope.row.refund_status === 1"
                   type="warning" 
                   size="small" 
                   @click="openRefundDetail(scope.row)"
@@ -171,6 +292,38 @@
       </template>
     </el-dialog>
 
+    <!-- 批量发货对话框 -->
+    <el-dialog
+      v-model="batchShipDialogVisible"
+      title="批量发货"
+      width="500px"
+    >
+      <el-form :model="batchShipForm" label-width="120px">
+        <el-form-item label="已选订单">
+          <span>共 {{ selectedOrderIds.length }} 笔订单</span>
+        </el-form-item>
+        <el-form-item label="物流公司" required>
+          <el-select v-model="batchShipForm.company" placeholder="请选择物流公司" style="width: 100%">
+            <el-option label="顺丰速运" value="顺丰速运" />
+            <el-option label="中通快递" value="中通快递" />
+            <el-option label="圆通快递" value="圆通快递" />
+            <el-option label="韵达快递" value="韵达快递" />
+            <el-option label="申通快递" value="申通快递" />
+            <el-option label="邮政EMS" value="邮政EMS" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="统一单号" required>
+          <el-input v-model="batchShipForm.trackingNumber" placeholder="请输入物流单号（可按内部规则编码）" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="batchShipDialogVisible = false">取消</el-button>
+          <el-button type="primary" :loading="submitting" @click="confirmBatchShip">确认批量发货</el-button>
+        </span>
+      </template>
+    </el-dialog>
+
     <!-- 退款申请处理对话框 -->
     <el-dialog
       v-model="refundDialogVisible"
@@ -183,8 +336,13 @@
           {{ currentRefundOrder?.tea_name }} ({{ currentRefundOrder?.spec_name }}) x{{ currentRefundOrder?.quantity }}
         </el-descriptions-item>
         <el-descriptions-item label="订单金额">¥{{ currentRefundOrder?.total_amount?.toFixed(2) }}</el-descriptions-item>
-        <el-descriptions-item label="申请时间">{{ formatRefundApplyTime() }}</el-descriptions-item>
-        <el-descriptions-item label="退款原因">{{ currentRefundOrder?._temp_refund_reason || '未提供原因' }}</el-descriptions-item>
+        <el-descriptions-item label="申请时间">{{ refundDetail?.apply_time || formatRefundApplyTime() }}</el-descriptions-item>
+        <el-descriptions-item label="退款原因">
+          {{ refundDetail?.reason || currentRefundOrder?.refund_reason || '未提供原因' }}
+        </el-descriptions-item>
+        <el-descriptions-item v-if="refundDetail?.reject_reason" label="拒绝原因">
+          {{ refundDetail.reject_reason }}
+        </el-descriptions-item>
       </el-descriptions>
       
       <template #footer>
@@ -199,41 +357,101 @@
         </span>
       </template>
     </el-dialog>
+
+    <!-- 任务组E：导出订单对话框 -->
+    <el-dialog
+      v-model="exportDialogVisible"
+      title="导出订单"
+      width="500px"
+      :close-on-click-modal="false"
+    >
+      <el-form :model="exportForm" label-width="120px">
+        <el-form-item label="日期范围">
+          <el-date-picker
+            v-model="exportForm.dateRange"
+            type="daterange"
+            range-separator="至"
+            start-placeholder="开始日期"
+            end-placeholder="结束日期"
+            value-format="YYYY-MM-DD"
+            style="width: 100%"
+          />
+        </el-form-item>
+        <el-form-item label="订单状态">
+          <el-select v-model="exportForm.status" placeholder="全部状态" clearable style="width: 100%">
+            <el-option label="待付款" :value="0" />
+            <el-option label="待发货" :value="1" />
+            <el-option label="待收货" :value="2" />
+            <el-option label="已完成" :value="3" />
+            <el-option label="已取消" :value="4" />
+            <el-option label="已退款" :value="5" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="导出格式" required>
+          <el-radio-group v-model="exportForm.format">
+            <el-radio label="csv">CSV格式</el-radio>
+            <el-radio label="excel">Excel格式</el-radio>
+          </el-radio-group>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="exportDialogVisible = false">取消</el-button>
+          <el-button type="primary" :loading="exporting" @click="confirmExport">
+            确认导出
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { ref, reactive, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { Refresh } from '@element-plus/icons-vue'
-
-/*
-// 真实代码（开发UI时注释）
-import { ref, reactive, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, reactive, computed, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useStore } from 'vuex'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessageBox } from 'element-plus'
 import { Refresh } from '@element-plus/icons-vue'
-*/
+import { orderSuccessMessages, orderErrorMessages } from '@/utils/orderMessages'
+import { orderPromptMessages } from '@/utils/promptMessages'
 
-// TODO-DB: 订单管理页面权限与数据过滤说明
-// 1. 商家(角色ID: 3)和管理员(角色ID: 1)都可以访问此页面，但数据范围不同
-// 2. 商家只能查看/操作自己店铺的订单 (根据shop_id过滤)
-// 3. 管理员只能查看/操作平台直售的订单 (固定shop_id的订单)
-// 4. 实际开发时，在OrderManageViewModel中实现shopId过滤逻辑：
-//    - 商家：useStore().getters['user/shopId']
-//    - 管理员：PLATFORM_SHOP_ID (平台店铺固定ID)
-// 5. 所有API请求需要自动附加shopId参数，确保权限隔离
+/**
+ * 订单权限控制说明（P2-6：订单权限控制的完整性）
+ * 
+ * 权限规则：
+ * 1. 管理员(role=1)：
+ *    - 可以查看所有订单（不进行shopId过滤）
+ *    - 可以管理所有订单（发货、退款处理等）
+ *    - 路由权限：meta.roles: [ROLES.ADMIN, ROLES.SHOP]
+ * 
+ * 2. 商家(role=3)：
+ *    - 只能查看自己店铺的订单（后端通过shopId过滤）
+ *    - 只能管理自己店铺的订单（发货、退款处理等）
+ *    - 路由权限：meta.roles: [ROLES.ADMIN, ROLES.SHOP]
+ *    - 前端需要从Vuex获取当前商家的shopId，并在API请求中附加
+ * 
+ * 3. 普通用户(role=2)：
+ *    - 不能访问订单管理页面（路由守卫已拦截）
+ *    - 只能访问 /order/list 查看自己的订单
+ *    - 路由权限：meta.roles: [ROLES.USER, ROLES.SHOP]
+ * 
+ * 权限验证层级：
+ * - 路由守卫：验证用户角色，无权限时重定向
+ * - 前端组件：根据角色显示/隐藏功能按钮
+ * - API请求：后端根据userId和shopId进行数据过滤
+ * - 后端Controller：必须验证token中的用户信息，确保数据安全
+ */
 
 export default {
   name: 'OrderManagePage',
   setup() {
     const router = useRouter()
+    const route = useRoute()
+    const store = useStore()
     const loading = ref(false)
     const submitting = ref(false)
     
-    // 分页相关
+    // 分页相关（由 Vuex 维护）
     const currentPage = ref(1)
     const pageSize = ref(10)
     const total = ref(0)
@@ -254,215 +472,97 @@ export default {
       trackingNumber: ''
     })
     
+    // 批量发货
+    const batchShipDialogVisible = ref(false)
+    const selectedOrderIds = ref([])
+    const batchShipForm = reactive({
+      company: '',
+      trackingNumber: ''
+    })
+    const hasBatchSelection = ref(false)
+    
+    // 排序
+    const sortKey = ref('')
+    
     // 退款申请处理相关
     const refundDialogVisible = ref(false)
     const currentRefundOrder = ref(null)
+    const refundDetail = ref(null)
     
-    // TODO-VUEX: 实际开发时，需要根据用户角色获取shopId
-    // 模拟订单数据(UI开发阶段使用)
-    const mockOrders = [
-      {
-        id: 'OD20250301001',
-        user_id: 'cy100002',
-        shop_id: 'shop100001', // 商家店铺ID
-        tea_id: 'tea1000001',
-        tea_name: '商南翠峰',
-        spec_id: 1,
-        spec_name: '罐装100g',
-        tea_image: '/images/tea1_main.png',
-        quantity: 2,
-        price: 128.00,
-        total_amount: 256.00,
-        address_id: 1,
-        status: 1, // 待发货
-        payment_method: '支付宝',
-        create_time: '2025-03-01 10:23:45',
-        update_time: '2025-03-01 10:28:45',
-        // 临时字段：是否申请退款(仅用于UI开发)
-        _temp_refund_applied: true,
-        // 临时字段：退款原因(仅用于UI开发)
-        _temp_refund_reason: '商品与描述不符，请求退款'
-      },
-      {
-        id: 'OD20250302001',
-        user_id: 'cy100002',
-        shop_id: 'shop100001', // 商家店铺ID
-        tea_id: 'tea1000002',
-        tea_name: '商南红茶特级',
-        spec_id: 2,
-        spec_name: '盒装200g',
-        tea_image: '/images/tea2_main.png',
-        quantity: 1,
-        price: 238.00,
-        total_amount: 238.00,
-        address_id: 1,
-        status: 1, // 待发货
-        payment_method: '微信支付',
-        create_time: '2025-03-02 14:35:22',
-        update_time: '2025-03-02 14:40:15',
-        _temp_refund_applied: false,
-        _temp_refund_reason: ''
-      },
-      {
-        id: 'OD20250303001',
-        user_id: 'cy100003',
-        shop_id: 'shop100001', // 商家店铺ID
-        tea_id: 'tea1000003',
-        tea_name: '商南绿茶珍品',
-        spec_id: 3,
-        spec_name: '礼盒装500g',
-        tea_image: '/images/tea3_main.png',
-        quantity: 1,
-        price: 568.00,
-        total_amount: 568.00,
-        address_id: 2,
-        status: 2, // 待收货
-        payment_method: '支付宝',
-        logistics_company: '顺丰速运',
-        logistics_number: 'SF1234567890',
-        shipping_time: '2025-03-03 10:15:30',
-        create_time: '2025-03-03 09:12:45',
-        update_time: '2025-03-03 10:15:30',
-        _temp_refund_applied: false,
-        _temp_refund_reason: ''
-      },
-      {
-        id: 'OD20250304001',
-        user_id: 'cy100002',
-        shop_id: 'PLATFORM', // 平台直售商品
-        tea_id: 'tea2000001',
-        tea_name: '平台直售商南红茶',
-        spec_id: 1,
-        spec_name: '罐装100g',
-        tea_image: '/images/platform_tea1.png',
-        quantity: 1,
-        price: 108.00,
-        total_amount: 108.00,
-        address_id: 1,
-        status: 1, // 待发货
-        payment_method: '微信支付',
-        create_time: '2025-03-04 16:23:45',
-        update_time: '2025-03-04 16:28:45',
-        _temp_refund_applied: false,
-        _temp_refund_reason: ''
-      },
-      {
-        id: 'OD20250305001',
-        user_id: 'cy100003',
-        shop_id: 'PLATFORM', // 平台直售商品
-        tea_id: 'tea2000002',
-        tea_name: '平台直售商南绿茶',
-        spec_id: 2,
-        spec_name: '盒装200g',
-        tea_image: '/images/platform_tea2.png',
-        quantity: 2,
-        price: 158.00,
-        total_amount: 316.00,
-        address_id: 2,
-        status: 3, // 已完成
-        payment_method: '支付宝',
-        logistics_company: '顺丰速运',
-        logistics_number: 'SF2345678901',
-        shipping_time: '2025-03-05 11:45:30',
-        completion_time: '2025-03-08 09:30:15',
-        create_time: '2025-03-05 10:33:45',
-        update_time: '2025-03-08 09:30:15',
-        _temp_refund_applied: false,
-        _temp_refund_reason: ''
-      }
-    ]
+    // 任务组D：订单统计数据相关
+    const statisticsDateRange = ref([])
+    const orderStatistics = computed(() => store.state.order.orderStatistics)
     
-    // 模拟收货地址数据
-    const mockAddresses = {
-      1: {
-        id: 1,
-        user_id: 'cy100002',
-        name: '张三',
-        phone: '13900000002',
-        province: '北京市',
-        city: '北京市',
-        district: '海淀区',
-        detail: '中关村科技园23号楼403室'
-      },
-      2: {
-        id: 2,
-        user_id: 'cy100003',
-        name: '李四',
-        phone: '13900000003',
-        province: '上海市',
-        city: '上海市',
-        district: '浦东新区',
-        detail: '张江高科技园区88号'
+    // 任务组E：导出订单相关
+    const exportDialogVisible = ref(false)
+    const exporting = ref(false)
+    const exportForm = reactive({
+      dateRange: [],
+      status: '',
+      format: 'csv'
+    })
+    
+    // 列表数据来自 Vuex
+    const orderList = ref([])
+    
+    // 从后端获取订单列表（同步 Vuex filters）
+    const fetchOrders = async () => {
+      loading.value = true
+      try {
+        // 解析时间范围
+        let startDate = ''
+        let endDate = ''
+        if (searchForm.dateRange && searchForm.dateRange.length === 2) {
+          startDate = searchForm.dateRange[0] || ''
+          endDate = searchForm.dateRange[1] || ''
+        }
+        // 解析排序
+        let sortBy = ''
+        let sortOrder = ''
+        if (sortKey.value === 'timeDesc') {
+          sortBy = 'create_time'
+          sortOrder = 'desc'
+        } else if (sortKey.value === 'timeAsc') {
+          sortBy = 'create_time'
+          sortOrder = 'asc'
+        } else if (sortKey.value === 'amountDesc') {
+          sortBy = 'total_amount'
+          sortOrder = 'desc'
+        } else if (sortKey.value === 'amountAsc') {
+          sortBy = 'total_amount'
+          sortOrder = 'asc'
+        }
+        // 更新 Vuex中的筛选条件
+        const filters = {
+          status: searchForm.status,
+          startDate,
+          endDate,
+          keyword: searchForm.orderId || searchForm.teaName || '',
+          sortBy,
+          sortOrder
+        }
+        await store.dispatch('order/updateFilters', filters)
+        const data = await store.dispatch('order/fetchOrders', {
+          page: currentPage.value,
+          size: pageSize.value
+        })
+        orderList.value = data.list || store.state.order.orderList || []
+        const p = store.state.order.pagination
+        total.value = p.total
+        currentPage.value = p.currentPage
+        pageSize.value = p.pageSize
+      } finally {
+        loading.value = false
       }
     }
     
-    // UI模拟订单列表
-    const orderList = ref([])
-    
-    // UI-DEV: 模拟查询订单列表
-    const fetchOrders = () => {
-      loading.value = true
-      
-      // 模拟网络请求延迟
-      setTimeout(() => {
-        // 模拟根据商家或管理员身份筛选订单
-        // 注意：真实场景应在后端根据用户角色自动筛选
-        
-        // 假设当前是管理员，只能看平台订单
-        const isAdmin = true
-        // 假设当前是商家，拥有shop100001店铺
-        const isShop = false
-        const myShopId = 'shop100001'
-        
-        let filteredOrders = []
-        
-        if (isAdmin) {
-          // 管理员只能看平台直售订单
-          filteredOrders = mockOrders.filter(order => order.shop_id === 'PLATFORM')
-        } else if (isShop) {
-          // 商家只能看自己店铺的订单
-          filteredOrders = mockOrders.filter(order => order.shop_id === myShopId)
-        } else {
-          // 模拟开发阶段，显示所有订单
-          filteredOrders = [...mockOrders]
-        }
-        
-        // 应用搜索条件
-        if (searchForm.orderId) {
-          filteredOrders = filteredOrders.filter(order => 
-            order.id.toLowerCase().includes(searchForm.orderId.toLowerCase())
-          )
-        }
-        
-        if (searchForm.teaName) {
-          filteredOrders = filteredOrders.filter(order => 
-            order.tea_name.toLowerCase().includes(searchForm.teaName.toLowerCase())
-          )
-        }
-        
-        if (searchForm.status !== '') {
-          filteredOrders = filteredOrders.filter(order => order.status === searchForm.status)
-        }
-        
-        if (searchForm.dateRange && searchForm.dateRange.length === 2) {
-          const startDate = new Date(searchForm.dateRange[0])
-          const endDate = new Date(searchForm.dateRange[1])
-          endDate.setHours(23, 59, 59, 999) // 设置为当天结束时间
-          
-          filteredOrders = filteredOrders.filter(order => {
-            const orderDate = new Date(order.create_time)
-            return orderDate >= startDate && orderDate <= endDate
-          })
-        }
-        
-        // 模拟分页
-        total.value = filteredOrders.length
-        const start = (currentPage.value - 1) * pageSize.value
-        const end = start + pageSize.value
-        
-        orderList.value = filteredOrders.slice(start, end)
-        loading.value = false
-      }, 600)
+    // 多选变更
+    const handleSelectionChange = (rows) => {
+      const ids = rows
+        .filter(row => row.status === 1 && row.refund_status !== 1)
+        .map(row => row.id)
+      selectedOrderIds.value = ids
+      hasBatchSelection.value = ids.length > 0
     }
     
     // 刷新订单列表
@@ -470,9 +570,33 @@ export default {
       fetchOrders()
     }
     
+    // 将筛选条件同步到 URL query
+    const syncQueryToRoute = () => {
+      // 解析时间范围
+      let startDate = ''
+      let endDate = ''
+      if (searchForm.dateRange && searchForm.dateRange.length === 2) {
+        startDate = searchForm.dateRange[0] || ''
+        endDate = searchForm.dateRange[1] || ''
+      }
+      router.replace({
+        query: {
+          ...route.query,
+          page: String(currentPage.value),
+          orderId: searchForm.orderId || undefined,
+          teaName: searchForm.teaName || undefined,
+          status: searchForm.status !== '' ? String(searchForm.status) : undefined,
+          startDate: startDate || undefined,
+          endDate: endDate || undefined,
+          sort: sortKey.value || undefined
+        }
+      })
+    }
+    
     // 搜索订单
     const handleSearch = () => {
       currentPage.value = 1
+      syncQueryToRoute()
       fetchOrders()
     }
     
@@ -482,7 +606,9 @@ export default {
       searchForm.teaName = ''
       searchForm.status = ''
       searchForm.dateRange = []
+      sortKey.value = ''
       currentPage.value = 1
+      syncQueryToRoute()
       fetchOrders()
     }
     
@@ -495,6 +621,7 @@ export default {
     // 处理当前页变化
     const handleCurrentChange = (page) => {
       currentPage.value = page
+      syncQueryToRoute()
       fetchOrders()
     }
     
@@ -537,54 +664,113 @@ export default {
       shipDialogVisible.value = true
     }
     
-    // 打开退款详情对话框
-    const openRefundDetail = (order) => {
+    // 打开退款详情对话框（从后端获取退款详情）
+    const openRefundDetail = async (order) => {
       currentRefundOrder.value = order
+      refundDetail.value = null
       refundDialogVisible.value = true
+      
+      // 从后端获取退款详情
+      try {
+        const detail = await store.dispatch('order/fetchRefundDetail', order.id)
+        refundDetail.value = detail
+      } catch (e) {
+        orderErrorMessages.showRefundDetailLoadFailed()
+        // 如果获取失败，使用订单中的基本信息作为后备
+        refundDetail.value = {
+          reason: order.refund_reason || '',
+          apply_time: order.update_time || ''
+        }
+      }
     }
     
-    // 格式化退款申请时间
+    // 格式化退款申请时间（后备方法）
     const formatRefundApplyTime = () => {
       if (!currentRefundOrder.value) return ''
-      // 实际开发时应从退款申请表中获取申请时间
-      // 这里简单返回更新时间作为示例
-      return currentRefundOrder.value.update_time
+      return currentRefundOrder.value.update_time || ''
     }
     
-    // 确认发货
-    const confirmShip = () => {
+    // 确认发货（走 Vuex + API）
+    const confirmShip = async () => {
+      if (!currentOrder.value) {
+        orderPromptMessages.showOrderNotFound()
+        return
+      }
+      
       // 表单验证
       if (!shipForm.company) {
-        ElMessage.warning('请选择物流公司')
+        orderPromptMessages.showLogisticsCompanyRequired()
         return
       }
       
       if (!shipForm.trackingNumber) {
-        ElMessage.warning('请输入物流单号')
+        orderPromptMessages.showLogisticsNumberRequired()
         return
       }
       
       submitting.value = true
-      
-      // 模拟发货处理
-      setTimeout(() => {
-        // 更新本地状态
-        const index = orderList.value.findIndex(item => item.id === currentOrder.value.id)
-        if (index !== -1) {
-          orderList.value[index].status = 2 // 更新为待收货状态
-          orderList.value[index].logistics_company = shipForm.company
-          orderList.value[index].logistics_number = shipForm.trackingNumber
-          orderList.value[index].shipping_time = new Date().toISOString().replace('T', ' ').substring(0, 19)
-          orderList.value[index].update_time = new Date().toISOString().replace('T', ' ').substring(0, 19)
-        }
-        
-        submitting.value = false
+      try {
+        await store.dispatch('order/shipOrder', {
+          id: currentOrder.value.id,
+          logisticsCompany: shipForm.company,
+          logisticsNumber: shipForm.trackingNumber
+        })
         shipDialogVisible.value = false
-        ElMessage.success('发货成功')
-      }, 800)
+        orderSuccessMessages.showOrderShipped()
+        // 成功后刷新列表，确保状态与后端一致
+        await fetchOrders()
+      } catch (e) {
+        orderErrorMessages.showOrderShipFailed()
+      } finally {
+        submitting.value = false
+      }
     }
     
-    // 处理退款申请
+    // 打开批量发货对话框
+    const openBatchShipDialog = () => {
+      if (!hasBatchSelection.value) {
+        orderPromptMessages.showShipSelectionRequired()
+        return
+      }
+      batchShipForm.company = ''
+      batchShipForm.trackingNumber = ''
+      batchShipDialogVisible.value = true
+    }
+    
+    // 批量发货确认
+    const confirmBatchShip = async () => {
+      if (!hasBatchSelection.value) {
+        orderPromptMessages.showShipSelectionRequired()
+        return
+      }
+      if (!batchShipForm.company) {
+        orderPromptMessages.showLogisticsCompanyRequired()
+        return
+      }
+      if (!batchShipForm.trackingNumber) {
+        orderPromptMessages.showLogisticsNumberRequired()
+        return
+      }
+      
+      submitting.value = true
+      try {
+        await store.dispatch('order/batchShipOrders', {
+          orderIds: selectedOrderIds.value,
+          logisticsCompany: batchShipForm.company,
+          logisticsNumber: batchShipForm.trackingNumber
+        })
+        orderSuccessMessages.showBatchShipSuccess()
+        batchShipDialogVisible.value = false
+        // 刷新列表
+        await fetchOrders()
+      } catch (e) {
+        orderErrorMessages.showBatchShipFailed()
+      } finally {
+        submitting.value = false
+      }
+    }
+    
+    // 处理退款申请（走 Vuex + API）
     const handleRefund = (order, isApproved) => {
       if (!order) return
       
@@ -598,50 +784,124 @@ export default {
           cancelButtonText: '取消',
           type: isApproved ? 'warning' : 'info'
         }
-      ).then(() => {
-        // 模拟处理退款请求
+      ).then(async () => {
         submitting.value = true
-        
-        setTimeout(() => {
-          const index = orderList.value.findIndex(item => item.id === order.id)
-          if (index !== -1) {
-            if (isApproved) {
-              // 同意退款 - 更新状态为已退款
-              orderList.value[index].status = 5
-              orderList.value[index]._temp_refund_applied = false
-              ElMessage.success('已同意退款申请')
-            } else {
-              // 拒绝退款 - 保持原状态，清除退款申请标记
-              orderList.value[index]._temp_refund_applied = false
-              ElMessage.success('已拒绝退款申请')
-            }
-            
-            orderList.value[index].update_time = new Date().toISOString().replace('T', ' ').substring(0, 19)
+        try {
+          await store.dispatch('order/processRefund', {
+            orderId: order.id,
+            approve: isApproved,
+            reason: refundDetail.value?.reason || order.refund_reason || ''
+          })
+          if (isApproved) {
+            orderSuccessMessages.showRefundApproved()
+          } else {
+            orderSuccessMessages.showRefundRejected()
           }
-          
-          submitting.value = false
           refundDialogVisible.value = false
-        }, 800)
+          refundDetail.value = null
+          // 重新加载订单列表，保持与后端数据一致
+          await fetchOrders()
+        } catch (e) {
+          orderErrorMessages.showRefundProcessFailed(action, e?.message)
+        } finally {
+          submitting.value = false
+        }
       }).catch(() => {
         // 用户取消操作
       })
     }
     
-    // 获取收货人信息
+    // 获取收货人信息（当前阶段：仅显示占位，后续接入真实地址数据）
     const getReceiverInfo = () => {
-      if (!currentOrder.value) return ''
-      
-      const address = mockAddresses[currentOrder.value.address_id]
-      if (address) {
-        return `${address.name} ${address.phone} ${address.province}${address.city}${address.district}${address.detail}`
-      }
-      
-      return '无收货信息'
+      if (!currentOrder.value) return '无收货信息'
+      return currentOrder.value.receiver || '无收货信息'
     }
     
-    // 初始化
+    // 任务组D：加载订单统计数据
+    const loadStatistics = async () => {
+      try {
+        const params = {}
+        if (statisticsDateRange.value && statisticsDateRange.value.length === 2) {
+          params.startDate = statisticsDateRange.value[0]
+          params.endDate = statisticsDateRange.value[1]
+        }
+        await store.dispatch('order/fetchOrderStatistics', params)
+      } catch (error) {
+        orderErrorMessages.showStatisticsLoadFailed(error.message)
+      }
+    }
+    
+    // 任务组D：统计日期范围变更处理
+    const handleStatisticsDateChange = () => {
+      // 日期变更时自动重新加载统计数据
+      loadStatistics()
+    }
+    
+    // 任务组E：打开导出对话框
+    const openExportDialog = () => {
+      exportForm.dateRange = []
+      exportForm.status = ''
+      exportForm.format = 'csv'
+      exportDialogVisible.value = true
+    }
+    
+    // 任务组E：确认导出
+    const confirmExport = async () => {
+      if (!exportForm.format) {
+        orderPromptMessages.showSelectExportFormat()
+        return
+      }
+      
+      exporting.value = true
+      try {
+        const params = {
+          format: exportForm.format
+        }
+        
+        if (exportForm.dateRange && exportForm.dateRange.length === 2) {
+          params.startDate = exportForm.dateRange[0]
+          params.endDate = exportForm.dateRange[1]
+        }
+        
+        if (exportForm.status !== '') {
+          params.status = exportForm.status
+        }
+        
+        await store.dispatch('order/exportOrders', params)
+        orderSuccessMessages.showExportSuccess()
+        exportDialogVisible.value = false
+      } catch (error) {
+        orderErrorMessages.showExportFailed(error.message)
+      } finally {
+        exporting.value = false
+      }
+    }
+    
+    // 初始化：从 URL 恢复筛选条件
     onMounted(() => {
+      const { page, orderId, teaName, status, startDate, endDate, sort } = route.query
+      if (page) {
+        currentPage.value = Number(page) || 1
+      }
+      if (orderId) {
+        searchForm.orderId = String(orderId)
+      }
+      if (teaName) {
+        searchForm.teaName = String(teaName)
+      }
+      if (status !== undefined) {
+        const s = Number(status)
+        searchForm.status = Number.isNaN(s) ? '' : s
+      }
+      if (startDate && endDate) {
+        searchForm.dateRange = [String(startDate), String(endDate)]
+      }
+      if (sort) {
+        sortKey.value = String(sort)
+      }
       fetchOrders()
+      // 任务组D：加载统计数据
+      loadStatistics()
     })
     
     return {
@@ -655,9 +915,16 @@ export default {
       shipDialogVisible,
       currentOrder,
       shipForm,
+      batchShipDialogVisible,
+      batchShipForm,
+      selectedOrderIds,
+      hasBatchSelection,
       refundDialogVisible,
       currentRefundOrder,
       Refresh,
+      handleSelectionChange,
+      openBatchShipDialog,
+      confirmBatchShip,
       refreshOrders,
       handleSearch,
       resetSearch,
@@ -671,7 +938,21 @@ export default {
       handleRefund,
       openRefundDetail,
       formatRefundApplyTime,
-      getReceiverInfo
+      getReceiverInfo,
+      // 任务组D：统计数据相关
+      statisticsDateRange,
+      orderStatistics,
+      loadStatistics,
+      handleStatisticsDateChange,
+      // 任务组E：导出相关
+      exportDialogVisible,
+      exportForm,
+      exporting,
+      openExportDialog,
+      confirmExport,
+      // 排序
+      sortKey,
+      refundDetail
     }
   }
 }
@@ -747,5 +1028,81 @@ export default {
   justify-content: flex-end;
   width: 100%;
   gap: 10px;
+}
+
+// 任务组D：统计数据样式
+.statistics-section {
+  margin-bottom: 20px;
+}
+
+.statistics-card {
+  .statistics-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    
+    .statistics-title {
+      font-size: 16px;
+      font-weight: bold;
+    }
+  }
+  
+  .overview-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+    
+    .overview-card {
+      padding: 15px;
+      background: #f5f7fa;
+      border-radius: 4px;
+      text-align: center;
+      
+      .overview-label {
+        font-size: 14px;
+        color: #606266;
+        margin-bottom: 8px;
+      }
+      
+      .overview-value {
+        font-size: 24px;
+        font-weight: bold;
+        color: #303133;
+      }
+    }
+  }
+  
+  .trend-section,
+  .status-distribution-section {
+    margin-top: 20px;
+    
+    .section-title {
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #303133;
+    }
+  }
+}
+
+@media (max-width: 1200px) {
+  .statistics-card .overview-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .statistics-card {
+    .statistics-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    
+    .overview-cards {
+      grid-template-columns: 1fr;
+    }
+  }
 }
 </style> 

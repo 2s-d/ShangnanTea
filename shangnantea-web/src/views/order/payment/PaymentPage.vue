@@ -114,21 +114,14 @@
 </template>
 
 <script>
-import { ref, onMounted, onUnmounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { InfoFilled, Timer } from '@element-plus/icons-vue'
-import SafeImage from '@/components/common/form/SafeImage.vue'
-
-/*
-// 真实代码（开发UI时注释）
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useStore } from 'vuex'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessageBox } from 'element-plus'
 import { InfoFilled, Timer } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-*/
+import { orderSuccessMessages, orderErrorMessages } from '@/utils/orderMessages'
+import { orderPromptMessages } from '@/utils/promptMessages'
 
 export default {
   name: 'PaymentPage',
@@ -136,406 +129,187 @@ export default {
     InfoFilled,
     Timer,
     SafeImage
-    
-    /*
-    // 真实代码（开发UI时注释）
-    InfoFilled,
-    Timer,
-    SafeImage
-    */
   },
   setup() {
     const router = useRouter()
     const route = useRoute()
+    const store = useStore()
 
-    // 从路由参数获取订单ID数组
-    const orderIds = ref(route.query.orderIds ? route.query.orderIds.split(',') : ['ORD' + Date.now()])
+    // 一个支付页只处理单个订单，优先从 query.orderId / params.id 取
+    const orderId = ref(
+      route.query.orderId ||
+      (route.query.orderIds ? String(route.query.orderIds).split(',')[0] : '') ||
+      route.params.id ||
+      ''
+    )
+
     const loading = ref(false)
     const submitting = ref(false)
-    const paymentMethod = ref('wechat') // 默认选中微信支付
-    
-    // 模拟多个茶叶商品信息
-    const teaItems = ref([
-      {
-        orderId: 'ORD' + (Date.now() - 100000),
-        name: '商南毛尖特级',
-        spec: '100g/盒',
-        quantity: 2,
-        price: 219.00,
-        image: '/images/tea1.jpg'
-      },
-      {
-        orderId: 'ORD' + Date.now(),
-        name: '商南绿茶珍品',
-        spec: '200g/罐',
-        quantity: 1,
-        price: 156.00,
-        image: '/images/tea2.jpg'
-      },
-      {
-        orderId: 'ORD' + (Date.now() + 100000),
-        name: '商南红茶礼盒',
-        spec: '300g/礼盒',
-        quantity: 1,
-        price: 83.00,
-        image: '/images/tea3.jpg'
-      }
-    ])
-    
-    // 模拟订单金额和详情
-    const orderAmount = ref(458.00)
-    const orderDetail = ref({
-      goodsAmount: 438.00,
-      shippingFee: 20.00
+    const paymentMethod = ref('wechat') // 默认微信
+
+    // 当前订单数据来自 Vuex
+    const currentOrder = computed(() => store.state.order.currentOrder || {})
+
+    const orderAmount = computed(() => {
+      const o = currentOrder.value
+      return o.total_amount || o.order_amount || 0
     })
-    
-    // 30分钟倒计时 (30 * 60 = 1800秒)
+
+    const orderDetail = computed(() => {
+      const o = currentOrder.value
+      const shipping = o.shipping_fee || 0
+      const total = o.total_amount || o.order_amount || 0
+      return {
+        goodsAmount: Math.max(total - shipping, 0),
+        shippingFee: shipping
+      }
+    })
+
+    // 支付页只展示当前订单的第一件商品信息
+    const teaItems = computed(() => {
+      const o = currentOrder.value
+      if (!o.order_id) {
+        return []
+      }
+      return [
+        {
+          orderId: o.order_id,
+          name: o.tea_name || '茶叶商品',
+          spec: o.spec_name || '默认规格',
+          quantity: o.quantity || 1,
+          price: o.price || o.total_amount || 0,
+          image: o.tea_image || '/images/tea-default.jpg'
+        }
+      ]
+    })
+
+    // 30 分钟倒计时（单位：秒）
     const countdown = ref(1800)
     let countdownTimer = null
-    
-    // 格式化时间为 mm:ss 格式
+
     const formatTime = (seconds) => {
-      const minutes = Math.floor(seconds / 60)
-      const remainingSeconds = seconds % 60
-      return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`
+      const m = Math.floor(seconds / 60)
+      const s = seconds % 60
+      return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
     }
-    
-    // 开始倒计时
+
     const startCountdown = () => {
-      countdownTimer = setInterval(() => {
-        countdown.value--
-        
-        if (countdown.value <= 0) {
-          clearInterval(countdownTimer)
-          // 订单超时，自动取消
-          handleOrderTimeout()
-        }
-      }, 1000)
-    }
-    
-    // 订单超时处理
-    const handleOrderTimeout = () => {
-      ElMessage.warning('支付超时，订单已自动取消')
-      // 模拟取消订单
-      setTimeout(() => {
-        router.push('/order/list')
-      }, 1500)
-    }
-    
-    // 模拟加载订单数据
-    const loadOrderData = () => {
-      loading.value = true
-      
-      setTimeout(() => {
-        // 模拟订单数据加载完成
-        loading.value = false
-        // 开始倒计时
-        startCountdown()
-      }, 800)
-    }
-    
-    // 处理支付
-    const handlePayment = () => {
-      submitting.value = true
-      
-      // 模拟免密支付过程
-      setTimeout(() => {
-        // 显示支付成功消息
-        ElMessage.success('免密支付成功')
-        
-        // 延迟一小段时间后跳转到订单列表页
-        setTimeout(() => {
-          submitting.value = false
-          router.push('/order/list')
-        }, 500)
-      }, 1500)
-    }
-    
-    // 取消支付
-    const cancelPayment = () => {
-      ElMessageBox.confirm('确定要取消支付吗？所有订单将被取消', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '继续支付',
-        type: 'warning'
-      }).then(() => {
-        // 模拟取消订单
-        ElMessage.success('订单已取消')
-        // 跳转到订单列表页面
-        router.push('/order/list')
-      }).catch(() => {
-        // 用户选择继续支付，不做任何操作
-      })
-    }
-    
-    // 组件卸载时清除定时器
-    onUnmounted(() => {
       if (countdownTimer) {
         clearInterval(countdownTimer)
       }
-    })
-
-    
-    /*
-    // 真实代码（开发UI时注释）
-    const store = useStore()
-    
-    // 从路由参数获取订单ID数组
-    const orderIds = ref(route.query.orderIds ? route.query.orderIds.split(',') : [])
-    const loading = ref(false)
-    const submitting = ref(false)
-    const paymentMethod = ref('wechat') // 默认选中微信支付
-    const ordersData = ref([])
-    
-    // 茶叶商品信息数组
-    const teaItems = ref([])
-    
-    // 30分钟倒计时
-    const countdown = ref(1800) // 30 * 60 = 1800秒
-    let countdownTimer = null
-    
-    // 格式化时间为 mm:ss 格式
-    const formatTime = (seconds) => {
-      const minutes = Math.floor(seconds / 60)
-      const remainingSeconds = seconds % 60
-      return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`
-    }
-    
-    // 计算订单剩余支付时间 - 使用最早创建的订单时间
-    const calculateRemainingTime = (ordersData) => {
-      if (!ordersData || ordersData.length === 0) return 1800
-      
-      // 找出最早创建的订单
-      let earliestTime = new Date().getTime()
-      
-      ordersData.forEach(order => {
-        const orderTime = new Date(order.create_time).getTime()
-        if (orderTime < earliestTime) {
-          earliestTime = orderTime
-        }
-      })
-      
-      const currentTime = new Date().getTime()
-      const elapsedSeconds = Math.floor((currentTime - earliestTime) / 1000)
-      const remainingSeconds = Math.max(1800 - elapsedSeconds, 0)
-      return remainingSeconds
-    }
-    
-    // 开始倒计时
-    const startCountdown = (remainingTime) => {
-      countdown.value = remainingTime
-      
       countdownTimer = setInterval(() => {
-        countdown.value--
-        
+        countdown.value -= 1
         if (countdown.value <= 0) {
           clearInterval(countdownTimer)
-          // 订单超时，自动取消
           handleOrderTimeout()
         }
       }, 1000)
     }
-    
-    // 订单超时处理
+
     const handleOrderTimeout = async () => {
-      try {
-        // 批量取消所有订单
-        const cancelPromises = orderIds.value.map(orderId => 
-          store.dispatch('order/cancelOrder', {
-            orderId: orderId,
-            reason: '支付超时，系统自动取消'
-          })
-        )
-        
-        await Promise.all(cancelPromises)
-        
-        ElMessage.warning('支付超时，订单已自动取消')
-        router.push('/order/list')
-      } catch (error) {
-        console.error('取消订单失败:', error)
-      }
-    }
-    
-    // 计算属性：订单总金额
-    const orderAmount = computed(() => {
-      if (!ordersData.value || ordersData.value.length === 0) return 0
-      
-      return ordersData.value.reduce((total, order) => {
-        return total + order.order_amount
-      }, 0)
-    })
-    
-    // 订单详情
-    const orderDetail = computed(() => {
-      if (!ordersData.value || ordersData.value.length === 0) {
-        return {
-          goodsAmount: 0,
-          shippingFee: 0
-        }
-      }
-      
-      // 汇总所有订单的商品金额和运费
-      const totalShippingFee = ordersData.value.reduce((total, order) => {
-        return total + order.shipping_fee
-      }, 0)
-      
-      return {
-        goodsAmount: orderAmount.value - totalShippingFee,
-        shippingFee: totalShippingFee
-      }
-    })
-    
-    // 加载订单数据
-    const loadOrderData = async () => {
-      if (!orderIds.value || orderIds.value.length === 0) {
-        ElMessage.error('订单不存在')
+      if (!orderId.value) {
         router.push('/order/list')
         return
       }
-      
       try {
-        loading.value = true
-        
-        // 获取多个订单详情
-        const orderPromises = orderIds.value.map(orderId => 
-          store.dispatch('order/getOrderById', orderId)
-        )
-        
-        const responses = await Promise.all(orderPromises)
-        ordersData.value = responses.filter(Boolean) // 过滤掉可能的null响应
-        
-        // 如果没有有效订单，跳转到订单列表
-        if (ordersData.value.length === 0) {
-          ElMessage.error('没有找到有效订单')
-          router.push('/order/list')
-          return
+        orderErrorMessages.showPaymentTimeout()
+        await store.dispatch('order/cancelOrder', orderId.value)
+      } catch (e) {
+        // 忽略失败，仍然跳转
+      }
+      router.push('/order/list')
+    }
+
+    const loadOrderData = async () => {
+      if (!orderId.value) {
+        orderErrorMessages.showOrderIdRequired()
+        router.push('/order/list')
+        return
+      }
+      loading.value = true
+      try {
+        await store.dispatch('order/fetchOrderDetail', orderId.value)
+        // 使用后端返回的支付方式
+        if (currentOrder.value && currentOrder.value.payment_method) {
+          paymentMethod.value = currentOrder.value.payment_method
         }
-        
-        // 检查是否所有订单都是待支付状态
-        const invalidOrder = ordersData.value.find(order => order.order_status !== 1)
-        if (invalidOrder) {
-          ElMessage.warning('部分订单状态已变更，无需支付')
-          router.push('/order/list')
-          return
-        }
-        
-        // 设置商品信息 - 从每个订单提取第一个商品项
-        teaItems.value = ordersData.value.map(order => {
-          const item = order.items && order.items.length > 0 ? order.items[0] : {}
-          return {
-            orderId: order.order_id,
-            name: item.tea_name || '未知商品',
-            spec: item.spec_name || '默认规格',
-            quantity: item.quantity || 1,
-            price: item.price || 0,
-            image: item.image || '/images/default-tea.jpg'
-          }
-        })
-        
-        // 使用第一个订单的支付方式
-        paymentMethod.value = ordersData.value[0].payment_method || 'wechat'
-        
-        // 计算订单剩余支付时间并开始倒计时
-        const remainingTime = calculateRemainingTime(ordersData.value)
-        if (remainingTime <= 0) {
-          handleOrderTimeout()
-        } else {
-          startCountdown(remainingTime)
-        }
+        // 简化：统一从现在开始倒计时 30 分钟
+        countdown.value = 1800
+        startCountdown()
       } catch (error) {
-        ElMessage.error('获取订单信息失败')
+        orderErrorMessages.showPaymentOrderLoadFailed(error?.message)
         router.push('/order/list')
       } finally {
         loading.value = false
       }
     }
-    
-    // 处理支付
+
     const handlePayment = async () => {
+      if (!orderId.value) {
+        orderErrorMessages.showOrderIdRequired()
+        return
+      }
+      submitting.value = true
       try {
-        submitting.value = true
-        
-        // 模拟免密支付过程 - 直接调用支付完成API
-        await Promise.all(orderIds.value.map(orderId => 
-          store.dispatch('order/completePayment', { orderId })
-        ))
-        
-        // 显示支付成功消息
-        ElMessage.success('免密支付成功')
-        
-        // 延迟一小段时间后跳转到订单列表页
-        setTimeout(() => {
-          router.push('/order/list')
-        }, 500)
+        await store.dispatch('order/payOrder', {
+          orderId: orderId.value,
+          paymentMethod: paymentMethod.value
+        })
+        orderSuccessMessages.showPaymentSuccess()
+        router.push(`/order/detail/${orderId.value}`)
       } catch (error) {
-        ElMessage.error(error.message || '支付失败，请重试')
+        orderErrorMessages.showPaymentFailed(error?.message)
       } finally {
         submitting.value = false
       }
     }
-    
-    // 取消支付
+
     const cancelPayment = () => {
-      ElMessageBox.confirm('确定要取消支付吗？所有订单将被取消', '提示', {
+      if (!orderId.value) {
+        router.push('/order/list')
+        return
+      }
+      ElMessageBox.confirm('确定要取消支付吗？订单将被取消', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '继续支付',
         type: 'warning'
-      }).then(async () => {
-        try {
-          // 批量取消所有订单
-          const cancelPromises = orderIds.value.map(orderId => 
-            store.dispatch('order/cancelOrder', {
-              orderId: orderId,
-              reason: '用户取消支付'
-            })
-          )
-          
-          await Promise.all(cancelPromises)
-          
-          ElMessage.success('订单已取消')
-          router.push('/order/list')
-        } catch (error) {
-          ElMessage.error('取消订单失败')
-        }
-      }).catch(() => {
-        // 用户选择继续支付，不做任何操作
       })
+        .then(async () => {
+          try {
+            await store.dispatch('order/cancelOrder', orderId.value)
+            orderSuccessMessages.showOrderCanceled()
+          } catch (error) {
+            orderErrorMessages.showOrderCancelFailed(error?.message)
+          } finally {
+            router.push('/order/list')
+          }
+        })
+        .catch(() => {
+          // 用户选择继续支付，不做处理
+        })
     }
-    
-    // 组件卸载时清除定时器
+
+    onMounted(() => {
+      loadOrderData()
+    })
+
     onUnmounted(() => {
       if (countdownTimer) {
         clearInterval(countdownTimer)
       }
     })
-    */
-    
-    // 初始化
-    onMounted(() => {
-      loadOrderData()
-      
-      /*
-      // 真实代码（开发UI时注释）
-      loadOrderData()
-      */
-    })
-    
-    // 默认图片（生产形态：不使用 mock-images）
-    const defaultTeaImage = ''
-    const defaultPaymentImage = ''
-    
+
     return {
-      teaItems,
-      orderAmount,
-      orderDetail,
       loading,
       submitting,
       paymentMethod,
+      teaItems,
+      orderAmount,
+      orderDetail,
       countdown,
       formatTime,
       handlePayment,
-      cancelPayment,
-      defaultTeaImage,
-      defaultPaymentImage
+      cancelPayment
     }
   }
 }

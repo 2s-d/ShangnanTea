@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户登录数据流通测试</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/vuex@4/dist/vuex.global.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 20px;
+        }
+        .test-panel {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 15px;
+        }
+        .test-panel h3 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        .btn:hover {
+            background: #45a049;
+        }
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .status.loading {
+            background: #e3f2fd;
+            color: #1976d2;
+            border: 1px solid #bbdefb;
+        }
+        .status.success {
+            background: #e8f5e8;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+        .status.error {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
+        }
+        .log-panel {
+            grid-column: 1 / -1;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .log-entry {
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        .log-entry.api {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+        }
+        .log-entry.vuex {
+            background: #f3e5f5;
+            border-left: 4px solid #9c27b0;
+        }
+        .log-entry.component {
+            background: #e8f5e8;
+            border-left: 4px solid #4caf50;
+        }
+        .log-entry.error {
+            background: #ffebee;
+            border-left: 4px solid #f44336;
+        }
+        .data-display {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .flow-indicator {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            font-size: 12px;
+            color: #666;
+        }
+        .flow-step {
+            background: #e3f2fd;
+            padding: 5px 10px;
+            border-radius: 15px;
+            margin: 0 5px;
+        }
+        .flow-arrow {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <div class="header">
+                <h1>🔄 用户登录数据流通测试</h1>
+                <p>模拟 Vue组件 → Vuex → API → 后端Controller 的完整数据流</p>
+            </div>
+            
+            <div class="content">
+                <!-- 登录测试面板 -->
+                <div class="test-panel">
+                    <h3>🔐 用户登录测试</h3>
+                    
+                    <div class="form-group">
+                        <label>用户名:</label>
+                        <input v-model="loginForm.username" type="text" placeholder="请输入用户名">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>密码:</label>
+                        <input v-model="loginForm.password" type="password" placeholder="请输入密码">
+                    </div>
+                    
+                    <button class="btn" @click="testLogin" :disabled="loading">
+                        {{ loading ? '登录中...' : '测试登录' }}
+                    </button>
+                    
+                    <button class="btn" @click="testLogout" :disabled="!isLoggedIn">
+                        退出登录
+                    </button>
+                    
+                    <button class="btn" @click="clearLogs">
+                        清空日志
+                    </button>
+                    
+                    <!-- 数据流指示器 -->
+                    <div class="flow-indicator">
+                        <div class="flow-step">Vue组件</div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-step">Vuex Action</div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-step">API调用</div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-step">后端Controller</div>
+                    </div>
+                    
+                    <!-- 状态显示 -->
+                    <div v-if="status" :class="['status', status.type]">
+                        {{ status.message }}
+                    </div>
+                    
+                    <!-- 用户信息显示 -->
+                    <div v-if="userInfo" class="data-display">
+                        <strong>当前用户信息:</strong>
+                        {{ JSON.stringify(userInfo, null, 2) }}
+                    </div>
+                </div>
+                
+                <!-- Vuex状态面板 -->
+                <div class="test-panel">
+                    <h3>📊 Vuex状态监控</h3>
+                    
+                    <div class="form-group">
+                        <label>登录状态:</label>
+                        <span :style="{color: isLoggedIn ? '#4CAF50' : '#f44336'}">
+                            {{ isLoggedIn ? '已登录' : '未登录' }}
+                        </span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>加载状态:</label>
+                        <span :style="{color: loading ? '#ff9800' : '#4CAF50'}">
+                            {{ loading ? '加载中' : '空闲' }}
+                        </span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>用户角色:</label>
+                        <span>{{ userRole }}</span>
+                    </div>
+                    
+                    <div class="data-display">
+                        <strong>完整Vuex State:</strong>
+                        {{ JSON.stringify(vuexState, null, 2) }}
+                    </div>
+                </div>
+                
+                <!-- 日志面板 -->
+                <div class="log-panel">
+                    <h3>📝 数据流通日志</h3>
+                    <div v-for="(log, index) in logs" :key="index" :class="['log-entry', log.type]">
+                        <strong>[{{ log.timestamp }}] {{ log.source }}:</strong> {{ log.message }}
+                        <div v-if="log.data" class="data-display" style="margin-top: 5px;">
+                            {{ typeof log.data === 'string' ? log.data : JSON.stringify(log.data, null, 2) }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+        const { createStore } = Vuex;
+
+        // 模拟后端API响应
+        const mockBackendAPI = {
+            // 模拟用户登录API
+            login: async (loginData) => {
+                // 模拟网络延迟
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // 模拟登录验证
+                if (loginData.username === 'admin' && loginData.password === '123456') {
+                    return {
+                        success: true,
+                        data: {
+                            token: 'mock_jwt_token_' + Date.now(),
+                            userInfo: {
+                                id: 1,
+                                username: 'admin',
+                                nickname: '管理员',
+                                email: 'admin@shangnantea.com',
+                                phone: '13800138000',
+                                avatar: 'https://via.placeholder.com/60x60/4CAF50/FFFFFF?text=Admin',
+                                role: 1,
+                                status: 1,
+                                createTime: new Date().toISOString(),
+                                lastLoginTime: new Date().toISOString()
+                            }
+                        }
+                    };
+                } else if (loginData.username === 'user' && loginData.password === '123456') {
+                    return {
+                        success: true,
+                        data: {
+                            token: 'mock_jwt_token_' + Date.now(),
+                            userInfo: {
+                                id: 2,
+                                username: 'user',
+                                nickname: '普通用户',
+                                email: 'user@shangnantea.com',
+                                phone: '13800138001',
+                                avatar: 'https://via.placeholder.com/60x60/2196F3/FFFFFF?text=User',
+                                role: 2,
+                                status: 1,
+                                createTime: new Date().toISOString(),
+                                lastLoginTime: new Date().toISOString()
+                            }
+                        }
+                    };
+                } else {
+                    throw new Error('用户名或密码错误');
+                }
+            },
+            
+            // 模拟退出登录API
+            logout: async () => {
+                await new Promise(resolve => setTimeout(resolve, 500));
+                return { success: true, message: '退出成功' };
+            }
+        };
+
+        // 创建Vuex Store
+        const store = createStore({
+            modules: {
+                user: {
+                    namespaced: true,
+                    state: {
+                        userInfo: null,
+                        isLoggedIn: false,
+                        loading: false,
+                        token: null
+                    },
+                    getters: {
+                        userRole: state => {
+                            if (!state.userInfo) return '未登录';
+                            switch (state.userInfo.role) {
+                                case 1: return '管理员';
+                                case 2: return '普通用户';
+                                case 3: return '商家';
+                                default: return '未知角色';
+                            }
+                        }
+                    },
+                    mutations: {
+                        SET_USER_INFO(state, userInfo) {
+                            state.userInfo = userInfo;
+                        },
+                        SET_LOGGED_IN(state, status) {
+                            state.isLoggedIn = status;
+                        },
+                        SET_LOADING(state, status) {
+                            state.loading = status;
+                        },
+                        SET_TOKEN(state, token) {
+                            state.token = token;
+                        },
+                        CLEAR_USER(state) {
+                            state.userInfo = null;
+                            state.isLoggedIn = false;
+                            state.token = null;
+                        }
+                    },
+                    actions: {
+                        async login({ commit }, loginData) {
+                            try {
+                                commit('SET_LOADING', true);
+                                
+                                // 调用API
+                                const response = await mockBackendAPI.login(loginData);
+                                const { token, userInfo } = response.data;
+                                
+                                // 更新状态
+                                commit('SET_TOKEN', token);
+                                commit('SET_USER_INFO', userInfo);
+                                commit('SET_LOGGED_IN', true);
+                                
+                                return userInfo;
+                            } finally {
+                                commit('SET_LOADING', false);
+                            }
+                        },
+                        
+                        async logout({ commit }) {
+                            try {
+                                commit('SET_LOADING', true);
+                                
+                                // 调用API
+                                await mockBackendAPI.logout();
+                                
+                                // 清除状态
+                                commit('CLEAR_USER');
+                                
+                                return true;
+                            } finally {
+                                commit('SET_LOADING', false);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // 创建Vue应用
+        const app = createApp({
+            data() {
+                return {
+                    loginForm: {
+                        username: 'admin',
+                        password: '123456'
+                    },
+                    status: null,
+                    logs: []
+                };
+            },
+            computed: {
+                userInfo() {
+                    return this.$store.state.user.userInfo;
+                },
+                isLoggedIn() {
+                    return this.$store.state.user.isLoggedIn;
+                },
+                loading() {
+                    return this.$store.state.user.loading;
+                },
+                userRole() {
+                    return this.$store.getters['user/userRole'];
+                },
+                vuexState() {
+                    return this.$store.state.user;
+                }
+            },
+            methods: {
+                addLog(source, message, data = null, type = 'component') {
+                    const timestamp = new Date().toLocaleTimeString();
+                    this.logs.push({
+                        timestamp,
+                        source,
+                        message,
+                        data,
+                        type
+                    });
+                    
+                    // 自动滚动到底部
+                    this.$nextTick(() => {
+                        const logPanel = document.querySelector('.log-panel');
+                        logPanel.scrollTop = logPanel.scrollHeight;
+                    });
+                },
+                
+                async testLogin() {
+                    this.status = null;
+                    this.addLog('Vue组件', '开始登录流程', this.loginForm);
+                    
+                    try {
+                        this.addLog('Vue组件', '调用Vuex Action: user/login', null, 'vuex');
+                        
+                        // 监听Vuex状态变化
+                        const unwatch = this.$store.watch(
+                            (state) => state.user.loading,
+                            (newVal) => {
+                                if (newVal) {
+                                    this.addLog('Vuex', 'SET_LOADING: true', null, 'vuex');
+                                    this.addLog('API', '发送POST请求到 /api/user/login', this.loginForm, 'api');
+                                }
+                            }
+                        );
+                        
+                        // 执行登录
+                        const userInfo = await this.$store.dispatch('user/login', this.loginForm);
+                        
+                        unwatch();
+                        
+                        this.addLog('API', '后端Controller响应成功', {
+                            token: 'mock_jwt_token_***',
+                            userInfo: userInfo
+                        }, 'api');
+                        
+                        this.addLog('Vuex', 'SET_USER_INFO + SET_LOGGED_IN', userInfo, 'vuex');
+                        this.addLog('Vue组件', '登录成功，UI状态更新');
+                        
+                        this.status = {
+                            type: 'success',
+                            message: '登录成功！数据流通测试完成。'
+                        };
+                        
+                    } catch (error) {
+                        this.addLog('API', '后端Controller响应失败', error.message, 'error');
+                        this.addLog('Vue组件', '登录失败，显示错误信息', null, 'error');
+                        
+                        this.status = {
+                            type: 'error',
+                            message: '登录失败: ' + error.message
+                        };
+                    }
+                },
+                
+                async testLogout() {
+                    this.status = null;
+                    this.addLog('Vue组件', '开始退出登录流程');
+                    
+                    try {
+                        this.addLog('Vue组件', '调用Vuex Action: user/logout', null, 'vuex');
+                        this.addLog('API', '发送POST请求到 /api/user/logout', null, 'api');
+                        
+                        await this.$store.dispatch('user/logout');
+                        
+                        this.addLog('API', '后端Controller响应成功', { message: '退出成功' }, 'api');
+                        this.addLog('Vuex', 'CLEAR_USER: 清除用户状态', null, 'vuex');
+                        this.addLog('Vue组件', '退出成功，UI状态更新');
+                        
+                        this.status = {
+                            type: 'success',
+                            message: '退出登录成功！'
+                        };
+                        
+                    } catch (error) {
+                        this.addLog('API', '退出登录失败', error.message, 'error');
+                        
+                        this.status = {
+                            type: 'error',
+                            message: '退出登录失败: ' + error.message
+                        };
+                    }
+                },
+                
+                clearLogs() {
+                    this.logs = [];
+                    this.status = null;
+                }
+            },
+            
+            mounted() {
+                this.addLog('系统', '数据流通测试页面初始化完成');
+                this.addLog('系统', '测试账号: admin/123456 (管理员) 或 user/123456 (普通用户)');
+            }
+        });
+
+        app.use(store);
+        app.mount('#app');
+    </script>
+</body>
+</html>

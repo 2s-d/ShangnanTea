@@ -1,204 +1,241 @@
 /**
- * 茶叶模块的专用消息工具
+ * 茶叶模块消息工具
  * 
- * 包含茶叶模块的常用消息文本及显示方法
- * 遵循消息三层架构：API层、Vuex业务层、UI交互层
+ * 分类说明：
+ * - SUCCESS: 操作成功反馈
+ * - ERROR: 操作失败/错误提示
+ * - PROMPT: 用户提示（表单验证+确认）
  */
 
-import { apiMessage, vuexMessage, uiMessage } from './messageManager'
+import { successMessage, errorMessage, promptMessage } from './messageManager'
 
-// 茶叶模块常用消息定义
+// 茶叶模块消息常量
 export const TEA_MESSAGES = {
-  // API层消息
-  API: {
-    TEA_LIST_SUCCESS: '茶叶列表获取成功',
-    TEA_LIST_ERROR: '获取茶叶列表失败',
-    TEA_DETAIL_SUCCESS: '茶叶详情获取成功',
-    TEA_DETAIL_ERROR: '获取茶叶详情失败',
-    TEA_NOT_FOUND: '未找到指定茶叶'
+  // 成功消息
+  SUCCESS: {
+    // 列表页
+    LIST_LOADED: '茶叶列表加载成功',
+    // 详情页
+    DETAIL_LOADED: '茶叶详情加载成功',
+    ADDED_TO_FAVORITES: '已收藏',
+    REMOVED_FROM_FAVORITES: '已取消收藏',
+    ADDED_TO_CART: '成功加入购物车',
+    REPLY_SUCCESS: '回复成功',
+    // 管理页
+    TEA_ON_SHELF: '上架成功',
+    TEA_OFF_SHELF: '下架成功',
+    BATCH_ON_SHELF: '批量上架成功',
+    BATCH_OFF_SHELF: '批量下架成功',
+    TEA_DELETE: '删除成功',
+    TEA_UPDATE: '茶叶更新成功',
+    TEA_CREATE: '茶叶添加成功',
+    CATEGORY_DELETE: '分类删除成功',
+    CATEGORY_UPDATE: '分类更新成功',
+    CATEGORY_CREATE: '分类创建成功',
+    // 卡片组件
+    CARD_ADDED_TO_CART: '已添加到购物车'
   },
   
-  // Vuex业务层消息
-  BUSINESS: {
-    TEA_ADDED_TO_FAVORITES: '已添加到收藏',
-    TEA_REMOVED_FROM_FAVORITES: '已从收藏中移除',
-    TEA_ADDED_TO_CART: '已加入购物车',
-    TEA_QUANTITY_UPDATED: '数量已更新',
-    TEA_RECOMMEND_SUCCESS: '茶叶推荐获取成功',
-    TEA_CATEGORY_CHANGE: '茶叶分类已切换',
-    TEA_FILTER_APPLIED: '过滤条件已应用'
+  // 错误消息
+  ERROR: {
+    // 列表页
+    LIST_FAILED: '加载茶叶数据失败',
+    // 详情页
+    DETAIL_FAILED: '加载茶叶详情失败',
+    REPLY_FAILED: '回复失败',
+    LIKE_FAILED: '点赞失败',
+    FAVORITE_FAILED: '操作失败',
+    CART_FAILED: '加入购物车失败',
+    BUY_FAILED: '立即购买失败',
+    // 管理页
+    TEA_ON_SHELF_FAILED: '上架失败',
+    TEA_OFF_SHELF_FAILED: '下架失败',
+    BATCH_ON_SHELF_FAILED: '批量上架失败',
+    BATCH_OFF_SHELF_FAILED: '批量下架失败',
+    TEA_DELETE_FAILED: '删除失败',
+    TEA_SUBMIT_FAILED: '操作失败',
+    CATEGORY_DELETE_FAILED: '删除分类失败',
+    CATEGORY_SUBMIT_FAILED: '操作失败',
+    // 卡片组件
+    CARD_ADD_FAILED: '添加失败，请重试'
   },
   
-  // UI交互层消息
-  UI: {
-    TEA_SELECTION_LIMIT: '最多只能选择5种茶叶',
-    TEA_COMPARISON_START: '开始对比所选茶叶',
-    TEA_SEARCH_EMPTY: '请输入搜索关键词',
-    TEA_SORT_CHANGED: '排序方式已更改',
-    TEA_IMAGE_LOADING_ERROR: '图片加载失败',
-    TEA_PREVIEW_MODE: '进入预览模式'
+  // 提示消息
+  PROMPT: {
+    // 详情页
+    REPLY_EMPTY: '请输入回复内容',
+    SOLD_OUT: '该商品已售罄',
+    SELECT_SPEC: '请先选择规格',
+    // 管理页
+    SELECT_ON_SHELF: '请选择要上架的茶叶',
+    SELECT_OFF_SHELF: '请选择要下架的茶叶',
+    FORM_INVALID: '请正确填写表单内容',
+    SPEC_REQUIRED: '请至少添加一个规格',
+    SPEC_INCOMPLETE: '请填写完整的规格名称和价格',
+    DEFAULT_SPEC_REQUIRED: '请指定一个默认规格',
+    IMAGE_REQUIRED: '请至少上传一张商品图片',
+    SUBMITTING: '正在提交数据，请稍候...'
   }
 }
 
-/**
- * 茶叶API层消息函数
- */
-export const teaApiMessages = {
-  /**
-   * 显示茶叶列表获取成功消息
-   * @param {number} count 获取的茶叶数量
-   */
-  showListSuccess(count) {
-    apiMessage.success(`成功获取${count}款茶叶`)
+// 成功消息函数
+export const teaSuccessMessages = {
+  // 列表页
+  showListLoaded(count) {
+    successMessage.show(count ? `成功获取${count}款茶叶` : TEA_MESSAGES.SUCCESS.LIST_LOADED)
   },
-  
-  /**
-   * 显示茶叶列表获取失败消息
-   * @param {string} reason 失败原因
-   */
-  showListError(reason) {
-    apiMessage.error(reason || TEA_MESSAGES.API.TEA_LIST_ERROR)
+  // 详情页
+  showDetailLoaded(teaName) {
+    successMessage.show(teaName ? `"${teaName}"详情获取成功` : TEA_MESSAGES.SUCCESS.DETAIL_LOADED)
   },
-  
-  /**
-   * 显示茶叶详情获取成功消息
-   * @param {string} teaName 茶叶名称
-   */
-  showDetailSuccess(teaName) {
-    apiMessage.success(`"${teaName}"详情获取成功`)
+  showAddedToFavorites() {
+    successMessage.show(TEA_MESSAGES.SUCCESS.ADDED_TO_FAVORITES)
   },
-  
-  /**
-   * 显示茶叶详情获取失败消息
-   * @param {string} reason 失败原因
-   */
-  showDetailError(reason) {
-    apiMessage.error(reason || TEA_MESSAGES.API.TEA_DETAIL_ERROR)
+  showRemovedFromFavorites() {
+    successMessage.show(TEA_MESSAGES.SUCCESS.REMOVED_FROM_FAVORITES)
   },
-  
-  /**
-   * 显示茶叶未找到消息
-   * @param {string} teaId 茶叶ID
-   */
-  showTeaNotFound(teaId) {
-    apiMessage.warning(`未找到ID为"${teaId}"的茶叶`)
+  showAddedToCart() {
+    successMessage.show(TEA_MESSAGES.SUCCESS.ADDED_TO_CART)
+  },
+  showReplySuccess() {
+    successMessage.show(TEA_MESSAGES.SUCCESS.REPLY_SUCCESS)
+  },
+  // 管理页
+  showTeaOnShelf() {
+    successMessage.show(TEA_MESSAGES.SUCCESS.TEA_ON_SHELF)
+  },
+  showTeaOffShelf() {
+    successMessage.show(TEA_MESSAGES.SUCCESS.TEA_OFF_SHELF)
+  },
+  showBatchOnShelf() {
+    successMessage.show(TEA_MESSAGES.SUCCESS.BATCH_ON_SHELF)
+  },
+  showBatchOffShelf() {
+    successMessage.show(TEA_MESSAGES.SUCCESS.BATCH_OFF_SHELF)
+  },
+  showTeaDeleted() {
+    successMessage.show(TEA_MESSAGES.SUCCESS.TEA_DELETE)
+  },
+  showTeaUpdated() {
+    successMessage.show(TEA_MESSAGES.SUCCESS.TEA_UPDATE)
+  },
+  showTeaCreated() {
+    successMessage.show(TEA_MESSAGES.SUCCESS.TEA_CREATE)
+  },
+  showCategoryDeleted() {
+    successMessage.show(TEA_MESSAGES.SUCCESS.CATEGORY_DELETE)
+  },
+  showCategoryUpdated() {
+    successMessage.show(TEA_MESSAGES.SUCCESS.CATEGORY_UPDATE)
+  },
+  showCategoryCreated() {
+    successMessage.show(TEA_MESSAGES.SUCCESS.CATEGORY_CREATE)
+  },
+  // 卡片组件
+  showCardAddedToCart() {
+    successMessage.show(TEA_MESSAGES.SUCCESS.CARD_ADDED_TO_CART)
   }
 }
 
-/**
- * 茶叶业务层消息函数
- */
-export const teaBusinessMessages = {
-  /**
-   * 显示收藏成功消息
-   * @param {string} teaName 茶叶名称
-   */
-  showAddedToFavorites(teaName) {
-    vuexMessage.success(`"${teaName}"已添加到收藏`)
+// 错误消息函数
+export const teaErrorMessages = {
+  // 列表页
+  showListFailed(reason) {
+    errorMessage.show(reason || TEA_MESSAGES.ERROR.LIST_FAILED)
   },
-  
-  /**
-   * 显示取消收藏消息
-   * @param {string} teaName 茶叶名称
-   */
-  showRemovedFromFavorites(teaName) {
-    vuexMessage.success(`"${teaName}"已从收藏中移除`)
+  // 详情页
+  showDetailFailed(reason) {
+    errorMessage.show(reason || TEA_MESSAGES.ERROR.DETAIL_FAILED)
   },
-  
-  /**
-   * 显示添加到购物车消息
-   * @param {string} teaName 茶叶名称
-   * @param {number} quantity 数量
-   */
-  showAddedToCart(teaName, quantity = 1) {
-    vuexMessage.success(`已将"${teaName}" ${quantity}件加入购物车`)
+  showReplyFailed(reason) {
+    errorMessage.show(reason || TEA_MESSAGES.ERROR.REPLY_FAILED)
   },
-  
-  /**
-   * 显示数量更新消息
-   * @param {string} teaName 茶叶名称
-   * @param {number} quantity 新数量
-   */
-  showQuantityUpdated(teaName, quantity) {
-    vuexMessage.success(`"${teaName}"数量已更新为${quantity}`)
+  showLikeFailed(reason) {
+    errorMessage.show(reason || TEA_MESSAGES.ERROR.LIKE_FAILED)
   },
-  
-  /**
-   * 显示获取推荐成功消息
-   * @param {number} count 推荐茶叶数量
-   */
-  showRecommendSuccess(count) {
-    vuexMessage.info(`已为您推荐${count}款茶叶`)
+  showFavoriteFailed(reason) {
+    errorMessage.show(reason || TEA_MESSAGES.ERROR.FAVORITE_FAILED)
   },
-  
-  /**
-   * 显示分类切换消息
-   * @param {string} categoryName 新分类名称
-   */
-  showCategoryChange(categoryName) {
-    vuexMessage.info(`已切换到"${categoryName}"分类`)
+  showCartFailed(reason) {
+    errorMessage.show(reason || TEA_MESSAGES.ERROR.CART_FAILED)
   },
-  
-  /**
-   * 显示过滤应用消息
-   * @param {number} resultCount 过滤后的结果数量
-   */
-  showFilterApplied(resultCount) {
-    vuexMessage.info(`过滤条件已应用，共找到${resultCount}款茶叶`)
+  showBuyFailed(reason) {
+    errorMessage.show(reason || TEA_MESSAGES.ERROR.BUY_FAILED)
+  },
+  // 管理页
+  showTeaOnShelfFailed(reason) {
+    errorMessage.show(reason || TEA_MESSAGES.ERROR.TEA_ON_SHELF_FAILED)
+  },
+  showTeaOffShelfFailed(reason) {
+    errorMessage.show(reason || TEA_MESSAGES.ERROR.TEA_OFF_SHELF_FAILED)
+  },
+  showBatchOnShelfFailed(reason) {
+    errorMessage.show(reason || TEA_MESSAGES.ERROR.BATCH_ON_SHELF_FAILED)
+  },
+  showBatchOffShelfFailed(reason) {
+    errorMessage.show(reason || TEA_MESSAGES.ERROR.BATCH_OFF_SHELF_FAILED)
+  },
+  showTeaDeleteFailed(reason) {
+    errorMessage.show(reason || TEA_MESSAGES.ERROR.TEA_DELETE_FAILED)
+  },
+  showTeaSubmitFailed(reason) {
+    errorMessage.show(reason || TEA_MESSAGES.ERROR.TEA_SUBMIT_FAILED)
+  },
+  showCategoryDeleteFailed(reason) {
+    errorMessage.show(reason || TEA_MESSAGES.ERROR.CATEGORY_DELETE_FAILED)
+  },
+  showCategorySubmitFailed(reason) {
+    errorMessage.show(reason || TEA_MESSAGES.ERROR.CATEGORY_SUBMIT_FAILED)
+  },
+  // 卡片组件
+  showCardAddFailed(reason) {
+    errorMessage.show(reason || TEA_MESSAGES.ERROR.CARD_ADD_FAILED)
   }
 }
 
-/**
- * 茶叶UI交互层消息函数
- */
-export const teaUIMessages = {
-  /**
-   * 显示选择上限消息
-   */
-  showSelectionLimit() {
-    uiMessage.warning(TEA_MESSAGES.UI.TEA_SELECTION_LIMIT)
+// 提示消息函数
+export const teaPromptMessages = {
+  // 详情页
+  showReplyEmpty() {
+    promptMessage.show(TEA_MESSAGES.PROMPT.REPLY_EMPTY)
   },
-  
-  /**
-   * 显示开始对比消息
-   * @param {number} count 对比茶叶数量
-   */
-  showComparisonStart(count) {
-    uiMessage.success(`开始对比${count}款茶叶`)
+  showSoldOut() {
+    promptMessage.show(TEA_MESSAGES.PROMPT.SOLD_OUT)
   },
-  
-  /**
-   * 显示搜索为空提醒
-   */
-  showEmptySearch() {
-    uiMessage.warning(TEA_MESSAGES.UI.TEA_SEARCH_EMPTY)
+  showSelectSpec() {
+    promptMessage.show(TEA_MESSAGES.PROMPT.SELECT_SPEC)
   },
-  
-  /**
-   * 显示排序方式变更消息
-   * @param {string} sortName 排序方式名称
-   */
-  showSortChanged(sortName) {
-    uiMessage.info(`排序方式已更改为"${sortName}"`)
+  // 管理页
+  showSelectOnShelf() {
+    promptMessage.show(TEA_MESSAGES.PROMPT.SELECT_ON_SHELF)
   },
-  
-  /**
-   * 显示图片加载错误消息
-   */
-  showImageLoadError() {
-    uiMessage.error(TEA_MESSAGES.UI.TEA_IMAGE_LOADING_ERROR)
+  showSelectOffShelf() {
+    promptMessage.show(TEA_MESSAGES.PROMPT.SELECT_OFF_SHELF)
   },
-  
-  /**
-   * 显示预览模式消息
-   */
-  showPreviewMode() {
-    uiMessage.info(TEA_MESSAGES.UI.TEA_PREVIEW_MODE)
+  showFormInvalid() {
+    promptMessage.show(TEA_MESSAGES.PROMPT.FORM_INVALID)
+  },
+  showSpecRequired() {
+    promptMessage.show(TEA_MESSAGES.PROMPT.SPEC_REQUIRED)
+  },
+  showSpecIncomplete() {
+    promptMessage.show(TEA_MESSAGES.PROMPT.SPEC_INCOMPLETE)
+  },
+  showDefaultSpecRequired() {
+    promptMessage.show(TEA_MESSAGES.PROMPT.DEFAULT_SPEC_REQUIRED)
+  },
+  showImageRequired() {
+    promptMessage.show(TEA_MESSAGES.PROMPT.IMAGE_REQUIRED)
+  },
+  showSubmitting() {
+    promptMessage.show(TEA_MESSAGES.PROMPT.SUBMITTING)
   }
 }
 
+// 默认导出
 export default {
-  api: teaApiMessages,
-  business: teaBusinessMessages,
-  ui: teaUIMessages
-} 
+  success: teaSuccessMessages,
+  error: teaErrorMessages,
+  prompt: teaPromptMessages,
+  TEA_MESSAGES
+}

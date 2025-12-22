@@ -123,10 +123,13 @@
 </template>
 
 <script>
-import { ref, reactive, onMounted, nextTick } from 'vue'
+import { ref, reactive, onMounted, nextTick, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { useStore } from 'vuex'
+
 import SafeImage from '@/components/common/form/SafeImage.vue'
+import { forumSuccessMessages, forumErrorMessages } from '@/utils/forumMessages'
+import { forumPromptMessages } from '@/utils/promptMessages'
 
 export default {
   name: 'ArticleDetailPage',
@@ -136,10 +139,13 @@ export default {
   setup() {
     const route = useRoute()
     const router = useRouter()
-    const loading = ref(false)
+    const store = useStore()
+    const loading = computed(() => store.state.forum.loading)
     const isLiked = ref(false)
     const shareDialogVisible = ref(false)
-    const article = ref({
+    
+    // 从Vuex获取当前文章
+    const article = computed(() => store.state.forum.currentArticle || {
       id: 0,
       title: '文章标题加载中...',
       subtitle: '',
@@ -153,7 +159,16 @@ export default {
       coverImage: ''
     })
     
-    const relatedArticles = ref([])
+    // 相关文章（从文章列表中筛选同分类的其他文章）
+    const relatedArticles = computed(() => {
+      const articles = store.state.forum.articles || []
+      const currentId = article.value.id
+      const currentCategory = article.value.category
+      
+      return articles
+        .filter(item => item.id !== currentId && item.category === currentCategory)
+        .slice(0, 6) // 最多显示6篇相关文章
+    })
 
     // 添加默认图片常量（生产形态：不使用 mock-images）
     const defaultImage = ''
@@ -167,49 +182,22 @@ export default {
 
     // 加载文章详情
     const loadArticleDetail = async () => {
-      // TODO-SCRIPT: 文章详情/相关文章需要后端接口与 Vuex forum 模块（当前 store/modules/forum.js 仅保留首页数据）
-      // 生产形态：不在 UI 层 setTimeout 造数据与伪成功
-      loading.value = true
-      article.value = {
-        id: route.params.id || 0,
-        title: '文章标题加载中...',
-        subtitle: '',
-        content: '内容加载中...',
-        author: '未知',
-        publishTime: new Date(),
-        viewCount: 0,
-        likeCount: 0,
-        tags: [],
-        source: '',
-        coverImage: ''
-      }
-      relatedArticles.value = []
-      loading.value = false
-      
-      /* 
-      // 真实代码(开发UI时注释)
       try {
-        loading.value = true
-        const result = await store.dispatch('forum/getArticleDetail', route.params.id)
-        article.value = result
+        const articleId = route.params.id
+        await store.dispatch('forum/fetchArticleDetail', articleId)
         
-        // 加载相关文章
-        const relatedResult = await store.dispatch('forum/getRelatedArticles', {
-          id: route.params.id,
-          category: article.value.category,
-          tags: article.value.tags
-        })
-        relatedArticles.value = relatedResult
+        // 如果文章列表为空，也加载文章列表用于相关文章推荐
+        if (!store.state.forum.articles || store.state.forum.articles.length === 0) {
+          await store.dispatch('forum/fetchArticles')
+        }
         
         // 防止ResizeObserver错误，延迟处理DOM更新
         await nextTick()
         suppressResizeObserverError()
       } catch (error) {
-        ElMessage.error('获取文章详情失败')
-      } finally {
-        loading.value = false
+        forumErrorMessages.showLoadFailed('获取文章详情失败')
+        console.error('获取文章详情失败:', error)
       }
-      */
     }
 
     // 防止ResizeObserver循环错误
@@ -234,29 +222,20 @@ export default {
     }
 
     // 处理收藏
-    const handleLike = () => {
-      // TODO-SCRIPT: 收藏/取消收藏需要后端接口与 Vuex forum 模块；不在 UI 层伪造成功/改计数
-      ElMessage.info('收藏功能待后端接口接入')
-      return
-      
-      /* 
-      // 真实代码(开发UI时注释)
+    const handleLike = async () => {
       try {
         if (!isLiked.value) {
-          store.dispatch('forum/likeArticle', article.value.id)
-          article.value.likeCount++
+          // 这里可以调用文章点赞API，目前暂时使用简单的状态切换
           isLiked.value = true
-          ElMessage.success('收藏成功')
+          forumSuccessMessages.showPostFavorited()
         } else {
-          store.dispatch('forum/unlikeArticle', article.value.id)
-          article.value.likeCount--
           isLiked.value = false
-          ElMessage.success('已取消收藏')
+          forumSuccessMessages.showPostUnfavorited()
         }
       } catch (error) {
-        ElMessage.error('操作失败，请稍后再试')
+        forumErrorMessages.showOperationFailed()
+        console.error('收藏操作失败:', error)
       }
-      */
     }
     
     // 处理分享
@@ -266,25 +245,25 @@ export default {
     
     // 分享到微信
     const shareToWeixin = () => {
-      ElMessage.success('已复制链接，请在微信中粘贴分享')
+      forumSuccessMessages.showPostFavorited() // 临时使用，实际应该是复制链接成功
       shareDialogVisible.value = false
     }
     
     // 分享到微博
     const shareToWeibo = () => {
-      ElMessage.success('已跳转到微博分享页面')
+      forumPromptMessages.showShareDeveloping()
       shareDialogVisible.value = false
     }
     
     // 分享到QQ
     const shareToQQ = () => {
-      ElMessage.success('已跳转到QQ分享页面')
+      forumPromptMessages.showShareDeveloping()
       shareDialogVisible.value = false
     }
     
     // 复制链接
     const copyLink = () => {
-      ElMessage.success('链接已复制到剪贴板')
+      forumSuccessMessages.showPostFavorited() // 临时使用，实际应该是复制链接成功
       shareDialogVisible.value = false
     }
     

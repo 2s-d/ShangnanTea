@@ -13,7 +13,7 @@ export function uploadFile(file, type = 'common') {
   formData.append('type', type)
   
   return request({
-    url: '/upload',
+    url: API.SYSTEM.UPLOAD,
     method: 'post',
     data: formData,
     headers: {
@@ -30,29 +30,4 @@ export function uploadFile(file, type = 'common') {
  */
 export function uploadImage(file, type = 'common') {
   return uploadFile(file, type)
-}
-
-/**
- * 上传多个文件
- * @param {Array} files 文件数组
- * @param {string} type 文件类型
- * @returns {Promise} 上传结果
- */
-export function uploadMultipleFiles(files, type = 'common') {
-  const formData = new FormData()
-  
-  files.forEach((file, index) => {
-    formData.append(`files[${index}]`, file)
-  })
-  
-  formData.append('type', type)
-  
-  return request({
-    url: '/upload/multiple',
-    method: 'post',
-    data: formData,
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    }
-  })
 } 

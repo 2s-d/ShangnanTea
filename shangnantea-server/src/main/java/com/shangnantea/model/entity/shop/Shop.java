@@ -96,6 +96,11 @@ public class Shop {
     private Integer salesCount;
     
     /**
+     * 关注数/粉丝数
+     */
+    private Integer followCount;
+    
+    /**
      * 创建时间
      */
     private Date createTime;

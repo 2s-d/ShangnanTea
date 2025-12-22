@@ -60,8 +60,8 @@
         <div class="card-header">
           <div class="header-title">用户列表</div>
           <div class="header-actions">
-            <el-button type="primary" @click="showAddUserDialog">
-              <el-icon><Plus /></el-icon> 添加用户
+            <el-button type="primary" @click="showAddAdminDialog">
+              <el-icon><Plus /></el-icon> 添加管理员
             </el-button>
           </div>
         </div>
@@ -160,10 +160,10 @@
       </el-card>
     </div>
     
-    <!-- 添加/编辑用户对话框 -->
+    <!-- 添加管理员对话框 -->
     <el-dialog
       v-model="dialogVisible"
-      :title="isEdit ? '编辑用户' : '添加用户'"
+      :title="isEdit ? '编辑用户' : '添加管理员'"
       width="500px">
       <el-form
         ref="userFormRef"
@@ -196,16 +196,13 @@
           <el-input v-model="userForm.phone"></el-input>
         </el-form-item>
         
+        <!-- 角色显示：编辑时只读，添加时固定为管理员 -->
         <el-form-item label="角色" prop="role">
-          <el-select v-model="userForm.role" placeholder="请选择角色" style="width: 100%">
-            <el-option
-              v-for="role in roleOptions"
-              :key="role.value"
-              :label="role.label"
-              :value="role.value"
-              :disabled="role.value === 1 && currentUser.role !== 1">
-            </el-option>
-          </el-select>
+          <el-tag v-if="isEdit" :type="getRoleTagType(userForm.role)" effect="plain" size="large">
+            {{ roleOptions.find(r => r.value === userForm.role)?.label || '未知' }}
+          </el-tag>
+          <el-tag v-else type="danger" effect="plain" size="large">管理员</el-tag>
+          <span v-if="isEdit" class="role-tip">（角色权限不可修改）</span>
         </el-form-item>
         
         <el-form-item label="状态" prop="status">
@@ -260,11 +257,14 @@
 <script>
 import { ref, reactive, computed, onMounted, getCurrentInstance } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { useStore } from 'vuex'
+import { ElMessageBox } from 'element-plus'
 import { 
   Search, Plus, Edit, Delete, Download, RefreshRight, WarningFilled, Check, View
 } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
+import { showByCode, isSuccess } from '@/utils/apiMessages'
+import { userPromptMessages as userMessages } from '@/utils/promptMessages'
 
 export default {
   name: 'UserManagePage',
@@ -273,14 +273,27 @@ export default {
   },
   setup() {
     const router = useRouter()
+    const store = useStore()
     const userFormRef = ref(null)
     
-    // 用户列表数据
-    const loading = ref(false)
-    const userList = ref([])
-    const total = ref(0)
-    const currentPage = ref(1)
-    const pageSize = ref(10)
+    // 从Vuex获取用户列表数据
+    const loading = computed(() => store.state.user.loading)
+    const userList = computed(() => store.state.user.userList || [])
+    const userPagination = computed(() => store.state.user.userPagination || { page: 1, pageSize: 20, total: 0 })
+    const total = computed(() => userPagination.value.total)
+    const currentPage = computed({
+      get: () => userPagination.value.page,
+      set: (val) => {
+        store.commit('user/SET_USER_PAGINATION', { page: val })
+      }
+    })
+    const pageSize = computed({
+      get: () => userPagination.value.pageSize,
+      set: (val) => {
+        store.commit('user/SET_USER_PAGINATION', { pageSize: val })
+      }
+    })
+    const userFilters = computed(() => store.state.user.userFilters || {})
     const searchQuery = ref('')
     const roleFilter = ref('')
     const statusFilter = ref('')
@@ -305,7 +318,7 @@ export default {
       { value: 3, label: '商家' }
     ]
     
-    // 表单初始数据
+    // 表单初始数据（添加管理员时固定role=1）
     const initialUserForm = {
       id: '',
       username: '',
@@ -314,7 +327,7 @@ export default {
       confirmPassword: '',
       email: '',
       phone: '',
-      role: 2,
+      role: 1, // 固定为管理员
       status: 1,
       avatar: ''
     }
@@ -365,24 +378,26 @@ export default {
       ]
     }
     
-    // 获取用户列表
+    // 获取用户列表（使用Vuex）
     const fetchUserList = async () => {
-      loading.value = true
       try {
-        // 在实际项目中，这里应该调用后端API
-        // 模拟API响应
-        const response = getMockUserList()
-        userList.value = response.data.list
-        total.value = response.data.total
+        const params = {
+          page: currentPage.value,
+          pageSize: pageSize.value,
+          keyword: searchQuery.value || undefined,
+          role: roleFilter.value ? Number(roleFilter.value) : undefined,
+          status: statusFilter.value !== '' ? Number(statusFilter.value) : undefined
+        }
+        await store.dispatch('user/fetchUserList', params)
       } catch (error) {
         console.error('获取用户列表失败：', error)
-        ElMessage.error('获取用户列表失败，请稍后重试')
-      } finally {
-        loading.value = false
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        userMessages.error.showUserListFetchFailed()
       }
     }
     
-    // 模拟获取用户列表数据
+    // 模拟获取用户列表数据（已废弃，保留用于兼容）
     const getMockUserList = () => {
       // 生成模拟数据
       const list = []
@@ -488,10 +503,13 @@ export default {
       fetchUserList()
     }
     
-    // 添加用户
-    const showAddUserDialog = () => {
+    // 添加管理员
+    const showAddAdminDialog = () => {
       isEdit.value = false
-      Object.assign(userForm, initialUserForm)
+      Object.assign(userForm, {
+        ...initialUserForm,
+        role: 1 // 确保固定为管理员
+      })
       dialogVisible.value = true
     }
     
@@ -521,30 +539,36 @@ export default {
     // 确认删除
     const confirmDelete = async () => {
       try {
-        // 在实际项目中，这里应该调用后端API
-        // 模拟API调用
-        ElMessage.success(`用户 "${selectedUser.value.username}" 已删除`)
-        
-        // 从列表中移除
-        userList.value = userList.value.filter(user => user.id !== selectedUser.value.id)
-        
+        await store.dispatch('user/deleteUser', selectedUser.value.id)
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        // TODO: [user] 迁移到 showByCode(response.code) - success
+        userMessages.success.showUserDeleted(selectedUser.value.username)
         deleteDialogVisible.value = false
       } catch (error) {
         console.error('删除用户失败：', error)
-        ElMessage.error('删除用户失败，请稍后重试')
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        userMessages.error.showUserDeleteFailed()
       }
     }
     
     // 修改用户状态
     const handleStatusChange = async (user) => {
       try {
-        // 在实际项目中，这里应该调用后端API
-        // 模拟API调用
-        const statusText = user.status === 1 ? '启用' : '禁用'
-        ElMessage.success(`用户 "${user.username}" 已${statusText}`)
+        const newStatus = user.status === 1 ? 0 : 1
+        await store.dispatch('user/toggleUserStatus', {
+          userId: user.id,
+          status: newStatus
+        })
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        userMessages.success.showUserStatusToggled(user.username, newStatus)
       } catch (error) {
         console.error('修改用户状态失败：', error)
-        ElMessage.error('修改用户状态失败，请稍后重试')
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        userMessages.error.showUserStatusToggleFailed()
         // 恢复原状态
         user.status = user.status === 1 ? 0 : 1
       }
@@ -557,51 +581,51 @@ export default {
       userFormRef.value.validate(async (valid) => {
         if (valid) {
           try {
-            // 在实际项目中，这里应该调用后端API
-            // 模拟API调用
             if (isEdit.value) {
-              // 编辑用户
-              // 更新列表中的用户数据
-              const index = userList.value.findIndex(user => user.id === userForm.id)
-              if (index !== -1) {
-                userList.value[index] = {
-                  ...userList.value[index],
-                  nickname: userForm.nickname,
-                  email: userForm.email,
-                  phone: userForm.phone,
-                  role: userForm.role,
-                  roleName: roleOptions.find(r => r.value === userForm.role)?.label || '',
-                  status: userForm.status,
-                  avatar: userForm.avatar
-                }
-              }
-              
-              ElMessage.success(`用户 "${userForm.username}" 已更新`)
-            } else {
-              // 添加用户
-              const newUser = {
-                id: userList.value.length + 1,
-                username: userForm.username,
+              // 编辑用户（不允许修改角色）
+              const userData = {
                 nickname: userForm.nickname,
                 email: userForm.email,
                 phone: userForm.phone,
-                role: userForm.role,
-                roleName: roleOptions.find(r => r.value === userForm.role)?.label || '',
                 status: userForm.status,
-                registerTime: new Date(),
-                lastLoginTime: null,
                 avatar: userForm.avatar
               }
               
-              userList.value.unshift(newUser)
+              await store.dispatch('user/updateUser', {
+                userId: userForm.id,
+                userData
+              })
               
-              ElMessage.success(`用户 "${userForm.username}" 已添加`)
+              // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+              userMessages.success.showUserUpdated(userForm.username)
+            } else {
+              // 添加管理员（固定role=1）
+              const adminData = {
+                username: userForm.username,
+                password: userForm.password,
+                nickname: userForm.nickname,
+                email: userForm.email,
+                phone: userForm.phone,
+                avatar: userForm.avatar,
+                role: 1 // 固定为管理员
+              }
+              
+              await store.dispatch('user/createAdmin', adminData)
+              
+              // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+              userMessages.success.showAdminCreated(userForm.username)
             }
             
             dialogVisible.value = false
+            // 刷新用户列表
+            await fetchUserList()
           } catch (error) {
             console.error('提交用户表单失败：', error)
-            ElMessage.error('提交失败，请稍后重试')
+            // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+            userMessages.error.showUserFormSubmitFailed()
           }
         } else {
           return false
@@ -615,11 +639,15 @@ export default {
       const isLt2M = file.size / 1024 / 1024 < 2
       
       if (!isImage) {
-        ElMessage.error('上传头像图片只能是图片格式!')
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        userMessages.error.showAvatarFormatError()
       }
       
       if (!isLt2M) {
-        ElMessage.error('上传头像图片大小不能超过 2MB!')
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        userMessages.error.showAvatarSizeError()
       }
       
       return isImage && isLt2M
@@ -640,7 +668,7 @@ export default {
     
     // 导出用户数据
     const handleExportUsers = () => {
-      ElMessage.info('导出功能开发中，敬请期待...')
+      userMessages.prompt.showExportFeatureDeveloping()
     }
     
     // 处理商家认证请求
@@ -683,7 +711,6 @@ export default {
       resetFilters,
       handleSizeChange,
       handleCurrentChange,
-      showAddUserDialog,
       handleEdit,
       handleDelete,
       confirmDelete,
@@ -692,7 +719,8 @@ export default {
       beforeAvatarUpload,
       uploadAvatar,
       handleExportUsers,
-      handleMerchantRequests
+      handleMerchantRequests,
+      showAddAdminDialog
     }
   }
 }
@@ -841,6 +869,12 @@ export default {
     display: flex;
     justify-content: flex-end;
     margin-top: 10px;
+  }
+  
+  .role-tip {
+    margin-left: 10px;
+    font-size: 12px;
+    color: var(--el-text-color-secondary);
   }
 }
 

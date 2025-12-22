@@ -8,12 +8,14 @@
         <result column="user_id" property="userId" jdbcType="VARCHAR"/>
         <result column="follow_type" property="followType" jdbcType="VARCHAR"/>
         <result column="follow_id" property="followId" jdbcType="VARCHAR"/>
+        <result column="target_name" property="targetName" jdbcType="VARCHAR"/>
+        <result column="target_avatar" property="targetAvatar" jdbcType="VARCHAR"/>
         <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
     </resultMap>
     
     <!-- 公共列 -->
     <sql id="Base_Column_List">
-        id, user_id, follow_type, follow_id, create_time
+        id, user_id, follow_type, follow_id, target_name, target_avatar, create_time
     </sql>
     
     <!-- 根据ID查询关注 -->

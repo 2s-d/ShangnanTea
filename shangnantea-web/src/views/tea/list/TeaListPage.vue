@@ -9,20 +9,13 @@
           <div class="header-toolbar">
             <div class="left-area">
               <div class="search-area">
-                <el-input
-                  v-model="searchQuery"
+                <SearchBar 
+                  search-type="tea"
+                  :model-value="searchQuery"
                   placeholder="搜索茶叶名称"
-                  class="search-input"
-                  clearable
-                  @keyup.enter="handleSearch"
-                >
-                  <template #prefix>
-                    <el-icon><Search /></el-icon>
-                  </template>
-                  <template #append>
-                    <el-button @click="handleSearch">搜索</el-button>
-                  </template>
-                </el-input>
+                  @update:model-value="searchQuery = $event"
+                  @search="handleSearchFromBar"
+                />
               </div>
               
           <el-button type="primary" @click="goToShopList">
@@ -110,6 +103,20 @@
               <el-radio label="shop">商家店铺</el-radio>
             </el-radio-group>
           </div>
+          
+          <div class="filter-card">
+            <h3 class="filter-title">评分筛选</h3>
+            <el-radio-group v-model="filters.rating" @change="applyFilters">
+              <el-radio :label="null">全部</el-radio>
+              <el-radio :label="4.5">4.5分以上</el-radio>
+              <el-radio :label="4.0">4.0分以上</el-radio>
+              <el-radio :label="3.5">3.5分以上</el-radio>
+            </el-radio-group>
+          </div>
+          
+          <div class="filter-card">
+            <el-button type="default" @click="resetFilters" style="width: 100%">重置筛选</el-button>
+          </div>
         </div>
         
         <!-- 茶叶列表 -->
@@ -146,6 +153,19 @@
           </div>
         </div>
       </div>
+      
+      <!-- 任务组F：热门推荐 -->
+      <div class="recommend-section" v-if="popularTeas.length > 0">
+        <h2 class="section-title">热门推荐</h2>
+        <div class="recommend-list">
+          <TeaCard 
+            v-for="tea in popularTeas" 
+            :key="tea.id" 
+            :tea="tea"
+            @click="goToTeaDetail(tea.id)"
+          />
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -154,16 +174,20 @@
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useStore } from 'vuex'
-import { ElMessage } from 'element-plus'
+
 import { Search, Shop } from '@element-plus/icons-vue'
 import TeaCard from '@/components/tea/card/TeaCard.vue'
+
+import SearchBar from '@/components/common/SearchBar.vue'
+import { showByCode, isSuccess } from '@/utils/apiMessages'
+import teaMessages from '@/utils/promptMessages'
 
 export default {
   name: "TeaListPage",
   components: {
     Shop,
-    Search,
-    TeaCard
+    TeaCard,
+    SearchBar
   },
   setup() {
     const store = useStore()
@@ -179,7 +203,8 @@ export default {
     const filters = reactive({
       categories: [],
       priceRange: [0, 1000],
-      source: 'all'
+      source: 'all',
+      rating: null
     })
     
     // 从store获取分类数据
@@ -190,6 +215,65 @@ export default {
     const totalCount = computed(() => store.state.tea.pagination.total)
     const pageSize = computed(() => store.state.tea.pagination.pageSize)
     const loading = computed(() => store.state.tea.loading)
+    
+    // 加载茶叶数据（提前定义，避免 watch 中调用时未定义）
+    const loadTeas = async () => {
+      try {
+        // 解析排序选项
+        let sortBy = ''
+        let sortOrder = 'asc'
+        if (sortOption.value === 'sales') {
+          sortBy = 'sales'
+          sortOrder = 'desc'
+        } else if (sortOption.value === 'price_asc') {
+          sortBy = 'price'
+          sortOrder = 'asc'
+        } else if (sortOption.value === 'price_desc') {
+          sortBy = 'price'
+          sortOrder = 'desc'
+        } else if (sortOption.value === 'newest') {
+          sortBy = 'time'
+          sortOrder = 'desc'
+        }
+        
+        // 将UI筛选条件映射到 store.filters
+        // 任务组E：只显示上架茶叶（status=1）
+        await store.dispatch('tea/updateFilters', {
+          keyword: searchQuery.value,
+          // 当前 store 只支持单个 category 字段，这里用"第一个选中分类"作为查询条件
+          category: filters.categories.length > 0 ? filters.categories[0] : '',
+          priceRange: filters.priceRange,
+          origin: '', // 暂时不支持产地筛选
+          rating: filters.rating,
+          sortBy: sortBy,
+          sortOrder: sortOrder,
+          status: 1 // 任务组E：只显示上架茶叶
+        })
+      } catch (error) {
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        // TODO: [tea] 迁移到 showByCode(response.code) - error
+        teaMessages.error.showListFailed(error.message)
+      }
+    }
+    
+    // 同步筛选条件到URL
+    const updateQueryParams = () => {
+      const query = {
+        page: currentPage.value,
+        sort: sortOption.value
+      }
+      
+      if (searchQuery.value) query.search = searchQuery.value
+      if (filters.categories.length > 0) query.categories = JSON.stringify(filters.categories)
+      if (filters.priceRange[0] !== 0 || filters.priceRange[1] !== 1000) {
+        query.price = JSON.stringify(filters.priceRange)
+      }
+      if (filters.source !== 'all') query.source = filters.source
+      if (filters.rating !== null) query.rating = filters.rating
+      
+      router.replace({ query })
+    }
     
     // 监听路由参数变化
     watch(
@@ -214,56 +298,33 @@ export default {
           }
         }
         if (query.source) filters.source = query.source
+        if (query.rating !== undefined && query.rating !== null && query.rating !== '') {
+          filters.rating = parseFloat(query.rating)
+        } else {
+          filters.rating = null
+        }
         
         loadTeas()
       },
       { immediate: true }
     )
     
-    // 加载茶叶数据
-    const loadTeas = async () => {
-      try {
-        // 将UI筛选条件映射到 store.filters（尽量保持兼容现有 store 结构）
-        await store.dispatch('tea/updateFilters', {
-          keyword: searchQuery.value,
-          // 当前 store 只支持单个 category 字段，这里用“第一个选中分类”作为查询条件
-          category: filters.categories.length > 0 ? filters.categories[0] : '',
-          priceRange: filters.priceRange
-        })
-
-        // store 内部使用 pagination + filters 组装请求参数
-        await store.dispatch('tea/fetchTeas')
-      } catch (error) {
-        ElMessage.error(error.message || '加载茶叶数据失败')
-      }
-    }
-    
-    // 同步筛选条件到URL
-    const updateQueryParams = () => {
-      const query = {
-        page: currentPage.value,
-        sort: sortOption.value
-      }
-      
-      if (searchQuery.value) query.search = searchQuery.value
-      if (filters.categories.length > 0) query.categories = JSON.stringify(filters.categories)
-      if (filters.priceRange[0] !== 0 || filters.priceRange[1] !== 1000) {
-        query.price = JSON.stringify(filters.priceRange)
-      }
-      if (filters.source !== 'all') query.source = filters.source
-      
-      router.replace({ query })
-    }
-    
     // 页面跳转
     const goToShopList = () => {
       router.push('/shop/list')
     }
     
-    // 搜索处理
+    // 搜索处理（原有方法，保留用于兼容）
     const handleSearch = () => {
       currentPage.value = 1
       updateQueryParams()
+    }
+    
+    // 统一搜索组件的搜索处理
+    const handleSearchFromBar = ({ query, type }) => {
+      // SearchBar已经处理了跳转，这里只需要更新本地状态
+      searchQuery.value = query
+      // 由于SearchBar已经跳转到 /tea/mall?search=xxx，watch会自动触发数据加载
     }
     
     // 应用筛选 - 直接应用，不再需要按钮
@@ -272,32 +333,64 @@ export default {
       updateQueryParams()
     }
     
-    // 重置筛选 - 内部使用，不再作为按钮
-    const resetFilters = () => {
+    // 重置筛选
+    const resetFilters = async () => {
       filters.categories = []
       filters.priceRange = [0, 1000]
       filters.source = 'all'
+      filters.rating = null
+      searchQuery.value = ''
+      sortOption.value = 'default'
       currentPage.value = 1
-      updateQueryParams()
+      
+      // 重置Vuex筛选条件
+      await store.dispatch('tea/resetFilters')
+      
+      // 清空URL参数
+      router.replace({ query: {} })
     }
     
     // 页面变化
     const handlePageChange = (page) => {
       currentPage.value = page
-      store.dispatch('tea/setPage', page)
       updateQueryParams()
+      store.dispatch('tea/setPage', page)
     }
     
     // 处理排序变更
     const handleSortChange = () => {
       currentPage.value = 1
-      // 当前 store 尚未支持 sort 字段，这里先触发重新加载
+      updateQueryParams()
       loadTeas()
     }
     
+    // 任务组F：热门推荐数据
+    const popularTeas = computed(() => store.state.tea.recommendTeas || [])
+    
+    // 任务组F：跳转到茶叶详情页
+    const goToTeaDetail = (teaId) => {
+      router.push(`/tea/${teaId}`)
+    }
+    
+    // 任务组F：加载热门推荐
+    const loadPopularTeas = async () => {
+      try {
+        await store.dispatch('tea/fetchRecommendTeas', { type: 'popular', count: 6 })
+      } catch (error) {
+        console.error('加载热门推荐失败:', error)
+      }
+    }
+    
     // 初始化
-    onMounted(() => {
-      store.dispatch('tea/fetchCategories')
+    onMounted(async () => {
+      await store.dispatch('tea/fetchCategories')
+      // 如果URL中有查询参数，会触发watch自动加载
+      // 如果没有查询参数，需要手动加载一次
+      if (!route.query.page && !route.query.search && !route.query.categories) {
+        await loadTeas()
+      }
+      // 任务组F：加载热门推荐
+      await loadPopularTeas()
     })
     
     return {
@@ -313,10 +406,14 @@ export default {
       categoryOptions,
       goToShopList,
       handleSearch,
+      handleSearchFromBar,
       applyFilters,
       resetFilters,
       handlePageChange,
-      handleSortChange
+      handleSortChange,
+      // 任务组F：热门推荐
+      popularTeas,
+      goToTeaDetail
     }
   }
 }
@@ -518,6 +615,30 @@ export default {
           display: flex;
           justify-content: center;
           margin-top: 30px;
+        }
+      }
+      
+      // 任务组F：热门推荐样式
+      .recommend-section {
+        margin-top: 40px;
+        padding: 30px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+        
+        .section-title {
+          font-size: 20px;
+          font-weight: 600;
+          color: #303133;
+          margin-bottom: 20px;
+          padding-bottom: 10px;
+          border-bottom: 2px solid #409eff;
+        }
+        
+        .recommend-list {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+          gap: 20px;
         }
       }
     }

@@ -26,25 +26,30 @@
     </div>
 
     <div class="container main-content">
+      <!-- 加载状态 -->
+      <div v-if="loading" class="loading-container">
+        <el-skeleton :rows="8" animated />
+      </div>
+      
       <!-- 帖子内容 -->
-      <div class="post-container">
+      <div v-else-if="post" class="post-container">
         <div class="post-content" v-html="post.content"></div>
         <div v-if="post.cover" class="post-cover">
           <SafeImage :src="post.cover" type="post" :alt="post.title" class="cover-img" style="width:100%;object-fit:cover;" />
         </div>
         
         <div class="post-actions">
-          <el-button type="primary" plain @click="likePost" :disabled="liked">
-            <el-icon><Star /></el-icon> 
-            {{ liked ? '已点赞' : '点赞' }} ({{ post.likeCount }})
+          <el-button type="primary" plain @click="likePost" :loading="likeLoading" :class="{ 'liked': liked }">
+            <el-icon><StarFilled v-if="liked" /><Star v-else /></el-icon> 
+            {{ liked ? '已点赞' : '点赞' }} ({{ post.likeCount || 0 }})
           </el-button>
           <el-button plain @click="scrollToReply">
             <el-icon><ChatDotRound /></el-icon> 
-            回复 ({{ post.replyCount }})
+            回复 ({{ post.replyCount || 0 }})
           </el-button>
-          <el-button plain @click="toggleFavorite">
+          <el-button plain @click="toggleFavorite" :loading="favoriteLoading" :class="{ 'favorited': favorited }">
             <el-icon><StarFilled v-if="favorited" /><Star v-else /></el-icon> 
-            {{ favorited ? '已收藏' : '收藏' }}
+            {{ favorited ? '已收藏' : '收藏' }} ({{ post.favoriteCount || 0 }})
           </el-button>
           <el-button plain @click="showShareDialog">
             <el-icon><Share /></el-icon> 分享
@@ -74,6 +79,11 @@
         
         <!-- 回复列表 -->
         <div class="reply-list">
+          <!-- 加载状态 -->
+          <div v-if="loading && replyList.length === 0" class="reply-loading">
+            <el-skeleton :rows="3" animated />
+          </div>
+          
           <div v-for="reply in replyList" :key="reply.id" class="reply-item">
             <div class="reply-author">
               <div class="author-avatar">
@@ -97,9 +107,9 @@
               
               <!-- 回复操作 -->
               <div class="reply-actions">
-                <span class="action-item" @click="likeReply(reply)">
-                  <el-icon><Star /></el-icon> 
-                  {{ reply.liked ? '已赞' : '点赞' }} ({{ reply.likeCount }})
+                <span class="action-item" @click="likeReply(reply)" :class="{ 'liked': reply.isLiked }">
+                  <el-icon><StarFilled v-if="reply.isLiked" /><Star v-else /></el-icon> 
+                  {{ reply.isLiked ? '已赞' : '点赞' }} ({{ reply.likeCount || 0 }})
                 </span>
                 <span class="action-item" @click="showReplyInput(reply)">
                   <el-icon><ChatLineRound /></el-icon> 回复
@@ -135,14 +145,35 @@
           
           <el-form>
             <el-form-item>
-              <el-input
-                v-model="replyContent"
-                type="textarea"
-                :rows="4"
-                placeholder="请输入回复内容..."
-                maxlength="1000"
-                show-word-limit
-              />
+              <div class="reply-input-wrapper">
+                <el-input
+                  ref="replyTextareaRef"
+                  v-model="replyContent"
+                  type="textarea"
+                  :rows="4"
+                  placeholder="请输入回复内容，输入@可以提及用户..."
+                  maxlength="1000"
+                  show-word-limit
+                  @input="handleReplyInput"
+                  @keydown="handleReplyKeydown"
+                />
+                <!-- @用户下拉列表 -->
+                <div v-if="showMentionList && mentionUsers.length > 0" class="mention-dropdown">
+                  <div
+                    v-for="(user, index) in mentionUsers"
+                    :key="user.id"
+                    class="mention-item"
+                    :class="{ 'active': index === mentionSelectedIndex }"
+                    @click="selectMentionUser(user)"
+                    @mouseenter="mentionSelectedIndex = index"
+                  >
+                    <el-avatar :src="(user && user.avatar) || ''" :size="24" style="margin-right: 8px;">
+                      {{ (user && user.username && user.username.charAt(0)) || '?' }}
+                    </el-avatar>
+                    <span>{{ (user && user.username) || '未知用户' }}</span>
+                  </div>
+                </div>
+              </div>
             </el-form-item>
             
             <el-form-item>
@@ -168,6 +199,11 @@
           </div>
         </div>
       </div>
+      
+      <!-- 帖子不存在 -->
+      <div v-if="!loading && !post" class="error-container">
+        <el-empty description="帖子不存在或已被删除" />
+      </div>
     </div>
   </div>
 </template>
@@ -175,9 +211,12 @@
 <script>
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { useStore } from 'vuex'
+
 import { View, ChatDotRound, Star, StarFilled, Share, Back, ChatLineRound, ArrowDown } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
+import { forumSuccessMessages, forumErrorMessages } from '@/utils/forumMessages'
+import { forumPromptMessages } from '@/utils/promptMessages'
 
 export default {
   name: 'ForumDetailPage',
@@ -187,6 +226,7 @@ export default {
   setup() {
     const route = useRoute()
     const router = useRouter()
+    const store = useStore()
     
     // 默认图片（生产形态：不使用 mock-images）
     const defaultAvatar = ''
@@ -195,39 +235,68 @@ export default {
     // 获取帖子ID
     const postId = computed(() => route.params.id)
     
-    // 点赞和收藏状态
-    const liked = ref(false)
-    const favorited = ref(false)
+    // 从Vuex获取点赞和收藏列表，判断当前帖子状态
+    const likeList = computed(() => store.state.user.likeList || [])
+    const favoriteList = computed(() => store.state.user.favoriteList || [])
     
-    /**
-     * 帖子数据（生产形态：不在 UI 层造数据）
-     * TODO-SCRIPT: 需要 forum 模块 API + Vuex 接入（当前 store/modules/forum.js 仅保留首页数据）
-     */
-    const post = ref(null)
+    // 点赞状态（从帖子数据判断）
+    const liked = computed(() => {
+      return post.value?.isLiked || false
+    })
     
-    /*
-    // 真实代码(开发UI时注释)
-    const post = ref({})
-    const loading = ref(true)
+    // 收藏状态（从帖子数据判断）
+    const favorited = computed(() => {
+      return post.value?.isFavorited || false
+    })
+    
+    const likeLoading = ref(false)
+    const favoriteLoading = ref(false)
+    
+    // 从Vuex获取帖子数据
+    const post = computed(() => store.state.forum.currentPost)
+    const loading = computed(() => store.state.forum.loading)
     
     // 获取帖子详情
     const fetchPostDetail = async () => {
       try {
-        loading.value = true
-        const result = await store.dispatch('forum/getPostDetail', postId.value)
-        post.value = result
+        await store.dispatch('forum/fetchPostDetail', postId.value)
       } catch (error) {
-        ElMessage.error('获取帖子详情失败')
-      } finally {
-        loading.value = false
+        forumErrorMessages.showLoadPostDetailFailed()
+        console.error('获取帖子详情失败:', error)
       }
     }
     
-    // 初始化数据
-    onMounted(() => {
-      fetchPostDetail()
+    // 获取回复列表
+    const fetchReplies = async () => {
+      if (!postId.value) return
+      
+      try {
+        const params = {
+          page: pagination.currentPage,
+          size: pagination.pageSize,
+          sortBy: currentSort.value
+        }
+        await store.dispatch('forum/fetchPostReplies', { postId: postId.value, params })
+        updateReplyPagination()
+      } catch (error) {
+        forumErrorMessages.showLoadRepliesFailed()
+        console.error('获取回复列表失败:', error)
+      }
+    }
+    
+    // 更新回复分页信息
+    const updateReplyPagination = () => {
+      const vuexPagination = store.state.forum.replyPagination
+      pagination.currentPage = vuexPagination.current
+      pagination.pageSize = vuexPagination.pageSize
+      pagination.total = vuexPagination.total
+    }
+    
+    // 页面初始化
+    onMounted(async () => {
+      await fetchPostDetail()
+      await fetchReplies()
     })
-    */
     
     // 返回帖子列表
     const goBack = () => {
@@ -235,23 +304,25 @@ export default {
     }
     
     // 点赞帖子
-    const likePost = () => {
-      // TODO-SCRIPT: 点赞需要后端接口与 Vuex forum 模块；不在 UI 层伪造成功/修改计数
-      ElMessage.info('点赞功能待后端接口接入')
-      return
+    const likePost = async () => {
+      if (!postId.value) return
       
-      /*
-      // 真实代码(开发UI时注释)
-      if (!liked.value) {
-        store.dispatch('forum/likePost', postId.value).then(() => {
-          post.value.likeCount++
-          liked.value = true
-          ElMessage.success('点赞成功')
-        }).catch(() => {
-          ElMessage.error('点赞失败，请重试')
-        })
+      likeLoading.value = true
+      try {
+        if (post.value?.isLiked) {
+          // 取消点赞
+          await store.dispatch('forum/unlikePost', postId.value)
+          forumSuccessMessages.showPostUnliked()
+        } else {
+          // 添加点赞
+          await store.dispatch('forum/likePost', postId.value)
+          forumSuccessMessages.showPostLiked()
+        }
+      } catch (error) {
+        forumErrorMessages.showOperationFailed(error.message)
+      } finally {
+        likeLoading.value = false
       }
-      */
     }
     
     // 滚动到回复区域
@@ -263,15 +334,30 @@ export default {
     }
     
     // 收藏/取消收藏
-    const toggleFavorite = () => {
-      // TODO-SCRIPT: 收藏需要后端接口与 Vuex forum 模块；不在 UI 层伪造成功
-      ElMessage.info('收藏功能待后端接口接入')
-      return
+    const toggleFavorite = async () => {
+      if (!postId.value) return
+      
+      favoriteLoading.value = true
+      try {
+        if (post.value?.isFavorited) {
+          // 取消收藏
+          await store.dispatch('forum/unfavoritePost', postId.value)
+          forumSuccessMessages.showPostUnfavorited()
+        } else {
+          // 添加收藏
+          await store.dispatch('forum/favoritePost', postId.value)
+          forumSuccessMessages.showPostFavorited()
+        }
+      } catch (error) {
+        forumErrorMessages.showOperationFailed(error.message)
+      } finally {
+        favoriteLoading.value = false
+      }
     }
     
     // 显示分享对话框
     const showShareDialog = () => {
-      ElMessage.info('分享功能正在开发中')
+      forumPromptMessages.showShareDeveloping()
     }
     
     // 格式化日期
@@ -301,110 +387,50 @@ export default {
     const replyContent = ref('')
     const currentReply = ref(null)
     const submitting = ref(false)
+    const replyTextareaRef = ref(null)
+    
+    // @用户相关状态
+    const showMentionList = ref(false)
+    const mentionUsers = ref([])
+    const mentionSelectedIndex = ref(0)
+    const mentionStartPos = ref(-1) // @符号的位置
 
-    /**
-     * 回复/推荐列表（生产形态：不在 UI 层造数据与伪分页）
-     * TODO-SCRIPT: 需要 forum 模块 API + Vuex 接入（回复列表/推荐列表/排序/分页）
-     */
-    const replyList = ref([])
+    // 从Vuex获取回复数据
+    const replyList = computed(() => store.state.forum.postReplies)
     const recommendList = ref([])
-    pagination.total = 0
-    
-    /*
-    // 真实代码(开发UI时注释)
-    const replyList = ref([])
-    const recommendList = ref([])
-    
-    // 获取回复列表
-    const fetchReplies = async () => {
-      try {
-        const params = {
-          postId: postId.value,
-          page: pagination.currentPage,
-          limit: pagination.pageSize,
-          sort: currentSort.value
-        }
-        const result = await store.dispatch('forum/getPostReplies', params)
-        replyList.value = result.list
-        pagination.total = result.total
-      } catch (error) {
-        ElMessage.error('获取回复失败')
-      }
-    }
-    
-    // 获取推荐帖子
-    const fetchRecommendPosts = async () => {
-      try {
-        const params = {
-          postId: postId.value,
-          topicId: post.value.topicId,
-          limit: 4
-        }
-        const result = await store.dispatch('forum/getRecommendPosts', params)
-        recommendList.value = result
-      } catch (error) {
-        console.error('获取推荐帖子失败', error)
-      }
-    }
-    
-    // 初始化数据
-    onMounted(() => {
-      fetchReplies()
-      fetchRecommendPosts()
-    })
-    */
-    
-    // 处理排序变更
-    const handleSortChange = (sort) => {
+// 处理排序变更
+    const handleSortChange = async (sort) => {
       currentSort.value = sort
-
-      // TODO-SCRIPT: 排序需要后端接口或由 Vuex 拉取并排序；不在 UI 层伪造排序结果
-      ElMessage.info('排序功能待后端接口接入')
-      return
-      
-      /*
-      // 真实代码(开发UI时注释)
-      pagination.currentPage = 1
-      fetchReplies()
-      */
+      pagination.currentPage = 1 // 重置到第一页
+      await fetchReplies()
     }
     
     // 处理分页大小变更
-    const handleSizeChange = (size) => {
+    const handleSizeChange = async (size) => {
       pagination.pageSize = size
-      /*
-      // 真实代码(开发UI时注释)
-      fetchReplies()
-      */
+      pagination.currentPage = 1 // 重置到第一页
+      await fetchReplies()
     }
     
     // 处理页码变更
-    const handleCurrentChange = (page) => {
+    const handleCurrentChange = async (page) => {
       pagination.currentPage = page
-      /*
-      // 真实代码(开发UI时注释)
-      fetchReplies()
-      */
+      await fetchReplies()
     }
     
     // 点赞回复
-    const likeReply = (reply) => {
-      // TODO-SCRIPT: 点赞回复需要后端接口与 Vuex forum 模块；不在 UI 层伪造成功/修改计数
-      ElMessage.info('点赞功能待后端接口接入')
-      return
-      
-      /*
-      // 真实代码(开发UI时注释)
-      if (!reply.liked) {
-        store.dispatch('forum/likeReply', reply.id).then(() => {
-          reply.likeCount++
-          reply.liked = true
-          ElMessage.success('点赞成功')
-        }).catch(() => {
-          ElMessage.error('点赞失败，请重试')
-        })
+    const likeReply = async (reply) => {
+      try {
+        if (reply.isLiked) {
+          await store.dispatch('forum/unlikeReply', reply.id)
+          forumSuccessMessages.showPostUnliked()
+        } else {
+          await store.dispatch('forum/likeReply', reply.id)
+          forumSuccessMessages.showPostLiked()
+        }
+      } catch (error) {
+        forumErrorMessages.showOperationFailed(error.message)
       }
-      */
     }
     
     // 显示回复输入框
@@ -424,47 +450,166 @@ export default {
       currentReply.value = null
     }
     
+    // 处理回复输入
+    const handleReplyInput = (value) => {
+      // 检测@符号
+      if (!replyTextareaRef.value || !replyTextareaRef.value.textarea) return
+      
+      const textarea = replyTextareaRef.value.textarea
+      const cursorPos = textarea.selectionStart || value.length
+      const textBeforeCursor = value.substring(0, cursorPos)
+      const lastAtIndex = textBeforeCursor.lastIndexOf('@')
+      
+      if (lastAtIndex !== -1) {
+        // 检查@后面是否有空格或其他分隔符
+        const textAfterAt = textBeforeCursor.substring(lastAtIndex + 1)
+        if (!textAfterAt.includes(' ') && !textAfterAt.includes('\n')) {
+          // 正在输入用户名
+          const searchKeyword = textAfterAt.toLowerCase()
+          mentionStartPos.value = lastAtIndex
+          // 从回复列表中搜索用户（简单实现：从当前回复列表的用户中搜索）
+          const allUsers = new Map()
+          replyList.value.forEach(reply => {
+            if (!allUsers.has(reply.userId)) {
+              allUsers.set(reply.userId, {
+                id: reply.userId,
+                username: reply.userName,
+                avatar: reply.userAvatar
+              })
+            }
+          })
+          // 添加帖子作者
+          if (post.value?.authorId) {
+            allUsers.set(post.value.authorId, {
+              id: post.value.authorId,
+              username: post.value.authorName,
+              avatar: post.value.authorAvatar
+            })
+          }
+          
+          mentionUsers.value = Array.from(allUsers.values())
+            .filter(user => user.username.toLowerCase().includes(searchKeyword))
+            .slice(0, 5) // 最多显示5个
+          
+          if (mentionUsers.value.length > 0) {
+            showMentionList.value = true
+            mentionSelectedIndex.value = 0
+          } else {
+            showMentionList.value = false
+          }
+          return
+        }
+      }
+      
+      // 没有@或@后面有空格，隐藏下拉列表
+      showMentionList.value = false
+    }
+    
+    // 处理键盘事件
+    const handleReplyKeydown = (event) => {
+      if (showMentionList.value && mentionUsers.value.length > 0) {
+        if (event.key === 'ArrowDown') {
+          event.preventDefault()
+          mentionSelectedIndex.value = Math.min(mentionSelectedIndex.value + 1, mentionUsers.value.length - 1)
+        } else if (event.key === 'ArrowUp') {
+          event.preventDefault()
+          mentionSelectedIndex.value = Math.max(mentionSelectedIndex.value - 1, 0)
+        } else if (event.key === 'Enter' && !event.shiftKey) {
+          event.preventDefault()
+          if (mentionUsers.value[mentionSelectedIndex.value]) {
+            selectMentionUser(mentionUsers.value[mentionSelectedIndex.value])
+          }
+        } else if (event.key === 'Escape') {
+          showMentionList.value = false
+        }
+      }
+    }
+    
+    // 选择@用户
+    const selectMentionUser = (user) => {
+      if (mentionStartPos.value === -1) return
+      
+      const textBefore = replyContent.value.substring(0, mentionStartPos.value)
+      const textAfter = replyContent.value.substring(mentionStartPos.value)
+      const textAfterAt = textAfter.substring(1) // 去掉@符号
+      const spaceIndex = textAfterAt.indexOf(' ')
+      const newlineIndex = textAfterAt.indexOf('\n')
+      let endIndex = textAfterAt.length
+      
+      if (spaceIndex !== -1 && newlineIndex !== -1) {
+        endIndex = Math.min(spaceIndex, newlineIndex)
+      } else if (spaceIndex !== -1) {
+        endIndex = spaceIndex
+      } else if (newlineIndex !== -1) {
+        endIndex = newlineIndex
+      }
+      
+      const replaceText = textAfter.substring(0, endIndex + 1)
+      const remainingText = textAfter.substring(endIndex + 1)
+      
+      replyContent.value = textBefore + '@' + user.username + ' ' + remainingText
+      showMentionList.value = false
+      mentionStartPos.value = -1
+      
+      // 聚焦到输入框
+      setTimeout(() => {
+        const textarea = replyTextareaRef.value?.textarea
+        if (textarea) {
+          const newPos = textBefore.length + user.username.length + 2 // @ + 用户名 + 空格
+          textarea.setSelectionRange(newPos, newPos)
+          textarea.focus()
+        }
+      }, 0)
+    }
+    
     // 提交回复
-    const submitReply = () => {
+    const submitReply = async () => {
       if (!replyContent.value.trim()) {
-        ElMessage.warning('回复内容不能为空')
+        forumPromptMessages.showCommentRequired()
         return
       }
       
       submitting.value = true
-
-      // TODO-SCRIPT: 发表回复需要后端接口与 Vuex forum 模块；不在 UI 层 setTimeout 伪发布
-      submitting.value = false
-      ElMessage.info('回复功能待后端接口接入')
-      return
-      
-      /*
-      // 真实代码(开发UI时注释)
-      const replyData = {
-        postId: postId.value,
-        content: replyContent.value,
-        parentId: currentReply.value ? currentReply.value.id : null,
-        toUserId: currentReply.value ? currentReply.value.userId : null
-      }
-      
-      store.dispatch('forum/addReply', replyData).then(() => {
-        // 增加帖子回复计数
-        post.value.replyCount++
+      try {
+        // 解析@的用户ID列表
+        const mentionedUserIds = []
+        const mentionRegex = /@(\w+)/g
+        let match
+        while ((match = mentionRegex.exec(replyContent.value)) !== null) {
+          // 从回复列表和帖子作者中查找用户ID
+          const username = match[1]
+          const user = replyList.value.find(r => r.userName === username) ||
+                      (post.value?.authorName === username ? {
+                        userId: post.value.authorId,
+                        userName: post.value.authorName
+                      } : null)
+          if (user) {
+            mentionedUserIds.push(user.userId || user.id)
+          }
+        }
         
-        // 重置表单
+        const replyData = {
+          content: replyContent.value.trim(),
+          parentId: currentReply.value ? currentReply.value.id : null,
+          mentionedUserIds: mentionedUserIds.length > 0 ? mentionedUserIds : undefined
+        }
+        
+        await store.dispatch('forum/createReply', { postId: postId.value, data: replyData })
+        
+        // 清空输入框和当前回复
         replyContent.value = ''
         currentReply.value = null
+        showMentionList.value = false
         
         // 刷新回复列表
-        fetchReplies()
+        await fetchReplies()
         
-        ElMessage.success('回复发布成功')
-      }).catch(() => {
-        ElMessage.error('回复发布失败，请重试')
-      }).finally(() => {
+        forumSuccessMessages.showReplyCreated()
+      } catch (error) {
+        forumErrorMessages.showReplyCreateFailed(error.message)
+      } finally {
         submitting.value = false
-      })
-      */
+      }
     }
     
     // 查看帖子详情
@@ -490,6 +635,7 @@ export default {
     
     return {
       post,
+      loading,
       liked,
       favorited,
       defaultAvatar,
@@ -500,6 +646,7 @@ export default {
       toggleFavorite,
       showShareDialog,
       formatDate,
+      fetchPostDetail,
       View,
       ChatDotRound,
       Star,
@@ -620,6 +767,14 @@ export default {
   margin-bottom: 40px;
 }
 
+.loading-container, .error-container {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  padding: 30px;
+  margin-bottom: 20px;
+}
+
 .post-container {
   background-color: #fff;
     border-radius: 8px;
@@ -649,6 +804,16 @@ export default {
     border-top: 1px solid #eee;
     display: flex;
     gap: 15px;
+    
+    .el-button.liked {
+      color: var(--el-color-primary);
+      border-color: var(--el-color-primary);
+    }
+    
+    .el-button.favorited {
+      color: var(--el-color-warning);
+      border-color: var(--el-color-warning);
+    }
   }
 }
 
@@ -689,6 +854,10 @@ export default {
 
 .reply-list {
   margin-bottom: 30px;
+  
+  .reply-loading {
+    padding: 20px 0;
+  }
   
   .reply-item {
     display: flex;
@@ -783,6 +952,10 @@ export default {
             color: var(--el-color-primary);
           }
           
+          &.liked {
+            color: var(--el-color-primary);
+          }
+          
           .el-icon {
             margin-right: 4px;
           }
@@ -814,6 +987,42 @@ export default {
       color: var(--el-color-primary);
       cursor: pointer;
       margin-left: 10px;
+    }
+  }
+  
+  .reply-input-wrapper {
+    position: relative;
+    
+    .mention-dropdown {
+      position: absolute;
+      bottom: 100%;
+      left: 0;
+      right: 0;
+      background: #fff;
+      border: 1px solid var(--el-border-color);
+      border-radius: 4px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 1000;
+      margin-bottom: 5px;
+      
+      .mention-item {
+        display: flex;
+        align-items: center;
+        padding: 8px 12px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        
+        &:hover,
+        &.active {
+          background-color: var(--el-color-primary-light-9);
+        }
+        
+        span {
+          font-size: 14px;
+        }
+      }
     }
   }
 }

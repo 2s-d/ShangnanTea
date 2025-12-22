@@ -1,307 +1,263 @@
 /**
  * 店铺模块消息工具
- * 按照三层架构设计消息：
- * 1. API层：处理网络请求相关消息
- * 2. Vuex业务层：处理业务操作结果消息
- * 3. UI交互层：处理界面交互提示消息
+ * 
+ * 分类说明：
+ * - SUCCESS: 操作成功反馈
+ * - ERROR: 操作失败/错误提示
+ * - PROMPT: 用户提示（表单验证+确认）
  */
-import messageManager from './messageManager'
 
-// 店铺模块常用消息
+import { successMessage, errorMessage, promptMessage } from './messageManager'
+
+// 店铺模块消息常量
 export const SHOP_MESSAGES = {
-  // API层消息
-  API: {
-    LOADING_SHOPS: '正在加载店铺列表...',
-    LOADING_SHOP_DETAIL: '正在加载店铺详情...',
-    CREATING_SHOP: '正在创建店铺...',
-    UPDATING_SHOP: '正在更新店铺信息...',
-    LOADING_SHOP_TEAS: '正在加载店铺茶叶...',
-    LOADING_SHOP_STATISTICS: '正在加载店铺统计数据...',
-    LOADING_CERTIFICATIONS: '正在加载认证申请...',
-    SUBMITTING_CERTIFICATION: '正在提交认证申请...',
-    UPDATING_CERTIFICATION: '正在更新认证申请...',
-    LOADING_FAILED: '加载失败',
-    CREATE_FAILED: '创建失败',
-    UPDATE_FAILED: '更新失败',
-    SUBMIT_FAILED: '提交失败'
+  // 成功消息
+  SUCCESS: {
+    // 店铺操作
+    FOLLOW_SUCCESS: '已关注店铺',
+    UNFOLLOW_SUCCESS: '已取消关注',
+    REVIEW_SUBMIT_SUCCESS: '评价提交成功',
+    
+    // 茶叶管理
+    TEA_TOGGLE_SUCCESS: '成功', // 动态文本：上架成功/下架成功
+    TEA_DELETE_SUCCESS: '删除成功',
+    TEA_UPDATE_SUCCESS: '茶叶更新成功',
+    TEA_ADD_SUCCESS: '茶叶添加成功',
+    
+    // Banner管理
+    BANNER_UPDATE_SUCCESS: 'Banner更新成功',
+    BANNER_ADD_SUCCESS: 'Banner添加成功',
+    BANNER_DELETE_SUCCESS: '删除成功',
+    BANNER_ORDER_UPDATE_SUCCESS: '排序更新成功',
+    
+    // 公告管理
+    ANNOUNCEMENT_UPDATE_SUCCESS: '公告更新成功',
+    ANNOUNCEMENT_ADD_SUCCESS: '公告添加成功',
+    ANNOUNCEMENT_DELETE_SUCCESS: '删除成功',
+    
+    // Logo上传
+    LOGO_UPLOAD_SUCCESS: 'Logo上传成功'
   },
   
-  // 业务层消息
-  BUSINESS: {
-    SHOP_CREATED: '店铺创建成功',
-    SHOP_UPDATED: '店铺信息已更新',
-    SHOP_CLOSED: '店铺已关闭',
-    SHOP_REOPENED: '店铺已重新开业',
-    SHOP_DELETE_FAILED: '店铺删除失败',
-    CERTIFICATION_SUBMITTED: '认证申请已提交，请等待审核',
-    CERTIFICATION_APPROVED: '认证申请已通过',
-    CERTIFICATION_REJECTED: '认证申请被拒绝',
-    CERTIFICATION_CONFIRMED: '商家认证已确认，店铺已创建',
-    TEA_ADDED: '茶叶已添加到店铺',
-    TEA_UPDATED: '店铺茶叶信息已更新',
-    TEA_REMOVED: '茶叶已从店铺移除',
-    UNAUTHORIZED: '您没有权限执行此操作',
-    SHOP_NOT_FOUND: '店铺不存在或已关闭'
+  // 错误消息
+  ERROR: {
+    // 店铺操作
+    SHOP_INFO_LOAD_FAILED: '加载店铺信息失败',
+    SHOP_DATA_LOAD_FAILED: '加载店铺数据失败',
+    SHOP_NOT_PLATFORM: '平台直售不是实体店铺，无法查看详情',
+    FOLLOW_OPERATION_FAILED: '操作失败',
+    REVIEW_LOAD_FAILED: '加载评价失败',
+    REVIEW_SUBMIT_FAILED: '提交评价失败',
+    SHOP_INFO_NOT_EXIST: '店铺信息不存在',
+    
+    // 茶叶管理
+    TEA_LIST_LOAD_FAILED: '加载茶叶列表失败',
+    TEA_TOGGLE_FAILED: '失败', // 动态文本：上架失败/下架失败
+    TEA_DELETE_FAILED: '删除失败',
+    TEA_SAVE_FAILED: '保存失败',
+    
+    // Banner管理
+    BANNER_LIST_LOAD_FAILED: '加载Banner列表失败',
+    BANNER_SAVE_FAILED: '保存失败',
+    BANNER_DELETE_FAILED: '删除失败',
+    BANNER_ORDER_UPDATE_FAILED: '排序更新失败',
+    
+    // 公告管理
+    ANNOUNCEMENT_LIST_LOAD_FAILED: '加载公告列表失败',
+    ANNOUNCEMENT_SAVE_FAILED: '保存失败',
+    ANNOUNCEMENT_DELETE_FAILED: '删除失败',
+    
+    // 统计数据
+    STATISTICS_LOAD_FAILED: '加载统计数据失败',
+    
+    // Logo上传
+    LOGO_FORMAT_ERROR: '只能上传 JPG/PNG/WebP 格式的图片!',
+    LOGO_SIZE_ERROR: '图片大小不能超过2MB!',
+    LOGO_UPLOAD_FAILED: 'Logo上传失败',
+    LOGO_UPLOAD_NO_SHOP: '店铺信息不存在，无法上传Logo'
   },
   
-  // UI交互层消息
-  UI: {
-    SHOP_NAME_REQUIRED: '店铺名称不能为空',
-    SHOP_DESCRIPTION_REQUIRED: '店铺简介不能为空',
-    CONTACT_PHONE_REQUIRED: '联系电话不能为空',
-    CONTACT_PHONE_INVALID: '联系电话格式不正确',
-    ADDRESS_REQUIRED: '店铺地址不能为空',
-    BUSINESS_LICENSE_REQUIRED: '请上传营业执照',
-    LOGO_REQUIRED: '请上传店铺logo',
-    LOGO_SIZE_LIMIT: '店铺logo大小不能超过2MB',
-    LOGO_FORMAT_INVALID: '店铺logo只支持JPG、PNG格式',
-    BANNER_SIZE_LIMIT: '店铺banner大小不能超过5MB',
-    BANNER_FORMAT_INVALID: '店铺banner只支持JPG、PNG格式',
-    CERTIFICATION_INCOMPLETE: '请完成所有认证资料填写',
-    DELETE_CONFIRM: '确定要删除店铺吗？此操作不可撤销',
-    CLOSE_CONFIRM: '确定要关闭店铺吗？关闭后店铺将不对外展示',
-    REOPEN_CONFIRM: '确定要重新开业吗？'
+  // 提示消息
+  PROMPT: {
+    // 店铺操作
+    SHOP_ID_NOT_EXIST: '店铺ID不存在',
+    REVIEW_CONTENT_REQUIRED: '请输入评价内容',
+    REVIEW_RATING_REQUIRED: '请选择评分',
+    
+    // 茶叶管理
+    SHOP_INFO_LOAD_FIRST: '请先加载店铺信息',
+    SUBMITTING_WAIT: '正在提交数据，请稍候...'
   }
 }
 
-// 店铺API层消息工具
-const apiMessages = {
-  // 显示API加载消息
-  showLoading(message) {
-    messageManager.api.showLoading(message)
+// 成功消息函数
+export const shopSuccessMessages = {
+  // 店铺操作
+  showFollowSuccess() {
+    successMessage.show(SHOP_MESSAGES.SUCCESS.FOLLOW_SUCCESS)
+  },
+  showUnfollowSuccess() {
+    successMessage.show(SHOP_MESSAGES.SUCCESS.UNFOLLOW_SUCCESS)
+  },
+  showReviewSubmitSuccess() {
+    successMessage.show(SHOP_MESSAGES.SUCCESS.REVIEW_SUBMIT_SUCCESS)
   },
   
-  // 显示API成功消息
-  showSuccess(message) {
-    messageManager.api.showSuccess(message)
+  // 茶叶管理
+  showTeaToggleSuccess(action) {
+    successMessage.show(`${action}${SHOP_MESSAGES.SUCCESS.TEA_TOGGLE_SUCCESS}`)
+  },
+  showTeaDeleteSuccess() {
+    successMessage.show(SHOP_MESSAGES.SUCCESS.TEA_DELETE_SUCCESS)
+  },
+  showTeaUpdateSuccess() {
+    successMessage.show(SHOP_MESSAGES.SUCCESS.TEA_UPDATE_SUCCESS)
+  },
+  showTeaAddSuccess() {
+    successMessage.show(SHOP_MESSAGES.SUCCESS.TEA_ADD_SUCCESS)
   },
   
-  // 显示API错误消息
-  showError(message) {
-    messageManager.api.showError(message)
+  // Banner管理
+  showBannerUpdateSuccess() {
+    successMessage.show(SHOP_MESSAGES.SUCCESS.BANNER_UPDATE_SUCCESS)
+  },
+  showBannerAddSuccess() {
+    successMessage.show(SHOP_MESSAGES.SUCCESS.BANNER_ADD_SUCCESS)
+  },
+  showBannerDeleteSuccess() {
+    successMessage.show(SHOP_MESSAGES.SUCCESS.BANNER_DELETE_SUCCESS)
+  },
+  showBannerOrderUpdateSuccess() {
+    successMessage.show(SHOP_MESSAGES.SUCCESS.BANNER_ORDER_UPDATE_SUCCESS)
   },
   
-  // 预定义的API消息
-  showLoadingShops() {
-    this.showLoading(SHOP_MESSAGES.API.LOADING_SHOPS)
+  // 公告管理
+  showAnnouncementUpdateSuccess() {
+    successMessage.show(SHOP_MESSAGES.SUCCESS.ANNOUNCEMENT_UPDATE_SUCCESS)
+  },
+  showAnnouncementAddSuccess() {
+    successMessage.show(SHOP_MESSAGES.SUCCESS.ANNOUNCEMENT_ADD_SUCCESS)
+  },
+  showAnnouncementDeleteSuccess() {
+    successMessage.show(SHOP_MESSAGES.SUCCESS.ANNOUNCEMENT_DELETE_SUCCESS)
   },
   
-  showLoadingShopDetail() {
-    this.showLoading(SHOP_MESSAGES.API.LOADING_SHOP_DETAIL)
-  },
-  
-  showCreatingShop() {
-    this.showLoading(SHOP_MESSAGES.API.CREATING_SHOP)
-  },
-  
-  showUpdatingShop() {
-    this.showLoading(SHOP_MESSAGES.API.UPDATING_SHOP)
-  },
-  
-  showLoadingShopTeas() {
-    this.showLoading(SHOP_MESSAGES.API.LOADING_SHOP_TEAS)
-  },
-  
-  showLoadingShopStatistics() {
-    this.showLoading(SHOP_MESSAGES.API.LOADING_SHOP_STATISTICS)
-  },
-  
-  showLoadingCertifications() {
-    this.showLoading(SHOP_MESSAGES.API.LOADING_CERTIFICATIONS)
-  },
-  
-  showSubmittingCertification() {
-    this.showLoading(SHOP_MESSAGES.API.SUBMITTING_CERTIFICATION)
-  },
-  
-  showLoadingFailed(error) {
-    const errorMsg = error?.message || SHOP_MESSAGES.API.LOADING_FAILED
-    this.showError(errorMsg)
-  },
-  
-  showCreateFailed(error) {
-    const errorMsg = error?.message || SHOP_MESSAGES.API.CREATE_FAILED
-    this.showError(errorMsg)
-  },
-  
-  showUpdateFailed(error) {
-    const errorMsg = error?.message || SHOP_MESSAGES.API.UPDATE_FAILED
-    this.showError(errorMsg)
-  },
-  
-  showSubmitFailed(error) {
-    const errorMsg = error?.message || SHOP_MESSAGES.API.SUBMIT_FAILED
-    this.showError(errorMsg)
+  // Logo上传
+  showLogoUploadSuccess() {
+    successMessage.show(SHOP_MESSAGES.SUCCESS.LOGO_UPLOAD_SUCCESS)
   }
 }
 
-// 店铺业务层消息工具
-const businessMessages = {
-  // 显示业务成功消息
-  showSuccess(message) {
-    messageManager.business.showSuccess(message)
+// 错误消息函数
+export const shopErrorMessages = {
+  // 店铺操作
+  showShopInfoLoadFailed(reason) {
+    errorMessage.show(reason || SHOP_MESSAGES.ERROR.SHOP_INFO_LOAD_FAILED)
+  },
+  showShopDataLoadFailed(reason) {
+    errorMessage.show(reason || SHOP_MESSAGES.ERROR.SHOP_DATA_LOAD_FAILED)
+  },
+  showShopNotPlatform() {
+    errorMessage.show(SHOP_MESSAGES.ERROR.SHOP_NOT_PLATFORM)
+  },
+  showFollowOperationFailed(reason) {
+    errorMessage.show(reason || SHOP_MESSAGES.ERROR.FOLLOW_OPERATION_FAILED)
+  },
+  showReviewLoadFailed(reason) {
+    errorMessage.show(reason || SHOP_MESSAGES.ERROR.REVIEW_LOAD_FAILED)
+  },
+  showReviewSubmitFailed(reason) {
+    errorMessage.show(reason || SHOP_MESSAGES.ERROR.REVIEW_SUBMIT_FAILED)
+  },
+  showShopInfoNotExist() {
+    errorMessage.show(SHOP_MESSAGES.ERROR.SHOP_INFO_NOT_EXIST)
   },
   
-  // 显示业务错误消息
-  showError(message) {
-    messageManager.business.showError(message)
+  // 茶叶管理
+  showTeaListLoadFailed(reason) {
+    errorMessage.show(reason || SHOP_MESSAGES.ERROR.TEA_LIST_LOAD_FAILED)
+  },
+  showTeaToggleFailed(action, reason) {
+    errorMessage.show(reason || `${action}${SHOP_MESSAGES.ERROR.TEA_TOGGLE_FAILED}`)
+  },
+  showTeaDeleteFailed(reason) {
+    errorMessage.show(reason || SHOP_MESSAGES.ERROR.TEA_DELETE_FAILED)
+  },
+  showTeaSaveFailed(reason) {
+    errorMessage.show(reason || SHOP_MESSAGES.ERROR.TEA_SAVE_FAILED)
   },
   
-  // 显示业务警告消息
-  showWarning(message) {
-    messageManager.business.showWarning(message)
+  // Banner管理
+  showBannerListLoadFailed(reason) {
+    errorMessage.show(reason || SHOP_MESSAGES.ERROR.BANNER_LIST_LOAD_FAILED)
+  },
+  showBannerSaveFailed(reason) {
+    errorMessage.show(reason || SHOP_MESSAGES.ERROR.BANNER_SAVE_FAILED)
+  },
+  showBannerDeleteFailed(reason) {
+    errorMessage.show(reason || SHOP_MESSAGES.ERROR.BANNER_DELETE_FAILED)
+  },
+  showBannerOrderUpdateFailed(reason) {
+    errorMessage.show(reason || SHOP_MESSAGES.ERROR.BANNER_ORDER_UPDATE_FAILED)
   },
   
-  // 预定义的业务消息
-  showShopCreated() {
-    this.showSuccess(SHOP_MESSAGES.BUSINESS.SHOP_CREATED)
+  // 公告管理
+  showAnnouncementListLoadFailed(reason) {
+    errorMessage.show(reason || SHOP_MESSAGES.ERROR.ANNOUNCEMENT_LIST_LOAD_FAILED)
+  },
+  showAnnouncementSaveFailed(reason) {
+    errorMessage.show(reason || SHOP_MESSAGES.ERROR.ANNOUNCEMENT_SAVE_FAILED)
+  },
+  showAnnouncementDeleteFailed(reason) {
+    errorMessage.show(reason || SHOP_MESSAGES.ERROR.ANNOUNCEMENT_DELETE_FAILED)
   },
   
-  showShopUpdated() {
-    this.showSuccess(SHOP_MESSAGES.BUSINESS.SHOP_UPDATED)
+  // 统计数据
+  showStatisticsLoadFailed(reason) {
+    errorMessage.show(reason || SHOP_MESSAGES.ERROR.STATISTICS_LOAD_FAILED)
   },
   
-  showShopClosed() {
-    this.showSuccess(SHOP_MESSAGES.BUSINESS.SHOP_CLOSED)
+  // Logo上传
+  showLogoFormatError() {
+    errorMessage.show(SHOP_MESSAGES.ERROR.LOGO_FORMAT_ERROR)
   },
-  
-  showShopReopened() {
-    this.showSuccess(SHOP_MESSAGES.BUSINESS.SHOP_REOPENED)
+  showLogoSizeError() {
+    errorMessage.show(SHOP_MESSAGES.ERROR.LOGO_SIZE_ERROR)
   },
-  
-  showCertificationSubmitted() {
-    this.showSuccess(SHOP_MESSAGES.BUSINESS.CERTIFICATION_SUBMITTED)
+  showLogoUploadFailed(reason) {
+    errorMessage.show(reason || SHOP_MESSAGES.ERROR.LOGO_UPLOAD_FAILED)
   },
-  
-  showCertificationApproved() {
-    this.showSuccess(SHOP_MESSAGES.BUSINESS.CERTIFICATION_APPROVED)
-  },
-  
-  showCertificationRejected(reason) {
-    const message = reason 
-      ? `${SHOP_MESSAGES.BUSINESS.CERTIFICATION_REJECTED}，原因：${reason}`
-      : SHOP_MESSAGES.BUSINESS.CERTIFICATION_REJECTED
-    this.showWarning(message)
-  },
-  
-  showCertificationConfirmed() {
-    this.showSuccess(SHOP_MESSAGES.BUSINESS.CERTIFICATION_CONFIRMED)
-  },
-  
-  showTeaAdded() {
-    this.showSuccess(SHOP_MESSAGES.BUSINESS.TEA_ADDED)
-  },
-  
-  showTeaUpdated() {
-    this.showSuccess(SHOP_MESSAGES.BUSINESS.TEA_UPDATED)
-  },
-  
-  showTeaRemoved() {
-    this.showSuccess(SHOP_MESSAGES.BUSINESS.TEA_REMOVED)
-  },
-  
-  showUnauthorized() {
-    this.showWarning(SHOP_MESSAGES.BUSINESS.UNAUTHORIZED)
-  },
-  
-  showShopNotFound() {
-    this.showWarning(SHOP_MESSAGES.BUSINESS.SHOP_NOT_FOUND)
+  showLogoUploadNoShop() {
+    errorMessage.show(SHOP_MESSAGES.ERROR.LOGO_UPLOAD_NO_SHOP)
   }
 }
 
-// 店铺UI交互层消息工具
-const uiMessages = {
-  // 显示UI成功消息
-  showSuccess(message) {
-    messageManager.ui.showSuccess(message)
+// 提示消息函数
+export const shopPromptMessages = {
+  // 店铺操作
+  showShopIdNotExist() {
+    promptMessage.show(SHOP_MESSAGES.PROMPT.SHOP_ID_NOT_EXIST)
+  },
+  showReviewContentRequired() {
+    promptMessage.show(SHOP_MESSAGES.PROMPT.REVIEW_CONTENT_REQUIRED)
+  },
+  showReviewRatingRequired() {
+    promptMessage.show(SHOP_MESSAGES.PROMPT.REVIEW_RATING_REQUIRED)
   },
   
-  // 显示UI错误消息
-  showError(message) {
-    messageManager.ui.showError(message)
+  // 茶叶管理
+  showShopInfoLoadFirst() {
+    promptMessage.show(SHOP_MESSAGES.PROMPT.SHOP_INFO_LOAD_FIRST)
   },
-  
-  // 显示UI警告消息
-  showWarning(message) {
-    messageManager.ui.showWarning(message)
-  },
-  
-  // 显示UI信息消息
-  showInfo(message) {
-    messageManager.ui.showInfo(message)
-  },
-  
-  // 显示确认消息
-  showConfirm(message) {
-    return messageManager.ui.showConfirm(message)
-  },
-  
-  // 预定义的UI消息
-  showShopNameRequired() {
-    this.showWarning(SHOP_MESSAGES.UI.SHOP_NAME_REQUIRED)
-  },
-  
-  showShopDescriptionRequired() {
-    this.showWarning(SHOP_MESSAGES.UI.SHOP_DESCRIPTION_REQUIRED)
-  },
-  
-  showContactPhoneRequired() {
-    this.showWarning(SHOP_MESSAGES.UI.CONTACT_PHONE_REQUIRED)
-  },
-  
-  showContactPhoneInvalid() {
-    this.showWarning(SHOP_MESSAGES.UI.CONTACT_PHONE_INVALID)
-  },
-  
-  showAddressRequired() {
-    this.showWarning(SHOP_MESSAGES.UI.ADDRESS_REQUIRED)
-  },
-  
-  showBusinessLicenseRequired() {
-    this.showWarning(SHOP_MESSAGES.UI.BUSINESS_LICENSE_REQUIRED)
-  },
-  
-  showLogoRequired() {
-    this.showWarning(SHOP_MESSAGES.UI.LOGO_REQUIRED)
-  },
-  
-  showLogoSizeLimit() {
-    this.showWarning(SHOP_MESSAGES.UI.LOGO_SIZE_LIMIT)
-  },
-  
-  showLogoFormatInvalid() {
-    this.showWarning(SHOP_MESSAGES.UI.LOGO_FORMAT_INVALID)
-  },
-  
-  showBannerSizeLimit() {
-    this.showWarning(SHOP_MESSAGES.UI.BANNER_SIZE_LIMIT)
-  },
-  
-  showBannerFormatInvalid() {
-    this.showWarning(SHOP_MESSAGES.UI.BANNER_FORMAT_INVALID)
-  },
-  
-  showCertificationIncomplete() {
-    this.showWarning(SHOP_MESSAGES.UI.CERTIFICATION_INCOMPLETE)
-  },
-  
-  showDeleteConfirm() {
-    return this.showConfirm(SHOP_MESSAGES.UI.DELETE_CONFIRM)
-  },
-  
-  showCloseConfirm() {
-    return this.showConfirm(SHOP_MESSAGES.UI.CLOSE_CONFIRM)
-  },
-  
-  showReopenConfirm() {
-    return this.showConfirm(SHOP_MESSAGES.UI.REOPEN_CONFIRM)
+  showSubmittingWait() {
+    promptMessage.show(SHOP_MESSAGES.PROMPT.SUBMITTING_WAIT)
   }
 }
 
-// 导出所有消息工具
+// 默认导出
 export default {
-  api: apiMessages,
-  business: businessMessages,
-  ui: uiMessages,
+  success: shopSuccessMessages,
+  error: shopErrorMessages,
+  prompt: shopPromptMessages,
   SHOP_MESSAGES
 }

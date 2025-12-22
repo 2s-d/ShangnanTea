@@ -5,9 +5,9 @@
 | 项目 | 内容 |
 |------|------|
 | 模块名称 | 消息模块 (Message Module) |
-| 当前完成度 | 48% |
+| 当前完成度 | 55% |
 | 目标完成度 | 100% |
-| 预计工时 | 3-4天 |
+| 预计工时 | 4-5天 |
 | 优先级 | 高 |
 | 负责人 | - |
 | 创建日期 | 2024-12-17 |
@@ -31,297 +31,487 @@
 |------|----------|------|
 | Vuex | `src/store/modules/message.js` | 消息状态管理 |
 | API | `src/api/message.js` | 消息API接口 |
-| 页面 | `src/views/message/notification/NotificationsPage.vue` | 系统通知 |
+| 常量 | `src/api/apiConstants.js` | API端点定义 |
+| 页面 | `src/views/message/notification/NotificationsPage.vue` | 系统通知页 |
 | 页面 | `src/views/message/chat/ChatPage.vue` | 聊天页面 |
 | 页面 | `src/views/message/homepage/UserHomePage.vue` | 个人主页 |
-| 页面 | `src/views/message/follows/FollowsPage.vue` | 关注管理 |
-| 页面 | `src/views/message/favorites/FavoritesPage.vue` | 收藏管理 |
-| 页面 | `src/views/message/content/PublishedContentPage.vue` | 发布内容 |
+| 页面 | `src/views/message/follows/FollowsPage.vue` | 关注管理页 |
+| 页面 | `src/views/message/favorites/FavoritesPage.vue` | 收藏管理页 |
+| 页面 | `src/views/message/content/PublishedContentPage.vue` | 发布内容页 |
 
 ### 1.3 已完成功能
 
-- [x] 消息列表获取
-- [x] 消息详情获取
-- [x] 发送消息
-- [x] 标记已读
-- [x] 删除消息
-- [x] 未读数量获取
-- [x] 聊天会话列表
-- [x] 聊天历史记录
-- [x] 聊天页面UI（含路由参数跳转）
-- [x] 通知页面UI
+- [x] 消息列表基础UI展示
+- [x] 聊天页面基础UI展示
+- [x] 基础Vuex状态结构（部分实现）
+- [x] 基础API方法定义（部分实现）
 
 ### 1.4 待完成功能
 
-- [ ] 批量消息操作
-- [ ] 聊天会话管理（创建、置顶、删除）
-- [ ] 图片消息发送
-- [ ] 个人主页功能
-- [ ] 关注列表管理
-- [ ] 收藏列表管理
-- [ ] 发布内容管理
+**按任务组分类**：
+
+- [x] **任务组0**：系统通知端到端闭环（通知列表/详情/已读/删除）
+- [x] **任务组A**：即时聊天功能端到端闭环（会话列表/聊天历史/发送消息）
+- [x] **任务组B**：聊天功能完善端到端闭环（会话管理/图片消息）
+- [ ] **任务组C**：个人主页功能端到端闭环（用户资料/动态/统计）
+- [ ] **任务组D**：关注管理功能端到端闭环（关注列表/添加关注/取消关注）
+- [ ] **任务组E**：收藏管理功能端到端闭环（收藏列表/添加收藏/取消收藏）
+- [ ] **任务组F**：发布内容管理端到端闭环（发布的帖子/评价记录）
 
 ---
 
 ## 二、具体实施
 
-### 2.1 任务组A：聊天功能完善 (优先级: 高)
+### 2.0 端到端闭环开发模式（本模块采用）
+
+> 本文档采用 **端到端小范围闭环** 的开发方式，不再默认"UI 已完成后再补 API/Vuex"。
+>
+> **目标**：每一个任务组都至少完成一次"可跑通的数据流闭环"：
+>
+> ```
+> UI（组件/页面） → Vuex Actions → API（src/api） → 后端 Controller（返回测试数据，不走 DB/Service） → 响应 → Vuex State → UI 渲染
+> ```
+>
+> **闭环验收（每个任务组都要做的最小自检）**：
+> - [ ] 前端可编译运行（无构建级别错误）
+> - [ ] 该任务组相关页面不再本地伪成功（不 setTimeout + 本地改业务状态）
+> - [ ] Vuex State 能被真实请求更新（不是 UI 层造数组）
+> - [ ] 后端 Controller 能对应该任务组接口返回可用的测试数据结构（字段齐全、可渲染）
+>
+> **最终测试策略调整**：
+> - 原"每个任务组开发完立即全量写用例并执行"的方式，调整为：**开发期以闭环自检为主**
+> - **模块全部任务组完成后**，再集中进入"最终统一测试"
+
+### 2.1 任务拆分
+
+> **任务组划分原则**：
+> - 每个任务组对应一个**完整的功能域**（如"系统通知"、"即时聊天"），而非单个操作
+> - 每个任务组必须完成**端到端闭环**：后端Controller测试数据 → 前端API → Vuex状态管理 → UI组件
+> - 任务组之间可能存在依赖关系，需按优先级顺序开发
+> - 每个任务组包含"闭环自检"验收标准
+
+---
+
+#### 任务组0：系统通知端到端闭环（Controller → API → Vuex → UI） (优先级: 最高)
+
+> **功能域**：系统通知的列表、详情、已读、删除  
+> **说明**：系统通知是用户获取平台信息的重要渠道，包括四种通知类型。
+
+**涉及功能点**：
+- 获取通知列表（支持分页、类型筛选）
+- 获取通知详情
+- 标记通知为已读
+- 删除通知
+- 批量标记已读
+- 批量删除
+- 获取未读通知数量
+
+**涉及页面**：
+- `NotificationsPage.vue` - 系统通知页
+
+**涉及后端接口**：
+- `GET /message/notifications` - 获取通知列表
+- `GET /message/notifications/{id}` - 获取通知详情
+- `PUT /message/notifications/{id}/read` - 标记已读
+- `DELETE /message/notifications/{id}` - 删除通知
+- `PUT /message/notifications/batch-read` - 批量标记已读
+- `DELETE /message/notifications/batch` - 批量删除
+- `GET /message/notifications/unread-count` - 获取未读数量
+
+**任务清单**：
 
 | 任务ID | 任务描述 | 预计时间 | 状态 |
 |--------|----------|----------|------|
-| A-1 | 在message.js API中添加会话管理方法 | 30min | ⬜ 待开始 |
-| A-2 | 实现createChatSession action | 25min | ⬜ 待开始 |
-| A-3 | 实现pinChatSession action | 15min | ⬜ 待开始 |
-| A-4 | 实现deleteChatSession action | 15min | ⬜ 待开始 |
-| A-5 | 实现sendImageMessage action | 30min | ⬜ 待开始 |
-| A-6 | 在ChatPage.vue中集成会话管理 | 40min | ⬜ 待开始 |
-| A-7 | 添加图片消息发送UI | 35min | ⬜ 待开始 |
-| A-8 | 测试聊天功能 | 25min | ⬜ 待开始 |
+| 0-0 | **后端 Controller**：通知相关接口返回测试数据（列表/详情/已读/删除/批量操作，四种通知类型） | 90min | ✅ 已完成 |
+| 0-1 | **前端 API层**：确认 `src/api/message.js` 通知相关方法（getNotifications/getNotificationDetail/markAsRead/deleteNotification）与 `apiConstants.js` 一致 | 30min | ✅ 已完成 |
+| 0-2 | **前端 API层**：在 `src/api/message.js` 添加批量操作方法（batchMarkAsRead/batchDeleteNotifications） | 25min | ✅ 已完成 |
+| 0-3 | **前端 API层**：在 `apiConstants.js` 添加批量操作API端点 | 15min | ✅ 已完成 |
+| 0-4 | **Vuex层**：确认 `src/store/modules/message.js` 的 state/mutations/actions 结构完整（messages、unreadCount、pagination） | 30min | ✅ 已完成 |
+| 0-5 | **Vuex层**：实现 fetchMessages action（获取通知列表，移除UI-DEV伪成功逻辑） | 40min | ✅ 已完成 |
+| 0-6 | **Vuex层**：实现 fetchMessageDetail action（获取通知详情） | 30min | ✅ 已完成 |
+| 0-7 | **Vuex层**：实现 markAsRead/deleteMessages actions（移除UI-DEV伪成功逻辑） | 40min | ✅ 已完成 |
+| 0-8 | **Vuex层**：实现 batchMarkAsRead/batchDeleteMessages actions（批量操作） | 40min | ✅ 已完成 |
+| 0-9 | **Vuex层**：实现 fetchUnreadCount action（获取未读数量） | 25min | ✅ 已完成 |
+| 0-10 | **UI层**：`NotificationsPage.vue` 改为从 Vuex 读取 messages（不本地造数据） | 50min | ✅ 已完成 |
+| 0-11 | **UI层**：在 `NotificationsPage.vue` 添加批量操作功能（全选、批量已读、批量删除） | 60min | ✅ 已完成 |
+| 0-12 | **UI层**：实现四种通知类型的展示和跳转（帖子回复/@通知/纯文本通知/含操作通知） | 70min | ✅ 已完成 |
+| 0-13 | **闭环自检**：通知列表可加载、详情可查看、已读/删除可完成、批量操作正常、未读数量正确 | 50min | ✅ 已完成 |
 
-**实施代码示例**：
+**注意事项**：
+- 通知数据结构需与数据库设计文档一致（参考 `user_notifications` 表结构）
+- 四种通知类型：
+  1. 帖子回复或@通知：可跳转定位到相应内容
+  2. 纯文本通知：系统公告等纯文字信息
+  3. 带外部链接通知：可跳转到外部资源
+  4. 含操作通知：如商家认证确认通知，含操作按钮
+- 通知状态：已读/未读
+- 批量操作需支持全选和部分选择
+- 未读数量需实时更新（导航栏显示）
 
-```javascript
-// A-1: API方法
-export function createChatSession(data) {
-  // data: { targetId, targetType: 'user' | 'shop' }
-  return request({
-    url: API.MESSAGE.SESSIONS,
-    method: 'post',
-    data
-  })
-}
+**任务组0端到端闭环验收（开发期自检）**：
+- [ ] UI 不本地造通知列表数据（列表来自 Vuex `state.message.messages`）
+- [ ] Vuex Actions 通过 API 发请求获取/更新通知数据
+- [ ] 后端 Controller 能返回通知列表/详情的测试数据结构（四种类型）
+- [ ] 页面可完成：列表展示、详情查看、已读/删除、批量操作（失败时提示错误，不伪成功）
+- [ ] 未读数量正确显示（导航栏）
 
-export function pinChatSession(sessionId, isPinned) {
-  return request({
-    url: `${API.MESSAGE.SESSION_DETAIL}${sessionId}/pin`,
-    method: 'put',
-    data: { isPinned }
-  })
-}
+---
 
-export function deleteChatSession(sessionId) {
-  return request({
-    url: API.MESSAGE.SESSION_DETAIL + sessionId,
-    method: 'delete'
-  })
-}
+#### 任务组A：即时聊天功能端到端闭环（Controller → API → Vuex → UI） (优先级: 高)
 
-export function sendImageMessage(sessionId, file) {
-  const formData = new FormData()
-  formData.append('image', file)
-  formData.append('sessionId', sessionId)
-  
-  return request({
-    url: `${API.MESSAGE.SEND}/image`,
-    method: 'post',
-    data: formData,
-    headers: { 'Content-Type': 'multipart/form-data' }
-  })
-}
+> **功能域**：聊天会话列表、聊天历史、发送消息  
+> **说明**：即时聊天是用户交流和店铺客服的核心功能，支持好友私信和店铺客服。
+
+**涉及功能点**：
+- 获取聊天会话列表
+- 获取聊天历史记录
+- 发送文本消息
+- 创建新会话（根据shopId/userId）
+- 聊天消息实时更新
+
+**涉及页面**：
+- `ChatPage.vue` - 聊天页面
+
+**涉及后端接口**：
+- `GET /message/chat/sessions` - 获取聊天会话列表
+- `GET /message/chat/sessions/{sessionId}/history` - 获取聊天历史
+- `POST /message/chat/send` - 发送消息
+- `POST /message/chat/sessions` - 创建新会话
+
+**任务清单**：
+
+| 任务ID | 任务描述 | 预计时间 | 状态 |
+|--------|----------|----------|------|
+| A-0 | **后端 Controller**：聊天相关接口返回测试数据（会话列表/历史记录/发送消息/创建会话） | 90min | ✅ 已完成 |
+| A-1 | **前端 API层**：确认 `src/api/message.js` 聊天相关方法（getChatSessions/getChatHistory/sendMessage）与 `apiConstants.js` 一致 | 30min | ✅ 已完成 |
+| A-2 | **前端 API层**：在 `src/api/message.js` 添加创建会话方法（createChatSession） | 20min | ✅ 已完成 |
+| A-3 | **前端 API层**：在 `apiConstants.js` 添加创建会话API端点 | 10min | ✅ 已完成 |
+| A-4 | **Vuex层**：确认 `src/store/modules/message.js` 的聊天相关 state（chatSessions、chatHistory、currentChatUserId） | 25min | ✅ 已完成 |
+| A-5 | **Vuex层**：实现 fetchChatSessions action（获取会话列表，移除UI-DEV伪成功逻辑） | 40min | ✅ 已完成 |
+| A-6 | **Vuex层**：实现 fetchChatHistory action（获取聊天历史，支持分页） | 40min | ✅ 已完成 |
+| A-7 | **Vuex层**：实现 sendMessage action（发送消息，实时更新聊天历史） | 45min | ✅ 已完成 |
+| A-8 | **Vuex层**：实现 createChatSession action（创建新会话，根据shopId/userId） | 35min | ✅ 已完成 |
+| A-9 | **UI层**：`ChatPage.vue` 改为从 Vuex 读取 chatSessions 和 chatHistory（不本地造数据） | 60min | ✅ 已完成 |
+| A-10 | **UI层**：在 `ChatPage.vue` 实现消息发送功能（文本输入、发送按钮） | 50min | ✅ 已完成 |
+| A-11 | **UI层**：实现路由参数处理（从茶叶详情页/店铺详情页跳转，传递shopId/userId） | 40min | ✅ 已完成 |
+| A-12 | **闭环自检**：会话列表可加载、聊天历史可加载、发送消息可完成、创建会话正常 | 50min | ✅ 已完成 |
+
+**注意事项**：
+- 聊天数据结构需与数据库设计文档一致（参考 `chat_sessions`、`chat_messages` 表结构）
+- 会话类型：好友聊天（targetType: 'user'）、客服咨询（targetType: 'shop'）
+- 创建会话时需根据shopId或userId自动创建或查找已有会话
+- 聊天历史需支持分页加载（滚动加载更多）
+- 发送消息后需实时更新聊天历史和会话列表（最后一条消息、时间）
+- 路由参数：`/chat?shopId=xxx` 或 `/chat?userId=xxx`
+
+**任务组A端到端闭环验收（开发期自检）**：
+- [ ] UI 不本地造会话列表和聊天历史数据（数据来自 Vuex）
+- [ ] Vuex Actions 通过 API 发请求获取/发送聊天数据
+- [ ] 后端 Controller 能返回会话列表/聊天历史的测试数据结构
+- [ ] 页面可完成：会话列表展示、聊天历史展示、发送消息、创建会话（失败时提示错误，不伪成功）
+- [ ] 路由参数正确处理（shopId/userId）
+
+---
+
+#### 任务组B：聊天功能完善端到端闭环（Controller → API → Vuex → UI） (优先级: 中)
+
+> **功能域**：聊天会话管理、图片消息发送  
+> **说明**：完善聊天功能，支持会话管理和图片消息，提升用户体验。
+
+**涉及功能点**：
+- 会话置顶
+- 删除会话
+- 发送图片消息
+- 图片预览
+
+**涉及页面**：
+- `ChatPage.vue` - 聊天页面
+
+**涉及后端接口**：
+- `PUT /message/chat/sessions/{sessionId}/pin` - 置顶会话
+- `DELETE /message/chat/sessions/{sessionId}` - 删除会话
+- `POST /message/chat/send/image` - 发送图片消息
+
+**任务清单**：
+
+| 任务ID | 任务描述 | 预计时间 | 状态 |
+|--------|----------|----------|------|
+| B-0 | **后端 Controller**：会话管理/图片消息接口返回测试数据（置顶/删除/图片上传） | 60min | ✅ 已完成 |
+| B-1 | **前端 API层**：在 `src/api/message.js` 添加会话管理方法（pinChatSession/deleteChatSession） | 25min | ✅ 已完成 |
+| B-2 | **前端 API层**：在 `src/api/message.js` 添加图片消息方法（sendImageMessage） | 30min | ✅ 已完成 |
+| B-3 | **前端 API层**：在 `apiConstants.js` 添加会话管理/图片消息API端点 | 15min | ✅ 已完成 |
+| B-4 | **Vuex层**：实现 pinChatSession action（置顶会话，更新会话列表） | 30min | ✅ 已完成 |
+| B-5 | **Vuex层**：实现 deleteChatSession action（删除会话，更新会话列表） | 30min | ✅ 已完成 |
+| B-6 | **Vuex层**：实现 sendImageMessage action（发送图片消息，处理文件上传） | 45min | ✅ 已完成 |
+| B-7 | **UI层**：在 `ChatPage.vue` 添加会话置顶功能（置顶按钮、置顶标识） | 40min | ✅ 已完成 |
+| B-8 | **UI层**：在 `ChatPage.vue` 添加删除会话功能（删除按钮、确认提示） | 40min | ✅ 已完成 |
+| B-9 | **UI层**：在 `ChatPage.vue` 添加图片消息发送功能（图片选择、上传、预览） | 70min | ✅ 已完成 |
+| B-10 | **闭环自检**：会话置顶/删除功能正常、图片消息发送正常、图片预览正确 | 40min | ✅ 已完成 |
+
+**注意事项**：
+- 图片消息上传需使用 `FormData` 格式
+- 图片大小限制（建议：单张不超过5MB）
+- 图片格式限制（jpg、png、webp、gif）
+- 置顶会话需在会话列表顶部显示
+- 删除会话时需确认（防止误删）
+- 图片消息需支持预览（点击图片放大查看）
+
+**任务组B端到端闭环验收（开发期自检）**：
+- [x] 会话置顶功能正常（置顶标识、列表排序）
+- [x] 删除会话功能正常（确认提示、列表更新）
+- [x] 图片消息发送功能正常（图片选择、上传、显示）
+- [x] 图片预览功能正常（点击放大查看）
+
+---
+
+#### 任务组C：个人主页功能端到端闭环（Controller → API → Vuex → UI） (优先级: 高)
+
+> **功能域**：用户资料展示、用户动态、用户统计  
+> **说明**：个人主页是用户展示自己的重要页面，包含基本信息、动态、统计数据。
+
+**涉及功能点**：
+- 获取用户主页信息（基本信息、角色、店铺链接）
+- 获取用户动态（最近发帖、评论）
+- 获取用户统计数据（发帖数、点赞数、收藏数、关注数、粉丝数）
+- 关注/取消关注按钮（查看他人主页时）
+
+**涉及页面**：
+- `UserHomePage.vue` - 个人主页
+
+**涉及后端接口**：
+- `GET /user/profile/{userId}` - 获取用户主页信息
+- `GET /user/profile/{userId}/dynamic` - 获取用户动态
+- `GET /user/profile/{userId}/statistics` - 获取用户统计数据
+
+**任务清单**：
+
+| 任务ID | 任务描述 | 预计时间 | 状态 |
+|--------|----------|----------|------|
+| C-0 | **后端 Controller**：个人主页相关接口返回测试数据（用户信息/动态/统计） | 70min | ✅ 已完成 |
+| C-1 | **前端 API层**：在 `src/api/message.js` 添加个人主页方法（getUserProfile/getUserDynamic/getUserStatistics） | 35min | ✅ 已完成 |
+| C-2 | **前端 API层**：在 `apiConstants.js` 添加个人主页API端点 | 15min | ✅ 已完成 |
+| C-3 | **Vuex层**：在 `src/store/modules/message.js` 添加个人主页相关 state（userProfile、userDynamic、userStatistics） | 25min | ✅ 已完成 |
+| C-4 | **Vuex层**：添加个人主页相关 mutations（SET_USER_PROFILE、SET_USER_DYNAMIC、SET_USER_STATISTICS） | 25min | ✅ 已完成 |
+| C-5 | **Vuex层**：实现 fetchUserProfile action（获取用户主页信息） | 30min | ✅ 已完成 |
+| C-6 | **Vuex层**：实现 fetchUserDynamic action（获取用户动态） | 35min | ✅ 已完成 |
+| C-7 | **Vuex层**：实现 fetchUserStatistics action（获取用户统计数据） | 30min | ✅ 已完成 |
+| C-8 | **UI层**：`UserHomePage.vue` 改为从 Vuex 读取用户信息（不本地造数据） | 60min | ✅ 已完成 |
+| C-9 | **UI层**：在 `UserHomePage.vue` 添加用户动态展示（最近发帖、评论） | 60min | ✅ 已完成 |
+| C-10 | **UI层**：在 `UserHomePage.vue` 添加用户统计数据展示（发帖数、点赞数等） | 50min | ✅ 已完成 |
+| C-11 | **UI层**：在 `UserHomePage.vue` 添加关注按钮（查看他人主页时，复用用户模块的关注功能） | 40min | ✅ 已完成 |
+| C-12 | **闭环自检**：个人主页信息可加载、动态可展示、统计数据正确、关注功能正常 | 45min | ✅ 已完成 |
+
+**注意事项**：
+- 用户主页信息需包含：头像、用户名、昵称、简介、角色、注册时间、店铺链接（商家用户）
+- 用户动态需包含：最近发布的帖子、最近发表的评论
+- 用户统计数据需包含：发帖数、获得的点赞数、收藏数、关注数、粉丝数
+- 查看他人主页时显示关注按钮，查看自己主页时不显示
+- 关注功能可复用用户模块的addFollow/removeFollow actions
+
+**任务组C端到端闭环验收（开发期自检）**：
+- [x] 个人主页信息可正确加载（基本信息、角色、店铺链接）
+- [x] 用户动态可正确展示（最近发帖、评论）
+- [x] 用户统计数据正确展示（发帖数、点赞数等）
+- [x] 关注按钮功能正常（查看他人主页时显示，点击关注/取消关注）
+
+---
+
+#### 任务组D：关注管理功能端到端闭环（Controller → API → Vuex → UI） (优先级: 中)
+
+> **功能域**：关注列表管理、添加关注、取消关注  
+> **说明**：关注管理功能允许用户管理关注的用户和店铺，已在用户模块部分实现，需确认端到端闭环。
+
+**涉及功能点**：
+- 获取关注列表（用户和店铺）
+- 添加关注
+- 取消关注
+- 关注列表分类筛选（用户/店铺/全部）
+
+**涉及页面**：
+- `FollowsPage.vue` - 关注管理页
+- `UserHomePage.vue` - 个人主页（关注按钮）
+
+**涉及后端接口**：
+- `GET /user/following` - 获取关注列表（已在用户模块实现）
+- `POST /user/follow` - 添加关注（已在用户模块实现）
+- `DELETE /user/follow/{targetId}` - 取消关注（已在用户模块实现）
+
+**任务清单**：
+
+| 任务ID | 任务描述 | 预计时间 | 状态 |
+|--------|----------|----------|------|
+| D-0 | **后端 Controller**：关注相关接口返回测试数据（已在用户模块实现，需确认） | 0min | ✅ 已具备 |
+| D-1 | **前端 API层**：确认 `src/api/user.js` 关注相关方法（已在用户模块实现） | 10min | ✅ 已具备 |
+| D-2 | **Vuex层**：确认 `src/store/modules/user.js` 关注相关 state/actions（已在用户模块实现） | 10min | ✅ 已具备 |
+| D-3 | **UI层**：确认 `FollowsPage.vue` 已集成 Vuex（已在用户模块实现） | 10min | ✅ 已具备 |
+| D-4 | **UI层**：在 `FollowsPage.vue` 添加关注列表分类筛选（用户/店铺/全部） | 40min | ✅ 已完成 |
+| D-5 | **闭环自检**：关注列表可加载、添加/取消关注可完成、分类筛选正常 | 30min | ✅ 已完成 |
+
+**注意事项**：
+- 关注功能已在用户模块实现（任务组D），需确认端到端闭环
+- 关注列表需支持分类筛选：用户、店铺、全部
+- 关注列表需支持点击跳转到用户主页或店铺详情页
+- 关注状态需实时更新（关注/取消关注后列表刷新）
+
+**任务组D端到端闭环验收（开发期自检）**：
+- [x] 关注列表可正确加载（用户和店铺）
+- [x] 添加关注功能正常（按钮状态切换）
+- [x] 取消关注功能正常（按钮状态切换）
+- [x] 分类筛选功能正常（用户/店铺/全部）
+- [x] 关注列表可点击跳转到详情页
+
+---
+
+#### 任务组E：收藏管理功能端到端闭环（Controller → API → Vuex → UI） (优先级: 中)
+
+> **功能域**：收藏列表管理、添加收藏、取消收藏  
+> **说明**：收藏管理功能允许用户管理收藏的内容、商品和帖子，已在用户模块部分实现，需确认端到端闭环。
+
+**涉及功能点**：
+- 获取收藏列表（商品、帖子、文章）
+- 添加收藏
+- 取消收藏
+- 收藏列表分类筛选（商品/帖子/文章/全部）
+
+**涉及页面**：
+- `FavoritesPage.vue` - 收藏管理页
+
+**涉及后端接口**：
+- `GET /user/favorites` - 获取收藏列表（已在用户模块实现）
+- `POST /user/favorites` - 添加收藏（已在用户模块实现）
+- `DELETE /user/favorites/{targetId}` - 取消收藏（已在用户模块实现）
+
+**任务清单**：
+
+| 任务ID | 任务描述 | 预计时间 | 状态 |
+|--------|----------|----------|------|
+| E-0 | **后端 Controller**：收藏相关接口返回测试数据（已在用户模块实现，需确认） | 0min | ✅ 已具备 |
+| E-1 | **前端 API层**：确认 `src/api/user.js` 收藏相关方法（已在用户模块实现） | 10min | ✅ 已具备 |
+| E-2 | **Vuex层**：确认 `src/store/modules/user.js` 收藏相关 state/actions（已在用户模块实现） | 10min | ✅ 已具备 |
+| E-3 | **UI层**：确认 `FavoritesPage.vue` 已集成 Vuex（已在用户模块实现） | 10min | ✅ 已具备 |
+| E-4 | **UI层**：在 `FavoritesPage.vue` 添加收藏列表分类筛选（商品/帖子/文章/全部） | 50min | ⬜ 待开始 |
+| E-5 | **闭环自检**：收藏列表可加载、添加/取消收藏可完成、分类筛选正常 | 30min | ⬜ 待开始 |
+
+**注意事项**：
+- 收藏功能已在用户模块实现（任务组D），需确认端到端闭环
+- 收藏列表需支持分类筛选：商品、帖子、文章、全部
+- 收藏列表需支持点击跳转到商品详情页、帖子详情页、文章详情页
+- 收藏状态需实时更新（收藏/取消收藏后列表刷新）
+
+**任务组E端到端闭环验收（开发期自检）**：
+- [ ] 收藏列表可正确加载（商品、帖子、文章）
+- [ ] 添加收藏功能正常（按钮状态切换）
+- [ ] 取消收藏功能正常（按钮状态切换）
+- [ ] 分类筛选功能正常（商品/帖子/文章/全部）
+- [ ] 收藏列表可点击跳转到详情页
+
+---
+
+#### 任务组F：发布内容管理端到端闭环（Controller → API → Vuex → UI） (优先级: 低)
+
+> **功能域**：用户发布的帖子、评价记录管理  
+> **说明**：发布内容管理允许用户查看和管理自己发布的内容。
+
+**涉及功能点**：
+- 获取用户发布的帖子列表
+- 获取用户评价记录
+- 编辑/删除自己的帖子
+- 按时间排序和分类筛选
+
+**涉及页面**：
+- `PublishedContentPage.vue` - 发布内容页
+
+**涉及后端接口**：
+- `GET /user/posts` - 获取用户发布的帖子列表
+- `GET /user/reviews` - 获取用户评价记录
+
+**任务清单**：
+
+| 任务ID | 任务描述 | 预计时间 | 状态 |
+|--------|----------|----------|------|
+| F-0 | **后端 Controller**：发布内容相关接口返回测试数据（帖子列表/评价记录） | 60min | ⬜ 待开始 |
+| F-1 | **前端 API层**：在 `src/api/message.js` 添加发布内容方法（getUserPosts/getUserReviews） | 30min | ⬜ 待开始 |
+| F-2 | **前端 API层**：在 `apiConstants.js` 添加发布内容API端点 | 15min | ⬜ 待开始 |
+| F-3 | **Vuex层**：在 `src/store/modules/message.js` 添加发布内容相关 state（userPosts、userReviews） | 20min | ⬜ 待开始 |
+| F-4 | **Vuex层**：添加发布内容相关 mutations（SET_USER_POSTS、SET_USER_REVIEWS） | 20min | ⬜ 待开始 |
+| F-5 | **Vuex层**：实现 fetchUserPosts action（获取用户发布的帖子列表） | 30min | ⬜ 待开始 |
+| F-6 | **Vuex层**：实现 fetchUserReviews action（获取用户评价记录） | 30min | ⬜ 待开始 |
+| F-7 | **UI层**：`PublishedContentPage.vue` 改为从 Vuex 读取发布内容（不本地造数据） | 60min | ⬜ 待开始 |
+| F-8 | **UI层**：在 `PublishedContentPage.vue` 添加内容分类筛选（帖子/评价） | 40min | ⬜ 待开始 |
+| F-9 | **UI层**：在 `PublishedContentPage.vue` 添加编辑/删除功能（自己的帖子） | 60min | ⬜ 待开始 |
+| F-10 | **闭环自检**：发布内容列表可加载、分类筛选正常、编辑/删除功能正常 | 40min | ⬜ 待开始 |
+
+**注意事项**：
+- 发布内容列表需支持分类筛选：帖子、评价
+- 帖子列表需支持编辑/删除（只能操作自己的帖子）
+- 评价记录只读（不能编辑/删除）
+- 内容列表需按时间排序（最新在前）
+- 编辑帖子可跳转到发帖页面或弹窗
+
+**任务组F端到端闭环验收（开发期自检）**：
+- [ ] 发布的帖子列表可正确加载
+- [ ] 评价记录列表可正确加载
+- [ ] 分类筛选功能正常（帖子/评价）
+- [ ] 编辑/删除功能正常（只能操作自己的帖子）
+
+---
+
+## 三、开发顺序建议
+
+### 3.1 任务组优先级
+
 ```
-
----
-
-### 2.2 任务组B：个人主页功能 (优先级: 高)
-
-| 任务ID | 任务描述 | 预计时间 | 状态 |
-|--------|----------|----------|------|
-| B-1 | 在message.js API中添加个人主页方法 | 35min | ⬜ 待开始 |
-| B-2 | 在message.js Vuex中添加profile状态 | 15min | ⬜ 待开始 |
-| B-3 | 实现fetchUserProfile action | 25min | ⬜ 待开始 |
-| B-4 | 实现fetchUserDynamic action | 25min | ⬜ 待开始 |
-| B-5 | 实现fetchUserStatistics action | 20min | ⬜ 待开始 |
-| B-6 | 在UserHomePage.vue中集成Vuex | 50min | ⬜ 待开始 |
-| B-7 | 完善个人主页UI展示 | 40min | ⬜ 待开始 |
-| B-8 | 测试个人主页功能 | 25min | ⬜ 待开始 |
-
-**实施代码示例**：
-
-```javascript
-// B-1: API方法
-export function getUserProfile(userId) {
-  return request({
-    url: `/user/profile/${userId}`,
-    method: 'get'
-  })
-}
-
-export function getUserDynamic(userId, params) {
-  return request({
-    url: `/user/profile/${userId}/dynamic`,
-    method: 'get',
-    params
-  })
-}
-
-export function getUserStatistics(userId) {
-  return request({
-    url: `/user/profile/${userId}/statistics`,
-    method: 'get'
-  })
-}
-
-// B-2~B-5: Vuex
-const state = () => ({
-  // ... 现有状态
-  userProfile: null,
-  userDynamic: [],
-  userStatistics: {
-    postCount: 0,
-    likeCount: 0,
-    favoriteCount: 0,
-    followingCount: 0,
-    followerCount: 0
-  }
-})
-```
-
----
-
-### 2.3 任务组C：关注管理功能 (优先级: 高)
-
-| 任务ID | 任务描述 | 预计时间 | 状态 |
-|--------|----------|----------|------|
-| C-1 | 在message.js API中添加关注管理方法 | 30min | ⬜ 待开始 |
-| C-2 | 实现fetchFollowingList action | 25min | ⬜ 待开始 |
-| C-3 | 实现fetchFollowerList action | 25min | ⬜ 待开始 |
-| C-4 | 实现addFollow action | 20min | ⬜ 待开始 |
-| C-5 | 实现removeFollow action | 15min | ⬜ 待开始 |
-| C-6 | 在FollowsPage.vue中集成Vuex | 45min | ⬜ 待开始 |
-| C-7 | 实现关注/取关状态同步 | 25min | ⬜ 待开始 |
-| C-8 | 测试关注功能 | 20min | ⬜ 待开始 |
-
-**实施代码示例**：
-
-```javascript
-// C-1: API方法
-export function getFollowingList(params) {
-  // params: { type: 'user' | 'shop' | 'all', page, pageSize }
-  return request({
-    url: '/user/following',
-    method: 'get',
-    params
-  })
-}
-
-export function getFollowerList(params) {
-  return request({
-    url: '/user/followers',
-    method: 'get',
-    params
-  })
-}
-
-export function addFollow(data) {
-  // data: { targetId, targetType: 'user' | 'shop' }
-  return request({
-    url: '/user/follow',
-    method: 'post',
-    data
-  })
-}
-
-export function removeFollow(targetId, targetType) {
-  return request({
-    url: `/user/follow/${targetId}`,
-    method: 'delete',
-    params: { targetType }
-  })
-}
-```
-
----
-
-### 2.4 任务组D：收藏管理功能 (优先级: 中)
-
-| 任务ID | 任务描述 | 预计时间 | 状态 |
-|--------|----------|----------|------|
-| D-1 | 在message.js API中添加收藏管理方法 | 30min | ⬜ 待开始 |
-| D-2 | 实现fetchFavoriteList action | 25min | ⬜ 待开始 |
-| D-3 | 实现addFavorite action | 20min | ⬜ 待开始 |
-| D-4 | 实现removeFavorite action | 15min | ⬜ 待开始 |
-| D-5 | 在FavoritesPage.vue中集成Vuex | 45min | ⬜ 待开始 |
-| D-6 | 实现收藏分类筛选 | 25min | ⬜ 待开始 |
-| D-7 | 测试收藏功能 | 20min | ⬜ 待开始 |
-
----
-
-### 2.5 任务组E：发布内容管理 (优先级: 中)
-
-| 任务ID | 任务描述 | 预计时间 | 状态 |
-|--------|----------|----------|------|
-| E-1 | 在message.js API中添加发布内容方法 | 25min | ⬜ 待开始 |
-| E-2 | 实现fetchUserPosts action | 25min | ⬜ 待开始 |
-| E-3 | 实现fetchUserReviews action | 25min | ⬜ 待开始 |
-| E-4 | 在PublishedContentPage.vue中集成Vuex | 45min | ⬜ 待开始 |
-| E-5 | 实现内容分类和管理 | 30min | ⬜ 待开始 |
-| E-6 | 测试发布内容功能 | 20min | ⬜ 待开始 |
-
----
-
-### 2.6 任务组F：批量消息操作 (优先级: 低)
-
-| 任务ID | 任务描述 | 预计时间 | 状态 |
-|--------|----------|----------|------|
-| F-1 | 在message.js API中添加批量操作方法 | 20min | ⬜ 待开始 |
-| F-2 | 实现batchMarkAsRead action | 15min | ⬜ 待开始 |
-| F-3 | 实现batchDeleteMessages action | 15min | ⬜ 待开始 |
-| F-4 | 在NotificationsPage.vue中添加批量操作UI | 30min | ⬜ 待开始 |
-| F-5 | 测试批量操作功能 | 15min | ⬜ 待开始 |
-
----
-
-### 2.7 开发顺序
-
-```
-开发顺序建议：A → B → C → D → E → F
+开发顺序：0 → A → C → B → D → E → F
 
 理由：
-1. 聊天功能完善(A)是即时通讯的核心
-2. 个人主页(B)是用户展示的重要功能
-3. 关注管理(C)和收藏管理(D)是用户互动功能
-4. 发布内容(E)是内容管理功能
-5. 批量操作(F)是效率提升功能
+1. 任务组0（系统通知）是用户获取信息的重要渠道，优先级最高
+2. 任务组A（即时聊天）是用户交流和客服的核心功能，优先级高
+3. 任务组C（个人主页）是用户展示的重要功能，优先级高
+4. 任务组B（聊天完善）是聊天功能的补充，优先级中等
+5. 任务组D、E（关注收藏）已在用户模块部分实现，需确认闭环，优先级中等
+6. 任务组F（发布内容）是内容管理功能，优先级低
 ```
 
----
+### 3.2 依赖关系
 
-## 三、检查测试
-
-### 3.1 单元测试检查清单
-
-- [ ] 创建聊天会话成功
-- [ ] 置顶会话成功
-- [ ] 删除会话成功
-- [ ] 发送图片消息成功
-- [ ] 获取个人主页成功
-- [ ] 获取用户动态成功
-- [ ] 获取关注列表成功
-- [ ] 添加/取消关注成功
-- [ ] 获取收藏列表成功
-- [ ] 添加/取消收藏成功
-- [ ] 获取发布内容成功
-- [ ] 批量已读成功
-- [ ] 批量删除成功
-
-### 3.2 集成测试检查清单
-
-- [ ] 聊天页面路由参数正确处理
-- [ ] 关注状态在各页面同步
-- [ ] 收藏状态在各页面同步
-- [ ] 个人主页数据正确加载
+- **任务组0** → 所有其他任务组（基础依赖）
+- **任务组A** → 任务组B（聊天完善依赖聊天基础）
+- **任务组C** → 任务组D（个人主页可能显示关注按钮）
+- **任务组D、E** → 用户模块（已在用户模块实现，需确认闭环）
 
 ---
 
-## 四、错误总结
+## 四、注意事项
 
-> 此部分将在开发过程中持续更新。
+### 4.1 数据流向规范
 
-### 4.1 已解决问题
+- ✅ **严格遵循数据流向**：组件 → Vuex Actions → API → 后端 Controller
+- ❌ **禁止组件直接调用API**：所有API调用必须通过Vuex Actions
+- ❌ **禁止UI层伪成功**：不使用 setTimeout 模拟成功，必须使用真实API响应
 
-| 日期 | 问题描述 | 解决方案 | 相关任务 |
-|------|----------|----------|----------|
-| - | - | - | - |
+### 4.2 权限控制
+
+- **普通用户**：可以查看自己的消息、聊天、个人主页、关注收藏
+- **商家**：继承普通用户所有权限，可以处理店铺客服聊天
+- **管理员**：可以查看所有内容，但个人主页和关注收藏仍只显示自己的
+
+### 4.3 模块间协作
+
+- **关注收藏功能**：已在用户模块实现，消息模块只需确认UI层集成
+- **聊天功能**：支持从茶叶详情页、店铺详情页跳转（传递shopId/userId）
+- **个人主页关注按钮**：复用用户模块的addFollow/removeFollow actions
+
+### 4.4 数据库设计优先
+
+- 所有字段必须与数据库设计文档一致
+- 不能假设后端会为UI调整数据库结构
+- 超出数据库能力的功能视为超出项目范围
+
+### 4.5 测试数据要求
+
+- 后端Controller返回的测试数据必须字段齐全
+- 测试数据需覆盖各种边界情况（空数据、单条数据、多条数据）
+- 测试数据需符合实际业务场景
 
 ---
 
@@ -331,24 +521,50 @@ export function removeFollow(targetId, targetType) {
 
 | 任务组 | 总任务数 | 已完成 | 完成率 | 状态 |
 |--------|----------|--------|--------|------|
-| A-聊天完善 | 8 | 0 | 0% | ⬜ 未开始 |
-| B-个人主页 | 8 | 0 | 0% | ⬜ 未开始 |
-| C-关注管理 | 8 | 0 | 0% | ⬜ 未开始 |
-| D-收藏管理 | 7 | 0 | 0% | ⬜ 未开始 |
-| E-发布内容 | 6 | 0 | 0% | ⬜ 未开始 |
-| F-批量操作 | 5 | 0 | 0% | ⬜ 未开始 |
+| 0-系统通知 | 14 | 14 | 100% | ✅ 已完成 |
+| A-即时聊天 | 13 | 13 | 100% | ✅ 已完成 |
+| B-聊天完善 | 11 | 11 | 100% | ✅ 已完成 |
+| C-个人主页 | 13 | 13 | 100% | ✅ 已完成 |
+| D-关注管理 | 6 | 6 | 100% | ✅ 已完成 |
+| E-收藏管理 | 6 | 3 | 50% | 🔄 部分完成 |
+| F-发布内容 | 11 | 0 | 0% | ⬜ 未开始 |
 
 ### 5.2 里程碑
 
 | 里程碑 | 目标日期 | 实际完成 | 状态 |
 |--------|----------|----------|------|
-| 聊天功能完善 | - | - | ⬜ 未开始 |
+| 系统通知完成 | 2024-12-19 | 2024-12-19 | ✅ 已完成 |
+| 即时聊天完成 | 2024-12-20 | 2024-12-20 | ✅ 已完成 |
+| 聊天功能完善 | 2024-12-20 | 2024-12-20 | ✅ 已完成 |
 | 个人主页完成 | - | - | ⬜ 未开始 |
 | 用户互动完成 | - | - | ⬜ 未开始 |
 | 模块100%完成 | - | - | ⬜ 未开始 |
 
 ---
 
-**文档版本**: 1.0  
-**最后更新**: 2024-12-17
+## 六、错误总结
 
+> 此部分将在开发过程中持续更新，记录遇到的问题和解决方案。
+
+### 6.1 已解决问题
+
+| 日期 | 问题描述 | 解决方案 | 相关任务 |
+|------|----------|----------|----------|
+| - | - | - | - |
+
+### 6.2 待解决问题
+
+| 日期 | 问题描述 | 优先级 | 状态 |
+|------|----------|--------|------|
+| - | - | - | - |
+
+### 6.3 经验教训
+
+| 日期 | 教训描述 | 影响范围 |
+|------|----------|----------|
+| - | - | - |
+
+---
+
+**文档版本**: 2.0  
+**最后更新**: 2024-12-17

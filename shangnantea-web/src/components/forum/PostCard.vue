@@ -49,9 +49,13 @@
           <el-icon><ChatDotRound /></el-icon>
           <span>{{ post.replyCount || 0 }}</span>
         </div>
-        <div class="action-item" @click.stop="handleFavorite">
-          <el-icon><Star v-if="!post.favorited" /><StarFilled v-else /></el-icon>
+        <div class="action-item" :class="{ 'liked': post.isLiked }" @click.stop="handleLike">
+          <el-icon><Star v-if="!post.isLiked" /><StarFilled v-else /></el-icon>
           <span>{{ post.likeCount || 0 }}</span>
+        </div>
+        <div class="action-item" :class="{ 'favorited': post.isFavorited }" @click.stop="handleFavorite">
+          <el-icon><Collection v-if="!post.isFavorited" /><CollectionTag v-else /></el-icon>
+          <span>{{ post.favoriteCount || 0 }}</span>
         </div>
       </div>
     </div>
@@ -66,7 +70,7 @@
 <script>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { View, ChatDotRound, Star, StarFilled, Male, Female, Delete } from '@element-plus/icons-vue'
+import { View, ChatDotRound, Star, StarFilled, Collection, CollectionTag, Male, Female, Delete } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 
 export default {
@@ -76,6 +80,8 @@ export default {
     ChatDotRound,
     Star,
     StarFilled,
+    Collection,
+    CollectionTag,
     Male,
     Female,
     Delete,
@@ -91,7 +97,7 @@ export default {
       default: false
     }
   },
-  emits: ['reply', 'favorite', 'delete'],
+  emits: ['reply', 'like', 'favorite', 'delete'],
   setup(props, { emit }) {
     const router = useRouter()
     const showFullContent = ref(false)
@@ -121,6 +127,11 @@ export default {
     const handleReply = () => {
       emit('reply', props.post)
       router.push(`/forum/${props.post.id}#reply-section`)
+    }
+    
+    // 点赞帖子
+    const handleLike = () => {
+      emit('like', props.post)
     }
     
     // 收藏帖子
@@ -168,6 +179,7 @@ export default {
       goToPostDetail,
       goToUserProfile,
       handleReply,
+      handleLike,
       handleFavorite,
       handleDelete,
       formatDate
@@ -302,6 +314,14 @@ export default {
         
         &:hover {
           color: var(--el-color-primary);
+        }
+        
+        &.liked {
+          color: var(--el-color-primary);
+        }
+        
+        &.favorited {
+          color: var(--el-color-warning);
         }
         
         .el-icon {

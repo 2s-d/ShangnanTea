@@ -341,9 +341,7 @@ export default {
     // 获取所有会话列表
     const fetchSessions = async () => {
       try {
-        // 在实际项目中，这里应该调用后端API
-        // 生产版：走 Vuex→API 获取会话列表（不使用本地 mock）
-        const data = await handleAsyncOperation(
+        await handleAsyncOperation(
           store.dispatch('message/fetchChatSessions'),
           {
             successMessage: null,
@@ -351,7 +349,21 @@ export default {
           }
         )
 
-        mockSessions.value = data || store.state.message.chatSessions || []
+        // 从Vuex获取会话列表数据
+        const sessions = store.state.message.chatSessions || []
+        
+        // 转换数据格式以匹配UI组件的期望格式
+        mockSessions.value = sessions.map(session => ({
+          sessionId: session.id,
+          userId: session.receiverId, // 对方用户ID
+          targetId: session.receiverId,
+          targetType: session.sessionType === 'customer' ? 'shop' : 'user',
+          name: session.sessionType === 'customer' ? `店铺${session.receiverId}客服` : `用户${session.receiverId}`,
+          avatar: `https://via.placeholder.com/50x50?text=${session.sessionType === 'customer' ? '店铺' : '用户'}`,
+          lastMessage: session.lastMessage || '',
+          lastTime: session.lastMessageTime,
+          unreadCount: session.initiatorUnread || 0
+        }))
 
         // 默认选中：优先未读，否则第一个
         const unreadSession = mockSessions.value.find(session => session.unreadCount > 0)
@@ -375,33 +387,29 @@ export default {
       try {
         loadingMessages.value = true
 
-        /**
-         * 生产版：通过 Vuex(message) → API 获取聊天记录
-         * TODO-SCRIPT: 需要接口契约明确 sessionId 如何映射到对端 userId/targetId。
-         */
-        const session = (mockSessions.value || []).find(s => s.sessionId === sessionId)
-        const targetUserId = session?.userId || session?.targetId
-        if (targetUserId) {
-          await handleAsyncOperation(
-            store.dispatch('message/fetchChatHistory', { userId: targetUserId, params: {} }),
-            {
-              successMessage: null,
-              errorMessage: '获取聊天记录失败，请稍后重试'
-            }
-          )
-
-          // 将 Vuex 的 chatHistory 投影到页面使用的 messagesMap（尽量不改模板结构）
-          const history = store.state.message.chatHistory || []
+        // 通过后端API获取聊天记录
+        const sessionIdNum = parseInt(sessionId.replace('session_', ''))
+        
+        // 调用后端API获取消息列表
+        const response = await fetch(`/api/message/sessions/${sessionIdNum}/messages`)
+        const result = await response.json()
+        
+        if (result.success && result.data) {
+          const history = result.data.list || []
           messagesMap[sessionId] = history.map(msg => ({
-            ...msg,
-            sessionId,
-            isSelf: typeof msg.isSelf === 'boolean' ? msg.isSelf : msg.senderId === 'self'
+            id: msg.id,
+            sessionId: sessionId,
+            content: msg.content,
+            type: msg.contentType || 'text',
+            createTime: msg.createTime,
+            status: msg.isRead ? 'read' : 'sent',
+            isSelf: msg.senderId === '当前登录用户ID',
+            showTimeDivider: false // 可以根据时间间隔计算
           }))
-
-          return
+        } else {
+          message.error('获取聊天记录失败，请稍后重试')
         }
 
-        message.warning('会话信息不完整，无法加载聊天记录（缺少 userId/targetId）')
         return
       } catch (error) {
         console.error('获取消息列表失败：', error)

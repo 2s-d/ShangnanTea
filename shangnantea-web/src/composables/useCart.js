@@ -4,7 +4,9 @@
 import { computed } from 'vue'
 import { useStore } from 'vuex'
 import { ElMessageBox } from 'element-plus'
-import orderMessages from '@/utils/orderMessages'
+
+import { showByCode, isSuccess } from '@/utils/apiMessages'
+import orderMessages from '@/utils/promptMessages'
 
 /**
  * 使用购物车功能
@@ -31,13 +33,18 @@ export function useCart() {
       await store.dispatch('cart/addToCart', product)
       
       if (showMessage) {
-        orderMessages.business.showAddToCartSuccess(product.name, product.quantity)
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        // TODO: [order] 迁移到 showByCode(response.code) - success
+        orderMessages.success.showAddedToCart(product.name, product.quantity)
       }
       
       return true
     } catch (error) {
       console.error('添加到购物车失败:', error)
-      orderMessages.business.showAddToCartFailure()
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      orderMessages.error.showCartAddFailed()
       return false
     }
   }
@@ -53,13 +60,17 @@ export function useCart() {
       await store.dispatch('cart/updateCartItem', item)
       
       if (showMessage) {
-        orderMessages.business.showQuantityUpdated(item.name, item.quantity)
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        orderMessages.success.showCartQuantityUpdated(item.name, item.quantity)
       }
       
       return true
     } catch (error) {
       console.error('更新购物车失败:', error)
-      orderMessages.business.showAddToCartFailure('更新购物车失败')
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      orderMessages.error.showCartUpdateFailed('更新购物车失败')
       return false
     }
   }
@@ -74,11 +85,15 @@ export function useCart() {
     const doRemove = async () => {
       try {
         await store.dispatch('cart/removeFromCart', item.id)
-        orderMessages.business.showItemRemoved(item.name)
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        orderMessages.success.showItemRemoved(item.name)
         return true
       } catch (error) {
         console.error('删除商品失败:', error)
-        orderMessages.business.showAddToCartFailure('删除商品失败')
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        orderMessages.error.showCartRemoveFailed('删除商品失败')
         return false
       }
     }
@@ -86,7 +101,7 @@ export function useCart() {
     if (showConfirm) {
       try {
         await ElMessageBox.confirm(
-          orderMessages.ORDER_MESSAGES.UI.REMOVE_CONFIRM, 
+          orderMessages.ORDER_MESSAGES.PROMPT.REMOVE_CART_CONFIRM, 
           '提示', 
           {
             confirmButtonText: '确定',
@@ -112,11 +127,15 @@ export function useCart() {
     const doClear = async () => {
       try {
         await store.dispatch('cart/clearCart')
-        orderMessages.business.showCartCleared()
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        orderMessages.success.showCartCleared()
         return true
       } catch (error) {
         console.error('清空购物车失败:', error)
-        orderMessages.business.showAddToCartFailure('清空购物车失败')
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        orderMessages.error.showCartClearFailed('清空购物车失败')
         return false
       }
     }
@@ -124,7 +143,7 @@ export function useCart() {
     if (showConfirm) {
       try {
         await ElMessageBox.confirm(
-          orderMessages.ORDER_MESSAGES.UI.CLEAR_CONFIRM, 
+          orderMessages.ORDER_MESSAGES.PROMPT.CLEAR_CART_CONFIRM, 
           '提示', 
           {
             confirmButtonText: '确定',
@@ -153,7 +172,9 @@ export function useCart() {
     } catch (error) {
       console.error('加载购物车失败:', error)
       if (showError) {
-        orderMessages.api.showCartLoadFailed(error)
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        orderMessages.error.showCartAddFailed(error)
       }
       return false
     }
@@ -181,7 +202,7 @@ export function useCart() {
    */
   const validateQuantity = (quantity, maxLimit = 99) => {
     if (!quantity || quantity < 1 || quantity > maxLimit) {
-      orderMessages.ui.showQuantityInvalid()
+      orderMessages.prompt.showQuantityInvalid()
       return false
     }
     return true

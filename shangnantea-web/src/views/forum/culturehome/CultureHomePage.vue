@@ -129,11 +129,14 @@
 </template>
 
 <script>
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { useStore } from 'vuex'
+
 import { RefreshRight, VideoPlay } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
+import { forumSuccessMessages, forumErrorMessages } from '@/utils/forumMessages'
+import { forumPromptMessages } from '@/utils/promptMessages'
 
 export default {
   name: 'CultureHomePage',
@@ -142,69 +145,80 @@ export default {
   },
   setup() {
     const router = useRouter()
+    const store = useStore()
     const refreshing = ref(false)
     
-    /**
-     * 首页数据（生产形态：不在 UI 层造数据）
-     * TODO-SCRIPT: 需要 forum 模块 API + Vuex 接入（轮播/文章分类列表/推荐茶叶）
-     */
-    const bannerData = ref([])
-    const articleData = ref({
-      history: [],
-      art: [],
-      encyclopedia: [],
-      heritage: []
-    })
-    const recommendTeas = ref([])
+    // 从Vuex获取数据
+    const bannerData = computed(() => store.state.forum.banners)
+    const cultureFeatures = computed(() => store.state.forum.cultureFeatures)
+    const teaCategories = computed(() => store.state.forum.teaCategories)
+    const latestNews = computed(() => store.state.forum.latestNews)
+    const partners = computed(() => store.state.forum.partners)
+    const loading = computed(() => store.state.forum.loading)
     
-    /* 
-    // 真实代码(开发UI时注释)
-    const bannerData = ref([])
-    const articleData = ref({
-      history: [],
-      art: [],
-      encyclopedia: [],
-      heritage: []
+    // 组织文章数据结构
+    const articleData = computed(() => {
+      const articles = store.state.forum.articles || []
+      return {
+        history: articles.filter(article => article.category === 'history').slice(0, 5),
+        art: articles.filter(article => article.category === 'art').slice(0, 5),
+        encyclopedia: articles.filter(article => article.category === 'encyclopedia').slice(0, 5),
+        heritage: articles.filter(article => article.category === 'heritage').slice(0, 5)
+      }
     })
-    const recommendTeas = ref([])
     
-    // 获取轮播图数据
-    const fetchBannerData = async () => {
+    // 推荐茶叶（从茶叶模块获取）
+    const recommendTeas = computed(() => store.state.tea?.recommendTeas || [])
+    
+    // 获取首页数据
+    const fetchHomeData = async () => {
       try {
-        const result = await store.dispatch('forum/getBanners')
-        bannerData.value = result
+        await store.dispatch('forum/fetchHomeData')
       } catch (error) {
-        ElMessage.error('获取轮播图数据失败')
+        forumErrorMessages.showHomeDataLoadFailed()
+        console.error('获取首页数据失败:', error)
+      }
+    }
+    
+    // 获取Banner数据
+    const fetchBanners = async () => {
+      try {
+        await store.dispatch('forum/fetchBanners')
+      } catch (error) {
+        forumErrorMessages.showBannerLoadFailed()
+        console.error('获取轮播图数据失败:', error)
       }
     }
     
     // 获取文章数据
-    const fetchArticleData = async () => {
+    const fetchArticles = async () => {
       try {
-        const result = await store.dispatch('forum/getArticlesByCategories')
-        articleData.value = result
+        await store.dispatch('forum/fetchArticles')
       } catch (error) {
-        ElMessage.error('获取文章数据失败')
+        forumErrorMessages.showArticleLoadFailed()
+        console.error('获取文章数据失败:', error)
       }
     }
     
     // 获取推荐茶叶
     const fetchRecommendTeas = async () => {
       try {
-        const result = await store.dispatch('tea/getRecommendTeas')
-        recommendTeas.value = result
+        await store.dispatch('tea/fetchRecommendTeas', { type: 'random', count: 6 })
       } catch (error) {
-        ElMessage.error('获取推荐茶叶失败')
+        forumErrorMessages.showRecommendTeaLoadFailed()
+        console.error('获取推荐茶叶失败:', error)
       }
     }
     
     // 页面加载时获取数据
-    onMounted(() => {
-      fetchBannerData()
-      fetchArticleData()
-      fetchRecommendTeas()
+    onMounted(async () => {
+      await Promise.all([
+        fetchHomeData(),
+        fetchBanners(),
+        fetchArticles(),
+        fetchRecommendTeas()
+      ])
     })
-    */
     
     // 查看文章详情
     const viewArticle = (id) => {
@@ -219,26 +233,19 @@ export default {
     // 刷新文章列表
     const refreshArticles = async () => {
       refreshing.value = true
-
-      // TODO-SCRIPT: 刷新文章需要后端接口；不在 UI 层 setTimeout/洗牌伪造刷新
-      ElMessage.info('刷新功能待后端接口接入')
-      refreshing.value = false
-      return
-      
-      /* 
-      // 真实代码(开发UI时注释)
       try {
-        await fetchArticleData()
-        ElMessage.success('文章内容已更新')
+        await fetchArticles()
+        forumSuccessMessages.showArticleRefreshed()
       } catch (error) {
-        ElMessage.error('刷新文章失败，请稍后再试')
+        forumErrorMessages.showArticleRefreshFailed()
+      } finally {
+        refreshing.value = false
       }
-      */
     }
     
     // AR虚拟试饮功能
     const startARTasting = () => {
-      ElMessage.info('AR虚拟试饮功能正在开发中，敬请期待...')
+      forumPromptMessages.showARDeveloping()
     }
     
     // 默认图片（生产形态：不使用 mock-images）
@@ -253,6 +260,11 @@ export default {
       bannerData,
       articleData,
       recommendTeas,
+      cultureFeatures,
+      teaCategories,
+      latestNews,
+      partners,
+      loading,
       refreshing,
       viewArticle,
       viewTeaDetail,
@@ -261,8 +273,7 @@ export default {
       startARTasting,
       defaultTeaImage,
       defaultCover,
-      defaultAvatar,
-      articleList
+      defaultAvatar
     }
   }
 }

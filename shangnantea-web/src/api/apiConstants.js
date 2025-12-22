@@ -11,7 +11,9 @@ export const API = {
     REFRESH: '/user/refresh',
     // 用户信息相关
     INFO: '/user/',
+    AVATAR: '/user/avatar',
     PASSWORD: '/user/password',
+    PASSWORD_RESET: '/user/password/reset',
     // 用户地址相关
     ADDRESSES: '/user/addresses',
     // 用户互动相关
@@ -21,30 +23,44 @@ export const API = {
     // 商家认证相关
     SHOP_CERTIFICATION: '/user/shop-certification',
     // 用户偏好设置（主题/展示等）
-    PREFERENCES: '/user/preferences'
+    PREFERENCES: '/user/preferences',
+    // 管理员用户管理相关
+    ADMIN_USERS: '/user/admin/users', // 用户列表、创建管理员、/user/admin/users/{userId} - 更新/删除/状态
+    ADMIN_CERTIFICATIONS: '/user/admin/certifications' // 商家认证申请列表
   },
 
   // === 茶叶模块API ===
   TEA: {
     LIST: '/tea/list',
-    DETAIL: '/tea/',
-    CATEGORIES: '/tea/categories',
+    DETAIL: '/tea/', // /tea/{id} - 详情/更新/删除
+    CATEGORIES: '/tea/categories', // 分类列表/创建, /tea/categories/{id} - 更新/删除
     SEARCH: '/tea/search',
     RECOMMEND: '/tea/recommend',
-    REVIEWS: '/tea/reviews',
-    SPECIFICATIONS: '/tea/specifications',
-    IMAGES: '/tea/images'
+    // 评价相关
+    REVIEWS: '/tea/reviews', // 提交评价, /tea/reviews/{reviewId}/reply - 回复, /tea/reviews/{reviewId}/like - 点赞
+    REVIEWS_LIST: '/tea/{teaId}/reviews', // 获取茶叶评价列表
+    REVIEWS_STATS: '/tea/{teaId}/reviews/stats', // 获取评价统计数据
+    // 规格管理
+    SPECIFICATIONS: '/tea/{teaId}/specifications', // 获取/添加规格
+    SPECIFICATION_DETAIL: '/tea/specifications/{specId}', // 更新/删除规格, /tea/specifications/{specId}/default - 设置默认
+    // 图片管理
+    IMAGES: '/tea/{teaId}/images', // 上传图片
+    IMAGE_DETAIL: '/tea/images/{imageId}', // 删除图片, /tea/images/{imageId}/main - 设置主图
+    IMAGE_ORDER: '/tea/images/order', // 更新图片顺序
+    // 状态管理
+    STATUS_UPDATE: '/tea/{teaId}/status', // 更新茶叶状态
+    BATCH_STATUS_UPDATE: '/tea/batch-status', // 批量更新状态
   },
 
   // === 店铺模块API ===
   SHOP: {
     LIST: '/shop/list',
-    DETAIL: '/shop/',
+    DETAIL: '/shop/', // /shop/{id} - 详情/更新, /shop/{shopId}/teas, /shop/{shopId}/banners, /shop/{shopId}/announcements, /shop/{shopId}/follow, /shop/{shopId}/follow-status, /shop/{shopId}/reviews, /shop/{shopId}/statistics, /shop/{shopId}/logo
     MY: '/shop/my',
-    TEAS: '/shop/teas',
-    UPDATE: '/shop/update',
-    STATISTICS: '/shop/statistics',
-    CERTIFICATIONS: '/shop/certifications'
+    TEAS: '/shop/teas', // /shop/teas/{teaId} - 更新/删除, /shop/teas/{teaId}/status
+    BANNERS: '/shop/banners', // /shop/banners/{bannerId} - 更新/删除
+    BANNER_ORDER: '/shop/banners/order', // Banner排序
+    ANNOUNCEMENTS: '/shop/announcements' // /shop/announcements/{announcementId} - 更新/删除
   },
 
   // === 订单模块API ===
@@ -58,44 +74,62 @@ export const API = {
     // 订单相关
     CREATE: '/order/create',
     LIST: '/order/list',
-    DETAIL: '/order/',
+    DETAIL: '/order/', // /order/{id} - 详情, /order/{id}/ship, /order/{id}/logistics, /order/{id}/refund, /order/{id}/refund/request, /order/{id}/refund/process
     PAY: '/order/pay',
     CANCEL: '/order/cancel',
     CONFIRM: '/order/confirm',
     REVIEW: '/order/review',
-    REFUND: '/order/refund'
+    // 退款相关
+    REFUND: '/order/refund', // 兼容旧路径
+    // 发货相关
+    BATCH_SHIP: '/order/batch-ship',
+    // 统计与导出
+    STATISTICS: '/order/statistics',
+    EXPORT: '/order/export'
   },
 
   // === 论坛模块API ===
   FORUM: {
-    TOPICS: '/forum/topics',
-    TOPIC_DETAIL: '/forum/topics/',
-    POSTS: '/forum/posts',
-    POST_DETAIL: '/forum/posts/',
-    REPLIES: '/forum/replies',
-    ARTICLES: '/forum/articles',
-    HOME_CONTENTS: '/forum/home-contents'
+    // 版块相关
+    TOPICS: '/forum/topics', // 列表/创建
+    TOPIC_DETAIL: '/forum/topics/', // /forum/topics/{id} - 详情/更新/删除
+    // 帖子相关
+    POSTS: '/forum/posts', // 列表/创建
+    POST_DETAIL: '/forum/posts/', // /forum/posts/{id} - 详情/更新/删除/like/favorite/approve/reject/sticky/essence, /forum/posts/{id}/replies
+    POSTS_PENDING: '/forum/posts/pending', // 获取待审核帖子列表
+    // 回复相关
+    REPLIES: '/forum/replies', // /forum/replies/{id} - 删除, /forum/replies/{id}/like - 点赞
+    // 文章相关
+    ARTICLES: '/forum/articles', // 列表/创建
+    ARTICLE_DETAIL: '/forum/articles/', // /forum/articles/{id} - 详情/更新/删除
+    // 首页内容相关
+    HOME_CONTENTS: '/forum/home',
+    // Banner管理相关
+    BANNERS: '/forum/banners', // 列表/上传, /forum/banners/{id} - 更新/删除
+    BANNER_ORDER: '/forum/banners/order'
   },
 
   // === 消息模块API ===
   MESSAGE: {
     // 聊天相关
-    SESSIONS: '/message/sessions',
-    SESSION_DETAIL: '/message/sessions/',
-    MESSAGES: '/message/messages',
+    SESSIONS: '/message/sessions', // /message/sessions/{sessionId} - 删除, /message/sessions/{sessionId}/pin - 置顶
+    MESSAGES: '/message/messages', // /message/messages/{id} - 详情
     SEND: '/message/send',
     // 通知相关
-    NOTIFICATIONS: '/message/notifications',
+    NOTIFICATIONS: '/message/notifications', // /message/notifications/{id} - 详情/删除
+    BATCH_READ: '/message/notifications/batch-read',
+    BATCH_DELETE: '/message/notifications/batch',
     READ: '/message/read',
-    UNREAD_COUNT: '/message/unread/count',
-    /**
-     * 兼容字段：历史代码可能使用 LIST/DETAIL/DELETE
-     * - LIST/DETAIL 默认指代 messages 列表与详情
-     * - DELETE 为兼容占位，具体后端实现以实际接口为准
-     */
-    LIST: '/message/messages',
-    DETAIL: '/message/messages/',
-    DELETE: '/message/delete'
+    DELETE: '/message/delete',
+    UNREAD_COUNT: '/message/unread-count',
+    // 聊天会话相关
+    LIST_SESSIONS: '/message/list/sessions',
+    LIST_HISTORY: '/message/list/history',
+    MESSAGES_IMAGE: '/message/messages/image',
+    // 个人主页相关
+    USER_PROFILE: '/message/user/', // /message/user/{userId}, /message/user/{userId}/dynamic, /message/user/{userId}/statistics
+    USER_POSTS: '/message/user/posts',
+    USER_REVIEWS: '/message/user/reviews'
   },
 
   // === 系统通用API ===
@@ -104,12 +138,5 @@ export const API = {
     UPLOAD_IMAGE: '/upload/image'
   },
 
-  // === 兼容旧版API ===
-  CART: {
-    LIST: '/cart',
-    ADD: '/cart/add',
-    UPDATE: '/cart/update',
-    REMOVE: '/cart/remove',
-    CLEAR: '/cart/clear'
-  }
+
 } 

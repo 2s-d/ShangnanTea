@@ -6,14 +6,20 @@
         <p class="sub-title">管理平台直售茶叶商品，支持添加、编辑、上架和下架操作</p>
       </div>
       <div class="header-actions">
-        <el-button type="primary" @click="showAddTeaDialog">
+        <el-button type="primary" @click="showAddTeaDialog" v-if="activeTab === 'tea'">
           <el-icon><Plus /></el-icon>添加茶叶
+        </el-button>
+        <el-button type="primary" @click="showAddCategoryDialog" v-if="activeTab === 'category'">
+          <el-icon><Plus /></el-icon>添加分类
         </el-button>
       </div>
     </div>
 
-    <!-- 搜索和筛选区域 -->
-    <div class="search-filter-container">
+    <!-- 标签页 -->
+    <el-tabs v-model="activeTab" class="manage-tabs">
+      <el-tab-pane label="茶叶管理" name="tea">
+        <!-- 搜索和筛选区域 -->
+        <div class="search-filter-container">
       <div class="search-box">
         <el-input
           v-model="searchQuery"
@@ -46,19 +52,21 @@
             :value="category.id"
           />
         </el-select>
-      </div>
-    </div>
+        </div>
+        </div>
 
-    <!-- 茶叶列表 -->
-    <div class="tea-list-container">
-      <el-table
+        <!-- 茶叶列表 -->
+        <div class="tea-list-container">
+          <el-table
         v-loading="loading"
         :data="teas"
         style="width: 100%"
         border
         stripe
         highlight-current-row
-      >
+        @selection-change="handleSelectionChange"
+          >
+            <el-table-column type="selection" width="55" />
         <el-table-column prop="id" label="茶叶ID" width="100">
           <template #default="scope">
             <el-link type="primary" @click="handlePreview(scope.row)">{{ scope.row.id }}</el-link>
@@ -127,11 +135,18 @@
               删除
             </el-button>
           </template>
-        </el-table-column>
-      </el-table>
+            </el-table-column>
+          </el-table>
+          
+          <!-- 批量操作栏 -->
+          <div v-if="selectedTeas.length > 0" class="batch-actions">
+        <span class="selected-count">已选择 {{ selectedTeas.length }} 项</span>
+        <el-button type="success" @click="handleBatchOnShelf">批量上架</el-button>
+            <el-button type="warning" @click="handleBatchOffShelf">批量下架</el-button>
+          </div>
 
-      <!-- 分页 -->
-      <div class="pagination-container">
+          <!-- 分页 -->
+          <div class="pagination-container">
         <el-pagination
           background
           layout="total, sizes, prev, pager, next, jumper"
@@ -141,9 +156,57 @@
           :current-page="currentPage"
           @size-change="handleSizeChange"
           @current-change="handlePageChange"
-        />
-      </div>
-    </div>
+          />
+          </div>
+        </div>
+      </el-tab-pane>
+      
+      <!-- 分类管理标签页 -->
+      <el-tab-pane label="分类管理" name="category">
+        <div class="category-manage-container">
+          <el-table
+            v-loading="categoryLoading"
+            :data="categories"
+            style="width: 100%"
+            border
+            stripe
+          >
+            <el-table-column prop="id" label="分类ID" width="100" />
+            <el-table-column prop="name" label="分类名称" min-width="150" />
+            <el-table-column prop="parentId" label="父分类ID" width="120">
+              <template #default="scope">
+                {{ scope.row.parentId || '-' }}
+              </template>
+            </el-table-column>
+            <el-table-column prop="sortOrder" label="排序" width="100" />
+            <el-table-column prop="icon" label="图标" width="150" />
+            <el-table-column label="创建时间" width="180">
+              <template #default="scope">
+                {{ formatDate(scope.row.createTime) }}
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" fixed="right" width="150">
+              <template #default="scope">
+                <el-button 
+                  type="primary" 
+                  link 
+                  @click="handleEditCategory(scope.row)"
+                >
+                  编辑
+                </el-button>
+                <el-button 
+                  type="danger" 
+                  link 
+                  @click="handleDeleteCategory(scope.row)"
+                >
+                  删除
+                </el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+      </el-tab-pane>
+    </el-tabs>
 
     <!-- 添加/编辑茶叶对话框 -->
     <el-dialog
@@ -349,26 +412,68 @@
         </span>
       </template>
     </el-dialog>
+
+    <!-- 添加/编辑分类对话框 -->
+    <el-dialog
+      v-model="categoryDialogVisible"
+      :title="isEditCategory ? '编辑分类' : '添加分类'"
+      width="500px"
+      :before-close="handleCategoryDialogClose"
+      destroy-on-close
+    >
+      <el-form 
+        ref="categoryFormRef" 
+        :model="currentCategory" 
+        :rules="categoryRules" 
+        label-width="100px"
+      >
+        <el-form-item label="分类名称" prop="name">
+          <el-input v-model="currentCategory.name" placeholder="请输入分类名称" maxlength="50" show-word-limit />
+        </el-form-item>
+        
+        <el-form-item label="父分类" prop="parentId">
+          <el-select v-model="currentCategory.parentId" placeholder="请选择父分类（可选）" clearable style="width: 100%">
+            <el-option
+              v-for="category in categoryOptions"
+              :key="category.id"
+              :label="category.name"
+              :value="category.id"
+            />
+          </el-select>
+        </el-form-item>
+        
+        <el-form-item label="排序" prop="sortOrder">
+          <el-input-number v-model="currentCategory.sortOrder" :min="0" :max="9999" />
+        </el-form-item>
+        
+        <el-form-item label="图标" prop="icon">
+          <el-input v-model="currentCategory.icon" placeholder="请输入图标标识" />
+        </el-form-item>
+      </el-form>
+      
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="categoryDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="submitCategoryForm" :loading="categorySubmitting">
+            {{ isEditCategory ? '更新' : '创建' }}
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { useStore } from 'vuex'
+import { ElMessageBox } from 'element-plus'
 import { Search, Plus } from '@element-plus/icons-vue'
 import { useImageUpload } from '@/composables/useImageUpload'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 
-/*
-// 真实代码（开发UI时注释）
-import { ref, reactive, computed, onMounted, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { useStore } from 'vuex'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, Plus } from '@element-plus/icons-vue'
-import { useImageUpload } from '@/composables/useImageUpload'
-*/
+import { showByCode, isSuccess } from '@/utils/apiMessages'
+import teaMessages from '@/utils/promptMessages'
 
 export default {
   name: 'TeaManagePage',
@@ -379,28 +484,65 @@ export default {
   },
   setup() {
     const router = useRouter()
+    const store = useStore()
     const teaFormRef = ref(null)
     
-    // 列表相关状态
-    const loading = ref(false)
+    // 从Vuex获取状态
+    const loading = computed(() => store.state.tea.loading)
+    const teas = computed(() => store.state.tea.teaList)
+    const totalCount = computed(() => store.state.tea.pagination.total)
+    const currentPage = computed(() => store.state.tea.pagination.currentPage)
+    const pageSize = computed(() => store.state.tea.pagination.pageSize)
+    const categoryOptions = computed(() => store.state.tea.categories)
+    const categories = computed(() => store.state.tea.categories)
+    
+    // 标签页状态
+    const activeTab = ref('tea')
+    
+    // 筛选相关状态
     const searchQuery = ref('')
     const statusFilter = ref('')
     const categoryFilter = ref('')
-    const currentPage = ref(1)
-    const pageSize = ref(10)
-    const totalCount = ref(0)
-    const teas = ref([])
     
     // 对话框相关状态
     const dialogVisible = ref(false)
     const isEdit = ref(false)
     const currentTea = ref(null)
     const submitting = ref(false)
+    
+    // 分类管理相关状态
+    const categoryLoading = ref(false)
+    const categoryDialogVisible = ref(false)
+    const isEditCategory = ref(false)
+    const currentCategory = ref({
+      name: '',
+      parentId: null,
+      sortOrder: 999,
+      icon: 'tea-icon-default'
+    })
+    const categorySubmitting = ref(false)
+    const categoryFormRef = ref(null)
+    
+    // 分类表单验证规则
+    const categoryRules = {
+      name: [
+        { required: true, message: '请输入分类名称', trigger: 'blur' },
+        { min: 1, max: 50, message: '长度在1到50个字符', trigger: 'blur' }
+      ],
+      sortOrder: [
+        { required: true, message: '请输入排序值', trigger: 'blur' },
+        { type: 'number', min: 0, max: 9999, message: '排序值在0到9999之间', trigger: 'blur' }
+      ]
+    }
+    
     const teaImages = ref([])
     const previewVisible = ref(false)
     const previewImage = ref('')
     const mainImageIndex = ref(0)
     const teaStatus = ref(0)
+    
+    // 任务组E：批量操作相关
+    const selectedTeas = ref([])
     
     // 表单验证规则
     const teaRules = {
@@ -431,16 +573,7 @@ export default {
       ]
     }
     
-    // 分类数据
-    const categoryOptions = [
-      { id: 1, name: '绿茶' },
-      { id: 2, name: '红茶' },
-      { id: 3, name: '黑茶' },
-      { id: 4, name: '白茶' },
-      { id: 5, name: '黄茶' },
-      { id: 6, name: '青茶' },
-      { id: 7, name: '花茶' }
-    ]
+    // 分类数据从Vuex获取（已在computed中定义）
     
     // 图片上传相关
     const handleImageChange = (file, fileList) => {
@@ -517,7 +650,7 @@ export default {
     // 获取分类名称
     const getCategoryName = (categoryId) => {
       if (!categoryId) return '-'
-      const category = categoryOptions.find(c => c.id === parseInt(categoryId))
+      const category = categoryOptions.value.find(c => c.id === parseInt(categoryId))
       return category ? category.name : '-'
     }
     
@@ -537,7 +670,10 @@ export default {
       isEdit.value = false
       currentTea.value = {
         name: '',
-        shop_id: 'PLATFORM', // 固定为平台直售
+        // 平台直售茶叶权限控制：管理员创建的茶叶shopId固定为'PLATFORM'
+        // 权限规则：只有管理员(role=1)可以管理平台直售茶叶
+        // shopId='PLATFORM'表示平台直售，区别于商家店铺茶叶(shopId为店铺ID)
+        shop_id: 'PLATFORM',
         category_id: '',
         price: 0,
         description: '',
@@ -565,20 +701,53 @@ export default {
     }
     
     // 处理编辑
-    const handleEdit = (tea) => {
+    const handleEdit = async (tea) => {
       isEdit.value = true
       currentTea.value = JSON.parse(JSON.stringify(tea)) // 深拷贝避免直接修改列表数据
       
-      // 设置图片列表
-      teaImages.value = tea.images.map(img => ({
-        name: img.url.split('/').pop(),
-        url: img.url,
-        is_main: img.is_main,
-        uid: img.id
-      }))
+      // 任务组C：加载规格列表
+      try {
+        await store.dispatch('tea/fetchTeaSpecifications', tea.id)
+        // 如果Vuex中有规格数据，使用Vuex的数据
+        const specs = store.state.tea.currentTeaSpecs
+        if (specs && specs.length > 0) {
+          currentTea.value.specifications = specs.map(spec => ({
+            id: spec.id,
+            spec_name: spec.spec_name,
+            price: spec.price,
+            stock: spec.stock,
+            is_default: spec.is_default === 1 || spec.is_default === true ? 1 : 0
+          }))
+        }
+      } catch (error) {
+        console.error('加载规格列表失败:', error)
+        // 如果加载失败，使用tea中的规格数据
+        if (!currentTea.value.specifications || currentTea.value.specifications.length === 0) {
+          currentTea.value.specifications = [{
+            id: Date.now(),
+            spec_name: '默认规格',
+            price: tea.price || 0,
+            stock: tea.stock || 0,
+            is_default: 1
+          }]
+        }
+      }
+      
+      // 任务组D：设置图片列表（从tea.images获取）
+      if (tea.images && tea.images.length > 0) {
+        teaImages.value = tea.images.map(img => ({
+          name: img.url?.split('/').pop() || 'image',
+          url: img.url,
+          is_main: img.is_main === 1 || img.is_main === true,
+          uid: img.id,
+          id: img.id
+        }))
+      } else {
+        teaImages.value = []
+      }
       
       // 设置主图索引
-      const mainImageIdx = tea.images.findIndex(img => img.is_main)
+      const mainImageIdx = teaImages.value.findIndex(img => img.is_main)
       mainImageIndex.value = mainImageIdx >= 0 ? mainImageIdx : 0
       
       // 设置上架状态
@@ -593,67 +762,164 @@ export default {
     }
     
     // 处理上下架状态切换
-    const handleToggleStatus = (tea) => {
+    const handleToggleStatus = async (tea) => {
       const action = tea.status === 1 ? '下架' : '上架'
       const newStatus = tea.status === 1 ? 0 : 1
       
-      ElMessageBox.confirm(
-        `确定要${action}茶叶"${tea.name}"吗？`,
-        `${action}确认`,
-        {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
+      try {
+        await ElMessageBox.confirm(
+          `确定要${action}茶叶"${tea.name}"吗？`,
+          `${action}确认`,
+          {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }
+        )
+        
+        // 任务组E：调用Vuex action更新茶叶状态
+        await store.dispatch('tea/toggleTeaStatus', {
+          teaId: tea.id,
+          status: newStatus
+        })
+        
+        if (newStatus === 1) {
+          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+          teaMessages.success.showTeaOnShelf()
+        } else {
+          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+          teaMessages.success.showTeaOffShelf()
         }
-      ).then(() => {
-        // 模拟API调用
-        loading.value = true
-        setTimeout(() => {
-          // 更新本地数据
-          tea.status = newStatus
-          
-          // 提示成功
-          ElMessage.success(`${action}成功`)
-          loading.value = false
-        }, 500)
-      }).catch(() => {
-        // 用户取消操作
-      })
+        
+        // 刷新列表
+        await loadTeas()
+      } catch (error) {
+        if (error !== 'cancel') {
+          if (newStatus === 1) {
+            // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+            teaMessages.error.showTeaOnShelfFailed(error.message)
+          } else {
+            // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+            teaMessages.error.showTeaOffShelfFailed(error.message)
+          }
+        }
+      }
+    }
+    
+    // 任务组E：批量操作相关方法
+    const handleSelectionChange = (selection) => {
+      selectedTeas.value = selection
+    }
+    
+    const handleBatchOnShelf = async () => {
+      if (selectedTeas.value.length === 0) {
+        teaMessages.prompt.showSelectOnShelf()
+        return
+      }
+      
+      try {
+        await ElMessageBox.confirm(
+          `确定要批量上架 ${selectedTeas.value.length} 个茶叶吗？`,
+          '批量上架确认',
+          {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }
+        )
+        
+        const teaIds = selectedTeas.value.map(tea => tea.id)
+        await store.dispatch('tea/batchToggleTeaStatus', {
+          teaIds,
+          status: 1
+        })
+        
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        teaMessages.success.showBatchOnShelf()
+        selectedTeas.value = []
+        await loadTeas()
+      } catch (error) {
+        if (error !== 'cancel') {
+          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+          teaMessages.error.showBatchOnShelfFailed(error.message)
+        }
+      }
+    }
+    
+    const handleBatchOffShelf = async () => {
+      if (selectedTeas.value.length === 0) {
+        teaMessages.prompt.showSelectOffShelf()
+        return
+      }
+      
+      try {
+        await ElMessageBox.confirm(
+          `确定要批量下架 ${selectedTeas.value.length} 个茶叶吗？`,
+          '批量下架确认',
+          {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }
+        )
+        
+        const teaIds = selectedTeas.value.map(tea => tea.id)
+        await store.dispatch('tea/batchToggleTeaStatus', {
+          teaIds,
+          status: 0
+        })
+        
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        teaMessages.success.showBatchOffShelf()
+        selectedTeas.value = []
+        await loadTeas()
+      } catch (error) {
+        if (error !== 'cancel') {
+          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+          teaMessages.error.showBatchOffShelfFailed(error.message)
+        }
+      }
     }
     
     // 处理删除
-    const handleDelete = (tea) => {
-      ElMessageBox.confirm(
-        `确定要删除茶叶"${tea.name}"吗？此操作不可恢复！`,
-        `删除确认`,
-        {
-          confirmButtonText: '确定删除',
-          cancelButtonText: '取消',
-          type: 'warning'
+    const handleDelete = async (tea) => {
+      try {
+        await ElMessageBox.confirm(
+          `确定要删除茶叶"${tea.name}"吗？此操作不可恢复！`,
+          `删除确认`,
+          {
+            confirmButtonText: '确定删除',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }
+        )
+        
+        // 调用Vuex action删除茶叶
+        await store.dispatch('tea/deleteTea', tea.id)
+        
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        teaMessages.success.showTeaDeleted()
+        
+        // 如果当前页没有数据了，回到前一页
+        if (teas.value.length === 0 && currentPage.value > 1) {
+          await store.dispatch('tea/setPage', currentPage.value - 1)
         }
-      ).then(() => {
-        // 模拟API调用
-        loading.value = true
-        setTimeout(() => {
-          // 从列表中删除
-          const index = teas.value.findIndex(t => t.id === tea.id)
-          if (index !== -1) {
-            teas.value.splice(index, 1)
-          }
-          
-          // 提示成功
-          ElMessage.success('删除成功')
-          loading.value = false
-          
-          // 如果当前页没有数据了，回到前一页
-          if (teas.value.length === 0 && currentPage.value > 1) {
-            currentPage.value--
-            loadTeas()
-          }
-        }, 500)
-      }).catch(() => {
-        // 用户取消操作
-      })
+      } catch (error) {
+        if (error !== 'cancel') {
+          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+          teaMessages.error.showTeaDeleteFailed(error.message)
+        }
+      }
     }
     
     // 处理保存
@@ -662,13 +928,13 @@ export default {
       
       teaFormRef.value.validate(async (valid) => {
         if (!valid) {
-          ElMessage.warning('请正确填写表单内容')
+          teaMessages.prompt.showFormInvalid()
           return
         }
         
         // 校验规格
         if (!currentTea.value.specifications || currentTea.value.specifications.length === 0) {
-          ElMessage.warning('请至少添加一个规格')
+          teaMessages.prompt.showSpecRequired()
           return
         }
         
@@ -677,20 +943,20 @@ export default {
           !spec.spec_name || spec.price <= 0
         )
         if (invalidSpec) {
-          ElMessage.warning('请填写完整的规格名称和价格')
+          teaMessages.prompt.showSpecIncomplete()
           return
         }
         
         // 校验是否有默认规格
         const hasDefault = currentTea.value.specifications.some(spec => spec.is_default)
         if (!hasDefault) {
-          ElMessage.warning('请指定一个默认规格')
+          teaMessages.prompt.showDefaultSpecRequired()
           return
         }
         
         // 校验图片
         if (teaImages.value.length === 0) {
-          ElMessage.warning('请至少上传一张商品图片')
+          teaMessages.prompt.showImageRequired()
           return
         }
         
@@ -700,12 +966,13 @@ export default {
           // 准备数据
           const formData = {
             ...currentTea.value,
-            status: teaStatus.value
+            status: teaStatus.value,
+            categoryId: parseInt(currentTea.value.category_id)
           }
           
           // 设置主图
           if (teaImages.value.length > 0 && mainImageIndex.value >= 0) {
-            formData.main_image = teaImages.value[mainImageIndex.value].url
+            formData.mainImage = teaImages.value[mainImageIndex.value].url
             
             // 更新images中的is_main标记
             formData.images = teaImages.value.map((img, idx) => ({
@@ -724,38 +991,181 @@ export default {
             formData.price = defaultSpec.price
           }
           
-          // 模拟API调用
-          setTimeout(() => {
-            // 保存操作
-            if (isEdit.value) {
-              // 更新现有茶叶
-              const index = teas.value.findIndex(t => t.id === formData.id)
-              if (index !== -1) {
-                teas.value[index] = formData
+          // 调用Vuex action保存茶叶
+          if (isEdit.value) {
+            await store.dispatch('tea/updateTea', formData)
+            
+            // 任务组C：同步规格数据到后端
+            const teaId = currentTea.value.id
+            try {
+              // 获取当前规格列表
+              await store.dispatch('tea/fetchTeaSpecifications', teaId)
+              const existingSpecs = store.state.tea.currentTeaSpecs || []
+              
+              // 处理规格的增删改
+              for (const spec of formData.specifications) {
+                const existingSpec = existingSpecs.find(s => s.id === spec.id)
+                
+                if (existingSpec) {
+                  // 更新现有规格
+                  await store.dispatch('tea/updateSpecification', {
+                    teaId,
+                    specId: spec.id,
+                    specData: {
+                      spec_name: spec.spec_name,
+                      price: spec.price,
+                      stock: spec.stock,
+                      is_default: spec.is_default === 1 || spec.is_default === true ? 1 : 0
+                    }
+                  })
+                  
+                  // 如果设置为默认规格
+                  if (spec.is_default === 1 || spec.is_default === true) {
+                    await store.dispatch('tea/setDefaultSpecification', { teaId, specId: spec.id })
+                  }
+                } else {
+                  // 添加新规格
+                  await store.dispatch('tea/addSpecification', {
+                    teaId,
+                    specData: {
+                      spec_name: spec.spec_name,
+                      price: spec.price,
+                      stock: spec.stock,
+                      is_default: spec.is_default === 1 || spec.is_default === true ? 1 : 0
+                    }
+                  })
+                }
               }
-              ElMessage.success('茶叶更新成功')
-            } else {
-              // 添加新茶叶
-              formData.id = `TEA${Date.now().toString().substring(6)}`
-              formData.create_time = new Date().toISOString()
-              formData.update_time = new Date().toISOString()
-              formData.sales = 0
               
-              // 添加到列表首位
-              teas.value.unshift(formData)
-              
-              ElMessage.success('茶叶添加成功')
+              // 删除不存在的规格
+              const currentSpecIds = formData.specifications.map(s => s.id)
+              for (const existingSpec of existingSpecs) {
+                if (!currentSpecIds.includes(existingSpec.id)) {
+                  await store.dispatch('tea/deleteSpecification', { teaId, specId: existingSpec.id })
+                }
+              }
+            } catch (error) {
+              console.error('同步规格数据失败:', error)
+              // 规格同步失败不影响主流程，只记录错误
             }
             
-            // 关闭对话框
-            dialogVisible.value = false
-            submitting.value = false
+            // 任务组D：同步图片数据到后端
+            try {
+              // 找出新上传的图片（File对象）
+              const newFiles = teaImages.value.filter(img => img.raw instanceof File).map(img => img.raw)
+              if (newFiles.length > 0) {
+                await store.dispatch('tea/uploadTeaImages', { teaId, files: newFiles })
+              }
+              
+              // 找出已删除的图片（有id但不在当前列表中的）
+              const originalImages = currentTea.value.images || []
+              const currentImageIds = teaImages.value.filter(img => img.id).map(img => img.id)
+              for (const originalImg of originalImages) {
+                if (originalImg.id && !currentImageIds.includes(originalImg.id)) {
+                  await store.dispatch('tea/deleteTeaImage', { teaId, imageId: originalImg.id })
+                }
+              }
+              
+              // 更新图片顺序（如果有变化）
+              const orders = teaImages.value.map((img, index) => ({
+                imageId: img.id || img.uid,
+                order: index + 1
+              }))
+              if (orders.length > 0) {
+                await store.dispatch('tea/updateImageOrder', { teaId, orders })
+              }
+              
+              // 设置主图
+              if (mainImageIndex.value >= 0 && teaImages.value[mainImageIndex.value]) {
+                const mainImageId = teaImages.value[mainImageIndex.value].id || teaImages.value[mainImageIndex.value].uid
+                if (mainImageId) {
+                  await store.dispatch('tea/setMainImage', { teaId, imageId: mainImageId })
+                }
+              }
+            } catch (error) {
+              console.error('同步图片数据失败:', error)
+              // 图片同步失败不影响主流程，只记录错误
+            }
             
-            // 刷新列表
-            loadTeas()
-          }, 800)
+            // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+            teaMessages.success.showTeaUpdated()
+          } else {
+            // 平台直售茶叶权限控制：管理员创建的茶叶shopId固定为'PLATFORM'
+            // 权限规则：只有管理员(role=1)可以管理平台直售茶叶
+            // shopId='PLATFORM'表示平台直售，区别于商家店铺茶叶(shopId为店铺ID)
+            formData.shopId = 'PLATFORM'
+            const result = await store.dispatch('tea/addTea', formData)
+            const newTeaId = result.id || result.data?.id
+            
+            // 任务组C：添加新茶叶的规格
+            if (newTeaId && formData.specifications) {
+              try {
+                for (const spec of formData.specifications) {
+                  await store.dispatch('tea/addSpecification', {
+                    teaId: newTeaId,
+                    specData: {
+                      spec_name: spec.spec_name,
+                      price: spec.price,
+                      stock: spec.stock,
+                      is_default: spec.is_default === 1 || spec.is_default === true ? 1 : 0
+                    }
+                  })
+                  
+                  // 如果设置为默认规格
+                  if (spec.is_default === 1 || spec.is_default === true) {
+                    // 需要先获取规格ID，这里简化处理，假设后端返回的规格包含ID
+                    await store.dispatch('tea/fetchTeaSpecifications', newTeaId)
+                    const specs = store.state.tea.currentTeaSpecs || []
+                    const addedSpec = specs.find(s => s.spec_name === spec.spec_name)
+                    if (addedSpec) {
+                      await store.dispatch('tea/setDefaultSpecification', { teaId: newTeaId, specId: addedSpec.id })
+                    }
+                  }
+                }
+              } catch (error) {
+                console.error('添加规格失败:', error)
+                // 规格添加失败不影响主流程
+              }
+            }
+            
+            // 任务组D：上传新茶叶的图片
+            if (newTeaId && teaImages.value.length > 0) {
+              try {
+                const newFiles = teaImages.value.filter(img => img.raw instanceof File).map(img => img.raw)
+                if (newFiles.length > 0) {
+                  await store.dispatch('tea/uploadTeaImages', { teaId: newTeaId, files: newFiles })
+                  
+                  // 设置主图
+                  if (mainImageIndex.value >= 0 && teaImages.value[mainImageIndex.value]) {
+                    const uploadedImages = store.state.tea.teaImages || []
+                    if (uploadedImages.length > 0 && mainImageIndex.value < uploadedImages.length) {
+                      const mainImageId = uploadedImages[mainImageIndex.value].id
+                      if (mainImageId) {
+                        await store.dispatch('tea/setMainImage', { teaId: newTeaId, imageId: mainImageId })
+                      }
+                    }
+                  }
+                }
+              } catch (error) {
+                console.error('上传图片失败:', error)
+                // 图片上传失败不影响主流程
+              }
+            }
+            
+            // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+            // TODO: [tea] 迁移到 showByCode(response.code) - success
+            teaMessages.success.showTeaCreated()
+          }
+          
+          // 关闭对话框
+          dialogVisible.value = false
+          submitting.value = false
         } catch (error) {
-          ElMessage.error('操作失败：' + error.message)
+          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+          teaMessages.error.showTeaSubmitFailed(error.message)
           submitting.value = false
         }
       })
@@ -764,154 +1174,176 @@ export default {
     // 对话框关闭
     const handleDialogClose = (done) => {
       if (submitting.value) {
-        ElMessage.warning('正在提交数据，请稍候...')
+        teaMessages.prompt.showSubmitting()
         return
       }
       done()
     }
     
-    // 搜索处理
-    const handleSearch = () => {
-      currentPage.value = 1
-      loadTeas()
+    // ==================== 分类管理相关方法 ====================
+    
+    // 显示添加分类对话框
+    const showAddCategoryDialog = () => {
+      isEditCategory.value = false
+      currentCategory.value = {
+        name: '',
+        parentId: null,
+        sortOrder: 999,
+        icon: 'tea-icon-default'
+      }
+      categoryDialogVisible.value = true
     }
     
-    // 筛选变更处理
-    const handleFilterChange = () => {
-      currentPage.value = 1
-      loadTeas()
+    // 编辑分类
+    const handleEditCategory = (category) => {
+      isEditCategory.value = true
+      currentCategory.value = {
+        id: category.id,
+        name: category.name,
+        parentId: category.parentId || null,
+        sortOrder: category.sortOrder || 999,
+        icon: category.icon || 'tea-icon-default'
+      }
+      categoryDialogVisible.value = true
     }
     
-    // 页码变更
-    const handlePageChange = (page) => {
-      currentPage.value = page
-      loadTeas()
+    // 删除分类
+    const handleDeleteCategory = async (category) => {
+      try {
+        await ElMessageBox.confirm(
+          `确定要删除分类"${category.name}"吗？删除后不可恢复。`,
+          '确认删除',
+          {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }
+        )
+        
+        categoryLoading.value = true
+        await store.dispatch('tea/deleteCategory', category.id)
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        teaMessages.success.showCategoryDeleted()
+      } catch (error) {
+        if (error !== 'cancel') {
+          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+          teaMessages.error.showCategoryDeleteFailed(error?.message)
+        }
+      } finally {
+        categoryLoading.value = false
+      }
     }
     
-    // 每页条数变更
-    const handleSizeChange = (size) => {
-      pageSize.value = size
-      currentPage.value = 1
-      loadTeas()
+    // 提交分类表单
+    const submitCategoryForm = async () => {
+      if (!categoryFormRef.value) return
+      
+      await categoryFormRef.value.validate(async (valid) => {
+        if (!valid) return
+        
+        categorySubmitting.value = true
+        try {
+          const categoryData = {
+            name: currentCategory.value.name,
+            parentId: currentCategory.value.parentId,
+            sortOrder: currentCategory.value.sortOrder,
+            icon: currentCategory.value.icon
+          }
+          
+          if (isEditCategory.value) {
+            await store.dispatch('tea/updateCategory', {
+              id: currentCategory.value.id,
+              categoryData
+            })
+            // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+            teaMessages.success.showCategoryUpdated()
+          } else {
+            await store.dispatch('tea/createCategory', categoryData)
+            // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+            teaMessages.success.showCategoryCreated()
+          }
+          
+          categoryDialogVisible.value = false
+        } catch (error) {
+          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+          teaMessages.error.showCategorySubmitFailed(error?.message)
+        } finally {
+          categorySubmitting.value = false
+        }
+      })
+    }
+    
+    // 分类对话框关闭
+    const handleCategoryDialogClose = (done) => {
+      if (categorySubmitting.value) {
+        teaMessages.prompt.showSubmitting()
+        return
+      }
+      done()
     }
     
     // 加载茶叶数据
-    const loadTeas = () => {
-      loading.value = true
-      
-      // 模拟API调用延迟
-      setTimeout(() => {
-        // 创建模拟数据
-        const mockTeas = generateMockTeas()
-        
-        // 应用筛选
-        let filteredTeas = [...mockTeas]
-        
-        // 状态筛选
-        if (statusFilter.value !== '') {
-          filteredTeas = filteredTeas.filter(tea => tea.status.toString() === statusFilter.value)
-        }
-        
-        // 分类筛选
-        if (categoryFilter.value !== '') {
-          filteredTeas = filteredTeas.filter(tea => tea.category_id === parseInt(categoryFilter.value))
-        }
-        
-        // 关键词搜索
+    const loadTeas = async () => {
+      try {
+        // 构建筛选条件
+        const filters = {}
         if (searchQuery.value) {
-          const keyword = searchQuery.value.toLowerCase()
-          filteredTeas = filteredTeas.filter(tea => 
-            tea.name.toLowerCase().includes(keyword) || 
-            tea.id.toLowerCase().includes(keyword)
-          )
+          filters.keyword = searchQuery.value
+        }
+        if (statusFilter.value !== '') {
+          filters.status = parseInt(statusFilter.value)
+        }
+        if (categoryFilter.value !== '') {
+          filters.category = parseInt(categoryFilter.value)
         }
         
-        // 计算总数
-        totalCount.value = filteredTeas.length
-        
-        // 分页
-        const start = (currentPage.value - 1) * pageSize.value
-        const end = start + pageSize.value
-        teas.value = filteredTeas.slice(start, end)
-        
-        loading.value = false
-      }, 600)
+        // 更新Vuex filters并获取数据
+        await store.dispatch('tea/updateFilters', filters)
+      } catch (error) {
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        teaMessages.error.showListFailed(error.message)
+      }
     }
     
-    // 生成模拟数据
-    const generateMockTeas = () => {
-      const mockTeas = []
-      
-      for (let i = 1; i <= 10; i++) {
-        const teaId = `TEA${i.toString().padStart(4, '0')}`
-        const categoryId = Math.floor(Math.random() * 7) + 1
-        const basePrice = Math.floor(Math.random() * 500) + 100
-        const status = Math.random() > 0.3 ? 1 : 0 // 70%上架, 30%下架
-        
-        // 创建规格
-        const specifications = [
-          {
-            id: i * 100 + 1,
-            tea_id: teaId,
-            spec_name: '特级 50g',
-            price: basePrice,
-            stock: Math.floor(Math.random() * 100) + 20,
-            is_default: true
-          },
-          {
-            id: i * 100 + 2,
-            tea_id: teaId,
-            spec_name: '特级 100g',
-            price: basePrice * 1.8,
-            stock: Math.floor(Math.random() * 80) + 10,
-            is_default: false
-          },
-          {
-            id: i * 100 + 3,
-            tea_id: teaId,
-            spec_name: '特级 200g 礼盒装',
-            price: basePrice * 3.5,
-            stock: Math.floor(Math.random() * 50) + 5,
-            is_default: false
-          }
-        ]
-        
-        // 计算总库存
-        const totalStock = specifications.reduce((sum, spec) => sum + spec.stock, 0)
-        
-        mockTeas.push({
-          id: teaId,
-          name: `商南特级${getCategoryName(categoryId)} - ${i}号`,
-          shop_id: 'PLATFORM', // 作为平台直售茶叶
-          category_id: categoryId,
-          price: basePrice,
-          description: `<p>商南特级${getCategoryName(categoryId)}，高山茶园精制而成，香气高雅持久，滋味醇厚。</p>`,
-          detail: `<div class="tea-detail">
-                    <h3>商南特级${getCategoryName(categoryId)}</h3>
-                    <p>产于商南县，特点：条索紧结，香气高雅，滋味醇厚回甘。</p>
-                    <p>冲泡方法：水温80-85℃，投茶量3-5克，冲泡时间30秒至1分钟。</p>
-                  </div>`,
-          origin: '商南县',
-          stock: totalStock,
-          sales: Math.floor(Math.random() * 500),
-          main_image: `/mock-images/tea-${(i % 8) + 1}.jpg`,
-          status: status,
-          create_time: new Date(Date.now() - Math.floor(Math.random() * 10000000000)).toISOString(),
-          update_time: new Date(Date.now() - Math.floor(Math.random() * 1000000000)).toISOString(),
-          specifications,
-          images: [
-            { id: i * 10 + 1, url: `/mock-images/tea-${(i % 8) + 1}.jpg`, is_main: true },
-            { id: i * 10 + 2, url: `/mock-images/tea-detail-${(i % 4) + 1}.jpg`, is_main: false }
-          ]
-        })
-      }
-      
-      return mockTeas
+    // 搜索处理
+    const handleSearch = async () => {
+      await store.dispatch('tea/setPage', 1)
+      await loadTeas()
+    }
+    
+    // 筛选变更处理
+    const handleFilterChange = async () => {
+      await store.dispatch('tea/setPage', 1)
+      await loadTeas()
+    }
+    
+    // 页码变更
+    const handlePageChange = async (page) => {
+      await store.dispatch('tea/setPage', page)
+    }
+    
+    // 每页条数变更
+    const handleSizeChange = async (size) => {
+      store.commit('tea/SET_PAGINATION', {
+        ...store.state.tea.pagination,
+        pageSize: size,
+        currentPage: 1
+      })
+      await store.dispatch('tea/fetchTeas')
     }
     
     // 初始化
-    onMounted(() => {
-      loadTeas()
+    onMounted(async () => {
+      // 加载分类数据
+      await store.dispatch('tea/fetchCategories')
+      // 加载茶叶列表
+      await loadTeas()
     })
     
     return {
@@ -954,7 +1386,28 @@ export default {
       addSpec,
       removeSpec,
       handleDefaultChange,
-      handleDelete
+      handleDelete,
+      // 任务组E：批量操作
+      selectedTeas,
+      handleSelectionChange,
+      handleBatchOnShelf,
+      handleBatchOffShelf,
+      loadTeas,
+      // 分类管理相关
+      categories,
+      activeTab,
+      categoryLoading,
+      categoryDialogVisible,
+      isEditCategory,
+      currentCategory,
+      categorySubmitting,
+      categoryFormRef,
+      categoryRules,
+      showAddCategoryDialog,
+      handleEditCategory,
+      handleDeleteCategory,
+      submitCategoryForm,
+      handleCategoryDialogClose
     }
   }
 }

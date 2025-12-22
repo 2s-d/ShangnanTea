@@ -159,11 +159,13 @@
 </template>
 
 <script>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { useStore } from 'vuex'
+
 import { Search, View, ChatDotRound, Star, ShoppingCart } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
+import { showSuccess, showError } from '@/utils/messageManager'
 
 export default {
   name: 'FavoritesPage',
@@ -172,40 +174,30 @@ export default {
   },
   setup() {
     const router = useRouter()
+    const store = useStore()
     const activeTab = ref('culture')
     
-    // 茶文化文章相关数据
+    // 从Vuex获取收藏列表
+    const favoriteList = computed(() => store.state.user.favoriteList || [])
+    
+    // 茶文化文章相关数据（从Vuex筛选）
     const cultureSearchKeyword = ref('')
     const cultureSortOption = ref('recent')
-    const cultureArticles = ref([
-      {
-        id: 101,
-        title: '传统茶道的历史渊源',
-        coverImg: 'https://via.placeholder.com/400x200?text=茶道历史',
-        summary: '茶道并非只是一种饮茶方式，更是一种文化传承，本文将深入探讨茶道的历史渊源和文化内涵...',
-        publishTime: '2025-02-15 10:23:45',
-        favoriteTime: '2025-03-10 18:45:12',
-        viewCount: 1256
-      },
-      {
-        id: 102,
-        title: '中国六大茶类详解',
-        coverImg: 'https://via.placeholder.com/400x200?text=六大茶类',
-        summary: '详细介绍中国六大茶类的制作工艺、品质特征、冲泡方法以及历史文化背景，带您了解中国茶文化的多样性...',
-        publishTime: '2025-01-28 14:18:32',
-        favoriteTime: '2025-03-05 09:12:30',
-        viewCount: 986
-      },
-      {
-        id: 103,
-        title: '茶与健康：科学角度探究',
-        coverImg: 'https://via.placeholder.com/400x200?text=茶与健康',
-        summary: '从现代医学和营养学角度分析不同茶类的健康价值，解析茶多酚、儿茶素等成分对人体的影响...',
-        publishTime: '2025-03-01 16:42:15',
-        favoriteTime: '2025-03-02 20:15:45',
-        viewCount: 1542
-      }
-    ])
+    const cultureArticles = computed(() => {
+      return favoriteList.value
+        .filter(item => item.targetType === 'article')
+        .map(item => ({
+          id: item.id,
+          articleId: item.targetId,
+          title: item.targetName || '未知文章',
+          coverImg: item.targetImage || 'https://via.placeholder.com/400x200?text=文章',
+          cover_image: item.targetImage || 'https://via.placeholder.com/400x200?text=文章',
+          summary: '', // 后端未提供，使用默认值
+          publishTime: item.createTime,
+          favoriteTime: item.createTime,
+          viewCount: 0 // 后端未提供，使用默认值
+        }))
+    })
     
     // 筛选和排序茶文化文章
     const filteredCultureArticles = computed(() => {
@@ -216,7 +208,7 @@ export default {
         const keyword = cultureSearchKeyword.value.toLowerCase()
         result = result.filter(article => 
           article.title.toLowerCase().includes(keyword) || 
-          article.summary.toLowerCase().includes(keyword)
+          (article.summary && article.summary.toLowerCase().includes(keyword))
         )
       }
       
@@ -230,51 +222,24 @@ export default {
       return result
     })
     
-    // 茶叶商品相关数据
+    // 茶叶商品相关数据（从Vuex筛选）
     const productSearchKeyword = ref('')
     const productSortOption = ref('recent')
-    const products = ref([
-      {
-        id: 201,
-        name: '明前龙井茶叶 2025年春茶',
-        image: 'https://via.placeholder.com/200x200?text=龙井',
-        price: 288.00,
-        shopId: 301,
-        shopName: '西湖茗茶',
-        shopLogo: 'https://via.placeholder.com/30x30?text=西湖',
-        favoriteTime: '2025-03-12 10:28:45'
-      },
-      {
-        id: 202,
-        name: '武夷山金骏眉红茶 特级',
-        image: 'https://via.placeholder.com/200x200?text=金骏眉',
-        price: 368.00,
-        shopId: 302,
-        shopName: '武夷山茶坊',
-        shopLogo: 'https://via.placeholder.com/30x30?text=武夷',
-        favoriteTime: '2025-02-28 15:42:18'
-      },
-      {
-        id: 203,
-        name: '安溪铁观音 浓香型',
-        image: 'https://via.placeholder.com/200x200?text=铁观音',
-        price: 198.00,
-        shopId: 303,
-        shopName: '安溪茶业',
-        shopLogo: 'https://via.placeholder.com/30x30?text=安溪',
-        favoriteTime: '2025-03-08 09:15:30'
-      },
-      {
-        id: 204,
-        name: '云南普洱熟茶 七子饼',
-        image: 'https://via.placeholder.com/200x200?text=普洱',
-        price: 498.00,
-        shopId: 304,
-        shopName: '云南茗茶',
-        shopLogo: 'https://via.placeholder.com/30x30?text=云南',
-        favoriteTime: '2025-01-15 18:20:10'
-      }
-    ])
+    const products = computed(() => {
+      return favoriteList.value
+        .filter(item => item.targetType === 'tea')
+        .map(item => ({
+          id: item.id,
+          teaId: item.targetId,
+          name: item.targetName || '未知茶叶',
+          image: item.targetImage || 'https://via.placeholder.com/200x200?text=茶叶',
+          price: 0, // 后端未提供，使用默认值
+          shopId: '', // 后端未提供，使用默认值
+          shopName: '', // 后端未提供，使用默认值
+          shop_logo: '', // 后端未提供，使用默认值
+          favoriteTime: item.createTime
+        }))
+    })
     
     // 筛选和排序茶叶商品
     const filteredProducts = computed(() => {
@@ -285,7 +250,7 @@ export default {
         const keyword = productSearchKeyword.value.toLowerCase()
         result = result.filter(product => 
           product.name.toLowerCase().includes(keyword) || 
-          product.shopName.toLowerCase().includes(keyword)
+          (product.shopName && product.shopName.toLowerCase().includes(keyword))
         )
       }
       
@@ -301,50 +266,27 @@ export default {
       return result
     })
     
-    // 论坛帖子相关数据
+    // 论坛帖子相关数据（从Vuex筛选）
     const postSearchKeyword = ref('')
     const postSortOption = ref('recent')
-    const posts = ref([
-      {
-        id: 401,
-        title: '分享我最近喝过的安化黑茶，口感超赞！',
-        content: '最近入手了几款安化黑茶，冲泡后口感醇厚，回甘很持久，特别是金花茯砖茶，口感层次非常丰富...',
-        authorId: 501,
-        authorName: '茶香四溢',
-        authorAvatar: 'https://via.placeholder.com/30x30?text=茶香',
-        publishTime: '2025-03-15 14:32:25',
-        favoriteTime: '2025-03-16 09:12:30',
-        viewCount: 156,
-        replyCount: 23,
-        likeCount: 45
-      },
-      {
-        id: 402,
-        title: '新手冲泡白茶总是苦涩，有什么技巧吗？',
-        content: '刚开始接触白茶，买了一些白毫银针，但冲泡出来总是有些苦涩，不知道是水温问题还是时间问题？求大神指点！',
-        authorId: 502,
-        authorName: '茶艺小白',
-        authorAvatar: 'https://via.placeholder.com/30x30?text=小白',
-        publishTime: '2025-03-10 09:18:42',
-        favoriteTime: '2025-03-12 18:25:10',
-        viewCount: 210,
-        replyCount: 32,
-        likeCount: 28
-      },
-      {
-        id: 403,
-        title: '2025年春茶市场行情分析',
-        content: '随着2025年春茶陆续上市，各产区茶叶价格出现了不同程度的波动。本帖汇总了主要茶产区的最新行情，并分析市场趋势...',
-        authorId: 503,
-        authorName: '茶市观察者',
-        authorAvatar: 'https://via.placeholder.com/30x30?text=观察',
-        publishTime: '2025-02-28 16:45:38',
-        favoriteTime: '2025-03-01 10:32:45',
-        viewCount: 325,
-        replyCount: 18,
-        likeCount: 56
-      }
-    ])
+    const posts = computed(() => {
+      return favoriteList.value
+        .filter(item => item.targetType === 'post')
+        .map(item => ({
+          id: item.id,
+          postId: item.targetId,
+          title: item.targetName || '未知帖子',
+          content: '', // 后端未提供，使用默认值
+          authorId: '', // 后端未提供，使用默认值
+          authorName: '', // 后端未提供，使用默认值
+          author_avatar: '', // 后端未提供，使用默认值
+          publishTime: item.createTime,
+          favoriteTime: item.createTime,
+          viewCount: 0, // 后端未提供，使用默认值
+          replyCount: 0, // 后端未提供，使用默认值
+          likeCount: 0 // 后端未提供，使用默认值
+        }))
+    })
     
     // 筛选和排序论坛帖子
     const filteredPosts = computed(() => {
@@ -405,51 +347,39 @@ export default {
     // 加入购物车
     const addToCart = (productId) => {
       // 实际项目中调用添加购物车API
-      ElMessage.success('已添加到购物车')
+      showSuccess('已添加到购物车')
     }
     
     // 取消收藏
-    const cancelFavorite = (type, id) => {
-      // 实际项目中调用取消收藏API
-      if (type === 'culture') {
-        cultureArticles.value = cultureArticles.value.filter(item => item.id !== id)
-        ElMessage.success('已取消收藏文章')
-      } else if (type === 'product') {
-        products.value = products.value.filter(item => item.id !== id)
-        ElMessage.success('已取消收藏茶叶')
-      } else if (type === 'post') {
-        posts.value = posts.value.filter(item => item.id !== id)
-        ElMessage.success('已取消收藏帖子')
+    const cancelFavorite = async (type, favoriteId) => {
+      try {
+        await store.dispatch('user/removeFavorite', favoriteId)
+        if (type === 'culture') {
+          showSuccess('已取消收藏文章')
+        } else if (type === 'product') {
+          showSuccess('已取消收藏茶叶')
+        } else if (type === 'post') {
+          showSuccess('已取消收藏帖子')
+        }
+      } catch (error) {
+        showError(error.message || '取消收藏失败')
       }
     }
     
-    // 添加默认图片常量
-    const defaultArticleImage = '/mock-images/article-default.jpg'
-    const defaultTeaImage = '/mock-images/tea-default.jpg'
-    const defaultShopLogo = '/mock-images/shop-logo-1.jpg'
-    const defaultAvatar = '/mock-images/avatar-default.jpg'
-    const defaultCover = '/mock-images/tea-default.jpg'
-    
-    // 模拟收藏数据
-    const favoriteList = ref([
-      {
-        id: 1,
-        type: 'tea',
-        name: '商南绿茶',
-        cover: defaultTeaImage,
-        price: 128.00,
-        description: '商南特产绿茶，清香醇厚',
-        favoriteTime: '2025-03-15 10:30:00'
-      },
-      {
-        id: 2,
-        type: 'shop',
-        name: '商南茶叶专营店',
-        logo: defaultShopLogo,
-        description: '专注商南茶叶20年',
-        favoriteTime: '2025-03-14 15:20:00'
+    // 加载收藏列表
+    const loadFavoriteList = async () => {
+      try {
+        await store.dispatch('user/fetchFavoriteList')
+      } catch (error) {
+        console.error('加载收藏列表失败:', error)
+        showError('加载收藏列表失败')
       }
-    ])
+    }
+    
+    // 组件挂载时加载数据
+    onMounted(() => {
+      loadFavoriteList()
+    })
     
     return {
       activeTab,
@@ -477,12 +407,7 @@ export default {
       goToUserProfile,
       addToCart,
       cancelFavorite,
-      defaultArticleImage,
-      defaultTeaImage,
-      defaultShopLogo,
-      defaultAvatar,
-      defaultCover,
-      favoriteList
+      loadFavoriteList
     }
   }
 }

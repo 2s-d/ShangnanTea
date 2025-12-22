@@ -1,10 +1,16 @@
+import { showByCode, isSuccess } from '@/utils/apiMessages'
+import userMessages from '@/utils/promptMessages'
 import { 
-  login, 
+  login as loginApi, 
   register, 
   logout, 
   getCurrentUser, 
+  getUserInfo as getUserInfoApi,
   updateUserInfo, 
+  uploadAvatar as uploadAvatarApi,
   changePassword,
+  refreshToken as refreshTokenApi,
+  resetPassword as resetPasswordApi,
   getAddressList,
   addAddress as addAddressApi,
   updateAddress as updateAddressApi,
@@ -13,11 +19,28 @@ import {
   getUserPreferences as getUserPreferencesApi,
   updateUserPreferences as updateUserPreferencesApi,
   submitShopCertification as submitShopCertificationApi,
-  getShopCertificationStatus as getShopCertificationStatusApi
+  getShopCertificationStatus as getShopCertificationStatusApi,
+  // 任务组D：用户互动相关API
+  getFollowList,
+  addFollow as addFollowApi,
+  removeFollow as removeFollowApi,
+  getFavoriteList,
+  addFavorite as addFavoriteApi,
+  removeFavorite as removeFavoriteApi,
+  addLike as addLikeApi,
+  removeLike as removeLikeApi,
+  // 任务组E：管理员用户管理相关API
+  getAdminUserList,
+  createAdmin as createAdminApi,
+  updateUser as updateUserApi,
+  deleteUser as deleteUserApi,
+  updateUserRole as updateUserRoleApi,
+  toggleUserStatus as toggleUserStatusApi,
+  getCertificationList,
+  processCertification as processCertificationApi
 } from '@/api/user'
 import { useTokenStorage } from '@/composables/useStorage'
 import router from '@/router'
-import userMessages from '@/utils/userMessages'
 
 // 创建token存储实例
 const tokenStorage = useTokenStorage()
@@ -39,7 +62,24 @@ const state = () => ({
   },
   // 地址相关状态
   addressList: [],
-  defaultAddressId: null
+  defaultAddressId: null,
+  // 任务组D：用户互动相关状态
+  followList: [], // 关注列表
+  favoriteList: [], // 收藏列表
+  likeList: [], // 点赞列表（可选，根据需求决定是否存储）
+  // 任务组E：管理员用户管理相关状态
+  userList: [], // 用户列表
+  userPagination: {
+    page: 1,
+    pageSize: 20,
+    total: 0
+  },
+  userFilters: {
+    keyword: '',
+    role: null,
+    status: null
+  },
+  certificationList: [] // 商家认证申请列表
 })
 
 const getters = {
@@ -161,70 +201,176 @@ const mutations = {
       addr.isDefault = addr.id === addressId
     })
     state.defaultAddressId = addressId
+  },
+  
+  // 任务组D：用户互动相关mutations
+  // 设置关注列表
+  SET_FOLLOW_LIST(state, list) {
+    state.followList = list || []
+  },
+  
+  // 添加关注
+  ADD_FOLLOW(state, follow) {
+    state.followList.push(follow)
+  },
+  
+  // 移除关注
+  REMOVE_FOLLOW(state, followId) {
+    state.followList = state.followList.filter(f => f.id !== followId)
+  },
+  
+  // 设置收藏列表
+  SET_FAVORITE_LIST(state, list) {
+    state.favoriteList = list || []
+  },
+  
+  // 添加收藏
+  ADD_FAVORITE(state, favorite) {
+    state.favoriteList.push(favorite)
+  },
+  
+  // 移除收藏
+  REMOVE_FAVORITE(state, favoriteId) {
+    state.favoriteList = state.favoriteList.filter(f => f.id !== favoriteId)
+  },
+  
+  // 设置点赞列表（可选）
+  SET_LIKE_LIST(state, list) {
+    state.likeList = list || []
+  },
+  
+  // 添加点赞（可选）
+  ADD_LIKE(state, like) {
+    state.likeList.push(like)
+  },
+  
+  // 移除点赞（可选）
+  REMOVE_LIKE(state, likeId) {
+    state.likeList = state.likeList.filter(l => l.id !== likeId)
+  },
+  
+  // 任务组E：管理员用户管理相关mutations
+  // 设置用户列表
+  SET_USER_LIST(state, list) {
+    state.userList = list || []
+  },
+  
+  // 设置分页信息
+  SET_USER_PAGINATION(state, pagination) {
+    state.userPagination = { ...state.userPagination, ...pagination }
+  },
+  
+  // 设置筛选条件
+  SET_USER_FILTERS(state, filters) {
+    state.userFilters = { ...state.userFilters, ...filters }
+  },
+  
+  // 更新用户列表中的单个用户
+  UPDATE_USER_IN_LIST(state, user) {
+    const index = state.userList.findIndex(u => u.id === user.id)
+    if (index !== -1) {
+      state.userList[index] = { ...state.userList[index], ...user }
+    }
+  },
+
+  // 从用户列表中移除用户
+  REMOVE_USER_FROM_LIST(state, userId) {
+    state.userList = state.userList.filter(u => u.id !== userId)
+  },
+  
+  // 设置认证申请列表
+  SET_CERTIFICATION_LIST(state, list) {
+    state.certificationList = list || []
+  },
+  
+  // 更新认证申请列表中的单个申请
+  UPDATE_CERTIFICATION_IN_LIST(state, cert) {
+    const index = state.certificationList.findIndex(c => c.id === cert.id)
+    if (index !== -1) {
+      state.certificationList[index] = { ...state.certificationList[index], ...cert }
+    }
+  }
+}
+
+// 任务B-2：地址字段映射辅助函数（模块级别）
+const mapAddressFromBackend = (address) => {
+  if (!address) return null
+  return {
+    id: address.id,
+    userId: address.userId,
+    name: address.receiverName || address.name,
+    phone: address.receiverPhone || address.phone,
+    province: address.province,
+    city: address.city,
+    district: address.district,
+    detail: address.detailAddress || address.detail,
+    isDefault: address.isDefault === 1 || address.isDefault === true,
+    createTime: address.createTime,
+    updateTime: address.updateTime
+  }
+}
+
+const mapAddressToBackend = (address) => {
+  if (!address) return null
+  return {
+    id: address.id,
+    userId: address.userId,
+    receiverName: address.name,
+    receiverPhone: address.phone,
+    province: address.province,
+    city: address.city,
+    district: address.district,
+    detailAddress: address.detail,
+    isDefault: address.isDefault === true || address.isDefault === 1 ? 1 : 0
   }
 }
 
 const actions = {
-  /* UI-DEV-START */
-  // 开发时的模拟登录功能
-  login({ commit }, loginData) {
-    return new Promise((resolve) => {
-      console.log('开发模式：模拟登录请求', loginData)
-      
-      // 模拟登录成功
-      const fakeToken = 'dev_token_' + Date.now()
-      localStorage.setItem('token', fakeToken)
-      
-      // 根据用户名确定角色（可选）
-      let role = 2 // 默认普通用户
-      if (loginData.username === 'admin') {
-        role = 1
-      } else if (loginData.username === 'shop') {
-        role = 3
-      }
-      
-      // 创建模拟用户数据
-      const mockUserInfo = {
-        id: 'dev_' + Date.now(),
-        username: loginData.username,
-        nickname: loginData.username,
-        avatar: '/avatar/default.png',
-        role: role
-      }
-      
-      // 更新状态
-      commit('SET_USER_INFO', mockUserInfo)
-      commit('SET_LOGGED_IN', true)
-      
-      // 模拟网络延迟
-      setTimeout(() => {
-        resolve(mockUserInfo)
-      }, 500)
-    })
-  },
-  /* UI-DEV-END */
-  
-  /* 
-  // 真实代码(开发UI时注释)
+  // 用户登录
+  // 任务0-3：使用真实API请求，移除UI-DEV伪成功逻辑
   async login({ commit }, loginData) {
     try {
+      commit('SET_LOADING', true)
+      
       // 调用登录API
       const response = await loginApi(loginData)
-      const { token, userInfo } = response
+      // 后端返回格式：{ token: string }
+      const { token } = response
       
       // 存储token
-      localStorage.setItem('token', token)
+      tokenStorage.setToken(token)
+      
+      // 从token中解析用户信息
+      const userInfo = tokenStorage.verifyToken()
+      if (!userInfo) {
+        throw new Error('Token解析失败')
+      }
       
       // 更新状态
       commit('SET_USER_INFO', userInfo)
       commit('SET_LOGGED_IN', true)
       
+      // 显示登录成功消息
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      // TODO: [user] 迁移到 showByCode(response.code) - success
+      userMessages.success.showLoginSuccess()
+      
       return userInfo
     } catch (error) {
+      // 显示登录失败消息
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      userMessages.error.showLoginFailure(error.message)
       throw error
+    } finally {
+      commit('SET_LOADING', false)
     }
-  }
-  */
+  },
   
   // 用户注册
   async register({ commit }, registerData) {
@@ -235,12 +381,20 @@ const actions = {
       const result = await register(registerData)
       
       // 显示注册成功消息
-      userMessages.business.showRegisterSuccess()
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      userMessages.success.showRegisterSuccess()
       
       return result
     } catch (error) {
       // 显示注册失败消息
-      userMessages.business.showRegisterFailure(error.message)
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      userMessages.error.showRegisterFailure(error.message)
       throw error
     } finally {
       commit('SET_LOADING', false)
@@ -326,7 +480,11 @@ const actions = {
       commit('CLEAR_USER')
       
       // 显示退出成功消息
-      userMessages.business.showLogoutSuccess()
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      userMessages.success.showLogoutSuccess()
       
       return true
     } catch (error) {
@@ -380,50 +538,43 @@ const actions = {
   },
   
   // 获取用户信息
-  // TODO: 该方法将在Vuex开发阶段实现，UI开发阶段使用模拟数据
-  // NOTE: 复用initAuth方法进行临时模拟实现
-  async getUserInfo({ commit, state, dispatch }) {
-    // UI开发阶段使用简化版实现
-    /* UI-DEV-START */
-    // 开发模式下模拟用户信息获取
-    if (localStorage.getItem('dev_mode') === 'true') {
-      // 获取开发角色
-      const devRole = parseInt(localStorage.getItem('dev_current_role') || '2')
+  // 任务A-2：使用真实API获取用户信息
+  async getUserInfo({ commit, state }, userId = null) {
+    try {
+      commit('SET_LOADING', true)
       
-      // 创建模拟用户数据
-      const mockUserInfo = {
-        id: 'user10001',
-        username: `dev_user_${devRole}`,
-        nickname: `开发测试用户${devRole}`,
-        email: 'test@example.com',
-        phone: '13800138000',
-        avatar: '/images/avatar/default.png',
-        role: devRole,
-        createTime: '2023-03-15T08:00:00.000Z',
-        status: 1,
-        is_verified: 1,
-        last_login_time: '2023-06-20T10:30:00.000Z',
-        gender: devRole === 1 ? 1 : (devRole === 2 ? 2 : 0), // 管理员默认男性，普通用户默认女性，商家默认保密
-        birthday: '1990-01-01',
-        bio: `这是一个${devRole === 1 ? '管理员' : (devRole === 2 ? '普通用户' : '商家')}的个人简介，用于测试个人中心页面的展示效果。`
+      // 调用API获取用户信息
+      const userInfo = await getUserInfoApi(userId)
+      
+      // 更新状态（如果获取的是当前用户信息）
+      if (!userId) {
+        commit('SET_USER_INFO', userInfo)
+        commit('SET_LOGGED_IN', true)
       }
       
-      // 更新状态
-      commit('SET_USER_INFO', mockUserInfo)
-      commit('SET_LOGGED_IN', true)
-      
-      return mockUserInfo
+      return userInfo
+    } catch (error) {
+      console.error('获取用户信息失败:', error)
+      // 如果是获取当前用户信息失败，清除登录状态
+      if (!userId) {
+        tokenStorage.removeToken()
+        commit('CLEAR_USER')
+      }
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
     }
-    /* UI-DEV-END */
-    
-    // 复用initAuth方法 - 实际开发时会替换为专用实现
-    return dispatch('initAuth')
   },
   
   // 更新用户信息
+  // 任务A-2：确认可在真实请求下更新state
   async updateUserInfo({ commit, state }, newUserInfo) {
     if (!state.userInfo) {
-      userMessages.business.showSessionExpired()
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      userMessages.error.showSessionExpired()
       return false
     }
     
@@ -437,12 +588,80 @@ const actions = {
       commit('SET_USER_INFO', userData)
       
       // 显示更新成功消息
-      userMessages.business.showProfileUpdateSuccess()
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      userMessages.success.showProfileUpdateSuccess()
       
       return userData
     } catch (error) {
       // 显示更新失败消息
-      userMessages.business.showProfileUpdateFailure(error.message)
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      userMessages.error.showProfileUpdateFailure(error.message)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+  
+  // 上传头像
+  // 任务A-3：实现uploadAvatar action
+  async uploadAvatar({ commit, state }, file) {
+    if (!state.userInfo) {
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      userMessages.error.showSessionExpired()
+      return false
+    }
+    
+    if (!file || !(file instanceof File)) {
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      userMessages.error.showProfileUpdateFailure('请选择要上传的文件')
+      return false
+    }
+    
+    try {
+      commit('SET_LOADING', true)
+      
+      // 调用上传头像API
+      const result = await uploadAvatarApi(file)
+      const avatarUrl = result?.avatarUrl || result?.data?.avatarUrl || result?.data
+      
+      if (!avatarUrl) {
+        throw new Error('上传失败：未返回头像URL')
+      }
+      
+      // 更新用户信息中的头像URL
+      const updatedUserInfo = {
+        ...state.userInfo,
+        avatar: avatarUrl
+      }
+      commit('SET_USER_INFO', updatedUserInfo)
+      
+      // 显示上传成功消息
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      userMessages.success.showProfileUpdateSuccess()
+      
+      return avatarUrl
+    } catch (error) {
+      // 显示上传失败消息
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      userMessages.error.showProfileUpdateFailure(error.message || '头像上传失败')
       throw error
     } finally {
       commit('SET_LOADING', false)
@@ -456,7 +675,9 @@ const actions = {
       
       // 检查新密码与确认密码是否一致
       if (passwordData.newPassword !== passwordData.confirmPassword) {
-        userMessages.business.showPasswordMismatch()
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        userMessages.error.showPasswordMismatch()
         return false
       }
       
@@ -464,12 +685,75 @@ const actions = {
       await changePassword(passwordData)
       
       // 显示修改成功消息
-      userMessages.business.showPasswordChangeSuccess()
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      userMessages.success.showPasswordChangeSuccess()
       
       return true
     } catch (error) {
       // 显示修改失败消息
-      userMessages.business.showPasswordChangeFailure(error.message)
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      userMessages.error.showPasswordChangeFailure(error.message)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+  
+  // 刷新Token
+  // 任务0-3：使用真实API请求
+  async refreshToken({ commit }) {
+    try {
+      // 调用刷新Token API
+      const response = await refreshTokenApi()
+      // 后端返回格式：{ token: string }
+      const { token } = response
+      
+      // 更新token
+      tokenStorage.setToken(token)
+      
+      // 从token中解析用户信息
+      const userInfo = tokenStorage.verifyToken()
+      if (userInfo) {
+        commit('SET_USER_INFO', userInfo)
+        commit('SET_LOGGED_IN', true)
+      }
+      
+      return { token, userInfo }
+    } catch (error) {
+      console.error('刷新Token失败:', error)
+      // Token刷新失败，清除用户信息
+      tokenStorage.removeToken()
+      commit('CLEAR_USER')
+      throw error
+    }
+  },
+  
+  // 密码找回
+  // 任务0-4：实现findPassword action（密码找回）
+  async findPassword({ commit }, resetData) {
+    try {
+      commit('SET_LOADING', true)
+      
+      // 调用密码找回API
+      const result = await resetPasswordApi(resetData)
+      
+      // 显示找回成功消息
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      userMessages.success.showPasswordResetSuccess()
+      
+      return result
+    } catch (error) {
+      // 显示找回失败消息
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      userMessages.error.showPasswordResetFailure(error.message)
       throw error
     } finally {
       commit('SET_LOADING', false)
@@ -483,13 +767,21 @@ const actions = {
     commit('CLEAR_USER')
     
     // 显示会话过期消息
-    userMessages.business.showSessionExpired()
+    // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+    // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+    userMessages.error.showSessionExpired()
   },
   
   // 处理权限拒绝
   handlePermissionDenied() {
     // 显示权限拒绝消息
-    userMessages.business.showPermissionDenied()
+    // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+    // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+    userMessages.error.showPermissionDenied()
   },
   
   // 处理认证错误
@@ -499,7 +791,11 @@ const actions = {
     commit('CLEAR_USER')
     
     // 显示认证错误消息
-    userMessages.business.showSessionExpired()
+    // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+    // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+    userMessages.error.showSessionExpired()
   },
   
   // === 地址相关actions ===
@@ -513,42 +809,11 @@ const actions = {
     commit('SET_LOADING', true)
     try {
       const res = await getAddressList()
-      const addressList = res.data || []
+      const addressList = (res || []).map(mapAddressFromBackend)
       commit('SET_ADDRESS_LIST', addressList)
       return addressList
     } catch (error) {
       console.error('获取地址列表失败:', error)
-      // 开发环境使用Mock数据
-      if (process.env.NODE_ENV === 'development') {
-        const mockAddresses = [
-          {
-            id: 1,
-            userId: 1,
-            name: '张三',
-            phone: '13800138000',
-            province: '陕西省',
-            city: '商洛市',
-            district: '商南县',
-            detail: '城关镇XX路XX号',
-            isDefault: true,
-            createTime: '2024-01-01 10:00:00'
-          },
-          {
-            id: 2,
-            userId: 1,
-            name: '李四',
-            phone: '13900139000',
-            province: '陕西省',
-            city: '西安市',
-            district: '雁塔区',
-            detail: 'XX街道XX小区XX栋XX号',
-            isDefault: false,
-            createTime: '2024-01-15 14:30:00'
-          }
-        ]
-        commit('SET_ADDRESS_LIST', mockAddresses)
-        return mockAddresses
-      }
       throw error
     } finally {
       commit('SET_LOADING', false)
@@ -564,23 +829,14 @@ const actions = {
   async addAddress({ commit }, addressData) {
     commit('SET_LOADING', true)
     try {
-      const res = await addAddressApi(addressData)
-      const newAddress = res.data
+      // 任务B-2：将前端字段转换为后端字段
+      const backendData = mapAddressToBackend(addressData)
+      const res = await addAddressApi(backendData)
+      const newAddress = mapAddressFromBackend(res)
       commit('ADD_ADDRESS', newAddress)
       return newAddress
     } catch (error) {
       console.error('添加地址失败:', error)
-      // 开发环境使用Mock数据
-      if (process.env.NODE_ENV === 'development') {
-        const mockAddress = {
-          id: Date.now(),
-          userId: 1,
-          ...addressData,
-          createTime: new Date().toISOString()
-        }
-        commit('ADD_ADDRESS', mockAddress)
-        return mockAddress
-      }
       throw error
     } finally {
       commit('SET_LOADING', false)
@@ -600,21 +856,14 @@ const actions = {
     
     commit('SET_LOADING', true)
     try {
-      const res = await updateAddressApi(addressData.id, addressData)
-      const updatedAddress = res.data
+      // 任务B-2：将前端字段转换为后端字段
+      const backendData = mapAddressToBackend(addressData)
+      const res = await updateAddressApi(addressData.id, backendData)
+      const updatedAddress = mapAddressFromBackend(res)
       commit('UPDATE_ADDRESS', updatedAddress)
       return updatedAddress
     } catch (error) {
       console.error('更新地址失败:', error)
-      // 开发环境使用Mock数据
-      if (process.env.NODE_ENV === 'development') {
-        const updatedAddress = {
-          ...addressData,
-          updateTime: new Date().toISOString()
-        }
-        commit('UPDATE_ADDRESS', updatedAddress)
-        return updatedAddress
-      }
       throw error
     } finally {
       commit('SET_LOADING', false)
@@ -660,11 +909,345 @@ const actions = {
       return true
     } catch (error) {
       console.error('设置默认地址失败:', error)
-      // 开发环境使用Mock数据
-      if (process.env.NODE_ENV === 'development') {
-        commit('SET_DEFAULT_ADDRESS', addressId)
-        return true
-      }
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+  
+  // ========== 任务组D：用户互动功能actions ==========
+  
+  /**
+   * 获取关注列表
+   * @param {Object} context Vuex context
+   * @param {String} type 关注类型（user/shop），可选
+   * @returns {Promise} 关注列表
+   */
+  async fetchFollowList({ commit }, type = null) {
+    commit('SET_LOADING', true)
+    try {
+      const res = await getFollowList(type)
+      const followList = res || []
+      commit('SET_FOLLOW_LIST', followList)
+      return followList
+    } catch (error) {
+      console.error('获取关注列表失败:', error)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+  
+  /**
+   * 添加关注
+   * @param {Object} context Vuex context
+   * @param {Object} followData 关注数据
+   * @returns {Promise} 关注结果
+   */
+  async addFollow({ commit }, followData) {
+    commit('SET_LOADING', true)
+    try {
+      const res = await addFollowApi(followData)
+      const follow = res
+      commit('ADD_FOLLOW', follow)
+      return follow
+    } catch (error) {
+      console.error('添加关注失败:', error)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+  
+  /**
+   * 取消关注
+   * @param {Object} context Vuex context
+   * @param {String|Number} followId 关注ID
+   * @returns {Promise} 删除结果
+   */
+  async removeFollow({ commit }, followId) {
+    commit('SET_LOADING', true)
+    try {
+      await removeFollowApi(followId)
+      commit('REMOVE_FOLLOW', followId)
+      return true
+    } catch (error) {
+      console.error('取消关注失败:', error)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+  
+  /**
+   * 获取收藏列表
+   * @param {Object} context Vuex context
+   * @param {String} type 收藏类型（tea/post/article），可选
+   * @returns {Promise} 收藏列表
+   */
+  async fetchFavoriteList({ commit }, type = null) {
+    commit('SET_LOADING', true)
+    try {
+      const res = await getFavoriteList(type)
+      const favoriteList = res || []
+      commit('SET_FAVORITE_LIST', favoriteList)
+      return favoriteList
+    } catch (error) {
+      console.error('获取收藏列表失败:', error)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+  
+  /**
+   * 添加收藏
+   * @param {Object} context Vuex context
+   * @param {Object} favoriteData 收藏数据
+   * @returns {Promise} 收藏结果
+   */
+  async addFavorite({ commit }, favoriteData) {
+    commit('SET_LOADING', true)
+    try {
+      const res = await addFavoriteApi(favoriteData)
+      const favorite = res
+      commit('ADD_FAVORITE', favorite)
+      return favorite
+    } catch (error) {
+      console.error('添加收藏失败:', error)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+  
+  /**
+   * 取消收藏
+   * @param {Object} context Vuex context
+   * @param {String|Number} favoriteId 收藏ID
+   * @returns {Promise} 删除结果
+   */
+  async removeFavorite({ commit }, favoriteId) {
+    commit('SET_LOADING', true)
+    try {
+      await removeFavoriteApi(favoriteId)
+      commit('REMOVE_FAVORITE', favoriteId)
+      return true
+    } catch (error) {
+      console.error('取消收藏失败:', error)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+  
+  /**
+   * 点赞
+   * @param {Object} context Vuex context
+   * @param {Object} likeData 点赞数据
+   * @returns {Promise} 点赞结果
+   */
+  async addLike({ commit }, likeData) {
+    commit('SET_LOADING', true)
+    try {
+      const res = await addLikeApi(likeData)
+      const like = res
+      commit('ADD_LIKE', like)
+      return like
+    } catch (error) {
+      console.error('点赞失败:', error)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+  
+  /**
+   * 取消点赞
+   * @param {Object} context Vuex context
+   * @param {String|Number} likeId 点赞ID
+   * @returns {Promise} 删除结果
+   */
+  async removeLike({ commit }, likeId) {
+    commit('SET_LOADING', true)
+    try {
+      await removeLikeApi(likeId)
+      commit('REMOVE_LIKE', likeId)
+      return true
+    } catch (error) {
+      console.error('取消点赞失败:', error)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+  
+  // ========== 任务组E：管理员用户管理actions ==========
+  
+  /**
+   * 获取用户列表（管理员）
+   * @param {Object} context Vuex context
+   * @param {Object} params 查询参数
+   * @returns {Promise} 用户列表
+   */
+  async fetchUserList({ commit }, params = {}) {
+    commit('SET_LOADING', true)
+    try {
+      const res = await getAdminUserList(params)
+      const userList = res?.list || res || []
+      const total = res?.total || userList.length
+      commit('SET_USER_LIST', userList)
+      commit('SET_USER_PAGINATION', { 
+        page: params.page || 1, 
+        pageSize: params.pageSize || 20, 
+        total 
+      })
+      return { list: userList, total }
+    } catch (error) {
+      console.error('获取用户列表失败:', error)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+  
+  /**
+   * 更新用户角色（管理员）
+   * @param {Object} context Vuex context
+   * @param {Object} data { userId, role }
+   * @returns {Promise} 更新结果
+   */
+  async updateUserRole({ commit }, { userId, role }) {
+    commit('SET_LOADING', true)
+    try {
+      await updateUserRoleApi(userId, role)
+      commit('UPDATE_USER_IN_LIST', { id: userId, role })
+      return true
+    } catch (error) {
+      console.error('更新用户角色失败:', error)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+  
+  /**
+   * 切换用户状态（管理员）
+   * @param {Object} context Vuex context
+   * @param {Object} data { userId, status }
+   * @returns {Promise} 更新结果
+   */
+  async toggleUserStatus({ commit }, { userId, status }) {
+    commit('SET_LOADING', true)
+    try {
+      await toggleUserStatusApi(userId, status)
+      commit('UPDATE_USER_IN_LIST', { id: userId, status })
+      return true
+    } catch (error) {
+      console.error('切换用户状态失败:', error)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+  
+  /**
+   * 获取商家认证申请列表（管理员）
+   * @param {Object} context Vuex context
+   * @param {Object} params 查询参数
+   * @returns {Promise} 认证申请列表
+   */
+  async fetchCertificationList({ commit }, params = {}) {
+    commit('SET_LOADING', true)
+    try {
+      const res = await getCertificationList(params)
+      const certList = res?.list || res || []
+      commit('SET_CERTIFICATION_LIST', certList)
+      return certList
+    } catch (error) {
+      console.error('获取认证申请列表失败:', error)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+  
+  /**
+   * 处理商家认证申请（管理员）
+   * @param {Object} context Vuex context
+   * @param {Object} data { certId, action, message }
+   * @returns {Promise} 处理结果
+   */
+  async processCertification({ commit }, { certId, action, message }) {
+    commit('SET_LOADING', true)
+    try {
+      await processCertificationApi(certId, { action, message })
+      // 更新本地状态
+      const status = action === 'approve' ? 2 : 1 // 2-已通过，1-已拒绝
+      commit('UPDATE_CERTIFICATION_IN_LIST', { id: certId, status })
+      return true
+    } catch (error) {
+      console.error('处理认证申请失败:', error)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+
+  /**
+   * 创建管理员账号（仅管理员）
+   * @param {Object} context Vuex context
+   * @param {Object} adminData 管理员数据
+   * @returns {Promise} 创建结果
+   */
+  async createAdmin({ commit }, adminData) {
+    commit('SET_LOADING', true)
+    try {
+      const result = await createAdminApi(adminData)
+      // 创建成功后刷新用户列表
+      return result
+    } catch (error) {
+      console.error('创建管理员失败:', error)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+
+  /**
+   * 更新用户信息（仅管理员）
+   * @param {Object} context Vuex context
+   * @param {Object} data { userId, userData }
+   * @returns {Promise} 更新结果
+   */
+  async updateUser({ commit }, { userId, userData }) {
+    commit('SET_LOADING', true)
+    try {
+      await updateUserApi(userId, userData)
+      commit('UPDATE_USER_IN_LIST', { id: userId, ...userData })
+      return true
+    } catch (error) {
+      console.error('更新用户失败:', error)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+
+  /**
+   * 删除用户（仅管理员）
+   * @param {Object} context Vuex context
+   * @param {String} userId 用户ID
+   * @returns {Promise} 删除结果
+   */
+  async deleteUser({ commit }, userId) {
+    commit('SET_LOADING', true)
+    try {
+      await deleteUserApi(userId)
+      commit('REMOVE_USER_FROM_LIST', userId)
+      return true
+    } catch (error) {
+      console.error('删除用户失败:', error)
       throw error
     } finally {
       commit('SET_LOADING', false)

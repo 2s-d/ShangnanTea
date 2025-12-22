@@ -65,7 +65,8 @@
 
 <script>
 import { ref, computed, onMounted } from 'vue'
-import { message } from '@/components/common'
+import { commonPromptMessages } from '@/utils/promptMessages'
+import { commonSuccessMessages, commonErrorMessages } from '@/utils/commonMessages'
 import { useStorage } from '@/composables/useStorage'
 
 export default {
@@ -87,19 +88,19 @@ export default {
     const subscribe = () => {
       if (!email.value) {
         // 邮箱为空，提示用户
-        message.warning('请输入您的邮箱')
+        commonPromptMessages.showEmailRequired()
         return
       }
       
       // 验证邮箱格式
       if (!isValidEmail(email.value)) {
-        message.error('请输入有效的邮箱地址')
+        commonErrorMessages.showEmailInvalid()
         return
       }
       
       // 检查邮箱是否已订阅
       if (subscribedEmails.value.includes(email.value)) {
-        message.info('该邮箱已订阅，无需重复操作')
+        commonPromptMessages.showEmailAlreadySubscribed()
         return
       }
       
@@ -107,7 +108,7 @@ export default {
       setSubscribedEmails([...subscribedEmails.value, email.value])
       
       // 模拟订阅成功
-      message.success('订阅成功，感谢您的关注！')
+      commonSuccessMessages.showSubscribeSuccess()
       email.value = ''
     }
     

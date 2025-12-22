@@ -44,6 +44,14 @@
                 <div class="item-details">
                   <div class="item-name">{{ item.tea_name }}</div>
                   <div class="item-spec">规格：{{ item.spec_name }}</div>
+                  <div class="item-stock" v-if="item.stock !== undefined">
+                    <el-tag 
+                      :type="item.stock >= item.quantity ? 'success' : 'danger'" 
+                      size="small"
+                    >
+                      库存：{{ item.stock }}
+                    </el-tag>
+                  </div>
                   <div class="item-from">
                     <el-tag size="small" type="info">{{ isPlatformProduct(item.shop_id) ? '平台直售' : '店铺商品' }}</el-tag>
                     <span v-if="!isPlatformProduct(item.shop_id)" class="shop-name">{{ item.shop_name }}</span>
@@ -57,7 +65,7 @@
                 <el-input-number 
                   v-model="item.quantity" 
                   :min="1" 
-                  :max="99"
+                  :max="item.stock !== undefined ? Math.min(item.stock, 99) : 99"
                   size="small"
                   @change="handleQuantityChange(item)"
                 />
@@ -172,18 +180,10 @@
 import { ref, computed, onMounted, provide, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessageBox } from 'element-plus'
+import { orderSuccessMessages, orderErrorMessages } from '@/utils/orderMessages'
+import { orderPromptMessages } from '@/utils/promptMessages'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-
-/*
-// 真实代码（开发UI时注释）
-import { ref, computed, onMounted, watch, provide } from 'vue'
-import { useRouter } from 'vue-router'
-import { useStore } from 'vuex'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import SafeImage from '@/components/common/form/SafeImage.vue'
-*/
-
 export default {
   name: 'CartPage',
   components: {
@@ -220,7 +220,7 @@ export default {
         }))
         updateSelectAllStatus()
       } catch (error) {
-        ElMessage.error(error?.message || '获取购物车数据失败')
+        orderErrorMessages.showCartLoadFailed(error?.message)
       } finally {
         loading.value = false
       }
@@ -282,37 +282,82 @@ export default {
     
     // 处理数量变化
     const handleQuantityChange = async (item) => {
+      // 检查库存
+      if (item.stock !== undefined && item.quantity > item.stock) {
+        orderPromptMessages.showStockInsufficient(item.stock)
+        item.quantity = item.stock
+        return
+      }
+      
       try {
         await store.dispatch('order/updateCartItem', {
           id: item.id,
           quantity: item.quantity
         })
-        ElMessage.success('商品数量已更新')
+        orderSuccessMessages.showCartQuantityUpdated()
       } catch (error) {
-        ElMessage.error(error?.message || '更新数量失败')
+        orderErrorMessages.showCartUpdateFailed(error?.message)
         // 恢复：重新拉取购物车
         await initCartData()
       }
     }
     
     // 选择规格
-    const selectSpecification = (item) => {
-      // TODO-SCRIPT: 规格列表需要后端提供（购物车项返回 specifications 或提供专用接口）
-      // 目前不在 UI 层构造规格/价格，避免伪成功
-      ElMessage.info('规格选择功能待后端接口接入')
-      return
+    const selectSpecification = async (item) => {
+      currentCartItemId.value = item.id
+      currentSpecTea.value = item
+      tempSelectedSpecId.value = item.spec_id || null
+      
+      // 获取茶叶的规格列表
+      try {
+        loading.value = true
+        const specs = await store.dispatch('tea/fetchTeaSpecifications', item.tea_id)
+        availableSpecs.value = specs || []
+        
+        // 如果没有规格，提示用户
+        if (availableSpecs.value.length === 0) {
+          orderPromptMessages.showNoSpecAvailable()
+          return
+        }
+        
+        specDialogVisible.value = true
+      } catch (error) {
+        orderErrorMessages.showSpecLoadFailed(error?.message)
+      } finally {
+        loading.value = false
+      }
     }
     
     // 确认规格变更
-    const confirmSpecChange = () => {
+    const confirmSpecChange = async () => {
       if (!tempSelectedSpecId.value || !currentCartItemId.value) {
-        ElMessage.warning('请选择规格')
+        orderPromptMessages.showSpecRequired()
         return
       }
 
-      // TODO-SCRIPT: 购物车规格切换需要后端接口（更新 specId 并返回最新价格/库存）
-      ElMessage.info('规格切换待后端接口接入')
-      specDialogVisible.value = false
+      // 如果选择的规格和当前规格相同，直接关闭
+      const currentItem = cartItems.value.find(item => item.id === currentCartItemId.value)
+      if (currentItem && currentItem.spec_id === tempSelectedSpecId.value) {
+        specDialogVisible.value = false
+        return
+      }
+
+      try {
+        loading.value = true
+        // 更新购物车商品的规格
+        await store.dispatch('order/updateCartItem', {
+          id: currentCartItemId.value,
+          specificationId: tempSelectedSpecId.value
+        })
+        orderSuccessMessages.showCartSpecUpdated()
+        specDialogVisible.value = false
+        // 重新获取购物车数据以更新价格和库存
+        await initCartData()
+      } catch (error) {
+        orderErrorMessages.showSpecUpdateFailed(error?.message)
+      } finally {
+        loading.value = false
+      }
     }
     
     // 移除商品
@@ -323,11 +368,11 @@ export default {
         type: 'warning'
       }).then(() => {
         store.dispatch('order/removeFromCart', id).then(async () => {
-          ElMessage.success('商品已从购物车移除')
+          orderSuccessMessages.showItemRemoved()
           // 刷新本地列表（不依赖 UI 伪造状态）
           await initCartData()
         }).catch((error) => {
-          ElMessage.error(error?.message || '移除商品失败')
+          orderErrorMessages.showCartRemoveFailed(error?.message)
         })
       }).catch(() => {
         // 用户取消操作
@@ -337,7 +382,7 @@ export default {
     // 移除选中商品
     const removeSelectedItems = () => {
       if (selectedCount.value === 0) {
-        ElMessage.warning('请先选择要删除的商品')
+        orderPromptMessages.showDeleteSelectionRequired()
         return
       }
       
@@ -351,10 +396,10 @@ export default {
           .map((item) => item.id)
 
         Promise.all(selectedIds.map((id) => store.dispatch('order/removeFromCart', id))).then(async () => {
-          ElMessage.success('选中商品已删除')
+          orderSuccessMessages.showSelectedItemsDeleted()
           await initCartData()
         }).catch((error) => {
-          ElMessage.error(error?.message || '删除商品失败')
+          orderErrorMessages.showCartDeleteFailed(error?.message)
         })
       }).catch(() => {
         // 用户取消操作
@@ -364,7 +409,7 @@ export default {
     // 去结算
     const checkout = () => {
       if (selectedCount.value === 0) {
-        ElMessage.warning('请先选择要结算的商品')
+        orderPromptMessages.showSelectionRequired()
         return
       }
 

@@ -20,6 +20,7 @@
         <result column="rating" property="rating"/>
         <result column="rating_count" property="ratingCount"/>
         <result column="sales_count" property="salesCount"/>
+        <result column="follow_count" property="followCount"/>
         <result column="create_time" property="createTime"/>
         <result column="update_time" property="updateTime"/>
     </resultMap>
@@ -28,7 +29,7 @@
     <sql id="Base_Column_List">
         id, owner_id, shop_name, logo, banner, description, announcement, contact_phone, 
         province, city, district, address, business_license, status, rating, rating_count, 
-        sales_count, create_time, update_time
+        sales_count, follow_count, create_time, update_time
     </sql>
 
     <!-- 插入记录 -->

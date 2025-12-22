@@ -31,7 +31,7 @@
       -->
       
       <div class="content-tabs">
-        <el-tabs v-model="activeTab">
+        <el-tabs v-model="activeTab" @tab-change="handleTabChange" v-loading="loading">
           <el-tab-pane label="论坛帖子" name="posts">
             <div class="posts-list">
               <!-- 帖子列表 -->
@@ -42,7 +42,7 @@
                 <div class="list-header">
                   <div class="list-title">发布的帖子 ({{posts.length}})</div>
                   <div class="list-actions">
-                    <el-select v-model="sortOption" placeholder="排序方式" size="small">
+                    <el-select v-model="sortOption" placeholder="排序方式" size="small" @change="handleSortChange">
                       <el-option label="最新发布" value="newest"></el-option>
                       <el-option label="最多浏览" value="mostViewed"></el-option>
                       <el-option label="最多回复" value="mostReplied"></el-option>
@@ -87,6 +87,60 @@
           </el-tab-pane>
           
           <el-tab-pane label="茶叶评价" name="reviews">
+            <div class="reviews-list">
+              <!-- 评价列表 -->
+              <el-empty v-if="reviews.length === 0" description="暂无评价记录" />
+              
+              <div v-else>
+                <!-- 评价列表头部 -->
+                <div class="list-header">
+                  <div class="list-title">发布的评价 ({{reviews.length}})</div>
+                </div>
+                
+                <!-- 评价列表内容 -->
+                <div class="review-items">
+                  <div v-for="review in sortedReviews" :key="review.id" class="review-item">
+                    <div class="review-tea-info" @click="viewTeaDetail(review.teaId)">
+                      <img :src="review.teaImage" :alt="review.teaName" class="tea-image" />
+                      <div class="tea-details">
+                        <div class="tea-name">{{ review.teaName }}</div>
+                        <div class="shop-name">{{ review.shopName }}</div>
+                      </div>
+                    </div>
+                    
+                    <div class="review-content">
+                      <div class="review-rating">
+                        <el-rate v-model="review.rating" disabled show-score text-color="#ff9900" />
+                      </div>
+                      <div class="review-text">{{ review.content }}</div>
+                      <div class="review-meta">
+                        <span class="review-time">
+                          <el-icon><Timer /></el-icon> {{ formatDate(review.createTime) }}
+                        </span>
+                        <span class="shop-reply-status" v-if="review.hasShopReply">
+                          <el-icon><ChatDotRound /></el-icon> 商家已回复
+                        </span>
+                      </div>
+                      
+                      <!-- 商家回复 -->
+                      <div v-if="review.hasShopReply && review.shopReply" class="shop-reply">
+                        <div class="reply-header">
+                          <span class="reply-label">商家回复：</span>
+                          <span class="reply-time">{{ formatDate(review.shopReplyTime) }}</span>
+                        </div>
+                        <div class="reply-content">{{ review.shopReply }}</div>
+                      </div>
+                    </div>
+                    
+                    <div class="review-actions">
+                      <el-button type="danger" size="small" @click="deleteReview(review.id)">
+                        <el-icon><Delete /></el-icon> 删除
+                      </el-button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </el-tab-pane>
         </el-tabs>
       </div>
@@ -99,10 +153,13 @@
 </template>
 
 <script>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { useStore } from 'vuex'
+import { ElMessageBox } from 'element-plus'
 import { Timer, View, ChatDotRound, Star, Edit, Delete } from '@element-plus/icons-vue'
+import { commonSuccessMessages, commonErrorMessages } from '@/utils/commonMessages'
+import { commonPromptMessages } from '@/utils/promptMessages'
 
 export default {
   name: 'PublishedContentPage',
@@ -111,39 +168,16 @@ export default {
   },
   setup() {
     const router = useRouter()
+    const store = useStore()
     const activeTab = ref('posts')
     const sortOption = ref('newest')
     
-    // 模拟数据 - 用户发布的帖子列表
-    const posts = ref([
-      {
-        id: 1,
-        title: '分享我最近喝过的安化黑茶，口感超赞！',
-        summary: '最近入手了几款安化黑茶，冲泡后口感醇厚，回甘很持久，特别是金花茯砖茶，口感层次非常丰富...',
-        createTime: '2025-03-15 14:32:25',
-        viewCount: 156,
-        replyCount: 23,
-        likeCount: 45
-      },
-      {
-        id: 2,
-        title: '求推荐适合夏天喝的茶，清热解暑的那种',
-        summary: '天气越来越热了，想找一些适合夏季饮用的茶，最好是有清热解暑功效的。有没有茶友能推荐一些？',
-        createTime: '2025-02-28 09:15:42',
-        viewCount: 89,
-        replyCount: 17,
-        likeCount: 12
-      },
-      {
-        id: 3,
-        title: '新手冲泡白茶总是苦涩，有什么技巧吗？',
-        summary: '刚开始接触白茶，买了一些白毫银针，但冲泡出来总是有些苦涩，不知道是水温问题还是时间问题？求大神指点！',
-        createTime: '2025-01-18 21:05:37',
-        viewCount: 210,
-        replyCount: 32,
-        likeCount: 28
-      }
-    ])
+    // 从Vuex获取数据
+    const posts = computed(() => store.state.message.userPosts || [])
+    const reviews = computed(() => store.state.message.userReviews || [])
+    const loading = computed(() => store.state.message.loading)
+    const postsPagination = computed(() => store.state.message.postsPagination)
+    const reviewsPagination = computed(() => store.state.message.reviewsPagination)
     
     // 根据排序选项对帖子进行排序
     const sortedPosts = computed(() => {
@@ -159,6 +193,12 @@ export default {
         default:
           return postsCopy
       }
+    })
+    
+    // 根据排序选项对评价进行排序
+    const sortedReviews = computed(() => {
+      const reviewsCopy = [...reviews.value]
+      return reviewsCopy.sort((a, b) => new Date(b.createTime) - new Date(a.createTime))
     })
     
     // 格式化日期显示
@@ -190,7 +230,7 @@ export default {
     // 编辑帖子
     const editPost = (id) => {
       // 实际项目中跳转到编辑页面
-      ElMessage.info('编辑帖子功能开发中...')
+      commonPromptMessages.showProcessing()
     }
     
     // 删除帖子
@@ -206,8 +246,36 @@ export default {
       )
         .then(() => {
           // 实际项目中调用删除API
-          posts.value = posts.value.filter(post => post.id !== id)
-          ElMessage.success('帖子已删除')
+          commonSuccessMessages.showDeleteSuccess()
+          // 重新加载数据
+          loadData()
+        })
+        .catch(() => {
+          // 用户取消操作
+        })
+    }
+    
+    // 查看茶叶详情
+    const viewTeaDetail = (teaId) => {
+      router.push(`/tea/${teaId}`)
+    }
+    
+    // 删除评价
+    const deleteReview = (id) => {
+      ElMessageBox.confirm(
+        '确定要删除该评价吗？删除后将无法恢复。',
+        '删除确认',
+        {
+          confirmButtonText: '确定删除',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }
+      )
+        .then(() => {
+          // 实际项目中调用删除API
+          commonSuccessMessages.showDeleteSuccess()
+          // 重新加载数据
+          loadData()
         })
         .catch(() => {
           // 用户取消操作
@@ -219,16 +287,58 @@ export default {
       router.push('/')
     }
     
+    // 加载数据
+    const loadData = async () => {
+      try {
+        if (activeTab.value === 'posts') {
+          await store.dispatch('message/fetchUserPosts', { sortBy: sortOption.value })
+        } else if (activeTab.value === 'reviews') {
+          await store.dispatch('message/fetchUserReviews')
+        }
+      } catch (error) {
+        console.error('加载发布内容失败：', error)
+        commonErrorMessages.showLoadFailed()
+      }
+    }
+    
+    // 监听标签页切换
+    const handleTabChange = (tab) => {
+      activeTab.value = tab
+      loadData()
+    }
+    
+    // 监听排序选项变化
+    const handleSortChange = () => {
+      if (activeTab.value === 'posts') {
+        loadData()
+      }
+    }
+    
+    // 组件挂载时加载数据
+    onMounted(() => {
+      loadData()
+    })
+    
     return {
       activeTab,
       posts,
+      reviews,
       sortOption,
       sortedPosts,
+      sortedReviews,
+      loading,
+      postsPagination,
+      reviewsPagination,
       formatDate,
       viewPostDetail,
       editPost,
       deletePost,
-      goHome
+      viewTeaDetail,
+      deleteReview,
+      goHome,
+      loadData,
+      handleTabChange,
+      handleSortChange
     }
   }
 }
@@ -331,6 +441,119 @@ export default {
     }
   }
   
+  .review-items {
+    .review-item {
+      display: flex;
+      padding: 20px;
+      margin-bottom: 15px;
+      background-color: #f9f9f9;
+      border-radius: 6px;
+      transition: all 0.3s;
+      
+      &:hover {
+        background-color: #f0f0f0;
+      }
+      
+      .review-tea-info {
+        display: flex;
+        align-items: flex-start;
+        margin-right: 20px;
+        cursor: pointer;
+        
+        .tea-image {
+          width: 80px;
+          height: 80px;
+          border-radius: 6px;
+          object-fit: cover;
+          margin-right: 15px;
+        }
+        
+        .tea-details {
+          .tea-name {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--el-text-color-primary);
+            margin-bottom: 5px;
+          }
+          
+          .shop-name {
+            font-size: 14px;
+            color: var(--el-text-color-regular);
+          }
+        }
+      }
+      
+      .review-content {
+        flex: 1;
+        
+        .review-rating {
+          margin-bottom: 10px;
+        }
+        
+        .review-text {
+          font-size: 14px;
+          color: var(--el-text-color-regular);
+          line-height: 1.6;
+          margin-bottom: 10px;
+        }
+        
+        .review-meta {
+          display: flex;
+          align-items: center;
+          font-size: 13px;
+          color: var(--el-text-color-secondary);
+          margin-bottom: 10px;
+          
+          span {
+            display: flex;
+            align-items: center;
+            margin-right: 15px;
+            
+            .el-icon {
+              margin-right: 4px;
+            }
+          }
+        }
+        
+        .shop-reply {
+          background-color: #f5f7fa;
+          padding: 15px;
+          border-radius: 6px;
+          border-left: 4px solid var(--el-color-primary);
+          
+          .reply-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            
+            .reply-label {
+              font-weight: 500;
+              color: var(--el-color-primary);
+            }
+            
+            .reply-time {
+              font-size: 12px;
+              color: var(--el-text-color-secondary);
+            }
+          }
+          
+          .reply-content {
+            font-size: 14px;
+            color: var(--el-text-color-regular);
+            line-height: 1.6;
+          }
+        }
+      }
+      
+      .review-actions {
+        display: flex;
+        align-items: flex-start;
+        margin-left: 20px;
+      }
+    }
+  }
+  
   .coming-soon {
     display: flex;
     flex-direction: column;
@@ -359,6 +582,25 @@ export default {
         .post-actions {
           width: 100%;
           margin-top: 15px;
+          justify-content: flex-end;
+        }
+      }
+    }
+    
+    .review-items {
+      .review-item {
+        flex-direction: column;
+        
+        .review-tea-info {
+          margin-right: 0;
+          margin-bottom: 15px;
+          width: 100%;
+        }
+        
+        .review-actions {
+          margin-left: 0;
+          margin-top: 15px;
+          width: 100%;
           justify-content: flex-end;
         }
       }

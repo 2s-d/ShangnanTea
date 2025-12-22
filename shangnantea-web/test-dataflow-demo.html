@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据流测试演示</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background: #409EFF;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #337ecc;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 4px;
+            white-space: pre-wrap;
+        }
+        .error {
+            background: #fef0f0;
+            color: #f56c6c;
+        }
+        .success {
+            background: #f0f9ff;
+            color: #409EFF;
+        }
+    </style>
+</head>
+<body>
+    <h1>数据流通测试演示</h1>
+    <p>这个页面演示如何使用简单脚本测试Vue项目的数据流通。</p>
+    
+    <div class="test-section">
+        <h3>使用说明</h3>
+        <ol>
+            <li>确保Vue项目正在运行（npm run serve）</li>
+            <li>在浏览器中打开Vue项目页面</li>
+            <li>打开浏览器开发者工具的控制台</li>
+            <li>复制并粘贴下面的脚本到控制台</li>
+            <li>运行测试函数</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h3>测试脚本</h3>
+        <button onclick="copyScript()">复制脚本到剪贴板</button>
+        <div class="result" id="script-content">
+// 获取Vue应用实例的store
+function getStore() {
+  // 方法1：从Vue DevTools获取
+  if (window.__VUE_DEVTOOLS_GLOBAL_HOOK__ && window.__VUE_DEVTOOLS_GLOBAL_HOOK__.apps) {
+    const app = window.__VUE_DEVTOOLS_GLOBAL_HOOK__.apps[0]
+    if (app && app.config.globalProperties.$store) {
+      return app.config.globalProperties.$store
+    }
+  }
+  
+  // 方法2：从全局变量获取（如果项目有设置）
+  if (window.$store) {
+    return window.$store
+  }
+  
+  // 方法3：从Vue实例获取
+  const app = document.querySelector('#app').__vue_app__
+  if (app && app.config.globalProperties.$store) {
+    return app.config.globalProperties.$store
+  }
+  
+  throw new Error('无法获取Vuex store，请确保Vue应用已启动')
+}
+
+// 测试用户登录数据流
+async function testUserLogin() {
+  try {
+    console.log('🧪 测试用户登录...')
+    const store = getStore()
+    const result = await store.dispatch('user/login', {
+      username: 'testuser',
+      password: 'test123'
+    })
+    console.log('✅ 登录成功:', result)
+    return result
+  } catch (error) {
+    console.log('❌ 登录失败:', error.message)
+    return null
+  }
+}
+
+// 测试获取用户信息数据流
+async function testGetUserInfo() {
+  try {
+    console.log('🧪 测试获取用户信息...')
+    const store = getStore()
+    const result = await store.dispatch('user/getUserInfo')
+    console.log('✅ 获取用户信息成功:', result)
+    return result
+  } catch (error) {
+    console.log('❌ 获取用户信息失败:', error.message)
+    return null
+  }
+}
+
+// 测试获取地址列表数据流
+async function testGetAddresses() {
+  try {
+    console.log('🧪 测试获取地址列表...')
+    const store = getStore()
+    const result = await store.dispatch('user/fetchAddresses')
+    console.log('✅ 获取地址列表成功:', result)
+    return result
+  } catch (error) {
+    console.log('❌ 获取地址列表失败:', error.message)
+    return null
+  }
+}
+
+// 运行所有测试
+async function runAllTests() {
+  console.log('🚀 开始数据流通测试...')
+  await testUserLogin()
+  await testGetUserInfo()
+  await testGetAddresses()
+  console.log('🏁 测试完成')
+}
+
+// 导出测试函数
+window.testDataFlow = {
+  testUserLogin,
+  testGetUserInfo,
+  testGetAddresses,
+  runAllTests
+}
+
+console.log('📋 数据流测试脚本已加载，使用方法：')
+console.log('- testDataFlow.testUserLogin() - 测试登录')
+console.log('- testDataFlow.testGetUserInfo() - 测试获取用户信息')
+console.log('- testDataFlow.testGetAddresses() - 测试获取地址')
+console.log('- testDataFlow.runAllTests() - 运行所有测试')
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>测试命令</h3>
+        <p>脚本加载后，在控制台中运行以下命令：</p>
+        <div class="result">
+// 测试单个功能
+testDataFlow.testUserLogin()
+testDataFlow.testGetUserInfo()
+testDataFlow.testGetAddresses()
+
+// 运行所有测试
+testDataFlow.runAllTests()
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>预期结果</h3>
+        <p>如果数据流通正常，你应该看到：</p>
+        <div class="result success">
+🧪 测试用户登录...
+✅ 登录成功: {token: "...", userInfo: {...}}
+
+🧪 测试获取用户信息...
+✅ 获取用户信息成功: {...}
+
+🧪 测试获取地址列表...
+✅ 获取地址列表成功: [...]
+        </div>
+        
+        <p>如果出现错误，你会看到：</p>
+        <div class="result error">
+❌ 登录失败: Network Error
+❌ 获取用户信息失败: 401 Unauthorized
+        </div>
+    </div>
+
+    <script>
+        function copyScript() {
+            const scriptContent = document.getElementById('script-content').textContent;
+            navigator.clipboard.writeText(scriptContent).then(() => {
+                alert('脚本已复制到剪贴板！');
+            }).catch(err => {
+                console.error('复制失败:', err);
+                alert('复制失败，请手动复制脚本内容');
+            });
+        }
+    </script>
+</body>
+</html>

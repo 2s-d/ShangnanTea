@@ -14,6 +14,7 @@
         <result column="reply" property="reply" jdbcType="VARCHAR"/>
         <result column="reply_time" property="replyTime" jdbcType="TIMESTAMP"/>
         <result column="is_anonymous" property="isAnonymous" jdbcType="INTEGER"/>
+        <result column="like_count" property="likeCount" jdbcType="INTEGER"/>
         <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
         <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
     </resultMap>
@@ -29,7 +30,7 @@
     <!-- 公共列 -->
     <sql id="Base_Column_List">
         id, tea_id, user_id, order_id, content, rating, images, reply, reply_time, 
-        is_anonymous, create_time, update_time
+        is_anonymous, like_count, create_time, update_time
     </sql>
     
     <!-- 根据ID查询评价 -->

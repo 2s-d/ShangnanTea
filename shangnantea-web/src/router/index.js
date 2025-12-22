@@ -88,6 +88,15 @@ const routes = [
       requireAuth: false
     }
   },
+  {
+    path: '/reset-password',
+    name: 'ResetPassword',
+    component: () => import('@/views/user/auth/ResetPasswordPage.vue'),
+    meta: { 
+      title: '密码找回 - 商南茶文化',
+      requireAuth: false
+    }
+  },
   
   // 论坛路由
   {
@@ -195,6 +204,15 @@ const routes = [
       roles: [ROLES.ADMIN, ROLES.SHOP]
     }
   },
+  {
+    path: '/order/review/:id',
+    name: 'OrderReview',
+    component: () => import('@/views/order/review/OrderReviewPage.vue'),
+    meta: {
+      title: '订单评价 - 商南茶文化',
+      requireAuth: true
+    }
+  },
   
   // 用户路由
 
@@ -274,6 +292,17 @@ const routes = [
     meta: {
       title: '消息管理 - 商南茶文化',
       requireAuth: true
+    }
+  },
+  
+  // 用户模块测试页面
+  {
+    path: '/test/user',
+    name: 'UserTestPage',
+    component: () => import('@/views/test/UserTestPage.vue'),
+    meta: {
+      title: '用户模块测试 - 商南茶文化',
+      requireAuth: false
     }
   },
   

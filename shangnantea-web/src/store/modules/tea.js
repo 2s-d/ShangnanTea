@@ -1,4 +1,4 @@
-import { getTeas, getTeaDetail, getTeaCategories, addTea, updateTea, deleteTea } from '@/api/tea'
+import { getTeas, getTeaDetail, getTeaCategories, createCategory, updateCategory, deleteCategory, addTea, updateTea, deleteTea, getTeaReviews, getReviewStats, submitReview, replyReview, likeReview, getTeaSpecifications, addSpecification, updateSpecification, deleteSpecification, setDefaultSpecification, uploadTeaImages, deleteTeaImage, updateImageOrder, setMainImage, toggleTeaStatus, batchToggleTeaStatus, getRecommendTeas } from '@/api/tea'
 
 const state = () => ({
   // 茶叶列表
@@ -18,10 +18,28 @@ const state = () => ({
     category: '',
     keyword: '',
     priceRange: [0, 1000],
-    origin: ''
+    origin: '',
+    rating: null, // 最低评分
+    sortBy: '', // 排序字段：price, sales, rating, time
+    sortOrder: 'asc' // 排序方向：asc, desc
   },
   // 加载状态
-  loading: false
+  loading: false,
+  // 任务组B：评价相关state
+  teaReviews: [], // 当前茶叶的评价列表
+  reviewPagination: {
+    total: 0,
+    currentPage: 1,
+    pageSize: 10
+  },
+  reviewStats: null, // 评价统计数据
+  // 任务组C：规格管理相关state
+  currentTeaSpecs: [], // 当前茶叶的规格列表
+  selectedSpec: null, // 当前选中的规格
+  // 任务组D：图片管理相关state
+  teaImages: [], // 当前茶叶的图片列表
+  // 任务组F：推荐功能相关state
+  recommendTeas: [] // 推荐茶叶列表
 })
 
 const getters = {
@@ -54,6 +72,76 @@ const mutations = {
   },
   SET_LOADING(state, status) {
     state.loading = status
+  },
+  // 任务组B：评价相关mutations
+  SET_TEA_REVIEWS(state, reviews) {
+    state.teaReviews = reviews
+  },
+  SET_REVIEW_PAGINATION(state, pagination) {
+    state.reviewPagination = { ...state.reviewPagination, ...pagination }
+  },
+  SET_REVIEW_STATS(state, stats) {
+    state.reviewStats = stats
+  },
+  ADD_REVIEW(state, review) {
+    state.teaReviews.unshift(review)
+    state.reviewPagination.total += 1
+  },
+  UPDATE_REVIEW(state, review) {
+    const index = state.teaReviews.findIndex(r => r.id === review.id)
+    if (index !== -1) {
+      state.teaReviews.splice(index, 1, review)
+    }
+  },
+  // 任务组C：规格管理相关mutations
+  SET_TEA_SPECIFICATIONS(state, specs) {
+    state.currentTeaSpecs = specs
+  },
+  SET_SELECTED_SPEC(state, spec) {
+    state.selectedSpec = spec
+  },
+  ADD_SPECIFICATION(state, spec) {
+    state.currentTeaSpecs.push(spec)
+  },
+  UPDATE_SPECIFICATION(state, spec) {
+    const index = state.currentTeaSpecs.findIndex(s => s.id === spec.id)
+    if (index !== -1) {
+      state.currentTeaSpecs.splice(index, 1, spec)
+    }
+  },
+  REMOVE_SPECIFICATION(state, specId) {
+    state.currentTeaSpecs = state.currentTeaSpecs.filter(s => s.id !== specId)
+  },
+  // 任务组D：图片管理相关mutations
+  SET_TEA_IMAGES(state, images) {
+    state.teaImages = images
+  },
+  ADD_TEA_IMAGE(state, image) {
+    state.teaImages.push(image)
+  },
+  REMOVE_TEA_IMAGE(state, imageId) {
+    state.teaImages = state.teaImages.filter(img => img.id !== imageId)
+  },
+  UPDATE_IMAGE_ORDER(state, orders) {
+    // orders格式: [{imageId: 'img_1', order: 1}, ...]
+    orders.forEach(({ imageId, order }) => {
+      const image = state.teaImages.find(img => img.id === imageId)
+      if (image) {
+        image.order = order
+      }
+    })
+    // 按order排序
+    state.teaImages.sort((a, b) => (a.order || 0) - (b.order || 0))
+  },
+  SET_MAIN_IMAGE(state, imageId) {
+    // 将所有图片的is_main设为0
+    state.teaImages.forEach(img => {
+      img.is_main = img.id === imageId ? 1 : 0
+    })
+  },
+  // 任务组F：推荐功能相关mutations
+  SET_RECOMMEND_TEAS(state, teas) {
+    state.recommendTeas = teas
   }
 }
 
@@ -69,25 +157,54 @@ const actions = {
         pageSize: state.pagination.pageSize
       }
       
-      // 添加过滤条件
+      // 添加过滤条件（映射到后端接口参数）
       if (state.filters) {
-        Object.keys(state.filters).forEach(key => {
-          if (state.filters[key]) {
-            params[key] = state.filters[key]
-          }
-        })
+        if (state.filters.category) {
+          params.category = state.filters.category
+        }
+        if (state.filters.keyword) {
+          params.keyword = state.filters.keyword
+        }
+        if (state.filters.priceRange && Array.isArray(state.filters.priceRange) && state.filters.priceRange.length === 2) {
+          params.priceMin = state.filters.priceRange[0]
+          params.priceMax = state.filters.priceRange[1]
+        }
+        if (state.filters.origin) {
+          params.origin = state.filters.origin
+        }
+        if (state.filters.status !== undefined && state.filters.status !== null && state.filters.status !== '') {
+          params.status = state.filters.status
+        }
+        if (state.filters.rating !== null && state.filters.rating !== undefined) {
+          params.rating = state.filters.rating
+        }
+        if (state.filters.sortBy) {
+          params.sortBy = state.filters.sortBy
+        }
+        if (state.filters.sortOrder) {
+          params.sortOrder = state.filters.sortOrder
+        }
       }
       
       const res = await getTeas(params)
       
-      commit('SET_TEA_LIST', res.data.list)
+      commit('SET_TEA_LIST', res.list || [])
       commit('SET_PAGINATION', {
-        total: res.data.total,
+        total: res.total || 0,
         currentPage: state.pagination.currentPage,
         pageSize: state.pagination.pageSize
       })
       
-      return res.data
+      return res
+    } catch (error) {
+      console.error('获取茶叶列表失败:', error)
+      commit('SET_TEA_LIST', [])
+      commit('SET_PAGINATION', {
+        total: 0,
+        currentPage: 1,
+        pageSize: state.pagination.pageSize
+      })
+      throw error
     } finally {
       commit('SET_LOADING', false)
     }
@@ -99,9 +216,13 @@ const actions = {
       commit('SET_LOADING', true)
       
       const res = await getTeaDetail(id)
-      commit('SET_CURRENT_TEA', res.data)
+      commit('SET_CURRENT_TEA', res)
       
-      return res.data
+      return res
+    } catch (error) {
+      console.error('获取茶叶详情失败:', error)
+      commit('SET_CURRENT_TEA', null)
+      throw error
     } finally {
       commit('SET_LOADING', false)
     }
@@ -113,67 +234,557 @@ const actions = {
       commit('SET_LOADING', true)
       
       const res = await getTeaCategories()
-      commit('SET_CATEGORIES', res.data)
+      commit('SET_CATEGORIES', res || [])
       
-      return res.data
+      return res || []
+    } catch (error) {
+      console.error('获取茶叶分类失败:', error)
+      commit('SET_CATEGORIES', [])
+      return []
     } finally {
       commit('SET_LOADING', false)
     }
   },
   
-  // 添加茶叶
-  async addTea({ dispatch }, teaData) {
-    const res = await addTea(teaData)
-    
-    // 重新获取列表
-    dispatch('fetchTeas')
-    
-    return res.data
-  },
-  
-  // 更新茶叶
-  async updateTea({ commit, dispatch, state }, teaData) {
-    const res = await updateTea(teaData)
-    
-    // 如果当前查看的就是这个茶叶，更新当前茶叶
-    if (state.currentTea && state.currentTea.id === teaData.id) {
-      commit('SET_CURRENT_TEA', res.data)
+  // 创建茶叶分类
+  async createCategory({ commit, dispatch }, categoryData) {
+    try {
+      const res = await createCategory(categoryData)
+      // 刷新分类列表
+      await dispatch('fetchCategories')
+      return res
+    } catch (error) {
+      console.error('创建茶叶分类失败:', error)
+      throw error
     }
-    
-    // 重新获取列表
-    dispatch('fetchTeas')
-    
-    return res.data
   },
   
-  // 删除茶叶
-  async deleteTea({ dispatch }, id) {
-    await deleteTea(id)
-    
-    // 重新获取列表
-    dispatch('fetchTeas')
-    
-    return true
+  // 更新茶叶分类
+  async updateCategory({ commit, dispatch }, { id, categoryData }) {
+    try {
+      const res = await updateCategory(id, categoryData)
+      // 刷新分类列表
+      await dispatch('fetchCategories')
+      return res
+    } catch (error) {
+      console.error('更新茶叶分类失败:', error)
+      throw error
+    }
   },
   
-  // 更新分页
+  // 删除茶叶分类
+  async deleteCategory({ commit, dispatch }, id) {
+    try {
+      await deleteCategory(id)
+      // 刷新分类列表
+      await dispatch('fetchCategories')
+      return true
+    } catch (error) {
+      console.error('删除茶叶分类失败:', error)
+      throw error
+    }
+  },
+  
+  // 任务A-4：更新筛选条件
+  updateFilters({ commit, dispatch, state }, newFilters) {
+    commit('SET_FILTERS', newFilters)
+    // 重置到第一页
+    commit('SET_PAGINATION', {
+      ...state.pagination,
+      currentPage: 1
+    })
+    // 重新获取数据
+    dispatch('fetchTeas')
+  },
+  
+  // 任务A-5：重置筛选条件
+  resetFilters({ commit, dispatch }) {
+    const defaultFilters = {
+      category: '',
+      keyword: '',
+      priceRange: [0, 1000],
+      origin: '',
+      rating: null,
+      sortBy: '',
+      sortOrder: 'asc'
+    }
+    commit('SET_FILTERS', defaultFilters)
+    commit('SET_PAGINATION', {
+      total: 0,
+      currentPage: 1,
+      pageSize: 10
+    })
+    dispatch('fetchTeas')
+  },
+  
+  // 设置分页
   setPage({ commit, dispatch, state }, page) {
     commit('SET_PAGINATION', {
       ...state.pagination,
       currentPage: page
     })
-    return dispatch('fetchTeas')
+    dispatch('fetchTeas')
   },
   
-  // 更新过滤条件
-  updateFilters({ commit, dispatch }, filters) {
-    commit('SET_FILTERS', filters)
-    // 更新过滤条件后重置页码
+  // 设置排序
+  setSort({ commit, dispatch, state }, { sortBy, sortOrder }) {
+    commit('SET_FILTERS', {
+      ...state.filters,
+      sortBy,
+      sortOrder: sortOrder || 'asc'
+    })
+    // 重置到第一页
     commit('SET_PAGINATION', {
       ...state.pagination,
       currentPage: 1
     })
-    return dispatch('fetchTeas')
+    dispatch('fetchTeas')
+  },
+  
+  // 添加茶叶
+  async addTea({ dispatch }, teaData) {
+    try {
+      const res = await addTea(teaData)
+      
+      // 重新获取列表
+      await dispatch('fetchTeas')
+      
+      return res
+    } catch (error) {
+      console.error('添加茶叶失败:', error)
+      throw error
+    }
+  },
+  
+  // 更新茶叶
+  async updateTea({ commit, dispatch, state }, teaData) {
+    try {
+      const res = await updateTea(teaData)
+      
+      // 如果当前查看的就是这个茶叶，更新当前茶叶
+      if (state.currentTea && state.currentTea.id === teaData.id) {
+        commit('SET_CURRENT_TEA', res)
+      }
+      
+      // 重新获取列表
+      await dispatch('fetchTeas')
+      
+      return res
+    } catch (error) {
+      console.error('更新茶叶失败:', error)
+      throw error
+    }
+  },
+  
+  // 删除茶叶
+  async deleteTea({ dispatch }, id) {
+    try {
+      await deleteTea(id)
+      
+      // 重新获取列表
+      await dispatch('fetchTeas')
+      
+      return true
+    } catch (error) {
+      console.error('删除茶叶失败:', error)
+      throw error
+    }
+  },
+  
+  // ==================== 任务组B：评价系统Actions ====================
+  
+  // 获取茶叶评价列表
+  async fetchTeaReviews({ commit, state }, { teaId, page = 1, pageSize = 10 }) {
+    try {
+      commit('SET_LOADING', true)
+      
+      const res = await getTeaReviews(teaId, { page, pageSize })
+      
+      commit('SET_TEA_REVIEWS', res.list || [])
+      commit('SET_REVIEW_PAGINATION', {
+        total: res.total || 0,
+        currentPage: page,
+        pageSize: pageSize
+      })
+      
+      return res
+    } catch (error) {
+      console.error('获取茶叶评价列表失败:', error)
+      commit('SET_TEA_REVIEWS', [])
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+  
+  // 获取评价统计数据
+  async fetchReviewStats({ commit }, teaId) {
+    try {
+      const res = await getReviewStats(teaId)
+      commit('SET_REVIEW_STATS', res)
+      return res
+    } catch (error) {
+      console.error('获取评价统计数据失败:', error)
+      commit('SET_REVIEW_STATS', null)
+      throw error
+    }
+  },
+  
+  // 提交评价
+  async submitReview({ commit, dispatch, state }, reviewData) {
+    try {
+      commit('SET_LOADING', true)
+      
+      const res = await submitReview(reviewData)
+      
+      // 添加到评价列表
+      commit('ADD_REVIEW', res)
+      
+      // 刷新评价统计
+      if (reviewData.teaId) {
+        await dispatch('fetchReviewStats', reviewData.teaId)
+      }
+      
+      return res
+    } catch (error) {
+      console.error('提交评价失败:', error)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+  
+  // 商家回复评价
+  async replyReview({ commit, state }, { reviewId, reply }) {
+    try {
+      const res = await replyReview(reviewId, { reply })
+      
+      // 更新评价列表中的回复
+      const review = state.teaReviews.find(r => r.id === reviewId)
+      if (review) {
+        review.reply = reply
+        review.replyTime = res.replyTime
+        commit('UPDATE_REVIEW', review)
+      }
+      
+      return res
+    } catch (error) {
+      console.error('商家回复评价失败:', error)
+      throw error
+    }
+  },
+  
+  // 点赞评价
+  async likeReview({ commit, state }, reviewId) {
+    try {
+      const res = await likeReview(reviewId)
+      
+      // 更新评价列表中的点赞信息
+      const review = state.teaReviews.find(r => r.id === reviewId)
+      if (review) {
+        review.likeCount = res.likeCount
+        review.isLiked = res.isLiked
+        commit('UPDATE_REVIEW', review)
+      }
+      
+      return res
+    } catch (error) {
+      console.error('点赞评价失败:', error)
+      throw error
+    }
+  },
+  
+  // ==================== 任务组C：规格管理Actions ====================
+  
+  // 获取茶叶规格列表
+  async fetchTeaSpecifications({ commit }, teaId) {
+    try {
+      const res = await getTeaSpecifications(teaId)
+      commit('SET_TEA_SPECIFICATIONS', res || [])
+      return res || []
+    } catch (error) {
+      console.error('获取茶叶规格列表失败:', error)
+      commit('SET_TEA_SPECIFICATIONS', [])
+      throw error
+    }
+  },
+  
+  // 添加规格
+  async addSpecification({ commit, dispatch, state }, { teaId, specData }) {
+    try {
+      const res = await addSpecification(teaId, specData)
+      
+      // 如果设置了默认规格，需要取消其他规格的默认状态
+      if (specData.is_default === 1) {
+        state.currentTeaSpecs.forEach(spec => {
+          if (spec.id !== res.id) {
+            spec.is_default = 0
+          }
+        })
+      }
+      
+      commit('ADD_SPECIFICATION', res)
+      
+      // 刷新规格列表
+      await dispatch('fetchTeaSpecifications', teaId)
+      
+      return res
+    } catch (error) {
+      console.error('添加规格失败:', error)
+      throw error
+    }
+  },
+  
+  // 更新规格
+  async updateSpecification({ commit, dispatch, state }, { teaId, specId, specData }) {
+    try {
+      const res = await updateSpecification(specId, specData)
+      
+      // 如果设置了默认规格，需要取消其他规格的默认状态
+      if (specData.is_default === 1) {
+        state.currentTeaSpecs.forEach(spec => {
+          if (spec.id !== specId) {
+            spec.is_default = 0
+          }
+        })
+      }
+      
+      commit('UPDATE_SPECIFICATION', res)
+      
+      // 刷新规格列表
+      await dispatch('fetchTeaSpecifications', teaId)
+      
+      return res
+    } catch (error) {
+      console.error('更新规格失败:', error)
+      throw error
+    }
+  },
+  
+  // 删除规格
+  async deleteSpecification({ commit, dispatch }, { teaId, specId }) {
+    try {
+      await deleteSpecification(specId)
+      
+      commit('REMOVE_SPECIFICATION', specId)
+      
+      // 刷新规格列表
+      await dispatch('fetchTeaSpecifications', teaId)
+      
+      return true
+    } catch (error) {
+      console.error('删除规格失败:', error)
+      throw error
+    }
+  },
+  
+  // 设置默认规格
+  async setDefaultSpecification({ commit, dispatch, state }, { teaId, specId }) {
+    try {
+      const res = await setDefaultSpecification(specId)
+      
+      // 取消其他规格的默认状态
+      state.currentTeaSpecs.forEach(spec => {
+        if (spec.id === specId) {
+          spec.is_default = 1
+        } else {
+          spec.is_default = 0
+        }
+      })
+      
+      // 刷新规格列表
+      await dispatch('fetchTeaSpecifications', teaId)
+      
+      return res
+    } catch (error) {
+      console.error('设置默认规格失败:', error)
+      throw error
+    }
+  },
+  
+  // 任务组D：图片管理相关actions
+  /**
+   * 上传茶叶图片
+   * @param {Object} context Vuex context
+   * @param {Object} payload { teaId, files: File[] }
+   */
+  async uploadTeaImages({ commit }, { teaId, files }) {
+    try {
+      // 创建FormData
+      const formData = new FormData()
+      files.forEach(file => {
+        formData.append('files', file)
+      })
+      
+      const res = await uploadTeaImages(teaId, formData)
+      
+      // 响应拦截器已解包，res 直接是图片数组
+      commit('SET_TEA_IMAGES', res || [])
+      
+      // 如果当前茶叶是正在查看的茶叶，更新currentTea的images
+      const currentTea = this.state.tea.currentTea
+      if (currentTea && currentTea.id === teaId) {
+        currentTea.images = res || []
+      }
+      
+      return res
+    } catch (error) {
+      console.error('上传图片失败:', error)
+      throw error
+    }
+  },
+  
+  /**
+   * 删除茶叶图片
+   * @param {Object} context Vuex context
+   * @param {Object} payload { teaId, imageId }
+   */
+  async deleteTeaImage({ commit, state }, { teaId, imageId }) {
+    try {
+      await deleteTeaImage(imageId)
+      
+      // 从state中移除
+      commit('REMOVE_TEA_IMAGE', imageId)
+      
+      // 如果当前茶叶是正在查看的茶叶，更新currentTea的images
+      const currentTea = state.currentTea
+      if (currentTea && currentTea.id === teaId) {
+        currentTea.images = currentTea.images.filter(img => img.id !== imageId)
+      }
+      
+      return true
+    } catch (error) {
+      console.error('删除图片失败:', error)
+      throw error
+    }
+  },
+  
+  /**
+   * 更新图片顺序
+   * @param {Object} context Vuex context
+   * @param {Object} payload { teaId, orders: [{imageId, order}] }
+   */
+  async updateImageOrder({ commit }, { orders }) {
+    try {
+      await updateImageOrder(orders)
+      
+      // 更新state中的顺序
+      commit('UPDATE_IMAGE_ORDER', orders)
+      return true
+    } catch (error) {
+      console.error('更新图片顺序失败:', error)
+      throw error
+    }
+  },
+  
+  /**
+   * 设置主图
+   * @param {Object} context Vuex context
+   * @param {Object} payload { teaId, imageId }
+   */
+  async setMainImage({ commit, state }, { teaId, imageId }) {
+    try {
+      await setMainImage(imageId)
+      
+      // 更新state中的主图标记
+      commit('SET_MAIN_IMAGE', imageId)
+      
+      // 如果当前茶叶是正在查看的茶叶，更新currentTea的main_image
+      const currentTea = state.currentTea
+      if (currentTea && currentTea.id === teaId) {
+        const mainImage = state.teaImages.find(img => img.id === imageId)
+        if (mainImage) {
+          currentTea.main_image = mainImage.url
+        }
+      }
+      
+      return true
+    } catch (error) {
+      console.error('设置主图失败:', error)
+      throw error
+    }
+  },
+  
+  // 任务组E：状态管理相关actions
+  /**
+   * 更新茶叶状态（上架/下架）
+   * @param {Object} context Vuex context
+   * @param {Object} payload { teaId, status }
+   */
+  async toggleTeaStatus({ state }, { teaId, status }) {
+    try {
+      const res = await toggleTeaStatus(teaId, { status })
+      
+      // 更新列表中的茶叶状态
+      const tea = state.teaList.find(t => t.id === teaId || t.id === String(teaId))
+      if (tea) {
+        tea.status = status
+      }
+      
+      // 如果当前查看的茶叶是目标茶叶，更新currentTea
+      if (state.currentTea && (state.currentTea.id === teaId || state.currentTea.id === String(teaId))) {
+        state.currentTea.status = status
+      }
+      
+      return res
+    } catch (error) {
+      console.error('更新茶叶状态失败:', error)
+      throw error
+    }
+  },
+  
+  /**
+   * 批量更新茶叶状态（上架/下架）
+   * @param {Object} context Vuex context
+   * @param {Object} payload { teaIds: string[], status: number }
+   */
+  async batchToggleTeaStatus({ state }, { teaIds, status }) {
+    try {
+      const res = await batchToggleTeaStatus({ teaIds, status })
+      
+      // 更新列表中的茶叶状态
+      teaIds.forEach(teaId => {
+        const tea = state.teaList.find(t => t.id === teaId || t.id === String(teaId))
+        if (tea) {
+          tea.status = status
+        }
+      })
+      
+      // 如果当前查看的茶叶在批量列表中，更新currentTea
+      if (state.currentTea && (teaIds.includes(state.currentTea.id) || teaIds.includes(String(state.currentTea.id)))) {
+        state.currentTea.status = status
+      }
+      
+      return res
+    } catch (error) {
+      console.error('批量更新茶叶状态失败:', error)
+      throw error
+    }
+  },
+  
+  // 任务组F：推荐功能相关actions
+  /**
+   * 获取推荐茶叶
+   * @param {Object} context Vuex context
+   * @param {Object} payload { type: 'random'|'similar'|'popular', teaId?: string, count?: number }
+   */
+  async fetchRecommendTeas({ commit }, { type = 'random', teaId = null, count = 6 }) {
+    try {
+      const params = { type, count }
+      if (teaId) {
+        params.teaId = teaId
+      }
+      
+      const res = await getRecommendTeas(params)
+      
+      // 响应拦截器已解包，res 直接是数据数组或对象
+      commit('SET_RECOMMEND_TEAS', res || [])
+      return res
+    } catch (error) {
+      console.error('获取推荐茶叶失败:', error)
+      commit('SET_RECOMMEND_TEAS', [])
+      throw error
+    }
   }
 }
 

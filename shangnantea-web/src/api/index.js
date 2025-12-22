@@ -16,24 +16,17 @@ import router from '@/router'
 // 使用composable代替直接导入tokenUtils
 import { useTokenStorage } from '@/composables/useStorage'
 // 导入消息管理器
-import { apiMessage } from '@/utils/messageManager'
+import { errorMessage } from '@/utils/messageManager'
 
 // 创建token存储实例
 const tokenStorage = useTokenStorage()
-const { getToken, isTokenValid, verifyToken, removeToken } = tokenStorage
 
-// 安全获取环境变量，避免undefined错误
+// 获取API基础URL（Vue CLI项目使用VUE_APP_前缀）
 const getApiBaseUrl = () => {
-  // 检查是否在Vite环境中
-  if (typeof import.meta !== 'undefined' && import.meta.env) {
-    return import.meta.env.VITE_API_BASE_URL || '/api'
-  }
-  // 检查是否在Webpack环境中
-  if (typeof process !== 'undefined' && process.env) {
-    return process.env.VUE_APP_API_BASE_URL || '/api'
-  }
-  // 默认值
-  return '/api'
+  // Vue CLI环境变量
+  const baseUrl = process.env.VUE_APP_API_BASE_URL
+  console.log('[API] Base URL:', baseUrl || '/api (default)')
+  return baseUrl || '/api'
 }
 
 // 创建axios实例
@@ -144,20 +137,14 @@ service.interceptors.response.use(
       return res
     }
     
-    // 成功响应
-    if (res.code === 200) {
-      // 返回数据部分
-      return res.data
-    }
-    
     // 认证相关错误（未登录、令牌无效等）
     if ([401, 403].includes(res.code)) {
       // 清除token和用户信息
       tokenStorage.removeToken()
       store.commit('user/CLEAR_USER')
       
-      // 显示错误信息 - 使用apiMessage
-      apiMessage.error(res.message || '认证失败，请重新登录')
+      // 显示错误信息
+      errorMessage.show(res.message || '认证失败，请重新登录')
       
       // 如果不是登录页，则跳转到登录页
       if (router.currentRoute.value.path !== '/login') {
@@ -167,9 +154,11 @@ service.interceptors.response.use(
       return Promise.reject(new Error(res.message || '认证失败'))
     }
     
-    // 其他错误 - 使用apiMessage
-    apiMessage.error(res.message || '请求失败')
-    return Promise.reject(new Error(res.message || '请求失败'))
+    // 返回完整响应格式 {code, data}，不再自动显示消息
+    return {
+      code: res.code,
+      data: res.data
+    }
   },
   error => {
     // 记录API调用错误
@@ -189,23 +178,18 @@ service.interceptors.response.use(
         
         // 跳转到登录页
         if (router.currentRoute.value.path !== '/login') {
-          // 使用apiMessage
-          apiMessage.error(data.message || '认证失败，请重新登录')
+          errorMessage.show(data.message || '认证失败，请重新登录')
           router.push(`/login?redirect=${router.currentRoute.value.path}`)
         }
       } else if (status === 500) {
-        // 使用apiMessage
-        apiMessage.error('服务器错误，请稍后再试')
+        errorMessage.show('服务器错误，请稍后再试')
       } else {
-        // 使用apiMessage
-        apiMessage.error(data.message || `请求失败: ${status}`)
+        errorMessage.show(data.message || `请求失败: ${status}`)
       }
     } else if (error.message.includes('timeout')) {
-      // 使用apiMessage
-      apiMessage.error('请求超时，请检查网络连接')
+      errorMessage.show('请求超时，请检查网络连接')
     } else {
-      // 使用apiMessage
-      apiMessage.error('网络错误，请检查网络连接')
+      errorMessage.show('网络错误，请检查网络连接')
     }
     
     return Promise.reject(error)

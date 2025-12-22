@@ -65,20 +65,16 @@ export function showStandardMessage(messageKey, type = MESSAGE_TYPES.INFO, custo
   
   switch (type) {
     case MESSAGE_TYPES.SUCCESS:
-      messageManager.clearMessageState(content);
       message.success(content);
       break;
     case MESSAGE_TYPES.ERROR:
-      messageManager.clearMessageState(content);
       message.error(content);
       break;
     case MESSAGE_TYPES.WARNING:
-      messageManager.clearMessageState(content);
       message.warning(content);
       break;
     case MESSAGE_TYPES.INFO:
     default:
-      messageManager.clearMessageState(content);
       message.info(content);
       break;
   }
@@ -104,8 +100,6 @@ export async function handleAsyncOperation(promise, options = {}) {
     const result = await promise;
     
     if (showSuccessMessage && successMessage) {
-      // 使用messageManager清除消息状态，防止重复显示
-      messageManager.clearMessageState(successMessage);
       message.success(successMessage);
     }
     
@@ -120,8 +114,6 @@ export async function handleAsyncOperation(promise, options = {}) {
     const errorContent = errorMessage || error.message || '操作失败';
     
     if (showErrorMessage) {
-      // 使用messageManager清除消息状态，防止重复显示
-      messageManager.clearMessageState(errorContent);
       message.error(errorContent);
     }
     

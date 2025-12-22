@@ -108,10 +108,11 @@
 <script>
 import { Plus } from '@element-plus/icons-vue'
 import { ref, onMounted, reactive, toRaw, computed } from 'vue'
-import { message } from '@/components/common'
+
 import { handleAsyncOperation, STANDARD_MESSAGES } from '@/utils/messageHelper'
 import { regionData, getStaticRegionData } from '@/utils/region'
 import { useStore } from 'vuex'
+import { userPromptMessages as userMessages } from '@/utils/promptMessages'
 
 export default {
   name: 'AddressPage',
@@ -311,7 +312,7 @@ export default {
         console.log('省市区数据加载成功，共', cascaderOptions.value.length, '个省级行政区')
       } catch (error) {
         console.error('加载省市区数据出错：', error)
-        message.warning('省市区数据加载不完整，将使用备用数据')
+        userMessages.prompt.showRegionDataIncomplete()
         cascaderOptions.value = regionData
       } finally {
         regionLoading.value = false

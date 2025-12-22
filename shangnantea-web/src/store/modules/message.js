@@ -7,7 +7,20 @@ import {
   getUnreadCount,
   getChatSessions,
   getChatHistory,
-  getNotifications
+  getNotifications,
+  getNotificationDetail,
+  deleteNotification,
+  batchMarkAsRead,
+  batchDeleteNotifications,
+  createChatSession,
+  getUserProfile,
+  getUserDynamic,
+  getUserStatistics,
+  pinChatSession,
+  deleteChatSession,
+  sendImageMessage,
+  getUserPosts,
+  getUserReviews
 } from '@/api/message'
 
 const state = () => ({
@@ -30,7 +43,28 @@ const state = () => ({
     pageSize: 10
   },
   // 加载状态
-  loading: false
+  loading: false,
+  // 用户主页信息
+  userProfile: null,
+  // 用户动态
+  userDynamic: null,
+  // 用户统计数据
+  userStatistics: null,
+  // 用户发布的帖子列表
+  userPosts: [],
+  // 用户评价记录
+  userReviews: [],
+  // 发布内容分页信息
+  postsPagination: {
+    total: 0,
+    currentPage: 1,
+    pageSize: 10
+  },
+  reviewsPagination: {
+    total: 0,
+    currentPage: 1,
+    pageSize: 10
+  }
 })
 
 const getters = {
@@ -74,8 +108,60 @@ const mutations = {
   DELETE_MESSAGE(state, id) {
     state.messages = state.messages.filter(msg => msg.id !== id)
   },
+  DELETE_MESSAGES(state, ids) {
+    const idsArray = Array.isArray(ids) ? ids : [ids]
+    state.messages = state.messages.filter(msg => !idsArray.includes(msg.id))
+  },
+  MARK_MESSAGE_AS_READ(state, id) {
+    const message = state.messages.find(msg => msg.id === id)
+    if (message) {
+      message.isRead = 1
+    }
+  },
+  MARK_MESSAGES_AS_READ(state, ids) {
+    const idsArray = Array.isArray(ids) ? ids : [ids]
+    state.messages.forEach(msg => {
+      if (idsArray.includes(msg.id)) {
+        msg.isRead = 1
+      }
+    })
+  },
   SET_LOADING(state, status) {
     state.loading = status
+  },
+  SET_USER_PROFILE(state, profile) {
+    state.userProfile = profile
+  },
+  SET_USER_DYNAMIC(state, dynamic) {
+    state.userDynamic = dynamic
+  },
+  SET_USER_STATISTICS(state, statistics) {
+    state.userStatistics = statistics
+  },
+  PIN_CHAT_SESSION(state, sessionId) {
+    const session = state.chatSessions.find(s => s.id === sessionId)
+    if (session) {
+      session.isPinned = true
+      // 将置顶会话移到列表前面
+      const index = state.chatSessions.indexOf(session)
+      state.chatSessions.splice(index, 1)
+      state.chatSessions.unshift(session)
+    }
+  },
+  REMOVE_CHAT_SESSION(state, sessionId) {
+    state.chatSessions = state.chatSessions.filter(s => s.id !== sessionId)
+  },
+  SET_USER_POSTS(state, { posts, pagination }) {
+    state.userPosts = posts
+    if (pagination) {
+      state.postsPagination = pagination
+    }
+  },
+  SET_USER_REVIEWS(state, { reviews, pagination }) {
+    state.userReviews = reviews
+    if (pagination) {
+      state.reviewsPagination = pagination
+    }
   }
 }
 
@@ -95,25 +181,94 @@ const actions = {
         ...params
       }
 
+      // 响应拦截器已解包，res 直接是 data 内容
       const res = await getNotifications(queryParams)
 
-      // 兼容：后端可能返回 { data: { list, total } } 或直接 { list, total }
-      const data = res?.data || res
-      commit('SET_MESSAGES', data?.list || [])
+      commit('SET_MESSAGES', res?.list || [])
       commit('SET_PAGINATION', {
-        total: data?.total || 0,
+        total: res?.total || 0,
         currentPage: state.pagination.currentPage,
         pageSize: state.pagination.pageSize
       })
 
-      return data
+      return res
     } finally {
       commit('SET_LOADING', false)
     }
   },
 
   /**
-   * 批量删除通知/消息
+   * 获取通知详情
+   * @param {Object} context Vuex context
+   * @param {number} id 通知ID
+   * @returns {Promise<Object>} 通知详情
+   */
+  async fetchNotificationDetail({ commit }, id) {
+    try {
+      commit('SET_LOADING', true)
+      // 响应拦截器已解包，res 直接是通知对象
+      const res = await getNotificationDetail(id)
+      commit('SET_CURRENT_MESSAGE', res)
+      return res
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+
+  /**
+   * 标记通知为已读
+   * @param {Object} context Vuex context
+   * @param {number} id 通知ID
+   * @returns {Promise<boolean>} 是否成功
+   */
+  async markNotificationAsRead({ commit, dispatch }, id) {
+    await markAsRead(id)
+    commit('MARK_MESSAGE_AS_READ', id)
+    // 更新未读数量
+    dispatch('fetchUnreadCount')
+    return true
+  },
+
+  /**
+   * 删除通知
+   * @param {Object} context Vuex context
+   * @param {number} id 通知ID
+   * @returns {Promise<boolean>} 是否成功
+   */
+  async deleteNotification({ commit }, id) {
+    await deleteNotification(id)
+    commit('DELETE_MESSAGE', id)
+    return true
+  },
+
+  /**
+   * 批量标记通知为已读
+   * @param {Object} context Vuex context
+   * @param {Array<number>} ids 通知ID数组
+   * @returns {Promise<boolean>} 是否成功
+   */
+  async batchMarkAsRead({ commit, dispatch }, ids) {
+    await batchMarkAsRead(ids)
+    commit('MARK_MESSAGES_AS_READ', ids)
+    // 更新未读数量
+    dispatch('fetchUnreadCount')
+    return true
+  },
+
+  /**
+   * 批量删除通知
+   * @param {Object} context Vuex context
+   * @param {Array<number>} ids 通知ID数组
+   * @returns {Promise<boolean>} 是否成功
+   */
+  async batchDeleteNotifications({ commit }, ids) {
+    await batchDeleteNotifications(ids)
+    commit('DELETE_MESSAGES', ids)
+    return true
+  },
+
+  /**
+   * 批量删除通知/消息（兼容旧方法）
    * @param {Object} context Vuex context
    * @param {Array<number|string>} ids 要删除的消息ID列表
    * @returns {Promise<boolean>} 是否成功
@@ -139,14 +294,14 @@ const actions = {
       
       const res = await getMessages(queryParams)
       
-      commit('SET_MESSAGES', res.data.list)
+      commit('SET_MESSAGES', res.list)
       commit('SET_PAGINATION', {
-        total: res.data.total,
+        total: res.total,
         currentPage: state.pagination.currentPage,
         pageSize: state.pagination.pageSize
       })
       
-      return res.data
+      return res
     } finally {
       commit('SET_LOADING', false)
     }
@@ -158,12 +313,12 @@ const actions = {
       commit('SET_LOADING', true)
       
       const res = await getMessageDetail(id)
-      commit('SET_CURRENT_MESSAGE', res.data)
+      commit('SET_CURRENT_MESSAGE', res)
       
       // 标记为已读
       markAsRead(id)
       
-      return res.data
+      return res
     } finally {
       commit('SET_LOADING', false)
     }
@@ -175,10 +330,10 @@ const actions = {
     
     // 如果是发送给当前聊天用户，添加到聊天历史
     if (messageData.receiverId === state.currentChatUserId) {
-      commit('ADD_CHAT_MESSAGE', res.data)
+      commit('ADD_CHAT_MESSAGE', res)
     }
     
-    return res.data
+    return res
   },
   
   // 标记消息已读
@@ -203,10 +358,13 @@ const actions = {
   
   // 获取未读消息数量
   async fetchUnreadCount({ commit }) {
+    // 响应拦截器已解包，res 直接是数量或对象
     const res = await getUnreadCount()
-    commit('SET_UNREAD_COUNT', res.data)
+    // 如果返回的是数字直接使用，如果是对象取 count 字段
+    const count = typeof res === 'number' ? res : (res?.count || 0)
+    commit('SET_UNREAD_COUNT', count)
     
-    return res.data
+    return count
   },
   
   // 获取聊天会话列表
@@ -215,9 +373,9 @@ const actions = {
       commit('SET_LOADING', true)
       
       const res = await getChatSessions()
-      commit('SET_CHAT_SESSIONS', res.data)
+      commit('SET_CHAT_SESSIONS', res)
       
-      return res.data
+      return res
     } finally {
       commit('SET_LOADING', false)
     }
@@ -230,9 +388,144 @@ const actions = {
       commit('SET_CURRENT_CHAT_USER', userId)
       
       const res = await getChatHistory(userId, params)
-      commit('SET_CHAT_HISTORY', res.data)
+      commit('SET_CHAT_HISTORY', res)
       
-      return res.data
+      return res
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+
+  // 创建聊天会话
+  async createChatSession({ commit }, { targetId, targetType }) {
+    const res = await createChatSession({ targetId, targetType })
+    
+    // 创建成功后，可以将新会话添加到会话列表
+    const newSession = res
+    if (newSession) {
+      // 这里可以添加到会话列表，或者重新获取会话列表
+      // commit('ADD_CHAT_SESSION', newSession)
+    }
+    
+    return res
+  },
+
+  // 获取用户主页信息
+  async fetchUserProfile({ commit }, userId) {
+    try {
+      commit('SET_LOADING', true)
+      // 响应拦截器已解包，res 直接是用户信息对象
+      const res = await getUserProfile(userId)
+      commit('SET_USER_PROFILE', res)
+      return res
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+
+  // 获取用户动态
+  async fetchUserDynamic({ commit }, userId) {
+    try {
+      commit('SET_LOADING', true)
+      // 响应拦截器已解包，res 直接是动态数据
+      const res = await getUserDynamic(userId)
+      commit('SET_USER_DYNAMIC', res)
+      return res
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+
+  // 获取用户统计数据
+  async fetchUserStatistics({ commit }, userId) {
+    try {
+      commit('SET_LOADING', true)
+      // 响应拦截器已解包，res 直接是统计数据
+      const res = await getUserStatistics(userId)
+      commit('SET_USER_STATISTICS', res)
+      return res
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+
+  // 置顶聊天会话
+  async pinChatSession({ commit }, sessionId) {
+    await pinChatSession(sessionId)
+    commit('PIN_CHAT_SESSION', sessionId)
+    return true
+  },
+
+  // 删除聊天会话
+  async deleteChatSession({ commit }, sessionId) {
+    await deleteChatSession(sessionId)
+    commit('REMOVE_CHAT_SESSION', sessionId)
+    return true
+  },
+
+  // 发送图片消息
+  async sendImageMessage({ commit, state }, messageData) {
+    const res = await sendImageMessage(messageData)
+    
+    // 如果是发送给当前聊天用户，添加到聊天历史
+    if (messageData.receiverId === state.currentChatUserId) {
+      commit('ADD_CHAT_MESSAGE', res)
+    }
+    
+    return res
+  },
+
+  // 获取用户发布的帖子列表
+  async fetchUserPosts({ commit, state }, params = {}) {
+    try {
+      commit('SET_LOADING', true)
+      const queryParams = {
+        page: state.postsPagination.currentPage,
+        size: state.postsPagination.pageSize,
+        ...params
+      }
+
+      // 响应拦截器已解包，res 直接是分页数据
+      const res = await getUserPosts(queryParams)
+      
+      commit('SET_USER_POSTS', {
+        posts: res?.list || [],
+        pagination: {
+          total: res?.total || 0,
+          currentPage: queryParams.page,
+          pageSize: queryParams.size
+        }
+      })
+      
+      return res
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+
+  // 获取用户评价记录
+  async fetchUserReviews({ commit, state }, params = {}) {
+    try {
+      commit('SET_LOADING', true)
+      const queryParams = {
+        page: state.reviewsPagination.currentPage,
+        size: state.reviewsPagination.pageSize,
+        ...params
+      }
+
+      // 响应拦截器已解包，res 直接是分页数据
+      const res = await getUserReviews(queryParams)
+      
+      commit('SET_USER_REVIEWS', {
+        reviews: res?.list || [],
+        pagination: {
+          total: res?.total || 0,
+          currentPage: queryParams.page,
+          pageSize: queryParams.size
+        }
+      })
+      
+      return res
     } finally {
       commit('SET_LOADING', false)
     }

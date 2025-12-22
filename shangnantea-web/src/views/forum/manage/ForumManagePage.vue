@@ -121,6 +121,174 @@
           </div>
         </el-tab-pane>
         
+        <el-tab-pane label="内容审核" name="audit">
+          <div class="management-section">
+            <div class="section-header">
+              <h2 class="section-title">内容审核</h2>
+              <div class="audit-stats">
+                <el-tag type="warning" effect="plain">
+                  待审核: {{ pendingPostsTotalCount }}
+                </el-tag>
+              </div>
+            </div>
+            
+            <!-- 待审核帖子列表表格 -->
+            <el-table
+              :data="pendingPostsList"
+              style="width: 100%"
+              v-loading="pendingPostsLoading"
+              border
+            >
+              <el-table-column label="ID" prop="id" width="80" align="center" />
+              <el-table-column label="标题" prop="title" min-width="200" show-overflow-tooltip>
+                <template #default="scope">
+                  <span class="post-title-text">{{ scope.row.title }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column label="作者" width="120">
+                <template #default="scope">
+                  <div class="user-info">
+                    <el-avatar :size="30" :src="scope.row.userAvatar" />
+                    <span class="user-name">{{ scope.row.userName }}</span>
+                  </div>
+                </template>
+              </el-table-column>
+              <el-table-column label="版块" width="120">
+                <template #default="scope">
+                  <el-tag size="small" effect="plain">{{ scope.row.topicName }}</el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column label="优先级" width="100" align="center">
+                <template #default="scope">
+                  <el-tag
+                    :type="scope.row.priority === 'high' ? 'danger' : 'info'"
+                    effect="plain"
+                    size="small"
+                  >
+                    {{ scope.row.priority === 'high' ? '高' : '普通' }}
+                  </el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column label="提交时间" width="180">
+                <template #default="scope">
+                  {{ formatDateTime(scope.row.createTime) }}
+                </template>
+              </el-table-column>
+              <el-table-column label="操作" width="200" fixed="right">
+                <template #default="scope">
+                  <el-button
+                    size="small"
+                    type="primary"
+                    @click="viewPendingPost(scope.row)"
+                  >
+                    查看详情
+                  </el-button>
+                  <el-button
+                    size="small"
+                    type="success"
+                    @click="showApproveDialog(scope.row)"
+                  >
+                    通过
+                  </el-button>
+                  <el-button
+                    size="small"
+                    type="danger"
+                    @click="showRejectDialog(scope.row)"
+                  >
+                    拒绝
+                  </el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+            
+            <div class="pagination-container">
+              <el-pagination
+                v-model:current-page="pendingPostsCurrentPage"
+                v-model:page-size="pendingPostsPageSize"
+                :page-sizes="[10, 20, 50]"
+                layout="total, sizes, prev, pager, next, jumper"
+                :total="pendingPostsTotalCount"
+                @size-change="handlePendingPostsSizeChange"
+                @current-change="handlePendingPostsCurrentChange"
+              />
+            </div>
+            
+            <!-- 审核通过对话框 -->
+            <el-dialog
+              title="审核通过"
+              v-model="approveDialogVisible"
+              width="500px"
+            >
+              <div class="audit-post-info">
+                <h4>{{ currentAuditPost?.title }}</h4>
+                <p class="post-content">{{ currentAuditPost?.content }}</p>
+              </div>
+              <el-form
+                ref="approveFormRef"
+                :model="approveForm"
+                label-width="100px"
+              >
+                <el-form-item label="审核意见">
+                  <el-input
+                    v-model="approveForm.comment"
+                    type="textarea"
+                    rows="3"
+                    placeholder="请输入审核意见（可选）"
+                  />
+                </el-form-item>
+              </el-form>
+              <template #footer>
+                <div class="dialog-footer">
+                  <el-button @click="approveDialogVisible = false">取消</el-button>
+                  <el-button type="primary" @click="confirmApprove">确认通过</el-button>
+                </div>
+              </template>
+            </el-dialog>
+            
+            <!-- 审核拒绝对话框 -->
+            <el-dialog
+              title="审核拒绝"
+              v-model="rejectDialogVisible"
+              width="500px"
+            >
+              <div class="audit-post-info">
+                <h4>{{ currentAuditPost?.title }}</h4>
+                <p class="post-content">{{ currentAuditPost?.content }}</p>
+              </div>
+              <el-form
+                ref="rejectFormRef"
+                :model="rejectForm"
+                :rules="rejectFormRules"
+                label-width="100px"
+              >
+                <el-form-item label="拒绝原因" prop="reason">
+                  <el-select v-model="rejectForm.reason" placeholder="请选择拒绝原因">
+                    <el-option label="内容违规" value="违规内容" />
+                    <el-option label="垃圾信息" value="垃圾信息" />
+                    <el-option label="重复发布" value="重复发布" />
+                    <el-option label="标题不规范" value="标题不规范" />
+                    <el-option label="其他原因" value="其他原因" />
+                  </el-select>
+                </el-form-item>
+                <el-form-item label="详细说明" prop="comment">
+                  <el-input
+                    v-model="rejectForm.comment"
+                    type="textarea"
+                    rows="3"
+                    placeholder="请详细说明拒绝原因"
+                  />
+                </el-form-item>
+              </el-form>
+              <template #footer>
+                <div class="dialog-footer">
+                  <el-button @click="rejectDialogVisible = false">取消</el-button>
+                  <el-button type="danger" @click="confirmReject">确认拒绝</el-button>
+                </div>
+              </template>
+            </el-dialog>
+          </div>
+        </el-tab-pane>
+        
         <el-tab-pane label="帖子管理" name="posts">
           <div class="management-section">
             <div class="section-header">
@@ -286,10 +454,13 @@
 </template>
 
 <script>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useStore } from 'vuex'
 import { Reading, Plus, Search } from '@element-plus/icons-vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessageBox } from 'element-plus'
+import { forumSuccessMessages, forumErrorMessages } from '@/utils/forumMessages'
+import { forumPromptMessages } from '@/utils/promptMessages'
 
 export default {
   name: 'ForumManagePage',
@@ -300,12 +471,47 @@ export default {
   },
   setup() {
     const router = useRouter()
-    const activeTab = ref('topics')
+    const store = useStore()
+    const activeTab = ref('audit')  // 默认显示审核标签页
     const postSearchText = ref('')
     
     // 版块相关数据
-    const topicsList = ref([])
-    const topicLoading = ref(false)
+    const topicsList = computed(() => store.state.forum.forumTopics)
+    const topicLoading = computed(() => store.state.forum.loading)
+    
+    // 内容审核相关数据
+    const pendingPostsList = computed(() => store.state.forum.pendingPosts)
+    const pendingPostsLoading = computed(() => store.state.forum.loading)
+    const pendingPostsTotalCount = computed(() => store.state.forum.pendingPostsPagination.total)
+    const pendingPostsCurrentPage = ref(1)
+    const pendingPostsPageSize = ref(10)
+    
+    // 审核对话框相关
+    const approveDialogVisible = ref(false)
+    const rejectDialogVisible = ref(false)
+    const currentAuditPost = ref(null)
+    
+    const approveForm = ref({
+      comment: ''
+    })
+    
+    const rejectForm = ref({
+      reason: '',
+      comment: ''
+    })
+    
+    const rejectFormRules = {
+      reason: [
+        { required: true, message: '请选择拒绝原因', trigger: 'change' }
+      ],
+      comment: [
+        { required: true, message: '请详细说明拒绝原因', trigger: 'blur' },
+        { min: 10, message: '详细说明至少10个字符', trigger: 'blur' }
+      ]
+    }
+    
+    const approveFormRef = ref(null)
+    const rejectFormRef = ref(null)
     const addTopicDialogVisible = ref(false)
     const editTopicMode = ref(false)
     const currentTopic = ref(null)
@@ -343,12 +549,12 @@ export default {
     
     // 加载版块列表
     const loadTopics = async () => {
-      topicLoading.value = true
-
-      // TODO-SCRIPT: 论坛管理功能需要后端接口与 Vuex forum 模块支持（当前 store/modules/forum.js 仅保留首页数据）
-      // 生产形态：不在 UI 层 setTimeout 伪造数据与成功状态
-      topicsList.value = []
-      topicLoading.value = false
+      try {
+        await store.dispatch('forum/fetchForumTopics')
+      } catch (error) {
+        forumErrorMessages.showLoadTopicsFailed()
+        console.error('获取版块列表失败:', error)
+      }
     }
     
     // 显示添加版块对话框
@@ -385,30 +591,28 @@ export default {
       await topicFormRef.value.validate(async (valid) => {
         if (valid) {
           const actionType = editTopicMode.value ? '更新' : '添加'
-
-          // TODO-SCRIPT: 版块新增/编辑需要后端接口与 Vuex forum 模块；不在 UI 层 setTimeout 伪提交/本地更新
-          ElMessage.info(`${actionType}版块功能待后端接口接入`)
-          return
           
-          /* 
-          // 真实代码(开发UI时注释)
           try {
             if (editTopicMode.value) {
-              await store.dispatch('forum/updateForumTopic', {
+              await store.dispatch('forum/updateTopic', {
                 id: currentTopic.value.id,
-                ...topicForm.value
+                data: topicForm.value
               })
+              forumSuccessMessages.showTopicUpdated()
             } else {
-              await store.dispatch('forum/addForumTopic', topicForm.value)
+              await store.dispatch('forum/createTopic', topicForm.value)
+              forumSuccessMessages.showTopicCreated()
             }
             
-            ElMessage.success(`${actionType}版块成功`)
             addTopicDialogVisible.value = false
             await loadTopics()
           } catch (error) {
-            ElMessage.error(`${actionType}版块失败: ${error.message}`)
+            if (editTopicMode.value) {
+              forumErrorMessages.showTopicUpdateFailed(error.message)
+            } else {
+              forumErrorMessages.showTopicCreateFailed(error.message)
+            }
           }
-          */
         }
       })
     }
@@ -416,26 +620,22 @@ export default {
     // 更改版块状态
     const changeTopicStatus = async (topic) => {
       const newStatus = topic.status === 1 ? 0 : 1
-      const actionText = newStatus === 1 ? '启用' : '禁用'
-
-      // TODO-SCRIPT: 版块启用/禁用需要后端接口与 Vuex forum 模块支持
-      ElMessage.info(`${actionText}版块功能待后端接口接入`)
-      return
       
-      /* 
-      // 真实代码(开发UI时注释)
       try {
-        await store.dispatch('forum/updateForumTopicStatus', {
+        await store.dispatch('forum/updateTopic', {
           id: topic.id,
-          status: newStatus
+          data: { ...topic, status: newStatus }
         })
         
-        ElMessage.success(`${actionText}版块成功`)
+        if (newStatus === 1) {
+          forumSuccessMessages.showTopicEnabled()
+        } else {
+          forumSuccessMessages.showTopicDisabled()
+        }
         await loadTopics()
       } catch (error) {
-        ElMessage.error(`${actionText}版块失败: ${error.message}`)
+        forumErrorMessages.showTopicUpdateFailed(error.message)
       }
-      */
     }
     
     // 删除版块
@@ -450,21 +650,13 @@ export default {
         }
       )
         .then(async () => {
-
-          // TODO-SCRIPT: 删除版块需要后端接口与权限控制；不在 UI 层做本地伪删除
-          ElMessage.info('删除版块功能待后端接口接入')
-          return
-          
-          /* 
-          // 真实代码(开发UI时注释)
           try {
-            await store.dispatch('forum/deleteForumTopic', topic.id)
-            ElMessage.success('删除版块成功')
+            await store.dispatch('forum/deleteTopic', topic.id)
+            forumSuccessMessages.showTopicDeleted()
             await loadTopics()
           } catch (error) {
-            ElMessage.error(`删除版块失败: ${error.message}`)
+            forumErrorMessages.showTopicDeleteFailed(error.message)
           }
-          */
         })
         .catch(() => {
           // 用户取消
@@ -556,24 +748,7 @@ export default {
       postsList.value = mockPosts
       postsTotalCount.value = 28 // 模拟总数
       */
-      
-      /* 
-      // 真实代码(开发UI时注释)
-      try {
-        const result = await store.dispatch('forum/getForumPosts', {
-          page: postCurrentPage.value,
-          pageSize: postPageSize.value,
-          keyword: postSearchText.value
-        })
-        
-        postsList.value = result.list
-        postsTotalCount.value = result.total
-      } catch (error) {
-        ElMessage.error('获取帖子列表失败')
-      }
-      */
-      
-      postsLoading.value = false
+postsLoading.value = false
     }
     
     // 搜索帖子
@@ -624,67 +799,60 @@ export default {
     // 审核通过帖子
     const approvePost = async (post) => {
       // TODO-SCRIPT: 审核帖子需要后端接口与 Vuex forum 模块；不在 UI 层伪造成功/本地改状态
-      ElMessage.info('帖子审核功能待后端接口接入')
+      forumPromptMessages.showFeatureDeveloping()
       return
-      
-      /* 
-      // 真实代码(开发UI时注释)
-      try {
-        await store.dispatch('forum/approveForumPost', post.id)
-        ElMessage.success('帖子审核通过')
-        await loadPosts()
-      } catch (error) {
-        ElMessage.error(`帖子审核失败: ${error.message}`)
-      }
-      */
-    }
+}
     
     // 切换帖子置顶状态
     const toggleTopPost = async (post) => {
       const newTopStatus = !post.is_top
-      const actionText = newTopStatus ? '置顶' : '取消置顶'
-      // TODO-SCRIPT: 置顶/取消置顶需要后端接口与 Vuex forum 模块；不在 UI 层伪造成功/本地改状态
-      ElMessage.info(`帖子${actionText}功能待后端接口接入`)
-      return
       
-      /* 
-      // 真实代码(开发UI时注释)
       try {
-        await store.dispatch('forum/updateForumPostTop', {
+        await store.dispatch('forum/togglePostSticky', {
           id: post.id,
-          isTop: newTopStatus
+          isSticky: newTopStatus
         })
         
-        ElMessage.success(`帖子${actionText}成功`)
-        await loadPosts()
+        if (newTopStatus) {
+          forumSuccessMessages.showPostPinned()
+        } else {
+          forumSuccessMessages.showPostUnpinned()
+        }
+        // 更新本地数据
+        post.is_top = newTopStatus
       } catch (error) {
-        ElMessage.error(`帖子${actionText}失败: ${error.message}`)
+        if (newTopStatus) {
+          forumErrorMessages.showPinFailed(error.message)
+        } else {
+          forumErrorMessages.showUnpinFailed(error.message)
+        }
       }
-      */
     }
     
     // 切换帖子精华状态
     const toggleEssencePost = async (post) => {
       const newEssenceStatus = !post.is_essence
-      const actionText = newEssenceStatus ? '加精' : '取消加精'
-      // TODO-SCRIPT: 加精/取消加精需要后端接口与 Vuex forum 模块；不在 UI 层伪造成功/本地改状态
-      ElMessage.info(`帖子${actionText}功能待后端接口接入`)
-      return
       
-      /* 
-      // 真实代码(开发UI时注释)
       try {
-        await store.dispatch('forum/updateForumPostEssence', {
+        await store.dispatch('forum/togglePostEssence', {
           id: post.id,
           isEssence: newEssenceStatus
         })
         
-        ElMessage.success(`帖子${actionText}成功`)
-        await loadPosts()
+        if (newEssenceStatus) {
+          forumSuccessMessages.showPostFeatured()
+        } else {
+          forumSuccessMessages.showPostUnfeatured()
+        }
+        // 更新本地数据
+        post.is_essence = newEssenceStatus
       } catch (error) {
-        ElMessage.error(`帖子${actionText}失败: ${error.message}`)
+        if (newEssenceStatus) {
+          forumErrorMessages.showFeatureFailed(error.message)
+        } else {
+          forumErrorMessages.showUnfeatureFailed(error.message)
+        }
       }
-      */
     }
     
     // 删除帖子
@@ -700,29 +868,125 @@ export default {
       )
         .then(async () => {
           // TODO-SCRIPT: 删除帖子需要后端接口与权限控制；不在 UI 层做本地伪删除
-          ElMessage.info('删除帖子功能待后端接口接入')
+          forumPromptMessages.showFeatureDeveloping()
           return
-          
-          /* 
-          // 真实代码(开发UI时注释)
-          try {
-            await store.dispatch('forum/deleteForumPost', post.id)
-            ElMessage.success('删除帖子成功')
-            await loadPosts()
-          } catch (error) {
-            ElMessage.error(`删除帖子失败: ${error.message}`)
-          }
-          */
-        })
+})
         .catch(() => {
           // 用户取消
         })
+    }
+    
+    // 加载待审核帖子列表
+    const loadPendingPosts = async () => {
+      try {
+        await store.dispatch('forum/fetchPendingPosts', {
+          page: pendingPostsCurrentPage.value,
+          size: pendingPostsPageSize.value
+        })
+      } catch (error) {
+        forumErrorMessages.showLoadPendingPostsFailed()
+        console.error('获取待审核帖子列表失败:', error)
+      }
+    }
+    
+    // 处理待审核帖子分页大小变化
+    const handlePendingPostsSizeChange = (val) => {
+      pendingPostsPageSize.value = val
+      loadPendingPosts()
+    }
+    
+    // 处理待审核帖子分页页码变化
+    const handlePendingPostsCurrentChange = (val) => {
+      pendingPostsCurrentPage.value = val
+      loadPendingPosts()
+    }
+    
+    // 查看待审核帖子详情
+    const viewPendingPost = (post) => {
+      router.push(`/forum/detail/${post.id}`)
+    }
+    
+    // 显示审核通过对话框
+    const showApproveDialog = (post) => {
+      currentAuditPost.value = post
+      approveForm.value = {
+        comment: ''
+      }
+      approveDialogVisible.value = true
+    }
+    
+    // 显示审核拒绝对话框
+    const showRejectDialog = (post) => {
+      currentAuditPost.value = post
+      rejectForm.value = {
+        reason: '',
+        comment: ''
+      }
+      rejectDialogVisible.value = true
+    }
+    
+    // 确认审核通过
+    const confirmApprove = async () => {
+      try {
+        await store.dispatch('forum/approvePost', {
+          id: currentAuditPost.value.id,
+          data: {
+            comment: approveForm.value.comment
+          }
+        })
+        
+        forumSuccessMessages.showPostApproved()
+        approveDialogVisible.value = false
+        await loadPendingPosts()
+      } catch (error) {
+        forumErrorMessages.showPostApproveFailed(error.message)
+      }
+    }
+    
+    // 确认审核拒绝
+    const confirmReject = async () => {
+      if (!rejectFormRef.value) return
+      
+      await rejectFormRef.value.validate(async (valid) => {
+        if (valid) {
+          try {
+            await store.dispatch('forum/rejectPost', {
+              id: currentAuditPost.value.id,
+              data: {
+                reason: rejectForm.value.reason,
+                comment: rejectForm.value.comment
+              }
+            })
+            
+            forumSuccessMessages.showPostRejected()
+            rejectDialogVisible.value = false
+            await loadPendingPosts()
+          } catch (error) {
+            forumErrorMessages.showPostRejectFailed(error.message)
+          }
+        }
+      })
+    }
+    
+    // 格式化日期时间
+    const formatDateTime = (dateTime) => {
+      if (!dateTime) return ''
+      const date = new Date(dateTime)
+      return date.toLocaleString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
     }
     
     // 监听标签页变化，加载相应数据
     watch(activeTab, (newVal) => {
       if (newVal === 'posts') {
         loadPosts()
+      } else if (newVal === 'audit') {
+        loadPendingPosts()
       }
     })
     
@@ -730,8 +994,10 @@ export default {
     onMounted(() => {
       loadTopics()
       
-      // 如果默认标签是帖子管理，则加载帖子
-      if (activeTab.value === 'posts') {
+      // 默认加载审核标签页数据
+      if (activeTab.value === 'audit') {
+        loadPendingPosts()
+      } else if (activeTab.value === 'posts') {
         loadPosts()
       }
     })
@@ -768,7 +1034,30 @@ export default {
       approvePost,
       toggleTopPost,
       toggleEssencePost,
-      deletePost
+      deletePost,
+      // 内容审核相关
+      pendingPostsList,
+      pendingPostsLoading,
+      pendingPostsTotalCount,
+      pendingPostsCurrentPage,
+      pendingPostsPageSize,
+      handlePendingPostsSizeChange,
+      handlePendingPostsCurrentChange,
+      viewPendingPost,
+      showApproveDialog,
+      showRejectDialog,
+      confirmApprove,
+      confirmReject,
+      formatDateTime,
+      // 审核对话框相关
+      approveDialogVisible,
+      rejectDialogVisible,
+      currentAuditPost,
+      approveForm,
+      rejectForm,
+      rejectFormRules,
+      approveFormRef,
+      rejectFormRef
     }
   }
 }
@@ -844,6 +1133,12 @@ export default {
     .search-bar {
       width: 300px;
     }
+    
+    .audit-stats {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
   }
   
   .post-title-text {
@@ -865,6 +1160,46 @@ export default {
   .pagination-container {
     margin-top: 20px;
     text-align: right;
+  }
+  
+  // 审核相关样式
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    
+    .user-name {
+      font-size: 14px;
+      color: #606266;
+    }
+  }
+  
+  .audit-post-info {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    border-left: 4px solid #409eff;
+    
+    h4 {
+      margin: 0 0 10px;
+      font-size: 16px;
+      font-weight: 500;
+      color: #303133;
+    }
+    
+    .post-content {
+      margin: 0;
+      font-size: 14px;
+      color: #606266;
+      line-height: 1.6;
+      max-height: 100px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 4;
+      -webkit-box-orient: vertical;
+    }
   }
 }
 

@@ -64,7 +64,7 @@
                   </template>
                 </el-dropdown>
                 
-                <el-button type="primary" plain size="small" @click="refreshPosts" :loading="loading.posts">
+                <el-button type="primary" plain size="small" @click="refreshPosts" :loading="loading">
                   <el-icon><Refresh /></el-icon> 刷新
                 </el-button>
               </div>
@@ -77,6 +77,7 @@
                 :key="post.id" 
                 :post="post"
                 @reply="handleReply" 
+                @like="handleLike"
                 @favorite="handleFavorite"
               />
               
@@ -182,7 +183,7 @@
         <template #footer>
           <span class="dialog-footer">
             <el-button @click="dialogVisible.delete = false">取消</el-button>
-            <el-button type="danger" @click="deletePost" :loading="loading.delete">确认删除</el-button>
+            <el-button type="danger" @click="deletePost" :loading="localLoading.delete">确认删除</el-button>
           </span>
         </template>
       </el-dialog>
@@ -191,12 +192,15 @@
 </template>
 
 <script>
+/* eslint-disable vue/no-ref-as-operand */
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { useStore } from 'vuex'
+
 import { Refresh, ArrowDown, Grid, EditPen, Delete, Male, Female } from '@element-plus/icons-vue'
 import PostCard from '@/components/forum/PostCard.vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
+import { forumSuccessMessages, forumErrorMessages } from '@/utils/forumMessages'
 
 export default {
   name: 'ForumListPage',
@@ -207,6 +211,7 @@ export default {
   },
   setup() {
     const router = useRouter()
+    const store = useStore()
     
     // 默认图片常量（生产形态：不使用 mock-images）
     const defaultAvatar = ''
@@ -228,10 +233,8 @@ export default {
     // 待删除的帖子
     const postToDelete = ref(null)
     
-    // 加载状态
-    const loading = reactive({
-      topics: false,
-      posts: false,
+    // 本地加载状态
+    const localLoading = reactive({
       delete: false
     })
     
@@ -256,14 +259,24 @@ export default {
       total: 0
     })
     
-    /**
-     * 列表数据（生产形态：不在 UI 层造数据）
-     * TODO-SCRIPT: 需要 forum 模块 API + Vuex 接入（版块列表/帖子列表/我的帖子/分页/排序/当前用户）
-     */
-    const topicList = ref([])
-    const postList = ref([])
+    // 从Vuex获取数据
+    const topicList = computed(() => store.state.forum.forumTopics)
+    const postList = computed(() => store.state.forum.forumPosts)
+    const loading = computed(() => store.state.forum.loading)
+    const error = computed(() => store.state.forum.error)
+    
+    // 分页数据从Vuex获取
+    const paginationData = computed(() => store.state.forum.postPagination)
+    
+    // 我的帖子（暂时使用空数组，后续可以添加相关API）
     const myPosts = ref([])
-    pagination.total = 0
+    
+    // 更新本地分页状态
+    const updatePagination = () => {
+      pagination.currentPage = paginationData.value.current
+      pagination.pageSize = paginationData.value.pageSize
+      pagination.total = paginationData.value.total
+    }
 
     /*
     // 模拟数据 - 版块列表
@@ -571,7 +584,7 @@ export default {
         const result = await store.dispatch('forum/getTopics')
         topicList.value = result
       } catch (error) {
-        ElMessage.error('获取版块列表失败')
+        message.error('获取版块列表失败')
       } finally {
         loading.topics = false
       }
@@ -591,7 +604,7 @@ export default {
         postList.value = result.list
         pagination.total = result.total
       } catch (error) {
-        ElMessage.error('获取帖子列表失败')
+        message.error('获取帖子列表失败')
       } finally {
         loading.posts = false
       }
@@ -629,72 +642,67 @@ export default {
       return topic ? topic.description : ''
     }
     
+    // 获取版块列表
+    const fetchTopics = async () => {
+      try {
+        await store.dispatch('forum/fetchForumTopics')
+      } catch (error) {
+        forumErrorMessages.showLoadTopicsFailed()
+        console.error('获取版块列表失败:', error)
+      }
+    }
+    
+    // 获取帖子列表
+    const fetchPosts = async () => {
+      try {
+        const params = {
+          page: pagination.currentPage,
+          size: pagination.pageSize,
+          sortBy: currentSort.value,
+          topicId: currentTopicId.value === 'all' ? null : currentTopicId.value
+        }
+        await store.dispatch('forum/fetchForumPosts', params)
+        updatePagination()
+      } catch (error) {
+        forumErrorMessages.showLoadPostsFailed()
+        console.error('获取帖子列表失败:', error)
+      }
+    }
+    
     // 切换版块
     const switchTopic = (topicId) => {
       currentTopicId.value = topicId
       pagination.currentPage = 1
-
-      // TODO-SCRIPT: 论坛版块/帖子列表需要后端接口与 Vuex forum 模块支持（当前 store/modules/forum.js 仅保留首页数据）
-      ElMessage.info('论坛列表功能待后端接口接入')
-      /*
-      // 真实代码(开发UI时注释)
       fetchPosts()
-      */
     }
     
     // 刷新版块列表
     const refreshTopics = () => {
-      // TODO-SCRIPT: 版块列表刷新需要后端接口
-      ElMessage.info('版块列表刷新待后端接口接入')
-      /*
-      // 真实代码(开发UI时注释)
       fetchTopics()
-      */
     }
     
     // 刷新帖子列表
     const refreshPosts = () => {
-      // TODO-SCRIPT: 帖子列表刷新需要后端接口
-      ElMessage.info('帖子列表刷新待后端接口接入')
-      /*
-      // 真实代码(开发UI时注释)
       fetchPosts()
-      */
     }
     
     // 处理排序变更
     const handleSortChange = (sort) => {
       currentSort.value = sort
-
-      // TODO-SCRIPT: 排序需要后端接口支持（按 sort + pagination 查询）
-      ElMessage.info('排序功能待后端接口接入')
-      /*
-      // 真实代码(开发UI时注释)
       pagination.currentPage = 1
       fetchPosts()
-      */
     }
     
     // 处理分页大小变更
     const handleSizeChange = (size) => {
       pagination.pageSize = size
-      // TODO-SCRIPT: 分页需要后端接口支持
-      refreshPosts()
-      /*
-      // 真实代码(开发UI时注释)
       fetchPosts()
-      */
     }
     
     // 处理页码变更
     const handleCurrentChange = (page) => {
       pagination.currentPage = page
-      // TODO-SCRIPT: 分页需要后端接口支持
-      refreshPosts()
-      /*
-      // 真实代码(开发UI时注释)
       fetchPosts()
-      */
     }
     
     // 查看版块
@@ -722,25 +730,36 @@ export default {
       router.push(`/forum/${post.id}#reply-section`)
     }
     
-    // 帖子收藏
-    const handleFavorite = (post) => {
-      // TODO-SCRIPT: 收藏/取消收藏需要后端接口与 Vuex forum 模块
-      ElMessage.info('收藏功能待后端接口接入')
-      return
-      /*
-      // 真实代码(开发UI时注释)
-      if (post.favorited) {
-        store.dispatch('forum/cancelFavorite', post.id).then(() => {
-          post.favorited = false
-          ElMessage.success('已取消收藏')
-        })
-      } else {
-        store.dispatch('forum/addFavorite', post.id).then(() => {
-          post.favorited = true
-          ElMessage.success('收藏成功')
-        })
+    // 帖子点赞
+    const handleLike = async (post) => {
+      try {
+        if (post.isLiked) {
+          await store.dispatch('forum/unlikePost', post.id)
+          forumSuccessMessages.showPostUnliked()
+        } else {
+          await store.dispatch('forum/likePost', post.id)
+          forumSuccessMessages.showPostLiked()
+        }
+      } catch (error) {
+        forumErrorMessages.showOperationFailed()
+        console.error('点赞操作失败:', error)
       }
-      */
+    }
+    
+    // 帖子收藏
+    const handleFavorite = async (post) => {
+      try {
+        if (post.isFavorited) {
+          await store.dispatch('forum/unfavoritePost', post.id)
+          forumSuccessMessages.showPostUnfavorited()
+        } else {
+          await store.dispatch('forum/favoritePost', post.id)
+          forumSuccessMessages.showPostFavorited()
+        }
+      } catch (error) {
+        forumErrorMessages.showOperationFailed()
+        console.error('收藏操作失败:', error)
+      }
     }
     
     // 确认删除帖子
@@ -750,34 +769,28 @@ export default {
     }
     
     // 删除帖子
-    const deletePost = () => {
+    const deletePost = async () => {
       if (!postToDelete.value) return
       
-      loading.delete = true
-
-      // TODO-SCRIPT: 删除帖子需要后端接口与权限控制；这里不做本地伪删除，避免假状态
-      ElMessage.info('删除功能待后端接口接入')
-      loading.delete = false
-      dialogVisible.delete = false
-      postToDelete.value = null
-      return
-      /*
-      // 真实代码(开发UI时注释)
-      store.dispatch('forum/deletePost', postToDelete.value.id).then(() => {
+      localLoading.delete = true
+      
+      try {
+        await store.dispatch('forum/deletePost', postToDelete.value.id)
         // 从我的帖子列表中移除
         myPosts.value = myPosts.value.filter(item => item.id !== postToDelete.value.id)
-        // 如果在当前列表中，也需要移除
-        postList.value = postList.value.filter(item => item.id !== postToDelete.value.id)
         
-        ElMessage.success('帖子删除成功')
+        forumSuccessMessages.showPostDeleted()
         dialogVisible.delete = false
         postToDelete.value = null
-      }).catch(() => {
-        ElMessage.error('删除失败，请重试')
-      }).finally(() => {
-        loading.delete = false
-      })
-      */
+        
+        // 刷新帖子列表
+        fetchPosts()
+      } catch (error) {
+        forumErrorMessages.showPostDeleteFailed()
+        console.error('删除帖子失败:', error)
+      } finally {
+        localLoading.delete = false
+      }
     }
     
     // 格式化日期
@@ -812,6 +825,14 @@ export default {
       router.push('/tea-culture')
     }
     
+    // 页面初始化
+    onMounted(async () => {
+      await Promise.all([
+        fetchTopics(),
+        fetchPosts()
+      ])
+    })
+    
     return {
       topicList,
       postList,
@@ -819,6 +840,7 @@ export default {
       currentUser,
       currentTopicId,
       loading,
+      localLoading,
       dialogVisible,
       currentSort,
       sortOptions,
@@ -839,11 +861,14 @@ export default {
       viewPost,
       showPostDialog,
       handleReply,
+      handleLike,
       handleFavorite,
       confirmDeletePost,
       deletePost,
       formatDate,
       goHome,
+      fetchTopics,
+      fetchPosts,
       Refresh,
       ArrowDown,
       Grid,

@@ -127,10 +127,12 @@ import { useStore } from 'vuex'
 import { uploadImage } from '@/api/upload'
 import { Plus } from '@element-plus/icons-vue'
 import { handleAsyncOperation } from '@/utils/messageHelper'
-import shopMessages from '@/utils/shopMessages'
+
 import { regionData, getStaticRegionData } from '@/utils/region'
-import { message } from '@/components/common'
+
 import SafeImage from '@/components/common/form/SafeImage.vue'
+import { userPromptMessages as userMessages, shopPromptMessages as shopMessages } from '@/utils/promptMessages'
+import { showByCode, isSuccess } from '@/utils/apiMessages'
 
 export default {
   name: 'MerchantApplication',
@@ -230,7 +232,7 @@ export default {
         console.log('省市区数据加载成功，共', cascaderOptions.value.length, '个省级行政区')
       } catch (error) {
         console.error('加载省市区数据出错：', error)
-        message.warning('省市区数据加载不完整，将使用备用数据')
+        userMessages.prompt.showRegionDataIncomplete()
         cascaderOptions.value = regionData
       } finally {
         regionLoading.value = false
@@ -255,12 +257,12 @@ export default {
       const isLt2M = file.size / 1024 / 1024 < 2
       
       if (!isImage) {
-        shopMessages.ui.showFileTypeError()
+        shopMessages.prompt.showLogoFormatInvalid()
         return false
       }
       
       if (!isLt2M) {
-        shopMessages.ui.showFileSizeError(2)
+        shopMessages.prompt.showLogoSizeLimit()
         return false
       }
       
@@ -307,7 +309,7 @@ export default {
     const submitApplication = () => {
       applicationFormRef.value.validate(async (valid) => {
         if (!valid) {
-          shopMessages.ui.showCertificationIncomplete()
+          shopMessages.prompt.showCertificationIncomplete()
           return
         }
         
@@ -317,8 +319,8 @@ export default {
           const result = await handleAsyncOperation(
             store.dispatch('user/submitShopCertification', applicationForm),
             {
-              loadingMessage: shopMessages.api.showSubmittingCertification,
-              successMessage: shopMessages.business.showCertificationSubmitted,
+              successMessage: () => // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+ shopMessages.success.showCertificationSubmitted(),
               errorMessage: '提交认证申请失败，请重试'
             }
           )
@@ -348,7 +350,6 @@ export default {
         const result = await handleAsyncOperation(
           store.dispatch('user/fetchShopCertificationStatus'),
           {
-            loadingMessage: shopMessages.api.showLoadingCertifications,
             errorMessage: '获取认证状态失败'
           }
         )

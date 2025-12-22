@@ -5,9 +5,11 @@ import { computed, ref } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
 // 避免直接导入UI组件，改为使用封装的message组件
-import { message } from '@/components/common'
+
 import { useTokenStorage } from '@/composables/useStorage' // 直接使用useTokenStorage
 import { handleAsyncOperation, STANDARD_MESSAGES } from '@/utils/messageHelper'
+import { showByCode, isSuccess } from '@/utils/apiMessages'
+import userMessages from '@/utils/promptMessages'
 
 // 角色常量 - 确保与后端一致 (从permission.js移入)
 export const ROLES = {
@@ -132,7 +134,10 @@ export function useAuth() {
       // 登录成功后立即验证token的有效性
       const validUser = verifyToken()
       if (!validUser) {
-        message.error('登录失败，服务器返回的Token无效')
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        // TODO: [user] 迁移到 showByCode(response.code) - error
+        userMessages.error.showTokenInvalid()
         await store.dispatch('user/logout')
         router.push('/login')
         throw new Error('无效的Token')

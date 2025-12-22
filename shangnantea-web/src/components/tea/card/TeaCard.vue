@@ -39,9 +39,11 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
-import { ElMessage } from 'element-plus'
+
 import { ShoppingCart } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
+import { showByCode, isSuccess } from '@/utils/apiMessages'
+import teaMessages from '@/utils/promptMessages'
 
 export default {
   name: 'TeaCard',
@@ -76,9 +78,13 @@ export default {
           teaId: props.tea.id,
           quantity: 1
         })
-        ElMessage.success('已添加到购物车')
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        teaMessages.success.showCardAddedToCart()
       } catch (error) {
-        ElMessage.error(error.message || '添加失败，请重试')
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        teaMessages.error.showCardAddFailed(error.message)
       } finally {
         loading.value = false
       }

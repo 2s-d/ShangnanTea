@@ -13,6 +13,26 @@
             class="user-form"
             status-icon
           >
+            <el-form-item label="头像">
+              <div class="avatar-upload-container">
+                <SafeImage 
+                  :src="userInfo?.avatar || '/images/avatar/default.png'" 
+                  type="avatar" 
+                  alt="用户头像" 
+                  class="avatar-preview"
+                  style="width:100px;height:100px;border-radius:50%;object-fit:cover;"
+                />
+                <el-upload
+                  class="avatar-uploader"
+                  :show-file-list="false"
+                  :before-upload="beforeAvatarUpload"
+                  :http-request="handleAvatarUpload"
+                  accept="image/*"
+                >
+                  <el-button type="primary" size="small">更换头像</el-button>
+                </el-upload>
+              </div>
+            </el-form-item>
             <el-form-item label="用户名">
               <el-input v-model="userForm.username" disabled></el-input>
             </el-form-item>
@@ -53,6 +73,25 @@
                 show-word-limit
               ></el-input>
             </el-form-item>
+            <!-- 任务C-4：商家认证状态显示 -->
+            <el-form-item label="商家认证" v-if="!isAdmin">
+              <div class="certification-status">
+                <el-tag 
+                  :type="getCertificationTagType(certificationStatus)" 
+                  v-if="certificationStatus !== null"
+                >
+                  {{ getCertificationStatusText(certificationStatus) }}
+                </el-tag>
+                <el-button 
+                  type="primary" 
+                  size="small" 
+                  @click="goToMerchantApplication"
+                  v-if="certificationStatus === null || certificationStatus === -1 || certificationStatus === 1"
+                >
+                  {{ certificationStatus === null || certificationStatus === -1 ? '申请商家认证' : '重新申请' }}
+                </el-button>
+              </div>
+            </el-form-item>
             <el-form-item>
               <el-button type="primary" @click="handleSaveUserInfo" :loading="saving">保存修改</el-button>
               <el-button @click="handleResetForm">重置</el-button>
@@ -67,23 +106,31 @@
 <script>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useStore } from 'vuex'
-import { useRoute } from 'vue-router'
-import { message } from '@/components/common'
+import { useRoute, useRouter } from 'vue-router'
+
 import messageManager from '@/utils/messageManager'
 import { handleAsyncOperation, STANDARD_MESSAGES } from '@/utils/messageHelper'
 import { uploadImage } from '@/api/upload'
-import messageMessages from '@/utils/messageMessages'
+
 import { useFormValidation } from '@/composables/useFormValidation'
+import SafeImage from '@/components/common/form/SafeImage.vue'
+import { userPromptMessages as userMessages, messagePromptMessages as messageMessages } from '@/utils/promptMessages'
+import { showByCode, isSuccess } from '@/utils/apiMessages'
 
 export default {
   name: 'ProfilePage',
+  components: {
+    SafeImage
+  },
   setup() {
     const store = useStore()
     const route = useRoute()
+    const router = useRouter()
     const userForm = ref(null)
     
     const loading = ref(false)
     const saving = ref(false)
+    const certificationStatus = ref(null) // 任务C-4：认证状态 -1未申请 0待审核 1已拒绝 2已通过
     
     const pageTitle = computed(() => {
       return '个人中心'
@@ -142,6 +189,54 @@ export default {
       return store.state.user.userInfo
     })
     
+    // 任务C-4：判断是否是管理员
+    const isAdmin = computed(() => {
+      return store.getters['user/isAdmin']
+    })
+    
+    // 任务C-4：获取认证状态文本
+    const getCertificationStatusText = (status) => {
+      if (status === null || status === -1) return '未申请'
+      if (status === 0) return '待审核'
+      if (status === 1) return '已拒绝'
+      if (status === 2) return '已通过'
+      return '未知'
+    }
+    
+    // 任务C-4：获取认证状态标签类型
+    const getCertificationTagType = (status) => {
+      if (status === null || status === -1) return 'info'
+      if (status === 0) return 'warning'
+      if (status === 1) return 'danger'
+      if (status === 2) return 'success'
+      return 'info'
+    }
+    
+    // 任务C-4：跳转到商家认证申请页
+    const goToMerchantApplication = () => {
+      router.push('/merchant-application')
+    }
+    
+    // 任务C-4：获取认证状态
+    const fetchCertificationStatus = async () => {
+      // 只有非管理员用户才需要显示认证状态
+      if (isAdmin.value) {
+        return
+      }
+      
+      try {
+        const result = await store.dispatch('user/fetchShopCertificationStatus')
+        if (result && result.data) {
+          certificationStatus.value = result.data.status
+        } else {
+          certificationStatus.value = -1 // 未申请
+        }
+      } catch (error) {
+        console.error('获取认证状态失败:', error)
+        certificationStatus.value = -1
+      }
+    }
+    
     const handleInitForm = () => {
       if (userInfo.value) {
         formData.username = userInfo.value.username || '';
@@ -152,7 +247,7 @@ export default {
         formData.birthday = userInfo.value.birthday || '';
         formData.bio = userInfo.value.bio || '';
       } else {
-        messageMessages.ui.showUserDataIncomplete();
+        messageMessages.showUserDataIncomplete();
       }
     }
     
@@ -164,17 +259,19 @@ export default {
           store.dispatch('user/getUserInfo'),
           {
             successMessage: null,
-            errorMessage: messageMessages.MESSAGE_MESSAGES.API.USER_INFO_LOADING_FAILED
+            errorMessage: '获取用户信息失败'
           }
         );
         
         if (result) {
           handleInitForm();
         } else {
-          messageMessages.business.showUserInfoEmpty();
+          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+          showByCode(7120) // 未能获取到用户信息
         }
       } catch (error) {
-        messageMessages.api.showUserInfoLoadingFailed(error);
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+        showByCode(7121) // 用户信息不完整
       } finally {
         loading.value = false;
       }
@@ -183,6 +280,49 @@ export default {
     const handleResetForm = () => {
       userForm.value.resetFields()
       handleInitForm()
+    }
+    
+    // 头像上传前验证
+    const beforeAvatarUpload = (file) => {
+      const isImage = file.type.startsWith('image/')
+      const isLt2M = file.size / 1024 / 1024 < 2
+      
+      if (!isImage) {
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+        userMessages.showAvatarFormatInvalid()
+        return false
+      }
+      if (!isLt2M) {
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+        userMessages.showAvatarSizeLimit()
+        return false
+      }
+      return true
+    }
+    
+    // 头像上传处理
+    // 任务A-5：使用Vuex uploadAvatar action
+    const handleAvatarUpload = async (options) => {
+      const file = options.file
+      if (!file) return
+      
+      try {
+        loading.value = true
+        
+        // store中已处理消息提示，不再传入successMessage/errorMessage
+        await handleAsyncOperation(
+          store.dispatch('user/uploadAvatar', file),
+          {}
+        )
+        
+        // 刷新用户信息
+        await store.dispatch('user/getUserInfo')
+        handleInitForm()
+        } catch (error) {
+        console.error('头像上传失败:', error)
+      } finally {
+        loading.value = false
+      }
     }
     
     const handleSaveUserInfo = async () => {
@@ -198,12 +338,10 @@ export default {
             ...formData
           }
           
+          // store中已处理消息提示，不再传入successMessage/errorMessage
           await handleAsyncOperation(
             store.dispatch('user/updateUserInfo', userData),
-            {
-              successMessage: '个人信息更新成功',
-              errorMessage: '保存用户信息失败，请重试'
-            }
+            {}
           )
           
           await store.dispatch('user/getUserInfo')
@@ -226,6 +364,7 @@ export default {
     
     onMounted(() => {
       handleFetchUserInfo()
+      fetchCertificationStatus() // 任务C-4：获取认证状态
     })
     
     return {
@@ -238,7 +377,15 @@ export default {
       disabledDate,
       pageTitle,
       handleResetForm,
-      handleSaveUserInfo
+      handleSaveUserInfo,
+      beforeAvatarUpload,
+      handleAvatarUpload,
+      // 任务C-4：认证相关
+      isAdmin,
+      certificationStatus,
+      getCertificationStatusText,
+      getCertificationTagType,
+      goToMerchantApplication
     }
   }
 }
@@ -291,6 +438,20 @@ export default {
       
       .el-form-item__content {
         line-height: 1.5;
+      }
+      
+      .avatar-upload-container {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        
+        .avatar-preview {
+          border: 2px solid var(--el-border-color);
+        }
+        
+        .avatar-uploader {
+          display: inline-block;
+        }
       }
     }
   }

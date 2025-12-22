@@ -121,9 +121,8 @@
 import { ref, reactive } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
-import { message } from '@/components/common'
 import { handleAsyncOperation, MESSAGE_TYPES, STANDARD_MESSAGES } from '@/utils/messageHelper'
-import messageManager from '@/utils/messageManager'
+import { userPromptMessages as userMessages } from '@/utils/promptMessages'
 
 export default {
   name: 'RegisterPage',
@@ -233,8 +232,8 @@ export default {
       }
       
       if (!registerForm.agreement) {
-        // 使用messageManager处理UI交互消息
-        messageManager.ui.showAgreementReminder()
+        // 使用userMessages处理提示消息
+        userMessages.prompt.showAgreementRequired()
         return false
       }
       
@@ -253,12 +252,11 @@ export default {
         }
         
         // 使用新的异步操作处理工具
+        // 注意：store中已处理消息提示，这里不再传入successMessage
         await handleAsyncOperation(
           // 异步操作
           store.dispatch('user/register', registerData),
           {
-            // 成功消息使用标准消息
-            successMessage: STANDARD_MESSAGES.REGISTER_SUCCESS,
             // 成功回调
             successCallback: () => {
               router.push('/login')

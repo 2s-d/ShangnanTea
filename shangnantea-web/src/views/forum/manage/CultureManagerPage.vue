@@ -443,9 +443,12 @@
 <script>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useStore } from 'vuex'
 import { DocumentCopy, Plus, Search } from '@element-plus/icons-vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessageBox } from 'element-plus'
 import SafeImage from '@/components/common/form/SafeImage.vue'
+import { forumSuccessMessages, forumErrorMessages } from '@/utils/forumMessages'
+import { forumPromptMessages } from '@/utils/promptMessages'
 
 export default {
   name: 'CultureManagerPage',
@@ -457,6 +460,7 @@ export default {
   },
   setup() {
     const router = useRouter()
+    const store = useStore()
     const activeTab = ref('articles')
     
     // ============ 文章管理 ============
@@ -494,11 +498,9 @@ export default {
       content: [{ required: true, message: '请输入文章内容', trigger: 'blur' }]
     }
     
-    /**
-     * 数据列表（生产形态：不在 UI 层造数据）
-     * TODO-SCRIPT: 茶文化内容管理需要后端接口与 Vuex forum 模块（文章列表/区块列表/编辑/保存/推荐/删除）
-     */
-    const articles = ref([])
+    // 从Vuex获取数据
+    const articles = computed(() => store.state.forum.articles || [])
+    const loading = computed(() => store.state.forum.loading)
     
     const articlePagination = reactive({
       currentPage: 1,
@@ -583,10 +585,22 @@ export default {
     }
     
     // 切换推荐状态
-    const toggleRecommend = (article) => {
-      article.is_recommend = article.is_recommend === 1 ? 0 : 1
-      const actionText = article.is_recommend === 1 ? '推荐' : '取消推荐'
-      ElMessage.success(`已${actionText}文章: ${article.title}`)
+    const toggleRecommend = async (article) => {
+      try {
+        const newRecommendStatus = article.is_recommend === 1 ? 0 : 1
+        await store.dispatch('forum/updateArticle', { 
+          id: article.id, 
+          data: { ...article, is_recommend: newRecommendStatus }
+        })
+        
+        if (newRecommendStatus === 1) {
+          forumSuccessMessages.showArticleRecommended(article.title)
+        } else {
+          forumSuccessMessages.showArticleUnrecommended(article.title)
+        }
+      } catch (error) {
+        forumErrorMessages.showOperationFailed(error.message)
+      }
     }
     
     // 删除文章
@@ -599,10 +613,13 @@ export default {
           cancelButtonText: '取消',
           type: 'warning'
         }
-      ).then(() => {
-        // 模拟删除操作
-        article.status = 2 // 标记为已删除
-        ElMessage.success('文章已删除')
+      ).then(async () => {
+        try {
+          await store.dispatch('forum/deleteArticle', article.id)
+          forumSuccessMessages.showArticleDeleted()
+        } catch (error) {
+          forumErrorMessages.showArticleDeleteFailed(error.message)
+        }
       }).catch(() => {
         // 取消删除
       })
@@ -620,11 +637,32 @@ export default {
         articleSubmitting.value = true
         
         try {
-          // TODO-SCRIPT: 提交文章表单需要后端接口与 Vuex forum 模块；不在 UI 层 setTimeout 伪提交/本地创建更新
-          ElMessage.info('文章管理功能待后端接口接入')
-          return
+          const formData = { ...articleForm.value }
+          
+          // 处理标签：如果是字符串，转换为数组
+          if (typeof formData.tags === 'string') {
+            formData.tags = formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag)
+          }
+          
+          if (formData.id) {
+            // 更新文章
+            await store.dispatch('forum/updateArticle', { id: formData.id, data: formData })
+            forumSuccessMessages.showArticleUpdated()
+          } else {
+            // 创建文章
+            await store.dispatch('forum/createArticle', formData)
+            forumSuccessMessages.showArticleCreated()
+          }
+          
+          articleFormVisible.value = false
+          // 刷新文章列表
+          await fetchArticles()
         } catch (error) {
-          ElMessage.error('操作失败，请重试')
+          if (articleForm.value.id) {
+            forumErrorMessages.showArticleUpdateFailed(error.message)
+          } else {
+            forumErrorMessages.showArticleCreateFailed(error.message)
+          }
         } finally {
           articleSubmitting.value = false
         }
@@ -655,11 +693,40 @@ export default {
     // 原始区块内容
     const rawBlockContent = ref('')
     
-    /**
-     * 区块数据（生产形态：不在 UI 层造数据）
-     * TODO-SCRIPT: 主页区块管理需要后端接口与 Vuex forum 模块
-     */
-    const homeBlocks = ref([])
+    // 从Vuex获取首页数据
+    const homeBlocks = computed(() => {
+      // 将首页数据转换为区块格式
+      const blocks = []
+      const homeData = store.state.forum
+      
+      // Banner区块
+      if (homeData.banners && homeData.banners.length > 0) {
+        blocks.push({
+          section: 'banner',
+          title: '顶部轮播图',
+          sub_title: '首页轮播展示',
+          content: JSON.stringify(homeData.banners),
+          status: 1,
+          sort_order: 1,
+          update_time: new Date().toISOString()
+        })
+      }
+      
+      // 推荐茶叶区块
+      if (homeData.cultureFeatures && homeData.cultureFeatures.length > 0) {
+        blocks.push({
+          section: 'recommend',
+          title: '推荐茶叶',
+          sub_title: '精选茶叶推荐',
+          content: JSON.stringify(homeData.cultureFeatures),
+          status: 1,
+          sort_order: 2,
+          update_time: new Date().toISOString()
+        })
+      }
+      
+      return blocks
+    })
     
     // 获取区块友好名称
     const getBlockName = (section) => {
@@ -675,8 +742,7 @@ export default {
     
     // 切换区块状态
     const toggleBlockStatus = (block) => {
-      const statusText = block.status === 1 ? '显示' : '隐藏'
-      ElMessage.success(`区块「${getBlockName(block.section)}」已设为${statusText}`)
+      forumSuccessMessages.showBlockStatusChanged(getBlockName(block.section), block.status)
     }
     
     // 编辑区块
@@ -695,14 +761,14 @@ export default {
           bannerItems.value = JSON.parse(block.content)
         } catch (e) {
           bannerItems.value = []
-          ElMessage.warning('轮播图数据格式有误，已重置')
+          forumPromptMessages.showBannerDataError()
         }
       } else if (block.section === 'recommend') {
         try {
           recommendItems.value = JSON.parse(block.content)
         } catch (e) {
           recommendItems.value = []
-          ElMessage.warning('推荐茶叶数据格式有误，已重置')
+          forumPromptMessages.showRecommendDataError()
         }
       } else {
         rawBlockContent.value = block.content
@@ -742,18 +808,38 @@ export default {
     }
     
     // 提交区块表单
-    const submitBlockForm = () => {
+    const submitBlockForm = async () => {
       if (!currentBlock.value) return
       
       blockSubmitting.value = true
       
       try {
-        // TODO-SCRIPT: 保存区块需要后端接口；不在 UI 层构造 content/本地更新/延迟伪成功
-        ElMessage.info('保存区块功能待后端接口接入')
-        blockSubmitting.value = false
-        return
+        let content = ''
+        
+        // 根据区块类型构造内容
+        if (currentBlock.value.section === 'banner') {
+          content = JSON.stringify(bannerItems.value)
+        } else if (currentBlock.value.section === 'recommend') {
+          content = JSON.stringify(recommendItems.value)
+        } else {
+          content = rawBlockContent.value
+        }
+        
+        const updateData = {
+          ...blockForm.value,
+          content
+        }
+        
+        // 更新首页数据
+        await store.dispatch('forum/updateHomeData', updateData)
+        forumSuccessMessages.showBlockSaved()
+        blockFormVisible.value = false
+        
+        // 刷新首页数据
+        await fetchHomeData()
       } catch (error) {
-        ElMessage.error('操作失败，请重试')
+        forumErrorMessages.showBlockSaveFailed(error.message)
+      } finally {
         blockSubmitting.value = false
       }
     }
@@ -774,10 +860,32 @@ export default {
     // 添加默认图片常量（生产形态：不使用 mock-images）
     const defaultCover = ''
     
+    // 获取文章列表
+    const fetchArticles = async () => {
+      try {
+        await store.dispatch('forum/fetchArticles')
+      } catch (error) {
+        forumErrorMessages.showArticleLoadFailed()
+        console.error('获取文章列表失败:', error)
+      }
+    }
+    
+    // 获取首页数据
+    const fetchHomeData = async () => {
+      try {
+        await store.dispatch('forum/fetchHomeData')
+      } catch (error) {
+        forumErrorMessages.showHomeDataLoadFailed()
+        console.error('获取首页数据失败:', error)
+      }
+    }
+    
     // 加载页面数据
-    onMounted(() => {
-      // 在实际应用中，这里会从API获取数据
-      // 现在使用模拟数据
+    onMounted(async () => {
+      await Promise.all([
+        fetchArticles(),
+        fetchHomeData()
+      ])
     })
     
     return {
@@ -787,10 +895,10 @@ export default {
       articleStatus,
       articles,
       filteredArticles,
-      articlesLoading,
+      articlesLoading: loading,
       articlePagination,
       homeBlocks,
-      blocksLoading,
+      blocksLoading: loading,
       
       getStatusType,
       getStatusText,
@@ -828,7 +936,11 @@ export default {
       removeRecommendItem,
       
       // 添加默认图片常量
-      defaultCover
+      defaultCover,
+      
+      // 数据获取方法
+      fetchArticles,
+      fetchHomeData
     }
   }
 }
