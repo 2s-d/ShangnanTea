@@ -271,6 +271,26 @@ export const uiMessage = {
 }
 
 /**
+ * 提示消息 - 用于纯前端提示（表单验证、确认框等）
+ * 统一使用 warning 类型显示，info 用于确认类提示
+ */
+export const promptMessage = {
+  show(content, duration = 3000) {
+    if (isDuplicateMessage(content, MESSAGE_TYPE.WARNING)) return
+    
+    logMessage(content, MESSAGE_TYPE.WARNING, MESSAGE_LAYER.COMPONENT)
+    enqueueMessage(content, MESSAGE_TYPE.WARNING, duration)
+  },
+  
+  info(content, duration = 3000) {
+    if (isDuplicateMessage(content, MESSAGE_TYPE.INFO)) return
+    
+    logMessage(content, MESSAGE_TYPE.INFO, MESSAGE_LAYER.COMPONENT)
+    enqueueMessage(content, MESSAGE_TYPE.INFO, duration)
+  }
+}
+
+/**
  * 动态加载消息监控面板
  * 仅在开发环境中使用
  */
@@ -290,5 +310,6 @@ export default {
   apiMessage,
   vuexMessage,
   uiMessage,
+  promptMessage,
   clearAllMessageStates
 } 
