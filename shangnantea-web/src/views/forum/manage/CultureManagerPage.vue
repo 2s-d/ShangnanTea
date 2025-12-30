@@ -447,7 +447,7 @@ import { useStore } from 'vuex'
 import { DocumentCopy, Plus, Search } from '@element-plus/icons-vue'
 import { ElMessageBox } from 'element-plus'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-import forumMessages from '@/utils/forumMessages'
+import { forumSuccessMessages, forumErrorMessages } from '@/utils/forumMessages'
 import { forumPromptMessages } from '@/utils/promptMessages'
 
 export default {

@@ -120,7 +120,7 @@ import { useStore } from 'vuex'
 import { ElMessageBox } from 'element-plus'
 import { InfoFilled, Timer } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-import orderMessages from '@/utils/orderMessages'
+import { orderSuccessMessages, orderErrorMessages } from '@/utils/orderMessages'
 
 export default {
   name: 'PaymentPage',

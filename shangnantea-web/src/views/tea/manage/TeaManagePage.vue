@@ -474,7 +474,7 @@ import SafeImage from '@/components/common/form/SafeImage.vue'
 
 import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { teaPromptMessages } from '@/utils/promptMessages'
-import teaMessages from '@/utils/teaMessages'
+import { teaSuccessMessages, teaErrorMessages } from '@/utils/teaMessages'
 
 export default {
   name: 'TeaManagePage',

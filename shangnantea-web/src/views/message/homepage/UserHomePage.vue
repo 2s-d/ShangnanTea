@@ -170,7 +170,7 @@ import {
   User, UserFilled, Star, Document, Male, Female, Edit, Plus, Shop, Clock, ChatDotRound 
 } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-import commonMessages from '@/utils/commonMessages'
+import { commonSuccessMessages, commonErrorMessages } from '@/utils/commonMessages'
 
 export default {
   name: 'UserHomePage',

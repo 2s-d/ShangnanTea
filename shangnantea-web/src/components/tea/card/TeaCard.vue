@@ -42,7 +42,7 @@ import { useStore } from 'vuex'
 
 import { ShoppingCart } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-import teaMessages from '@/utils/teaMessages'
+import { teaSuccessMessages, teaErrorMessages } from '@/utils/teaMessages'
 
 export default {
   name: 'TeaCard',

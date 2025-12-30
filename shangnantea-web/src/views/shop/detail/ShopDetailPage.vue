@@ -275,7 +275,7 @@ import TeaCard from '@/components/tea/card/TeaCard.vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { shopPromptMessages } from '@/utils/promptMessages'
-import shopMessages from '@/utils/shopMessages'
+import { shopSuccessMessages, shopErrorMessages } from '@/utils/shopMessages'
 
 export default {
   name: "ShopDetailPage",

@@ -412,7 +412,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useStore } from 'vuex'
 import { ElMessageBox } from 'element-plus'
 import { Refresh } from '@element-plus/icons-vue'
-import orderMessages from '@/utils/orderMessages'
+import { orderSuccessMessages, orderErrorMessages } from '@/utils/orderMessages'
 import { orderPromptMessages } from '@/utils/promptMessages'
 
 /**

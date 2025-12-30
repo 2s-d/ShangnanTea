@@ -215,7 +215,7 @@ import { useStore } from 'vuex'
 
 import { View, ChatDotRound, Star, StarFilled, Share, Back, ChatLineRound, ArrowDown } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-import forumMessages from '@/utils/forumMessages'
+import { forumSuccessMessages, forumErrorMessages } from '@/utils/forumMessages'
 import { forumPromptMessages } from '@/utils/promptMessages'
 
 export default {

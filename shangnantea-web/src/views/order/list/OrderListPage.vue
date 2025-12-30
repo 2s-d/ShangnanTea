@@ -190,7 +190,7 @@ import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { ElMessageBox } from 'element-plus'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-import orderMessages from '@/utils/orderMessages'
+import { orderSuccessMessages, orderErrorMessages } from '@/utils/orderMessages'
 import { orderPromptMessages } from '@/utils/promptMessages'
 
 // TODO: 退款申请功能需后端提供接口与数据结构支持（前端不在UI层模拟退款流程）

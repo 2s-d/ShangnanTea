@@ -110,7 +110,7 @@ import { ElMessageBox } from 'element-plus'
 import { Bell, ChatDotRound, Star, User, Check, Delete } from '@element-plus/icons-vue'
 import { useStore } from 'vuex'
 import { handleAsyncOperation } from '@/utils/messageHelper'
-import messageMessages from '@/utils/messageMessages'
+import { messageSuccessMessages, messageErrorMessages } from '@/utils/messageMessages'
 import { messagePromptMessages } from '@/utils/promptMessages'
 
 export default {
@@ -308,7 +308,7 @@ export default {
             }
           } catch (e) {
             console.warn('解析操作数据失败:', e)
-            messageMessages.error.showOperationFailed('处理商家认证通知失败')
+            messageErrorMessages.showOperationFailed('处理商家认证通知失败')
           }
           break
       }
@@ -331,7 +331,7 @@ export default {
           // 4. 检查是否已有店铺，如果没有则自动创建
           try {
             await store.dispatch('shop/fetchMyShop')
-            messageMessages.success.showOperationSuccess('商家认证已确认，欢迎使用商家中心！')
+            messageSuccessMessages.showOperationSuccess('商家认证已确认，欢迎使用商家中心！')
             router.push('/shop/my')
           } catch (error) {
             // 如果没有店铺，自动创建
@@ -341,10 +341,10 @@ export default {
                   name: '我的商南茶叶店',
                   desc: '专业经营商南优质茶叶'
                 })
-                messageMessages.success.showOperationSuccess('商家认证已确认，店铺已自动创建！')
+                messageSuccessMessages.showOperationSuccess('商家认证已确认，店铺已自动创建！')
                 router.push('/shop/my')
               } catch (createError) {
-                messageMessages.error.showOperationFailed('创建店铺失败，请稍后手动创建')
+                messageErrorMessages.showOperationFailed('创建店铺失败，请稍后手动创建')
                 router.push('/shop/my')
               }
             } else {
@@ -357,7 +357,7 @@ export default {
         }
       } catch (error) {
         console.error('处理商家认证确认失败:', error)
-        messageMessages.error.showOperationFailed('处理商家认证确认失败，请稍后再试')
+        messageErrorMessages.showOperationFailed('处理商家认证确认失败，请稍后再试')
       }
     }
     
