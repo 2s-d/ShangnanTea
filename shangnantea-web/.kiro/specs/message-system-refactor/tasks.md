@@ -48,32 +48,44 @@
   - 确保 showByCode 正常工作
 
 - [ ] 6. 清理旧文件
-  - [x] 6.1 删除旧消息文件
+  - [ ] 6.1 删除旧消息文件
     - 删除 commonMessages.js、userMessages.js、teaMessages.js、orderMessages.js、shopMessages.js、forumMessages.js、messageMessages.js
+    - ⚠️ 注意：这些文件目前仍存在，且仍有代码在引用其 SUCCESS/ERROR 消息
     - _Requirements: 5.1_
   - [ ] 6.2 更新所有引用旧文件的代码
     - 搜索所有使用 SUCCESS/ERROR 消息的文件
     - 修改为使用 showByCode 或直接调用 messageManager
     - _Requirements: 5.2_
 
-- [x] 7. Final Checkpoint
+- [ ] 7. Final Checkpoint
   - 确保所有测试通过
   - 确保无编译错误
   - 确保无旧文件引用
 
-## 当前状态
+## 当前状态 (2024-12-30 验证)
 
-✅ **已完成**:
-1. 创建 `promptMessages.js` - 整合所有提示消息
-2. 创建状态码映射文档 - 完整的状态码规则
-3. 创建 `apiMessages.js` - 状态码消息映射系统
-4. 修改拦截器 - 返回 `{code, data}` 格式
-5. 删除旧消息文件 - 清理7个旧文件
-6. 创建使用指南 - `docs/message-system-usage.md`
+✅ **Step 1 已完成**:
+1. ✅ 创建 `promptMessages.js` - 整合所有 7 个模块的 PROMPT 消息
+2. ✅ 更新所有 Vue 文件的导入路径 - 所有 xxxPromptMessages 都从 `@/utils/promptMessages` 导入
 
-⚠️ **待完成**:
-- 更新所有引用旧消息文件的代码 (约30+个文件)
-- 将 SUCCESS/ERROR 消息调用改为使用 `showByCode()`
+✅ **Step 2 已完成**:
+3. ✅ 创建状态码映射文档 - 完整的状态码规则
+
+✅ **Step 3 部分完成**:
+4. ✅ 创建 `apiMessages.js` - 状态码消息映射系统
+5. ✅ 修改拦截器 - 返回 `{code, data}` 格式
+
+⚠️ **Step 3 待完成 (任务6)**:
+- 旧消息文件仍存在（7个文件）：
+  - `commonMessages.js` - 仍有 2 个 Vue 文件引用 SUCCESS/ERROR
+  - `userMessages.js` - 仍存在
+  - `teaMessages.js` - 仍存在
+  - `orderMessages.js` - 仍有 7 个 Vue 文件引用 SUCCESS/ERROR
+  - `shopMessages.js` - 仍存在
+  - `forumMessages.js` - 仍有 6 个 Vue 文件引用 SUCCESS/ERROR
+  - `messageMessages.js` - 仍有 1 个 Vue 文件引用 SUCCESS/ERROR
+- `messages.js` 聚合文件仍在引用所有旧模块
+- 需要将约 16+ 个 Vue 文件的 SUCCESS/ERROR 消息调用改为使用 `showByCode()`
 
 ## 使用新系统
 
