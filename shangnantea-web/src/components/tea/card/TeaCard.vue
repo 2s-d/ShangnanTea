@@ -42,8 +42,7 @@ import { useStore } from 'vuex'
 
 import { ShoppingCart } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-import { showByCode, isSuccess } from '@/utils/apiMessages'
-import teaMessages from '@/utils/promptMessages'
+import { teaSuccessMessages, teaErrorMessages } from '@/utils/teaMessages'
 
 export default {
   name: 'TeaCard',
@@ -80,11 +79,11 @@ export default {
         })
         // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
 
-        teaMessages.success.showCardAddedToCart()
+        teaSuccessMessages.showCardAddedToCart()
       } catch (error) {
         // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
 
-        teaMessages.error.showCardAddFailed(error.message)
+        teaErrorMessages.showCardAddFailed(error.message)
       } finally {
         loading.value = false
       }
