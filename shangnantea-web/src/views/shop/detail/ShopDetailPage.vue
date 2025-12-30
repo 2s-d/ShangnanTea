@@ -274,7 +274,8 @@ import { Back, Check, Star, ChatLineRound, Bell } from '@element-plus/icons-vue'
 import TeaCard from '@/components/tea/card/TeaCard.vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
-import shopMessages from '@/utils/promptMessages'
+import { shopPromptMessages } from '@/utils/promptMessages'
+import { shopSuccessMessages, shopErrorMessages } from '@/utils/shopMessages'
 
 export default {
   name: "ShopDetailPage",
@@ -425,15 +426,15 @@ export default {
     const handleSubmitReview = async () => {
       const shopId = route.params.id
       if (!shopId) {
-        shopMessages.prompt.showShopIdNotExist()
+        shopPromptMessages.showShopIdNotExist()
         return
       }
       if (!reviewForm.value.content.trim()) {
-        shopMessages.prompt.showReviewContentRequired()
+        shopPromptMessages.showReviewContentRequired()
         return
       }
       if (reviewForm.value.rating === 0) {
-        shopMessages.prompt.showReviewRatingRequired()
+        shopPromptMessages.showReviewRatingRequired()
         return
       }
       

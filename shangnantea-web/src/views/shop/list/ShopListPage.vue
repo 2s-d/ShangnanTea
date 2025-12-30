@@ -117,7 +117,7 @@ import ShopCard from '@/components/shop/card/ShopCard.vue'
 
 import SearchBar from '@/components/common/SearchBar.vue'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
-import shopMessages from '@/utils/promptMessages'
+import { shopErrorMessages } from '@/utils/shopMessages'
 
 export default {
   name: "ShopListPage",

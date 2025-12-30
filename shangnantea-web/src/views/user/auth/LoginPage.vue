@@ -160,8 +160,7 @@ export default {
       if (confirm('确定要重置所有本地存储数据吗？这将清除所有登录状态和用户数据。')) {
         localStorage.clear()
         // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        userMessages.success.showStorageReset()
+        // userMessages.success.showStorageReset() - 已移除，等待迁移到 showByCode
         setTimeout(() => {
           window.location.reload()
         }, 1000)
@@ -178,14 +177,12 @@ export default {
         checkAndMigrateData(false)
         
         // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
         // TODO: [user] 迁移到 showByCode(response.code) - success
-        userMessages.success.showDataMigrationTriggered()
+        // userMessages.success.showDataMigrationTriggered() - 已移除，等待迁移到 showByCode
       } catch (e) {
         console.error('数据迁移失败:', e)
         // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        userMessages.error.showDataMigrationFailed(e.message)
+        // userMessages.error.showDataMigrationFailed() - 已移除，等待迁移到 showByCode
       }
     }
     

@@ -180,7 +180,7 @@ import TeaCard from '@/components/tea/card/TeaCard.vue'
 
 import SearchBar from '@/components/common/SearchBar.vue'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
-import teaMessages from '@/utils/promptMessages'
+import { teaErrorMessages } from '@/utils/teaMessages'
 
 export default {
   name: "TeaListPage",
@@ -253,7 +253,7 @@ export default {
         // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
 
         // TODO: [tea] 迁移到 showByCode(response.code) - error
-        teaMessages.error.showListFailed(error.message)
+        teaErrorMessages.showListFailed(error.message)
       }
     }
     

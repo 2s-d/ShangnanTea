@@ -392,8 +392,7 @@ export default {
       } catch (error) {
         console.error('获取用户列表失败：', error)
         // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        userMessages.error.showUserListFetchFailed()
+        // userMessages.error.showUserListFetchFailed() - 已移除，等待迁移到 showByCode
       }
     }
     
@@ -541,15 +540,13 @@ export default {
       try {
         await store.dispatch('user/deleteUser', selectedUser.value.id)
         // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
         // TODO: [user] 迁移到 showByCode(response.code) - success
-        userMessages.success.showUserDeleted(selectedUser.value.username)
+        // userMessages.success.showUserDeleted() - 已移除，等待迁移到 showByCode
         deleteDialogVisible.value = false
       } catch (error) {
         console.error('删除用户失败：', error)
         // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        userMessages.error.showUserDeleteFailed()
+        // userMessages.error.showUserDeleteFailed() - 已移除，等待迁移到 showByCode
       }
     }
     
@@ -562,13 +559,11 @@ export default {
           status: newStatus
         })
         // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        userMessages.success.showUserStatusToggled(user.username, newStatus)
+        // userMessages.success.showUserStatusToggled() - 已移除，等待迁移到 showByCode
       } catch (error) {
         console.error('修改用户状态失败：', error)
         // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        userMessages.error.showUserStatusToggleFailed()
+        // userMessages.error.showUserStatusToggleFailed() - 已移除，等待迁移到 showByCode
         // 恢复原状态
         user.status = user.status === 1 ? 0 : 1
       }
@@ -597,8 +592,7 @@ export default {
               })
               
               // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-              userMessages.success.showUserUpdated(userForm.username)
+              // userMessages.success.showUserUpdated() - 已移除，等待迁移到 showByCode
             } else {
               // 添加管理员（固定role=1）
               const adminData = {
@@ -614,8 +608,7 @@ export default {
               await store.dispatch('user/createAdmin', adminData)
               
               // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-              userMessages.success.showAdminCreated(userForm.username)
+              // userMessages.success.showAdminCreated() - 已移除，等待迁移到 showByCode
             }
             
             dialogVisible.value = false
@@ -624,8 +617,7 @@ export default {
           } catch (error) {
             console.error('提交用户表单失败：', error)
             // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-            userMessages.error.showUserFormSubmitFailed()
+            // userMessages.error.showUserFormSubmitFailed() - 已移除，等待迁移到 showByCode
           }
         } else {
           return false
@@ -640,14 +632,12 @@ export default {
       
       if (!isImage) {
         // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        userMessages.error.showAvatarFormatError()
+        // userMessages.error.showAvatarFormatError() - 已移除，等待迁移到 showByCode
       }
       
       if (!isLt2M) {
         // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        userMessages.error.showAvatarSizeError()
+        // userMessages.error.showAvatarSizeError() - 已移除，等待迁移到 showByCode
       }
       
       return isImage && isLt2M
@@ -668,7 +658,7 @@ export default {
     
     // 导出用户数据
     const handleExportUsers = () => {
-      userMessages.prompt.showExportFeatureDeveloping()
+      userMessages.showExportFeatureDeveloping()
     }
     
     // 处理商家认证请求
