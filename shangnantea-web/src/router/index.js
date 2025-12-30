@@ -295,17 +295,6 @@ const routes = [
     }
   },
   
-  // 用户模块测试页面
-  {
-    path: '/test/user',
-    name: 'UserTestPage',
-    component: () => import('@/views/test/UserTestPage.vue'),
-    meta: {
-      title: '用户模块测试 - 商南茶文化',
-      requireAuth: false
-    }
-  },
-  
   // 聊天页面
   {
     path: '/message/chat',
