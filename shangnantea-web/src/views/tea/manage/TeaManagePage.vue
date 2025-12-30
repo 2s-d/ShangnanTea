@@ -473,8 +473,7 @@ import { useImageUpload } from '@/composables/useImageUpload'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 
 import { showByCode, isSuccess } from '@/utils/apiMessages'
-import { teaPromptMessages } from '@/utils/promptMessages'
-import { teaSuccessMessages, teaErrorMessages } from '@/utils/teaMessages'
+import teaMessages from '@/utils/promptMessages'
 
 export default {
   name: 'TeaManagePage',
@@ -787,11 +786,11 @@ export default {
         if (newStatus === 1) {
           // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
 
-          teaSuccessMessages.showTeaOnShelf()
+          teaMessages.success.showTeaOnShelf()
         } else {
           // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
 
-          teaSuccessMessages.showTeaOffShelf()
+          teaMessages.success.showTeaOffShelf()
         }
         
         // 刷新列表
@@ -801,11 +800,11 @@ export default {
           if (newStatus === 1) {
             // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
 
-            teaErrorMessages.showTeaOnShelfFailed(error.message)
+            teaMessages.error.showTeaOnShelfFailed(error.message)
           } else {
             // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
 
-            teaErrorMessages.showTeaOffShelfFailed(error.message)
+            teaMessages.error.showTeaOffShelfFailed(error.message)
           }
         }
       }
@@ -818,7 +817,7 @@ export default {
     
     const handleBatchOnShelf = async () => {
       if (selectedTeas.value.length === 0) {
-        teaPromptMessages.showSelectOnShelf()
+        teaMessages.prompt.showSelectOnShelf()
         return
       }
       
@@ -841,21 +840,21 @@ export default {
         
         // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
 
-        teaSuccessMessages.showBatchOnShelf()
+        teaMessages.success.showBatchOnShelf()
         selectedTeas.value = []
         await loadTeas()
       } catch (error) {
         if (error !== 'cancel') {
           // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
 
-          teaErrorMessages.showBatchOnShelfFailed(error.message)
+          teaMessages.error.showBatchOnShelfFailed(error.message)
         }
       }
     }
     
     const handleBatchOffShelf = async () => {
       if (selectedTeas.value.length === 0) {
-        teaPromptMessages.showSelectOffShelf()
+        teaMessages.prompt.showSelectOffShelf()
         return
       }
       
@@ -878,14 +877,14 @@ export default {
         
         // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
 
-        teaSuccessMessages.showBatchOffShelf()
+        teaMessages.success.showBatchOffShelf()
         selectedTeas.value = []
         await loadTeas()
       } catch (error) {
         if (error !== 'cancel') {
           // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
 
-          teaErrorMessages.showBatchOffShelfFailed(error.message)
+          teaMessages.error.showBatchOffShelfFailed(error.message)
         }
       }
     }
@@ -908,7 +907,7 @@ export default {
         
         // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
 
-        teaSuccessMessages.showTeaDeleted()
+        teaMessages.success.showTeaDeleted()
         
         // 如果当前页没有数据了，回到前一页
         if (teas.value.length === 0 && currentPage.value > 1) {
@@ -918,7 +917,7 @@ export default {
         if (error !== 'cancel') {
           // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
 
-          teaErrorMessages.showTeaDeleteFailed(error.message)
+          teaMessages.error.showTeaDeleteFailed(error.message)
         }
       }
     }
@@ -929,13 +928,13 @@ export default {
       
       teaFormRef.value.validate(async (valid) => {
         if (!valid) {
-          teaPromptMessages.showFormInvalid()
+          teaMessages.prompt.showFormInvalid()
           return
         }
         
         // 校验规格
         if (!currentTea.value.specifications || currentTea.value.specifications.length === 0) {
-          teaPromptMessages.showSpecRequired()
+          teaMessages.prompt.showSpecRequired()
           return
         }
         
@@ -944,20 +943,20 @@ export default {
           !spec.spec_name || spec.price <= 0
         )
         if (invalidSpec) {
-          teaPromptMessages.showSpecIncomplete()
+          teaMessages.prompt.showSpecIncomplete()
           return
         }
         
         // 校验是否有默认规格
         const hasDefault = currentTea.value.specifications.some(spec => spec.is_default)
         if (!hasDefault) {
-          teaPromptMessages.showDefaultSpecRequired()
+          teaMessages.prompt.showDefaultSpecRequired()
           return
         }
         
         // 校验图片
         if (teaImages.value.length === 0) {
-          teaPromptMessages.showImageRequired()
+          teaMessages.prompt.showImageRequired()
           return
         }
         
@@ -1090,7 +1089,7 @@ export default {
             
             // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
 
-            teaSuccessMessages.showTeaUpdated()
+            teaMessages.success.showTeaUpdated()
           } else {
             // 平台直售茶叶权限控制：管理员创建的茶叶shopId固定为'PLATFORM'
             // 权限规则：只有管理员(role=1)可以管理平台直售茶叶
@@ -1157,7 +1156,7 @@ export default {
             // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
 
             // TODO: [tea] 迁移到 showByCode(response.code) - success
-            teaSuccessMessages.showTeaCreated()
+            teaMessages.success.showTeaCreated()
           }
           
           // 关闭对话框

@@ -312,7 +312,7 @@ export default {
         console.log('省市区数据加载成功，共', cascaderOptions.value.length, '个省级行政区')
       } catch (error) {
         console.error('加载省市区数据出错：', error)
-        userMessages.showRegionDataIncomplete()
+        userMessages.prompt.showRegionDataIncomplete()
         cascaderOptions.value = regionData
       } finally {
         regionLoading.value = false

@@ -229,8 +229,9 @@ export default {
       preferences.pageSize = 20
       
       // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
       // TODO: [user] 迁移到 showByCode(response.code) - success
-      // userMessages.success.showSettingsRestored() - 已移除，等待迁移到 showByCode
+      userMessages.success.showSettingsRestored()
     }
     
     // 路由

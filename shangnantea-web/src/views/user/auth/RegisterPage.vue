@@ -233,7 +233,7 @@ export default {
       
       if (!registerForm.agreement) {
         // 使用userMessages处理提示消息
-        userMessages.showAgreementRequired()
+        userMessages.prompt.showAgreementRequired()
         return false
       }
       

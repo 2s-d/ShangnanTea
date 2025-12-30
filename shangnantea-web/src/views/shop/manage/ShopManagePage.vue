@@ -631,8 +631,7 @@ import SafeImage from '@/components/common/form/SafeImage.vue'
 import { API } from '@/api/apiConstants'
 
 import { showByCode, isSuccess } from '@/utils/apiMessages'
-import { shopPromptMessages } from '@/utils/promptMessages'
-import { shopSuccessMessages, shopErrorMessages } from '@/utils/shopMessages'
+import shopMessages from '@/utils/promptMessages'
 
 export default {
   name: 'ShopManagePage',
@@ -694,7 +693,7 @@ export default {
     // 任务组0：使用Vuex加载店铺茶叶列表
     const loadShopTeas = async () => {
       if (!shop.value || !shop.value.id) {
-        shopPromptMessages.showShopInfoLoadFirst()
+        shopMessages.prompt.showShopInfoLoadFirst()
         return
       }
       
@@ -816,7 +815,7 @@ export default {
     // 对话框关闭
     const handleDialogClose = (done) => {
       if (submitting.value) {
-        shopPromptMessages.showSubmittingWait()
+        shopMessages.prompt.showSubmittingWait()
         return
       }
       done()

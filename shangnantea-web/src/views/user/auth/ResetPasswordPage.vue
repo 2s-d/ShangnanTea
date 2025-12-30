@@ -1,3 +1,5 @@
+import { showByCode, isSuccess } from '@/utils/apiMessages'
+import { userPromptMessages } from '@/utils/promptMessages'
 <template>
   <div class="reset-password-page">
     <div class="reset-password-container">
@@ -99,7 +101,6 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
-import { userPromptMessages as userMessages } from '@/utils/promptMessages'
 
 export default {
   name: 'ResetPasswordPage',
@@ -147,20 +148,23 @@ export default {
     const sendVerificationCode = () => {
       // 验证输入
       if (resetForm.method === 'username' && !resetForm.username) {
-        userMessages.showUsernameInputRequired()
+        userMessages.prompt.showUsernameInputRequired()
         return
       }
       if (resetForm.method === 'phone' && !resetForm.phone) {
-        userMessages.showPhoneInputRequired()
+        userMessages.prompt.showPhoneInputRequired()
         return
       }
       if (resetForm.method === 'email' && !resetForm.email) {
-        userMessages.showEmailInputRequired()
+        userMessages.prompt.showEmailInputRequired()
         return
       }
       
       // 模拟发送验证码（实际应该调用后端API）
-      // TODO: 验证码发送成功消息需要后续迁移到 apiMessages
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      // TODO: [user] 迁移到 showByCode(response.code) - success
+      userMessages.success.showCaptchaSent()
       
       // 开始倒计时
       codeCountdown.value = 60
