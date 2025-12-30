@@ -1166,7 +1166,7 @@ export default {
         } catch (error) {
           // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
 
-          teaErrorMessages.showTeaSubmitFailed(error.message)
+          teaMessages.error.showTeaSubmitFailed(error.message)
           submitting.value = false
         }
       })
@@ -1175,7 +1175,7 @@ export default {
     // 对话框关闭
     const handleDialogClose = (done) => {
       if (submitting.value) {
-        teaPromptMessages.showSubmitting()
+        teaMessages.prompt.showSubmitting()
         return
       }
       done()
@@ -1225,12 +1225,12 @@ export default {
         await store.dispatch('tea/deleteCategory', category.id)
         // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
 
-        teaSuccessMessages.showCategoryDeleted()
+        teaMessages.success.showCategoryDeleted()
       } catch (error) {
         if (error !== 'cancel') {
           // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
 
-          teaErrorMessages.showCategoryDeleteFailed(error?.message)
+          teaMessages.error.showCategoryDeleteFailed(error?.message)
         }
       } finally {
         categoryLoading.value = false
@@ -1260,19 +1260,19 @@ export default {
             })
             // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
 
-            teaSuccessMessages.showCategoryUpdated()
+            teaMessages.success.showCategoryUpdated()
           } else {
             await store.dispatch('tea/createCategory', categoryData)
             // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
 
-            teaSuccessMessages.showCategoryCreated()
+            teaMessages.success.showCategoryCreated()
           }
           
           categoryDialogVisible.value = false
         } catch (error) {
           // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
 
-          teaErrorMessages.showCategorySubmitFailed(error?.message)
+          teaMessages.error.showCategorySubmitFailed(error?.message)
         } finally {
           categorySubmitting.value = false
         }
@@ -1282,7 +1282,7 @@ export default {
     // 分类对话框关闭
     const handleCategoryDialogClose = (done) => {
       if (categorySubmitting.value) {
-        teaPromptMessages.showSubmitting()
+        teaMessages.prompt.showSubmitting()
         return
       }
       done()
@@ -1308,7 +1308,7 @@ export default {
       } catch (error) {
         // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
 
-        teaErrorMessages.showListFailed(error.message)
+        teaMessages.error.showListFailed(error.message)
       }
     }
     

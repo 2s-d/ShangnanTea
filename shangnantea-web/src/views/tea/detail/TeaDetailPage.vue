@@ -344,8 +344,7 @@ import { ElMessageBox } from 'element-plus'
 import { Back, ShoppingCart, Star, ChatLineRound, Like } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
-import { teaPromptMessages } from '@/utils/promptMessages'
-import { teaSuccessMessages, teaErrorMessages } from '@/utils/teaMessages'
+import teaMessages from '@/utils/promptMessages'
 
 export default {
   name: "TeaDetailPage",
@@ -427,7 +426,7 @@ export default {
     // 提交回复
     const submitReply = async (review) => {
       if (!replyContent.value.trim()) {
-        teaPromptMessages.showReplyEmpty()
+        teaMessages.prompt.showReplyEmpty()
         return
       }
       
@@ -440,13 +439,13 @@ export default {
         })
         // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
 
-        teaSuccessMessages.showReplySuccess()
+        teaMessages.success.showReplySuccess()
         activeReplyId.value = null
         replyContent.value = ''
       } catch (error) {
         // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
 
-        teaErrorMessages.showReplyFailed(error.message)
+        teaMessages.error.showReplyFailed(error.message)
       } finally {
         submittingReply.value = false
       }
@@ -459,7 +458,7 @@ export default {
       } catch (error) {
         // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
 
-        teaErrorMessages.showLikeFailed(error.message)
+        teaMessages.error.showLikeFailed(error.message)
       }
     }
     
@@ -520,7 +519,7 @@ export default {
             await store.dispatch('user/removeFavorite', favoriteItem.id)
             // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
 
-            teaSuccessMessages.showRemovedFromFavorites()
+            teaMessages.success.showRemovedFromFavorites()
           }
         } else {
           // 添加收藏
@@ -533,12 +532,12 @@ export default {
           // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
 
           // TODO: [tea] 迁移到 showByCode(response.code) - success
-          teaSuccessMessages.showAddedToFavorites()
+          teaMessages.success.showAddedToFavorites()
         }
       } catch (error) {
         // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
 
-        teaErrorMessages.showFavoriteFailed(error.message)
+        teaMessages.error.showFavoriteFailed(error.message)
       } finally {
         favoriteLoading.value = false
       }
@@ -578,7 +577,7 @@ export default {
       } catch (e) {
         // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
 
-        teaErrorMessages.showDetailFailed(e?.message)
+        teaMessages.error.showDetailFailed(e?.message)
       }
     }
     
@@ -656,12 +655,12 @@ export default {
     // 加入购物车
     const addToCart = async () => {
       if (!canAddToCart.value) {
-        teaPromptMessages.showSoldOut()
+        teaMessages.prompt.showSoldOut()
         return
       }
       
       if (!selectedSpecId.value) {
-        teaPromptMessages.showSelectSpec()
+        teaMessages.prompt.showSelectSpec()
         return
       }
       
@@ -675,11 +674,11 @@ export default {
         })
         // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
 
-        teaSuccessMessages.showAddedToCart()
+        teaMessages.success.showAddedToCart()
       } catch (error) {
         // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
 
-        teaErrorMessages.showCartFailed(error.message)
+        teaMessages.error.showCartFailed(error.message)
       } finally {
         submitting.value = false
       }
@@ -688,12 +687,12 @@ export default {
     // 立即购买
     const buyNow = async () => {
       if (!canAddToCart.value) {
-        teaPromptMessages.showSoldOut()
+        teaMessages.prompt.showSoldOut()
         return
       }
       
       if (!selectedSpecId.value) {
-        teaPromptMessages.showSelectSpec()
+        teaMessages.prompt.showSelectSpec()
         return
       }
       
@@ -704,7 +703,7 @@ export default {
       } catch (error) {
         // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
 
-        teaErrorMessages.showBuyFailed(error.message)
+        teaMessages.error.showBuyFailed(error.message)
       } finally {
         submitting.value = false
       }
