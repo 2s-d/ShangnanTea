@@ -1,5 +1,3 @@
-import { showByCode, isSuccess } from '@/utils/apiMessages'
-import { userPromptMessages } from '@/utils/promptMessages'
 <template>
   <div class="reset-password-page">
     <div class="reset-password-container">
@@ -101,6 +99,9 @@ import { userPromptMessages } from '@/utils/promptMessages'
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
+import { showByCode, isSuccess } from '@/utils/apiMessages'
+import { userPromptMessages } from '@/utils/promptMessages'
+import { userSuccessMessages } from '@/utils/userMessages'
 
 export default {
   name: 'ResetPasswordPage',
@@ -148,23 +149,21 @@ export default {
     const sendVerificationCode = () => {
       // 验证输入
       if (resetForm.method === 'username' && !resetForm.username) {
-        userMessages.prompt.showUsernameInputRequired()
+        userPromptMessages.showUsernameInputRequired()
         return
       }
       if (resetForm.method === 'phone' && !resetForm.phone) {
-        userMessages.prompt.showPhoneInputRequired()
+        userPromptMessages.showPhoneInputRequired()
         return
       }
       if (resetForm.method === 'email' && !resetForm.email) {
-        userMessages.prompt.showEmailInputRequired()
+        userPromptMessages.showEmailInputRequired()
         return
       }
       
       // 模拟发送验证码（实际应该调用后端API）
       // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      // TODO: [user] 迁移到 showByCode(response.code) - success
-      userMessages.success.showCaptchaSent()
+      userSuccessMessages.showCaptchaSent()
       
       // 开始倒计时
       codeCountdown.value = 60
@@ -177,7 +176,6 @@ export default {
     }
     
     // 处理密码找回
-    // 任务0-7：改为dispatch Vuex action
     const handleReset = async () => {
       if (!resetFormRef.value) return
       
@@ -207,14 +205,11 @@ export default {
         // 调用Vuex action
         await store.dispatch('user/findPassword', resetData)
         
-        // store中已处理消息提示
-        
         // 延迟跳转到登录页
         setTimeout(() => {
           router.push('/login')
         }, 2000)
       } catch (error) {
-        // store中已处理消息提示，这里只记录日志
         console.error('密码找回失败:', error)
       } finally {
         loading.value = false
@@ -309,4 +304,3 @@ export default {
   }
 }
 </style>
-
