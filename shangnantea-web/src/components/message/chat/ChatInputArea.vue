@@ -55,7 +55,6 @@
 <script>
 import { ref, computed, watch } from 'vue'
 import { Picture, Smile } from '@element-plus/icons-vue'
-import { commonPromptMessages } from '@/utils/promptMessages'
 import { commonErrorMessages } from '@/utils/commonMessages'
 import EmojiPicker from './EmojiPicker.vue'
 

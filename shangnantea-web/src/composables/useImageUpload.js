@@ -4,7 +4,8 @@
 import { ref, computed } from 'vue'
 
 import { showByCode, isSuccess } from '@/utils/apiMessages'
-import commonMessages from '@/utils/promptMessages'
+import { commonPromptMessages } from '@/utils/promptMessages'
+import { commonErrorMessages } from '@/utils/commonMessages'
 
 /**
  * 使用图片上传功能
@@ -60,7 +61,7 @@ export function useImageUpload(options = {}) {
       // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
 
       // TODO: [common] 迁移到 showByCode(response.code) - error
-      commonMessages.error.showFileTypeInvalid()
+      commonErrorMessages.showFileTypeInvalid()
     }
     return isValid
   }
@@ -75,7 +76,7 @@ export function useImageUpload(options = {}) {
     if (!isValid) {
       // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
 
-      commonMessages.error.showFileSizeExceeded(config.maxSize)
+      commonErrorMessages.showFileSizeExceeded(config.maxSize)
     }
     return isValid
   }
@@ -87,7 +88,7 @@ export function useImageUpload(options = {}) {
    */
   const beforeUpload = (file) => {
     if (isMaxCount.value && !currentFile.value) {
-      commonMessages.prompt.showFileCountLimit(config.maxCount)
+      commonPromptMessages.showFileCountLimit(config.maxCount)
       return false
     }
     
@@ -104,7 +105,7 @@ export function useImageUpload(options = {}) {
     
     // 检查文件数量限制
     if (config.multiple && fileList.value.length + files.length > config.maxCount) {
-      commonMessages.prompt.showFileCountLimit(config.maxCount)
+      commonPromptMessages.showFileCountLimit(config.maxCount)
       e.target.value = ''
       return
     }
@@ -236,7 +237,7 @@ export function useImageUpload(options = {}) {
       
       // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
 
-      commonMessages.error.showUploadFailed(error.message || '未知错误')
+      commonErrorMessages.showUploadFailed(error.message || '未知错误')
       return Promise.reject(error)
     } finally {
       uploading.value = false
@@ -248,7 +249,7 @@ export function useImageUpload(options = {}) {
    */
   const uploadAll = async () => {
     if (!config.uploadApi) {
-      commonMessages.prompt.showUploadApiNotConfigured()
+      commonPromptMessages.showUploadApiNotConfigured()
       return []
     }
     
