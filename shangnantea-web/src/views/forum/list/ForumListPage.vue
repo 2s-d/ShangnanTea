@@ -200,7 +200,7 @@ import { useStore } from 'vuex'
 import { Refresh, ArrowDown, Grid, EditPen, Delete, Male, Female } from '@element-plus/icons-vue'
 import PostCard from '@/components/forum/PostCard.vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-import { forumSuccessMessages, forumErrorMessages } from '@/utils/forumMessages'
+import forumMessages from '@/utils/forumMessages'
 
 export default {
   name: 'ForumListPage',

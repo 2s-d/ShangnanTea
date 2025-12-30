@@ -66,7 +66,7 @@
 <script>
 import { ref, computed, onMounted } from 'vue'
 import { commonPromptMessages } from '@/utils/promptMessages'
-import { commonSuccessMessages, commonErrorMessages } from '@/utils/commonMessages'
+import commonMessages from '@/utils/commonMessages'
 import { useStorage } from '@/composables/useStorage'
 
 export default {

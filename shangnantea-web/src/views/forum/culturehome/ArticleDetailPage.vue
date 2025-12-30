@@ -128,7 +128,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 
 import SafeImage from '@/components/common/form/SafeImage.vue'
-import { forumSuccessMessages, forumErrorMessages } from '@/utils/forumMessages'
+import forumMessages from '@/utils/forumMessages'
 import { forumPromptMessages } from '@/utils/promptMessages'
 
 export default {

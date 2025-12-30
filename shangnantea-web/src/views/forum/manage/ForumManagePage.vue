@@ -459,7 +459,7 @@ import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { Reading, Plus, Search } from '@element-plus/icons-vue'
 import { ElMessageBox } from 'element-plus'
-import { forumSuccessMessages, forumErrorMessages } from '@/utils/forumMessages'
+import forumMessages from '@/utils/forumMessages'
 import { forumPromptMessages } from '@/utils/promptMessages'
 
 export default {

@@ -208,7 +208,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useStore } from 'vuex'
 import { ElMessageBox } from 'element-plus'
-import { orderSuccessMessages, orderErrorMessages } from '@/utils/orderMessages'
+import orderMessages from '@/utils/orderMessages'
 import { orderPromptMessages } from '@/utils/promptMessages'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 export default {

@@ -158,7 +158,7 @@ import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { ElMessageBox } from 'element-plus'
 import { Timer, View, ChatDotRound, Star, Edit, Delete } from '@element-plus/icons-vue'
-import { commonSuccessMessages, commonErrorMessages } from '@/utils/commonMessages'
+import commonMessages from '@/utils/commonMessages'
 import { commonPromptMessages } from '@/utils/promptMessages'
 
 export default {

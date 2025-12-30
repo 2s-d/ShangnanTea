@@ -632,7 +632,7 @@ import { API } from '@/api/apiConstants'
 
 import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { shopPromptMessages } from '@/utils/promptMessages'
-import { shopSuccessMessages, shopErrorMessages } from '@/utils/shopMessages'
+import shopMessages from '@/utils/shopMessages'
 
 export default {
   name: 'ShopManagePage',

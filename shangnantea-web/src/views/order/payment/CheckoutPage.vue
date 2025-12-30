@@ -211,7 +211,7 @@ import { useStore } from 'vuex'
 
 import { ArrowLeft, Plus } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-import { orderSuccessMessages, orderErrorMessages } from '@/utils/orderMessages'
+import orderMessages from '@/utils/orderMessages'
 import { orderPromptMessages } from '@/utils/promptMessages'
 
 export default {
