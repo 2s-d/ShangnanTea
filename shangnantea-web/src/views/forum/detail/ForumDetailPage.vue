@@ -259,9 +259,9 @@ export default {
     // 获取帖子详情
     const fetchPostDetail = async () => {
       try {
-        await store.dispatch('forum/fetchPostDetail', postId.value)
+        const res = await store.dispatch('forum/fetchPostDetail', postId.value)
+        showByCode(res.code)
       } catch (error) {
-        forumErrorMessages.showLoadPostDetailFailed()
         console.error('获取帖子详情失败:', error)
       }
     }
@@ -279,7 +279,6 @@ export default {
         await store.dispatch('forum/fetchPostReplies', { postId: postId.value, params })
         updateReplyPagination()
       } catch (error) {
-        forumErrorMessages.showLoadRepliesFailed()
         console.error('获取回复列表失败:', error)
       }
     }
@@ -594,7 +593,8 @@ export default {
           mentionedUserIds: mentionedUserIds.length > 0 ? mentionedUserIds : undefined
         }
         
-        await store.dispatch('forum/createReply', { postId: postId.value, data: replyData })
+        const res = await store.dispatch('forum/createReply', { postId: postId.value, data: replyData })
+        showByCode(res.code)
         
         // 清空输入框和当前回复
         replyContent.value = ''
@@ -603,10 +603,8 @@ export default {
         
         // 刷新回复列表
         await fetchReplies()
-        
-        forumSuccessMessages.showReplyCreated()
       } catch (error) {
-        forumErrorMessages.showReplyCreateFailed(error.message)
+        console.error('创建回复失败:', error)
       } finally {
         submitting.value = false
       }

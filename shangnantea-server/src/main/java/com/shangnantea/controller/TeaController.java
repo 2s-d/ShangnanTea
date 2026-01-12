@@ -45,17 +45,17 @@ public class TeaController {
     }
 
     /**
-     * 获取茶叶详情
-     * 路径: GET /tea/{id}
-     * 成功码: 3001, 失败码: 3101
+     * 获取推荐茶叶
+     * 路径: GET /tea/recommend
+     * 成功码: 200, 失败码: 1102
      *
-     * @param id 茶叶ID
-     * @return 茶叶详情
+     * @param params 推荐参数 {type, teaId, count}
+     * @return 推荐茶叶列表
      */
-    @GetMapping("/{id}")
-    public Result<Object> getTeaDetail(@PathVariable String id) {
-        logger.info("获取茶叶详情请求: {}", id);
-        return teaService.getTeaDetail(id);
+    @GetMapping("/recommend")
+    public Result<Object> getRecommendTeas(@RequestParam Map<String, Object> params) {
+        logger.info("获取推荐茶叶请求, params: {}", params);
+        return teaService.getRecommendTeas(params);
     }
 
     /**
@@ -72,18 +72,63 @@ public class TeaController {
     }
 
     /**
-     * 获取推荐茶叶
-     * 路径: GET /tea/recommend
+     * 获取茶叶评价列表
+     * 路径: GET /tea/{teaId}/reviews
      * 成功码: 200, 失败码: 1102
      *
-     * @param params 推荐参数 {type, teaId, count}
-     * @return 推荐茶叶列表
+     * @param teaId 茶叶ID
+     * @param params 查询参数（page, pageSize）
+     * @return 评价列表
      */
-    @GetMapping("/recommend")
-    public Result<Object> getRecommendTeas(@RequestParam Map<String, Object> params) {
-        logger.info("获取推荐茶叶请求, params: {}", params);
-        return teaService.getRecommendTeas(params);
+    @GetMapping("/{teaId}/reviews")
+    public Result<Object> getTeaReviews(@PathVariable String teaId, @RequestParam Map<String, Object> params) {
+        logger.info("获取茶叶评价列表请求: {}, params: {}", teaId, params);
+        return teaService.getTeaReviews(teaId, params);
     }
+
+    /**
+     * 获取茶叶评价统计数据
+     * 路径: GET /tea/{teaId}/reviews/stats
+     * 成功码: 200, 失败码: 1102
+     *
+     * @param teaId 茶叶ID
+     * @return 评价统计数据
+     */
+    @GetMapping("/{teaId}/reviews/stats")
+    public Result<Object> getReviewStats(@PathVariable String teaId) {
+        logger.info("获取茶叶评价统计数据请求: {}", teaId);
+        return teaService.getReviewStats(teaId);
+    }
+
+    /**
+     * 获取茶叶规格列表
+     * 路径: GET /tea/{teaId}/specifications
+     * 成功码: 200, 失败码: 1102
+     *
+     * @param teaId 茶叶ID
+     * @return 规格列表
+     */
+    @GetMapping("/{teaId}/specifications")
+    public Result<Object> getTeaSpecifications(@PathVariable String teaId) {
+        logger.info("获取茶叶规格列表请求: {}", teaId);
+        return teaService.getTeaSpecifications(teaId);
+    }
+
+    /**
+     * 获取茶叶详情
+     * 路径: GET /tea/{id}
+     * 成功码: 3001, 失败码: 3101
+     * 注意：此路径应放在最后，避免与更具体的路径冲突
+     *
+     * @param id 茶叶ID
+     * @return 茶叶详情
+     */
+    @GetMapping("/{id}")
+    public Result<Object> getTeaDetail(@PathVariable String id) {
+        logger.info("获取茶叶详情请求: {}", id);
+        return teaService.getTeaDetail(id);
+    }
+
 
     // ==================== 分类管理（管理员） ====================
 
@@ -215,35 +260,6 @@ public class TeaController {
     // ==================== 评价系统 ====================
 
     /**
-     * 获取茶叶评价列表
-     * 路径: GET /tea/{teaId}/reviews
-     * 成功码: 200, 失败码: 1102
-     *
-     * @param teaId 茶叶ID
-     * @param params 查询参数（page, pageSize）
-     * @return 评价列表
-     */
-    @GetMapping("/{teaId}/reviews")
-    public Result<Object> getTeaReviews(@PathVariable String teaId, @RequestParam Map<String, Object> params) {
-        logger.info("获取茶叶评价列表请求: {}, params: {}", teaId, params);
-        return teaService.getTeaReviews(teaId, params);
-    }
-
-    /**
-     * 获取茶叶评价统计数据
-     * 路径: GET /tea/{teaId}/reviews/stats
-     * 成功码: 200, 失败码: 1102
-     *
-     * @param teaId 茶叶ID
-     * @return 评价统计数据
-     */
-    @GetMapping("/{teaId}/reviews/stats")
-    public Result<Object> getReviewStats(@PathVariable String teaId) {
-        logger.info("获取茶叶评价统计数据请求: {}", teaId);
-        return teaService.getReviewStats(teaId);
-    }
-
-    /**
      * 提交评价
      * 路径: POST /tea/reviews
      * 成功码: 200, 失败码: 1100
@@ -290,20 +306,6 @@ public class TeaController {
     }
 
     // ==================== 规格管理 ====================
-
-    /**
-     * 获取茶叶规格列表
-     * 路径: GET /tea/{teaId}/specifications
-     * 成功码: 200, 失败码: 1102
-     *
-     * @param teaId 茶叶ID
-     * @return 规格列表
-     */
-    @GetMapping("/{teaId}/specifications")
-    public Result<Object> getTeaSpecifications(@PathVariable String teaId) {
-        logger.info("获取茶叶规格列表请求: {}", teaId);
-        return teaService.getTeaSpecifications(teaId);
-    }
 
     /**
      * 添加规格

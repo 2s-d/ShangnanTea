@@ -309,7 +309,7 @@ export default {
           selectedAddressId.value = addresses.value[0].id
         }
       } catch (error) {
-        orderErrorMessages.showAddressLoadFailed()
+        console.error('加载地址失败:', error)
       } finally {
         loading.value = false
       }
@@ -327,7 +327,7 @@ export default {
           // 直接购买的情况，从缓存获取直接购买的商品
           const directBuyItem = store.state.order.directBuyItem
           if (!directBuyItem) {
-            orderErrorMessages.showProductInfoExpired()
+            orderPromptMessages.showOrderInfoInvalid()
             router.push('/tea/mall')
             return
           }

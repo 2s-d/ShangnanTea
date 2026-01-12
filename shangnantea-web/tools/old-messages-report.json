@@ -1,10 +1,10 @@
 {
-  "scanTime": "2026-01-12T19:13:05.384Z",
+  "scanTime": "2026-01-12T19:22:35.281Z",
   "summary": {
-    "totalFiles": 8,
-    "totalIssues": 64,
-    "totalImports": 5,
-    "totalCalls": 59
+    "totalFiles": 3,
+    "totalIssues": 14,
+    "totalImports": 2,
+    "totalCalls": 12
   },
   "files": [
     {
@@ -54,257 +54,9 @@
       "status": "pending"
     },
     {
-      "file": "C:\\wendang\\bishe\\tea1\\shangnantea\\shangnantea-web\\src\\views\\forum\\detail\\ForumDetailPage.vue",
-      "relativePath": "src\\views\\forum\\detail\\ForumDetailPage.vue",
-      "imports": [],
-      "calls": [
-        {
-          "line": 264,
-          "code": "forumErrorMessages.showLoadPostDetailFailed()",
-          "fullLine": "forumErrorMessages.showLoadPostDetailFailed()"
-        },
-        {
-          "line": 282,
-          "code": "forumErrorMessages.showLoadRepliesFailed()",
-          "fullLine": "forumErrorMessages.showLoadRepliesFailed()"
-        },
-        {
-          "line": 607,
-          "code": "forumSuccessMessages.showReplyCreated()",
-          "fullLine": "forumSuccessMessages.showReplyCreated()"
-        },
-        {
-          "line": 609,
-          "code": "forumErrorMessages.showReplyCreateFailed(error.message)",
-          "fullLine": "forumErrorMessages.showReplyCreateFailed(error.message)"
-        }
-      ],
-      "total": 4,
-      "hasNewPattern": true,
-      "status": "partial"
-    },
-    {
-      "file": "C:\\wendang\\bishe\\tea1\\shangnantea\\shangnantea-web\\src\\views\\forum\\manage\\CultureManagerPage.vue",
-      "relativePath": "src\\views\\forum\\manage\\CultureManagerPage.vue",
-      "imports": [
-        {
-          "line": 450,
-          "code": "import { forumSuccessMessages, forumErrorMessages } from '@/utils/forumMessages'",
-          "fullLine": "import { forumSuccessMessages, forumErrorMessages } from '@/utils/forumMessages'"
-        }
-      ],
-      "calls": [
-        {
-          "line": 597,
-          "code": "forumSuccessMessages.showArticleRecommended(article.title)",
-          "fullLine": "forumSuccessMessages.showArticleRecommended(article.title)"
-        },
-        {
-          "line": 599,
-          "code": "forumSuccessMessages.showArticleUnrecommended(article.title)",
-          "fullLine": "forumSuccessMessages.showArticleUnrecommended(article.title)"
-        },
-        {
-          "line": 602,
-          "code": "forumErrorMessages.showOperationFailed(error.message)",
-          "fullLine": "forumErrorMessages.showOperationFailed(error.message)"
-        },
-        {
-          "line": 619,
-          "code": "forumSuccessMessages.showArticleDeleted()",
-          "fullLine": "forumSuccessMessages.showArticleDeleted()"
-        },
-        {
-          "line": 621,
-          "code": "forumErrorMessages.showArticleDeleteFailed(error.message)",
-          "fullLine": "forumErrorMessages.showArticleDeleteFailed(error.message)"
-        },
-        {
-          "line": 650,
-          "code": "forumSuccessMessages.showArticleUpdated()",
-          "fullLine": "forumSuccessMessages.showArticleUpdated()"
-        },
-        {
-          "line": 654,
-          "code": "forumSuccessMessages.showArticleCreated()",
-          "fullLine": "forumSuccessMessages.showArticleCreated()"
-        },
-        {
-          "line": 662,
-          "code": "forumErrorMessages.showArticleUpdateFailed(error.message)",
-          "fullLine": "forumErrorMessages.showArticleUpdateFailed(error.message)"
-        },
-        {
-          "line": 664,
-          "code": "forumErrorMessages.showArticleCreateFailed(error.message)",
-          "fullLine": "forumErrorMessages.showArticleCreateFailed(error.message)"
-        },
-        {
-          "line": 745,
-          "code": "forumSuccessMessages.showBlockStatusChanged(getBlockName(block.section)",
-          "fullLine": "forumSuccessMessages.showBlockStatusChanged(getBlockName(block.section), block.status)"
-        },
-        {
-          "line": 835,
-          "code": "forumSuccessMessages.showBlockSaved()",
-          "fullLine": "forumSuccessMessages.showBlockSaved()"
-        },
-        {
-          "line": 841,
-          "code": "forumErrorMessages.showBlockSaveFailed(error.message)",
-          "fullLine": "forumErrorMessages.showBlockSaveFailed(error.message)"
-        },
-        {
-          "line": 878,
-          "code": "forumErrorMessages.showHomeDataLoadFailed()",
-          "fullLine": "forumErrorMessages.showHomeDataLoadFailed()"
-        }
-      ],
-      "total": 14,
-      "hasNewPattern": true,
-      "status": "partial"
-    },
-    {
-      "file": "C:\\wendang\\bishe\\tea1\\shangnantea\\shangnantea-web\\src\\views\\forum\\manage\\ForumManagePage.vue",
-      "relativePath": "src\\views\\forum\\manage\\ForumManagePage.vue",
-      "imports": [
-        {
-          "line": 462,
-          "code": "import { forumSuccessMessages, forumErrorMessages } from '@/utils/forumMessages'",
-          "fullLine": "import { forumSuccessMessages, forumErrorMessages } from '@/utils/forumMessages'"
-        }
-      ],
-      "calls": [
-        {
-          "line": 555,
-          "code": "forumErrorMessages.showLoadTopicsFailed()",
-          "fullLine": "forumErrorMessages.showLoadTopicsFailed()"
-        },
-        {
-          "line": 601,
-          "code": "forumSuccessMessages.showTopicUpdated()",
-          "fullLine": "forumSuccessMessages.showTopicUpdated()"
-        },
-        {
-          "line": 604,
-          "code": "forumSuccessMessages.showTopicCreated()",
-          "fullLine": "forumSuccessMessages.showTopicCreated()"
-        },
-        {
-          "line": 611,
-          "code": "forumErrorMessages.showTopicUpdateFailed(error.message)",
-          "fullLine": "forumErrorMessages.showTopicUpdateFailed(error.message)"
-        },
-        {
-          "line": 613,
-          "code": "forumErrorMessages.showTopicCreateFailed(error.message)",
-          "fullLine": "forumErrorMessages.showTopicCreateFailed(error.message)"
-        },
-        {
-          "line": 631,
-          "code": "forumSuccessMessages.showTopicEnabled()",
-          "fullLine": "forumSuccessMessages.showTopicEnabled()"
-        },
-        {
-          "line": 633,
-          "code": "forumSuccessMessages.showTopicDisabled()",
-          "fullLine": "forumSuccessMessages.showTopicDisabled()"
-        },
-        {
-          "line": 637,
-          "code": "forumErrorMessages.showTopicUpdateFailed(error.message)",
-          "fullLine": "forumErrorMessages.showTopicUpdateFailed(error.message)"
-        },
-        {
-          "line": 655,
-          "code": "forumSuccessMessages.showTopicDeleted()",
-          "fullLine": "forumSuccessMessages.showTopicDeleted()"
-        },
-        {
-          "line": 658,
-          "code": "forumErrorMessages.showTopicDeleteFailed(error.message)",
-          "fullLine": "forumErrorMessages.showTopicDeleteFailed(error.message)"
-        },
-        {
-          "line": 817,
-          "code": "forumSuccessMessages.showPostPinned()",
-          "fullLine": "forumSuccessMessages.showPostPinned()"
-        },
-        {
-          "line": 819,
-          "code": "forumSuccessMessages.showPostUnpinned()",
-          "fullLine": "forumSuccessMessages.showPostUnpinned()"
-        },
-        {
-          "line": 825,
-          "code": "forumErrorMessages.showPinFailed(error.message)",
-          "fullLine": "forumErrorMessages.showPinFailed(error.message)"
-        },
-        {
-          "line": 827,
-          "code": "forumErrorMessages.showUnpinFailed(error.message)",
-          "fullLine": "forumErrorMessages.showUnpinFailed(error.message)"
-        },
-        {
-          "line": 843,
-          "code": "forumSuccessMessages.showPostFeatured()",
-          "fullLine": "forumSuccessMessages.showPostFeatured()"
-        },
-        {
-          "line": 845,
-          "code": "forumSuccessMessages.showPostUnfeatured()",
-          "fullLine": "forumSuccessMessages.showPostUnfeatured()"
-        },
-        {
-          "line": 851,
-          "code": "forumErrorMessages.showFeatureFailed(error.message)",
-          "fullLine": "forumErrorMessages.showFeatureFailed(error.message)"
-        },
-        {
-          "line": 853,
-          "code": "forumErrorMessages.showUnfeatureFailed(error.message)",
-          "fullLine": "forumErrorMessages.showUnfeatureFailed(error.message)"
-        },
-        {
-          "line": 887,
-          "code": "forumErrorMessages.showLoadPendingPostsFailed()",
-          "fullLine": "forumErrorMessages.showLoadPendingPostsFailed()"
-        },
-        {
-          "line": 938,
-          "code": "forumSuccessMessages.showPostApproved()",
-          "fullLine": "forumSuccessMessages.showPostApproved()"
-        },
-        {
-          "line": 942,
-          "code": "forumErrorMessages.showPostApproveFailed(error.message)",
-          "fullLine": "forumErrorMessages.showPostApproveFailed(error.message)"
-        },
-        {
-          "line": 961,
-          "code": "forumSuccessMessages.showPostRejected()",
-          "fullLine": "forumSuccessMessages.showPostRejected()"
-        },
-        {
-          "line": 965,
-          "code": "forumErrorMessages.showPostRejectFailed(error.message)",
-          "fullLine": "forumErrorMessages.showPostRejectFailed(error.message)"
-        }
-      ],
-      "total": 24,
-      "hasNewPattern": false,
-      "status": "pending"
-    },
-    {
       "file": "C:\\wendang\\bishe\\tea1\\shangnantea\\shangnantea-web\\src\\views\\message\\content\\PublishedContentPage.vue",
       "relativePath": "src\\views\\message\\content\\PublishedContentPage.vue",
-      "imports": [
-        {
-          "line": 161,
-          "code": "import { commonSuccessMessages, commonErrorMessages } from '@/utils/commonMessages'",
-          "fullLine": "import { commonSuccessMessages, commonErrorMessages } from '@/utils/commonMessages'"
-        }
-      ],
+      "imports": [],
       "calls": [
         {
           "line": 249,
@@ -317,7 +69,7 @@
           "fullLine": "commonSuccessMessages.showDeleteSuccess()"
         }
       ],
-      "total": 3,
+      "total": 2,
       "hasNewPattern": true,
       "status": "partial"
     },
@@ -356,61 +108,6 @@
       "total": 5,
       "hasNewPattern": false,
       "status": "pending"
-    },
-    {
-      "file": "C:\\wendang\\bishe\\tea1\\shangnantea\\shangnantea-web\\src\\views\\message\\notification\\SystemNotificationsPage.vue",
-      "relativePath": "src\\views\\message\\notification\\SystemNotificationsPage.vue",
-      "imports": [],
-      "calls": [
-        {
-          "line": 311,
-          "code": "messageErrorMessages.showOperationFailed('处理商家认证通知失败')",
-          "fullLine": "messageErrorMessages.showOperationFailed('处理商家认证通知失败')"
-        },
-        {
-          "line": 334,
-          "code": "messageSuccessMessages.showOperationSuccess('商家认证已确认，欢迎使用商家中心！')",
-          "fullLine": "messageSuccessMessages.showOperationSuccess('商家认证已确认，欢迎使用商家中心！')"
-        },
-        {
-          "line": 344,
-          "code": "messageSuccessMessages.showOperationSuccess('商家认证已确认，店铺已自动创建！')",
-          "fullLine": "messageSuccessMessages.showOperationSuccess('商家认证已确认，店铺已自动创建！')"
-        },
-        {
-          "line": 347,
-          "code": "messageErrorMessages.showOperationFailed('创建店铺失败，请稍后手动创建')",
-          "fullLine": "messageErrorMessages.showOperationFailed('创建店铺失败，请稍后手动创建')"
-        },
-        {
-          "line": 360,
-          "code": "messageErrorMessages.showOperationFailed('处理商家认证确认失败，请稍后再试')",
-          "fullLine": "messageErrorMessages.showOperationFailed('处理商家认证确认失败，请稍后再试')"
-        }
-      ],
-      "total": 5,
-      "hasNewPattern": true,
-      "status": "partial"
-    },
-    {
-      "file": "C:\\wendang\\bishe\\tea1\\shangnantea\\shangnantea-web\\src\\views\\order\\payment\\CheckoutPage.vue",
-      "relativePath": "src\\views\\order\\payment\\CheckoutPage.vue",
-      "imports": [],
-      "calls": [
-        {
-          "line": 312,
-          "code": "orderErrorMessages.showAddressLoadFailed()",
-          "fullLine": "orderErrorMessages.showAddressLoadFailed()"
-        },
-        {
-          "line": 330,
-          "code": "orderErrorMessages.showProductInfoExpired()",
-          "fullLine": "orderErrorMessages.showProductInfoExpired()"
-        }
-      ],
-      "total": 2,
-      "hasNewPattern": true,
-      "status": "partial"
     }
   ]
 }
