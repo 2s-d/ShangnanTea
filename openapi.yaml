@@ -48,8 +48,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "登录成功"
+                code: 2000
                 data:
                   token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjeTEwMDAwMiIsInJvbGUiOjIsInVzZXJuYW1lIjoidXNlciIsImp0aSI6Im1vY2stdXVpZCIsImlhdCI6MTczNTA4NDgwMCwiZXhwIjoxNzY3MjI1NjAwLCJpc3MiOiJzaGFuZ25hbnRlYSJ9.mock"
 
@@ -81,8 +80,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "注册成功"
+                code: 2001
                 data:
                   id: "cy100002"
                   username: "newuser"
@@ -103,8 +101,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "退出成功"
+                code: 2002
                 data: null
 
   /user/refresh:
@@ -120,7 +117,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "刷新成功"
                 data:
                   token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjeTEwMDAwMiIsInJvbGUiOjIsInVzZXJuYW1lIjoidXNlciIsImp0aSI6Im1vY2stdXVpZCIsImlhdCI6MTczNTA4NDgwMCwiZXhwIjoxNzY3MjI1NjAwLCJpc3MiOiJzaGFuZ25hbnRlYSJ9.mock"
 
@@ -137,7 +133,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   id: "cy100002"
                   username: "user"
@@ -165,7 +160,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   id: "cy100002"
                   username: "user"
@@ -199,8 +193,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "更新成功"
+                code: 2010
                 data: null
 
   /user/avatar:
@@ -225,8 +218,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "上传成功"
+                code: 2012
                 data:
                   avatarUrl: "/uploads/avatar/user_cy100002.jpg"
 
@@ -256,8 +248,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "密码修改成功"
+                code: 2011
                 data: null
 
   /user/password/reset:
@@ -287,8 +278,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "密码重置成功"
+                code: 2004
                 data: null
 
   /user/addresses:
@@ -304,7 +294,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   - id: 1
                     receiverName: "张三"
@@ -347,8 +336,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "添加成功"
+                code: 4060
                 data: null
 
   /user/addresses/{id}:
@@ -391,8 +379,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "更新成功"
+                code: 1004
                 data: null
     delete:
       tags: [用户模块]
@@ -411,8 +398,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "删除成功"
+                code: 1003
                 data: null
 
   /user/addresses/{id}/default:
@@ -433,8 +419,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "设置成功"
+                code: 1004
                 data: null
 
   /user/shop-certification:
@@ -450,11 +435,9 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   id: 1
                   status: 0
-                  message: "审核中"
     post:
       tags: [用户模块]
       summary: 提交商家认证申请
@@ -481,8 +464,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "提交成功"
+                code: 1000
                 data: null
 
   /user/follows:
@@ -504,7 +486,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   - id: 1
                     targetId: "cy100003"
@@ -535,8 +516,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "关注成功"
+                code: 5000
                 data: null
 
   /user/follows/{id}:
@@ -557,8 +537,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "取消成功"
+                code: 5001
                 data: null
 
   /user/favorites:
@@ -580,7 +559,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   - id: 1
                     targetId: "1"
@@ -611,8 +589,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "收藏成功"
+                code: 3010
                 data: null
 
   /user/favorites/{id}:
@@ -633,8 +610,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "取消成功"
+                code: 3011
                 data: null
 
   /user/likes:
@@ -661,8 +637,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "点赞成功"
+                code: 6010
                 data: null
 
   /user/likes/{id}:
@@ -683,8 +658,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "取消成功"
+                code: 6011
                 data: null
 
   /user/preferences:
@@ -700,7 +674,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   theme: "light"
                   displayMode: "grid"
@@ -726,8 +699,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "更新成功"
+                code: 2013
                 data: null
 
   /user/admin/users:
@@ -768,7 +740,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   list:
                     - id: "cy100001"
@@ -815,8 +786,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "创建成功"
+                code: 2023
                 data: null
 
   /user/admin/users/{userId}:
@@ -855,8 +825,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "更新成功"
+                code: 2022
                 data: null
     delete:
       tags: [用户模块]
@@ -875,8 +844,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "删除成功"
+                code: 2020
                 data: null
 
   /user/admin/users/{userId}/role:
@@ -909,8 +877,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "更新成功"
+                code: 2022
                 data: null
 
   /user/admin/users/{userId}/status:
@@ -942,8 +909,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "更新成功"
+                code: 2021
                 data: null
 
   /user/admin/certifications:
@@ -975,7 +941,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   list:
                     - id: 1
@@ -1008,16 +973,13 @@ paths:
                 status:
                   type: integer
                   enum: [1, 2]
-                message:
-                  type: string
       responses:
         '200':
           description: 审核成功
           content:
             application/json:
               example:
-                code: 200
-                message: "审核成功"
+                code: 1000
                 data: null
 
 
@@ -1065,8 +1027,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "success"
+                code: 3000
                 data:
                   list:
                     - id: "1"
@@ -1122,8 +1083,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "添加成功"
+                code: 3026
                 data: null
 
   /tea/{id}:
@@ -1142,8 +1102,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "success"
+                code: 3001
                 data:
                   id: "1"
                   name: "商南绿茶"
@@ -1199,8 +1158,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "更新成功"
+                code: 3025
                 data: null
     delete:
       tags: [茶叶模块]
@@ -1219,8 +1177,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "删除成功"
+                code: 3024
                 data: null
 
   /tea/categories:
@@ -1234,7 +1191,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   - id: 1
                     name: "绿茶"
@@ -1272,8 +1228,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "创建成功"
+                code: 3030
                 data: null
 
   /tea/categories/{id}:
@@ -1309,8 +1264,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "更新成功"
+                code: 3031
                 data: null
     delete:
       tags: [茶叶模块]
@@ -1329,8 +1283,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "删除成功"
+                code: 3032
                 data: null
 
   /tea/{teaId}/reviews:
@@ -1358,7 +1311,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   list:
                     - id: 1
@@ -1388,7 +1340,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   averageRating: 4.5
                   totalCount: 100
@@ -1433,8 +1384,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "评价成功"
+                code: 4050
                 data: null
 
   /tea/reviews/{reviewId}/reply:
@@ -1465,8 +1415,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "回复成功"
+                code: 3013
                 data: null
 
   /tea/reviews/{reviewId}/like:
@@ -1487,8 +1436,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "点赞成功"
+                code: 6010
                 data: null
 
   /tea/{teaId}/specifications:
@@ -1508,7 +1456,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   - id: "1"
                     teaId: "1"
@@ -1549,8 +1496,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "添加成功"
+                code: 1000
                 data: null
 
   /tea/specifications/{specId}:
@@ -1587,8 +1533,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "更新成功"
+                code: 1004
                 data: null
     delete:
       tags: [茶叶模块]
@@ -1607,8 +1552,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "删除成功"
+                code: 1003
                 data: null
 
   /tea/specifications/{specId}/default:
@@ -1629,8 +1573,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "设置成功"
+                code: 1004
                 data: null
 
   /tea/{teaId}/images:
@@ -1663,8 +1606,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "上传成功"
+                code: 1001
                 data:
                   - id: "img1"
                     url: "/uploads/tea/tea1_1.jpg"
@@ -1687,8 +1629,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "删除成功"
+                code: 1003
                 data: null
 
   /tea/images/{imageId}/main:
@@ -1709,8 +1650,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "设置成功"
+                code: 1004
                 data: null
 
   /tea/images/order:
@@ -1743,8 +1683,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "更新成功"
+                code: 1004
                 data: null
 
   /tea/{teaId}/status:
@@ -1775,8 +1714,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "更新成功"
+                code: 3020
                 data: null
 
   /tea/batch-status:
@@ -1805,8 +1743,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "更新成功"
+                code: 3022
                 data: null
 
   /tea/recommend:
@@ -1835,7 +1772,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   - id: "1"
                     name: "商南绿茶"
@@ -1884,7 +1820,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   list:
                     - id: "1"
@@ -1922,8 +1857,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "创建成功"
+                code: 1000
                 data: null
 
   /shop/{id}:
@@ -1943,7 +1877,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   id: "1"
                   name: "商南茶庄"
@@ -1983,8 +1916,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "更新成功"
+                code: 1004
                 data: null
 
   /shop/my:
@@ -2000,7 +1932,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   id: "1"
                   name: "商南茶庄"
@@ -2035,7 +1966,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   list:
                     - id: "1"
@@ -2077,8 +2007,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "添加成功"
+                code: 3026
                 data: null
 
   /shop/teas/{teaId}:
@@ -2114,8 +2043,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "更新成功"
+                code: 3025
                 data: null
     delete:
       tags: [店铺模块]
@@ -2134,8 +2062,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "删除成功"
+                code: 3024
                 data: null
 
   /shop/teas/{teaId}/status:
@@ -2166,8 +2093,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "更新成功"
+                code: 3020
                 data: null
 
   /shop/{shopId}/statistics:
@@ -2199,7 +2125,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   totalSales: 50000.00
                   orderCount: 200
@@ -2234,8 +2159,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "上传成功"
+                code: 5030
                 data:
                   url: "/uploads/shop/logo_1.jpg"
 
@@ -2256,7 +2180,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   - id: "1"
                     imageUrl: "/images/banner1.jpg"
@@ -2294,8 +2217,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "上传成功"
+                code: 5010
                 data: null
 
   /shop/banners/{bannerId}:
@@ -2329,8 +2251,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "更新成功"
+                code: 5011
                 data: null
     delete:
       tags: [店铺模块]
@@ -2349,8 +2270,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "删除成功"
+                code: 5012
                 data: null
 
   /shop/banners/order:
@@ -2381,8 +2301,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "更新成功"
+                code: 5013
                 data: null
 
   /shop/{shopId}/announcements:
@@ -2402,7 +2321,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   - id: "1"
                     title: "春茶上市"
@@ -2439,8 +2357,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "创建成功"
+                code: 5020
                 data: null
 
   /shop/announcements/{announcementId}:
@@ -2474,8 +2391,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "更新成功"
+                code: 5021
                 data: null
     delete:
       tags: [店铺模块]
@@ -2494,8 +2410,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "删除成功"
+                code: 5022
                 data: null
 
   /shop/{shopId}/follow:
@@ -2516,8 +2431,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "关注成功"
+                code: 5000
                 data: null
     delete:
       tags: [店铺模块]
@@ -2536,8 +2450,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "取消成功"
+                code: 5001
                 data: null
 
   /shop/{shopId}/follow-status:
@@ -2559,7 +2472,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   isFollowed: true
 
@@ -2588,7 +2500,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   list:
                     - id: 1
@@ -2631,8 +2542,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "评价成功"
+                code: 5002
                 data: null
 
 
@@ -2650,7 +2560,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   - id: 1
                     teaId: "1"
@@ -2687,8 +2596,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "添加成功"
+                code: 4010
                 data: null
 
   /order/cart/update:
@@ -2717,8 +2625,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "更新成功"
+                code: 4011
                 data: null
 
   /order/cart/remove:
@@ -2739,8 +2646,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "移除成功"
+                code: 4013
                 data: null
 
   /order/cart/clear:
@@ -2755,8 +2661,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "清空成功"
+                code: 4015
                 data: null
 
   /order/create:
@@ -2794,8 +2699,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "创建成功"
+                code: 4000
                 data:
                   id: "1"
                   orderNo: "202501010001"
@@ -2833,7 +2737,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   list:
                     - id: "1"
@@ -2870,7 +2773,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   id: "1"
                   orderNo: "202501010001"
@@ -2909,8 +2811,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "支付成功"
+                code: 4020
                 data: null
 
   /order/cancel:
@@ -2935,8 +2836,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "取消成功"
+                code: 4002
                 data: null
 
   /order/confirm:
@@ -2961,8 +2861,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "确认成功"
+                code: 4003
                 data: null
 
   /order/review:
@@ -2997,8 +2896,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "评价成功"
+                code: 4050
                 data: null
 
   /order/{id}/ship:
@@ -3029,8 +2927,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "发货成功"
+                code: 4004
                 data: null
 
   /order/batch-ship:
@@ -3061,8 +2958,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "批量发货成功"
+                code: 4006
                 data: null
 
   /order/{id}/logistics:
@@ -3084,7 +2980,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   logisticsCompany: "顺丰速运"
                   logisticsNumber: "SF1234567890"
@@ -3118,8 +3013,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "申请成功"
+                code: 4030
                 data: null
 
   /order/{id}/refund:
@@ -3141,7 +3035,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   id: 1
                   orderId: "1"
@@ -3179,8 +3072,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "审批成功"
+                code: 4031
                 data: null
 
   /order/statistics:
@@ -3211,7 +3103,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   totalOrders: 500
                   totalAmount: 50000.00
@@ -3280,7 +3171,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   banners:
                     - id: 1
@@ -3312,8 +3202,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "更新成功"
+                code: 6060
                 data: null
 
   /forum/banners:
@@ -3327,7 +3216,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   - id: 1
                     imageUrl: "/images/forum-banner1.jpg"
@@ -3359,8 +3247,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "上传成功"
+                code: 5010
                 data: null
 
   /forum/banners/{id}:
@@ -3394,8 +3281,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "更新成功"
+                code: 5011
                 data: null
     delete:
       tags: [论坛模块]
@@ -3414,8 +3300,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "删除成功"
+                code: 5012
                 data: null
 
   /forum/banners/order:
@@ -3441,8 +3326,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "更新成功"
+                code: 5013
                 data: null
 
   /forum/articles:
@@ -3473,7 +3357,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   list:
                     - id: 1
@@ -3513,8 +3396,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "创建成功"
+                code: 6050
                 data: null
 
   /forum/articles/{id}:
@@ -3534,7 +3416,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   id: 1
                   title: "茶道入门"
@@ -3576,8 +3457,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "更新成功"
+                code: 6051
                 data: null
     delete:
       tags: [论坛模块]
@@ -3596,8 +3476,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "删除成功"
+                code: 6052
                 data: null
 
   /forum/topics:
@@ -3611,7 +3490,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   - id: 1
                     name: "茶文化"
@@ -3645,8 +3523,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "创建成功"
+                code: 6040
                 data: null
 
   /forum/topics/{id}:
@@ -3666,7 +3543,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   id: 1
                   name: "茶文化"
@@ -3703,8 +3579,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "更新成功"
+                code: 6041
                 data: null
     delete:
       tags: [论坛模块]
@@ -3723,8 +3598,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "删除成功"
+                code: 6042
                 data: null
 
   /forum/posts:
@@ -3760,7 +3634,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   list:
                     - id: 1
@@ -3805,8 +3678,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "创建成功"
+                code: 6000
                 data: null
 
   /forum/posts/pending:
@@ -3831,7 +3703,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   list:
                     - id: 1
@@ -3858,7 +3729,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   id: 1
                   title: "商南茶文化分享"
@@ -3900,8 +3770,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "更新成功"
+                code: 6001
                 data: null
     delete:
       tags: [论坛模块]
@@ -3920,8 +3789,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "删除成功"
+                code: 6002
                 data: null
 
   /forum/posts/{id}/replies:
@@ -3949,7 +3817,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   list:
                     - id: 1
@@ -3988,8 +3855,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "回复成功"
+                code: 6022
                 data: null
 
   /forum/replies/{id}:
@@ -4010,8 +3876,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "删除成功"
+                code: 6021
                 data: null
 
   /forum/replies/{id}/like:
@@ -4032,8 +3897,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "点赞成功"
+                code: 6010
                 data: null
     delete:
       tags: [论坛模块]
@@ -4052,8 +3916,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "取消成功"
+                code: 6011
                 data: null
 
   /forum/posts/{id}/like:
@@ -4074,8 +3937,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "点赞成功"
+                code: 6010
                 data: null
     delete:
       tags: [论坛模块]
@@ -4094,8 +3956,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "取消成功"
+                code: 6011
                 data: null
 
   /forum/posts/{id}/favorite:
@@ -4116,8 +3977,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "收藏成功"
+                code: 6012
                 data: null
     delete:
       tags: [论坛模块]
@@ -4136,8 +3996,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "取消成功"
+                code: 6013
                 data: null
 
   /forum/posts/{id}/approve:
@@ -4158,8 +4017,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "审核通过"
+                code: 6034
                 data: null
 
   /forum/posts/{id}/reject:
@@ -4190,8 +4048,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "审核拒绝"
+                code: 6035
                 data: null
 
   /forum/posts/{id}/sticky:
@@ -4217,8 +4074,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "设置成功"
+                code: 6030
                 data: null
 
   /forum/posts/{id}/essence:
@@ -4244,8 +4100,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "设置成功"
+                code: 6032
                 data: null
 
 
@@ -4277,7 +4132,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   list:
                     - id: 1
@@ -4307,7 +4161,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   id: 1
                   type: "system"
@@ -4343,8 +4196,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "发送成功"
+                code: 7000
                 data: null
 
   /message/read:
@@ -4371,8 +4223,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "标记成功"
+                code: 7010
                 data: null
 
   /message/delete:
@@ -4399,8 +4250,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "删除成功"
+                code: 7012
                 data: null
 
   /message/unread-count:
@@ -4416,7 +4266,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   total: 10
                   system: 3
@@ -4449,7 +4298,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   list:
                     - id: 1
@@ -4479,7 +4327,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   id: 1
                   type: "system"
@@ -4504,8 +4351,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "删除成功"
+                code: 7012
                 data: null
 
   /message/notifications/batch-read:
@@ -4528,8 +4374,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "标记成功"
+                code: 7011
                 data: null
 
   /message/notifications/batch:
@@ -4552,8 +4397,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "删除成功"
+                code: 7013
                 data: null
 
   /message/list/sessions:
@@ -4569,7 +4413,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   - sessionId: "session_1"
                     targetUser:
@@ -4608,7 +4451,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   list:
                     - id: 1
@@ -4642,8 +4484,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "创建成功"
+                code: 1000
                 data:
                   sessionId: "session_1"
 
@@ -4665,8 +4506,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "删除成功"
+                code: 7001
                 data: null
 
   /message/sessions/{sessionId}/pin:
@@ -4687,8 +4527,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "置顶成功"
+                code: 7014
                 data: null
 
   /message/messages/image:
@@ -4718,8 +4557,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "发送成功"
+                code: 7003
                 data: null
 
   /message/user/{userId}:
@@ -4739,7 +4577,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   user:
                     id: "cy100002"
@@ -4778,7 +4615,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   list:
                     - id: 1
@@ -4805,7 +4641,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   postCount: 10
                   followingCount: 20
@@ -4839,7 +4674,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   list:
                     - id: 1
@@ -4871,7 +4705,6 @@ paths:
             application/json:
               example:
                 code: 200
-                message: "success"
                 data:
                   list:
                     - id: 1
@@ -4908,8 +4741,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "上传成功"
+                code: 1001
                 data:
                   url: "/uploads/common/file_123.jpg"
                   filename: "file_123.jpg"
@@ -4939,8 +4771,7 @@ paths:
           content:
             application/json:
               example:
-                code: 200
-                message: "上传成功"
+                code: 1001
                 data:
                   url: "/uploads/images/img_123.jpg"
                   thumbnailUrl: "/uploads/images/thumb_img_123.jpg"
