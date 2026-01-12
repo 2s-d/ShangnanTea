@@ -167,9 +167,13 @@ export default {
       
       return articles
         .filter(item => item.id !== currentId && item.category === currentCategory)
-        .slice(0, 6) // 最多显�?篇相关文�?    })
+        .slice(0, 6) // 最多显示6篇相关文章
+    })�?篇相关文�?    })
 
-    // 添加默认图片常量（生产形态：不使�?mock-images�?    const defaultImage = ''
+    // 添加默认图片常量（生产形态：不使用mock-images）
+    const defaultImage = ''
+
+    // 格式化日期�?mock-images�?    const defaultImage = ''
 
     // 格式化日�?    const formatDate = (date) => {
       if (!date) return ''
@@ -192,7 +196,7 @@ export default {
         await nextTick()
         suppressResizeObserverError()
       } catch (error) {
-        forumErrorMessages.showLoadFailed('获取文章详情失败')
+        showByCode(error.code || 4000)
         console.error('获取文章详情失败:', error)
       }
     }
@@ -549,7 +553,8 @@ export default {
   }
 }
 
-// 分享对话框样�?.share-options {
+// 分享对话框样式
+.share-options {�?.share-options {
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
