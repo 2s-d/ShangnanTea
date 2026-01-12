@@ -1,5 +1,3 @@
-import { showByCode, isSuccess } from '@/utils/apiMessages'
-import userMessages from '@/utils/promptMessages'
 import { 
   login as loginApi, 
   register, 
@@ -40,7 +38,6 @@ import {
   processCertification as processCertificationApi
 } from '@/api/user'
 import { useTokenStorage } from '@/composables/useStorage'
-import router from '@/router'
 
 // 创建token存储实例
 const tokenStorage = useTokenStorage()
@@ -327,15 +324,15 @@ const mapAddressToBackend = (address) => {
 
 const actions = {
   // 用户登录
-  // 任务0-3：使用真实API请求，移除UI-DEV伪成功逻辑
+  // 接口#1: 登录 - 成功码2000, 失败码2100/2105
   async login({ commit }, loginData) {
     try {
       commit('SET_LOADING', true)
       
-      // 调用登录API
-      const response = await loginApi(loginData)
-      // 后端返回格式：{ token: string }
-      const { token } = response
+      // 调用登录API，返回 {code, data}
+      const res = await loginApi(loginData)
+      // 后端返回格式：{ code, data: { token: string } }
+      const { token } = res.data || res
       
       // 存储token
       tokenStorage.setToken(token)
@@ -350,22 +347,8 @@ const actions = {
       commit('SET_USER_INFO', userInfo)
       commit('SET_LOGGED_IN', true)
       
-      // 显示登录成功消息
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      // TODO: [user] 迁移到 showByCode(response.code) - success
-      userMessages.success.showLoginSuccess()
-      
-      return userInfo
+      return res // 返回 {code, data}，组件调用 showByCode(res.code)
     } catch (error) {
-      // 显示登录失败消息
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      userMessages.error.showLoginFailure(error.message)
       throw error
     } finally {
       commit('SET_LOADING', false)
@@ -373,28 +356,16 @@ const actions = {
   },
   
   // 用户注册
+  // 接口#2: 注册 - 成功码2001, 失败码2101
   async register({ commit }, registerData) {
     try {
       commit('SET_LOADING', true)
       
       // 调用注册API
-      const result = await register(registerData)
+      const res = await register(registerData)
       
-      // 显示注册成功消息
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      userMessages.success.showRegisterSuccess()
-      
-      return result
+      return res // 返回 {code, data}，组件调用 showByCode(res.code)
     } catch (error) {
-      // 显示注册失败消息
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      userMessages.error.showRegisterFailure(error.message)
       throw error
     } finally {
       commit('SET_LOADING', false)
@@ -468,25 +439,19 @@ const actions = {
   },
   
   // 退出登录
+  // 接口#3: 登出 - 成功码2002
   async logout({ commit }) {
     try {
       commit('SET_LOADING', true)
       
       // 调用登出API
-      await logout()
+      const res = await logout()
       
       // 清除token和用户信息
       tokenStorage.removeToken()
       commit('CLEAR_USER')
       
-      // 显示退出成功消息
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      userMessages.success.showLogoutSuccess()
-      
-      return true
+      return res // 返回 {code, data}，组件调用 showByCode(res.code)
     } catch (error) {
       console.error('退出登录失败:', error)
       throw error
@@ -567,41 +532,23 @@ const actions = {
   },
   
   // 更新用户信息
-  // 任务A-2：确认可在真实请求下更新state
+  // 接口#6: 更新个人资料 - 成功码2010, 失败码2110
   async updateUserInfo({ commit, state }, newUserInfo) {
     if (!state.userInfo) {
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      userMessages.error.showSessionExpired()
-      return false
+      throw new Error('用户未登录')
     }
     
     try {
       commit('SET_LOADING', true)
       
       // 调用更新API
-      const userData = await updateUserInfo(newUserInfo)
+      const res = await updateUserInfo(newUserInfo)
       
       // 更新状态
-      commit('SET_USER_INFO', userData)
+      commit('SET_USER_INFO', res.data || res)
       
-      // 显示更新成功消息
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      userMessages.success.showProfileUpdateSuccess()
-      
-      return userData
+      return res // 返回 {code, data}，组件调用 showByCode(res.code)
     } catch (error) {
-      // 显示更新失败消息
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      userMessages.error.showProfileUpdateFailure(error.message)
       throw error
     } finally {
       commit('SET_LOADING', false)
@@ -609,32 +556,22 @@ const actions = {
   },
   
   // 上传头像
-  // 任务A-3：实现uploadAvatar action
+  // 接口#7: 上传头像 - 成功码2012, 失败码2112
   async uploadAvatar({ commit, state }, file) {
     if (!state.userInfo) {
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      userMessages.error.showSessionExpired()
-      return false
+      throw new Error('用户未登录')
     }
     
     if (!file || !(file instanceof File)) {
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      userMessages.error.showProfileUpdateFailure('请选择要上传的文件')
-      return false
+      throw new Error('请选择要上传的文件')
     }
     
     try {
       commit('SET_LOADING', true)
       
       // 调用上传头像API
-      const result = await uploadAvatarApi(file)
-      const avatarUrl = result?.avatarUrl || result?.data?.avatarUrl || result?.data
+      const res = await uploadAvatarApi(file)
+      const avatarUrl = res?.data?.avatarUrl || res?.avatarUrl || res?.data
       
       if (!avatarUrl) {
         throw new Error('上传失败：未返回头像URL')
@@ -647,21 +584,8 @@ const actions = {
       }
       commit('SET_USER_INFO', updatedUserInfo)
       
-      // 显示上传成功消息
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      userMessages.success.showProfileUpdateSuccess()
-      
-      return avatarUrl
+      return res // 返回 {code, data}，组件调用 showByCode(res.code)
     } catch (error) {
-      // 显示上传失败消息
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      userMessages.error.showProfileUpdateFailure(error.message || '头像上传失败')
       throw error
     } finally {
       commit('SET_LOADING', false)
@@ -669,36 +593,22 @@ const actions = {
   },
   
   // 修改密码
+  // 接口#8: 修改密码 - 成功码2011, 失败码2111/2113
   async changePassword({ commit }, passwordData) {
     try {
       commit('SET_LOADING', true)
       
-      // 检查新密码与确认密码是否一致
+      // 检查新密码与确认密码是否一致（前端校验，使用 promptMessages）
       if (passwordData.newPassword !== passwordData.confirmPassword) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        userMessages.error.showPasswordMismatch()
-        return false
+        // 密码不一致是前端校验，抛出错误让组件处理
+        throw new Error('两次输入的密码不一致')
       }
       
       // 调用修改密码API
-      await changePassword(passwordData)
+      const res = await changePassword(passwordData)
       
-      // 显示修改成功消息
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      userMessages.success.showPasswordChangeSuccess()
-      
-      return true
+      return res // 返回 {code, data}，组件调用 showByCode(res.code)
     } catch (error) {
-      // 显示修改失败消息
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      userMessages.error.showPasswordChangeFailure(error.message)
       throw error
     } finally {
       commit('SET_LOADING', false)
@@ -735,25 +645,16 @@ const actions = {
   },
   
   // 密码找回
-  // 任务0-4：实现findPassword action（密码找回）
+  // 接口#9: 重置密码 - 成功码2004, 失败码2104
   async findPassword({ commit }, resetData) {
     try {
       commit('SET_LOADING', true)
       
       // 调用密码找回API
-      const result = await resetPasswordApi(resetData)
+      const res = await resetPasswordApi(resetData)
       
-      // 显示找回成功消息
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      userMessages.success.showPasswordResetSuccess()
-      
-      return result
+      return res // 返回 {code, data}，组件调用 showByCode(res.code)
     } catch (error) {
-      // 显示找回失败消息
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      userMessages.error.showPasswordResetFailure(error.message)
       throw error
     } finally {
       commit('SET_LOADING', false)
@@ -761,27 +662,21 @@ const actions = {
   },
   
   // 处理会话过期
+  // 状态码2102: 会话过期
   handleSessionExpired({ commit }) {
     // 清除token和用户信息
     tokenStorage.removeToken()
     commit('CLEAR_USER')
     
-    // 显示会话过期消息
-    // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-    // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-    userMessages.error.showSessionExpired()
+    // 返回状态码，让调用方决定是否显示消息
+    return { code: 2102 }
   },
   
   // 处理权限拒绝
+  // 状态码2124: 无权限
   handlePermissionDenied() {
-    // 显示权限拒绝消息
-    // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-    // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-    userMessages.error.showPermissionDenied()
+    // 返回状态码，让调用方决定是否显示消息
+    return { code: 2124 }
   },
   
   // 处理认证错误
@@ -790,12 +685,8 @@ const actions = {
     tokenStorage.removeToken()
     commit('CLEAR_USER')
     
-    // 显示认证错误消息
-    // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-    // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-    userMessages.error.showSessionExpired()
+    // 返回状态码，让调用方决定是否显示消息
+    return { code: 2103 }
   },
   
   // === 地址相关actions ===
