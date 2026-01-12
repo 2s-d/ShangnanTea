@@ -187,15 +187,16 @@ const actions = {
       }
       
       const res = await getTeas(params)
+      const data = res.data || res
       
-      commit('SET_TEA_LIST', res.list || [])
+      commit('SET_TEA_LIST', data.list || [])
       commit('SET_PAGINATION', {
-        total: res.total || 0,
+        total: data.total || 0,
         currentPage: state.pagination.currentPage,
         pageSize: state.pagination.pageSize
       })
       
-      return res
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('获取茶叶列表失败:', error)
       commit('SET_TEA_LIST', [])
@@ -216,9 +217,10 @@ const actions = {
       commit('SET_LOADING', true)
       
       const res = await getTeaDetail(id)
-      commit('SET_CURRENT_TEA', res)
+      const data = res.data || res
+      commit('SET_CURRENT_TEA', data)
       
-      return res
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('获取茶叶详情失败:', error)
       commit('SET_CURRENT_TEA', null)
@@ -234,25 +236,27 @@ const actions = {
       commit('SET_LOADING', true)
       
       const res = await getTeaCategories()
-      commit('SET_CATEGORIES', res || [])
+      const data = res.data || res
+      commit('SET_CATEGORIES', data || [])
       
-      return res || []
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('获取茶叶分类失败:', error)
       commit('SET_CATEGORIES', [])
-      return []
+      throw error
     } finally {
       commit('SET_LOADING', false)
     }
   },
   
   // 创建茶叶分类
+  // 接口#35: 创建分类 - 成功码3030, 失败码3130
   async createCategory({ commit, dispatch }, categoryData) {
     try {
       const res = await createCategory(categoryData)
       // 刷新分类列表
       await dispatch('fetchCategories')
-      return res
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('创建茶叶分类失败:', error)
       throw error
@@ -260,12 +264,13 @@ const actions = {
   },
   
   // 更新茶叶分类
+  // 接口#36: 更新分类 - 成功码3031, 失败码3130
   async updateCategory({ commit, dispatch }, { id, categoryData }) {
     try {
       const res = await updateCategory(id, categoryData)
       // 刷新分类列表
       await dispatch('fetchCategories')
-      return res
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('更新茶叶分类失败:', error)
       throw error
@@ -273,12 +278,13 @@ const actions = {
   },
   
   // 删除茶叶分类
+  // 接口#37: 删除分类 - 成功码3032, 失败码3131
   async deleteCategory({ commit, dispatch }, id) {
     try {
-      await deleteCategory(id)
+      const res = await deleteCategory(id)
       // 刷新分类列表
       await dispatch('fetchCategories')
-      return true
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('删除茶叶分类失败:', error)
       throw error
@@ -342,6 +348,7 @@ const actions = {
   },
   
   // 添加茶叶
+  // 接口#38: 添加茶叶 - 成功码3026, 失败码3125
   async addTea({ dispatch }, teaData) {
     try {
       const res = await addTea(teaData)
@@ -349,7 +356,7 @@ const actions = {
       // 重新获取列表
       await dispatch('fetchTeas')
       
-      return res
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('添加茶叶失败:', error)
       throw error
@@ -357,19 +364,21 @@ const actions = {
   },
   
   // 更新茶叶
+  // 接口#39: 更新茶叶 - 成功码3025, 失败码3125
   async updateTea({ commit, dispatch, state }, teaData) {
     try {
       const res = await updateTea(teaData)
+      const data = res.data || res
       
       // 如果当前查看的就是这个茶叶，更新当前茶叶
       if (state.currentTea && state.currentTea.id === teaData.id) {
-        commit('SET_CURRENT_TEA', res)
+        commit('SET_CURRENT_TEA', data)
       }
       
       // 重新获取列表
       await dispatch('fetchTeas')
       
-      return res
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('更新茶叶失败:', error)
       throw error
@@ -377,14 +386,15 @@ const actions = {
   },
   
   // 删除茶叶
+  // 接口#40: 删除茶叶 - 成功码3024, 失败码3124
   async deleteTea({ dispatch }, id) {
     try {
-      await deleteTea(id)
+      const res = await deleteTea(id)
       
       // 重新获取列表
       await dispatch('fetchTeas')
       
-      return true
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('删除茶叶失败:', error)
       throw error
@@ -394,20 +404,22 @@ const actions = {
   // ==================== 任务组B：评价系统Actions ====================
   
   // 获取茶叶评价列表
+  // 接口#41: 获取评价列表 - 成功码200, 失败码3100
   async fetchTeaReviews({ commit, state }, { teaId, page = 1, pageSize = 10 }) {
     try {
       commit('SET_LOADING', true)
       
       const res = await getTeaReviews(teaId, { page, pageSize })
+      const data = res.data || res
       
-      commit('SET_TEA_REVIEWS', res.list || [])
+      commit('SET_TEA_REVIEWS', data.list || [])
       commit('SET_REVIEW_PAGINATION', {
-        total: res.total || 0,
+        total: data.total || 0,
         currentPage: page,
         pageSize: pageSize
       })
       
-      return res
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('获取茶叶评价列表失败:', error)
       commit('SET_TEA_REVIEWS', [])
