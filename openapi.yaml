@@ -3149,38 +3149,6 @@ paths:
                   status: 0
                   createTime: "2025-01-01T12:00:00Z"
 
-  /order/{id}/refund/request:
-    post:
-      tags: [订单模块]
-      summary: 申请退款
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [reason]
-              properties:
-                reason:
-                  type: string
-      responses:
-        '200':
-          description: 申请成功
-          content:
-            application/json:
-              example:
-                code: 200
-                message: "申请成功"
-                data: null
-
   /order/{id}/refund/process:
     post:
       tags: [订单模块]
