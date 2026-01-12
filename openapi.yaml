@@ -26,7 +26,7 @@ components:
           type: integer
           description: 状态码
         data:
-          description: 响应数据
+          description: 响应数据，可为任意类型或null
           nullable: true
       required:
         - code
