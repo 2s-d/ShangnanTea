@@ -136,6 +136,7 @@ function detectFile(filePath) {
  */
 function scanDirectory(dirPath, filePattern = /\.(vue|js)$/) {
   const allResults = []
+  let totalScanned = 0
   
   function scan(dir) {
     const items = fs.readdirSync(dir)
@@ -150,6 +151,7 @@ function scanDirectory(dirPath, filePattern = /\.(vue|js)$/) {
           scan(fullPath)
         }
       } else if (filePattern.test(item)) {
+        totalScanned++
         const result = detectFile(fullPath)
         if (result.total > 0) {
           allResults.push(result)
@@ -159,13 +161,13 @@ function scanDirectory(dirPath, filePattern = /\.(vue|js)$/) {
   }
   
   scan(dirPath)
-  return allResults
+  return { results: allResults, totalScanned }
 }
 
 /**
  * 格式化输出结果
  */
-function formatResults(results, verbose = false, summaryOnly = false) {
+function formatResults(results, totalScanned = 0, verbose = false, summaryOnly = false) {
   let output = []
   let totalFiles = results.length
   let totalIssues = 0
@@ -225,11 +227,15 @@ function formatResults(results, verbose = false, summaryOnly = false) {
   output.push('=' .repeat(60))
   output.push('📊 统计摘要')
   output.push('=' .repeat(60))
-  output.push(`   扫描文件数: ${totalFiles}`)
+  output.push(`   总扫描文件: ${totalScanned}`)
+  output.push(`   发现问题文件: ${totalFiles}`)
   output.push(`   待修改文件: ${pendingFiles}`)
   output.push(`   部分完成:   ${partialFiles}`)
-  output.push(`   已完成:     ${doneFiles}`)
   output.push(`   总问题数:   ${totalIssues}`)
+  if (totalScanned > 0 && totalFiles === 0) {
+    output.push('')
+    output.push('✅ 恭喜！所有文件都已迁移到新消息系统！')
+  }
   output.push('=' .repeat(60))
   
   return output.join('\n')
@@ -261,8 +267,8 @@ function main() {
     // 扫描整个 src 目录
     console.log('扫描 src 目录...\n')
     const srcPath = path.join(__dirname, '..', 'src')
-    const results = scanDirectory(srcPath)
-    console.log(formatResults(results, !summaryOnly, summaryOnly))
+    const { results, totalScanned } = scanDirectory(srcPath)
+    console.log(formatResults(results, totalScanned, !summaryOnly, summaryOnly))
     
     // 保存 JSON 报告
     const reportPath = path.join(__dirname, 'old-messages-report.json')
@@ -277,7 +283,7 @@ function main() {
     }
     
     const result = detectFile(filePath)
-    console.log(formatResults([result], true, false))
+    console.log(formatResults([result], 1, true, false))
   }
 }
 
