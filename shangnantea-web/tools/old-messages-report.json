@@ -1,10 +1,10 @@
 {
-  "scanTime": "2026-01-12T19:22:35.281Z",
+  "scanTime": "2026-01-12T19:25:44.514Z",
   "summary": {
-    "totalFiles": 3,
-    "totalIssues": 14,
+    "totalFiles": 2,
+    "totalIssues": 12,
     "totalImports": 2,
-    "totalCalls": 12
+    "totalCalls": 10
   },
   "files": [
     {
@@ -52,26 +52,6 @@
       "total": 7,
       "hasNewPattern": false,
       "status": "pending"
-    },
-    {
-      "file": "C:\\wendang\\bishe\\tea1\\shangnantea\\shangnantea-web\\src\\views\\message\\content\\PublishedContentPage.vue",
-      "relativePath": "src\\views\\message\\content\\PublishedContentPage.vue",
-      "imports": [],
-      "calls": [
-        {
-          "line": 249,
-          "code": "commonSuccessMessages.showDeleteSuccess()",
-          "fullLine": "commonSuccessMessages.showDeleteSuccess()"
-        },
-        {
-          "line": 276,
-          "code": "commonSuccessMessages.showDeleteSuccess()",
-          "fullLine": "commonSuccessMessages.showDeleteSuccess()"
-        }
-      ],
-      "total": 2,
-      "hasNewPattern": true,
-      "status": "partial"
     },
     {
       "file": "C:\\wendang\\bishe\\tea1\\shangnantea\\shangnantea-web\\src\\views\\message\\homepage\\UserHomePage.vue",

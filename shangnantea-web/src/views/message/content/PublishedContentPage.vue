@@ -244,9 +244,11 @@ export default {
           type: 'warning'
         }
       )
-        .then(() => {
+        .then(async () => {
           // 实际项目中调用删除API
-          commonSuccessMessages.showDeleteSuccess()
+          // const res = await store.dispatch('message/deletePost', id)
+          // showByCode(res.code)
+          commonPromptMessages.showProcessing()
           // 重新加载数据
           loadData()
         })
@@ -271,9 +273,11 @@ export default {
           type: 'warning'
         }
       )
-        .then(() => {
+        .then(async () => {
           // 实际项目中调用删除API
-          commonSuccessMessages.showDeleteSuccess()
+          // const res = await store.dispatch('message/deleteReview', id)
+          // showByCode(res.code)
+          commonPromptMessages.showProcessing()
           // 重新加载数据
           loadData()
         })
