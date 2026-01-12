@@ -52,7 +52,7 @@
     - 删除 commonMessages.js、userMessages.js、teaMessages.js、orderMessages.js、shopMessages.js、forumMessages.js、messageMessages.js
     - ⚠️ 注意：这些文件目前仍存在，且仍有代码在引用其 SUCCESS/ERROR 消息
     - _Requirements: 5.1_
-  - [ ] 6.2 更新所有引用旧文件的代码
+  - [-] 6.2 更新所有引用旧文件的代码
     - 搜索所有使用 SUCCESS/ERROR 消息的文件
     - 修改为使用 showByCode 或直接调用 messageManager
     - _Requirements: 5.2_

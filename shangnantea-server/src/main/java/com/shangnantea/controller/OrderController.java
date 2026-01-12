@@ -2,7 +2,6 @@ package com.shangnantea.controller;
 
 import com.shangnantea.common.api.Result;
 import com.shangnantea.security.annotation.RequiresLogin;
-import com.shangnantea.security.annotation.RequiresRoles;
 import com.shangnantea.service.OrderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
