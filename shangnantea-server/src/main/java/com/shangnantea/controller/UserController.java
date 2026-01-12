@@ -47,8 +47,7 @@ public class UserController {
     @PostMapping("/login")
     public Result<TokenVO> login(@RequestBody @Valid LoginDTO loginDTO) {
         logger.info("用户登录请求: {}", loginDTO.getUsername());
-        TokenVO result = userService.login(loginDTO);
-        return Result.success(result);
+        return userService.login(loginDTO);
     }
     
     /**
@@ -62,8 +61,7 @@ public class UserController {
     @PostMapping("/register")
     public Result<UserVO> register(@RequestBody @Valid RegisterDTO registerDTO) {
         logger.info("用户注册请求: {}", registerDTO.getUsername());
-        UserVO result = userService.register(registerDTO);
-        return Result.success(result);
+        return userService.register(registerDTO);
     }
     
     /**
@@ -78,8 +76,7 @@ public class UserController {
     @RequiresLogin
     public Result<Void> logout(HttpServletRequest request) {
         logger.info("用户登出请求");
-        userService.logout(request);
-        return Result.success();
+        return userService.logout(request);
     }
     
     /**
@@ -94,8 +91,7 @@ public class UserController {
     @RequiresLogin
     public Result<TokenVO> refreshToken(HttpServletRequest request) {
         logger.info("刷新令牌请求");
-        TokenVO result = userService.refreshToken(request);
-        return Result.success(result);
+        return userService.refreshToken(request);
     }
     
     // ==================== 用户信息管理 ====================
@@ -111,8 +107,7 @@ public class UserController {
     @RequiresLogin
     public Result<UserVO> getCurrentUser() {
         logger.info("获取当前用户信息请求");
-        UserVO result = userService.getCurrentUser();
-        return Result.success(result);
+        return userService.getCurrentUser();
     }
     
     /**
@@ -126,8 +121,7 @@ public class UserController {
     @GetMapping("/{userId}")
     public Result<UserVO> getUserInfo(@PathVariable String userId) {
         logger.info("获取用户信息请求: {}", userId);
-        UserVO result = userService.getUserById(userId);
-        return Result.success(result);
+        return userService.getUserById(userId);
     }
     
     /**
@@ -142,8 +136,7 @@ public class UserController {
     @RequiresLogin
     public Result<UserVO> updateUserInfo(@RequestBody Map<String, Object> userData) {
         logger.info("更新用户信息请求");
-        UserVO result = userService.updateUserInfo(userData);
-        return Result.success(result);
+        return userService.updateUserInfo(userData);
     }
     
     /**
@@ -158,8 +151,7 @@ public class UserController {
     @RequiresLogin
     public Result<Map<String, Object>> uploadAvatar(@RequestParam("file") MultipartFile file) {
         logger.info("上传头像请求, 文件名: {}", file.getOriginalFilename());
-        Map<String, Object> result = userService.uploadAvatar(file);
-        return Result.success(result);
+        return userService.uploadAvatar(file);
     }
     
     // ==================== 密码管理 ====================
@@ -176,8 +168,7 @@ public class UserController {
     @RequiresLogin
     public Result<String> changePassword(@RequestBody @Valid ChangePasswordDTO changePasswordDTO) {
         logger.info("修改密码请求");
-        String result = userService.changePassword(changePasswordDTO);
-        return Result.success(result);
+        return userService.changePassword(changePasswordDTO);
     }
     
     /**
@@ -191,8 +182,7 @@ public class UserController {
     @PostMapping("/password/reset")
     public Result<String> resetPassword(@RequestBody Map<String, Object> resetData) {
         logger.info("密码重置请求");
-        String result = userService.resetPassword(resetData);
-        return Result.success(result);
+        return userService.resetPassword(resetData);
     }
     
     // ==================== 收货地址管理 ====================
@@ -208,8 +198,7 @@ public class UserController {
     @RequiresLogin
     public Result<Object> getAddressList() {
         logger.info("获取地址列表请求");
-        Object result = userService.getAddressList();
-        return Result.success(result);
+        return userService.getAddressList();
     }
 
     /**
@@ -224,8 +213,7 @@ public class UserController {
     @RequiresLogin
     public Result<Object> addAddress(@RequestBody Map<String, Object> addressData) {
         logger.info("添加地址请求");
-        Object result = userService.addAddress(addressData);
-        return Result.success(result);
+        return userService.addAddress(addressData);
     }
 
     /**
@@ -241,8 +229,7 @@ public class UserController {
     @RequiresLogin
     public Result<Boolean> updateAddress(@PathVariable String id, @RequestBody Map<String, Object> addressData) {
         logger.info("更新地址请求: {}", id);
-        Boolean result = userService.updateAddress(id, addressData);
-        return Result.success(result);
+        return userService.updateAddress(id, addressData);
     }
 
     /**
