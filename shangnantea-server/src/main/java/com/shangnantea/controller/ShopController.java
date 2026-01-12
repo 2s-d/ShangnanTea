@@ -443,14 +443,14 @@ public class ShopController {
 
     /**
      * 上传文件（公共接口）
-     * 路径: POST /upload
+     * 路径: POST /upload 或 POST /api/upload
      * 成功码: 1001, 失败码: 1101, 1103, 1104
      *
      * @param file 文件
      * @param type 文件类型（avatar, product, shop, common等）
      * @return 上传结果，包含文件URL
      */
-    @PostMapping("/upload")
+    @PostMapping
     @RequiresLogin
     public Result<Map<String, Object>> uploadFile(@RequestParam("file") MultipartFile file,
                                                    @RequestParam(value = "type", defaultValue = "common") String type) {
@@ -460,14 +460,14 @@ public class ShopController {
 
     /**
      * 上传图片（公共接口）
-     * 路径: POST /upload/image
+     * 路径: POST /upload/image 或 POST /api/upload/image
      * 成功码: 1001, 失败码: 1101, 1103, 1104
      *
      * @param file 图片文件
      * @param type 图片类型
      * @return 上传结果，包含文件URL
      */
-    @PostMapping("/upload/image")
+    @PostMapping("/image")
     @RequiresLogin
     public Result<Map<String, Object>> uploadImage(@RequestParam("file") MultipartFile file,
                                                     @RequestParam(value = "type", defaultValue = "common") String type) {
