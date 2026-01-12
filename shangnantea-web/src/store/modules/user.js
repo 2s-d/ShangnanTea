@@ -165,11 +165,11 @@ const mutations = {
       state.addressList.splice(index, 1, updatedAddress)
       // 如果设置为默认，更新defaultAddressId
       if (updatedAddress.isDefault) {
-        // 取消其他地址的默认状�?        state.addressList.forEach(addr => {
+        // 取消其他地址的默认状态�?        state.addressList.forEach(addr => {
           if (addr.id !== updatedAddress.id) {
             addr.isDefault = false
           }
-        }
+        })
         state.defaultAddressId = updatedAddress.id
       } else if (state.defaultAddressId === updatedAddress.id) {
         // 如果取消默认，清空defaultAddressId
@@ -189,7 +189,8 @@ const mutations = {
   
   // 设置默认地址
   SET_DEFAULT_ADDRESS(state, addressId) {
-    // 取消所有地址的默认状�?    state.addressList.forEach(addr => {
+    // 取消所有地址的默认状态�?    
+    state.addressList.forEach(addr => {
       addr.isDefault = addr.id === addressId
     })
     state.defaultAddressId = addressId
@@ -252,7 +253,8 @@ const mutations = {
     state.userPagination = { ...state.userPagination, ...pagination }
   },
   
-  // 设置筛选条�?  SET_USER_FILTERS(state, filters) {
+  // 设置筛选条�?  
+  SET_USER_FILTERS(state, filters) {
     state.userFilters = { ...state.userFilters, ...filters }
   },
   
