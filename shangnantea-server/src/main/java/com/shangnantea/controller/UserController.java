@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.springframework.web.multipart.MultipartFile;
 import java.util.Map;
 
 /**
@@ -150,14 +151,14 @@ public class UserController {
      * 路径: POST /user/avatar
      * 成功码: 2012, 失败码: 2112, 1103, 1104
      *
-     * @param request HTTP请求
+     * @param file 头像文件
      * @return 上传结果
      */
     @PostMapping("/avatar")
     @RequiresLogin
-    public Result<Map<String, Object>> uploadAvatar(HttpServletRequest request) {
-        logger.info("上传头像请求");
-        Map<String, Object> result = userService.uploadAvatar(request);
+    public Result<Map<String, Object>> uploadAvatar(@RequestParam("file") MultipartFile file) {
+        logger.info("上传头像请求, 文件名: {}", file.getOriginalFilename());
+        Map<String, Object> result = userService.uploadAvatar(file);
         return Result.success(result);
     }
     
