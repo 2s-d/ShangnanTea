@@ -420,7 +420,7 @@ export default {
     }
     
     // 标记会话为已读
-    const markSessionAsRead = sessionId => {
+    const markSessionAsRead = (sessionId) => {
       const session = mockSessions.value.find(s => s.sessionId === sessionId)
       if (session && session.unreadCount > 0) {
         session.unreadCount = 0
@@ -435,7 +435,7 @@ export default {
     }
     
     // 选择会话
-    const selectSession = session => {
+    const selectSession = (session) => {
       if (!session) return
       
       const sessionId = session.sessionId
@@ -459,7 +459,7 @@ export default {
     }
     
     // 删除会话
-    const deleteSession = sessionId => {
+    const deleteSession = (sessionId) => {
       ElMessageBox.confirm('确定要删除此会话吗？', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
@@ -558,7 +558,7 @@ export default {
         messagesMap[currentSessionId.value].push(message)
         
         // 清空输入框
-        messageInput.value = ''
+      messageInput.value = ''
         
         // 滚动到底部
         await nextTick()
@@ -604,7 +604,7 @@ export default {
     }
     
     // 处理图片上传
-    const handleImageUpload = event => {
+    const handleImageUpload = (event) => {
       const file = event.target.files[0]
       if (!file) return
       
@@ -639,17 +639,17 @@ export default {
       showEmojiPicker.value = !showEmojiPicker.value
     }
     
-    const insertEmoji = emoji => {
+    const insertEmoji = (emoji) => {
       messageInput.value += emoji
     }
     
     // 阻止事件冒泡
-    const stopPropagation = event => {
+    const stopPropagation = (event) => {
       event.stopPropagation()
     }
     
     // 格式化时间
-    const formatTime = timestamp => {
+    const formatTime = (timestamp) => {
       if (!timestamp) return ''
       
       const date = new Date(timestamp)
@@ -677,7 +677,7 @@ export default {
     }
     
     // 格式化消息时间
-    const formatMessageTime = timestamp => {
+    const formatMessageTime = (timestamp) => {
       if (!timestamp) return ''
       
       const date = new Date(timestamp)
@@ -745,7 +745,7 @@ export default {
     }
     
     // 创建新的店铺客服会话
-    const createShopServiceSession = shopId => {
+    const createShopServiceSession = (shopId) => {
       // 模拟创建新的店铺客服会话
       // 实际应用中应该调用API获取店铺信息和创建会话
       
@@ -753,11 +753,11 @@ export default {
       const shopInfo = {
         id: shopId,
         name: shopId === '101' ? '秦岭茗茶' : 
-          shopId === '102' ? '云雾茶庄' : 
-            shopId === '103' ? '福建茶行' : `店铺${shopId}`,
+              shopId === '102' ? '云雾茶庄' : 
+              shopId === '103' ? '福建茶行' : `店铺${shopId}`,
         avatar: shopId === '101' ? 'https://via.placeholder.com/50x50?text=秦岭' :
-          shopId === '102' ? 'https://via.placeholder.com/50x50?text=云雾' :
-            shopId === '103' ? 'https://via.placeholder.com/50x50?text=福建' : 'https://via.placeholder.com/50x50?text=店铺'
+               shopId === '102' ? 'https://via.placeholder.com/50x50?text=云雾' :
+               shopId === '103' ? 'https://via.placeholder.com/50x50?text=福建' : 'https://via.placeholder.com/50x50?text=店铺'
       }
       
       // 创建新会话
@@ -795,7 +795,7 @@ export default {
     }
     
     // 创建新的用户聊天会话
-    const createUserChatSession = userId => {
+    const createUserChatSession = (userId) => {
       // 模拟创建新的用户聊天会话
       // 实际应用中应该调用API获取用户信息和创建会话
       
@@ -803,11 +803,11 @@ export default {
       const userInfo = {
         id: userId,
         name: userId === '1' ? '茶香四溢' : 
-          userId === '2' ? '茶艺小能手' : 
-            userId === '3' ? '普洱控' : `用户${userId}`,
+              userId === '2' ? '茶艺小能手' : 
+              userId === '3' ? '普洱控' : `用户${userId}`,
         avatar: userId === '1' ? 'https://via.placeholder.com/50x50?text=茶香' :
-          userId === '2' ? 'https://via.placeholder.com/50x50?text=茶艺' :
-            userId === '3' ? 'https://via.placeholder.com/50x50?text=普洱' : 'https://via.placeholder.com/50x50?text=用户'
+               userId === '2' ? 'https://via.placeholder.com/50x50?text=茶艺' :
+               userId === '3' ? 'https://via.placeholder.com/50x50?text=普洱' : 'https://via.placeholder.com/50x50?text=用户'
       }
       
       // 创建新会话
@@ -848,14 +848,14 @@ export default {
     })
     
     // 监听路由参数变化
-    watch(() => route.query.shopId, newShopId => {
+    watch(() => route.query.shopId, (newShopId) => {
       if (newShopId) {
         initializeChatFromRouteParams()
       }
     })
     
     // 监听userId路由参数变化
-    watch(() => route.query.userId, newUserId => {
+    watch(() => route.query.userId, (newUserId) => {
       if (newUserId) {
         initializeChatFromRouteParams()
       }

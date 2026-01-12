@@ -571,7 +571,7 @@ export default {
     }
     
     // 显示编辑版块对话框
-    const showEditTopicDialog = topic => {
+    const showEditTopicDialog = (topic) => {
       editTopicMode.value = true
       currentTopic.value = topic
       topicForm.value = {
@@ -588,7 +588,7 @@ export default {
     const saveTopic = async () => {
       if (!topicFormRef.value) return
       
-      await topicFormRef.value.validate(async valid => {
+      await topicFormRef.value.validate(async (valid) => {
         if (valid) {
           const actionType = editTopicMode.value ? '更新' : '添加'
           
@@ -614,7 +614,7 @@ export default {
     }
     
     // 更改版块状态
-    const changeTopicStatus = async topic => {
+    const changeTopicStatus = async (topic) => {
       const newStatus = topic.status === 1 ? 0 : 1
       
       try {
@@ -630,7 +630,7 @@ export default {
     }
     
     // 删除版块
-    const deleteTopic = async topic => {
+    const deleteTopic = async (topic) => {
       ElMessageBox.confirm(
         `确定要删除版块"${topic.name}"吗？此操作将无法恢复，且可能影响已发布的帖子。`,
         '删除确认',
@@ -739,7 +739,7 @@ export default {
       postsList.value = mockPosts
       postsTotalCount.value = 28 // 模拟总数
       */
-      postsLoading.value = false
+postsLoading.value = false
     }
     
     // 搜索帖子
@@ -749,53 +749,53 @@ export default {
     }
     
     // 处理分页大小变化
-    const handlePostsSizeChange = val => {
+    const handlePostsSizeChange = (val) => {
       postPageSize.value = val
       loadPosts()
     }
     
     // 处理分页页码变化
-    const handlePostsCurrentChange = val => {
+    const handlePostsCurrentChange = (val) => {
       postCurrentPage.value = val
       loadPosts()
     }
     
     // 获取帖子状态类型
-    const getPostStatusType = status => {
+    const getPostStatusType = (status) => {
       switch (status) {
-      case 0: return 'warning' // 待审核
-      case 1: return 'success' // 已发布
-      case 2: return 'info'    // 已下架
-      case -1: return 'danger' // 已删除
-      default: return 'info'
+        case 0: return 'warning' // 待审核
+        case 1: return 'success' // 已发布
+        case 2: return 'info'    // 已下架
+        case -1: return 'danger' // 已删除
+        default: return 'info'
       }
     }
     
     // 获取帖子状态文本
-    const getPostStatusText = status => {
+    const getPostStatusText = (status) => {
       switch (status) {
-      case 0: return '待审核'
-      case 1: return '已发布'
-      case 2: return '已下架'
-      case -1: return '已删除'
-      default: return '未知'
+        case 0: return '待审核'
+        case 1: return '已发布'
+        case 2: return '已下架'
+        case -1: return '已删除'
+        default: return '未知'
       }
     }
     
     // 查看帖子
-    const viewPost = post => {
+    const viewPost = (post) => {
       router.push(`/forum/detail/${post.id}`)
     }
     
     // 审核通过帖子
-    const approvePost = async post => {
+    const approvePost = async (post) => {
       // TODO-SCRIPT: 审核帖子需要后端接口与 Vuex forum 模块；不在 UI 层伪造成功/本地改状态
       forumPromptMessages.showFeatureDeveloping()
       return
-    }
+}
     
     // 切换帖子置顶状态
-    const toggleTopPost = async post => {
+    const toggleTopPost = async (post) => {
       const newTopStatus = !post.is_top
       
       try {
@@ -812,7 +812,7 @@ export default {
     }
     
     // 切换帖子精华状态
-    const toggleEssencePost = async post => {
+    const toggleEssencePost = async (post) => {
       const newEssenceStatus = !post.is_essence
       
       try {
@@ -829,7 +829,7 @@ export default {
     }
     
     // 删除帖子
-    const deletePost = async post => {
+    const deletePost = async (post) => {
       ElMessageBox.confirm(
         `确定要删除帖子"${post.title}"吗？此操作将无法恢复。`,
         '删除确认',
@@ -843,7 +843,7 @@ export default {
           // TODO-SCRIPT: 删除帖子需要后端接口与权限控制；不在 UI 层做本地伪删除
           forumPromptMessages.showFeatureDeveloping()
           return
-        })
+})
         .catch(() => {
           // 用户取消
         })
@@ -863,24 +863,24 @@ export default {
     }
     
     // 处理待审核帖子分页大小变化
-    const handlePendingPostsSizeChange = val => {
+    const handlePendingPostsSizeChange = (val) => {
       pendingPostsPageSize.value = val
       loadPendingPosts()
     }
     
     // 处理待审核帖子分页页码变化
-    const handlePendingPostsCurrentChange = val => {
+    const handlePendingPostsCurrentChange = (val) => {
       pendingPostsCurrentPage.value = val
       loadPendingPosts()
     }
     
     // 查看待审核帖子详情
-    const viewPendingPost = post => {
+    const viewPendingPost = (post) => {
       router.push(`/forum/detail/${post.id}`)
     }
     
     // 显示审核通过对话框
-    const showApproveDialog = post => {
+    const showApproveDialog = (post) => {
       currentAuditPost.value = post
       approveForm.value = {
         comment: ''
@@ -889,7 +889,7 @@ export default {
     }
     
     // 显示审核拒绝对话框
-    const showRejectDialog = post => {
+    const showRejectDialog = (post) => {
       currentAuditPost.value = post
       rejectForm.value = {
         reason: '',
@@ -919,7 +919,7 @@ export default {
     const confirmReject = async () => {
       if (!rejectFormRef.value) return
       
-      await rejectFormRef.value.validate(async valid => {
+      await rejectFormRef.value.validate(async (valid) => {
         if (valid) {
           try {
             const res = await store.dispatch('forum/rejectPost', {
@@ -940,7 +940,7 @@ export default {
     }
     
     // 格式化日期时间
-    const formatDateTime = dateTime => {
+    const formatDateTime = (dateTime) => {
       if (!dateTime) return ''
       const date = new Date(dateTime)
       return date.toLocaleString('zh-CN', {
@@ -953,7 +953,7 @@ export default {
     }
     
     // 监听标签页变化，加载相应数据
-    watch(activeTab, newVal => {
+    watch(activeTab, (newVal) => {
       if (newVal === 'posts') {
         loadPosts()
       } else if (newVal === 'audit') {

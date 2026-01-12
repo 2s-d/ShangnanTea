@@ -291,7 +291,7 @@ const mutations = {
 }
 
 // 任务B-2：地址字段映射辅助函数（模块级别）
-const mapAddressFromBackend = address => {
+const mapAddressFromBackend = (address) => {
   if (!address) return null
   return {
     id: address.id,
@@ -308,7 +308,7 @@ const mapAddressFromBackend = address => {
   }
 }
 
-const mapAddressToBackend = address => {
+const mapAddressToBackend = (address) => {
   if (!address) return null
   return {
     id: address.id,

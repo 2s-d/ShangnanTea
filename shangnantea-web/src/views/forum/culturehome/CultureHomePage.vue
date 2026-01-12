@@ -221,12 +221,12 @@ export default {
     })
     
     // 查看文章详情
-    const viewArticle = id => {
+    const viewArticle = (id) => {
       router.push(`/article/${id}`)
     }
     
     // 查看茶叶详情
-    const viewTeaDetail = id => {
+    const viewTeaDetail = (id) => {
       router.push(`/tea/${id}`)
     }
     

@@ -166,7 +166,7 @@ export default {
       }
     }
     
-    const disabledDate = time => {
+    const disabledDate = (time) => {
       return time.getTime() > Date.now()
     }
     
@@ -195,7 +195,7 @@ export default {
     })
     
     // 任务C-4：获取认证状态文本
-    const getCertificationStatusText = status => {
+    const getCertificationStatusText = (status) => {
       if (status === null || status === -1) return '未申请'
       if (status === 0) return '待审核'
       if (status === 1) return '已拒绝'
@@ -204,7 +204,7 @@ export default {
     }
     
     // 任务C-4：获取认证状态标签类型
-    const getCertificationTagType = status => {
+    const getCertificationTagType = (status) => {
       if (status === null || status === -1) return 'info'
       if (status === 0) return 'warning'
       if (status === 1) return 'danger'
@@ -239,21 +239,21 @@ export default {
     
     const handleInitForm = () => {
       if (userInfo.value) {
-        formData.username = userInfo.value.username || ''
-        formData.nickname = userInfo.value.nickname || ''
-        formData.email = userInfo.value.email || ''
-        formData.phone = userInfo.value.phone || ''
-        formData.gender = userInfo.value.gender || 0
-        formData.birthday = userInfo.value.birthday || ''
-        formData.bio = userInfo.value.bio || ''
+        formData.username = userInfo.value.username || '';
+        formData.nickname = userInfo.value.nickname || '';
+        formData.email = userInfo.value.email || '';
+        formData.phone = userInfo.value.phone || '';
+        formData.gender = userInfo.value.gender || 0;
+        formData.birthday = userInfo.value.birthday || '';
+        formData.bio = userInfo.value.bio || '';
       } else {
-        messageMessages.showUserDataIncomplete()
+        messageMessages.showUserDataIncomplete();
       }
     }
     
     const handleFetchUserInfo = async () => {
       try {
-        loading.value = true
+        loading.value = true;
         
         const result = await handleAsyncOperation(
           store.dispatch('user/getUserInfo'),
@@ -261,10 +261,10 @@ export default {
             successMessage: null,
             errorMessage: '获取用户信息失败'
           }
-        )
+        );
         
         if (result) {
-          handleInitForm()
+          handleInitForm();
         } else {
           // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
           showByCode(7120) // 未能获取到用户信息
@@ -273,7 +273,7 @@ export default {
         // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
         showByCode(7121) // 用户信息不完整
       } finally {
-        loading.value = false
+        loading.value = false;
       }
     }
     
@@ -283,7 +283,7 @@ export default {
     }
     
     // 头像上传前验证
-    const beforeAvatarUpload = file => {
+    const beforeAvatarUpload = (file) => {
       const isImage = file.type.startsWith('image/')
       const isLt2M = file.size / 1024 / 1024 < 2
       
@@ -302,7 +302,7 @@ export default {
     
     // 头像上传处理
     // 任务A-5：使用Vuex uploadAvatar action
-    const handleAvatarUpload = async options => {
+    const handleAvatarUpload = async (options) => {
       const file = options.file
       if (!file) return
       
@@ -318,7 +318,7 @@ export default {
         // 刷新用户信息
         await store.dispatch('user/getUserInfo')
         handleInitForm()
-      } catch (error) {
+        } catch (error) {
         console.error('头像上传失败:', error)
       } finally {
         loading.value = false
@@ -356,7 +356,7 @@ export default {
       }
     }
     
-    watch(() => userInfo.value, newVal => {
+    watch(() => userInfo.value, (newVal) => {
       if (newVal) {
         handleInitForm()
       }

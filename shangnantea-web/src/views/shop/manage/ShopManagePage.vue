@@ -730,7 +730,7 @@ export default {
     }
     
     // 处理编辑
-    const handleEdit = tea => {
+    const handleEdit = (tea) => {
       isEdit.value = true
       currentTea.value = JSON.parse(JSON.stringify(tea)) // 深拷贝避免直接修改列表数据
       dialogVisible.value = true
@@ -738,7 +738,7 @@ export default {
     
     // 处理状态切换
     // 任务组C：处理状态切换（使用Vuex）
-    const handleToggleStatus = async tea => {
+    const handleToggleStatus = async (tea) => {
       const action = tea.status === 1 ? '下架' : '上架'
       const newStatus = tea.status === 1 ? 0 : 1
       
@@ -774,11 +774,11 @@ export default {
     }
     
     // 任务组C：处理删除（使用Vuex）
-    const handleDelete = async tea => {
+    const handleDelete = async (tea) => {
       try {
         await ElMessageBox.confirm(
           `确定要删除茶叶"${tea.name}"吗？此操作不可恢复！`,
-          '删除确认',
+          `删除确认`,
           {
             confirmButtonText: '确定删除',
             cancelButtonText: '取消',
@@ -813,7 +813,7 @@ export default {
     }
     
     // 对话框关闭
-    const handleDialogClose = done => {
+    const handleDialogClose = (done) => {
       if (submitting.value) {
         shopMessages.prompt.showSubmittingWait()
         return
@@ -907,7 +907,7 @@ export default {
     }
     
     // 获取最低价格
-    const getMinPrice = tea => {
+    const getMinPrice = (tea) => {
       if (!tea.specifications || tea.specifications.length === 0) {
         return tea.price
       }
@@ -918,7 +918,7 @@ export default {
     }
     
     // 获取分类名称
-    const getCategoryName = categoryId => {
+    const getCategoryName = (categoryId) => {
       if (!categoryId) return '-'
       const category = categoryOptions.find(c => c.id === parseInt(categoryId))
       return category ? category.name : '-'
@@ -937,13 +937,13 @@ export default {
     }
     
     // 任务组C：页码变更
-    const handlePageChange = async page => {
+    const handlePageChange = async (page) => {
       currentPage.value = page
       await loadShopTeas()
     }
     
     // 任务组C：每页条数变更
-    const handleSizeChange = async size => {
+    const handleSizeChange = async (size) => {
       pageSize.value = size
       currentPage.value = 1
       await loadShopTeas()
@@ -963,7 +963,7 @@ export default {
     }
     
     // 移除规格
-    const removeSpec = index => {
+    const removeSpec = (index) => {
       if (!currentTea.value || currentTea.value.specifications.length <= 1) return
       
       currentTea.value.specifications.splice(index, 1)
@@ -975,7 +975,7 @@ export default {
     }
     
     // 处理默认规格变更
-    const handleDefaultChange = changedIndex => {
+    const handleDefaultChange = (changedIndex) => {
       if (!currentTea.value) return
       
       // 只能有一个默认规格，将其他规格设为非默认
@@ -1024,7 +1024,7 @@ export default {
     }
     
     // 显示编辑Banner对话框
-    const showEditBannerDialog = banner => {
+    const showEditBannerDialog = (banner) => {
       isEditBanner.value = true
       currentBanner.value = { ...banner }
       bannerDialogVisible.value = true
@@ -1077,7 +1077,7 @@ export default {
     }
     
     // 删除Banner
-    const handleDeleteBanner = async banner => {
+    const handleDeleteBanner = async (banner) => {
       try {
         await ElMessageBox.confirm(
           `确定要删除Banner"${banner.title || '未命名'}"吗？`,
@@ -1174,7 +1174,7 @@ export default {
     }
     
     // 显示编辑公告对话框
-    const showEditAnnouncementDialog = announcement => {
+    const showEditAnnouncementDialog = (announcement) => {
       isEditAnnouncement.value = true
       currentAnnouncement.value = { ...announcement }
       announcementDialogVisible.value = true
@@ -1224,7 +1224,7 @@ export default {
     }
     
     // 删除公告
-    const handleDeleteAnnouncement = async announcement => {
+    const handleDeleteAnnouncement = async (announcement) => {
       try {
         await ElMessageBox.confirm(
           `确定要删除公告"${announcement.title}"吗？`,
@@ -1250,7 +1250,7 @@ export default {
     }
     
     // 格式化时间
-    const formatTime = time => {
+    const formatTime = (time) => {
       if (!time) return '-'
       const date = new Date(time)
       return date.toLocaleString('zh-CN')
@@ -1293,12 +1293,12 @@ export default {
     }
     
     // 格式化金额
-    const formatMoney = amount => {
+    const formatMoney = (amount) => {
       return Number(amount).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
     }
     
     // 任务组E：Logo上传前验证（格式、大小）
-    const beforeLogoUpload = file => {
+    const beforeLogoUpload = (file) => {
       const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
       const isAllowedType = allowedTypes.includes(file.type)
       const isLt2M = file.size / 1024 / 1024 < 2
@@ -1319,7 +1319,7 @@ export default {
     }
     
     // Logo上传成功处理
-    const handleLogoSuccess = async response => {
+    const handleLogoSuccess = async (response) => {
       if (response.code === 200 && response.data) {
         // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
 
@@ -1334,7 +1334,7 @@ export default {
     }
 
     // 任务组E：通过Vuex Action处理Logo上传，遵循组件 → Vuex → API 数据流
-    const handleLogoUploadRequest = async param => {
+    const handleLogoUploadRequest = async (param) => {
       if (!shop.value || !shop.value.id) {
         // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
 

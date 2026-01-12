@@ -589,7 +589,7 @@ export default {
       }
     }
     
-    const handleImagePreview = file => {
+    const handleImagePreview = (file) => {
       previewImage.value = file.url
       previewVisible.value = true
     }
@@ -607,7 +607,7 @@ export default {
       })
     }
     
-    const removeSpec = index => {
+    const removeSpec = (index) => {
       if (!currentTea.value || currentTea.value.specifications.length <= 1) return
       
       // 如果删除的是默认规格，将第一个规格设为默认
@@ -635,7 +635,7 @@ export default {
     }
     
     // 格式化日期
-    const formatDate = dateString => {
+    const formatDate = (dateString) => {
       if (!dateString) return '-'
       const date = new Date(dateString)
       return date.toLocaleString('zh-CN', {
@@ -648,14 +648,14 @@ export default {
     }
     
     // 获取分类名称
-    const getCategoryName = categoryId => {
+    const getCategoryName = (categoryId) => {
       if (!categoryId) return '-'
       const category = categoryOptions.value.find(c => c.id === parseInt(categoryId))
       return category ? category.name : '-'
     }
     
     // 获取最低价格
-    const getMinPrice = tea => {
+    const getMinPrice = (tea) => {
       if (!tea.specifications || tea.specifications.length === 0) {
         return tea.price
       }
@@ -701,7 +701,7 @@ export default {
     }
     
     // 处理编辑
-    const handleEdit = async tea => {
+    const handleEdit = async (tea) => {
       isEdit.value = true
       currentTea.value = JSON.parse(JSON.stringify(tea)) // 深拷贝避免直接修改列表数据
       
@@ -757,12 +757,12 @@ export default {
     }
     
     // 处理预览
-    const handlePreview = tea => {
+    const handlePreview = (tea) => {
       router.push(`/tea/${tea.id}`)
     }
     
     // 处理上下架状态切换
-    const handleToggleStatus = async tea => {
+    const handleToggleStatus = async (tea) => {
       const action = tea.status === 1 ? '下架' : '上架'
       const newStatus = tea.status === 1 ? 0 : 1
       
@@ -811,7 +811,7 @@ export default {
     }
     
     // 任务组E：批量操作相关方法
-    const handleSelectionChange = selection => {
+    const handleSelectionChange = (selection) => {
       selectedTeas.value = selection
     }
     
@@ -890,11 +890,11 @@ export default {
     }
     
     // 处理删除
-    const handleDelete = async tea => {
+    const handleDelete = async (tea) => {
       try {
         await ElMessageBox.confirm(
           `确定要删除茶叶"${tea.name}"吗？此操作不可恢复！`,
-          '删除确认',
+          `删除确认`,
           {
             confirmButtonText: '确定删除',
             cancelButtonText: '取消',
@@ -926,7 +926,7 @@ export default {
     const handleSave = () => {
       if (!teaFormRef.value) return
       
-      teaFormRef.value.validate(async valid => {
+      teaFormRef.value.validate(async (valid) => {
         if (!valid) {
           teaMessages.prompt.showFormInvalid()
           return
@@ -1172,7 +1172,7 @@ export default {
     }
     
     // 对话框关闭
-    const handleDialogClose = done => {
+    const handleDialogClose = (done) => {
       if (submitting.value) {
         teaMessages.prompt.showSubmitting()
         return
@@ -1195,7 +1195,7 @@ export default {
     }
     
     // 编辑分类
-    const handleEditCategory = category => {
+    const handleEditCategory = (category) => {
       isEditCategory.value = true
       currentCategory.value = {
         id: category.id,
@@ -1208,7 +1208,7 @@ export default {
     }
     
     // 删除分类
-    const handleDeleteCategory = async category => {
+    const handleDeleteCategory = async (category) => {
       try {
         await ElMessageBox.confirm(
           `确定要删除分类"${category.name}"吗？删除后不可恢复。`,
@@ -1240,7 +1240,7 @@ export default {
     const submitCategoryForm = async () => {
       if (!categoryFormRef.value) return
       
-      await categoryFormRef.value.validate(async valid => {
+      await categoryFormRef.value.validate(async (valid) => {
         if (!valid) return
         
         categorySubmitting.value = true
@@ -1279,7 +1279,7 @@ export default {
     }
     
     // 分类对话框关闭
-    const handleCategoryDialogClose = done => {
+    const handleCategoryDialogClose = (done) => {
       if (categorySubmitting.value) {
         teaMessages.prompt.showSubmitting()
         return
@@ -1324,12 +1324,12 @@ export default {
     }
     
     // 页码变更
-    const handlePageChange = async page => {
+    const handlePageChange = async (page) => {
       await store.dispatch('tea/setPage', page)
     }
     
     // 每页条数变更
-    const handleSizeChange = async size => {
+    const handleSizeChange = async (size) => {
       store.commit('tea/SET_PAGINATION', {
         ...store.state.tea.pagination,
         pageSize: size,

@@ -14,7 +14,7 @@ module.exports = defineConfig({
       }
     },
     setupMiddlewares: (middlewares, devServer) => {
-      return middlewares
+      return middlewares;
     }
   },
   css: {

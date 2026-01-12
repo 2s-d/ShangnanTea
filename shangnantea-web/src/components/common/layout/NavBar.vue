@@ -124,7 +124,7 @@ export default {
     }
     
     // 处理下拉菜单点击
-    const handleCommand = command => {
+    const handleCommand = (command) => {
       if (command === 'logout') {
         handleLogout()
       } else {

@@ -234,7 +234,7 @@ export default {
     // 列表直接来自 Vuex，筛选交给后端
     const filteredOrders = computed(() => orders.value)
 
-    const openRefundDialog = orderId => {
+    const openRefundDialog = (orderId) => {
       refundOrderId.value = orderId
       refundReason.value = ''
       refundDialogVisible.value = true
@@ -267,7 +267,7 @@ export default {
     }
     
     // 获取订单状态文本
-    const getStatusText = status => {
+    const getStatusText = (status) => {
       const statusMap = {
         0: '待付款',
         1: '待发货',
@@ -281,7 +281,7 @@ export default {
     }
     
     // 获取状态对应的类名
-    const getStatusClass = status => {
+    const getStatusClass = (status) => {
       const classMap = {
         0: 'status-unpaid',
         1: 'status-unshipped',
@@ -295,13 +295,13 @@ export default {
     }
     
     // 格式化时间
-    const formatTime = timeStr => {
+    const formatTime = (timeStr) => {
       const date = new Date(timeStr)
       return `${date.getFullYear()}-${padZero(date.getMonth() + 1)}-${padZero(date.getDate())} ${padZero(date.getHours())}:${padZero(date.getMinutes())}`
     }
     
     // 数字补零
-    const padZero = num => {
+    const padZero = (num) => {
       return num < 10 ? `0${num}` : num
     }
     
@@ -318,7 +318,7 @@ export default {
     }
     
     // 处理分页变化
-    const handleCurrentChange = page => {
+    const handleCurrentChange = (page) => {
       currentPage.value = page
       store.dispatch('order/setPage', { page })
     }
@@ -342,17 +342,17 @@ export default {
     }
     
     // 查看订单详情
-    const viewOrderDetail = orderId => {
+    const viewOrderDetail = (orderId) => {
       router.push(`/order/detail/${orderId}`)
     }
     
     // 继续支付
-    const continuePay = orderId => {
+    const continuePay = (orderId) => {
       router.push(`/order/payment?orderIds=${orderId}`)
     }
     
     // 取消订单
-    const cancelOrder = async orderId => {
+    const cancelOrder = async (orderId) => {
       try {
         await ElMessageBox.confirm('确定要取消该订单吗？取消后无法恢复', '提示', {
           confirmButtonText: '确定',
@@ -371,7 +371,7 @@ export default {
     }
     
     // 确认收货
-    const confirmReceipt = async orderId => {
+    const confirmReceipt = async (orderId) => {
       try {
         await ElMessageBox.confirm('确认已收到商品吗？', '提示', {
           confirmButtonText: '确认收货',
@@ -390,28 +390,28 @@ export default {
     }
     
     // 查看物流
-    const viewLogistics = orderId => {
+    const viewLogistics = (orderId) => {
       orderPromptMessages.showViewLogisticsDev()
       // router.push(`/order/logistics/${orderId}`)
     }
 
     // 写评价：生产结构下跳转到评价页面（后续由订单评价页接入真实提交流程）
-    const writeReview = orderId => {
+    const writeReview = (orderId) => {
       router.push(`/order/review/${orderId}`)
     }
     
     // 删除订单
-    const deleteOrder = orderId => {
+    const deleteOrder = (orderId) => {
       orderPromptMessages.showDeleteOrderDev()
     }
     
     // 添加修改地址功能
-    const modifyAddress = orderId => {
+    const modifyAddress = (orderId) => {
       orderPromptMessages.showModifyAddressDev()
     }
     
     // 添加联系商家功能
-    const contactShop = shopId => {
+    const contactShop = (shopId) => {
       orderPromptMessages.showContactShopDev()
     }
     

@@ -165,7 +165,7 @@ export default {
     })
     
     // 监听值变化
-    watch(() => props.value, newVal => {
+    watch(() => props.value, (newVal) => {
       if (newVal && newVal.length > 0) {
         setFileList(newVal)
       } else {
@@ -181,13 +181,13 @@ export default {
     }
     
     // 处理文件选择
-    const handleFileChange = e => {
+    const handleFileChange = (e) => {
       _handleFileChange(e)
       updateValue()
     }
     
     // 预览图片
-    const previewImage = file => {
+    const previewImage = (file) => {
       previewUrl.value = file.url
       previewVisible.value = true
     }

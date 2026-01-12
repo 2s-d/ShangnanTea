@@ -183,7 +183,7 @@ import { showByCode, isSuccess } from '@/utils/apiMessages'
 import teaMessages from '@/utils/promptMessages'
 
 export default {
-  name: 'TeaListPage',
+  name: "TeaListPage",
   components: {
     Shop,
     TeaCard,
@@ -278,7 +278,7 @@ export default {
     // 监听路由参数变化
     watch(
       () => route.query,
-      query => {
+      (query) => {
         // 从URL参数更新筛选条件
         if (query.search) searchQuery.value = query.search
         if (query.sort) sortOption.value = query.sort
@@ -351,7 +351,7 @@ export default {
     }
     
     // 页面变化
-    const handlePageChange = page => {
+    const handlePageChange = (page) => {
       currentPage.value = page
       updateQueryParams()
       store.dispatch('tea/setPage', page)
@@ -368,7 +368,7 @@ export default {
     const popularTeas = computed(() => store.state.tea.recommendTeas || [])
     
     // 任务组F：跳转到茶叶详情页
-    const goToTeaDetail = teaId => {
+    const goToTeaDetail = (teaId) => {
       router.push(`/tea/${teaId}`)
     }
     

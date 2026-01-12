@@ -259,8 +259,8 @@ export default {
                 successMessage: '地址更新成功',
                 errorMessage: '保存地址失败，请稍后再试',
                 successCallback: () => {
-                  addressModalVisible.value = false
-                  handleFetchAddressList() // 重新获取列表
+                  addressModalVisible.value = false;
+                  handleFetchAddressList(); // 重新获取列表
                 }
               }
             )
@@ -273,8 +273,8 @@ export default {
                 successMessage: '地址添加成功',
                 errorMessage: '保存地址失败，请稍后再试',
                 successCallback: () => {
-                  addressModalVisible.value = false
-                  handleFetchAddressList() // 重新获取列表
+                  addressModalVisible.value = false;
+                  handleFetchAddressList(); // 重新获取列表
                 }
               }
             )
