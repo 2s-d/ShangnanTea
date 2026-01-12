@@ -226,10 +226,10 @@ const actions = {
         ...params
       }
       const res = await getOrders(queryParams)
-      const data = res.data || res
-      commit('SET_ORDER_LIST', data.list || [])
+      const data = res.data
+      commit('SET_ORDER_LIST', data?.list || [])
       commit('SET_PAGINATION', {
-        total: data.total || 0,
+        total: data?.total || 0,
         currentPage: state.pagination.currentPage,
         pageSize: state.pagination.pageSize
       })
@@ -244,7 +244,7 @@ const actions = {
     try {
       commit('SET_LOADING', true)
       const res = await getOrderDetail(id)
-      commit('SET_CURRENT_ORDER', res.data || res)
+      commit('SET_CURRENT_ORDER', res.data)
       return res // 返回 {code, data}
     } finally {
       commit('SET_LOADING', false)
@@ -398,7 +398,7 @@ const actions = {
   async fetchOrderStatistics({ commit }, params = {}) {
     try {
       const res = await getOrderStatistics(params)
-      commit('SET_ORDER_STATISTICS', res.data || res)
+      commit('SET_ORDER_STATISTICS', res.data)
       return res // 返回 {code, data}
     } catch (error) {
       console.error('获取订单统计失败:', error)

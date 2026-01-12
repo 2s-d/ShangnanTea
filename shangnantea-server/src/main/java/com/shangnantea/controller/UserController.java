@@ -22,7 +22,6 @@ import java.util.Map;
 
 /**
  * 用户控制器
- * 注意：数据由Apifox模拟，Controller仅保留骨架结构
  */
 @RestController
 @RequestMapping({"/user", "/api/user"})
@@ -43,8 +42,8 @@ public class UserController {
     @PostMapping("/login")
     public Result<TokenVO> login(@RequestBody @Valid LoginDTO loginDTO) {
         logger.info("用户登录请求: {}", loginDTO.getUsername());
-        // TODO: 数据由Apifox模拟
-        return Result.success(new TokenVO());
+        TokenVO result = userService.login(loginDTO);
+        return Result.success(result);
     }
     
     /**
@@ -56,8 +55,8 @@ public class UserController {
     @PostMapping("/register")
     public Result<UserVO> register(@RequestBody @Valid RegisterDTO registerDTO) {
         logger.info("用户注册请求: {}", registerDTO.getUsername());
-        // TODO: 数据由Apifox模拟
-        return Result.success(new UserVO());
+        UserVO result = userService.register(registerDTO);
+        return Result.success(result);
     }
     
     /**
@@ -69,7 +68,7 @@ public class UserController {
     @PostMapping("/logout")
     public Result<Void> logout(HttpServletRequest request) {
         logger.info("用户登出请求");
-        // TODO: 数据由Apifox模拟
+        userService.logout(request);
         return Result.success();
     }
     
@@ -82,8 +81,8 @@ public class UserController {
     @GetMapping("/info")
     public Result<UserVO> info(HttpServletRequest request) {
         logger.info("获取用户信息请求");
-        // TODO: 数据由Apifox模拟
-        return Result.success(new UserVO());
+        UserVO result = userService.getCurrentUserInfo(request);
+        return Result.success(result);
     }
     
     /**
@@ -94,8 +93,8 @@ public class UserController {
     @GetMapping("/me")
     @RequiresLogin
     public Result<UserVO> getUserInfo() {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new UserVO());
+        UserVO result = userService.getUserInfo();
+        return Result.success(result);
     }
 
     /**
@@ -105,8 +104,8 @@ public class UserController {
      */
     @GetMapping("/addresses")
     public Result<Object> listAddresses() {
-        // TODO: 数据由Apifox模拟
-        return Result.success(java.util.Collections.emptyList());
+        Object result = userService.listAddresses();
+        return Result.success(result);
     }
 
     /**
@@ -117,8 +116,8 @@ public class UserController {
      */
     @PostMapping("/addresses")
     public Result<Object> addAddress(@RequestBody(required = false) Map<String, Object> body) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new HashMap<>());
+        Object result = userService.addAddress(body);
+        return Result.success(result);
     }
 
     /**
@@ -130,8 +129,8 @@ public class UserController {
      */
     @PutMapping("/addresses/{id}")
     public Result<Boolean> updateAddress(@PathVariable String id, @RequestBody(required = false) Map<String, Object> body) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = userService.updateAddress(id, body);
+        return Result.success(result);
     }
 
     /**
@@ -142,8 +141,8 @@ public class UserController {
      */
     @DeleteMapping("/addresses/{id}")
     public Result<Boolean> deleteAddress(@PathVariable String id) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = userService.deleteAddress(id);
+        return Result.success(result);
     }
 
     /**
@@ -154,8 +153,8 @@ public class UserController {
      */
     @PutMapping("/addresses/{id}/default")
     public Result<Boolean> setDefaultAddress(@PathVariable String id) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = userService.setDefaultAddress(id);
+        return Result.success(result);
     }
 
     /**
@@ -165,8 +164,8 @@ public class UserController {
      */
     @GetMapping("/preferences")
     public Result<Object> getPreferences() {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new HashMap<>());
+        Object result = userService.getPreferences();
+        return Result.success(result);
     }
 
     /**
@@ -177,8 +176,8 @@ public class UserController {
      */
     @PutMapping("/preferences")
     public Result<Object> updatePreferences(@RequestBody(required = false) Map<String, Object> body) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new HashMap<>());
+        Object result = userService.updatePreferences(body);
+        return Result.success(result);
     }
 
     /**
@@ -186,8 +185,8 @@ public class UserController {
      */
     @PostMapping("/shop-certification")
     public Result<Boolean> submitShopCertification(@RequestBody(required = false) Map<String, Object> body) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = userService.submitShopCertification(body);
+        return Result.success(result);
     }
 
     /**
@@ -195,8 +194,8 @@ public class UserController {
      */
     @GetMapping("/shop-certification")
     public Result<Object> getShopCertification() {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new HashMap<>());
+        Object result = userService.getShopCertification();
+        return Result.success(result);
     }
     
     /**
@@ -208,8 +207,8 @@ public class UserController {
     @PutMapping("/update")
     @RequiresLogin
     public Result<UserVO> updateUser(@RequestBody Map<String, Object> user) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new UserVO());
+        UserVO result = userService.updateUser(user);
+        return Result.success(result);
     }
     
     /**
@@ -221,8 +220,8 @@ public class UserController {
     @PostMapping("/change-password")
     @RequiresLogin
     public Result<String> changePassword(@RequestBody @Valid ChangePasswordDTO changePasswordDTO) {
-        // TODO: 数据由Apifox模拟
-        return Result.success("密码修改成功");
+        String result = userService.changePassword(changePasswordDTO);
+        return Result.success(result);
     }
     
     /**
@@ -233,8 +232,8 @@ public class UserController {
     @GetMapping("/list")
     @RequiresRoles({1}) // 管理员角色
     public Result<Object> getUserList() {
-        // TODO: 数据由Apifox模拟
-        return Result.success(java.util.Collections.emptyList());
+        Object result = userService.getUserList();
+        return Result.success(result);
     }
     
     /**
@@ -246,8 +245,8 @@ public class UserController {
     @DeleteMapping("/{id}")
     @RequiresRoles({1}) // 管理员角色
     public Result<String> deleteUser(@PathVariable String id) {
-        // TODO: 数据由Apifox模拟
-        return Result.success("删除成功");
+        String result = userService.deleteUser(id);
+        return Result.success(result);
     }
     
     /**
@@ -258,8 +257,8 @@ public class UserController {
      */
     @GetMapping("/{userId}")
     public Result<UserVO> getUserById(@PathVariable String userId) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new UserVO());
+        UserVO result = userService.getUserById(userId);
+        return Result.success(result);
     }
     
     /**
@@ -271,8 +270,8 @@ public class UserController {
      */
     @PutMapping("/{userId}")
     public Result<UserVO> updateUserInfo(@PathVariable String userId, @RequestBody Map<String, Object> user) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new UserVO());
+        UserVO result = userService.updateUserInfo(userId, user);
+        return Result.success(result);
     }
     
     /**
@@ -283,8 +282,8 @@ public class UserController {
      */
     @PostMapping("/avatar")
     public Result<Object> uploadAvatar(HttpServletRequest request) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new HashMap<>());
+        Object result = userService.uploadAvatar(request);
+        return Result.success(result);
     }
     
     /**
@@ -295,8 +294,8 @@ public class UserController {
      */
     @PutMapping("/password")
     public Result<String> updatePassword(@RequestBody(required = false) Map<String, Object> body) {
-        // TODO: 数据由Apifox模拟
-        return Result.success("密码修改成功");
+        String result = userService.updatePassword(body);
+        return Result.success(result);
     }
     
     /**
@@ -307,8 +306,8 @@ public class UserController {
      */
     @PostMapping("/password/reset")
     public Result<String> resetPassword(@RequestBody(required = false) Map<String, Object> body) {
-        // TODO: 数据由Apifox模拟
-        return Result.success("密码重置成功");
+        String result = userService.resetPassword(body);
+        return Result.success(result);
     }
     
     /**
@@ -319,8 +318,8 @@ public class UserController {
      */
     @PostMapping("/refresh")
     public Result<TokenVO> refreshToken(HttpServletRequest request) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new TokenVO());
+        TokenVO result = userService.refreshToken(request);
+        return Result.success(result);
     }
     
     /**
@@ -331,8 +330,8 @@ public class UserController {
      */
     @GetMapping("/follows")
     public Result<Object> listFollows(@RequestParam(required = false) String type) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(java.util.Collections.emptyList());
+        Object result = userService.listFollows(type);
+        return Result.success(result);
     }
     
     /**
@@ -343,8 +342,8 @@ public class UserController {
      */
     @PostMapping("/follows")
     public Result<Boolean> addFollow(@RequestBody(required = false) Map<String, Object> body) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = userService.addFollow(body);
+        return Result.success(result);
     }
     
     /**
@@ -355,8 +354,8 @@ public class UserController {
      */
     @DeleteMapping("/follows/{id}")
     public Result<Boolean> deleteFollow(@PathVariable String id) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = userService.deleteFollow(id);
+        return Result.success(result);
     }
     
     /**
@@ -367,8 +366,8 @@ public class UserController {
      */
     @GetMapping("/favorites")
     public Result<Object> listFavorites(@RequestParam(required = false) String type) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(java.util.Collections.emptyList());
+        Object result = userService.listFavorites(type);
+        return Result.success(result);
     }
     
     /**
@@ -379,8 +378,8 @@ public class UserController {
      */
     @PostMapping("/favorites")
     public Result<Boolean> addFavorite(@RequestBody(required = false) Map<String, Object> body) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = userService.addFavorite(body);
+        return Result.success(result);
     }
     
     /**
@@ -391,8 +390,8 @@ public class UserController {
      */
     @DeleteMapping("/favorites/{id}")
     public Result<Boolean> deleteFavorite(@PathVariable String id) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = userService.deleteFavorite(id);
+        return Result.success(result);
     }
     
     /**
@@ -403,8 +402,8 @@ public class UserController {
      */
     @PostMapping("/likes")
     public Result<Boolean> addLike(@RequestBody(required = false) Map<String, Object> body) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = userService.addLike(body);
+        return Result.success(result);
     }
     
     /**
@@ -415,8 +414,8 @@ public class UserController {
      */
     @DeleteMapping("/likes/{id}")
     public Result<Boolean> deleteLike(@PathVariable String id) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = userService.deleteLike(id);
+        return Result.success(result);
     }
     
     /**
@@ -436,8 +435,8 @@ public class UserController {
             @RequestParam(required = false) Integer status,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer pageSize) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new HashMap<>());
+        Object result = userService.getAdminUsers(keyword, role, status, page, pageSize);
+        return Result.success(result);
     }
     
     /**
@@ -448,8 +447,8 @@ public class UserController {
      */
     @PostMapping("/admin/users")
     public Result<Boolean> createAdminUser(@RequestBody(required = false) Map<String, Object> body) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = userService.createAdminUser(body);
+        return Result.success(result);
     }
     
     /**
@@ -461,8 +460,8 @@ public class UserController {
      */
     @PutMapping("/admin/users/{userId}")
     public Result<Boolean> updateAdminUser(@PathVariable String userId, @RequestBody(required = false) Map<String, Object> body) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = userService.updateAdminUser(userId, body);
+        return Result.success(result);
     }
     
     /**
@@ -473,8 +472,8 @@ public class UserController {
      */
     @DeleteMapping("/admin/users/{userId}")
     public Result<Boolean> deleteAdminUser(@PathVariable String userId) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = userService.deleteAdminUser(userId);
+        return Result.success(result);
     }
     
     /**
@@ -487,8 +486,8 @@ public class UserController {
     @PutMapping("/admin/users/{userId}/role")
     @Deprecated
     public Result<Boolean> updateUserRole(@PathVariable String userId, @RequestBody(required = false) Map<String, Object> body) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = userService.updateUserRole(userId, body);
+        return Result.success(result);
     }
     
     /**
@@ -500,8 +499,8 @@ public class UserController {
      */
     @PutMapping("/admin/users/{userId}/status")
     public Result<Boolean> updateUserStatus(@PathVariable String userId, @RequestBody(required = false) Map<String, Object> body) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = userService.updateUserStatus(userId, body);
+        return Result.success(result);
     }
     
     /**
@@ -517,8 +516,8 @@ public class UserController {
             @RequestParam(required = false) Integer status,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer pageSize) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new HashMap<>());
+        Object result = userService.getAdminCertifications(status, page, pageSize);
+        return Result.success(result);
     }
     
     /**
@@ -530,7 +529,7 @@ public class UserController {
      */
     @PutMapping("/admin/certifications/{id}")
     public Result<Boolean> auditCertification(@PathVariable Integer id, @RequestBody(required = false) Map<String, Object> body) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = userService.auditCertification(id, body);
+        return Result.success(result);
     }
 }

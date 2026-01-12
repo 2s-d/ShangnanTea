@@ -15,7 +15,6 @@ import java.util.List;
 
 /**
  * 茶叶控制器
- * 注意：数据由Apifox模拟，Controller仅保留骨架结构
  */
 @RestController
 @RequestMapping("/api/tea")
@@ -32,8 +31,8 @@ public class TeaController {
      */
     @GetMapping("/{id}")
     public Result<Tea> getTeaById(@PathVariable Long id) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new Tea());
+        Tea result = teaService.getTeaById(id);
+        return Result.success(result);
     }
     
     /**
@@ -47,8 +46,11 @@ public class TeaController {
     public Result<PageResult<Tea>> listTeas(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(PageResult.of(java.util.Collections.emptyList(), 0L, page, size));
+        PageParam pageParam = new PageParam();
+        pageParam.setPageNum(page);
+        pageParam.setPageSize(size);
+        PageResult<Tea> result = teaService.listTeas(pageParam);
+        return Result.success(result);
     }
     
     /**
@@ -64,8 +66,11 @@ public class TeaController {
             @PathVariable Integer categoryId,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(PageResult.of(java.util.Collections.emptyList(), 0L, page, size));
+        PageParam pageParam = new PageParam();
+        pageParam.setPageNum(page);
+        pageParam.setPageSize(size);
+        PageResult<Tea> result = teaService.listTeasByCategory(categoryId, pageParam);
+        return Result.success(result);
     }
     
     /**
@@ -81,8 +86,11 @@ public class TeaController {
             @RequestParam String keyword,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(PageResult.of(java.util.Collections.emptyList(), 0L, page, size));
+        PageParam pageParam = new PageParam();
+        pageParam.setPageNum(page);
+        pageParam.setPageSize(size);
+        PageResult<Tea> result = teaService.searchTeas(keyword, pageParam);
+        return Result.success(result);
     }
     
     /**
@@ -92,8 +100,8 @@ public class TeaController {
      */
     @GetMapping("/categories")
     public Result<List<TeaCategory>> listCategories() {
-        // TODO: 数据由Apifox模拟
-        return Result.success(java.util.Collections.emptyList());
+        List<TeaCategory> result = teaService.listCategories();
+        return Result.success(result);
     }
     
     /**
@@ -104,8 +112,8 @@ public class TeaController {
      */
     @GetMapping("/{teaId}/specifications")
     public Result<List<TeaSpecification>> listSpecifications(@PathVariable Long teaId) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(java.util.Collections.emptyList());
+        List<TeaSpecification> result = teaService.listSpecifications(teaId);
+        return Result.success(result);
     }
     
     /**
@@ -116,8 +124,8 @@ public class TeaController {
      */
     @GetMapping("/{teaId}/images")
     public Result<List<TeaImage>> listImages(@PathVariable Long teaId) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(java.util.Collections.emptyList());
+        List<TeaImage> result = teaService.listImages(teaId);
+        return Result.success(result);
     }
     
     /**
@@ -128,8 +136,8 @@ public class TeaController {
      */
     @PostMapping
     public Result<Tea> addTea(@RequestBody Tea tea) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new Tea());
+        Tea result = teaService.addTea(tea);
+        return Result.success(result);
     }
     
     /**
@@ -141,8 +149,9 @@ public class TeaController {
      */
     @PutMapping("/{id}")
     public Result<Boolean> updateTea(@PathVariable Long id, @RequestBody Tea tea) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        tea.setId(id.toString());
+        Boolean result = teaService.updateTea(tea);
+        return Result.success(result);
     }
     
     /**
@@ -153,8 +162,8 @@ public class TeaController {
      */
     @DeleteMapping("/{id}")
     public Result<Boolean> deleteTea(@PathVariable Long id) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = teaService.deleteTea(id);
+        return Result.success(result);
     }
     
     /**
@@ -164,8 +173,8 @@ public class TeaController {
      */
     @GetMapping("/admin/categories")
     public Result<List<TeaCategory>> listAdminCategories() {
-        // TODO: 数据由Apifox模拟
-        return Result.success(java.util.Collections.emptyList());
+        List<TeaCategory> result = teaService.listAdminCategories();
+        return Result.success(result);
     }
     
     /**
@@ -176,8 +185,8 @@ public class TeaController {
      */
     @PostMapping("/admin/categories")
     public Result<TeaCategory> createCategory(@RequestBody TeaCategory category) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new TeaCategory());
+        TeaCategory result = teaService.createCategory(category);
+        return Result.success(result);
     }
     
     /**
@@ -189,8 +198,9 @@ public class TeaController {
      */
     @PutMapping("/admin/categories/{id}")
     public Result<Boolean> updateCategory(@PathVariable Integer id, @RequestBody TeaCategory category) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        category.setId(id);
+        Boolean result = teaService.updateCategory(category);
+        return Result.success(result);
     }
     
     /**
@@ -201,8 +211,8 @@ public class TeaController {
      */
     @DeleteMapping("/admin/categories/{id}")
     public Result<Boolean> deleteCategory(@PathVariable Integer id) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = teaService.deleteCategory(id);
+        return Result.success(result);
     }
     
     /**
@@ -222,8 +232,11 @@ public class TeaController {
             @RequestParam(required = false) String shopId,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(PageResult.of(java.util.Collections.emptyList(), 0L, page, size));
+        PageParam pageParam = new PageParam();
+        pageParam.setPageNum(page);
+        pageParam.setPageSize(size);
+        PageResult<Tea> result = teaService.listAdminTeas(keyword, categoryId, shopId, pageParam);
+        return Result.success(result);
     }
     
     /**
@@ -234,8 +247,8 @@ public class TeaController {
      */
     @DeleteMapping("/admin/batch")
     public Result<Boolean> batchDeleteTeas(@RequestBody List<Long> ids) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = teaService.batchDeleteTeas(ids);
+        return Result.success(result);
     }
     
     /**
@@ -248,8 +261,8 @@ public class TeaController {
     @PostMapping("/{teaId}/images")
     public Result<TeaImage> uploadImage(@PathVariable Long teaId, 
                                          @RequestParam("file") org.springframework.web.multipart.MultipartFile file) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new TeaImage());
+        TeaImage result = teaService.uploadImage(teaId, file);
+        return Result.success(result);
     }
     
     /**
@@ -261,8 +274,8 @@ public class TeaController {
      */
     @DeleteMapping("/{teaId}/images/{imageId}")
     public Result<Boolean> deleteImage(@PathVariable Long teaId, @PathVariable Long imageId) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = teaService.deleteImage(teaId, imageId);
+        return Result.success(result);
     }
     
     /**
@@ -274,8 +287,8 @@ public class TeaController {
      */
     @PostMapping("/{teaId}/specifications")
     public Result<TeaSpecification> addSpecification(@PathVariable Long teaId, @RequestBody TeaSpecification specification) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new TeaSpecification());
+        TeaSpecification result = teaService.addSpecification(teaId, specification);
+        return Result.success(result);
     }
     
     /**
@@ -290,8 +303,9 @@ public class TeaController {
     public Result<Boolean> updateSpecification(@PathVariable Long teaId, 
                                                 @PathVariable Long specificationId,
                                                 @RequestBody TeaSpecification specification) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        specification.setId(specificationId);
+        Boolean result = teaService.updateSpecification(teaId, specification);
+        return Result.success(result);
     }
     
     /**
@@ -303,7 +317,7 @@ public class TeaController {
      */
     @DeleteMapping("/{teaId}/specifications/{specificationId}")
     public Result<Boolean> deleteSpecification(@PathVariable Long teaId, @PathVariable Long specificationId) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = teaService.deleteSpecification(teaId, specificationId);
+        return Result.success(result);
     }
 }
