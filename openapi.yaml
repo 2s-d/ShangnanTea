@@ -73,16 +73,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 2000
                 data:
@@ -118,16 +118,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 2001
                 data:
@@ -152,14 +152,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 2002
                 data: null
@@ -178,16 +178,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -207,16 +207,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -247,16 +247,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -294,14 +294,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 2010
                 data: null
@@ -330,16 +330,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 2012
                 data:
@@ -373,14 +373,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 2011
                 data: null
@@ -414,14 +414,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 2004
                 data: null
@@ -440,16 +440,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -496,14 +496,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 4060
                 data: null
@@ -550,14 +550,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 1004
                 data: null
@@ -580,14 +580,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 1003
                 data: null
@@ -612,14 +612,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 1004
                 data: null
@@ -638,16 +638,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -681,14 +681,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 1000
                 data: null
@@ -713,16 +713,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -757,14 +757,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 5000
                 data: null
@@ -789,14 +789,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 5001
                 data: null
@@ -821,16 +821,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -865,14 +865,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 3010
                 data: null
@@ -897,14 +897,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 3011
                 data: null
@@ -935,14 +935,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 6010
                 data: null
@@ -967,14 +967,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 6011
                 data: null
@@ -993,16 +993,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -1032,14 +1032,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 2013
                 data: null
@@ -1083,16 +1083,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -1143,14 +1143,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 2023
                 data: null
@@ -1193,14 +1193,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 2022
                 data: null
@@ -1223,14 +1223,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 2020
                 data: null
@@ -1267,14 +1267,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 2022
                 data: null
@@ -1310,14 +1310,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 2021
                 data: null
@@ -1352,16 +1352,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -1404,14 +1404,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 1000
                 data: null
@@ -1463,16 +1463,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 3000
                 data:
@@ -1532,14 +1532,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 3026
                 data: null
@@ -1562,16 +1562,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 3001
                 data:
@@ -1631,14 +1631,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 3025
                 data: null
@@ -1661,14 +1661,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 3024
                 data: null
@@ -1685,16 +1685,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -1736,14 +1736,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 3030
                 data: null
@@ -1783,14 +1783,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 3031
                 data: null
@@ -1813,14 +1813,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 3032
                 data: null
@@ -1851,16 +1851,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -1893,16 +1893,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -1951,14 +1951,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 4050
                 data: null
@@ -1993,14 +1993,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 3013
                 data: null
@@ -2025,14 +2025,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 6010
                 data: null
@@ -2055,16 +2055,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -2109,14 +2109,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 1000
                 data: null
@@ -2157,14 +2157,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 1004
                 data: null
@@ -2187,14 +2187,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 1003
                 data: null
@@ -2219,14 +2219,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 1004
                 data: null
@@ -2263,16 +2263,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 1001
                 data:
@@ -2299,14 +2299,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 1003
                 data: null
@@ -2331,14 +2331,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 1004
                 data: null
@@ -2375,14 +2375,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 1004
                 data: null
@@ -2417,14 +2417,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 3020
                 data: null
@@ -2457,14 +2457,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 3022
                 data: null
@@ -2496,16 +2496,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -2557,16 +2557,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -2608,14 +2608,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 1000
                 data: null
@@ -2638,16 +2638,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -2691,14 +2691,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 1004
                 data: null
@@ -2717,16 +2717,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -2764,16 +2764,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -2819,14 +2819,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 3026
                 data: null
@@ -2866,14 +2866,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 3025
                 data: null
@@ -2896,14 +2896,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 3024
                 data: null
@@ -2938,14 +2938,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 3020
                 data: null
@@ -2980,16 +2980,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -3028,16 +3028,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 5030
                 data:
@@ -3061,16 +3061,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -3112,14 +3112,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 5010
                 data: null
@@ -3157,14 +3157,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 5011
                 data: null
@@ -3187,14 +3187,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 5012
                 data: null
@@ -3229,14 +3229,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 5013
                 data: null
@@ -3259,16 +3259,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -3309,14 +3309,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 5020
                 data: null
@@ -3354,14 +3354,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 5021
                 data: null
@@ -3384,14 +3384,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 5022
                 data: null
@@ -3416,14 +3416,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 5000
                 data: null
@@ -3446,14 +3446,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 5001
                 data: null
@@ -3478,16 +3478,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -3519,16 +3519,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -3575,14 +3575,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 5002
                 data: null
@@ -3603,16 +3603,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -3653,14 +3653,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 4010
                 data: null
@@ -3693,14 +3693,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 4011
                 data: null
@@ -3725,14 +3725,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 4013
                 data: null
@@ -3751,14 +3751,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 4015
                 data: null
@@ -3800,16 +3800,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 4000
                 data:
@@ -3850,16 +3850,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -3899,16 +3899,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -3951,14 +3951,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 4020
                 data: null
@@ -3987,14 +3987,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 4002
                 data: null
@@ -4023,14 +4023,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 4003
                 data: null
@@ -4069,14 +4069,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 4050
                 data: null
@@ -4111,14 +4111,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 4004
                 data: null
@@ -4153,14 +4153,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 4006
                 data: null
@@ -4185,16 +4185,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -4232,14 +4232,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 4030
                 data: null
@@ -4264,16 +4264,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -4315,14 +4315,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 4031
                 data: null
@@ -4356,16 +4356,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -4422,14 +4422,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 200
                 data: null
@@ -4452,16 +4452,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -4497,14 +4497,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 6060
                 data: null
@@ -4521,16 +4521,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -4566,14 +4566,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 5010
                 data: null
@@ -4611,14 +4611,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 5011
                 data: null
@@ -4641,14 +4641,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 5012
                 data: null
@@ -4678,14 +4678,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 5013
                 data: null
@@ -4719,16 +4719,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -4772,14 +4772,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 6050
                 data: null
@@ -4802,16 +4802,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -4857,14 +4857,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 6051
                 data: null
@@ -4887,14 +4887,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 6052
                 data: null
@@ -4911,16 +4911,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -4958,14 +4958,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 6040
                 data: null
@@ -4988,16 +4988,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -5038,14 +5038,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 6041
                 data: null
@@ -5068,14 +5068,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 6042
                 data: null
@@ -5114,16 +5114,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -5172,14 +5172,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 6000
                 data: null
@@ -5207,16 +5207,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -5246,16 +5246,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -5301,14 +5301,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 6001
                 data: null
@@ -5331,14 +5331,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 6002
                 data: null
@@ -5369,16 +5369,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -5421,14 +5421,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 6022
                 data: null
@@ -5453,14 +5453,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 6021
                 data: null
@@ -5485,14 +5485,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 6010
                 data: null
@@ -5515,14 +5515,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 6011
                 data: null
@@ -5547,14 +5547,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 6010
                 data: null
@@ -5577,14 +5577,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 6011
                 data: null
@@ -5609,14 +5609,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 6012
                 data: null
@@ -5639,14 +5639,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 6013
                 data: null
@@ -5671,14 +5671,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 6034
                 data: null
@@ -5713,14 +5713,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 6035
                 data: null
@@ -5750,14 +5750,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 6030
                 data: null
@@ -5787,14 +5787,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 6032
                 data: null
@@ -5829,16 +5829,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -5871,16 +5871,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -5920,14 +5920,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 7000
                 data: null
@@ -5958,14 +5958,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 7010
                 data: null
@@ -5996,14 +5996,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 7012
                 data: null
@@ -6022,16 +6022,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -6067,16 +6067,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -6109,16 +6109,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -6147,14 +6147,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 7012
                 data: null
@@ -6181,14 +6181,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 7011
                 data: null
@@ -6215,14 +6215,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 7013
                 data: null
@@ -6241,16 +6241,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -6292,16 +6292,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -6339,16 +6339,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 1000
                 data:
@@ -6374,14 +6374,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 7001
                 data: null
@@ -6406,14 +6406,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 7014
                 data: null
@@ -6447,14 +6447,14 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  nullable: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    nullable: true
+                required:
+                  - code
               example:
                 code: 7003
                 data: null
@@ -6477,16 +6477,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -6528,16 +6528,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -6567,16 +6567,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -6613,16 +6613,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -6657,16 +6657,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 200
                 data:
@@ -6707,16 +6707,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 1001
                 data:
@@ -6750,16 +6750,16 @@ paths:
               schema:
                 type: object
                 properties:
-                code:
-                  type: integer
-                  description: 状态码
-                data:
-                  description: 响应数据
-                  type: object
-                  nullable: true
-                  additionalProperties: true
-              required:
-                - code
+                  code:
+                    type: integer
+                    description: 状态码
+                  data:
+                    description: 响应数据
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required:
+                  - code
               example:
                 code: 1001
                 data:
