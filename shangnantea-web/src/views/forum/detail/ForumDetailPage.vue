@@ -259,9 +259,9 @@ export default {
     // 获取帖子详情
     const fetchPostDetail = async () => {
       try {
-        await store.dispatch('forum/fetchPostDetail', postId.value)
+        const res = await store.dispatch('forum/fetchPostDetail', postId.value)
+        showByCode(res.code)
       } catch (error) {
-        forumErrorMessages.showLoadPostDetailFailed()
         console.error('获取帖子详情失败:', error)
       }
     }
@@ -276,10 +276,10 @@ export default {
           size: pagination.pageSize,
           sortBy: currentSort.value
         }
-        await store.dispatch('forum/fetchPostReplies', { postId: postId.value, params })
+        const res = await store.dispatch('forum/fetchPostReplies', { postId: postId.value, params })
+        showByCode(res.code)
         updateReplyPagination()
       } catch (error) {
-        forumErrorMessages.showLoadRepliesFailed()
         console.error('获取回复列表失败:', error)
       }
     }
