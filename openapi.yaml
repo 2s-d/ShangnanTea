@@ -3153,6 +3153,10 @@ paths:
         '200':
           description: 导出成功
           content:
+            application/json:
+              example:
+                code: 200
+                data: null
             application/octet-stream:
               schema:
                 type: string
