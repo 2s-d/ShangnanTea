@@ -1,7 +1,7 @@
 package com.shangnantea.controller;
 
-import com.shangnantea.common.annotation.RequiresLogin;
 import com.shangnantea.common.api.Result;
+import com.shangnantea.security.annotation.RequiresLogin;
 import com.shangnantea.service.MessageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +16,7 @@ import java.util.Map;
 /**
  * 消息控制器
  * 处理聊天会话、消息、通知、用户主页等功能
+ * 参考：前端 message.js 和 code-message-mapping.md
  */
 @RestController
 @RequestMapping({"/message", "/api/message"})
@@ -136,36 +137,6 @@ public class MessageController {
     }
 
     /**
-     * 获取通知详情
-     * 路径: GET /message/notifications/{id}
-     * 成功码: 200, 失败码: 7101
-     *
-     * @param id 通知ID
-     * @return 通知详情
-     */
-    @GetMapping("/notifications/{id}")
-    @RequiresLogin
-    public Result<Object> getNotificationDetail(@PathVariable String id) {
-        logger.info("获取通知详情请求: {}", id);
-        return messageService.getNotificationDetail(id);
-    }
-
-    /**
-     * 删除通知
-     * 路径: DELETE /message/notifications/{id}
-     * 成功码: 7012, 失败码: 1100
-     *
-     * @param id 通知ID
-     * @return 删除结果
-     */
-    @DeleteMapping("/notifications/{id}")
-    @RequiresLogin
-    public Result<Boolean> deleteNotification(@PathVariable String id) {
-        logger.info("删除通知请求: {}", id);
-        return messageService.deleteNotification(id);
-    }
-
-    /**
      * 批量标记通知为已读
      * 路径: PUT /message/notifications/batch-read
      * 成功码: 7011, 失败码: 7110
@@ -193,6 +164,36 @@ public class MessageController {
     public Result<Boolean> batchDeleteNotifications(@RequestBody List<Long> ids) {
         logger.info("批量删除通知请求, ids: {}", ids);
         return messageService.batchDeleteNotifications(ids);
+    }
+
+    /**
+     * 获取通知详情
+     * 路径: GET /message/notifications/{id}
+     * 成功码: 200, 失败码: 7101
+     *
+     * @param id 通知ID
+     * @return 通知详情
+     */
+    @GetMapping("/notifications/{id}")
+    @RequiresLogin
+    public Result<Object> getNotificationDetail(@PathVariable String id) {
+        logger.info("获取通知详情请求: {}", id);
+        return messageService.getNotificationDetail(id);
+    }
+
+    /**
+     * 删除通知
+     * 路径: DELETE /message/notifications/{id}
+     * 成功码: 7012, 失败码: 1100
+     *
+     * @param id 通知ID
+     * @return 删除结果
+     */
+    @DeleteMapping("/notifications/{id}")
+    @RequiresLogin
+    public Result<Boolean> deleteNotification(@PathVariable String id) {
+        logger.info("删除通知请求: {}", id);
+        return messageService.deleteNotification(id);
     }
 
     // ==================== 聊天会话 ====================
@@ -298,17 +299,33 @@ public class MessageController {
     // ==================== 用户主页 ====================
 
     /**
-     * 获取用户主页信息
-     * 路径: GET /message/user/{userId}
-     * 成功码: 200, 失败码: 7120, 7121
+     * 获取用户发布的帖子列表
+     * 路径: GET /message/user/posts
+     * 成功码: 200, 失败码: 1102
      *
-     * @param userId 用户ID
-     * @return 用户主页信息
+     * @param params 查询参数 {page, size, sortBy}
+     * @return 帖子列表
      */
-    @GetMapping("/user/{userId}")
-    public Result<Object> getUserProfile(@PathVariable String userId) {
-        logger.info("获取用户主页信息请求: {}", userId);
-        return messageService.getUserProfile(userId);
+    @GetMapping("/user/posts")
+    @RequiresLogin
+    public Result<Object> getUserPosts(@RequestParam Map<String, Object> params) {
+        logger.info("获取用户帖子列表请求, params: {}", params);
+        return messageService.getUserPosts(params);
+    }
+
+    /**
+     * 获取用户评价记录
+     * 路径: GET /message/user/reviews
+     * 成功码: 200, 失败码: 1102
+     *
+     * @param params 查询参数 {page, size}
+     * @return 评价记录列表
+     */
+    @GetMapping("/user/reviews")
+    @RequiresLogin
+    public Result<Object> getUserReviews(@RequestParam Map<String, Object> params) {
+        logger.info("获取用户评价记录请求, params: {}", params);
+        return messageService.getUserReviews(params);
     }
 
     /**
@@ -340,32 +357,17 @@ public class MessageController {
     }
 
     /**
-     * 获取用户发布的帖子列表
-     * 路径: GET /message/user/posts
-     * 成功码: 200, 失败码: 1102
+     * 获取用户主页信息
+     * 路径: GET /message/user/{userId}
+     * 成功码: 200, 失败码: 7120, 7121
+     * 注意：此路径应放在最后，避免与更具体的路径冲突
      *
-     * @param params 查询参数 {page, size, sortBy}
-     * @return 帖子列表
+     * @param userId 用户ID
+     * @return 用户主页信息
      */
-    @GetMapping("/user/posts")
-    @RequiresLogin
-    public Result<Object> getUserPosts(@RequestParam Map<String, Object> params) {
-        logger.info("获取用户帖子列表请求, params: {}", params);
-        return messageService.getUserPosts(params);
-    }
-
-    /**
-     * 获取用户评价记录
-     * 路径: GET /message/user/reviews
-     * 成功码: 200, 失败码: 1102
-     *
-     * @param params 查询参数 {page, size}
-     * @return 评价记录列表
-     */
-    @GetMapping("/user/reviews")
-    @RequiresLogin
-    public Result<Object> getUserReviews(@RequestParam Map<String, Object> params) {
-        logger.info("获取用户评价记录请求, params: {}", params);
-        return messageService.getUserReviews(params);
+    @GetMapping("/user/{userId}")
+    public Result<Object> getUserProfile(@PathVariable String userId) {
+        logger.info("获取用户主页信息请求: {}", userId);
+        return messageService.getUserProfile(userId);
     }
 }

@@ -1,26 +1,10 @@
 {
-  "scanTime": "2026-01-12T20:01:20.003Z",
+  "scanTime": "2026-01-12T20:08:23.326Z",
   "summary": {
-    "totalFiles": 1,
-    "totalIssues": 1,
+    "totalFiles": 0,
+    "totalIssues": 0,
     "totalImports": 0,
-    "totalCalls": 1
+    "totalCalls": 0
   },
-  "files": [
-    {
-      "file": "C:\\wendang\\bishe\\tea1\\shangnantea\\shangnantea-web\\src\\views\\forum\\culturehome\\ArticleDetailPage.vue",
-      "relativePath": "src\\views\\forum\\culturehome\\ArticleDetailPage.vue",
-      "imports": [],
-      "calls": [
-        {
-          "line": 195,
-          "code": "forumErrorMessages.showLoadFailed('获取文章详情失败')",
-          "fullLine": "forumErrorMessages.showLoadFailed('获取文章详情失败')"
-        }
-      ],
-      "total": 1,
-      "hasNewPattern": true,
-      "status": "partial"
-    }
-  ]
+  "files": []
 }
