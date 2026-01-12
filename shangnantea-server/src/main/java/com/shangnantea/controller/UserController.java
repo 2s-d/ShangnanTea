@@ -244,8 +244,7 @@ public class UserController {
     @RequiresLogin
     public Result<Boolean> deleteAddress(@PathVariable String id) {
         logger.info("删除地址请求: {}", id);
-        Boolean result = userService.deleteAddress(id);
-        return Result.success(result);
+        return userService.deleteAddress(id);
     }
 
     /**
@@ -260,8 +259,7 @@ public class UserController {
     @RequiresLogin
     public Result<Boolean> setDefaultAddress(@PathVariable String id) {
         logger.info("设置默认地址请求: {}", id);
-        Boolean result = userService.setDefaultAddress(id);
-        return Result.success(result);
+        return userService.setDefaultAddress(id);
     }
 
     // ==================== 商家认证 ====================
@@ -277,8 +275,7 @@ public class UserController {
     @RequiresLogin
     public Result<Object> getShopCertificationStatus() {
         logger.info("获取商家认证状态请求");
-        Object result = userService.getShopCertificationStatus();
-        return Result.success(result);
+        return userService.getShopCertificationStatus();
     }
 
     /**
@@ -293,8 +290,7 @@ public class UserController {
     @RequiresLogin
     public Result<Boolean> submitShopCertification(@RequestBody Map<String, Object> certificationData) {
         logger.info("提交商家认证申请请求");
-        Boolean result = userService.submitShopCertification(certificationData);
-        return Result.success(result);
+        return userService.submitShopCertification(certificationData);
     }
 
     // ==================== 用户互动功能 ====================
@@ -311,8 +307,7 @@ public class UserController {
     @RequiresLogin
     public Result<Object> getFollowList(@RequestParam(required = false) String type) {
         logger.info("获取关注列表请求, type: {}", type);
-        Object result = userService.getFollowList(type);
-        return Result.success(result);
+        return userService.getFollowList(type);
     }
 
     /**
@@ -327,8 +322,7 @@ public class UserController {
     @RequiresLogin
     public Result<Boolean> addFollow(@RequestBody Map<String, Object> followData) {
         logger.info("添加关注请求");
-        Boolean result = userService.addFollow(followData);
-        return Result.success(result);
+        return userService.addFollow(followData);
     }
 
     /**
@@ -343,8 +337,7 @@ public class UserController {
     @RequiresLogin
     public Result<Boolean> removeFollow(@PathVariable String id) {
         logger.info("取消关注请求: {}", id);
-        Boolean result = userService.removeFollow(id);
-        return Result.success(result);
+        return userService.removeFollow(id);
     }
 
     /**
@@ -359,8 +352,7 @@ public class UserController {
     @RequiresLogin
     public Result<Object> getFavoriteList(@RequestParam(required = false) String type) {
         logger.info("获取收藏列表请求, type: {}", type);
-        Object result = userService.getFavoriteList(type);
-        return Result.success(result);
+        return userService.getFavoriteList(type);
     }
 
     /**
@@ -375,8 +367,7 @@ public class UserController {
     @RequiresLogin
     public Result<Boolean> addFavorite(@RequestBody Map<String, Object> favoriteData) {
         logger.info("添加收藏请求");
-        Boolean result = userService.addFavorite(favoriteData);
-        return Result.success(result);
+        return userService.addFavorite(favoriteData);
     }
 
     /**
@@ -391,8 +382,7 @@ public class UserController {
     @RequiresLogin
     public Result<Boolean> removeFavorite(@PathVariable String id) {
         logger.info("取消收藏请求: {}", id);
-        Boolean result = userService.removeFavorite(id);
-        return Result.success(result);
+        return userService.removeFavorite(id);
     }
 
     /**
@@ -407,8 +397,7 @@ public class UserController {
     @RequiresLogin
     public Result<Boolean> addLike(@RequestBody Map<String, Object> likeData) {
         logger.info("点赞请求");
-        Boolean result = userService.addLike(likeData);
-        return Result.success(result);
+        return userService.addLike(likeData);
     }
 
     /**
@@ -423,8 +412,7 @@ public class UserController {
     @RequiresLogin
     public Result<Boolean> removeLike(@PathVariable String id) {
         logger.info("取消点赞请求: {}", id);
-        Boolean result = userService.removeLike(id);
-        return Result.success(result);
+        return userService.removeLike(id);
     }
 
     // ==================== 用户偏好设置 ====================
@@ -440,8 +428,7 @@ public class UserController {
     @RequiresLogin
     public Result<Object> getUserPreferences() {
         logger.info("获取用户偏好设置请求");
-        Object result = userService.getUserPreferences();
-        return Result.success(result);
+        return userService.getUserPreferences();
     }
 
     /**
@@ -456,8 +443,7 @@ public class UserController {
     @RequiresLogin
     public Result<Object> updateUserPreferences(@RequestBody Map<String, Object> preferences) {
         logger.info("更新用户偏好设置请求");
-        Object result = userService.updateUserPreferences(preferences);
-        return Result.success(result);
+        return userService.updateUserPreferences(preferences);
     }
 
     // ==================== 管理员功能 ====================
@@ -484,8 +470,7 @@ public class UserController {
             @RequestParam(defaultValue = "10") Integer pageSize) {
         logger.info("获取用户列表请求(管理员), keyword: {}, role: {}, status: {}, page: {}, pageSize: {}", 
                 keyword, role, status, page, pageSize);
-        Object result = userService.getAdminUserList(keyword, role, status, page, pageSize);
-        return Result.success(result);
+        return userService.getAdminUserList(keyword, role, status, page, pageSize);
     }
 
     /**
@@ -500,8 +485,7 @@ public class UserController {
     @RequiresRoles({1}) // 管理员角色
     public Result<Boolean> createAdmin(@RequestBody Map<String, Object> adminData) {
         logger.info("创建管理员账号请求");
-        Boolean result = userService.createAdmin(adminData);
-        return Result.success(result);
+        return userService.createAdmin(adminData);
     }
 
     /**
