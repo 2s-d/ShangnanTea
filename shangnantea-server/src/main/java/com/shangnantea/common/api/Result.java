@@ -1,10 +1,13 @@
 package com.shangnantea.common.api;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 /**
- * 通用结果封装类
+ * 通用结果封装类（精简为 code + data，message 为空时不返回）
  *
  * @param <T> 数据类型
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Result<T> {
     /**
      * 状态码
@@ -12,7 +15,7 @@ public class Result<T> {
     private int code;
     
     /**
-     * 消息
+     * 消息（默认不返回，保留字段便于内部使用）
      */
     private String message;
     
@@ -31,80 +34,59 @@ public class Result<T> {
     }
     
     /**
-     * 成功结果
-     *
-     * @param <T> 数据类型
-     * @return 结果对象
+     * 成功结果（无数据）
      */
     public static <T> Result<T> success() {
-        return new Result<>(ResultCode.SUCCESS.getCode(), ResultCode.SUCCESS.getMessage(), null);
+        return new Result<>(ResultCode.SUCCESS.getCode(), null, null);
     }
     
     /**
      * 成功结果（带数据）
-     *
-     * @param data 数据
-     * @param <T>  数据类型
-     * @return 结果对象
      */
     public static <T> Result<T> success(T data) {
-        return new Result<>(ResultCode.SUCCESS.getCode(), ResultCode.SUCCESS.getMessage(), data);
+        return new Result<>(ResultCode.SUCCESS.getCode(), null, data);
     }
     
     /**
-     * 成功结果（带消息和数据）
-     *
-     * @param message 消息
-     * @param data    数据
-     * @param <T>     数据类型
-     * @return 结果对象
+     * 成功结果（自定义状态码 + 数据）
      */
-    public static <T> Result<T> success(String message, T data) {
-        return new Result<>(ResultCode.SUCCESS.getCode(), message, data);
+    public static <T> Result<T> success(int code, T data) {
+        return new Result<>(code, null, data);
     }
     
     /**
-     * 失败结果
-     *
-     * @param <T> 数据类型
-     * @return 结果对象
+     * 失败结果（使用通用失败码）
      */
     public static <T> Result<T> failure() {
-        return new Result<>(ResultCode.FAILURE.getCode(), ResultCode.FAILURE.getMessage(), null);
+        return new Result<>(ResultCode.FAILURE.getCode(), null, null);
     }
     
     /**
-     * 失败结果（带消息）
-     *
-     * @param message 消息
-     * @param <T>     数据类型
-     * @return 结果对象
+     * 失败结果（自定义状态码）
      */
-    public static <T> Result<T> failure(String message) {
-        return new Result<>(ResultCode.FAILURE.getCode(), message, null);
+    public static <T> Result<T> failure(int code) {
+        return new Result<>(code, null, null);
     }
     
     /**
-     * 失败结果（带状态码和消息）
-     *
-     * @param resultCode 状态码对象
-     * @param <T>        数据类型
-     * @return 结果对象
+     * 失败结果（自定义状态码与数据）
+     */
+    public static <T> Result<T> failure(int code, T data) {
+        return new Result<>(code, null, data);
+    }
+    
+    /**
+     * 失败结果（使用枚举状态码）
      */
     public static <T> Result<T> failure(ResultCode resultCode) {
-        return new Result<>(resultCode.getCode(), resultCode.getMessage(), null);
+        return new Result<>(resultCode.getCode(), null, null);
     }
     
     /**
-     * 失败结果（带状态码和自定义消息）
-     *
-     * @param resultCode 状态码对象
-     * @param message    消息
-     * @param <T>        数据类型
-     * @return 结果对象
+     * 失败结果（使用枚举状态码 + 数据）
      */
-    public static <T> Result<T> failure(ResultCode resultCode, String message) {
-        return new Result<>(resultCode.getCode(), message, null);
+    public static <T> Result<T> failure(ResultCode resultCode, T data) {
+        return new Result<>(resultCode.getCode(), null, data);
     }
     
     public int getCode() {
@@ -130,4 +112,4 @@ public class Result<T> {
     public void setData(T data) {
         this.data = data;
     }
-} 
+}

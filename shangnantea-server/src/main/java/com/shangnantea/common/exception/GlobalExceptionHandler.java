@@ -40,7 +40,9 @@ public class GlobalExceptionHandler {
                 message = fieldError.getDefaultMessage();
             }
         }
-        return Result.failure(ResultCode.VALIDATE_FAILED, message == null ? "参数校验失败" : message);
+        LOGGER.warn("参数校验失败: {}", message);
+        // 仅返回 code，message 走前端映射；如需调试可放入 data
+        return Result.failure(ResultCode.VALIDATE_FAILED);
     }
     
     /**
@@ -49,7 +51,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UnauthorizedException.class)
     public Result<String> handleUnauthorizedException(UnauthorizedException e) {
         LOGGER.warn("权限异常: {}", e.getMessage());
-        return Result.failure(e.getResultCode(), e.getMessage());
+        return Result.failure(e.getResultCode());
     }
     
     /**
@@ -58,7 +60,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BusinessException.class)
     public Result<String> handleBusinessException(BusinessException e) {
         LOGGER.warn("业务异常: {}", e.getMessage());
-        return Result.failure(e.getResultCode(), e.getMessage());
+        return Result.failure(e.getResultCode());
     }
     
     /**
@@ -67,7 +69,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
     public Result<String> handleResourceNotFoundException(ResourceNotFoundException e) {
         LOGGER.warn("资源不存在: {}", e.getMessage());
-        return Result.failure(ResultCode.NOT_FOUND, e.getMessage());
+        return Result.failure(ResultCode.NOT_FOUND);
     }
     
     /**
@@ -76,6 +78,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public Result<String> handleException(Exception e) {
         LOGGER.error("系统异常: ", e);
-        return Result.failure("系统错误，请联系管理员");
+        return Result.failure(ResultCode.INTERNAL_SERVER_ERROR);
     }
 } 
