@@ -169,7 +169,7 @@ const mutations = {
           if (addr.id !== updatedAddress.id) {
             addr.isDefault = false
           }
-        })
+        }
         state.defaultAddressId = updatedAddress.id
       } else if (state.defaultAddressId === updatedAddress.id) {
         // 如果取消默认，清空defaultAddressId

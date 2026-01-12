@@ -2,12 +2,12 @@
   <div class="article-detail-page">
     <!-- 文章内容容器 -->
     <div class="article-container">
-      <!-- 文章标题�?-->
+      <!-- 文章标题 -->
       <div class="article-header">
         <h1 class="article-title">{{ article.title }}</h1>
         <div class="article-subtitle" v-if="article.subtitle">{{ article.subtitle }}</div>
         
-        <!-- 文章元信�?-->
+        <!-- 文章元信息 -->
         <div class="article-meta">
           <div class="meta-item">
             <i class="el-icon-user"></i>
@@ -33,7 +33,7 @@
         <SafeImage :src="article.coverImage" type="post" :alt="article.title" style="width:100%;" />
       </div>
       
-      <!-- 文章内容�?-->
+      <!-- 文章内容 -->
       <div class="article-content" v-html="article.content"></div>
       
       <!-- 文章标签 -->
@@ -53,7 +53,7 @@
         </div>
       </div>
       
-      <!-- 文章操作�?-->
+      <!-- 文章操作 -->
       <div class="article-actions">
         <el-button type="primary" @click="goBack">
           <i class="el-icon-back"></i> 返回
@@ -93,7 +93,7 @@
       </el-row>
     </div>
     
-    <!-- 分享对话�?-->
+    <!-- 分享对话框 -->
     <el-dialog
       title="分享文章"
       v-model:visible="shareDialogVisible"
@@ -123,7 +123,7 @@
 </template>
 
 <script>
-import { ref, reactive, onMounted, nextTick, computed } from 'vue'
+import { ref, onMounted, nextTick, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 
@@ -147,9 +147,9 @@ export default {
     // 从Vuex获取当前文章
     const article = computed(() => store.state.forum.currentArticle || {
       id: 0,
-      title: '文章标题加载�?..',
+      title: '文章标题加载中...',
       subtitle: '',
-      content: '内容加载�?..',
+      content: '内容加载中...',
       author: '未知',
       publishTime: new Date(),
       viewCount: 0,
@@ -168,14 +168,13 @@ export default {
       return articles
         .filter(item => item.id !== currentId && item.category === currentCategory)
         .slice(0, 6) // 最多显示6篇相关文章
-    })�?篇相关文�?    })
+    })
 
     // 添加默认图片常量（生产形态：不使用mock-images）
     const defaultImage = ''
 
-    // 格式化日期�?mock-images�?    const defaultImage = ''
-
-    // 格式化日�?    const formatDate = (date) => {
+    // 格式化日期
+    const formatDate = (date) => {
       if (!date) return ''
       const d = new Date(date)
       return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
@@ -217,7 +216,8 @@ export default {
       }
     }
 
-    // 返回上一�?    const goBack = () => {
+    // 返回上一页
+    const goBack = () => {
       router.back()
     }
 
@@ -225,14 +225,14 @@ export default {
     const handleLike = async () => {
       try {
         if (!isLiked.value) {
-          // 这里可以调用文章点赞API，目前暂时使用简单的状态切�?          isLiked.value = true
+          // 这里可以调用文章点赞API，目前暂时使用简单的状态切换
+          isLiked.value = true
           forumPromptMessages.showShareDeveloping()
         } else {
           isLiked.value = false
           forumPromptMessages.showShareDeveloping()
         }
       } catch (error) {
-        console.error('����ʧ��')
         console.error('收藏操作失败:', error)
       }
     }
@@ -242,12 +242,14 @@ export default {
       shareDialogVisible.value = true
     }
     
-    // 分享到微�?    const shareToWeixin = () => {
+    // 分享到微信
+    const shareToWeixin = () => {
       forumPromptMessages.showShareDeveloping() // 临时使用，实际应该是复制链接成功
       shareDialogVisible.value = false
     }
     
-    // 分享到微�?    const shareToWeibo = () => {
+    // 分享到微博
+    const shareToWeibo = () => {
       forumPromptMessages.showShareDeveloping()
       shareDialogVisible.value = false
     }
@@ -514,6 +516,7 @@ export default {
           line-height: 1.4;
           display: -webkit-box;
           -webkit-line-clamp: 2;
+          line-clamp: 2;
           -webkit-box-orient: vertical;
           overflow: hidden;
           height: 44px;
@@ -526,6 +529,7 @@ export default {
           margin-bottom: 10px;
           display: -webkit-box;
           -webkit-line-clamp: 2;
+          line-clamp: 2;
           -webkit-box-orient: vertical;
           overflow: hidden;
           height: 42px;
@@ -554,7 +558,7 @@ export default {
 }
 
 // 分享对话框样式
-.share-options {�?.share-options {
+.share-options {
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
@@ -610,7 +614,8 @@ export default {
   }
 }
 
-// 响应式样�?@media (max-width: 768px) {
+// 响应式样式
+@media (max-width: 768px) {
   .article-detail-page {
     .article-container {
       padding: 20px 15px;
@@ -653,4 +658,4 @@ export default {
     }
   }
 }
-</style> 
+</style>
