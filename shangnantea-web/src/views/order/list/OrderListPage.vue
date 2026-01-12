@@ -253,14 +253,14 @@ export default {
 
       try {
         refundSubmitting.value = true
-        await store.dispatch('order/applyRefund', {
+        const { code } = await store.dispatch('order/applyRefund', {
           orderId: refundOrderId.value,
           reason: refundReason.value.trim()
         })
-        orderSuccessMessages.showRefundSubmitted()
+        showByCode(code)
         refundDialogVisible.value = false
       } catch (e) {
-        orderErrorMessages.showRefundSubmitFailed(e?.message)
+        showByCode(4130) // 退款申请提交失败
       } finally {
         refundSubmitting.value = false
       }
@@ -354,18 +354,18 @@ export default {
     // 取消订单
     const cancelOrder = async (orderId) => {
       try {
-      ElMessageBox.confirm('确定要取消该订单吗？取消后无法恢复', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      })
+        await ElMessageBox.confirm('确定要取消该订单吗？取消后无法恢复', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        })
       
-      await store.dispatch('order/cancelOrder', orderId)
-      orderSuccessMessages.showOrderCanceled()
-      store.dispatch('order/fetchOrders', { page: currentPage.value, size: pageSize.value, keyword: searchText.value })
+        const { code } = await store.dispatch('order/cancelOrder', orderId)
+        showByCode(code)
+        store.dispatch('order/fetchOrders', { page: currentPage.value, size: pageSize.value, keyword: searchText.value })
       } catch (error) {
         if (error !== 'cancel') {
-          orderErrorMessages.showOrderCancelFailed()
+          showByCode(4102) // 取消订单失败
         }
       }
     }
@@ -373,18 +373,18 @@ export default {
     // 确认收货
     const confirmReceipt = async (orderId) => {
       try {
-      ElMessageBox.confirm('确认已收到商品吗？', '提示', {
-        confirmButtonText: '确认收货',
-        cancelButtonText: '取消',
-        type: 'info'
-      })
+        await ElMessageBox.confirm('确认已收到商品吗？', '提示', {
+          confirmButtonText: '确认收货',
+          cancelButtonText: '取消',
+          type: 'info'
+        })
       
-      await store.dispatch('order/confirmReceipt', orderId)
-      orderSuccessMessages.showOrderConfirmed()
-      store.dispatch('order/fetchOrders', { page: currentPage.value, size: pageSize.value, keyword: searchText.value })
+        const { code } = await store.dispatch('order/confirmReceipt', orderId)
+        showByCode(code)
+        store.dispatch('order/fetchOrders', { page: currentPage.value, size: pageSize.value, keyword: searchText.value })
       } catch (error) {
         if (error !== 'cancel') {
-          orderErrorMessages.showOrderConfirmFailed()
+          showByCode(4103) // 确认收货失败
         }
       }
     }
