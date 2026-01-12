@@ -17,11 +17,11 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
  * 用户控制器
+ * 参考：前端 user.js 和 code-message-mapping.md
  */
 @RestController
 @RequestMapping({"/user", "/api/user"})
@@ -33,8 +33,12 @@ public class UserController {
     @Autowired
     private UserService userService;
     
+    // ==================== 认证相关 ====================
+    
     /**
      * 用户登录
+     * 路径: POST /user/login
+     * 成功码: 2000, 失败码: 2100, 2105
      *
      * @param loginDTO 登录信息
      * @return 登录结果
@@ -48,6 +52,8 @@ public class UserController {
     
     /**
      * 用户注册
+     * 路径: POST /user/register
+     * 成功码: 2001, 失败码: 2101
      *
      * @param registerDTO 注册信息
      * @return 注册结果
@@ -61,11 +67,14 @@ public class UserController {
     
     /**
      * 用户登出
+     * 路径: POST /user/logout
+     * 成功码: 2002, 失败码: 2103
      *
      * @param request HTTP请求
      * @return 登出结果
      */
     @PostMapping("/logout")
+    @RequiresLogin
     public Result<Void> logout(HttpServletRequest request) {
         logger.info("用户登出请求");
         userService.logout(request);
@@ -73,353 +82,402 @@ public class UserController {
     }
     
     /**
-     * 获取当前用户信息
+     * 刷新令牌
+     * 路径: POST /user/refresh
+     * 成功码: 200, 失败码: 2102, 2103
      *
      * @param request HTTP请求
-     * @return 当前用户信息
+     * @return 刷新结果
      */
-    @GetMapping("/info")
-    public Result<UserVO> info(HttpServletRequest request) {
-        logger.info("获取用户信息请求");
-        UserVO result = userService.getCurrentUserInfo(request);
+    @PostMapping("/refresh")
+    @RequiresLogin
+    public Result<TokenVO> refreshToken(HttpServletRequest request) {
+        logger.info("刷新令牌请求");
+        TokenVO result = userService.refreshToken(request);
         return Result.success(result);
     }
     
+    // ==================== 用户信息管理 ====================
+    
     /**
-     * 获取当前用户信息 (需要登录)
+     * 获取当前用户信息
+     * 路径: GET /user/me
+     * 成功码: 200, 失败码: 2103
      *
      * @return 用户信息
      */
     @GetMapping("/me")
     @RequiresLogin
-    public Result<UserVO> getUserInfo() {
-        UserVO result = userService.getUserInfo();
-        return Result.success(result);
-    }
-
-    /**
-     * 获取用户地址列表
-     *
-     * @return 地址列表
-     */
-    @GetMapping("/addresses")
-    public Result<Object> listAddresses() {
-        Object result = userService.listAddresses();
-        return Result.success(result);
-    }
-
-    /**
-     * 新增收货地址
-     *
-     * @param body 地址数据
-     * @return 创建结果
-     */
-    @PostMapping("/addresses")
-    public Result<Object> addAddress(@RequestBody(required = false) Map<String, Object> body) {
-        Object result = userService.addAddress(body);
-        return Result.success(result);
-    }
-
-    /**
-     * 更新收货地址
-     *
-     * @param id 地址ID
-     * @param body 地址数据
-     * @return 更新结果
-     */
-    @PutMapping("/addresses/{id}")
-    public Result<Boolean> updateAddress(@PathVariable String id, @RequestBody(required = false) Map<String, Object> body) {
-        Boolean result = userService.updateAddress(id, body);
-        return Result.success(result);
-    }
-
-    /**
-     * 删除收货地址
-     *
-     * @param id 地址ID
-     * @return 删除结果
-     */
-    @DeleteMapping("/addresses/{id}")
-    public Result<Boolean> deleteAddress(@PathVariable String id) {
-        Boolean result = userService.deleteAddress(id);
-        return Result.success(result);
-    }
-
-    /**
-     * 设置默认地址
-     *
-     * @param id 地址ID
-     * @return 设置结果
-     */
-    @PutMapping("/addresses/{id}/default")
-    public Result<Boolean> setDefaultAddress(@PathVariable String id) {
-        Boolean result = userService.setDefaultAddress(id);
-        return Result.success(result);
-    }
-
-    /**
-     * 获取用户偏好设置
-     *
-     * @return 偏好设置
-     */
-    @GetMapping("/preferences")
-    public Result<Object> getPreferences() {
-        Object result = userService.getPreferences();
-        return Result.success(result);
-    }
-
-    /**
-     * 更新用户偏好设置
-     *
-     * @param body 偏好设置
-     * @return 更新结果
-     */
-    @PutMapping("/preferences")
-    public Result<Object> updatePreferences(@RequestBody(required = false) Map<String, Object> body) {
-        Object result = userService.updatePreferences(body);
-        return Result.success(result);
-    }
-
-    /**
-     * 商家认证提交
-     */
-    @PostMapping("/shop-certification")
-    public Result<Boolean> submitShopCertification(@RequestBody(required = false) Map<String, Object> body) {
-        Boolean result = userService.submitShopCertification(body);
-        return Result.success(result);
-    }
-
-    /**
-     * 获取商家认证状态
-     */
-    @GetMapping("/shop-certification")
-    public Result<Object> getShopCertification() {
-        Object result = userService.getShopCertification();
-        return Result.success(result);
-    }
-    
-    /**
-     * 修改用户信息
-     *
-     * @param user 用户信息
-     * @return 修改结果
-     */
-    @PutMapping("/update")
-    @RequiresLogin
-    public Result<UserVO> updateUser(@RequestBody Map<String, Object> user) {
-        UserVO result = userService.updateUser(user);
-        return Result.success(result);
-    }
-    
-    /**
-     * 修改密码
-     *
-     * @param changePasswordDTO 修改密码信息
-     * @return 修改结果
-     */
-    @PostMapping("/change-password")
-    @RequiresLogin
-    public Result<String> changePassword(@RequestBody @Valid ChangePasswordDTO changePasswordDTO) {
-        String result = userService.changePassword(changePasswordDTO);
-        return Result.success(result);
-    }
-    
-    /**
-     * 获取用户列表（仅管理员）
-     *
-     * @return 用户列表
-     */
-    @GetMapping("/list")
-    @RequiresRoles({1}) // 管理员角色
-    public Result<Object> getUserList() {
-        Object result = userService.getUserList();
-        return Result.success(result);
-    }
-    
-    /**
-     * 删除用户（仅管理员）
-     *
-     * @param id 用户ID
-     * @return 删除结果
-     */
-    @DeleteMapping("/{id}")
-    @RequiresRoles({1}) // 管理员角色
-    public Result<String> deleteUser(@PathVariable String id) {
-        String result = userService.deleteUser(id);
+    public Result<UserVO> getCurrentUser() {
+        logger.info("获取当前用户信息请求");
+        UserVO result = userService.getCurrentUser();
         return Result.success(result);
     }
     
     /**
      * 获取指定用户信息
+     * 路径: GET /user/{userId}
+     * 成功码: 200, 失败码: 2120
      *
      * @param userId 用户ID
      * @return 用户信息
      */
     @GetMapping("/{userId}")
-    public Result<UserVO> getUserById(@PathVariable String userId) {
+    public Result<UserVO> getUserInfo(@PathVariable String userId) {
+        logger.info("获取用户信息请求: {}", userId);
         UserVO result = userService.getUserById(userId);
         return Result.success(result);
     }
     
     /**
      * 更新用户信息
+     * 路径: PUT /user
+     * 成功码: 2010, 失败码: 2110
      *
-     * @param userId 用户ID
-     * @param user 用户信息
-     * @return 更新结果
+     * @param userData 用户信息
+     * @return 修改结果
      */
-    @PutMapping("/{userId}")
-    public Result<UserVO> updateUserInfo(@PathVariable String userId, @RequestBody Map<String, Object> user) {
-        UserVO result = userService.updateUserInfo(userId, user);
+    @PutMapping
+    @RequiresLogin
+    public Result<UserVO> updateUserInfo(@RequestBody Map<String, Object> userData) {
+        logger.info("更新用户信息请求");
+        UserVO result = userService.updateUserInfo(userData);
         return Result.success(result);
     }
     
     /**
      * 上传头像
+     * 路径: POST /user/avatar
+     * 成功码: 2012, 失败码: 2112, 1103, 1104
      *
      * @param request HTTP请求
      * @return 上传结果
      */
     @PostMapping("/avatar")
-    public Result<Object> uploadAvatar(HttpServletRequest request) {
-        Object result = userService.uploadAvatar(request);
+    @RequiresLogin
+    public Result<Map<String, Object>> uploadAvatar(HttpServletRequest request) {
+        logger.info("上传头像请求");
+        Map<String, Object> result = userService.uploadAvatar(request);
         return Result.success(result);
     }
     
+    // ==================== 密码管理 ====================
+    
     /**
      * 修改密码
+     * 路径: PUT /user/password
+     * 成功码: 2011, 失败码: 2111, 2113
      *
-     * @param body 密码信息
+     * @param changePasswordDTO 修改密码信息
      * @return 修改结果
      */
     @PutMapping("/password")
-    public Result<String> updatePassword(@RequestBody(required = false) Map<String, Object> body) {
-        String result = userService.updatePassword(body);
+    @RequiresLogin
+    public Result<String> changePassword(@RequestBody @Valid ChangePasswordDTO changePasswordDTO) {
+        logger.info("修改密码请求");
+        String result = userService.changePassword(changePasswordDTO);
         return Result.success(result);
     }
     
     /**
      * 密码找回/重置
+     * 路径: POST /user/password/reset
+     * 成功码: 2004, 失败码: 2104
      *
-     * @param body 重置信息
+     * @param resetData 重置信息
      * @return 重置结果
      */
     @PostMapping("/password/reset")
-    public Result<String> resetPassword(@RequestBody(required = false) Map<String, Object> body) {
-        String result = userService.resetPassword(body);
+    public Result<String> resetPassword(@RequestBody Map<String, Object> resetData) {
+        logger.info("密码重置请求");
+        String result = userService.resetPassword(resetData);
         return Result.success(result);
     }
+    
+    // ==================== 收货地址管理 ====================
     
     /**
-     * 刷新令牌
+     * 获取用户地址列表
+     * 路径: GET /user/addresses
+     * 成功码: 200, 失败码: 4160
      *
-     * @param request HTTP请求
-     * @return 刷新结果
+     * @return 地址列表
      */
-    @PostMapping("/refresh")
-    public Result<TokenVO> refreshToken(HttpServletRequest request) {
-        TokenVO result = userService.refreshToken(request);
+    @GetMapping("/addresses")
+    @RequiresLogin
+    public Result<Object> getAddressList() {
+        logger.info("获取地址列表请求");
+        Object result = userService.getAddressList();
         return Result.success(result);
     }
-    
+
+    /**
+     * 新增收货地址
+     * 路径: POST /user/addresses
+     * 成功码: 4060, 失败码: 4161
+     *
+     * @param addressData 地址数据
+     * @return 创建结果
+     */
+    @PostMapping("/addresses")
+    @RequiresLogin
+    public Result<Object> addAddress(@RequestBody Map<String, Object> addressData) {
+        logger.info("添加地址请求");
+        Object result = userService.addAddress(addressData);
+        return Result.success(result);
+    }
+
+    /**
+     * 更新收货地址
+     * 路径: PUT /user/addresses/{id}
+     * 成功码: 1004, 失败码: 4161
+     *
+     * @param id 地址ID
+     * @param addressData 地址数据
+     * @return 更新结果
+     */
+    @PutMapping("/addresses/{id}")
+    @RequiresLogin
+    public Result<Boolean> updateAddress(@PathVariable String id, @RequestBody Map<String, Object> addressData) {
+        logger.info("更新地址请求: {}", id);
+        Boolean result = userService.updateAddress(id, addressData);
+        return Result.success(result);
+    }
+
+    /**
+     * 删除收货地址
+     * 路径: DELETE /user/addresses/{id}
+     * 成功码: 1003, 失败码: 1100
+     *
+     * @param id 地址ID
+     * @return 删除结果
+     */
+    @DeleteMapping("/addresses/{id}")
+    @RequiresLogin
+    public Result<Boolean> deleteAddress(@PathVariable String id) {
+        logger.info("删除地址请求: {}", id);
+        Boolean result = userService.deleteAddress(id);
+        return Result.success(result);
+    }
+
+    /**
+     * 设置默认地址
+     * 路径: PUT /user/addresses/{id}/default
+     * 成功码: 1004, 失败码: 1100
+     *
+     * @param id 地址ID
+     * @return 设置结果
+     */
+    @PutMapping("/addresses/{id}/default")
+    @RequiresLogin
+    public Result<Boolean> setDefaultAddress(@PathVariable String id) {
+        logger.info("设置默认地址请求: {}", id);
+        Boolean result = userService.setDefaultAddress(id);
+        return Result.success(result);
+    }
+
+    // ==================== 商家认证 ====================
+
+    /**
+     * 获取商家认证状态
+     * 路径: GET /user/shop-certification
+     * 成功码: 200, 失败码: 1102
+     *
+     * @return 认证状态
+     */
+    @GetMapping("/shop-certification")
+    @RequiresLogin
+    public Result<Object> getShopCertificationStatus() {
+        logger.info("获取商家认证状态请求");
+        Object result = userService.getShopCertificationStatus();
+        return Result.success(result);
+    }
+
+    /**
+     * 提交商家认证申请
+     * 路径: POST /user/shop-certification
+     * 成功码: 1000, 失败码: 1100
+     *
+     * @param certificationData 认证数据
+     * @return 提交结果
+     */
+    @PostMapping("/shop-certification")
+    @RequiresLogin
+    public Result<Boolean> submitShopCertification(@RequestBody Map<String, Object> certificationData) {
+        logger.info("提交商家认证申请请求");
+        Boolean result = userService.submitShopCertification(certificationData);
+        return Result.success(result);
+    }
+
+    // ==================== 用户互动功能 ====================
+
     /**
      * 获取关注列表
+     * 路径: GET /user/follows
+     * 成功码: 200, 失败码: 1102
      *
-     * @param type 关注类型
+     * @param type 关注类型（user/shop），可选
      * @return 关注列表
      */
     @GetMapping("/follows")
-    public Result<Object> listFollows(@RequestParam(required = false) String type) {
-        Object result = userService.listFollows(type);
+    @RequiresLogin
+    public Result<Object> getFollowList(@RequestParam(required = false) String type) {
+        logger.info("获取关注列表请求, type: {}", type);
+        Object result = userService.getFollowList(type);
         return Result.success(result);
     }
-    
+
     /**
      * 添加关注
+     * 路径: POST /user/follows
+     * 成功码: 5000, 失败码: 5102
      *
-     * @param body 关注信息
+     * @param followData 关注信息 {targetId, targetType}
      * @return 关注结果
      */
     @PostMapping("/follows")
-    public Result<Boolean> addFollow(@RequestBody(required = false) Map<String, Object> body) {
-        Boolean result = userService.addFollow(body);
+    @RequiresLogin
+    public Result<Boolean> addFollow(@RequestBody Map<String, Object> followData) {
+        logger.info("添加关注请求");
+        Boolean result = userService.addFollow(followData);
         return Result.success(result);
     }
-    
+
     /**
      * 取消关注
+     * 路径: DELETE /user/follows/{id}
+     * 成功码: 5001, 失败码: 5102
      *
      * @param id 关注ID
      * @return 取消结果
      */
     @DeleteMapping("/follows/{id}")
-    public Result<Boolean> deleteFollow(@PathVariable String id) {
-        Boolean result = userService.deleteFollow(id);
+    @RequiresLogin
+    public Result<Boolean> removeFollow(@PathVariable String id) {
+        logger.info("取消关注请求: {}", id);
+        Boolean result = userService.removeFollow(id);
         return Result.success(result);
     }
-    
+
     /**
      * 获取收藏列表
+     * 路径: GET /user/favorites
+     * 成功码: 200, 失败码: 1102
      *
-     * @param type 收藏类型
+     * @param type 收藏类型（tea/post/article），可选
      * @return 收藏列表
      */
     @GetMapping("/favorites")
-    public Result<Object> listFavorites(@RequestParam(required = false) String type) {
-        Object result = userService.listFavorites(type);
+    @RequiresLogin
+    public Result<Object> getFavoriteList(@RequestParam(required = false) String type) {
+        logger.info("获取收藏列表请求, type: {}", type);
+        Object result = userService.getFavoriteList(type);
         return Result.success(result);
     }
-    
+
     /**
      * 添加收藏
+     * 路径: POST /user/favorites
+     * 成功码: 3010(茶叶), 6012(帖子), 失败码: 3110, 6112
      *
-     * @param body 收藏信息
+     * @param favoriteData 收藏信息 {targetId, targetType}
      * @return 收藏结果
      */
     @PostMapping("/favorites")
-    public Result<Boolean> addFavorite(@RequestBody(required = false) Map<String, Object> body) {
-        Boolean result = userService.addFavorite(body);
+    @RequiresLogin
+    public Result<Boolean> addFavorite(@RequestBody Map<String, Object> favoriteData) {
+        logger.info("添加收藏请求");
+        Boolean result = userService.addFavorite(favoriteData);
         return Result.success(result);
     }
-    
+
     /**
      * 取消收藏
+     * 路径: DELETE /user/favorites/{id}
+     * 成功码: 3011(茶叶), 6013(帖子), 失败码: 3110, 6113
      *
      * @param id 收藏ID
      * @return 取消结果
      */
     @DeleteMapping("/favorites/{id}")
-    public Result<Boolean> deleteFavorite(@PathVariable String id) {
-        Boolean result = userService.deleteFavorite(id);
+    @RequiresLogin
+    public Result<Boolean> removeFavorite(@PathVariable String id) {
+        logger.info("取消收藏请求: {}", id);
+        Boolean result = userService.removeFavorite(id);
         return Result.success(result);
     }
-    
+
     /**
      * 点赞
+     * 路径: POST /user/likes
+     * 成功码: 6010, 失败码: 6110
      *
-     * @param body 点赞信息
+     * @param likeData 点赞信息 {targetId, targetType}
      * @return 点赞结果
      */
     @PostMapping("/likes")
-    public Result<Boolean> addLike(@RequestBody(required = false) Map<String, Object> body) {
-        Boolean result = userService.addLike(body);
+    @RequiresLogin
+    public Result<Boolean> addLike(@RequestBody Map<String, Object> likeData) {
+        logger.info("点赞请求");
+        Boolean result = userService.addLike(likeData);
         return Result.success(result);
     }
-    
+
     /**
      * 取消点赞
+     * 路径: DELETE /user/likes/{id}
+     * 成功码: 6011, 失败码: 6111
      *
      * @param id 点赞ID
      * @return 取消结果
      */
     @DeleteMapping("/likes/{id}")
-    public Result<Boolean> deleteLike(@PathVariable String id) {
-        Boolean result = userService.deleteLike(id);
+    @RequiresLogin
+    public Result<Boolean> removeLike(@PathVariable String id) {
+        logger.info("取消点赞请求: {}", id);
+        Boolean result = userService.removeLike(id);
         return Result.success(result);
     }
-    
+
+    // ==================== 用户偏好设置 ====================
+
+    /**
+     * 获取用户偏好设置
+     * 路径: GET /user/preferences
+     * 成功码: 200, 失败码: 1102
+     *
+     * @return 偏好设置
+     */
+    @GetMapping("/preferences")
+    @RequiresLogin
+    public Result<Object> getUserPreferences() {
+        logger.info("获取用户偏好设置请求");
+        Object result = userService.getUserPreferences();
+        return Result.success(result);
+    }
+
+    /**
+     * 更新用户偏好设置
+     * 路径: PUT /user/preferences
+     * 成功码: 2013(建议), 失败码: 2114(建议)
+     *
+     * @param preferences 偏好设置
+     * @return 更新结果
+     */
+    @PutMapping("/preferences")
+    @RequiresLogin
+    public Result<Object> updateUserPreferences(@RequestBody Map<String, Object> preferences) {
+        logger.info("更新用户偏好设置请求");
+        Object result = userService.updateUserPreferences(preferences);
+        return Result.success(result);
+    }
+
+    // ==================== 管理员功能 ====================
+
     /**
      * 获取用户列表（管理员）
+     * 路径: GET /user/admin/users
+     * 成功码: 200, 失败码: 2120, 2124
      *
      * @param keyword 关键词
      * @param role 角色
@@ -429,107 +487,138 @@ public class UserController {
      * @return 用户列表
      */
     @GetMapping("/admin/users")
-    public Result<Object> getAdminUsers(
+    @RequiresRoles({1}) // 管理员角色
+    public Result<Object> getAdminUserList(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Integer role,
             @RequestParam(required = false) Integer status,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer pageSize) {
-        Object result = userService.getAdminUsers(keyword, role, status, page, pageSize);
+        logger.info("获取用户列表请求(管理员), keyword: {}, role: {}, status: {}, page: {}, pageSize: {}", 
+                keyword, role, status, page, pageSize);
+        Object result = userService.getAdminUserList(keyword, role, status, page, pageSize);
         return Result.success(result);
     }
-    
+
     /**
      * 创建管理员账号（管理员）
+     * 路径: POST /user/admin/users
+     * 成功码: 2023, 失败码: 2123, 2124
      *
-     * @param body 用户信息
+     * @param adminData 管理员数据
      * @return 创建结果
      */
     @PostMapping("/admin/users")
-    public Result<Boolean> createAdminUser(@RequestBody(required = false) Map<String, Object> body) {
-        Boolean result = userService.createAdminUser(body);
+    @RequiresRoles({1}) // 管理员角色
+    public Result<Boolean> createAdmin(@RequestBody Map<String, Object> adminData) {
+        logger.info("创建管理员账号请求");
+        Boolean result = userService.createAdmin(adminData);
         return Result.success(result);
     }
-    
+
     /**
      * 更新用户信息（管理员）
+     * 路径: PUT /user/admin/users/{userId}
+     * 成功码: 2022, 失败码: 2123, 2124
      *
      * @param userId 用户ID
-     * @param body 用户信息
+     * @param userData 用户数据
      * @return 更新结果
      */
     @PutMapping("/admin/users/{userId}")
-    public Result<Boolean> updateAdminUser(@PathVariable String userId, @RequestBody(required = false) Map<String, Object> body) {
-        Boolean result = userService.updateAdminUser(userId, body);
+    @RequiresRoles({1}) // 管理员角色
+    public Result<Boolean> updateUser(@PathVariable String userId, @RequestBody Map<String, Object> userData) {
+        logger.info("更新用户信息请求(管理员): {}", userId);
+        Boolean result = userService.updateUser(userId, userData);
         return Result.success(result);
     }
-    
+
     /**
      * 删除用户（管理员）
+     * 路径: DELETE /user/admin/users/{userId}
+     * 成功码: 2020, 失败码: 2121, 2124
      *
      * @param userId 用户ID
      * @return 删除结果
      */
     @DeleteMapping("/admin/users/{userId}")
-    public Result<Boolean> deleteAdminUser(@PathVariable String userId) {
-        Boolean result = userService.deleteAdminUser(userId);
+    @RequiresRoles({1}) // 管理员角色
+    public Result<Boolean> deleteUser(@PathVariable String userId) {
+        logger.info("删除用户请求(管理员): {}", userId);
+        Boolean result = userService.deleteUser(userId);
         return Result.success(result);
     }
-    
+
     /**
      * 更新用户角色（管理员，已废弃）
+     * 路径: PUT /user/admin/users/{userId}/role
+     * 注意: 此接口已废弃，角色变更应通过商家认证审核实现
      *
      * @param userId 用户ID
-     * @param body 角色信息
+     * @param roleData 角色数据
      * @return 更新结果
      */
     @PutMapping("/admin/users/{userId}/role")
+    @RequiresRoles({1}) // 管理员角色
     @Deprecated
-    public Result<Boolean> updateUserRole(@PathVariable String userId, @RequestBody(required = false) Map<String, Object> body) {
-        Boolean result = userService.updateUserRole(userId, body);
+    public Result<Boolean> updateUserRole(@PathVariable String userId, @RequestBody Map<String, Object> roleData) {
+        logger.warn("使用已废弃的更新用户角色接口: {}", userId);
+        Boolean result = userService.updateUserRole(userId, roleData);
         return Result.success(result);
     }
-    
+
     /**
      * 启用/禁用用户（管理员）
+     * 路径: PUT /user/admin/users/{userId}/status
+     * 成功码: 2021, 失败码: 2122, 2124
      *
      * @param userId 用户ID
-     * @param body 状态信息
+     * @param statusData 状态数据 {status}
      * @return 更新结果
      */
     @PutMapping("/admin/users/{userId}/status")
-    public Result<Boolean> updateUserStatus(@PathVariable String userId, @RequestBody(required = false) Map<String, Object> body) {
-        Boolean result = userService.updateUserStatus(userId, body);
+    @RequiresRoles({1}) // 管理员角色
+    public Result<Boolean> toggleUserStatus(@PathVariable String userId, @RequestBody Map<String, Object> statusData) {
+        logger.info("切换用户状态请求(管理员): {}, status: {}", userId, statusData.get("status"));
+        Boolean result = userService.toggleUserStatus(userId, statusData);
         return Result.success(result);
     }
-    
+
     /**
      * 获取商家认证申请列表（管理员）
+     * 路径: GET /user/admin/certifications
+     * 成功码: 200, 失败码: 1102, 2124
      *
-     * @param status 状态
+     * @param status 状态，可选
      * @param page 页码
      * @param pageSize 每页数量
      * @return 认证申请列表
      */
     @GetMapping("/admin/certifications")
-    public Result<Object> getAdminCertifications(
+    @RequiresRoles({1}) // 管理员角色
+    public Result<Object> getCertificationList(
             @RequestParam(required = false) Integer status,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer pageSize) {
-        Object result = userService.getAdminCertifications(status, page, pageSize);
+        logger.info("获取商家认证申请列表请求(管理员), status: {}, page: {}, pageSize: {}", status, page, pageSize);
+        Object result = userService.getCertificationList(status, page, pageSize);
         return Result.success(result);
     }
-    
+
     /**
      * 审核认证申请（管理员）
+     * 路径: PUT /user/admin/certifications/{id}
+     * 成功码: 1000, 失败码: 1100, 2124
      *
      * @param id 认证ID
-     * @param body 审核信息
+     * @param auditData 审核数据 {status, message}
      * @return 审核结果
      */
     @PutMapping("/admin/certifications/{id}")
-    public Result<Boolean> auditCertification(@PathVariable Integer id, @RequestBody(required = false) Map<String, Object> body) {
-        Boolean result = userService.auditCertification(id, body);
+    @RequiresRoles({1}) // 管理员角色
+    public Result<Boolean> processCertification(@PathVariable Integer id, @RequestBody Map<String, Object> auditData) {
+        logger.info("审核认证申请请求(管理员): {}, status: {}", id, auditData.get("status"));
+        Boolean result = userService.processCertification(id, auditData);
         return Result.success(result);
     }
 }

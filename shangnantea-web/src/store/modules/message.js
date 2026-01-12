@@ -181,12 +181,12 @@ const actions = {
         ...params
       }
 
-      // 响应拦截器已解包，res 直接是 data 内容
+      // 响应拦截器返回 {code, data}，从 res.data 提取数据
       const res = await getNotifications(queryParams)
 
-      commit('SET_MESSAGES', res?.list || [])
+      commit('SET_MESSAGES', res.data?.list || [])
       commit('SET_PAGINATION', {
-        total: res?.total || 0,
+        total: res.data?.total || 0,
         currentPage: state.pagination.currentPage,
         pageSize: state.pagination.pageSize
       })
@@ -206,9 +206,9 @@ const actions = {
   async fetchNotificationDetail({ commit }, id) {
     try {
       commit('SET_LOADING', true)
-      // 响应拦截器已解包，res 直接是通知对象
+      // 响应拦截器返回 {code, data}，从 res.data 提取数据
       const res = await getNotificationDetail(id)
-      commit('SET_CURRENT_MESSAGE', res)
+      commit('SET_CURRENT_MESSAGE', res.data)
       return res
     } finally {
       commit('SET_LOADING', false)
@@ -222,11 +222,11 @@ const actions = {
    * @returns {Promise<boolean>} 是否成功
    */
   async markNotificationAsRead({ commit, dispatch }, id) {
-    await markAsRead(id)
+    const res = await markAsRead(id)
     commit('MARK_MESSAGE_AS_READ', id)
     // 更新未读数量
     dispatch('fetchUnreadCount')
-    return true
+    return res
   },
 
   /**
@@ -236,9 +236,9 @@ const actions = {
    * @returns {Promise<boolean>} 是否成功
    */
   async deleteNotification({ commit }, id) {
-    await deleteNotification(id)
+    const res = await deleteNotification(id)
     commit('DELETE_MESSAGE', id)
-    return true
+    return res
   },
 
   /**
@@ -248,11 +248,11 @@ const actions = {
    * @returns {Promise<boolean>} 是否成功
    */
   async batchMarkAsRead({ commit, dispatch }, ids) {
-    await batchMarkAsRead(ids)
+    const res = await batchMarkAsRead(ids)
     commit('MARK_MESSAGES_AS_READ', ids)
     // 更新未读数量
     dispatch('fetchUnreadCount')
-    return true
+    return res
   },
 
   /**
@@ -262,9 +262,9 @@ const actions = {
    * @returns {Promise<boolean>} 是否成功
    */
   async batchDeleteNotifications({ commit }, ids) {
-    await batchDeleteNotifications(ids)
+    const res = await batchDeleteNotifications(ids)
     commit('DELETE_MESSAGES', ids)
-    return true
+    return res
   },
 
   /**
@@ -275,10 +275,10 @@ const actions = {
    */
   async deleteMessagesBulk({ commit, state }, ids) {
     const messageIds = Array.isArray(ids) ? ids : [ids]
-    await deleteMessages(messageIds)
+    const res = await deleteMessages(messageIds)
     // 更新本地状态（以当前 state 为基准过滤）
     commit('SET_MESSAGES', (state.messages || []).filter(msg => !messageIds.includes(msg.id)))
-    return true
+    return res
   },
 
   // 获取消息列表
@@ -292,11 +292,12 @@ const actions = {
         ...params
       }
       
+      // 响应拦截器返回 {code, data}，从 res.data 提取数据
       const res = await getMessages(queryParams)
       
-      commit('SET_MESSAGES', res.list)
+      commit('SET_MESSAGES', res.data?.list || [])
       commit('SET_PAGINATION', {
-        total: res.total,
+        total: res.data?.total || 0,
         currentPage: state.pagination.currentPage,
         pageSize: state.pagination.pageSize
       })
@@ -312,8 +313,9 @@ const actions = {
     try {
       commit('SET_LOADING', true)
       
+      // 响应拦截器返回 {code, data}，从 res.data 提取数据
       const res = await getMessageDetail(id)
-      commit('SET_CURRENT_MESSAGE', res)
+      commit('SET_CURRENT_MESSAGE', res.data)
       
       // 标记为已读
       markAsRead(id)
@@ -326,45 +328,47 @@ const actions = {
   
   // 发送消息
   async sendMessage({ commit, state }, messageData) {
+    // 响应拦截器返回 {code, data}，从 res.data 提取数据
     const res = await sendMessage(messageData)
     
     // 如果是发送给当前聊天用户，添加到聊天历史
-    if (messageData.receiverId === state.currentChatUserId) {
-      commit('ADD_CHAT_MESSAGE', res)
+    if (messageData.receiverId === state.currentChatUserId && res.data) {
+      commit('ADD_CHAT_MESSAGE', res.data)
     }
     
     return res
   },
   
   // 标记消息已读
-  async markAsRead({ commit, dispatch }, ids) {
-    await markAsRead(ids)
+  async markAsRead({ dispatch }, ids) {
+    const res = await markAsRead(ids)
     
     // 更新未读消息数量
     dispatch('fetchUnreadCount')
     
-    return true
+    return res
   },
   
   // 删除消息
   async deleteMessage({ commit }, id) {
-    await deleteMessages(id)
+    const res = await deleteMessages(id)
     
     // 更新本地状态
     commit('DELETE_MESSAGE', id)
     
-    return true
+    return res
   },
   
   // 获取未读消息数量
   async fetchUnreadCount({ commit }) {
-    // 响应拦截器已解包，res 直接是数量或对象
+    // 响应拦截器返回 {code, data}，从 res.data 提取数据
     const res = await getUnreadCount()
+    const data = res.data
     // 如果返回的是数字直接使用，如果是对象取 count 字段
-    const count = typeof res === 'number' ? res : (res?.count || 0)
+    const count = typeof data === 'number' ? data : (data?.count || 0)
     commit('SET_UNREAD_COUNT', count)
     
-    return count
+    return res
   },
   
   // 获取聊天会话列表
@@ -372,8 +376,9 @@ const actions = {
     try {
       commit('SET_LOADING', true)
       
+      // 响应拦截器返回 {code, data}，从 res.data 提取数据
       const res = await getChatSessions()
-      commit('SET_CHAT_SESSIONS', res)
+      commit('SET_CHAT_SESSIONS', res.data || [])
       
       return res
     } finally {
@@ -387,8 +392,9 @@ const actions = {
       commit('SET_LOADING', true)
       commit('SET_CURRENT_CHAT_USER', userId)
       
+      // 响应拦截器返回 {code, data}，从 res.data 提取数据
       const res = await getChatHistory(userId, params)
-      commit('SET_CHAT_HISTORY', res)
+      commit('SET_CHAT_HISTORY', res.data || [])
       
       return res
     } finally {
@@ -397,15 +403,15 @@ const actions = {
   },
 
   // 创建聊天会话
-  async createChatSession({ commit }, { targetId, targetType }) {
+  async createChatSession(_, { targetId, targetType }) {
+    // 响应拦截器返回 {code, data}，从 res.data 提取数据
     const res = await createChatSession({ targetId, targetType })
     
     // 创建成功后，可以将新会话添加到会话列表
-    const newSession = res
-    if (newSession) {
-      // 这里可以添加到会话列表，或者重新获取会话列表
-      // commit('ADD_CHAT_SESSION', newSession)
-    }
+    // const newSession = res.data
+    // if (newSession) {
+    //   commit('ADD_CHAT_SESSION', newSession)
+    // }
     
     return res
   },
@@ -414,9 +420,9 @@ const actions = {
   async fetchUserProfile({ commit }, userId) {
     try {
       commit('SET_LOADING', true)
-      // 响应拦截器已解包，res 直接是用户信息对象
+      // 响应拦截器返回 {code, data}，从 res.data 提取数据
       const res = await getUserProfile(userId)
-      commit('SET_USER_PROFILE', res)
+      commit('SET_USER_PROFILE', res.data)
       return res
     } finally {
       commit('SET_LOADING', false)
@@ -427,9 +433,9 @@ const actions = {
   async fetchUserDynamic({ commit }, userId) {
     try {
       commit('SET_LOADING', true)
-      // 响应拦截器已解包，res 直接是动态数据
+      // 响应拦截器返回 {code, data}，从 res.data 提取数据
       const res = await getUserDynamic(userId)
-      commit('SET_USER_DYNAMIC', res)
+      commit('SET_USER_DYNAMIC', res.data)
       return res
     } finally {
       commit('SET_LOADING', false)
@@ -440,9 +446,9 @@ const actions = {
   async fetchUserStatistics({ commit }, userId) {
     try {
       commit('SET_LOADING', true)
-      // 响应拦截器已解包，res 直接是统计数据
+      // 响应拦截器返回 {code, data}，从 res.data 提取数据
       const res = await getUserStatistics(userId)
-      commit('SET_USER_STATISTICS', res)
+      commit('SET_USER_STATISTICS', res.data)
       return res
     } finally {
       commit('SET_LOADING', false)
@@ -451,25 +457,26 @@ const actions = {
 
   // 置顶聊天会话
   async pinChatSession({ commit }, sessionId) {
-    await pinChatSession(sessionId)
+    const res = await pinChatSession(sessionId)
     commit('PIN_CHAT_SESSION', sessionId)
-    return true
+    return res
   },
 
   // 删除聊天会话
   async deleteChatSession({ commit }, sessionId) {
-    await deleteChatSession(sessionId)
+    const res = await deleteChatSession(sessionId)
     commit('REMOVE_CHAT_SESSION', sessionId)
-    return true
+    return res
   },
 
   // 发送图片消息
   async sendImageMessage({ commit, state }, messageData) {
+    // 响应拦截器返回 {code, data}，从 res.data 提取数据
     const res = await sendImageMessage(messageData)
     
     // 如果是发送给当前聊天用户，添加到聊天历史
-    if (messageData.receiverId === state.currentChatUserId) {
-      commit('ADD_CHAT_MESSAGE', res)
+    if (messageData.receiverId === state.currentChatUserId && res.data) {
+      commit('ADD_CHAT_MESSAGE', res.data)
     }
     
     return res
@@ -485,13 +492,13 @@ const actions = {
         ...params
       }
 
-      // 响应拦截器已解包，res 直接是分页数据
+      // 响应拦截器返回 {code, data}，从 res.data 提取数据
       const res = await getUserPosts(queryParams)
       
       commit('SET_USER_POSTS', {
-        posts: res?.list || [],
+        posts: res.data?.list || [],
         pagination: {
-          total: res?.total || 0,
+          total: res.data?.total || 0,
           currentPage: queryParams.page,
           pageSize: queryParams.size
         }
@@ -513,13 +520,13 @@ const actions = {
         ...params
       }
 
-      // 响应拦截器已解包，res 直接是分页数据
+      // 响应拦截器返回 {code, data}，从 res.data 提取数据
       const res = await getUserReviews(queryParams)
       
       commit('SET_USER_REVIEWS', {
-        reviews: res?.list || [],
+        reviews: res.data?.list || [],
         pagination: {
-          total: res?.total || 0,
+          total: res.data?.total || 0,
           currentPage: queryParams.page,
           pageSize: queryParams.size
         }
