@@ -459,8 +459,8 @@ import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { Reading, Plus, Search } from '@element-plus/icons-vue'
 import { ElMessageBox } from 'element-plus'
-import { forumSuccessMessages, forumErrorMessages } from '@/utils/forumMessages'
 import { forumPromptMessages } from '@/utils/promptMessages'
+import { showByCode } from '@/utils/apiMessages'
 
 export default {
   name: 'ForumManagePage',
@@ -550,9 +550,9 @@ export default {
     // 加载版块列表
     const loadTopics = async () => {
       try {
-        await store.dispatch('forum/fetchForumTopics')
+        const res = await store.dispatch('forum/fetchForumTopics')
+        showByCode(res.code)
       } catch (error) {
-        forumErrorMessages.showLoadTopicsFailed()
         console.error('获取版块列表失败:', error)
       }
     }
@@ -594,24 +594,20 @@ export default {
           
           try {
             if (editTopicMode.value) {
-              await store.dispatch('forum/updateTopic', {
+              const res = await store.dispatch('forum/updateTopic', {
                 id: currentTopic.value.id,
                 data: topicForm.value
               })
-              forumSuccessMessages.showTopicUpdated()
+              showByCode(res.code)
             } else {
-              await store.dispatch('forum/createTopic', topicForm.value)
-              forumSuccessMessages.showTopicCreated()
+              const res = await store.dispatch('forum/createTopic', topicForm.value)
+              showByCode(res.code)
             }
             
             addTopicDialogVisible.value = false
             await loadTopics()
           } catch (error) {
-            if (editTopicMode.value) {
-              forumErrorMessages.showTopicUpdateFailed(error.message)
-            } else {
-              forumErrorMessages.showTopicCreateFailed(error.message)
-            }
+            console.error(`${actionType}版块失败:`, error)
           }
         }
       })
@@ -622,19 +618,14 @@ export default {
       const newStatus = topic.status === 1 ? 0 : 1
       
       try {
-        await store.dispatch('forum/updateTopic', {
+        const res = await store.dispatch('forum/updateTopic', {
           id: topic.id,
           data: { ...topic, status: newStatus }
         })
-        
-        if (newStatus === 1) {
-          forumSuccessMessages.showTopicEnabled()
-        } else {
-          forumSuccessMessages.showTopicDisabled()
-        }
+        showByCode(res.code)
         await loadTopics()
       } catch (error) {
-        forumErrorMessages.showTopicUpdateFailed(error.message)
+        console.error('更改版块状态失败:', error)
       }
     }
     
@@ -651,11 +642,11 @@ export default {
       )
         .then(async () => {
           try {
-            await store.dispatch('forum/deleteTopic', topic.id)
-            forumSuccessMessages.showTopicDeleted()
+            const res = await store.dispatch('forum/deleteTopic', topic.id)
+            showByCode(res.code)
             await loadTopics()
           } catch (error) {
-            forumErrorMessages.showTopicDeleteFailed(error.message)
+            console.error('删除版块失败:', error)
           }
         })
         .catch(() => {
@@ -808,24 +799,15 @@ postsLoading.value = false
       const newTopStatus = !post.is_top
       
       try {
-        await store.dispatch('forum/togglePostSticky', {
+        const res = await store.dispatch('forum/togglePostSticky', {
           id: post.id,
           isSticky: newTopStatus
         })
-        
-        if (newTopStatus) {
-          forumSuccessMessages.showPostPinned()
-        } else {
-          forumSuccessMessages.showPostUnpinned()
-        }
+        showByCode(res.code)
         // 更新本地数据
         post.is_top = newTopStatus
       } catch (error) {
-        if (newTopStatus) {
-          forumErrorMessages.showPinFailed(error.message)
-        } else {
-          forumErrorMessages.showUnpinFailed(error.message)
-        }
+        console.error('切换置顶状态失败:', error)
       }
     }
     
@@ -834,24 +816,15 @@ postsLoading.value = false
       const newEssenceStatus = !post.is_essence
       
       try {
-        await store.dispatch('forum/togglePostEssence', {
+        const res = await store.dispatch('forum/togglePostEssence', {
           id: post.id,
           isEssence: newEssenceStatus
         })
-        
-        if (newEssenceStatus) {
-          forumSuccessMessages.showPostFeatured()
-        } else {
-          forumSuccessMessages.showPostUnfeatured()
-        }
+        showByCode(res.code)
         // 更新本地数据
         post.is_essence = newEssenceStatus
       } catch (error) {
-        if (newEssenceStatus) {
-          forumErrorMessages.showFeatureFailed(error.message)
-        } else {
-          forumErrorMessages.showUnfeatureFailed(error.message)
-        }
+        console.error('切换精华状态失败:', error)
       }
     }
     
@@ -879,12 +852,12 @@ postsLoading.value = false
     // 加载待审核帖子列表
     const loadPendingPosts = async () => {
       try {
-        await store.dispatch('forum/fetchPendingPosts', {
+        const res = await store.dispatch('forum/fetchPendingPosts', {
           page: pendingPostsCurrentPage.value,
           size: pendingPostsPageSize.value
         })
+        showByCode(res.code)
       } catch (error) {
-        forumErrorMessages.showLoadPendingPostsFailed()
         console.error('获取待审核帖子列表失败:', error)
       }
     }
@@ -928,18 +901,17 @@ postsLoading.value = false
     // 确认审核通过
     const confirmApprove = async () => {
       try {
-        await store.dispatch('forum/approvePost', {
+        const res = await store.dispatch('forum/approvePost', {
           id: currentAuditPost.value.id,
           data: {
             comment: approveForm.value.comment
           }
         })
-        
-        forumSuccessMessages.showPostApproved()
+        showByCode(res.code)
         approveDialogVisible.value = false
         await loadPendingPosts()
       } catch (error) {
-        forumErrorMessages.showPostApproveFailed(error.message)
+        console.error('审核通过失败:', error)
       }
     }
     
@@ -950,19 +922,18 @@ postsLoading.value = false
       await rejectFormRef.value.validate(async (valid) => {
         if (valid) {
           try {
-            await store.dispatch('forum/rejectPost', {
+            const res = await store.dispatch('forum/rejectPost', {
               id: currentAuditPost.value.id,
               data: {
                 reason: rejectForm.value.reason,
                 comment: rejectForm.value.comment
               }
             })
-            
-            forumSuccessMessages.showPostRejected()
+            showByCode(res.code)
             rejectDialogVisible.value = false
             await loadPendingPosts()
           } catch (error) {
-            forumErrorMessages.showPostRejectFailed(error.message)
+            console.error('审核拒绝失败:', error)
           }
         }
       })

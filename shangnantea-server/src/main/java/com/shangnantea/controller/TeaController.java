@@ -1,323 +1,433 @@
 package com.shangnantea.controller;
 
-import com.shangnantea.common.api.PageParam;
-import com.shangnantea.common.api.PageResult;
 import com.shangnantea.common.api.Result;
-import com.shangnantea.model.entity.tea.Tea;
-import com.shangnantea.model.entity.tea.TeaCategory;
-import com.shangnantea.model.entity.tea.TeaImage;
-import com.shangnantea.model.entity.tea.TeaSpecification;
+import com.shangnantea.security.annotation.RequiresLogin;
+import com.shangnantea.security.annotation.RequiresRoles;
 import com.shangnantea.service.TeaService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
+import jakarta.validation.Valid;
+import java.util.Map;
 
 /**
  * 茶叶控制器
+ * 参考：前端 tea.js 和 code-message-mapping.md
  */
 @RestController
-@RequestMapping("/api/tea")
+@RequestMapping({"/tea", "/api/tea"})
+@Validated
 public class TeaController {
+
+    private static final Logger logger = LoggerFactory.getLogger(TeaController.class);
 
     @Autowired
     private TeaService teaService;
-    
-    /**
-     * 获取茶叶详情
-     *
-     * @param id 茶叶ID
-     * @return 结果
-     */
-    @GetMapping("/{id}")
-    public Result<Tea> getTeaById(@PathVariable Long id) {
-        Tea result = teaService.getTeaById(id);
-        return Result.success(result);
-    }
-    
+
+    // ==================== 茶叶查询 ====================
+
     /**
      * 获取茶叶列表
+     * 路径: GET /tea/list
+     * 成功码: 3000, 失败码: 3100
      *
-     * @param page 页码
-     * @param size 每页数量
-     * @return 结果
+     * @param params 查询参数（keyword, categoryId, shopId, page, pageSize等）
+     * @return 茶叶列表
      */
     @GetMapping("/list")
-    public Result<PageResult<Tea>> listTeas(
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
-        PageParam pageParam = new PageParam();
-        pageParam.setPageNum(page);
-        pageParam.setPageSize(size);
-        PageResult<Tea> result = teaService.listTeas(pageParam);
-        return Result.success(result);
+    public Result<Object> getTeas(@RequestParam Map<String, Object> params) {
+        logger.info("获取茶叶列表请求, params: {}", params);
+        return teaService.getTeas(params);
     }
-    
+
     /**
-     * 按分类获取茶叶
+     * 获取茶叶详情
+     * 路径: GET /tea/{id}
+     * 成功码: 3001, 失败码: 3101
      *
-     * @param categoryId 分类ID
-     * @param page 页码
-     * @param size 每页数量
-     * @return 结果
+     * @param id 茶叶ID
+     * @return 茶叶详情
      */
-    @GetMapping("/category/{categoryId}")
-    public Result<PageResult<Tea>> listTeasByCategory(
-            @PathVariable Integer categoryId,
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
-        PageParam pageParam = new PageParam();
-        pageParam.setPageNum(page);
-        pageParam.setPageSize(size);
-        PageResult<Tea> result = teaService.listTeasByCategory(categoryId, pageParam);
-        return Result.success(result);
+    @GetMapping("/{id}")
+    public Result<Object> getTeaDetail(@PathVariable String id) {
+        logger.info("获取茶叶详情请求: {}", id);
+        return teaService.getTeaDetail(id);
     }
-    
-    /**
-     * 搜索茶叶
-     *
-     * @param keyword 关键词
-     * @param page 页码
-     * @param size 每页数量
-     * @return 结果
-     */
-    @GetMapping("/search")
-    public Result<PageResult<Tea>> searchTeas(
-            @RequestParam String keyword,
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
-        PageParam pageParam = new PageParam();
-        pageParam.setPageNum(page);
-        pageParam.setPageSize(size);
-        PageResult<Tea> result = teaService.searchTeas(keyword, pageParam);
-        return Result.success(result);
-    }
-    
+
     /**
      * 获取茶叶分类
-     *
-     * @return 结果
-     */
-    @GetMapping("/categories")
-    public Result<List<TeaCategory>> listCategories() {
-        List<TeaCategory> result = teaService.listCategories();
-        return Result.success(result);
-    }
-    
-    /**
-     * 获取茶叶规格
-     *
-     * @param teaId 茶叶ID
-     * @return 结果
-     */
-    @GetMapping("/{teaId}/specifications")
-    public Result<List<TeaSpecification>> listSpecifications(@PathVariable Long teaId) {
-        List<TeaSpecification> result = teaService.listSpecifications(teaId);
-        return Result.success(result);
-    }
-    
-    /**
-     * 获取茶叶图片
-     *
-     * @param teaId 茶叶ID
-     * @return 结果
-     */
-    @GetMapping("/{teaId}/images")
-    public Result<List<TeaImage>> listImages(@PathVariable Long teaId) {
-        List<TeaImage> result = teaService.listImages(teaId);
-        return Result.success(result);
-    }
-    
-    /**
-     * 添加茶叶(管理员)
-     *
-     * @param tea 茶叶信息
-     * @return 结果
-     */
-    @PostMapping
-    public Result<Tea> addTea(@RequestBody Tea tea) {
-        Tea result = teaService.addTea(tea);
-        return Result.success(result);
-    }
-    
-    /**
-     * 更新茶叶(管理员)
-     *
-     * @param id 茶叶ID
-     * @param tea 茶叶信息
-     * @return 结果
-     */
-    @PutMapping("/{id}")
-    public Result<Boolean> updateTea(@PathVariable Long id, @RequestBody Tea tea) {
-        tea.setId(id.toString());
-        Boolean result = teaService.updateTea(tea);
-        return Result.success(result);
-    }
-    
-    /**
-     * 删除茶叶(管理员)
-     *
-     * @param id 茶叶ID
-     * @return 结果
-     */
-    @DeleteMapping("/{id}")
-    public Result<Boolean> deleteTea(@PathVariable Long id) {
-        Boolean result = teaService.deleteTea(id);
-        return Result.success(result);
-    }
-    
-    /**
-     * 获取茶叶分类列表（管理员）
+     * 路径: GET /tea/categories
+     * 成功码: 200, 失败码: 1102
      *
      * @return 分类列表
      */
-    @GetMapping("/admin/categories")
-    public Result<List<TeaCategory>> listAdminCategories() {
-        List<TeaCategory> result = teaService.listAdminCategories();
-        return Result.success(result);
+    @GetMapping("/categories")
+    public Result<Object> getTeaCategories() {
+        logger.info("获取茶叶分类请求");
+        return teaService.getTeaCategories();
     }
-    
+
     /**
-     * 创建茶叶分类（管理员）
+     * 获取推荐茶叶
+     * 路径: GET /tea/recommend
+     * 成功码: 200, 失败码: 1102
      *
-     * @param category 分类信息
+     * @param params 推荐参数 {type, teaId, count}
+     * @return 推荐茶叶列表
+     */
+    @GetMapping("/recommend")
+    public Result<Object> getRecommendTeas(@RequestParam Map<String, Object> params) {
+        logger.info("获取推荐茶叶请求, params: {}", params);
+        return teaService.getRecommendTeas(params);
+    }
+
+    // ==================== 分类管理（管理员） ====================
+
+    /**
+     * 创建茶叶分类（仅管理员）
+     * 路径: POST /tea/categories
+     * 成功码: 3030, 失败码: 3130
+     *
+     * @param categoryData 分类数据 {name, parentId, sortOrder, icon}
      * @return 创建结果
      */
-    @PostMapping("/admin/categories")
-    public Result<TeaCategory> createCategory(@RequestBody TeaCategory category) {
-        TeaCategory result = teaService.createCategory(category);
-        return Result.success(result);
+    @PostMapping("/categories")
+    @RequiresRoles({1}) // 管理员角色
+    public Result<Object> createCategory(@RequestBody Map<String, Object> categoryData) {
+        logger.info("创建茶叶分类请求");
+        return teaService.createCategory(categoryData);
     }
-    
+
     /**
-     * 更新茶叶分类（管理员）
+     * 更新茶叶分类（仅管理员）
+     * 路径: PUT /tea/categories/{id}
+     * 成功码: 3031, 失败码: 3130
      *
      * @param id 分类ID
-     * @param category 分类信息
+     * @param categoryData 分类数据 {name, parentId, sortOrder, icon}
      * @return 更新结果
      */
-    @PutMapping("/admin/categories/{id}")
-    public Result<Boolean> updateCategory(@PathVariable Integer id, @RequestBody TeaCategory category) {
-        category.setId(id);
-        Boolean result = teaService.updateCategory(category);
-        return Result.success(result);
+    @PutMapping("/categories/{id}")
+    @RequiresRoles({1}) // 管理员角色
+    public Result<Boolean> updateCategory(@PathVariable Integer id, @RequestBody Map<String, Object> categoryData) {
+        logger.info("更新茶叶分类请求: {}", id);
+        return teaService.updateCategory(id, categoryData);
     }
-    
+
     /**
-     * 删除茶叶分类（管理员）
+     * 删除茶叶分类（仅管理员）
+     * 路径: DELETE /tea/categories/{id}
+     * 成功码: 3032, 失败码: 3131
      *
      * @param id 分类ID
      * @return 删除结果
      */
-    @DeleteMapping("/admin/categories/{id}")
+    @DeleteMapping("/categories/{id}")
+    @RequiresRoles({1}) // 管理员角色
     public Result<Boolean> deleteCategory(@PathVariable Integer id) {
-        Boolean result = teaService.deleteCategory(id);
-        return Result.success(result);
+        logger.info("删除茶叶分类请求: {}", id);
+        return teaService.deleteCategory(id);
     }
-    
+
+    // ==================== 茶叶管理（管理员/商家） ====================
+
     /**
-     * 获取茶叶列表（管理员）
+     * 添加茶叶（管理员/商家）
+     * 路径: POST /tea/list
+     * 成功码: 3026, 失败码: 3125
      *
-     * @param keyword 关键词
-     * @param categoryId 分类ID
-     * @param shopId 店铺ID
-     * @param page 页码
-     * @param size 每页数量
-     * @return 茶叶列表
+     * @param teaData 茶叶数据
+     * @return 添加结果
      */
-    @GetMapping("/admin/list")
-    public Result<PageResult<Tea>> listAdminTeas(
-            @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) Integer categoryId,
-            @RequestParam(required = false) String shopId,
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
-        PageParam pageParam = new PageParam();
-        pageParam.setPageNum(page);
-        pageParam.setPageSize(size);
-        PageResult<Tea> result = teaService.listAdminTeas(keyword, categoryId, shopId, pageParam);
-        return Result.success(result);
+    @PostMapping("/list")
+    @RequiresLogin
+    public Result<Object> addTea(@RequestBody Map<String, Object> teaData) {
+        logger.info("添加茶叶请求");
+        return teaService.addTea(teaData);
     }
-    
+
     /**
-     * 批量删除茶叶（管理员）
+     * 更新茶叶信息（管理员/商家）
+     * 路径: PUT /tea/{id}
+     * 成功码: 3025, 失败码: 3125
      *
-     * @param ids 茶叶ID列表
+     * @param id 茶叶ID
+     * @param teaData 茶叶数据
+     * @return 更新结果
+     */
+    @PutMapping("/{id}")
+    @RequiresLogin
+    public Result<Boolean> updateTea(@PathVariable String id, @RequestBody Map<String, Object> teaData) {
+        logger.info("更新茶叶信息请求: {}", id);
+        return teaService.updateTea(id, teaData);
+    }
+
+    /**
+     * 删除茶叶（管理员/商家）
+     * 路径: DELETE /tea/{id}
+     * 成功码: 3024, 失败码: 3124
+     *
+     * @param id 茶叶ID
      * @return 删除结果
      */
-    @DeleteMapping("/admin/batch")
-    public Result<Boolean> batchDeleteTeas(@RequestBody List<Long> ids) {
-        Boolean result = teaService.batchDeleteTeas(ids);
-        return Result.success(result);
+    @DeleteMapping("/{id}")
+    @RequiresLogin
+    public Result<Boolean> deleteTea(@PathVariable String id) {
+        logger.info("删除茶叶请求: {}", id);
+        return teaService.deleteTea(id);
     }
-    
+
     /**
-     * 上传茶叶图片
+     * 更新茶叶状态（上架/下架）
+     * 路径: PUT /tea/{teaId}/status
+     * 成功码: 3020(上架), 3021(下架), 失败码: 3120, 3121
      *
      * @param teaId 茶叶ID
-     * @param file 图片文件
-     * @return 上传结果
+     * @param statusData 状态数据 {status}
+     * @return 更新结果
      */
-    @PostMapping("/{teaId}/images")
-    public Result<TeaImage> uploadImage(@PathVariable Long teaId, 
-                                         @RequestParam("file") org.springframework.web.multipart.MultipartFile file) {
-        TeaImage result = teaService.uploadImage(teaId, file);
-        return Result.success(result);
+    @PutMapping("/{teaId}/status")
+    @RequiresLogin
+    public Result<Boolean> toggleTeaStatus(@PathVariable String teaId, @RequestBody Map<String, Object> statusData) {
+        logger.info("更新茶叶状态请求: {}, status: {}", teaId, statusData.get("status"));
+        return teaService.toggleTeaStatus(teaId, statusData);
     }
-    
+
     /**
-     * 删除茶叶图片
+     * 批量更新茶叶状态（上架/下架）
+     * 路径: PUT /tea/batch-status
+     * 成功码: 3022(批量上架), 3023(批量下架), 失败码: 3122, 3123
      *
-     * @param teaId 茶叶ID
-     * @param imageId 图片ID
-     * @return 删除结果
+     * @param batchData 批量数据 {teaIds, status}
+     * @return 更新结果
      */
-    @DeleteMapping("/{teaId}/images/{imageId}")
-    public Result<Boolean> deleteImage(@PathVariable Long teaId, @PathVariable Long imageId) {
-        Boolean result = teaService.deleteImage(teaId, imageId);
-        return Result.success(result);
+    @PutMapping("/batch-status")
+    @RequiresLogin
+    public Result<Boolean> batchToggleTeaStatus(@RequestBody Map<String, Object> batchData) {
+        logger.info("批量更新茶叶状态请求");
+        return teaService.batchToggleTeaStatus(batchData);
     }
-    
+
+    // ==================== 评价系统 ====================
+
     /**
-     * 添加茶叶规格
+     * 获取茶叶评价列表
+     * 路径: GET /tea/{teaId}/reviews
+     * 成功码: 200, 失败码: 1102
      *
      * @param teaId 茶叶ID
-     * @param specification 规格信息
+     * @param params 查询参数（page, pageSize）
+     * @return 评价列表
+     */
+    @GetMapping("/{teaId}/reviews")
+    public Result<Object> getTeaReviews(@PathVariable String teaId, @RequestParam Map<String, Object> params) {
+        logger.info("获取茶叶评价列表请求: {}, params: {}", teaId, params);
+        return teaService.getTeaReviews(teaId, params);
+    }
+
+    /**
+     * 获取茶叶评价统计数据
+     * 路径: GET /tea/{teaId}/reviews/stats
+     * 成功码: 200, 失败码: 1102
+     *
+     * @param teaId 茶叶ID
+     * @return 评价统计数据
+     */
+    @GetMapping("/{teaId}/reviews/stats")
+    public Result<Object> getReviewStats(@PathVariable String teaId) {
+        logger.info("获取茶叶评价统计数据请求: {}", teaId);
+        return teaService.getReviewStats(teaId);
+    }
+
+    /**
+     * 提交评价
+     * 路径: POST /tea/reviews
+     * 成功码: 200, 失败码: 1100
+     *
+     * @param reviewData 评价数据 {teaId, rating, content, images, orderId}
+     * @return 提交结果
+     */
+    @PostMapping("/reviews")
+    @RequiresLogin
+    public Result<Boolean> submitReview(@RequestBody Map<String, Object> reviewData) {
+        logger.info("提交评价请求");
+        return teaService.submitReview(reviewData);
+    }
+
+    /**
+     * 商家回复评价
+     * 路径: POST /tea/reviews/{reviewId}/reply
+     * 成功码: 3013, 失败码: 3112
+     *
+     * @param reviewId 评价ID
+     * @param replyData 回复数据 {reply}
+     * @return 回复结果
+     */
+    @PostMapping("/reviews/{reviewId}/reply")
+    @RequiresLogin
+    public Result<Boolean> replyReview(@PathVariable String reviewId, @RequestBody Map<String, Object> replyData) {
+        logger.info("商家回复评价请求: {}", reviewId);
+        return teaService.replyReview(reviewId, replyData);
+    }
+
+    /**
+     * 点赞评价
+     * 路径: POST /tea/reviews/{reviewId}/like
+     * 成功码: 200, 失败码: 3113
+     *
+     * @param reviewId 评价ID
+     * @return 点赞结果
+     */
+    @PostMapping("/reviews/{reviewId}/like")
+    @RequiresLogin
+    public Result<Boolean> likeReview(@PathVariable String reviewId) {
+        logger.info("点赞评价请求: {}", reviewId);
+        return teaService.likeReview(reviewId);
+    }
+
+    // ==================== 规格管理 ====================
+
+    /**
+     * 获取茶叶规格列表
+     * 路径: GET /tea/{teaId}/specifications
+     * 成功码: 200, 失败码: 1102
+     *
+     * @param teaId 茶叶ID
+     * @return 规格列表
+     */
+    @GetMapping("/{teaId}/specifications")
+    public Result<Object> getTeaSpecifications(@PathVariable String teaId) {
+        logger.info("获取茶叶规格列表请求: {}", teaId);
+        return teaService.getTeaSpecifications(teaId);
+    }
+
+    /**
+     * 添加规格
+     * 路径: POST /tea/{teaId}/specifications
+     * 成功码: 1002, 失败码: 1100
+     *
+     * @param teaId 茶叶ID
+     * @param specData 规格数据 {spec_name, price, stock, is_default}
      * @return 添加结果
      */
     @PostMapping("/{teaId}/specifications")
-    public Result<TeaSpecification> addSpecification(@PathVariable Long teaId, @RequestBody TeaSpecification specification) {
-        TeaSpecification result = teaService.addSpecification(teaId, specification);
-        return Result.success(result);
+    @RequiresLogin
+    public Result<Object> addSpecification(@PathVariable String teaId, @RequestBody Map<String, Object> specData) {
+        logger.info("添加规格请求: {}", teaId);
+        return teaService.addSpecification(teaId, specData);
     }
-    
+
     /**
-     * 更新茶叶规格
+     * 更新规格
+     * 路径: PUT /tea/specifications/{specId}
+     * 成功码: 1004, 失败码: 1100
      *
-     * @param teaId 茶叶ID
-     * @param specificationId 规格ID
-     * @param specification 规格信息
+     * @param specId 规格ID
+     * @param specData 规格数据 {spec_name, price, stock, is_default}
      * @return 更新结果
      */
-    @PutMapping("/{teaId}/specifications/{specificationId}")
-    public Result<Boolean> updateSpecification(@PathVariable Long teaId, 
-                                                @PathVariable Long specificationId,
-                                                @RequestBody TeaSpecification specification) {
-        specification.setId(specificationId);
-        Boolean result = teaService.updateSpecification(teaId, specification);
-        return Result.success(result);
+    @PutMapping("/specifications/{specId}")
+    @RequiresLogin
+    public Result<Boolean> updateSpecification(@PathVariable String specId, @RequestBody Map<String, Object> specData) {
+        logger.info("更新规格请求: {}", specId);
+        return teaService.updateSpecification(specId, specData);
     }
-    
+
     /**
-     * 删除茶叶规格
+     * 删除规格
+     * 路径: DELETE /tea/specifications/{specId}
+     * 成功码: 1003, 失败码: 1100
      *
-     * @param teaId 茶叶ID
-     * @param specificationId 规格ID
+     * @param specId 规格ID
      * @return 删除结果
      */
-    @DeleteMapping("/{teaId}/specifications/{specificationId}")
-    public Result<Boolean> deleteSpecification(@PathVariable Long teaId, @PathVariable Long specificationId) {
-        Boolean result = teaService.deleteSpecification(teaId, specificationId);
-        return Result.success(result);
+    @DeleteMapping("/specifications/{specId}")
+    @RequiresLogin
+    public Result<Boolean> deleteSpecification(@PathVariable String specId) {
+        logger.info("删除规格请求: {}", specId);
+        return teaService.deleteSpecification(specId);
+    }
+
+    /**
+     * 设置默认规格
+     * 路径: PUT /tea/specifications/{specId}/default
+     * 成功码: 1004, 失败码: 1100
+     *
+     * @param specId 规格ID
+     * @return 设置结果
+     */
+    @PutMapping("/specifications/{specId}/default")
+    @RequiresLogin
+    public Result<Boolean> setDefaultSpecification(@PathVariable String specId) {
+        logger.info("设置默认规格请求: {}", specId);
+        return teaService.setDefaultSpecification(specId);
+    }
+
+    // ==================== 图片管理 ====================
+
+    /**
+     * 上传茶叶图片
+     * 路径: POST /tea/{teaId}/images
+     * 成功码: 1001, 失败码: 1101, 1103, 1104
+     *
+     * @param teaId 茶叶ID
+     * @param files 图片文件（支持多文件上传）
+     * @return 上传结果（包含图片列表）
+     */
+    @PostMapping("/{teaId}/images")
+    @RequiresLogin
+    public Result<Object> uploadTeaImages(@PathVariable String teaId, 
+                                          @RequestParam("files") MultipartFile[] files) {
+        logger.info("上传茶叶图片请求: {}, 文件数量: {}", teaId, files.length);
+        return teaService.uploadTeaImages(teaId, files);
+    }
+
+    /**
+     * 删除茶叶图片
+     * 路径: DELETE /tea/images/{imageId}
+     * 成功码: 1003, 失败码: 1100
+     *
+     * @param imageId 图片ID
+     * @return 删除结果
+     */
+    @DeleteMapping("/images/{imageId}")
+    @RequiresLogin
+    public Result<Boolean> deleteTeaImage(@PathVariable String imageId) {
+        logger.info("删除茶叶图片请求: {}", imageId);
+        return teaService.deleteTeaImage(imageId);
+    }
+
+    /**
+     * 更新图片顺序
+     * 路径: PUT /tea/images/order
+     * 成功码: 1004, 失败码: 1100
+     *
+     * @param orderData 包含teaId和orders数组的数据
+     * @return 更新结果
+     */
+    @PutMapping("/images/order")
+    @RequiresLogin
+    public Result<Boolean> updateImageOrder(@RequestBody Map<String, Object> orderData) {
+        logger.info("更新图片顺序请求");
+        return teaService.updateImageOrder(orderData);
+    }
+
+    /**
+     * 设置主图
+     * 路径: PUT /tea/images/{imageId}/main
+     * 成功码: 1004, 失败码: 1100
+     *
+     * @param imageId 图片ID
+     * @return 设置结果
+     */
+    @PutMapping("/images/{imageId}/main")
+    @RequiresLogin
+    public Result<Boolean> setMainImage(@PathVariable String imageId) {
+        logger.info("设置主图请求: {}", imageId);
+        return teaService.setMainImage(imageId);
     }
 }

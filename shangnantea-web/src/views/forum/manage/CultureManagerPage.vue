@@ -447,8 +447,8 @@ import { useStore } from 'vuex'
 import { DocumentCopy, Plus, Search } from '@element-plus/icons-vue'
 import { ElMessageBox } from 'element-plus'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-import { forumSuccessMessages, forumErrorMessages } from '@/utils/forumMessages'
 import { forumPromptMessages } from '@/utils/promptMessages'
+import { showByCode } from '@/utils/apiMessages'
 
 export default {
   name: 'CultureManagerPage',
@@ -588,18 +588,13 @@ export default {
     const toggleRecommend = async (article) => {
       try {
         const newRecommendStatus = article.is_recommend === 1 ? 0 : 1
-        await store.dispatch('forum/updateArticle', { 
+        const res = await store.dispatch('forum/updateArticle', { 
           id: article.id, 
           data: { ...article, is_recommend: newRecommendStatus }
         })
-        
-        if (newRecommendStatus === 1) {
-          forumSuccessMessages.showArticleRecommended(article.title)
-        } else {
-          forumSuccessMessages.showArticleUnrecommended(article.title)
-        }
+        showByCode(res.code)
       } catch (error) {
-        forumErrorMessages.showOperationFailed(error.message)
+        console.error('切换推荐状态失败:', error)
       }
     }
     
@@ -615,10 +610,10 @@ export default {
         }
       ).then(async () => {
         try {
-          await store.dispatch('forum/deleteArticle', article.id)
-          forumSuccessMessages.showArticleDeleted()
+          const res = await store.dispatch('forum/deleteArticle', article.id)
+          showByCode(res.code)
         } catch (error) {
-          forumErrorMessages.showArticleDeleteFailed(error.message)
+          console.error('删除文章失败:', error)
         }
       }).catch(() => {
         // 取消删除
@@ -646,23 +641,19 @@ export default {
           
           if (formData.id) {
             // 更新文章
-            await store.dispatch('forum/updateArticle', { id: formData.id, data: formData })
-            forumSuccessMessages.showArticleUpdated()
+            const res = await store.dispatch('forum/updateArticle', { id: formData.id, data: formData })
+            showByCode(res.code)
           } else {
             // 创建文章
-            await store.dispatch('forum/createArticle', formData)
-            forumSuccessMessages.showArticleCreated()
+            const res = await store.dispatch('forum/createArticle', formData)
+            showByCode(res.code)
           }
           
           articleFormVisible.value = false
           // 刷新文章列表
           await fetchArticles()
         } catch (error) {
-          if (articleForm.value.id) {
-            forumErrorMessages.showArticleUpdateFailed(error.message)
-          } else {
-            forumErrorMessages.showArticleCreateFailed(error.message)
-          }
+          console.error('提交文章失败:', error)
         } finally {
           articleSubmitting.value = false
         }
@@ -741,8 +732,13 @@ export default {
     }
     
     // 切换区块状态
-    const toggleBlockStatus = (block) => {
-      forumSuccessMessages.showBlockStatusChanged(getBlockName(block.section), block.status)
+    const toggleBlockStatus = async (block) => {
+      try {
+        const res = await store.dispatch('forum/updateHomeData', { ...block, status: block.status === 1 ? 0 : 1 })
+        showByCode(res.code)
+      } catch (error) {
+        console.error('切换区块状态失败:', error)
+      }
     }
     
     // 编辑区块
@@ -831,14 +827,14 @@ export default {
         }
         
         // 更新首页数据
-        await store.dispatch('forum/updateHomeData', updateData)
-        forumSuccessMessages.showBlockSaved()
+        const res = await store.dispatch('forum/updateHomeData', updateData)
+        showByCode(res.code)
         blockFormVisible.value = false
         
         // 刷新首页数据
         await fetchHomeData()
       } catch (error) {
-        forumErrorMessages.showBlockSaveFailed(error.message)
+        console.error('保存区块失败:', error)
       } finally {
         blockSubmitting.value = false
       }
@@ -869,13 +865,6 @@ export default {
         const res = await store.dispatch('forum/fetchHomeData')
         showByCode(res.code)
       } catch (error) {
-        console.error('获取首页数据失败:', error)
-      }
-    }onst fetchHomeData = async () => {
-      try {
-        await store.dispatch('forum/fetchHomeData')
-      } catch (error) {
-        forumErrorMessages.showHomeDataLoadFailed()
         console.error('获取首页数据失败:', error)
       }
     }
