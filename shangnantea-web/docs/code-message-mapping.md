@@ -734,3 +734,113 @@
 | 138 | rejectPost | POST | /forum/posts/{id}/reject | 6035 | 6135 | 审核拒绝 |
 | 139 | togglePostSticky | PUT | /forum/posts/{id}/sticky | 6030, 6031 | 6130, 6131 | 置顶/取消置顶 |
 | 140 | togglePostEssence | PUT | /forum/posts/{id}/essence | 6032, 6033 | 6132, 6133 | 加精/取消加精 |
+
+
+## 六、消息模块接口 (message.js) - 共22个接口
+
+### 6.1 消息基础操作 (6个)
+
+| 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
+|------|----------|----------|------|--------|--------|------|
+| 141 | getMessages | GET | /message/messages | 200 | 7101 | 获取消息列表 |
+| 142 | getMessageDetail | GET | /message/messages/{id} | 200 | 7101 | 获取消息详情 |
+| 143 | sendMessage | POST | /message/send | 7000 | 7100 | 发送消息 |
+| 144 | markAsRead | POST | /message/read | 7010 | 7110 | 标记已读 |
+| 145 | deleteMessages | POST | /message/delete | 7012 | 1100 | 删除消息 |
+| 146 | getUnreadCount | GET | /message/unread-count | 200 | 7101 | 获取未读数量 |
+
+### 6.2 通知管理 (5个)
+
+| 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
+|------|----------|----------|------|--------|--------|------|
+| 147 | getNotifications | GET | /message/notifications | 200 | 7101 | 获取通知列表 |
+| 148 | getNotificationDetail | GET | /message/notifications/{id} | 200 | 7101 | 获取通知详情 |
+| 149 | deleteNotification | DELETE | /message/notifications/{id} | 7012 | 1100 | 删除通知 |
+| 150 | batchMarkAsRead | PUT | /message/notifications/batch-read | 7011 | 7110 | 批量标记已读 |
+| 151 | batchDeleteNotifications | DELETE | /message/notifications/batch | 7013 | 1100 | 批量删除通知 |
+
+### 6.3 聊天会话 (5个)
+
+| 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
+|------|----------|----------|------|--------|--------|------|
+| 152 | getChatSessions | GET | /message/list/sessions | 200 | 7101 | 获取会话列表 |
+| 153 | getChatHistory | GET | /message/list/history | 200 | 7101 | 获取聊天记录 |
+| 154 | createChatSession | POST | /message/sessions | 1000 | 1100 | 创建会话 |
+| 155 | pinChatSession | PUT | /message/sessions/{id}/pin | 7014 | 1100 | 置顶会话 |
+| 156 | deleteChatSession | DELETE | /message/sessions/{id} | 7001 | 1100 | 删除会话 |
+
+### 6.4 图片消息 (1个)
+
+| 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
+|------|----------|----------|------|--------|--------|------|
+| 157 | sendImageMessage | POST | /message/messages/image | 7003 | 7103, 1103, 1104 | 发送图片消息 |
+
+### 6.5 用户主页 (5个)
+
+| 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
+|------|----------|----------|------|--------|--------|------|
+| 158 | getUserProfile | GET | /message/user/{id} | 200 | 7120, 7121 | 获取用户主页 |
+| 159 | getUserDynamic | GET | /message/user/{id}/dynamic | 200 | 7120 | 获取用户动态 |
+| 160 | getUserStatistics | GET | /message/user/{id}/statistics | 200 | 7120 | 获取用户统计 |
+| 161 | getUserPosts | GET | /message/user/posts | 200 | 1102 | 获取用户帖子 |
+| 162 | getUserReviews | GET | /message/user/reviews | 200 | 1102 | 获取用户评价 |
+
+## 七、系统通用接口 (upload.js) - 共2个接口
+
+| 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
+|------|----------|----------|------|--------|--------|------|
+| 163 | uploadFile | POST | /upload | 1001 | 1101, 1103, 1104 | 上传文件 |
+| 164 | uploadImage | POST | /upload | 1001 | 1101, 1103, 1104 | 上传图片 |
+
+---
+
+## 接口统计汇总
+
+| 模块 | 接口数量 | 状态码范围 |
+|------|----------|------------|
+| 用户模块 | 32 | 2xxx |
+| 茶叶模块 | 24 | 3xxx |
+| 店铺模块 | 24 | 5xxx |
+| 订单模块 | 20 | 4xxx |
+| 论坛模块 | 35 | 6xxx |
+| 消息模块 | 22 | 7xxx |
+| 系统通用 | 2 | 1xxx |
+| **总计** | **159** | - |
+
+---
+
+## 缺失状态码分析
+
+通过接口分析，发现以下状态码可能需要补充：
+
+### 用户模块缺失
+| 建议Code | 消息 | 场景 |
+|----------|------|------|
+| 2013 | 偏好设置更新成功 | 更新用户偏好 |
+| 2114 | 偏好设置更新失败 | 更新偏好失败 |
+| 2024 | 认证审核通过 | 商家认证通过 |
+| 2025 | 认证审核拒绝 | 商家认证拒绝 |
+
+### 茶叶模块缺失
+| 建议Code | 消息 | 场景 |
+|----------|------|------|
+| 3040 | 规格添加成功 | 添加规格 |
+| 3041 | 规格更新成功 | 更新规格 |
+| 3042 | 规格删除成功 | 删除规格 |
+| 3140 | 规格操作失败 | 规格操作失败 |
+
+### 消息模块缺失
+| 建议Code | 消息 | 场景 |
+|----------|------|------|
+| 7004 | 会话创建成功 | 创建聊天会话 |
+| 7104 | 会话创建失败 | 创建会话失败 |
+| 7020 | 获取用户主页成功 | 获取用户主页 |
+
+---
+
+## 使用建议
+
+1. 后端Controller返回时，根据本文档选择对应的状态码
+2. 前端根据状态码自动匹配消息显示
+3. 新增接口时，按照分段规则分配状态码
+4. 定期检查是否有遗漏的状态码需要补充
