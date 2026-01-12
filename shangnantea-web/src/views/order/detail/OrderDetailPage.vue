@@ -332,14 +332,16 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        // 生产形态：不在 UI 层 setTimeout 伪成功，不本地修改订单状态
         store.dispatch('order/cancelOrder', orderId)
-          .then(() => {
-            orderSuccessMessages.showOrderCanceled()
+          .then((res) => {
+            // res = {code, data}
+            if (res && res.code !== 200) {
+              showByCode(res.code)
+            }
             loadOrderDetail()
           })
           .catch((error) => {
-            orderErrorMessages.showOrderCancelFailed(error.message)
+            errorMessage.show(error?.message || '取消订单失败')
           })
       }).catch(() => {
         // 用户取消操作，不做任何处理
@@ -353,14 +355,16 @@ export default {
         cancelButtonText: '取消',
         type: 'info'
       }).then(() => {
-        // 生产形态：不在 UI 层 setTimeout 伪成功，不本地修改订单状态
         store.dispatch('order/confirmReceipt', orderId)
-          .then(() => {
-            orderSuccessMessages.showOrderConfirmed()
+          .then((res) => {
+            // res = {code, data}
+            if (res && res.code !== 200) {
+              showByCode(res.code)
+            }
             loadOrderDetail()
           })
           .catch((error) => {
-            orderErrorMessages.showOrderConfirmFailed(error.message)
+            errorMessage.show(error?.message || '确认收货失败')
           })
       }).catch(() => {
         // 用户取消操作，不做任何处理
@@ -370,7 +374,8 @@ export default {
     // 查看物流：调用 Vuex action 获取最新物流信息并刷新本地展示
     const viewLogistics = async () => {
       try {
-        const data = await store.dispatch('order/fetchOrderLogistics', orderId)
+        const res = await store.dispatch('order/fetchOrderLogistics', orderId)
+        const data = res?.data || res
         if (data) {
           logistics.value = {
             company: data.company || logistics.value.company,
@@ -378,7 +383,13 @@ export default {
             ship_time: data.ship_time || logistics.value.ship_time,
             traces: data.traces || logistics.value.traces
           }
-          orderSuccessMessages.showLogisticsRefreshed()
+        } else {
+          orderPromptMessages.showNoLogisticsInfo()
+        }
+      } catch (error) {
+        errorMessage.show(error?.message || '获取物流信息失败')
+      }
+    }
         } else {
           orderPromptMessages.showNoLogisticsInfo()
         }
@@ -421,14 +432,18 @@ export default {
       }
       refundSubmitting.value = true
       try {
-        await store.dispatch('order/requestRefund', {
+        const res = await store.dispatch('order/applyRefund', {
           orderId,
           reason: refundReason.value.trim()
         })
-        orderSuccessMessages.showRefundSubmitted()
+        // res = {code, data}
+        if (res && res.code !== 200) {
+          showByCode(res.code)
+        }
         refundDialogVisible.value = false
         // 重新获取退款详情
-        const detail = await store.dispatch('order/fetchRefundDetail', orderId)
+        const detailRes = await store.dispatch('order/fetchRefundDetail', orderId)
+        const detail = detailRes?.data || detailRes
         if (detail) {
           refundInfo.value = {
             status: detail.status || '',
@@ -437,7 +452,7 @@ export default {
           }
         }
       } catch (error) {
-        orderErrorMessages.showRefundSubmitFailed(error.message)
+        errorMessage.show(error?.message || '退款申请失败')
       } finally {
         refundSubmitting.value = false
       }
@@ -476,7 +491,9 @@ export default {
     // 加载订单详情
     const loadOrderDetail = () => {
       store.dispatch('order/fetchOrderDetail', orderId)
-        .then((data) => {
+        .then((res) => {
+          // res = {code, data}
+          const data = res?.data || res
           orderDetail.value = data
           // 同步收货地址和物流信息
           const addr = data?.address || {}
@@ -497,7 +514,8 @@ export default {
           }
           // 拉取退款详情（如果有）
           store.dispatch('order/fetchRefundDetail', orderId)
-            .then((detail) => {
+            .then((detailRes) => {
+              const detail = detailRes?.data || detailRes
               if (detail) {
                 refundInfo.value = {
                   status: detail.status || '',
@@ -508,7 +526,7 @@ export default {
             })
         })
         .catch((error) => {
-          orderErrorMessages.showOrderDetailLoadFailed(error.message)
+          errorMessage.show(error?.message || '获取订单详情失败')
           orderDetail.value = null
         })
     }
@@ -519,7 +537,7 @@ export default {
     // 初始化
     onMounted(() => {
       if (!orderId) {
-        orderErrorMessages.showOrderIdRequired()
+        errorMessage.show('订单ID不能为空')
         goBack()
         return
       }

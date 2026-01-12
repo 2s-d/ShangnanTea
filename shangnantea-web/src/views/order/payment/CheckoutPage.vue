@@ -211,7 +211,8 @@ import { useStore } from 'vuex'
 
 import { ArrowLeft, Plus } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-import { showByCode } from '@/utils/apiMessages'
+import { showByCode, isSuccess } from '@/utils/apiMessages'
+import { errorMessage } from '@/utils/messageManager'
 import { orderPromptMessages } from '@/utils/promptMessages'
 
 export default {
@@ -537,10 +538,9 @@ export default {
           // 关闭对话框
           addressDialogVisible.value = false
           
-          // 提示成功
-          orderSuccessMessages.showAddressAdded()
+          // 静默成功，不显示消息
         } catch (error) {
-          orderErrorMessages.showAddressSaveFailed(error.message)
+          errorMessage.show(error?.message || '保存地址失败')
         } finally {
           addressSubmitting.value = false
         }
@@ -576,17 +576,11 @@ export default {
             remark: item.remark || ''
           }))
         }
-        const result = await store.dispatch('order/createOrder', orderData)
-        orderSuccessMessages.showOrderSubmitted()
-        router.push(`/order/detail/${result?.order_id || result?.id || ''}`)
+        const res = await store.dispatch('order/createOrder', orderData)
+        if (res?.code) showByCode(res.code)
+        router.push(`/order/detail/${res?.data?.order_id || res?.data?.id || ''}`)
       } catch (error) {
-        // 处理库存不足错误
-        if (error.stockInfo) {
-          const stockInfo = error.stockInfo
-          orderErrorMessages.showStockInsufficient(stockInfo.availableStock || 0, stockInfo.quantity || 0)
-        } else {
-          orderErrorMessages.showOrderSubmitFailed(error?.message)
-        }
+        errorMessage.show(error?.message || '提交订单失败')
       } finally {
         submitting.value = false
       }

@@ -120,7 +120,8 @@ import { useStore } from 'vuex'
 import { ElMessageBox } from 'element-plus'
 import { InfoFilled, Timer } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-import { orderSuccessMessages, orderErrorMessages } from '@/utils/orderMessages'
+import { showByCode, isSuccess } from '@/utils/apiMessages'
+import { errorMessage } from '@/utils/messageManager'
 import { orderPromptMessages } from '@/utils/promptMessages'
 
 export default {
@@ -212,7 +213,7 @@ export default {
         return
       }
       try {
-        orderErrorMessages.showPaymentTimeout()
+        showByCode(4122) // 支付超时，订单已自动取消
         await store.dispatch('order/cancelOrder', orderId.value)
       } catch (e) {
         // 忽略失败，仍然跳转
@@ -222,7 +223,7 @@ export default {
 
     const loadOrderData = async () => {
       if (!orderId.value) {
-        orderErrorMessages.showOrderIdRequired()
+        orderPromptMessages.showOrderIdRequired()
         router.push('/order/list')
         return
       }
@@ -237,7 +238,7 @@ export default {
         countdown.value = 1800
         startCountdown()
       } catch (error) {
-        orderErrorMessages.showPaymentOrderLoadFailed(error?.message)
+        showByCode(4123) // 加载订单信息失败
         router.push('/order/list')
       } finally {
         loading.value = false
@@ -246,19 +247,19 @@ export default {
 
     const handlePayment = async () => {
       if (!orderId.value) {
-        orderErrorMessages.showOrderIdRequired()
+        orderPromptMessages.showOrderIdRequired()
         return
       }
       submitting.value = true
       try {
-        await store.dispatch('order/payOrder', {
+        const res = await store.dispatch('order/payOrder', {
           orderId: orderId.value,
           paymentMethod: paymentMethod.value
         })
-        orderSuccessMessages.showPaymentSuccess()
+        if (res?.code) showByCode(res.code)
         router.push(`/order/detail/${orderId.value}`)
       } catch (error) {
-        orderErrorMessages.showPaymentFailed(error?.message)
+        errorMessage.show(error?.message || '支付失败')
       } finally {
         submitting.value = false
       }
@@ -276,10 +277,10 @@ export default {
       })
         .then(async () => {
           try {
-            await store.dispatch('order/cancelOrder', orderId.value)
-            orderSuccessMessages.showOrderCanceled()
+            const res = await store.dispatch('order/cancelOrder', orderId.value)
+            if (res?.code) showByCode(res.code)
           } catch (error) {
-            orderErrorMessages.showOrderCancelFailed(error?.message)
+            errorMessage.show(error?.message || '取消订单失败')
           } finally {
             router.push('/order/list')
           }
