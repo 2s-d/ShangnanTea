@@ -281,15 +281,15 @@ const mutations = {
 
 const actions = {
   // 获取首页数据
+  // 接口#108: 获取首页数据 - 成功码200, 失败码6160
   async fetchHomeData({ commit }) {
     commit('SET_LOADING', true)
     commit('SET_ERROR', null)
     
     try {
-      const response = await getHomeData()
-      // response 已经是 unwrap 后的数据
-      commit('SET_HOME_DATA', response || {})
-      return response
+      const res = await getHomeData()
+      commit('SET_HOME_DATA', res.data || {})
+      return res // 返回 {code, data}
     } catch (error) {
       commit('SET_ERROR', error.message || '获取首页数据失败')
       console.error('获取首页数据失败:', error)
@@ -300,14 +300,15 @@ const actions = {
   },
   
   // 更新首页数据 (管理员功能)
+  // 接口#109: 更新首页数据 - 成功码6060, 失败码6163
   async updateHomeData({ commit }, homeData) {
     commit('SET_LOADING', true)
     commit('SET_ERROR', null)
     
     try {
-      const response = await updateHomeData(homeData)
-      commit('SET_HOME_DATA', response || {})
-      return response
+      const res = await updateHomeData(homeData)
+      commit('SET_HOME_DATA', res.data || {})
+      return res // 返回 {code, data}
     } catch (error) {
       commit('SET_ERROR', error.message || '更新首页数据失败')
       console.error('更新首页数据失败:', error)
@@ -318,14 +319,15 @@ const actions = {
   },
 
   // Banner管理相关actions
+  // 接口#110: 获取Banner列表 - 成功码200, 失败码6161
   async fetchBanners({ commit }) {
     commit('SET_LOADING', true)
     commit('SET_ERROR', null)
     
     try {
-      const response = await getBanners()
-      commit('SET_BANNERS', response || [])
-      return response
+      const res = await getBanners()
+      commit('SET_BANNERS', res.data || [])
+      return res // 返回 {code, data}
     } catch (error) {
       commit('SET_ERROR', error.message || '获取Banner列表失败')
       console.error('获取Banner列表失败:', error)
@@ -335,14 +337,17 @@ const actions = {
     }
   },
 
+  // 接口#111: 上传Banner - 成功码5010, 失败码5111
   async uploadBanner({ commit }, formData) {
     commit('SET_LOADING', true)
     commit('SET_ERROR', null)
     
     try {
-      const response = await uploadBanner(formData)
-      commit('ADD_BANNER', response)
-      return response
+      const res = await uploadBanner(formData)
+      if (res.data) {
+        commit('ADD_BANNER', res.data)
+      }
+      return res // 返回 {code, data}
     } catch (error) {
       commit('SET_ERROR', error.message || '上传Banner失败')
       console.error('上传Banner失败:', error)
@@ -352,14 +357,15 @@ const actions = {
     }
   },
 
+  // 接口#112: 更新Banner - 成功码5011, 失败码5111
   async updateBanner({ commit }, { id, data }) {
     commit('SET_LOADING', true)
     commit('SET_ERROR', null)
     
     try {
-      const response = await updateBanner(id, data)
-      commit('UPDATE_BANNER', { id, banner: response })
-      return response
+      const res = await updateBanner(id, data)
+      commit('UPDATE_BANNER', { id, banner: res.data })
+      return res // 返回 {code, data}
     } catch (error) {
       commit('SET_ERROR', error.message || '更新Banner失败')
       console.error('更新Banner失败:', error)
@@ -369,14 +375,15 @@ const actions = {
     }
   },
 
+  // 接口#113: 删除Banner - 成功码5012, 失败码5112
   async deleteBanner({ commit }, id) {
     commit('SET_LOADING', true)
     commit('SET_ERROR', null)
     
     try {
-      await deleteBanner(id)
+      const res = await deleteBanner(id)
       commit('REMOVE_BANNER', id)
-      return true
+      return res // 返回 {code, data}
     } catch (error) {
       commit('SET_ERROR', error.message || '删除Banner失败')
       console.error('删除Banner失败:', error)
@@ -386,14 +393,15 @@ const actions = {
     }
   },
 
+  // 接口#114: 更新Banner顺序 - 成功码5013, 失败码5113
   async updateBannerOrder({ commit }, bannerIds) {
     commit('SET_LOADING', true)
     commit('SET_ERROR', null)
     
     try {
-      const response = await updateBannerOrder(bannerIds)
-      commit('UPDATE_BANNER_ORDER', response || [])
-      return response
+      const res = await updateBannerOrder(bannerIds)
+      commit('UPDATE_BANNER_ORDER', res.data || [])
+      return res // 返回 {code, data}
     } catch (error) {
       commit('SET_ERROR', error.message || '更新Banner顺序失败')
       console.error('更新Banner顺序失败:', error)
@@ -404,19 +412,19 @@ const actions = {
   },
 
   // 文章管理相关actions
+  // 接口#115: 获取文章列表 - 成功码200, 失败码6153
   async fetchArticles({ commit }, params = {}) {
     commit('SET_LOADING', true)
     commit('SET_ERROR', null)
     
     try {
-      const response = await getArticles(params)
-      // response 已经是 unwrap 后的数据
-      const articles = response?.articles || (Array.isArray(response) ? response : [])
+      const res = await getArticles(params)
+      const articles = res.data?.articles || (Array.isArray(res.data) ? res.data : [])
       commit('SET_ARTICLES', articles)
-      if (response?.pagination) {
-        commit('SET_ARTICLE_PAGINATION', response.pagination)
+      if (res.data?.pagination) {
+        commit('SET_ARTICLE_PAGINATION', res.data.pagination)
       }
-      return response
+      return res // 返回 {code, data}
     } catch (error) {
       commit('SET_ERROR', error.message || '获取文章列表失败')
       console.error('获取文章列表失败:', error)
@@ -426,14 +434,15 @@ const actions = {
     }
   },
 
+  // 接口#116: 获取文章详情 - 成功码200
   async fetchArticleDetail({ commit }, id) {
     commit('SET_LOADING', true)
     commit('SET_ERROR', null)
     
     try {
-      const response = await getArticleDetail(id)
-      commit('SET_CURRENT_ARTICLE', response)
-      return response
+      const res = await getArticleDetail(id)
+      commit('SET_CURRENT_ARTICLE', res.data)
+      return res // 返回 {code, data}
     } catch (error) {
       commit('SET_ERROR', error.message || '获取文章详情失败')
       console.error('获取文章详情失败:', error)
@@ -443,14 +452,17 @@ const actions = {
     }
   },
 
+  // 接口#117: 创建文章 - 成功码6050, 失败码6150
   async createArticle({ commit }, data) {
     commit('SET_LOADING', true)
     commit('SET_ERROR', null)
     
     try {
-      const response = await createArticle(data)
-      commit('ADD_ARTICLE', response)
-      return response
+      const res = await createArticle(data)
+      if (res.data) {
+        commit('ADD_ARTICLE', res.data)
+      }
+      return res // 返回 {code, data}
     } catch (error) {
       commit('SET_ERROR', error.message || '创建文章失败')
       console.error('创建文章失败:', error)
@@ -460,14 +472,15 @@ const actions = {
     }
   },
 
+  // 接口#118: 更新文章 - 成功码6051, 失败码6151
   async updateArticle({ commit }, { id, data }) {
     commit('SET_LOADING', true)
     commit('SET_ERROR', null)
     
     try {
-      const response = await updateArticle(id, data)
-      commit('UPDATE_ARTICLE', { id, article: response })
-      return response
+      const res = await updateArticle(id, data)
+      commit('UPDATE_ARTICLE', { id, article: res.data })
+      return res // 返回 {code, data}
     } catch (error) {
       commit('SET_ERROR', error.message || '更新文章失败')
       console.error('更新文章失败:', error)
@@ -477,14 +490,15 @@ const actions = {
     }
   },
 
+  // 接口#119: 删除文章 - 成功码6052, 失败码6152
   async deleteArticle({ commit }, id) {
     commit('SET_LOADING', true)
     commit('SET_ERROR', null)
     
     try {
-      await deleteArticle(id)
+      const res = await deleteArticle(id)
       commit('REMOVE_ARTICLE', id)
-      return true
+      return res // 返回 {code, data}
     } catch (error) {
       commit('SET_ERROR', error.message || '删除文章失败')
       console.error('删除文章失败:', error)
@@ -495,14 +509,15 @@ const actions = {
   },
 
   // 论坛版块相关actions
+  // 接口#120: 获取版块列表 - 成功码200, 失败码6143
   async fetchForumTopics({ commit }) {
     commit('SET_LOADING', true)
     commit('SET_ERROR', null)
     
     try {
-      const response = await getForumTopics()
-      commit('SET_FORUM_TOPICS', response || [])
-      return response
+      const res = await getForumTopics()
+      commit('SET_FORUM_TOPICS', res.data || [])
+      return res // 返回 {code, data}
     } catch (error) {
       commit('SET_ERROR', error.message || '获取版块列表失败')
       console.error('获取版块列表失败:', error)
@@ -512,13 +527,14 @@ const actions = {
     }
   },
 
+  // 接口#121: 获取版块详情 - 成功码200
   async fetchTopicDetail({ commit }, id) {
     commit('SET_LOADING', true)
     commit('SET_ERROR', null)
     
     try {
-      const response = await getTopicDetail(id)
-      return response
+      const res = await getTopicDetail(id)
+      return res // 返回 {code, data}
     } catch (error) {
       commit('SET_ERROR', error.message || '获取版块详情失败')
       console.error('获取版块详情失败:', error)
@@ -528,14 +544,17 @@ const actions = {
     }
   },
 
+  // 接口#122: 创建版块 - 成功码6040, 失败码6140
   async createTopic({ commit }, data) {
     commit('SET_LOADING', true)
     commit('SET_ERROR', null)
     
     try {
-      const response = await createTopic(data)
-      commit('ADD_TOPIC', response)
-      return response
+      const res = await createTopic(data)
+      if (res.data) {
+        commit('ADD_TOPIC', res.data)
+      }
+      return res // 返回 {code, data}
     } catch (error) {
       commit('SET_ERROR', error.message || '创建版块失败')
       console.error('创建版块失败:', error)
@@ -545,14 +564,15 @@ const actions = {
     }
   },
 
+  // 接口#123: 更新版块 - 成功码6041, 失败码6141
   async updateTopic({ commit }, { id, data }) {
     commit('SET_LOADING', true)
     commit('SET_ERROR', null)
     
     try {
-      const response = await updateTopic(id, data)
-      commit('UPDATE_TOPIC', { id, topic: response })
-      return response
+      const res = await updateTopic(id, data)
+      commit('UPDATE_TOPIC', { id, topic: res.data })
+      return res // 返回 {code, data}
     } catch (error) {
       commit('SET_ERROR', error.message || '更新版块失败')
       console.error('更新版块失败:', error)
@@ -562,14 +582,15 @@ const actions = {
     }
   },
 
+  // 接口#124: 删除版块 - 成功码6042, 失败码6142
   async deleteTopic({ commit }, id) {
     commit('SET_LOADING', true)
     commit('SET_ERROR', null)
     
     try {
-      await deleteTopic(id)
+      const res = await deleteTopic(id)
       commit('REMOVE_TOPIC', id)
-      return true
+      return res // 返回 {code, data}
     } catch (error) {
       commit('SET_ERROR', error.message || '删除版块失败')
       console.error('删除版块失败:', error)
@@ -580,19 +601,19 @@ const actions = {
   },
 
   // 论坛帖子相关actions
+  // 接口#125: 获取帖子列表 - 成功码200, 失败码6103
   async fetchForumPosts({ commit }, params = {}) {
     commit('SET_LOADING', true)
     commit('SET_ERROR', null)
     
     try {
-      const response = await getForumPosts(params)
-      // response 已经是 unwrap 后的数据
-      const posts = response?.posts || (Array.isArray(response) ? response : [])
+      const res = await getForumPosts(params)
+      const posts = res.data?.posts || (Array.isArray(res.data) ? res.data : [])
       commit('SET_FORUM_POSTS', posts)
-      if (response?.pagination) {
-        commit('SET_POST_PAGINATION', response.pagination)
+      if (res.data?.pagination) {
+        commit('SET_POST_PAGINATION', res.data.pagination)
       }
-      return response
+      return res // 返回 {code, data}
     } catch (error) {
       commit('SET_ERROR', error.message || '获取帖子列表失败')
       console.error('获取帖子列表失败:', error)
@@ -602,14 +623,15 @@ const actions = {
     }
   },
 
+  // 接口#126: 获取帖子详情 - 成功码200, 失败码6104
   async fetchPostDetail({ commit }, id) {
     commit('SET_LOADING', true)
     commit('SET_ERROR', null)
     
     try {
-      const response = await getPostDetail(id)
-      commit('SET_CURRENT_POST', response)
-      return response
+      const res = await getPostDetail(id)
+      commit('SET_CURRENT_POST', res.data)
+      return res // 返回 {code, data}
     } catch (error) {
       commit('SET_ERROR', error.message || '获取帖子详情失败')
       console.error('获取帖子详情失败:', error)
@@ -619,14 +641,17 @@ const actions = {
     }
   },
 
+  // 接口#127: 创建帖子 - 成功码6000, 失败码6100
   async createPost({ commit }, data) {
     commit('SET_LOADING', true)
     commit('SET_ERROR', null)
     
     try {
-      const response = await createPost(data)
-      commit('ADD_POST', response)
-      return response
+      const res = await createPost(data)
+      if (res.data) {
+        commit('ADD_POST', res.data)
+      }
+      return res // 返回 {code, data}
     } catch (error) {
       commit('SET_ERROR', error.message || '创建帖子失败')
       console.error('创建帖子失败:', error)
@@ -636,16 +661,17 @@ const actions = {
     }
   },
 
+  // 接口#128: 更新帖子 - 成功码6001, 失败码6101
   async updatePost({ commit }, { id, data }) {
     commit('SET_LOADING', true)
     commit('SET_ERROR', null)
     
     try {
-      const response = await updatePost(id, data)
-      commit('UPDATE_POST', { id, post: response })
+      const res = await updatePost(id, data)
+      commit('UPDATE_POST', { id, post: res.data })
       // 如果当前正在查看这个帖子，也更新当前帖子数据
-      commit('SET_CURRENT_POST', response)
-      return response
+      commit('SET_CURRENT_POST', res.data)
+      return res // 返回 {code, data}
     } catch (error) {
       commit('SET_ERROR', error.message || '更新帖子失败')
       console.error('更新帖子失败:', error)
@@ -655,14 +681,15 @@ const actions = {
     }
   },
 
+  // 接口#129: 删除帖子 - 成功码6002, 失败码6102
   async deletePost({ commit }, id) {
     commit('SET_LOADING', true)
     commit('SET_ERROR', null)
     
     try {
-      await deletePost(id)
+      const res = await deletePost(id)
       commit('REMOVE_POST', id)
-      return true
+      return res // 返回 {code, data}
     } catch (error) {
       commit('SET_ERROR', error.message || '删除帖子失败')
       console.error('删除帖子失败:', error)
@@ -683,19 +710,19 @@ const actions = {
   },
 
   // 帖子回复相关actions
+  // 接口#130: 获取回复列表 - 成功码200, 失败码6123
   async fetchPostReplies({ commit }, { postId, params = {} }) {
     commit('SET_LOADING', true)
     commit('SET_ERROR', null)
     
     try {
-      const response = await getPostReplies(postId, params)
-      // response 已经是 unwrap 后的数据
-      const replies = response?.replies || (Array.isArray(response) ? response : [])
+      const res = await getPostReplies(postId, params)
+      const replies = res.data?.replies || (Array.isArray(res.data) ? res.data : [])
       commit('SET_POST_REPLIES', replies)
-      if (response?.pagination) {
-        commit('SET_REPLY_PAGINATION', response.pagination)
+      if (res.data?.pagination) {
+        commit('SET_REPLY_PAGINATION', res.data.pagination)
       }
-      return response
+      return res // 返回 {code, data}
     } catch (error) {
       commit('SET_ERROR', error.message || '获取回复列表失败')
       console.error('获取回复列表失败:', error)
@@ -705,14 +732,17 @@ const actions = {
     }
   },
 
+  // 接口#131: 创建回复 - 成功码6022, 失败码6122
   async createReply({ commit }, { postId, data }) {
     commit('SET_LOADING', true)
     commit('SET_ERROR', null)
     
     try {
-      const response = await createReply(postId, data)
-      commit('ADD_REPLY', response)
-      return response
+      const res = await createReply(postId, data)
+      if (res.data) {
+        commit('ADD_REPLY', res.data)
+      }
+      return res // 返回 {code, data}
     } catch (error) {
       commit('SET_ERROR', error.message || '发布回复失败')
       console.error('发布回复失败:', error)
@@ -722,14 +752,15 @@ const actions = {
     }
   },
 
+  // 接口#132: 删除回复 - 成功码6021, 失败码6121
   async deleteReply({ commit }, id) {
     commit('SET_LOADING', true)
     commit('SET_ERROR', null)
     
     try {
-      await deleteReply(id)
+      const res = await deleteReply(id)
       commit('REMOVE_REPLY', id)
-      return true
+      return res // 返回 {code, data}
     } catch (error) {
       commit('SET_ERROR', error.message || '删除回复失败')
       console.error('删除回复失败:', error)
@@ -739,11 +770,12 @@ const actions = {
     }
   },
 
+  // 接口#133: 点赞回复 - 成功码6010, 失败码6110
   async likeReply({ commit }, id) {
     try {
-      const response = await likeReply(id)
-      commit('UPDATE_REPLY_LIKE', { id, isLiked: true, likeCount: response?.likeCount })
-      return response
+      const res = await likeReply(id)
+      commit('UPDATE_REPLY_LIKE', { id, isLiked: true, likeCount: res.data?.likeCount })
+      return res // 返回 {code, data}
     } catch (error) {
       commit('SET_ERROR', error.message || '点赞失败')
       console.error('点赞回复失败:', error)
@@ -751,11 +783,12 @@ const actions = {
     }
   },
 
+  // 接口#134: 取消点赞回复 - 成功码6011, 失败码6111
   async unlikeReply({ commit }, id) {
     try {
-      const response = await unlikeReply(id)
-      commit('UPDATE_REPLY_LIKE', { id, isLiked: false, likeCount: response?.likeCount })
-      return response
+      const res = await unlikeReply(id)
+      commit('UPDATE_REPLY_LIKE', { id, isLiked: false, likeCount: res.data?.likeCount })
+      return res // 返回 {code, data}
     } catch (error) {
       commit('SET_ERROR', error.message || '取消点赞失败')
       console.error('取消点赞回复失败:', error)

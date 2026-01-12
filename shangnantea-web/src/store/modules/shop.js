@@ -494,6 +494,7 @@ const actions = {
   },
 
   // 任务组D：获取店铺统计
+  // 接口#70: 获取店铺统计 - 成功码200, 失败码5101
   async fetchShopStatistics({ commit }, { shopId, startDate, endDate } = {}) {
     if (!shopId) {
       throw new Error('店铺ID不能为空')
@@ -504,15 +505,14 @@ const actions = {
       if (startDate) params.startDate = startDate
       if (endDate) params.endDate = endDate
       
-      // 响应拦截器已解包，res 直接是统计数据对象
       const res = await getShopStatistics(shopId, params)
       
       commit('SET_SHOP_STATISTICS', {
-        overview: res?.overview || null,
-        trends: res?.trends || [],
-        hotProducts: res?.hotProducts || []
+        overview: res.data?.overview || null,
+        trends: res.data?.trends || [],
+        hotProducts: res.data?.hotProducts || []
       })
-      return res
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('获取统计数据失败:', error)
       commit('SET_SHOP_STATISTICS', { overview: null, trends: [], hotProducts: [] })
@@ -523,6 +523,7 @@ const actions = {
   },
 
   // 任务组D：上传店铺Logo
+  // 接口#71: 上传Logo - 成功码5030, 失败码5130
   async uploadShopLogo({ commit, state }, { shopId, file }) {
     if (!shopId || !file) {
       throw new Error('店铺ID与文件不能为空')
@@ -530,17 +531,16 @@ const actions = {
     try {
       commit('SET_LOADING', true)
       
-      // 响应拦截器已解包，res 直接是上传结果对象
       const res = await uploadShopLogo(shopId, file)
       
-      const logoUrl = res?.url
+      const logoUrl = res.data?.url
       if (state.myShop && state.myShop.id === shopId) {
         commit('SET_MY_SHOP', { ...state.myShop, logo: logoUrl, shop_logo: logoUrl })
       }
       if (state.currentShop && state.currentShop.id === shopId) {
         commit('SET_CURRENT_SHOP', { ...state.currentShop, logo: logoUrl, shop_logo: logoUrl })
       }
-      return res
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('上传Logo失败:', error)
       throw error
@@ -550,6 +550,7 @@ const actions = {
   },
 
   // 任务组F：获取店铺关注状态
+  // 接口#72: 获取关注状态 - 成功码200
   async checkFollowStatus({ commit }, shopId) {
     if (!shopId) {
       throw new Error('店铺ID不能为空')
@@ -557,11 +558,10 @@ const actions = {
     try {
       commit('SET_LOADING', true)
       
-      // 响应拦截器已解包，res 直接是关注状态对象
       const res = await apiCheckFollowStatus(shopId)
       
-      commit('SET_FOLLOW_STATUS', res?.isFollowing || false)
-      return res
+      commit('SET_FOLLOW_STATUS', res.data?.isFollowing || false)
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('获取关注状态失败:', error)
       commit('SET_FOLLOW_STATUS', false)
@@ -572,6 +572,7 @@ const actions = {
   },
 
   // 任务组F：关注店铺
+  // 接口#73: 关注店铺 - 成功码5000, 失败码5102
   async followShop({ commit, rootState, dispatch }, shopId) {
     if (!shopId) {
       throw new Error('店铺ID不能为空')
@@ -590,7 +591,7 @@ const actions = {
         targetAvatar: shop.logo || shop.shop_logo || ''
       }, { root: true })
       commit('SET_FOLLOW_STATUS', true)
-      return res
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('关注店铺失败:', error)
       throw error
@@ -600,6 +601,7 @@ const actions = {
   },
 
   // 任务组F：取消关注店铺
+  // 接口#74: 取消关注 - 成功码5001, 失败码5102
   async unfollowShop({ commit, rootState, dispatch }, shopId) {
     if (!shopId) {
       throw new Error('店铺ID不能为空')
@@ -618,7 +620,7 @@ const actions = {
         await dispatch('user/removeFollow', followItem.id, { root: true })
       }
       commit('SET_FOLLOW_STATUS', false)
-      return res
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('取消关注店铺失败:', error)
       throw error
@@ -628,21 +630,21 @@ const actions = {
   },
 
   // 任务组B：获取店铺Banner列表
+  // 接口#75: 获取Banner列表 - 成功码200, 失败码5110
   async fetchShopBanners({ commit, state }) {
     const shopId = state.myShop?.id
     if (!shopId) {
       commit('SET_SHOP_BANNERS', [])
-      return []
+      return { code: 200, data: [] }
     }
     try {
       commit('SET_LOADING', true)
       
-      // 响应拦截器已解包，res 直接是 banner 数组
       const res = await getShopBanners(shopId)
-      const banners = Array.isArray(res) ? res : []
+      const banners = Array.isArray(res.data) ? res.data : []
       
       commit('SET_SHOP_BANNERS', banners)
-      return banners
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('获取店铺Banner列表失败:', error)
       commit('SET_SHOP_BANNERS', [])
@@ -653,21 +655,21 @@ const actions = {
   },
 
   // 任务组B：获取店铺公告列表
+  // 接口#80: 获取公告列表 - 成功码200, 失败码5120
   async fetchShopAnnouncements({ commit, state }) {
     const shopId = state.myShop?.id
     if (!shopId) {
       commit('SET_SHOP_ANNOUNCEMENTS', [])
-      return []
+      return { code: 200, data: [] }
     }
     try {
       commit('SET_LOADING', true)
       
-      // 响应拦截器已解包，res 直接是公告数组
       const res = await getShopAnnouncements(shopId)
-      const announcements = Array.isArray(res) ? res : []
+      const announcements = Array.isArray(res.data) ? res.data : []
       
       commit('SET_SHOP_ANNOUNCEMENTS', announcements)
-      return announcements
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('获取店铺公告列表失败:', error)
       commit('SET_SHOP_ANNOUNCEMENTS', [])
