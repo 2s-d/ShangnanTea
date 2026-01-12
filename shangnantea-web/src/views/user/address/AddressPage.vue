@@ -109,7 +109,7 @@
 import { Plus } from '@element-plus/icons-vue'
 import { ref, onMounted, reactive, toRaw, computed } from 'vue'
 
-import { handleAsyncOperation, STANDARD_MESSAGES } from '@/utils/messageHelper'
+import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { regionData, getStaticRegionData } from '@/utils/region'
 import { useStore } from 'vuex'
 import { userPromptMessages as userMessages } from '@/utils/promptMessages'
@@ -170,14 +170,14 @@ export default {
     const handleFetchAddressList = async () => {
       loading.value = true
       try {
-        await handleAsyncOperation(
-          store.dispatch('user/fetchAddresses'),
-          {
-            successMessage: null,
-            errorMessage: '获取地址列表失败，请稍后再试'
-          }
-        )
-        addresses.value = store.state.user.addressList || []
+        const response = await store.dispatch('user/fetchAddresses')
+        
+        if (isSuccess(response.code)) {
+          addresses.value = store.state.user.addressList || []
+        } else {
+          showByCode(response.code)
+          addresses.value = []
+        }
       } catch (error) {
         console.error('获取地址列表失败', error)
         // 当获取失败时，初始化为空数组，确保页面不会崩溃
@@ -209,26 +209,26 @@ export default {
     
     // 删除地址 - 使用Vuex
     const handleDeleteAddress = async id => {
-      await handleAsyncOperation(
-        store.dispatch('user/deleteAddress', id),
-        {
-          successMessage: '地址删除成功',
-          errorMessage: '删除地址失败，请稍后再试',
-          successCallback: () => handleFetchAddressList()
-        }
-      )
+      const response = await store.dispatch('user/deleteAddress', id)
+      
+      if (isSuccess(response.code)) {
+        showByCode(response.code)
+        handleFetchAddressList()
+      } else {
+        showByCode(response.code)
+      }
     }
     
     // 设置默认地址 - 使用Vuex
     const handleSetDefaultAddress = async id => {
-      await handleAsyncOperation(
-        store.dispatch('user/setDefaultAddress', id),
-        {
-          successMessage: '默认地址设置成功',
-          errorMessage: '设置默认地址失败，请稍后再试',
-          successCallback: () => handleFetchAddressList()
-        }
-      )
+      const response = await store.dispatch('user/setDefaultAddress', id)
+      
+      if (isSuccess(response.code)) {
+        showByCode(response.code)
+        handleFetchAddressList()
+      } else {
+        showByCode(response.code)
+      }
     }
     
     // 保存地址（新增或更新）- 使用Vuex

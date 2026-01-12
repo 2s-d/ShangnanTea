@@ -121,7 +121,7 @@
 import { ref, reactive } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
-import { handleAsyncOperation, MESSAGE_TYPES, STANDARD_MESSAGES } from '@/utils/messageHelper'
+import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { userPromptMessages as userMessages } from '@/utils/promptMessages'
 
 export default {
@@ -251,18 +251,15 @@ export default {
           email: registerForm.email && registerForm.email.trim() ? registerForm.email.trim() : undefined
         }
         
-        // 使用新的异步操作处理工具
-        // 注意：store中已处理消息提示，这里不再传入successMessage
-        await handleAsyncOperation(
-          // 异步操作
-          store.dispatch('user/register', registerData),
-          {
-            // 成功回调
-            successCallback: () => {
-              router.push('/login')
-            }
-          }
-        )
+        // 调用注册API
+        const response = await store.dispatch('user/register', registerData)
+        
+        if (isSuccess(response.code)) {
+          showByCode(response.code)
+          router.push('/login')
+        } else {
+          showByCode(response.code)
+        }
       } catch (error) {
         console.error('注册失败:', error)
         loading.value = false

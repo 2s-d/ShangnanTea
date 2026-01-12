@@ -463,6 +463,14 @@ export default {
     const store = useStore()
     const activeTab = ref('articles')
     
+    // 默认封面图片
+    const defaultCover = ''
+    
+    // 跳转到论坛管理页面
+    const goToForumManage = () => {
+      router.push('/forum/manage')
+    }
+    
     // ============ 文章管理 ============
     const articleSearch = ref('')
     const articleCategory = ref('')

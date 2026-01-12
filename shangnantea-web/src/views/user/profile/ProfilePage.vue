@@ -109,7 +109,6 @@ import { useStore } from 'vuex'
 import { useRoute, useRouter } from 'vue-router'
 
 import messageManager from '@/utils/messageManager'
-import { handleAsyncOperation, STANDARD_MESSAGES } from '@/utils/messageHelper'
 import { uploadImage } from '@/api/upload'
 
 import { useFormValidation } from '@/composables/useFormValidation'
@@ -255,19 +254,12 @@ export default {
       try {
         loading.value = true;
         
-        const result = await handleAsyncOperation(
-          store.dispatch('user/getUserInfo'),
-          {
-            successMessage: null,
-            errorMessage: '获取用户信息失败'
-          }
-        );
+        const response = await store.dispatch('user/getUserInfo')
         
-        if (result) {
-          handleInitForm();
+        if (isSuccess(response.code)) {
+          handleInitForm()
         } else {
-          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-          showByCode(7120) // 未能获取到用户信息
+          showByCode(response.code)
         }
       } catch (error) {
         // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
@@ -309,15 +301,19 @@ export default {
       try {
         loading.value = true
         
-        // store中已处理消息提示，不再传入successMessage/errorMessage
-        await handleAsyncOperation(
-          store.dispatch('user/uploadAvatar', file),
-          {}
-        )
+        // 上传头像
+        const uploadResponse = await store.dispatch('user/uploadAvatar', file)
         
-        // 刷新用户信息
-        await store.dispatch('user/getUserInfo')
-        handleInitForm()
+        if (isSuccess(uploadResponse.code)) {
+          showByCode(uploadResponse.code)
+          // 刷新用户信息
+          const userInfoResponse = await store.dispatch('user/getUserInfo')
+          if (isSuccess(userInfoResponse.code)) {
+            handleInitForm()
+          }
+        } else {
+          showByCode(uploadResponse.code)
+        }
         } catch (error) {
         console.error('头像上传失败:', error)
       } finally {
@@ -338,15 +334,19 @@ export default {
             ...formData
           }
           
-          // store中已处理消息提示，不再传入successMessage/errorMessage
-          await handleAsyncOperation(
-            store.dispatch('user/updateUserInfo', userData),
-            {}
-          )
+          // 更新用户信息
+          const updateResponse = await store.dispatch('user/updateUserInfo', userData)
           
-          await store.dispatch('user/getUserInfo')
-          
-          handleInitForm()
+          if (isSuccess(updateResponse.code)) {
+            showByCode(updateResponse.code)
+            // 刷新用户信息
+            const userInfoResponse = await store.dispatch('user/getUserInfo')
+            if (isSuccess(userInfoResponse.code)) {
+              handleInitForm()
+            }
+          } else {
+            showByCode(updateResponse.code)
+          }
         })
       } catch (error) {
         console.error('保存用户信息失败:', error)
