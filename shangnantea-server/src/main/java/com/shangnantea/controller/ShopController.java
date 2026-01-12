@@ -424,54 +424,6 @@ public class ShopController {
         return shopService.submitShopReview(shopId, reviewData);
     }
 
-    // ==================== 管理员功能 ====================
-
-    /**
-     * 删除店铺（管理员）
-     * 路径: DELETE /shop/{id}
-     * 成功码: 1003, 失败码: 1100
-     *
-     * @param id 店铺ID
-     * @return 删除结果
-     */
-    @DeleteMapping("/{id}")
-    @RequiresRoles({1}) // 管理员角色
-    public Result<Boolean> deleteShop(@PathVariable String id) {
-        logger.info("删除店铺请求(管理员): {}", id);
-        return shopService.deleteShop(id);
-    }
-
-    /**
-     * 获取店铺列表（管理员）
-     * 路径: GET /shop/admin/list
-     * 成功码: 200, 失败码: 5101
-     *
-     * @param params 查询参数（keyword, status, page, pageSize）
-     * @return 店铺列表
-     */
-    @GetMapping("/admin/list")
-    @RequiresRoles({1}) // 管理员角色
-    public Result<Object> listAdminShops(@RequestParam Map<String, Object> params) {
-        logger.info("获取店铺列表请求(管理员), params: {}", params);
-        return shopService.listAdminShops(params);
-    }
-
-    /**
-     * 审核店铺（管理员）
-     * 路径: PUT /shop/admin/{id}/audit
-     * 成功码: 1004, 失败码: 1100
-     *
-     * @param id 店铺ID
-     * @param auditData 审核信息
-     * @return 审核结果
-     */
-    @PutMapping("/admin/{id}/audit")
-    @RequiresRoles({1}) // 管理员角色
-    public Result<Boolean> auditShop(@PathVariable String id, @RequestBody Map<String, Object> auditData) {
-        logger.info("审核店铺请求(管理员): {}", id);
-        return shopService.auditShop(id, auditData);
-    }
-
     /**
      * 获取店铺详情
      * 路径: GET /shop/{id}
