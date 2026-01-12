@@ -677,6 +677,219 @@ const actions = {
     } finally {
       commit('SET_LOADING', false)
     }
+  },
+
+  // 创建店铺
+  // 接口: 创建店铺 - 成功码5003, 失败码5106
+  async createShop({ commit }, shopData = {}) {
+    try {
+      commit('SET_LOADING', true)
+      const res = await createShop(shopData)
+      commit('SET_MY_SHOP', res.data || null)
+      return res // 返回 {code, data}
+    } catch (error) {
+      console.error('创建店铺失败:', error)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+
+  // 任务组B：上传店铺Banner
+  // 接口#76: 上传Banner - 成功码5010, 失败码5111
+  async uploadShopBanner({ commit, state }, bannerData) {
+    const shopId = state.myShop?.id
+    if (!shopId) {
+      throw new Error('店铺ID不能为空')
+    }
+    try {
+      commit('SET_LOADING', true)
+      const res = await uploadBanner(shopId, bannerData)
+      if (res.data) {
+        commit('ADD_BANNER', res.data)
+      }
+      return res // 返回 {code, data}
+    } catch (error) {
+      console.error('上传Banner失败:', error)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+
+  // 任务组B：更新店铺Banner
+  // 接口#77: 更新Banner - 成功码5011, 失败码5112
+  async updateShopBanner({ commit }, { bannerId, bannerData }) {
+    if (!bannerId) {
+      throw new Error('Banner ID不能为空')
+    }
+    try {
+      commit('SET_LOADING', true)
+      const res = await updateBanner(bannerId, bannerData)
+      if (res.data) {
+        commit('UPDATE_BANNER', res.data)
+      }
+      return res // 返回 {code, data}
+    } catch (error) {
+      console.error('更新Banner失败:', error)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+
+  // 任务组B：删除店铺Banner
+  // 接口#78: 删除Banner - 成功码5012, 失败码5113
+  async deleteShopBanner({ commit }, bannerId) {
+    if (!bannerId) {
+      throw new Error('Banner ID不能为空')
+    }
+    try {
+      commit('SET_LOADING', true)
+      const res = await deleteBanner(bannerId)
+      commit('REMOVE_BANNER', bannerId)
+      return res // 返回 {code, data}
+    } catch (error) {
+      console.error('删除Banner失败:', error)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+
+  // 任务组B：更新Banner顺序
+  // 接口#79: 更新Banner顺序 - 成功码5013, 失败码5114
+  async updateShopBannerOrder({ commit }, orderData) {
+    if (!orderData || !Array.isArray(orderData)) {
+      throw new Error('排序数据不能为空')
+    }
+    try {
+      commit('SET_LOADING', true)
+      const res = await updateBannerOrder(orderData)
+      // 更新本地顺序
+      if (res.data && Array.isArray(res.data)) {
+        commit('UPDATE_BANNER_ORDER', res.data)
+      }
+      return res // 返回 {code, data}
+    } catch (error) {
+      console.error('更新Banner顺序失败:', error)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+
+  // 任务组B：创建店铺公告
+  // 接口#81: 创建公告 - 成功码5020, 失败码5121
+  async createShopAnnouncement({ commit, state }, announcementData) {
+    const shopId = state.myShop?.id
+    if (!shopId) {
+      throw new Error('店铺ID不能为空')
+    }
+    try {
+      commit('SET_LOADING', true)
+      const res = await createAnnouncement(shopId, announcementData)
+      if (res.data) {
+        commit('ADD_ANNOUNCEMENT', res.data)
+      }
+      return res // 返回 {code, data}
+    } catch (error) {
+      console.error('创建公告失败:', error)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+
+  // 任务组B：更新店铺公告
+  // 接口#82: 更新公告 - 成功码5021, 失败码5122
+  async updateShopAnnouncement({ commit }, { announcementId, announcementData }) {
+    if (!announcementId) {
+      throw new Error('公告ID不能为空')
+    }
+    try {
+      commit('SET_LOADING', true)
+      const res = await updateAnnouncement(announcementId, announcementData)
+      if (res.data) {
+        commit('UPDATE_ANNOUNCEMENT', res.data)
+      }
+      return res // 返回 {code, data}
+    } catch (error) {
+      console.error('更新公告失败:', error)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+
+  // 任务组B：删除店铺公告
+  // 接口#83: 删除公告 - 成功码5022, 失败码5123
+  async deleteShopAnnouncement({ commit }, announcementId) {
+    if (!announcementId) {
+      throw new Error('公告ID不能为空')
+    }
+    try {
+      commit('SET_LOADING', true)
+      const res = await deleteAnnouncement(announcementId)
+      commit('REMOVE_ANNOUNCEMENT', announcementId)
+      return res // 返回 {code, data}
+    } catch (error) {
+      console.error('删除公告失败:', error)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+
+  // 获取店铺评价列表
+  // 接口#84: 获取评价列表 - 成功码200, 失败码5130
+  async fetchShopReviews({ commit }, { shopId, params = {} }) {
+    if (!shopId) {
+      throw new Error('店铺ID不能为空')
+    }
+    try {
+      commit('SET_LOADING', true)
+      const res = await apiGetShopReviews(shopId, params)
+      
+      const reviews = res.data?.list || res.data?.records || (Array.isArray(res.data) ? res.data : [])
+      commit('SET_SHOP_REVIEWS', reviews)
+      
+      if (res.data?.total !== undefined) {
+        commit('SET_REVIEW_PAGINATION', {
+          total: res.data.total,
+          currentPage: res.data.pageNum || params.page || 1,
+          pageSize: res.data.pageSize || params.size || 10
+        })
+      }
+      return res // 返回 {code, data}
+    } catch (error) {
+      console.error('获取店铺评价失败:', error)
+      commit('SET_SHOP_REVIEWS', [])
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+
+  // 提交店铺评价
+  // 接口#85: 提交评价 - 成功码5040, 失败码5131
+  async submitShopReview({ commit }, { shopId, reviewData }) {
+    if (!shopId) {
+      throw new Error('店铺ID不能为空')
+    }
+    try {
+      commit('SET_LOADING', true)
+      const res = await apiSubmitShopReview(shopId, reviewData)
+      if (res.data) {
+        commit('ADD_SHOP_REVIEW', res.data)
+      }
+      return res // 返回 {code, data}
+    } catch (error) {
+      console.error('提交评价失败:', error)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
   }
 }
 
