@@ -28,12 +28,15 @@ const PATTERNS = {
   // 旧的导入语句（需要替换）
   oldImports: [
     /import\s*\{[^}]*(?:Success|Error)Messages[^}]*\}\s*from\s*['"]@\/utils\/\w+Messages['"]/g,
+    /import\s+\w+Messages\s+from\s*['"]@\/utils\/(?:common|user|tea|order|shop|forum|message)Messages['"]/g,
+    /import\s*\{[^}]*\w+(?:Success|Error)Messages[^}]*\}\s*from\s*['"]@\/utils\/(?:common|user|tea|order|shop|forum|message)Messages['"]/g,
   ],
   
   // 旧的消息调用（需要替换）
   oldCalls: [
     /\w+SuccessMessages\.show\w+\([^)]*\)/g,
     /\w+ErrorMessages\.show\w+\([^)]*\)/g,
+    /(?:common|user|tea|order|shop|forum|message)(?:Success|Error)Messages\.show\w+\([^)]*\)/g,
   ],
   
   // 排除的模式（promptMessages 保留）
@@ -131,7 +134,7 @@ function detectFile(filePath) {
 /**
  * 递归扫描目录
  */
-function scanDirectory(dirPath, filePattern = /\.vue$/) {
+function scanDirectory(dirPath, filePattern = /\.(vue|js)$/) {
   const allResults = []
   
   function scan(dir) {

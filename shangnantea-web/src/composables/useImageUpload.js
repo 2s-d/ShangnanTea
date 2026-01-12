@@ -3,7 +3,7 @@
  */
 import { ref, computed } from 'vue'
 
-import { commonPromptMessages, commonErrorMessages } from '@/utils/promptMessages'
+import { commonPromptMessages } from '@/utils/promptMessages'
 
 
 /**
@@ -57,10 +57,7 @@ export function useImageUpload(options = {}) {
     
     const isValid = config.acceptTypes.includes(file.type)
     if (!isValid) {
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      // TODO: [common] 迁移到 showByCode(response.code) - error
-      commonErrorMessages.showFileTypeInvalid()
+      commonPromptMessages.showFileTypeInvalid()
     }
     return isValid
   }
@@ -73,9 +70,7 @@ export function useImageUpload(options = {}) {
   const validateFileSize = file => {
     const isValid = file.size / 1024 / 1024 <= config.maxSize
     if (!isValid) {
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      commonErrorMessages.showFileSizeExceeded(config.maxSize)
+      commonPromptMessages.showFileSizeExceeded(config.maxSize)
     }
     return isValid
   }
@@ -234,9 +229,7 @@ export function useImageUpload(options = {}) {
         config.onError(error, fileItem)
       }
       
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      commonErrorMessages.showUploadFailed(error.message || '未知错误')
+      commonPromptMessages.showUploadFailed(error.message || '未知错误')
       return Promise.reject(error)
     } finally {
       uploading.value = false
