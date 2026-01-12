@@ -109,8 +109,7 @@ import { useRouter } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
 import { Bell, ChatDotRound, Star, User, Check, Delete } from '@element-plus/icons-vue'
 import { useStore } from 'vuex'
-import { handleAsyncOperation } from '@/utils/messageHelper'
-import { showByCode } from '@/utils/apiMessages'
+import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { messagePromptMessages } from '@/utils/promptMessages'
 
 export default {
@@ -144,19 +143,16 @@ export default {
         pageSize: pageSize.value
       })
 
-      await handleAsyncOperation(
-        store.dispatch('message/fetchNotifications', {
-          readStatus: readStatus.value,
-          type: typeFilter.value
-        }),
-        {
-          successMessage: null,
-          errorMessage: '获取通知列表失败，请稍后再试',
-          successCallback: (data) => {
-            totalNotifications.value = data?.total || 0
-          }
-        }
-      )
+      const response = await store.dispatch('message/fetchNotifications', {
+        readStatus: readStatus.value,
+        type: typeFilter.value
+      })
+      
+      if (isSuccess(response.code)) {
+        totalNotifications.value = response.data?.total || 0
+      } else {
+        showByCode(response.code)
+      }
     }
     
     // 过滤通知
@@ -186,13 +182,8 @@ export default {
     // 标记单条通知为已读
     const markAsRead = async (id) => {
       try {
-        await handleAsyncOperation(
-          store.dispatch('message/markNotificationAsRead', id),
-          {
-            successMessage: '已标记为已读',
-            errorMessage: '操作失败，请稍后再试'
-          }
-        )
+        const response = await store.dispatch('message/markNotificationAsRead', id)
+        showByCode(response.code)
       } catch (error) {
         console.error(error)
       }
@@ -206,13 +197,8 @@ export default {
           return
         }
 
-        await handleAsyncOperation(
-          store.dispatch('message/batchMarkAsRead', unreadIds),
-          {
-            successMessage: '已全部标记为已读',
-            errorMessage: '操作失败，请稍后再试'
-          }
-        )
+        const response = await store.dispatch('message/batchMarkAsRead', unreadIds)
+        showByCode(response.code)
       } catch (error) {
         console.error(error)
       }
@@ -221,13 +207,8 @@ export default {
     // 删除单条通知
     const deleteNotification = async (id) => {
       try {
-        await handleAsyncOperation(
-          store.dispatch('message/deleteNotification', id),
-          {
-            successMessage: '通知已删除',
-            errorMessage: '删除失败，请稍后再试'
-          }
-        )
+        const response = await store.dispatch('message/deleteNotification', id)
+        showByCode(response.code)
       } catch (error) {
         console.error(error)
       }
@@ -254,13 +235,8 @@ export default {
           return
         }
 
-        await handleAsyncOperation(
-          store.dispatch('message/batchDeleteNotifications', allIds),
-          {
-            successMessage: '已清空所有通知',
-            errorMessage: '操作失败，请稍后再试'
-          }
-        )
+        const response = await store.dispatch('message/batchDeleteNotifications', allIds)
+        showByCode(response.code)
       } catch (error) {
         console.error(error)
       }

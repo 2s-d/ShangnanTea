@@ -105,7 +105,8 @@ const mutations = {
     state.userInfo = userInfo
   },
   
-  // 设置登录状�?  SET_LOGGED_IN(state, status) {
+  // 设置登录状态
+  SET_LOGGED_IN(state, status) {
     state.isLoggedIn = status
   },
   
@@ -115,7 +116,8 @@ const mutations = {
     state.isLoggedIn = false
   },
   
-  // 设置加载状�?  SET_LOADING(state, status) {
+  // 设置加载状态
+  SET_LOADING(state, status) {
     state.loading = status
   },
 
@@ -146,7 +148,8 @@ const mutations = {
     state.addressList.push(address)
     // 如果设置为默认，更新defaultAddressId
     if (address.isDefault) {
-      // 取消其他地址的默认状�?      state.addressList.forEach(addr => {
+      // 取消其他地址的默认状态
+      state.addressList.forEach(addr => {
         if (addr.id !== address.id) {
           addr.isDefault = false
         }

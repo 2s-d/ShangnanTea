@@ -572,22 +572,19 @@ export default {
           return
         }
 
-        await handleAsyncOperation(
-          store.dispatch('message/sendMessage', {
-            receiverId: currentTargetUserId.value,
-            content: messageContent,
-            type: messageType
-          }),
-          {
-            successMessage: null,
-            errorMessage: '发送消息失败，请稍后重试',
-            successCallback: async () => {
-              await fetchMessages(currentSessionId.value, false)
-              await nextTick()
-              scrollToBottom()
-            }
-          }
-        )
+        const sendResponse = await store.dispatch('message/sendMessage', {
+          receiverId: currentTargetUserId.value,
+          content: messageContent,
+          type: messageType
+        })
+        
+        if (isSuccess(sendResponse.code)) {
+          await fetchMessages(currentSessionId.value, false)
+          await nextTick()
+          scrollToBottom()
+        } else {
+          showByCode(sendResponse.code)
+        }
       } catch (error) {
         console.error('发送消息失败：', error)
         message.error('发送消息失败，请稍后重试')
