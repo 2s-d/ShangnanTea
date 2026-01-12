@@ -1,93 +1,26 @@
 {
-  "scanTime": "2026-01-12T19:25:44.514Z",
+  "scanTime": "2026-01-12T19:32:41.006Z",
   "summary": {
-    "totalFiles": 2,
-    "totalIssues": 12,
-    "totalImports": 2,
-    "totalCalls": 10
+    "totalFiles": 1,
+    "totalIssues": 1,
+    "totalImports": 0,
+    "totalCalls": 1
   },
   "files": [
     {
       "file": "C:\\wendang\\bishe\\tea1\\shangnantea\\shangnantea-web\\src\\views\\forum\\culturehome\\ArticleDetailPage.vue",
       "relativePath": "src\\views\\forum\\culturehome\\ArticleDetailPage.vue",
-      "imports": [
-        {
-          "line": 131,
-          "code": "import { forumSuccessMessages, forumErrorMessages } from '@/utils/forumMessages'",
-          "fullLine": "import { forumSuccessMessages, forumErrorMessages } from '@/utils/forumMessages'"
-        }
-      ],
+      "imports": [],
       "calls": [
         {
-          "line": 198,
+          "line": 195,
           "code": "forumErrorMessages.showLoadFailed('获取文章详情失败')",
           "fullLine": "forumErrorMessages.showLoadFailed('获取文章详情失败')"
-        },
-        {
-          "line": 230,
-          "code": "forumSuccessMessages.showPostFavorited()",
-          "fullLine": "forumSuccessMessages.showPostFavorited()"
-        },
-        {
-          "line": 233,
-          "code": "forumSuccessMessages.showPostUnfavorited()",
-          "fullLine": "forumSuccessMessages.showPostUnfavorited()"
-        },
-        {
-          "line": 236,
-          "code": "forumErrorMessages.showOperationFailed()",
-          "fullLine": "forumErrorMessages.showOperationFailed()"
-        },
-        {
-          "line": 248,
-          "code": "forumSuccessMessages.showPostFavorited()",
-          "fullLine": "forumSuccessMessages.showPostFavorited() // 临时使用，实际应该是复制链接成功"
-        },
-        {
-          "line": 266,
-          "code": "forumSuccessMessages.showPostFavorited()",
-          "fullLine": "forumSuccessMessages.showPostFavorited() // 临时使用，实际应该是复制链接成功"
         }
       ],
-      "total": 7,
-      "hasNewPattern": false,
-      "status": "pending"
-    },
-    {
-      "file": "C:\\wendang\\bishe\\tea1\\shangnantea\\shangnantea-web\\src\\views\\message\\homepage\\UserHomePage.vue",
-      "relativePath": "src\\views\\message\\homepage\\UserHomePage.vue",
-      "imports": [
-        {
-          "line": 173,
-          "code": "import { commonSuccessMessages, commonErrorMessages } from '@/utils/commonMessages'",
-          "fullLine": "import { commonSuccessMessages, commonErrorMessages } from '@/utils/commonMessages'"
-        }
-      ],
-      "calls": [
-        {
-          "line": 316,
-          "code": "commonSuccessMessages.showOperationSuccess('已取消关注')",
-          "fullLine": "commonSuccessMessages.showOperationSuccess('已取消关注')"
-        },
-        {
-          "line": 321,
-          "code": "commonSuccessMessages.showOperationSuccess('关注成功')",
-          "fullLine": "commonSuccessMessages.showOperationSuccess('关注成功')"
-        },
-        {
-          "line": 324,
-          "code": "commonErrorMessages.showOperationFailed()",
-          "fullLine": "commonErrorMessages.showOperationFailed()"
-        },
-        {
-          "line": 348,
-          "code": "commonErrorMessages.showLoadFailed('加载用户信息失败')",
-          "fullLine": "commonErrorMessages.showLoadFailed('加载用户信息失败')"
-        }
-      ],
-      "total": 5,
-      "hasNewPattern": false,
-      "status": "pending"
+      "total": 1,
+      "hasNewPattern": true,
+      "status": "partial"
     }
   ]
 }

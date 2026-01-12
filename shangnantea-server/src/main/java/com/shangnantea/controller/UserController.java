@@ -111,20 +111,6 @@ public class UserController {
     }
     
     /**
-     * 获取指定用户信息
-     * 路径: GET /user/{userId}
-     * 成功码: 200, 失败码: 2120
-     *
-     * @param userId 用户ID
-     * @return 用户信息
-     */
-    @GetMapping("/{userId}")
-    public Result<UserVO> getUserInfo(@PathVariable String userId) {
-        logger.info("获取用户信息请求: {}", userId);
-        return userService.getUserById(userId);
-    }
-    
-    /**
      * 更新用户信息
      * 路径: PUT /user
      * 成功码: 2010, 失败码: 2110
@@ -444,6 +430,21 @@ public class UserController {
     public Result<Object> updateUserPreferences(@RequestBody Map<String, Object> preferences) {
         logger.info("更新用户偏好设置请求");
         return userService.updateUserPreferences(preferences);
+    }
+
+    /**
+     * 获取指定用户信息
+     * 路径: GET /user/{userId}
+     * 成功码: 200, 失败码: 2120
+     * 注意：此路径应放在最后，避免与更具体的路径冲突
+     *
+     * @param userId 用户ID
+     * @return 用户信息
+     */
+    @GetMapping("/{userId}")
+    public Result<UserVO> getUserInfo(@PathVariable String userId) {
+        logger.info("获取用户信息请求: {}", userId);
+        return userService.getUserById(userId);
     }
 
     // ==================== 管理员功能 ====================

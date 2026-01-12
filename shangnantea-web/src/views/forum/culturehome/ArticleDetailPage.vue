@@ -2,12 +2,12 @@
   <div class="article-detail-page">
     <!-- 文章内容容器 -->
     <div class="article-container">
-      <!-- 文章标题区 -->
+      <!-- 文章标题�?-->
       <div class="article-header">
         <h1 class="article-title">{{ article.title }}</h1>
         <div class="article-subtitle" v-if="article.subtitle">{{ article.subtitle }}</div>
         
-        <!-- 文章元信息 -->
+        <!-- 文章元信�?-->
         <div class="article-meta">
           <div class="meta-item">
             <i class="el-icon-user"></i>
@@ -33,7 +33,7 @@
         <SafeImage :src="article.coverImage" type="post" :alt="article.title" style="width:100%;" />
       </div>
       
-      <!-- 文章内容区 -->
+      <!-- 文章内容�?-->
       <div class="article-content" v-html="article.content"></div>
       
       <!-- 文章标签 -->
@@ -53,7 +53,7 @@
         </div>
       </div>
       
-      <!-- 文章操作栏 -->
+      <!-- 文章操作�?-->
       <div class="article-actions">
         <el-button type="primary" @click="goBack">
           <i class="el-icon-back"></i> 返回
@@ -93,7 +93,7 @@
       </el-row>
     </div>
     
-    <!-- 分享对话框 -->
+    <!-- 分享对话�?-->
     <el-dialog
       title="分享文章"
       v-model:visible="shareDialogVisible"
@@ -128,7 +128,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 
 import SafeImage from '@/components/common/form/SafeImage.vue'
-import { forumSuccessMessages, forumErrorMessages } from '@/utils/forumMessages'
+import { showByCode } from '@/utils/apiMessages'
 import { forumPromptMessages } from '@/utils/promptMessages'
 
 export default {
@@ -147,9 +147,9 @@ export default {
     // 从Vuex获取当前文章
     const article = computed(() => store.state.forum.currentArticle || {
       id: 0,
-      title: '文章标题加载中...',
+      title: '文章标题加载�?..',
       subtitle: '',
-      content: '内容加载中...',
+      content: '内容加载�?..',
       author: '未知',
       publishTime: new Date(),
       viewCount: 0,
@@ -167,14 +167,11 @@ export default {
       
       return articles
         .filter(item => item.id !== currentId && item.category === currentCategory)
-        .slice(0, 6) // 最多显示6篇相关文章
-    })
+        .slice(0, 6) // 最多显�?篇相关文�?    })
 
-    // 添加默认图片常量（生产形态：不使用 mock-images）
-    const defaultImage = ''
+    // 添加默认图片常量（生产形态：不使�?mock-images�?    const defaultImage = ''
 
-    // 格式化日期
-    const formatDate = (date) => {
+    // 格式化日�?    const formatDate = (date) => {
       if (!date) return ''
       const d = new Date(date)
       return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
@@ -216,8 +213,7 @@ export default {
       }
     }
 
-    // 返回上一页
-    const goBack = () => {
+    // 返回上一�?    const goBack = () => {
       router.back()
     }
 
@@ -225,15 +221,14 @@ export default {
     const handleLike = async () => {
       try {
         if (!isLiked.value) {
-          // 这里可以调用文章点赞API，目前暂时使用简单的状态切换
-          isLiked.value = true
-          forumSuccessMessages.showPostFavorited()
+          // 这里可以调用文章点赞API，目前暂时使用简单的状态切�?          isLiked.value = true
+          forumPromptMessages.showShareDeveloping()
         } else {
           isLiked.value = false
-          forumSuccessMessages.showPostUnfavorited()
+          forumPromptMessages.showShareDeveloping()
         }
       } catch (error) {
-        forumErrorMessages.showOperationFailed()
+        console.error('����ʧ��')
         console.error('收藏操作失败:', error)
       }
     }
@@ -243,14 +238,12 @@ export default {
       shareDialogVisible.value = true
     }
     
-    // 分享到微信
-    const shareToWeixin = () => {
-      forumSuccessMessages.showPostFavorited() // 临时使用，实际应该是复制链接成功
+    // 分享到微�?    const shareToWeixin = () => {
+      forumPromptMessages.showShareDeveloping() // 临时使用，实际应该是复制链接成功
       shareDialogVisible.value = false
     }
     
-    // 分享到微博
-    const shareToWeibo = () => {
+    // 分享到微�?    const shareToWeibo = () => {
       forumPromptMessages.showShareDeveloping()
       shareDialogVisible.value = false
     }
@@ -263,7 +256,7 @@ export default {
     
     // 复制链接
     const copyLink = () => {
-      forumSuccessMessages.showPostFavorited() // 临时使用，实际应该是复制链接成功
+      forumPromptMessages.showShareDeveloping() // 临时使用，实际应该是复制链接成功
       shareDialogVisible.value = false
     }
     
@@ -556,8 +549,7 @@ export default {
   }
 }
 
-// 分享对话框样式
-.share-options {
+// 分享对话框样�?.share-options {
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
@@ -613,8 +605,7 @@ export default {
   }
 }
 
-// 响应式样式
-@media (max-width: 768px) {
+// 响应式样�?@media (max-width: 768px) {
   .article-detail-page {
     .article-container {
       padding: 20px 15px;

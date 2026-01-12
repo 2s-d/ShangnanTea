@@ -34,12 +34,12 @@
             </div>
           </div>
           <div class="user-actions">
-            <!-- 查看自己主页时显示编辑按钮 -->
+            <!-- 查看自己主页时显示编辑按�?-->
             <el-button v-if="isOwnProfile" type="primary" @click="handleEditProfile">
               <el-icon><Edit /></el-icon>
               编辑资料
             </el-button>
-            <!-- 查看他人主页时显示关注按钮 -->
+            <!-- 查看他人主页时显示关注按�?-->
             <el-button v-else type="primary" @click="handleFollow">
               <el-icon><Plus /></el-icon>
               {{ isFollowing ? '取消关注' : '关注' }}
@@ -80,7 +80,7 @@
             @select="handleMenuSelect">
             <el-menu-item index="dynamic">
               <el-icon><Clock /></el-icon>
-              <span>动态</span>
+              <span>动�?/span>
             </el-menu-item>
             <el-menu-item index="published">
               <el-icon><Document /></el-icon>
@@ -97,12 +97,12 @@
           </el-menu>
         </div>
           
-        <!-- 下半部分：内容区域 -->
+        <!-- 下半部分：内容区�?-->
         <div class="home-content">
-          <!-- 用户动态 -->
+          <!-- 用户动�?-->
           <div v-if="activeMenu === 'dynamic'" class="dynamic-content">
             <div class="dynamic-section">
-              <h3>最近发布</h3>
+              <h3>最近发�?/h3>
               <div v-if="userDynamic.recentPosts && userDynamic.recentPosts.length > 0" class="posts-list">
                 <div v-for="post in userDynamic.recentPosts" :key="post.id" class="post-item">
                   <div class="post-header">
@@ -120,7 +120,7 @@
             </div>
             
             <div class="dynamic-section">
-              <h3>最近评论</h3>
+              <h3>最近评�?/h3>
               <div v-if="userDynamic.recentComments && userDynamic.recentComments.length > 0" class="comments-list">
                 <div v-for="comment in userDynamic.recentComments" :key="comment.id" class="comment-item">
                   <div class="comment-header">
@@ -134,16 +134,16 @@
             </div>
           </div>
           
-          <!-- 其他标签页内容 -->
+          <!-- 其他标签页内�?-->
           <keep-alive v-else>
             <component :is="currentComponent" />
           </keep-alive>
           
-          <!-- 开发中的功能提示 -->
+          <!-- 开发中的功能提�?-->
           <template v-if="!hasComponent && activeMenu !== 'dynamic'">
             <div class="developing-feature">
               <el-empty 
-                description="该功能正在开发中，敬请期待..." 
+                description="该功能正在开发中，敬请期�?.." 
                 :image-size="200">
                 <template #image>
                   <SafeImage :src="defaultImage" type="banner" class="dev-logo" />
@@ -170,7 +170,8 @@ import {
   User, UserFilled, Star, Document, Male, Female, Edit, Plus, Shop, Clock, ChatDotRound 
 } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-import { commonSuccessMessages, commonErrorMessages } from '@/utils/commonMessages'
+import { showByCode } from '@/utils/apiMessages'
+import { commonPromptMessages } from '@/utils/promptMessages'
 
 export default {
   name: 'UserHomePage',
@@ -203,8 +204,7 @@ export default {
       shopName: null
     })
     
-    // 从Vuex获取用户动态
-    const userDynamic = computed(() => store.state.message.userDynamic || {
+    // 从Vuex获取用户动�?    const userDynamic = computed(() => store.state.message.userDynamic || {
       recentPosts: [],
       recentComments: []
     })
@@ -219,8 +219,7 @@ export default {
       commentCount: 0
     })
     
-    // 加载状态
-    const loading = computed(() => store.state.message.loading)
+    // 加载状�?    const loading = computed(() => store.state.message.loading)
     
     // 判断是否是查看自己的主页
     const isOwnProfile = computed(() => {
@@ -232,7 +231,7 @@ export default {
     
     // 菜单项和对应组件映射
     const menuOptions = {
-      dynamic: '动态',
+      dynamic: '动�?,
       published: '我的发布',
       follows: '我的关注',
       favorites: '我的收藏'
@@ -247,11 +246,9 @@ export default {
     
     // 活动菜单
     const activeMenu = ref('dynamic')
-    // 当前显示的组件
-    const currentComponent = ref(componentMap.published)
+    // 当前显示的组�?    const currentComponent = ref(componentMap.published)
     
-    // 判断当前菜单是否有对应组件
-    const hasComponent = computed(() => {
+    // 判断当前菜单是否有对应组�?    const hasComponent = computed(() => {
       return componentMap[activeMenu.value] !== undefined
     })
     
@@ -294,8 +291,7 @@ export default {
         currentComponent.value = null
       }
       
-      // 更新路由参数（不刷新页面）
-      router.push({
+      // 更新路由参数（不刷新页面�?      router.push({
         path: `/profile/${key}`,
         replace: true
       })
@@ -310,23 +306,20 @@ export default {
     const handleFollow = async () => {
       try {
         if (isFollowing.value) {
-          // 取消关注 - 这里应该调用用户模块的取消关注方法
-          // await store.dispatch('user/removeFollow', userId.value)
+          // 取消关注 - 这里应该调用用户模块的取消关注方�?          // await store.dispatch('user/removeFollow', userId.value)
           isFollowing.value = false
-          commonSuccessMessages.showOperationSuccess('已取消关注')
+          commonPromptMessages.showProcessing()
         } else {
-          // 添加关注 - 这里应该调用用户模块的添加关注方法
-          // await store.dispatch('user/addFollow', { targetId: userId.value, targetType: 'user' })
+          // 添加关注 - 这里应该调用用户模块的添加关注方�?          // await store.dispatch('user/addFollow', { targetId: userId.value, targetType: 'user' })
           isFollowing.value = true
-          commonSuccessMessages.showOperationSuccess('关注成功')
+          commonPromptMessages.showProcessing()
         }
       } catch (error) {
-        commonErrorMessages.showOperationFailed()
+        console.error('����ʧ��')
       }
     }
     
-    // 跳转到店铺
-    const goToShop = () => {
+    // 跳转到店�?    const goToShop = () => {
       if (userInfo.value.shopId) {
         router.push(`/shop/${userInfo.value.shopId}`)
       }
@@ -344,13 +337,12 @@ export default {
           store.dispatch('message/fetchUserStatistics', targetUserId)
         ])
       } catch (error) {
-        console.error('加载用户数据失败：', error)
-        commonErrorMessages.showLoadFailed('加载用户信息失败')
+        console.error('加载用户数据失败�?, error)
+        console.error('����ʧ��')
       }
     }
     
-    // 格式化日期
-    const formatDate = (date) => {
+    // 格式化日�?    const formatDate = (date) => {
       if (!date) return ''
       const d = new Date(date)
       return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`
@@ -490,8 +482,7 @@ export default {
       }
     }
     
-    // 导航分割线样式
-    .navigation-divider {
+    // 导航分割线样�?    .navigation-divider {
       border-bottom: 1px solid #f0f0f0;
       margin: 0 -30px;
       
@@ -625,8 +616,7 @@ export default {
   }
 }
 
-// 响应式样式
-@media (max-width: 768px) {
+// 响应式样�?@media (max-width: 768px) {
   .user-home-page {
     .home-card {
       .user-profile-section {
