@@ -15,7 +15,6 @@ import java.util.Map;
 
 /**
  * 消息控制器
- * 注意：数据由Apifox模拟，Controller仅保留骨架结构
  */
 @RestController
 @RequestMapping({"/api/messages", "/api/message"})
@@ -29,8 +28,8 @@ public class MessageController {
      */
     @GetMapping("/sessions")
     public Result<List<ChatSession>> listSessions() {
-        // TODO: 数据由Apifox模拟
-        return Result.success(java.util.Collections.emptyList());
+        List<ChatSession> result = messageService.listSessions();
+        return Result.success(result);
     }
 
     /**
@@ -38,8 +37,8 @@ public class MessageController {
      */
     @GetMapping("/sessions/{id}")
     public Result<ChatSession> getSessionById(@PathVariable Long id) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new ChatSession());
+        ChatSession result = messageService.getSessionById(id);
+        return Result.success(result);
     }
 
     /**
@@ -47,8 +46,8 @@ public class MessageController {
      */
     @PostMapping("/sessions")
     public Result<ChatSession> createOrGetSession(@RequestParam String targetId, @RequestParam String targetType) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new ChatSession());
+        ChatSession result = messageService.createOrGetSession(targetId, targetType);
+        return Result.success(result);
     }
 
     /**
@@ -59,8 +58,11 @@ public class MessageController {
             @PathVariable Long sessionId,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "20") Integer size) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(PageResult.of(java.util.Collections.emptyList(), 0L, page, size));
+        PageParam pageParam = new PageParam();
+        pageParam.setPageNum(page);
+        pageParam.setPageSize(size);
+        PageResult<ChatMessage> result = messageService.listMessages(sessionId, pageParam);
+        return Result.success(result);
     }
 
     /**
@@ -68,8 +70,8 @@ public class MessageController {
      */
     @PostMapping("/messages")
     public Result<ChatMessage> sendMessage(@RequestBody ChatMessage message) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new ChatMessage());
+        ChatMessage result = messageService.sendMessage(message);
+        return Result.success(result);
     }
 
     /**
@@ -77,8 +79,8 @@ public class MessageController {
      */
     @PostMapping("/send")
     public Result<ChatMessage> sendMessageCompat(@RequestBody ChatMessage message) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new ChatMessage());
+        ChatMessage result = messageService.sendMessage(message);
+        return Result.success(result);
     }
 
     /**
@@ -86,8 +88,8 @@ public class MessageController {
      */
     @PostMapping("/delete")
     public Result<Boolean> deleteMessageCompat(@RequestBody(required = false) Object body) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = messageService.deleteMessageCompat(body);
+        return Result.success(result);
     }
 
     /**
@@ -95,8 +97,8 @@ public class MessageController {
      */
     @PutMapping("/sessions/{sessionId}/read")
     public Result<Boolean> markMessagesAsRead(@PathVariable Long sessionId) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = messageService.markMessagesAsRead(sessionId);
+        return Result.success(result);
     }
 
     /**
@@ -104,8 +106,8 @@ public class MessageController {
      */
     @GetMapping("/messages/unread-count")
     public Result<Integer> countUnreadMessages() {
-        // TODO: 数据由Apifox模拟
-        return Result.success(0);
+        Integer result = messageService.countUnreadMessages();
+        return Result.success(result);
     }
 
     /**
@@ -116,8 +118,11 @@ public class MessageController {
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "20") Integer size,
             @RequestParam(required = false) String type) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(PageResult.of(java.util.Collections.emptyList(), 0L, page, size));
+        PageParam pageParam = new PageParam();
+        pageParam.setPageNum(page);
+        pageParam.setPageSize(size);
+        PageResult<UserNotification> result = messageService.listNotifications(type, pageParam);
+        return Result.success(result);
     }
 
     /**
@@ -125,8 +130,8 @@ public class MessageController {
      */
     @PutMapping("/notifications/{id}/read")
     public Result<Boolean> markNotificationAsRead(@PathVariable Long id) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = messageService.markNotificationAsRead(id);
+        return Result.success(result);
     }
 
     /**
@@ -134,8 +139,8 @@ public class MessageController {
      */
     @PutMapping("/notifications/read-all")
     public Result<Boolean> markAllNotificationsAsRead() {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = messageService.markAllNotificationsAsRead();
+        return Result.success(result);
     }
 
     /**
@@ -143,8 +148,8 @@ public class MessageController {
      */
     @GetMapping("/notifications/{id}")
     public Result<UserNotification> getNotificationDetail(@PathVariable Long id) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new UserNotification());
+        UserNotification result = messageService.getNotificationDetail(id);
+        return Result.success(result);
     }
 
     /**
@@ -152,8 +157,8 @@ public class MessageController {
      */
     @DeleteMapping("/notifications/{id}")
     public Result<Boolean> deleteNotification(@PathVariable Long id) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = messageService.deleteNotification(id);
+        return Result.success(result);
     }
 
     /**
@@ -161,8 +166,8 @@ public class MessageController {
      */
     @PutMapping("/notifications/batch-read")
     public Result<Boolean> batchMarkNotificationsAsRead(@RequestBody List<Long> ids) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = messageService.batchMarkNotificationsAsRead(ids);
+        return Result.success(result);
     }
 
     /**
@@ -170,8 +175,8 @@ public class MessageController {
      */
     @DeleteMapping("/notifications/batch")
     public Result<Boolean> batchDeleteNotifications(@RequestBody List<Long> ids) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = messageService.batchDeleteNotifications(ids);
+        return Result.success(result);
     }
 
     /**
@@ -179,8 +184,8 @@ public class MessageController {
      */
     @GetMapping("/notifications/unread-count")
     public Result<Integer> countUnreadNotifications() {
-        // TODO: 数据由Apifox模拟
-        return Result.success(0);
+        Integer result = messageService.countUnreadNotifications();
+        return Result.success(result);
     }
 
     /**
@@ -188,8 +193,8 @@ public class MessageController {
      */
     @PutMapping("/sessions/{sessionId}/pin")
     public Result<Boolean> pinChatSession(@PathVariable Long sessionId) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = messageService.pinChatSession(sessionId);
+        return Result.success(result);
     }
     
     /**
@@ -197,8 +202,8 @@ public class MessageController {
      */
     @DeleteMapping("/sessions/{sessionId}")
     public Result<Boolean> deleteChatSession(@PathVariable Long sessionId) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = messageService.deleteChatSession(sessionId);
+        return Result.success(result);
     }
     
     /**
@@ -209,8 +214,8 @@ public class MessageController {
             @RequestParam("sessionId") String sessionId,
             @RequestParam("receiverId") String receiverId,
             @RequestParam("image") org.springframework.web.multipart.MultipartFile image) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new ChatMessage());
+        ChatMessage result = messageService.sendImageMessage(sessionId, receiverId, image);
+        return Result.success(result);
     }
     
     /**
@@ -218,8 +223,8 @@ public class MessageController {
      */
     @GetMapping("/user/profile/{userId}")
     public Result<Map<String, Object>> getUserProfile(@PathVariable String userId) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new java.util.HashMap<>());
+        Map<String, Object> result = messageService.getUserProfile(userId);
+        return Result.success(result);
     }
     
     /**
@@ -227,8 +232,8 @@ public class MessageController {
      */
     @GetMapping("/user/profile/{userId}/dynamic")
     public Result<Map<String, Object>> getUserDynamic(@PathVariable String userId) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new java.util.HashMap<>());
+        Map<String, Object> result = messageService.getUserDynamic(userId);
+        return Result.success(result);
     }
     
     /**
@@ -236,8 +241,8 @@ public class MessageController {
      */
     @GetMapping("/user/profile/{userId}/statistics")
     public Result<Map<String, Object>> getUserStatistics(@PathVariable String userId) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new java.util.HashMap<>());
+        Map<String, Object> result = messageService.getUserStatistics(userId);
+        return Result.success(result);
     }
 
     /**
@@ -248,8 +253,11 @@ public class MessageController {
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "20") Integer size,
             @RequestParam(required = false) String sortBy) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(PageResult.of(java.util.Collections.emptyList(), 0L, page, size));
+        PageParam pageParam = new PageParam();
+        pageParam.setPageNum(page);
+        pageParam.setPageSize(size);
+        PageResult<Map<String, Object>> result = messageService.getUserPosts(sortBy, pageParam);
+        return Result.success(result);
     }
     
     /**
@@ -259,8 +267,11 @@ public class MessageController {
     public Result<PageResult<Map<String, Object>>> getUserReviews(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "20") Integer size) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(PageResult.of(java.util.Collections.emptyList(), 0L, page, size));
+        PageParam pageParam = new PageParam();
+        pageParam.setPageNum(page);
+        pageParam.setPageSize(size);
+        PageResult<Map<String, Object>> result = messageService.getUserReviews(pageParam);
+        return Result.success(result);
     }
 
     /**
@@ -268,8 +279,8 @@ public class MessageController {
      */
     @GetMapping("/customer-service/sessions")
     public Result<List<ChatSession>> listCustomerServiceSessions() {
-        // TODO: 数据由Apifox模拟
-        return Result.success(java.util.Collections.emptyList());
+        List<ChatSession> result = messageService.listCustomerServiceSessions();
+        return Result.success(result);
     }
 
     /**
@@ -277,7 +288,7 @@ public class MessageController {
      */
     @PostMapping("/customer-service/messages")
     public Result<ChatMessage> replyCustomerService(@RequestBody ChatMessage message) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new ChatMessage());
+        ChatMessage result = messageService.replyCustomerService(message);
+        return Result.success(result);
     }
 }

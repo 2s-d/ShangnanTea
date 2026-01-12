@@ -17,7 +17,6 @@ import java.util.Map;
 
 /**
  * 论坛控制器
- * 注意：数据由Apifox模拟，Controller仅保留骨架结构
  */
 @RestController
 @RequestMapping("/api/forum")
@@ -33,8 +32,8 @@ public class ForumController {
      */
     @GetMapping("/topics")
     public Result<List<Map<String, Object>>> listTopics() {
-        // TODO: 数据由Apifox模拟
-        return Result.success(java.util.Collections.emptyList());
+        List<Map<String, Object>> result = forumService.listTopics();
+        return Result.success(result);
     }
     
     /**
@@ -45,8 +44,8 @@ public class ForumController {
      */
     @GetMapping("/topics/{id}")
     public Result<ForumTopic> getTopicById(@PathVariable Integer id) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new ForumTopic());
+        ForumTopic result = forumService.getTopicById(id);
+        return Result.success(result);
     }
     
     /**
@@ -57,8 +56,8 @@ public class ForumController {
      */
     @PostMapping("/topics")
     public Result<ForumTopic> createTopic(@RequestBody ForumTopic topic) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new ForumTopic());
+        ForumTopic result = forumService.createTopic(topic);
+        return Result.success(result);
     }
     
     /**
@@ -70,8 +69,9 @@ public class ForumController {
      */
     @PutMapping("/topics/{id}")
     public Result<Boolean> updateTopic(@PathVariable Integer id, @RequestBody ForumTopic topic) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        topic.setId(id);
+        Boolean result = forumService.updateTopic(topic);
+        return Result.success(result);
     }
     
     /**
@@ -82,8 +82,8 @@ public class ForumController {
      */
     @DeleteMapping("/topics/{id}")
     public Result<Boolean> deleteTopic(@PathVariable Integer id) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = forumService.deleteTopic(id);
+        return Result.success(result);
     }
     
     /**
@@ -94,8 +94,8 @@ public class ForumController {
      */
     @GetMapping("/posts/{id}")
     public Result<Map<String, Object>> getPostById(@PathVariable Long id) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new java.util.HashMap<>());
+        Map<String, Object> result = forumService.getPostById(id);
+        return Result.success(result);
     }
 
     /**
@@ -115,8 +115,11 @@ public class ForumController {
             @RequestParam(defaultValue = "latest") String sortBy,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new java.util.HashMap<>());
+        PageParam pageParam = new PageParam();
+        pageParam.setPageNum(page);
+        pageParam.setPageSize(size);
+        Map<String, Object> result = forumService.listPosts(topicId, keyword, sortBy, pageParam);
+        return Result.success(result);
     }
     
     /**
@@ -132,8 +135,11 @@ public class ForumController {
             @PathVariable Integer topicId,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(PageResult.of(java.util.Collections.emptyList(), 0L, page, size));
+        PageParam pageParam = new PageParam();
+        pageParam.setPageNum(page);
+        pageParam.setPageSize(size);
+        PageResult<ForumPost> result = forumService.listPostsByTopic(topicId, pageParam);
+        return Result.success(result);
     }
     
     /**
@@ -144,8 +150,8 @@ public class ForumController {
      */
     @PostMapping("/posts")
     public Result<Map<String, Object>> createPost(@RequestBody Map<String, Object> postData) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new java.util.HashMap<>());
+        Map<String, Object> result = forumService.createPost(postData);
+        return Result.success(result);
     }
     
     /**
@@ -157,8 +163,8 @@ public class ForumController {
      */
     @PutMapping("/posts/{id}")
     public Result<Map<String, Object>> updatePost(@PathVariable Long id, @RequestBody Map<String, Object> postData) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new java.util.HashMap<>());
+        Map<String, Object> result = forumService.updatePost(id, postData);
+        return Result.success(result);
     }
     
     /**
@@ -169,8 +175,8 @@ public class ForumController {
      */
     @DeleteMapping("/posts/{id}")
     public Result<Boolean> deletePost(@PathVariable Long id) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = forumService.deletePost(id);
+        return Result.success(result);
     }
     
     /**
@@ -184,8 +190,8 @@ public class ForumController {
     public Result<Map<String, Object>> setPostSticky(
             @PathVariable Long id,
             @RequestParam Boolean isSticky) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new java.util.HashMap<>());
+        Map<String, Object> result = forumService.setPostSticky(id, isSticky);
+        return Result.success(result);
     }
     
     /**
@@ -199,8 +205,8 @@ public class ForumController {
     public Result<Map<String, Object>> setPostEssence(
             @PathVariable Long id,
             @RequestParam Boolean isEssence) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new java.util.HashMap<>());
+        Map<String, Object> result = forumService.setPostEssence(id, isEssence);
+        return Result.success(result);
     }
     
     /**
@@ -214,8 +220,11 @@ public class ForumController {
     public Result<Map<String, Object>> getPendingPosts(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new java.util.HashMap<>());
+        PageParam pageParam = new PageParam();
+        pageParam.setPageNum(page);
+        pageParam.setPageSize(size);
+        Map<String, Object> result = forumService.getPendingPosts(pageParam);
+        return Result.success(result);
     }
     
     /**
@@ -229,8 +238,8 @@ public class ForumController {
     public Result<Map<String, Object>> approvePost(
             @PathVariable Long id,
             @RequestBody Map<String, Object> auditData) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new java.util.HashMap<>());
+        Map<String, Object> result = forumService.approvePost(id, auditData);
+        return Result.success(result);
     }
     
     /**
@@ -244,8 +253,8 @@ public class ForumController {
     public Result<Map<String, Object>> rejectPost(
             @PathVariable Long id,
             @RequestBody Map<String, Object> auditData) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new java.util.HashMap<>());
+        Map<String, Object> result = forumService.rejectPost(id, auditData);
+        return Result.success(result);
     }
     
     /**
@@ -263,8 +272,11 @@ public class ForumController {
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(defaultValue = "time") String sortBy) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new java.util.HashMap<>());
+        PageParam pageParam = new PageParam();
+        pageParam.setPageNum(page);
+        pageParam.setPageSize(size);
+        Map<String, Object> result = forumService.listRepliesByPost(postId, sortBy, pageParam);
+        return Result.success(result);
     }
     
     /**
@@ -277,8 +289,8 @@ public class ForumController {
     public Result<Map<String, Object>> createReply(
             @PathVariable Long postId,
             @RequestBody Map<String, Object> replyData) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new java.util.HashMap<>());
+        Map<String, Object> result = forumService.createReply(postId, replyData);
+        return Result.success(result);
     }
     
     /**
@@ -289,8 +301,8 @@ public class ForumController {
      */
     @DeleteMapping("/replies/{id}")
     public Result<Boolean> deleteReply(@PathVariable Long id) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = forumService.deleteReply(id);
+        return Result.success(result);
     }
     
     /**
@@ -301,8 +313,8 @@ public class ForumController {
      */
     @PostMapping("/replies/{id}/like")
     public Result<Map<String, Object>> likeReply(@PathVariable Long id) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new java.util.HashMap<>());
+        Map<String, Object> result = forumService.likeReply(id);
+        return Result.success(result);
     }
     
     /**
@@ -313,8 +325,8 @@ public class ForumController {
      */
     @DeleteMapping("/replies/{id}/like")
     public Result<Map<String, Object>> unlikeReply(@PathVariable Long id) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new java.util.HashMap<>());
+        Map<String, Object> result = forumService.unlikeReply(id);
+        return Result.success(result);
     }
     
     /**
@@ -325,8 +337,8 @@ public class ForumController {
      */
     @GetMapping("/articles/{id}")
     public Result<Map<String, Object>> getArticleById(@PathVariable Long id) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new java.util.HashMap<>());
+        Map<String, Object> result = forumService.getArticleById(id);
+        return Result.success(result);
     }
     
     /**
@@ -342,8 +354,11 @@ public class ForumController {
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(required = false) String category) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new java.util.HashMap<>());
+        PageParam pageParam = new PageParam();
+        pageParam.setPageNum(page);
+        pageParam.setPageSize(size);
+        Map<String, Object> result = forumService.listArticles(category, pageParam);
+        return Result.success(result);
     }
     
     /**
@@ -354,8 +369,8 @@ public class ForumController {
      */
     @PostMapping("/articles")
     public Result<Map<String, Object>> createArticle(@RequestBody Map<String, Object> articleData) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new java.util.HashMap<>());
+        Map<String, Object> result = forumService.createArticle(articleData);
+        return Result.success(result);
     }
     
     /**
@@ -367,8 +382,8 @@ public class ForumController {
      */
     @PutMapping("/articles/{id}")
     public Result<Map<String, Object>> updateArticle(@PathVariable Long id, @RequestBody Map<String, Object> articleData) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new java.util.HashMap<>());
+        Map<String, Object> result = forumService.updateArticle(id, articleData);
+        return Result.success(result);
     }
     
     /**
@@ -379,8 +394,8 @@ public class ForumController {
      */
     @DeleteMapping("/articles/{id}")
     public Result<Boolean> deleteArticle(@PathVariable Long id) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = forumService.deleteArticle(id);
+        return Result.success(result);
     }
     
     /**
@@ -392,8 +407,8 @@ public class ForumController {
     @GetMapping("/home-contents")
     public Result<List<HomeContent>> listHomeContents(
             @RequestParam(required = false) String section) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(java.util.Collections.emptyList());
+        List<HomeContent> result = forumService.listHomeContents(section);
+        return Result.success(result);
     }
     
     /**
@@ -404,8 +419,8 @@ public class ForumController {
      */
     @PostMapping("/home-contents")
     public Result<HomeContent> createHomeContent(@RequestBody HomeContent content) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new HomeContent());
+        HomeContent result = forumService.createHomeContent(content);
+        return Result.success(result);
     }
     
     /**
@@ -417,8 +432,9 @@ public class ForumController {
      */
     @PutMapping("/home-contents/{id}")
     public Result<Boolean> updateHomeContent(@PathVariable Integer id, @RequestBody HomeContent content) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        content.setId(id);
+        Boolean result = forumService.updateHomeContent(content);
+        return Result.success(result);
     }
     
     /**
@@ -429,8 +445,8 @@ public class ForumController {
      */
     @DeleteMapping("/home-contents/{id}")
     public Result<Boolean> deleteHomeContent(@PathVariable Integer id) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = forumService.deleteHomeContent(id);
+        return Result.success(result);
     }
     
     /**
@@ -440,8 +456,8 @@ public class ForumController {
      */
     @GetMapping("/banners")
     public Result<List<Map<String, Object>>> getBanners() {
-        // TODO: 数据由Apifox模拟
-        return Result.success(java.util.Collections.emptyList());
+        List<Map<String, Object>> result = forumService.getBanners();
+        return Result.success(result);
     }
     
     /**
@@ -459,8 +475,8 @@ public class ForumController {
             @RequestParam("title") String title,
             @RequestParam(value = "subtitle", required = false) String subtitle,
             @RequestParam(value = "linkUrl", required = false) String linkUrl) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new java.util.HashMap<>());
+        Map<String, Object> result = forumService.uploadBanner(file, title, subtitle, linkUrl);
+        return Result.success(result);
     }
     
     /**
@@ -474,8 +490,8 @@ public class ForumController {
     public Result<Map<String, Object>> updateBanner(
             @PathVariable Long id, 
             @RequestBody Map<String, Object> bannerData) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new java.util.HashMap<>());
+        Map<String, Object> result = forumService.updateBanner(id, bannerData);
+        return Result.success(result);
     }
     
     /**
@@ -486,8 +502,8 @@ public class ForumController {
      */
     @DeleteMapping("/banners/{id}")
     public Result<Boolean> deleteBanner(@PathVariable Long id) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = forumService.deleteBanner(id);
+        return Result.success(result);
     }
     
     /**
@@ -498,8 +514,8 @@ public class ForumController {
      */
     @PutMapping("/banners/order")
     public Result<List<Map<String, Object>>> updateBannerOrder(@RequestBody Map<String, Object> orderData) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(java.util.Collections.emptyList());
+        List<Map<String, Object>> result = forumService.updateBannerOrder(orderData);
+        return Result.success(result);
     }
     
     /**
@@ -509,8 +525,8 @@ public class ForumController {
      */
     @GetMapping("/home-contents/full")
     public Result<Map<String, Object>> getHomeContentsFull() {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new java.util.HashMap<>());
+        Map<String, Object> result = forumService.getHomeContentsFull();
+        return Result.success(result);
     }
     
     /**
@@ -521,8 +537,8 @@ public class ForumController {
      */
     @PutMapping("/home-contents")
     public Result<Map<String, Object>> updateHomeContents(@RequestBody Map<String, Object> homeData) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new java.util.HashMap<>());
+        Map<String, Object> result = forumService.updateHomeContents(homeData);
+        return Result.success(result);
     }
     
     /**
@@ -533,8 +549,8 @@ public class ForumController {
      */
     @PostMapping("/posts/{id}/like")
     public Result<Map<String, Object>> likePost(@PathVariable Long id) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new java.util.HashMap<>());
+        Map<String, Object> result = forumService.likePost(id);
+        return Result.success(result);
     }
     
     /**
@@ -545,8 +561,8 @@ public class ForumController {
      */
     @DeleteMapping("/posts/{id}/like")
     public Result<Map<String, Object>> unlikePost(@PathVariable Long id) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new java.util.HashMap<>());
+        Map<String, Object> result = forumService.unlikePost(id);
+        return Result.success(result);
     }
     
     /**
@@ -557,8 +573,8 @@ public class ForumController {
      */
     @PostMapping("/posts/{id}/favorite")
     public Result<Map<String, Object>> favoritePost(@PathVariable Long id) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new java.util.HashMap<>());
+        Map<String, Object> result = forumService.favoritePost(id);
+        return Result.success(result);
     }
     
     /**
@@ -569,7 +585,7 @@ public class ForumController {
      */
     @DeleteMapping("/posts/{id}/favorite")
     public Result<Map<String, Object>> unfavoritePost(@PathVariable Long id) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new java.util.HashMap<>());
+        Map<String, Object> result = forumService.unfavoritePost(id);
+        return Result.success(result);
     }
 }

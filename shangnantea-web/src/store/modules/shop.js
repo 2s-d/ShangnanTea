@@ -197,20 +197,21 @@ const actions = {
         delete params.sortOrder
       }
       
-      // 响应拦截器已解包，res 直接是 data 内容
+      // 拦截器返回 {code, data}，从 res.data 获取数据
       const res = await getShops(params)
+      const data = res.data
       
       // 统一处理分页数据格式
-      const list = res?.list || res?.records || (Array.isArray(res) ? res : [])
-      const total = res?.total || list.length || 0
+      const list = data?.list || data?.records || (Array.isArray(data) ? data : [])
+      const total = data?.total || list.length || 0
       
       commit('SET_SHOP_LIST', list)
       commit('SET_PAGINATION', {
         total: total,
-        currentPage: res?.pageNum || state.pagination.currentPage,
-        pageSize: res?.pageSize || state.pagination.pageSize
+        currentPage: data?.pageNum || state.pagination.currentPage,
+        pageSize: data?.pageSize || state.pagination.pageSize
       })
-      return res
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('获取店铺列表失败:', error)
       commit('SET_SHOP_LIST', [])
@@ -282,10 +283,10 @@ const actions = {
     try {
       commit('SET_LOADING', true)
       
-      // 响应拦截器已解包，res 直接是店铺对象
+      // 拦截器返回 {code, data}
       const res = await getShopDetail(id)
-      commit('SET_CURRENT_SHOP', res || null)
-      return res
+      commit('SET_CURRENT_SHOP', res.data || null)
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('获取店铺详情失败:', error)
       commit('SET_CURRENT_SHOP', null)
@@ -300,10 +301,10 @@ const actions = {
     try {
       commit('SET_LOADING', true)
       
-      // 响应拦截器已解包，res 直接是店铺对象
+      // 拦截器返回 {code, data}
       const res = await getMyShop()
-      commit('SET_MY_SHOP', res || null)
-      return res
+      commit('SET_MY_SHOP', res.data || null)
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('获取我的店铺失败:', error)
       commit('SET_MY_SHOP', null)
@@ -318,22 +319,23 @@ const actions = {
     try {
       commit('SET_LOADING', true)
       
-      // 响应拦截器已解包，res 直接是 data 内容
+      // 拦截器返回 {code, data}
       const res = await getShopTeas(shopId, params)
+      const data = res.data
       
       // 统一处理分页数据格式
-      const list = res?.list || res?.records || (Array.isArray(res) ? res : [])
+      const list = data?.list || data?.records || (Array.isArray(data) ? data : [])
       
       commit('SET_SHOP_TEAS', list)
       // 更新分页信息
-      if (res?.total !== undefined) {
+      if (data?.total !== undefined) {
         commit('SET_PAGINATION', {
-          total: res.total,
-          currentPage: res.pageNum || 1,
-          pageSize: res.pageSize || 10
+          total: data.total,
+          currentPage: data.pageNum || 1,
+          pageSize: data.pageSize || 10
         })
       }
-      return res
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('获取店铺茶叶列表失败:', error)
       commit('SET_SHOP_TEAS', [])
@@ -353,7 +355,7 @@ const actions = {
         throw new Error('店铺ID不能为空')
       }
       
-      // 响应拦截器已解包，res 直接是更新后的店铺对象
+      // 拦截器返回 {code, data}
       const res = await updateShop({
         ...shopData,
         id: shopId
@@ -361,15 +363,15 @@ const actions = {
       
       // 更新我的商店信息
       if (state.myShop && state.myShop.id === shopId) {
-        commit('SET_MY_SHOP', res)
+        commit('SET_MY_SHOP', res.data)
       }
       
       // 如果当前查看的是我的商店，也更新currentShop
       if (state.currentShop && state.currentShop.id === shopId) {
-        commit('SET_CURRENT_SHOP', res)
+        commit('SET_CURRENT_SHOP', res.data)
       }
       
-      return res
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('更新店铺信息失败:', error)
       throw error
@@ -392,7 +394,7 @@ const actions = {
       
       // 重新加载店铺茶叶列表
       await dispatch('fetchShopTeas', { shopId, params: {} })
-      return res
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('添加茶叶失败:', error)
       throw error
@@ -416,7 +418,7 @@ const actions = {
       const shopTeas = [...state.shopTeas]
       const index = shopTeas.findIndex(tea => tea.id === teaId)
       if (index !== -1) {
-        shopTeas[index] = res
+        shopTeas[index] = res.data
         commit('SET_SHOP_TEAS', shopTeas)
       } else {
         // 如果不在列表中，重新加载
@@ -425,7 +427,7 @@ const actions = {
           await dispatch('fetchShopTeas', { shopId, params: {} })
         }
       }
-      return res
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('更新茶叶失败:', error)
       throw error
@@ -443,7 +445,7 @@ const actions = {
     try {
       commit('SET_LOADING', true)
       
-      await deleteShopTea(teaId)
+      const res = await deleteShopTea(teaId)
       
       // 从列表中移除
       const shopTeas = state.shopTeas.filter(tea => tea.id !== teaId)
@@ -453,7 +455,7 @@ const actions = {
       if (shopId) {
         await dispatch('fetchShopTeas', { shopId, params: {} })
       }
-      return true
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('删除茶叶失败:', error)
       throw error
@@ -480,7 +482,7 @@ const actions = {
         shopTeas[index].status = status
         commit('SET_SHOP_TEAS', shopTeas)
       }
-      return res
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('更新茶叶状态失败:', error)
       throw error
@@ -500,15 +502,16 @@ const actions = {
       if (startDate) params.startDate = startDate
       if (endDate) params.endDate = endDate
       
-      // 响应拦截器已解包，res 直接是统计数据对象
+      // 拦截器返回 {code, data}
       const res = await getShopStatistics(shopId, params)
+      const data = res.data
       
       commit('SET_SHOP_STATISTICS', {
-        overview: res?.overview || null,
-        trends: res?.trends || [],
-        hotProducts: res?.hotProducts || []
+        overview: data?.overview || null,
+        trends: data?.trends || [],
+        hotProducts: data?.hotProducts || []
       })
-      return res
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('获取统计数据失败:', error)
       commit('SET_SHOP_STATISTICS', { overview: null, trends: [], hotProducts: [] })
@@ -526,17 +529,17 @@ const actions = {
     try {
       commit('SET_LOADING', true)
       
-      // 响应拦截器已解包，res 直接是上传结果对象
+      // 拦截器返回 {code, data}
       const res = await uploadShopLogo(shopId, file)
       
-      const logoUrl = res?.url
+      const logoUrl = res.data?.url
       if (state.myShop && state.myShop.id === shopId) {
         commit('SET_MY_SHOP', { ...state.myShop, logo: logoUrl, shop_logo: logoUrl })
       }
       if (state.currentShop && state.currentShop.id === shopId) {
         commit('SET_CURRENT_SHOP', { ...state.currentShop, logo: logoUrl, shop_logo: logoUrl })
       }
-      return res
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('上传Logo失败:', error)
       throw error
@@ -553,11 +556,11 @@ const actions = {
     try {
       commit('SET_LOADING', true)
       
-      // 响应拦截器已解包，res 直接是关注状态对象
+      // 拦截器返回 {code, data}
       const res = await apiCheckFollowStatus(shopId)
       
-      commit('SET_FOLLOW_STATUS', res?.isFollowing || false)
-      return res
+      commit('SET_FOLLOW_STATUS', res.data?.isFollowing || false)
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('获取关注状态失败:', error)
       commit('SET_FOLLOW_STATUS', false)
@@ -586,7 +589,7 @@ const actions = {
         targetAvatar: shop.logo || shop.shop_logo || ''
       }, { root: true })
       commit('SET_FOLLOW_STATUS', true)
-      return res
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('关注店铺失败:', error)
       throw error
@@ -614,7 +617,7 @@ const actions = {
         await dispatch('user/removeFollow', followItem.id, { root: true })
       }
       commit('SET_FOLLOW_STATUS', false)
-      return res
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('取消关注店铺失败:', error)
       throw error
@@ -628,17 +631,17 @@ const actions = {
     const shopId = state.myShop?.id
     if (!shopId) {
       commit('SET_SHOP_BANNERS', [])
-      return []
+      return { code: 200, data: [] }
     }
     try {
       commit('SET_LOADING', true)
       
-      // 响应拦截器已解包，res 直接是 banner 数组
+      // 拦截器返回 {code, data}
       const res = await getShopBanners(shopId)
-      const banners = Array.isArray(res) ? res : []
+      const banners = Array.isArray(res.data) ? res.data : []
       
       commit('SET_SHOP_BANNERS', banners)
-      return banners
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('获取店铺Banner列表失败:', error)
       commit('SET_SHOP_BANNERS', [])
@@ -653,20 +656,206 @@ const actions = {
     const shopId = state.myShop?.id
     if (!shopId) {
       commit('SET_SHOP_ANNOUNCEMENTS', [])
-      return []
+      return { code: 200, data: [] }
     }
     try {
       commit('SET_LOADING', true)
       
-      // 响应拦截器已解包，res 直接是公告数组
+      // 拦截器返回 {code, data}
       const res = await getShopAnnouncements(shopId)
-      const announcements = Array.isArray(res) ? res : []
+      const announcements = Array.isArray(res.data) ? res.data : []
       
       commit('SET_SHOP_ANNOUNCEMENTS', announcements)
-      return announcements
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('获取店铺公告列表失败:', error)
       commit('SET_SHOP_ANNOUNCEMENTS', [])
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+
+  // === 缺失的 Actions 补充 ===
+
+  // 创建店铺
+  async createShop({ commit }, shopData) {
+    try {
+      commit('SET_LOADING', true)
+      const res = await createShop(shopData)
+      commit('SET_MY_SHOP', res.data)
+      return res // 返回 {code, data}
+    } catch (error) {
+      console.error('创建店铺失败:', error)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+
+  // 任务组B：上传店铺 Banner
+  async uploadShopBanner({ commit, state }, { file, linkUrl, sortOrder }) {
+    const shopId = state.myShop?.id
+    if (!shopId) {
+      throw new Error('店铺ID不能为空')
+    }
+    try {
+      commit('SET_LOADING', true)
+      const res = await uploadBanner(shopId, file, { linkUrl, sortOrder })
+      commit('ADD_BANNER', res.data)
+      return res // 返回 {code, data}
+    } catch (error) {
+      console.error('上传Banner失败:', error)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+
+  // 任务组B：更新店铺 Banner
+  async updateShopBanner({ commit }, { bannerId, bannerData }) {
+    try {
+      commit('SET_LOADING', true)
+      const res = await updateBanner(bannerId, bannerData)
+      commit('UPDATE_BANNER', res.data)
+      return res // 返回 {code, data}
+    } catch (error) {
+      console.error('更新Banner失败:', error)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+
+  // 任务组B：删除店铺 Banner
+  async deleteShopBanner({ commit }, bannerId) {
+    try {
+      commit('SET_LOADING', true)
+      const res = await deleteBanner(bannerId)
+      commit('REMOVE_BANNER', bannerId)
+      return res // 返回 {code, data}
+    } catch (error) {
+      console.error('删除Banner失败:', error)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+
+  // 任务组B：更新 Banner 排序
+  async updateShopBannerOrder({ commit, state }, bannerIds) {
+    const shopId = state.myShop?.id
+    if (!shopId) {
+      throw new Error('店铺ID不能为空')
+    }
+    try {
+      commit('SET_LOADING', true)
+      const res = await updateBannerOrder(shopId, bannerIds)
+      // 根据新顺序重排本地数据
+      const orderedBanners = bannerIds.map(id => 
+        state.shopBanners.find(b => b.id === id)
+      ).filter(Boolean)
+      commit('UPDATE_BANNER_ORDER', orderedBanners)
+      return res // 返回 {code, data}
+    } catch (error) {
+      console.error('更新Banner排序失败:', error)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+
+  // 任务组B：创建店铺公告
+  async createShopAnnouncement({ commit, state }, announcementData) {
+    const shopId = state.myShop?.id
+    if (!shopId) {
+      throw new Error('店铺ID不能为空')
+    }
+    try {
+      commit('SET_LOADING', true)
+      const res = await createAnnouncement(shopId, announcementData)
+      commit('ADD_ANNOUNCEMENT', res.data)
+      return res // 返回 {code, data}
+    } catch (error) {
+      console.error('创建公告失败:', error)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+
+  // 任务组B：更新店铺公告
+  async updateShopAnnouncement({ commit }, { announcementId, announcementData }) {
+    try {
+      commit('SET_LOADING', true)
+      const res = await updateAnnouncement(announcementId, announcementData)
+      commit('UPDATE_ANNOUNCEMENT', res.data)
+      return res // 返回 {code, data}
+    } catch (error) {
+      console.error('更新公告失败:', error)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+
+  // 任务组B：删除店铺公告
+  async deleteShopAnnouncement({ commit }, announcementId) {
+    try {
+      commit('SET_LOADING', true)
+      const res = await deleteAnnouncement(announcementId)
+      commit('REMOVE_ANNOUNCEMENT', announcementId)
+      return res // 返回 {code, data}
+    } catch (error) {
+      console.error('删除公告失败:', error)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+
+  // 获取店铺评价列表
+  async fetchShopReviews({ commit, state }, { shopId, params = {} }) {
+    const targetShopId = shopId || state.currentShop?.id
+    if (!targetShopId) {
+      throw new Error('店铺ID不能为空')
+    }
+    try {
+      commit('SET_LOADING', true)
+      const res = await apiGetShopReviews(targetShopId, params)
+      const data = res.data
+      const reviews = data?.list || (Array.isArray(data) ? data : [])
+      commit('SET_SHOP_REVIEWS', reviews)
+      if (data?.total !== undefined) {
+        commit('SET_REVIEW_PAGINATION', {
+          total: data.total,
+          currentPage: data.pageNum || params.page || 1,
+          pageSize: data.pageSize || params.size || 10
+        })
+      }
+      return res // 返回 {code, data}
+    } catch (error) {
+      console.error('获取店铺评价失败:', error)
+      commit('SET_SHOP_REVIEWS', [])
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+
+  // 提交店铺评价
+  async submitShopReview({ commit, state }, { shopId, reviewData }) {
+    const targetShopId = shopId || state.currentShop?.id
+    if (!targetShopId) {
+      throw new Error('店铺ID不能为空')
+    }
+    try {
+      commit('SET_LOADING', true)
+      const res = await apiSubmitShopReview(targetShopId, reviewData)
+      commit('ADD_SHOP_REVIEW', res.data)
+      return res // 返回 {code, data}
+    } catch (error) {
+      console.error('提交店铺评价失败:', error)
       throw error
     } finally {
       commit('SET_LOADING', false)

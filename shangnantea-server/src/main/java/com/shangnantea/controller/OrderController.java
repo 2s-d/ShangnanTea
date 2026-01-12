@@ -14,7 +14,6 @@ import java.util.Map;
 
 /**
  * 订单控制器
- * 注意：数据由Apifox模拟，Controller仅保留骨架结构
  */
 @RestController
 @RequestMapping("/api/order")
@@ -31,8 +30,8 @@ public class OrderController {
      */
     @GetMapping("/{id}")
     public Result<Order> getOrderById(@PathVariable String id) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new Order());
+        Order result = orderService.getOrderById(id);
+        return Result.success(result);
     }
     
     /**
@@ -43,12 +42,12 @@ public class OrderController {
      */
     @PostMapping("/create")
     public Result<Order> createOrder(@RequestBody Order order) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new Order());
+        Order result = orderService.createOrder(order);
+        return Result.success(result);
     }
 
     /**
-     * 兼容前端路径：/order/list（骨架接口）
+     * 兼容前端路径：/order/list
      *
      * @return 分页列表
      */
@@ -57,53 +56,56 @@ public class OrderController {
             @RequestParam(required = false) Integer status,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(PageResult.of(java.util.Collections.emptyList(), 0L, page, size));
+        PageParam pageParam = new PageParam();
+        pageParam.setPageNum(page);
+        pageParam.setPageSize(size);
+        PageResult<Order> result = orderService.listOrdersCompat(status, pageParam);
+        return Result.success(result);
     }
 
     /**
-     * 兼容前端路径：/order/pay（骨架接口）
+     * 兼容前端路径：/order/pay
      */
     @PostMapping("/pay")
     public Result<Boolean> payOrderCompat(@RequestBody(required = false) Map<String, Object> body) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = orderService.payOrderCompat(body);
+        return Result.success(result);
     }
 
     /**
-     * 兼容前端路径：/order/cancel（骨架接口）
+     * 兼容前端路径：/order/cancel
      */
     @PostMapping("/cancel")
     public Result<Boolean> cancelOrderCompat(@RequestBody(required = false) Map<String, Object> body) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = orderService.cancelOrderCompat(body);
+        return Result.success(result);
     }
 
     /**
-     * 兼容前端路径：/order/confirm（骨架接口）
+     * 兼容前端路径：/order/confirm
      */
     @PostMapping("/confirm")
     public Result<Boolean> confirmOrderCompat(@RequestBody(required = false) Map<String, Object> body) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = orderService.confirmOrderCompat(body);
+        return Result.success(result);
     }
 
     /**
-     * 兼容前端路径：/order/review（骨架接口）
+     * 兼容前端路径：/order/review
      */
     @PostMapping("/review")
     public Result<Boolean> reviewOrderCompat(@RequestBody(required = false) Map<String, Object> body) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = orderService.reviewOrderCompat(body);
+        return Result.success(result);
     }
 
     /**
-     * 兼容前端路径：/order/refund（骨架接口）
+     * 兼容前端路径：/order/refund
      */
     @PostMapping("/refund")
     public Result<Boolean> refundOrderCompat(@RequestBody(required = false) Map<String, Object> body) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = orderService.refundOrderCompat(body);
+        return Result.success(result);
     }
     
     /**
@@ -117,8 +119,8 @@ public class OrderController {
     public Result<Boolean> updateOrderStatus(
             @PathVariable String id,
             @RequestParam Integer status) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = orderService.updateOrderStatus(id, status);
+        return Result.success(result);
     }
     
     /**
@@ -132,8 +134,8 @@ public class OrderController {
     public Result<Boolean> cancelOrder(
             @PathVariable String id,
             @RequestParam String cancelReason) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = orderService.cancelOrder(id, cancelReason);
+        return Result.success(result);
     }
     
     /**
@@ -144,8 +146,8 @@ public class OrderController {
      */
     @PostMapping("/{id}/complete")
     public Result<Boolean> completeOrder(@PathVariable String id) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = orderService.completeOrder(id);
+        return Result.success(result);
     }
     
     /**
@@ -161,8 +163,8 @@ public class OrderController {
             @PathVariable String id,
             @RequestParam String logisticsCompany,
             @RequestParam String logisticsNumber) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = orderService.shipOrder(id, logisticsCompany, logisticsNumber);
+        return Result.success(result);
     }
     
     /**
@@ -178,8 +180,11 @@ public class OrderController {
             @RequestParam(required = false) Integer status,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(PageResult.of(java.util.Collections.emptyList(), 0L, page, size));
+        PageParam pageParam = new PageParam();
+        pageParam.setPageNum(page);
+        pageParam.setPageSize(size);
+        PageResult<Order> result = orderService.listMyOrders(status, pageParam);
+        return Result.success(result);
     }
     
     /**
@@ -195,8 +200,11 @@ public class OrderController {
             @RequestParam(required = false) Integer status,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(PageResult.of(java.util.Collections.emptyList(), 0L, page, size));
+        PageParam pageParam = new PageParam();
+        pageParam.setPageNum(page);
+        pageParam.setPageSize(size);
+        PageResult<Order> result = orderService.listShopOrders(status, pageParam);
+        return Result.success(result);
     }
     
     /**
@@ -212,8 +220,11 @@ public class OrderController {
             @RequestParam(required = false) Integer status,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(PageResult.of(java.util.Collections.emptyList(), 0L, page, size));
+        PageParam pageParam = new PageParam();
+        pageParam.setPageNum(page);
+        pageParam.setPageSize(size);
+        PageResult<Order> result = orderService.listAllOrders(status, pageParam);
+        return Result.success(result);
     }
     
     /**
@@ -223,8 +234,8 @@ public class OrderController {
      */
     @GetMapping("/cart")
     public Result<List<ShoppingCart>> getCart() {
-        // TODO: 数据由Apifox模拟
-        return Result.success(java.util.Collections.emptyList());
+        List<ShoppingCart> result = orderService.getCart();
+        return Result.success(result);
     }
     
     /**
@@ -235,8 +246,8 @@ public class OrderController {
      */
     @PostMapping("/cart")
     public Result<ShoppingCart> addToCart(@RequestBody ShoppingCart cart) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new ShoppingCart());
+        ShoppingCart result = orderService.addToCart(cart);
+        return Result.success(result);
     }
 
     /**
@@ -244,8 +255,8 @@ public class OrderController {
      */
     @PostMapping("/cart/add")
     public Result<ShoppingCart> addToCartCompat(@RequestBody(required = false) ShoppingCart cart) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new ShoppingCart());
+        ShoppingCart result = orderService.addToCartCompat(cart);
+        return Result.success(result);
     }
 
     /**
@@ -253,8 +264,8 @@ public class OrderController {
      */
     @PutMapping("/cart/update")
     public Result<Boolean> updateCartCompat(@RequestBody(required = false) ShoppingCart cart) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = orderService.updateCartCompat(cart);
+        return Result.success(result);
     }
 
     /**
@@ -262,8 +273,8 @@ public class OrderController {
      */
     @DeleteMapping("/cart/remove")
     public Result<Boolean> removeFromCartCompat(@RequestParam(required = false) Integer id) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = orderService.removeFromCartCompat(id);
+        return Result.success(result);
     }
 
     /**
@@ -275,8 +286,9 @@ public class OrderController {
      */
     @PutMapping("/cart/{id}")
     public Result<Boolean> updateCart(@PathVariable Integer id, @RequestBody ShoppingCart cart) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        cart.setId(id);
+        Boolean result = orderService.updateCart(cart);
+        return Result.success(result);
     }
     
     /**
@@ -287,8 +299,8 @@ public class OrderController {
      */
     @DeleteMapping("/cart/{id}")
     public Result<Boolean> removeFromCart(@PathVariable Integer id) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = orderService.removeFromCart(id);
+        return Result.success(result);
     }
     
     /**
@@ -298,8 +310,8 @@ public class OrderController {
      */
     @DeleteMapping("/cart/clear")
     public Result<Boolean> clearCart() {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = orderService.clearCart();
+        return Result.success(result);
     }
     
     /**
@@ -311,8 +323,8 @@ public class OrderController {
      */
     @PostMapping("/{id}/refund")
     public Result<Boolean> applyRefund(@PathVariable String id, @RequestBody(required = false) Map<String, Object> body) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = orderService.applyRefund(id, body);
+        return Result.success(result);
     }
     
     /**
@@ -324,8 +336,8 @@ public class OrderController {
      */
     @PutMapping("/{id}/refund")
     public Result<Boolean> processRefund(@PathVariable String id, @RequestBody(required = false) Map<String, Object> body) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(true);
+        Boolean result = orderService.processRefund(id, body);
+        return Result.success(result);
     }
     
     /**
@@ -336,7 +348,7 @@ public class OrderController {
      */
     @GetMapping("/{id}/refund")
     public Result<Map<String, Object>> getRefundDetail(@PathVariable String id) {
-        // TODO: 数据由Apifox模拟
-        return Result.success(new java.util.HashMap<>());
+        Map<String, Object> result = orderService.getRefundDetail(id);
+        return Result.success(result);
     }
 }
