@@ -7,9 +7,8 @@ import { useRouter } from 'vue-router'
 // 避免直接导入UI组件，改为使用封装的message组件
 
 import { useTokenStorage } from '@/composables/useStorage' // 直接使用useTokenStorage
-import { handleAsyncOperation, STANDARD_MESSAGES } from '@/utils/messageHelper'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
-import userMessages from '@/utils/promptMessages'
+import { userPromptMessages } from '@/utils/promptMessages'
 
 // 角色常量 - 确保与后端一致 (从permission.js移入)
 export const ROLES = {
@@ -124,26 +123,25 @@ export function useAuth() {
     loading.value = true
     
     try {
-      const result = await handleAsyncOperation(
-        store.dispatch('user/login', credentials),
-        {
-          successMessage: STANDARD_MESSAGES.LOGIN_SUCCESS
+      const response = await store.dispatch('user/login', credentials)
+      
+      if (isSuccess(response.code)) {
+        showByCode(response.code)
+        
+        // 登录成功后立即验证token的有效性
+        const validUser = verifyToken()
+        if (!validUser) {
+          userPromptMessages.showTokenInvalid()
+          await store.dispatch('user/logout')
+          router.push('/login')
+          throw new Error('无效的Token')
         }
-      )
-      
-      // 登录成功后立即验证token的有效性
-      const validUser = verifyToken()
-      if (!validUser) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        // TODO: [user] 迁移到 showByCode(response.code) - error
-        userMessages.error.showTokenInvalid()
-        await store.dispatch('user/logout')
-        router.push('/login')
-        throw new Error('无效的Token')
+        
+        return response.data
+      } else {
+        showByCode(response.code)
+        throw new Error('登录失败')
       }
-      
-      return result
     } catch (error) {
       console.error('登录失败:', error)
       throw error
@@ -161,15 +159,16 @@ export function useAuth() {
     loading.value = true
     
     try {
-      return await handleAsyncOperation(
-        store.dispatch('user/register', userData),
-        {
-          successMessage: STANDARD_MESSAGES.REGISTER_SUCCESS,
-          successCallback: () => {
-            router.push('/login')
-          }
-        }
-      )
+      const response = await store.dispatch('user/register', userData)
+      
+      if (isSuccess(response.code)) {
+        showByCode(response.code)
+        router.push('/login')
+        return response.data
+      } else {
+        showByCode(response.code)
+        throw new Error('注册失败')
+      }
     } catch (error) {
       console.error('注册失败:', error)
       throw error
@@ -187,17 +186,21 @@ export function useAuth() {
     loading.value = true
     
     try {
-      await handleAsyncOperation(
-        store.dispatch('user/logout'),
-        {
-          successMessage: STANDARD_MESSAGES.LOGOUT_SUCCESS,
-          successCallback: () => {
-            if (redirect) {
-              router.push('/login')
-            }
-          }
-        }
-      )
+      const response = await store.dispatch('user/logout')
+      
+      if (isSuccess(response.code)) {
+        showByCode(response.code)
+      } else {
+        showByCode(response.code)
+      }
+      
+      // 无论API调用是否成功，都要清除本地状态
+      removeToken()
+      store.commit('user/CLEAR_USER')
+      
+      if (redirect) {
+        router.push('/login')
+      }
       
       return true
     } catch (error) {
@@ -223,12 +226,15 @@ export function useAuth() {
     loading.value = true
     
     try {
-      return await handleAsyncOperation(
-        store.dispatch('user/updateUserInfo', userData),
-        {
-          successMessage: STANDARD_MESSAGES.UPDATE_SUCCESS
-        }
-      )
+      const response = await store.dispatch('user/updateUserInfo', userData)
+      
+      if (isSuccess(response.code)) {
+        showByCode(response.code)
+        return response.data
+      } else {
+        showByCode(response.code)
+        throw new Error('更新用户信息失败')
+      }
     } catch (error) {
       console.error('更新用户信息失败:', error)
       throw error
@@ -246,12 +252,15 @@ export function useAuth() {
     loading.value = true
     
     try {
-      return await handleAsyncOperation(
-        store.dispatch('user/changePassword', passwordData),
-        {
-          successMessage: '密码修改成功'
-        }
-      )
+      const response = await store.dispatch('user/changePassword', passwordData)
+      
+      if (isSuccess(response.code)) {
+        showByCode(response.code)
+        return response.data
+      } else {
+        showByCode(response.code)
+        throw new Error('修改密码失败')
+      }
     } catch (error) {
       console.error('修改密码失败:', error)
       throw error
