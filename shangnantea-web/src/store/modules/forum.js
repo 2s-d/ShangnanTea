@@ -933,17 +933,18 @@ const actions = {
   },
 
   // 接口#142: 置顶帖子 - 成功码6030/6031, 失败码6130/6131
-  async togglePostSticky({ commit }, { id, isSticky }) {
+  async togglePostSticky({ commit, state }, { id, isSticky }) {
     try {
       const res = await togglePostSticky(id, isSticky)
-      // 更新帖子列表中的置顶状态
-      const post = state.forumPosts.find(p => p.id === id)
-      if (post) {
-        post.isSticky = isSticky
+      // 通过 mutation 更新帖子列表中的置顶状态
+      const postIndex = state.forumPosts.findIndex(p => p.id === id)
+      if (postIndex !== -1) {
+        const updatedPost = { ...state.forumPosts[postIndex], isSticky }
+        commit('UPDATE_POST', { id, post: updatedPost })
       }
       // 更新当前帖子的置顶状态
       if (state.currentPost && state.currentPost.id === id) {
-        state.currentPost.isSticky = isSticky
+        commit('SET_CURRENT_POST', { ...state.currentPost, isSticky })
       }
       return res // 返回 {code, data}
     } catch (error) {
@@ -954,17 +955,18 @@ const actions = {
   },
 
   // 接口#143: 加精帖子 - 成功码6032/6033, 失败码6132/6133
-  async togglePostEssence({ commit }, { id, isEssence }) {
+  async togglePostEssence({ commit, state }, { id, isEssence }) {
     try {
       const res = await togglePostEssence(id, isEssence)
-      // 更新帖子列表中的精华状态
-      const post = state.forumPosts.find(p => p.id === id)
-      if (post) {
-        post.isEssence = isEssence
+      // 通过 mutation 更新帖子列表中的精华状态
+      const postIndex = state.forumPosts.findIndex(p => p.id === id)
+      if (postIndex !== -1) {
+        const updatedPost = { ...state.forumPosts[postIndex], isEssence }
+        commit('UPDATE_POST', { id, post: updatedPost })
       }
       // 更新当前帖子的精华状态
       if (state.currentPost && state.currentPost.id === id) {
-        state.currentPost.isEssence = isEssence
+        commit('SET_CURRENT_POST', { ...state.currentPost, isEssence })
       }
       return res // 返回 {code, data}
     } catch (error) {
