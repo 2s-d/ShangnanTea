@@ -71,17 +71,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                    description: 状态码
-                    example: 2000
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 2000
                 data:
@@ -115,17 +105,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                    description: 状态码
-                    example: 2001
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 2001
                 data:
@@ -148,17 +128,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 2002
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 2002
                 data: null
@@ -175,17 +145,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -203,17 +163,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -242,17 +192,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -288,17 +228,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 2010
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 2010
                 data: null
@@ -325,17 +255,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 2012
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 2012
                 data:
@@ -367,17 +287,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 2011
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 2011
                 data: null
@@ -409,17 +319,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 2004
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 2004
                 data: null
@@ -436,17 +336,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -491,17 +381,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                    description: 状态码
-                    example: 4060
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 4060
                 data: null
@@ -546,17 +426,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 1004
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 1004
                 data: null
@@ -577,17 +447,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 1003
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 1003
                 data: null
@@ -610,17 +470,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 1004
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 1004
                 data: null
@@ -637,17 +487,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -679,17 +519,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 1000
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 1000
                 data: null
@@ -712,17 +542,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -755,17 +575,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 5000
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 5000
                 data: null
@@ -788,17 +598,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 5001
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 5001
                 data: null
@@ -821,17 +621,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -864,17 +654,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 3010
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 3010
                 data: null
@@ -897,17 +677,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 3011
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 3011
                 data: null
@@ -936,17 +706,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 6010
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 6010
                 data: null
@@ -969,17 +729,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 6011
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 6011
                 data: null
@@ -996,17 +746,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -1034,17 +774,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 2013
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 2013
                 data: null
@@ -1086,17 +816,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -1145,17 +865,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 2023
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 2023
                 data: null
@@ -1196,17 +906,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 2022
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 2022
                 data: null
@@ -1227,17 +927,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 2020
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 2020
                 data: null
@@ -1272,17 +962,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 2022
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 2022
                 data: null
@@ -1316,17 +996,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 2021
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 2021
                 data: null
@@ -1359,17 +1029,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -1410,17 +1070,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 1000
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 1000
                 data: null
@@ -1470,17 +1120,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 3000
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 3000
                 data:
@@ -1538,17 +1178,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 3026
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 3026
                 data: null
@@ -1569,17 +1199,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 3001
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 3001
                 data:
@@ -1637,17 +1257,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 3025
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 3025
                 data: null
@@ -1668,17 +1278,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 3024
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 3024
                 data: null
@@ -1693,17 +1293,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -1743,17 +1333,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 3030
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 3030
                 data: null
@@ -1791,17 +1371,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 3031
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 3031
                 data: null
@@ -1822,17 +1392,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 3032
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 3032
                 data: null
@@ -1861,17 +1421,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -1902,17 +1452,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -1959,17 +1499,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 4050
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 4050
                 data: null
@@ -2002,17 +1532,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 3013
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 3013
                 data: null
@@ -2035,17 +1555,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 6010
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 6010
                 data: null
@@ -2066,17 +1576,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -2119,17 +1619,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 1000
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 1000
                 data: null
@@ -2168,17 +1658,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 1004
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 1004
                 data: null
@@ -2199,17 +1679,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 1003
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 1003
                 data: null
@@ -2232,17 +1702,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 1004
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 1004
                 data: null
@@ -2277,17 +1737,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 1001
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 1001
                 data:
@@ -2312,17 +1762,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 1003
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 1003
                 data: null
@@ -2345,17 +1785,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 1004
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 1004
                 data: null
@@ -2390,17 +1820,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 1004
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 1004
                 data: null
@@ -2433,17 +1853,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 3020
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 3020
                 data: null
@@ -2474,17 +1884,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 3022
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 3022
                 data: null
@@ -2514,17 +1914,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -2574,17 +1964,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -2624,17 +2004,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 1000
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 1000
                 data: null
@@ -2655,17 +2025,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -2707,17 +2067,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 1004
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 1004
                 data: null
@@ -2734,17 +2084,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -2780,17 +2120,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -2834,17 +2164,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 3026
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 3026
                 data: null
@@ -2882,17 +2202,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 3025
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 3025
                 data: null
@@ -2913,17 +2223,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 3024
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 3024
                 data: null
@@ -2956,17 +2256,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 3020
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 3020
                 data: null
@@ -2999,17 +2289,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -3046,17 +2326,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 5030
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 5030
                 data:
@@ -3078,17 +2348,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -3128,17 +2388,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 5010
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 5010
                 data: null
@@ -3174,17 +2424,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 5011
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 5011
                 data: null
@@ -3205,17 +2445,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 5012
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 5012
                 data: null
@@ -3248,17 +2478,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 5013
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 5013
                 data: null
@@ -3279,17 +2499,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -3328,17 +2538,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 5020
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 5020
                 data: null
@@ -3374,17 +2574,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 5021
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 5021
                 data: null
@@ -3405,17 +2595,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 5022
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 5022
                 data: null
@@ -3438,17 +2618,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 5000
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 5000
                 data: null
@@ -3469,17 +2639,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 5001
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 5001
                 data: null
@@ -3502,17 +2662,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -3542,17 +2692,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -3597,17 +2737,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 5002
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 5002
                 data: null
@@ -3626,17 +2756,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -3675,17 +2795,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 4010
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 4010
                 data: null
@@ -3716,17 +2826,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 4011
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 4011
                 data: null
@@ -3749,17 +2849,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 4013
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 4013
                 data: null
@@ -3776,17 +2866,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 4015
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 4015
                 data: null
@@ -3826,17 +2906,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 4000
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 4000
                 data:
@@ -3875,17 +2945,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -3923,17 +2983,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -3974,17 +3024,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 4020
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 4020
                 data: null
@@ -4011,17 +3051,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 4002
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 4002
                 data: null
@@ -4048,17 +3078,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 4003
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 4003
                 data: null
@@ -4095,17 +3115,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 4050
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 4050
                 data: null
@@ -4138,17 +3148,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 4004
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 4004
                 data: null
@@ -4181,17 +3181,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 4006
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 4006
                 data: null
@@ -4214,17 +3204,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -4260,17 +3240,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 4030
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 4030
                 data: null
@@ -4293,17 +3263,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -4343,17 +3303,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 4031
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 4031
                 data: null
@@ -4385,17 +3335,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -4450,17 +3390,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data: null
@@ -4481,17 +3411,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -4525,17 +3445,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 6060
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 6060
                 data: null
@@ -4550,17 +3460,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -4594,17 +3494,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 5010
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 5010
                 data: null
@@ -4640,17 +3530,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 5011
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 5011
                 data: null
@@ -4671,17 +3551,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 5012
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 5012
                 data: null
@@ -4709,17 +3579,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 5013
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 5013
                 data: null
@@ -4751,17 +3611,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -4803,17 +3653,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 6050
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 6050
                 data: null
@@ -4834,17 +3674,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -4888,17 +3718,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 6051
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 6051
                 data: null
@@ -4919,17 +3739,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 6052
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 6052
                 data: null
@@ -4944,17 +3754,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -4990,17 +3790,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 6040
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 6040
                 data: null
@@ -5021,17 +3811,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -5070,17 +3850,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 6041
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 6041
                 data: null
@@ -5101,17 +3871,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 6042
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 6042
                 data: null
@@ -5148,17 +3908,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -5205,17 +3955,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 6000
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 6000
                 data: null
@@ -5241,17 +3981,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -5279,17 +4009,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -5333,17 +4053,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 6001
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 6001
                 data: null
@@ -5364,17 +4074,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 6002
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 6002
                 data: null
@@ -5403,17 +4103,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -5454,17 +4144,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 6022
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 6022
                 data: null
@@ -5487,17 +4167,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 6021
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 6021
                 data: null
@@ -5520,17 +4190,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 6010
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 6010
                 data: null
@@ -5551,17 +4211,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 6011
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 6011
                 data: null
@@ -5584,17 +4234,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 6010
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 6010
                 data: null
@@ -5615,17 +4255,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 6011
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 6011
                 data: null
@@ -5648,17 +4278,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 6012
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 6012
                 data: null
@@ -5679,17 +4299,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 6013
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 6013
                 data: null
@@ -5712,17 +4322,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 6034
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 6034
                 data: null
@@ -5755,17 +4355,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 6035
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 6035
                 data: null
@@ -5793,17 +4383,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 6030
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 6030
                 data: null
@@ -5831,17 +4411,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 6032
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 6032
                 data: null
@@ -5874,17 +4444,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -5915,17 +4475,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -5963,17 +4513,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 7000
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 7000
                 data: null
@@ -6002,17 +4542,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 7010
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 7010
                 data: null
@@ -6041,17 +4571,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 7012
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 7012
                 data: null
@@ -6068,17 +4588,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -6112,17 +4622,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -6153,17 +4653,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -6190,17 +4680,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 7012
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 7012
                 data: null
@@ -6225,17 +4705,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 7011
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 7011
                 data: null
@@ -6260,17 +4730,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 7013
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 7013
                 data: null
@@ -6287,17 +4747,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -6337,17 +4787,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -6383,17 +4823,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 1000
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 1000
                 data:
@@ -6417,17 +4847,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 7001
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 7001
                 data: null
@@ -6450,17 +4870,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 7014
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 7014
                 data: null
@@ -6492,17 +4902,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 7003
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 7003
                 data: null
@@ -6523,17 +4923,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -6573,17 +4963,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -6611,17 +4991,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -6656,17 +5026,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -6699,17 +5059,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 200
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 200
                 data:
@@ -6748,17 +5098,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 1001
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 1001
                 data:
@@ -6790,17 +5130,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                      example: 1001
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/Result'
               example:
                 code: 1001
                 data:
