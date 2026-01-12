@@ -147,6 +147,7 @@ const mutations = {
 
 const actions = {
   // 获取茶叶列表
+  // 接口#31: 获取茶叶列表 - 成功码200, 失败码3100
   async fetchTeas({ commit, state }) {
     try {
       commit('SET_LOADING', true)
@@ -187,11 +188,11 @@ const actions = {
       }
       
       const res = await getTeas(params)
-      const data = res.data || res
+      const data = res.data
       
-      commit('SET_TEA_LIST', data.list || [])
+      commit('SET_TEA_LIST', data?.list || [])
       commit('SET_PAGINATION', {
-        total: data.total || 0,
+        total: data?.total || 0,
         currentPage: state.pagination.currentPage,
         pageSize: state.pagination.pageSize
       })
@@ -212,13 +213,13 @@ const actions = {
   },
   
   // 获取茶叶详情
+  // 接口#32: 获取茶叶详情 - 成功码200, 失败码3101
   async fetchTeaDetail({ commit }, id) {
     try {
       commit('SET_LOADING', true)
       
       const res = await getTeaDetail(id)
-      const data = res.data || res
-      commit('SET_CURRENT_TEA', data)
+      commit('SET_CURRENT_TEA', res.data)
       
       return res // 返回 {code, data}
     } catch (error) {
@@ -231,13 +232,13 @@ const actions = {
   },
   
   // 获取茶叶分类
+  // 接口#34: 获取分类列表 - 成功码200, 失败码3100
   async fetchCategories({ commit }) {
     try {
       commit('SET_LOADING', true)
       
       const res = await getTeaCategories()
-      const data = res.data || res
-      commit('SET_CATEGORIES', data || [])
+      commit('SET_CATEGORIES', res.data || [])
       
       return res // 返回 {code, data}
     } catch (error) {
@@ -368,11 +369,10 @@ const actions = {
   async updateTea({ commit, dispatch, state }, teaData) {
     try {
       const res = await updateTea(teaData)
-      const data = res.data || res
       
       // 如果当前查看的就是这个茶叶，更新当前茶叶
       if (state.currentTea && state.currentTea.id === teaData.id) {
-        commit('SET_CURRENT_TEA', data)
+        commit('SET_CURRENT_TEA', res.data)
       }
       
       // 重新获取列表
@@ -405,16 +405,16 @@ const actions = {
   
   // 获取茶叶评价列表
   // 接口#41: 获取评价列表 - 成功码200, 失败码3100
-  async fetchTeaReviews({ commit, state }, { teaId, page = 1, pageSize = 10 }) {
+  async fetchTeaReviews({ commit }, { teaId, page = 1, pageSize = 10 }) {
     try {
       commit('SET_LOADING', true)
       
       const res = await getTeaReviews(teaId, { page, pageSize })
-      const data = res.data || res
+      const data = res.data
       
-      commit('SET_TEA_REVIEWS', data.list || [])
+      commit('SET_TEA_REVIEWS', data?.list || [])
       commit('SET_REVIEW_PAGINATION', {
-        total: data.total || 0,
+        total: data?.total || 0,
         currentPage: page,
         pageSize: pageSize
       })
@@ -430,11 +430,12 @@ const actions = {
   },
   
   // 获取评价统计数据
+  // 接口#42: 获取评价统计 - 成功码200
   async fetchReviewStats({ commit }, teaId) {
     try {
       const res = await getReviewStats(teaId)
-      commit('SET_REVIEW_STATS', res)
-      return res
+      commit('SET_REVIEW_STATS', res.data)
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('获取评价统计数据失败:', error)
       commit('SET_REVIEW_STATS', null)
@@ -443,21 +444,24 @@ const actions = {
   },
   
   // 提交评价
-  async submitReview({ commit, dispatch, state }, reviewData) {
+  // 接口#43: 提交评价 - 成功码3010, 失败码3110
+  async submitReview({ commit, dispatch }, reviewData) {
     try {
       commit('SET_LOADING', true)
       
       const res = await submitReview(reviewData)
       
       // 添加到评价列表
-      commit('ADD_REVIEW', res)
+      if (res.data) {
+        commit('ADD_REVIEW', res.data)
+      }
       
       // 刷新评价统计
       if (reviewData.teaId) {
         await dispatch('fetchReviewStats', reviewData.teaId)
       }
       
-      return res
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('提交评价失败:', error)
       throw error
@@ -467,6 +471,7 @@ const actions = {
   },
   
   // 商家回复评价
+  // 接口#44: 回复评价 - 成功码3013, 失败码3112
   async replyReview({ commit, state }, { reviewId, reply }) {
     try {
       const res = await replyReview(reviewId, { reply })
@@ -475,11 +480,11 @@ const actions = {
       const review = state.teaReviews.find(r => r.id === reviewId)
       if (review) {
         review.reply = reply
-        review.replyTime = res.replyTime
+        review.replyTime = res.data?.replyTime
         commit('UPDATE_REVIEW', review)
       }
       
-      return res
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('商家回复评价失败:', error)
       throw error
@@ -487,6 +492,7 @@ const actions = {
   },
   
   // 点赞评价
+  // 接口#45: 点赞评价 - 成功码3014, 失败码3113
   async likeReview({ commit, state }, reviewId) {
     try {
       const res = await likeReview(reviewId)
@@ -494,12 +500,12 @@ const actions = {
       // 更新评价列表中的点赞信息
       const review = state.teaReviews.find(r => r.id === reviewId)
       if (review) {
-        review.likeCount = res.likeCount
-        review.isLiked = res.isLiked
+        review.likeCount = res.data?.likeCount
+        review.isLiked = res.data?.isLiked
         commit('UPDATE_REVIEW', review)
       }
       
-      return res
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('点赞评价失败:', error)
       throw error
@@ -509,11 +515,12 @@ const actions = {
   // ==================== 任务组C：规格管理Actions ====================
   
   // 获取茶叶规格列表
+  // 接口#46: 获取规格列表 - 成功码200
   async fetchTeaSpecifications({ commit }, teaId) {
     try {
       const res = await getTeaSpecifications(teaId)
-      commit('SET_TEA_SPECIFICATIONS', res || [])
-      return res || []
+      commit('SET_TEA_SPECIFICATIONS', res.data || [])
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('获取茶叶规格列表失败:', error)
       commit('SET_TEA_SPECIFICATIONS', [])
@@ -522,6 +529,7 @@ const actions = {
   },
   
   // 添加规格
+  // 接口#47: 添加规格 - 成功码1000, 失败码1100
   async addSpecification({ commit, dispatch, state }, { teaId, specData }) {
     try {
       const res = await addSpecification(teaId, specData)
@@ -529,18 +537,20 @@ const actions = {
       // 如果设置了默认规格，需要取消其他规格的默认状态
       if (specData.is_default === 1) {
         state.currentTeaSpecs.forEach(spec => {
-          if (spec.id !== res.id) {
+          if (spec.id !== res.data?.id) {
             spec.is_default = 0
           }
         })
       }
       
-      commit('ADD_SPECIFICATION', res)
+      if (res.data) {
+        commit('ADD_SPECIFICATION', res.data)
+      }
       
       // 刷新规格列表
       await dispatch('fetchTeaSpecifications', teaId)
       
-      return res
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('添加规格失败:', error)
       throw error
@@ -548,6 +558,7 @@ const actions = {
   },
   
   // 更新规格
+  // 接口#48: 更新规格 - 成功码1004, 失败码1100
   async updateSpecification({ commit, dispatch, state }, { teaId, specId, specData }) {
     try {
       const res = await updateSpecification(specId, specData)
@@ -561,12 +572,14 @@ const actions = {
         })
       }
       
-      commit('UPDATE_SPECIFICATION', res)
+      if (res.data) {
+        commit('UPDATE_SPECIFICATION', res.data)
+      }
       
       // 刷新规格列表
       await dispatch('fetchTeaSpecifications', teaId)
       
-      return res
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('更新规格失败:', error)
       throw error
@@ -574,16 +587,17 @@ const actions = {
   },
   
   // 删除规格
+  // 接口#49: 删除规格 - 成功码1003, 失败码1100
   async deleteSpecification({ commit, dispatch }, { teaId, specId }) {
     try {
-      await deleteSpecification(specId)
+      const res = await deleteSpecification(specId)
       
       commit('REMOVE_SPECIFICATION', specId)
       
       // 刷新规格列表
       await dispatch('fetchTeaSpecifications', teaId)
       
-      return true
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('删除规格失败:', error)
       throw error
@@ -591,6 +605,7 @@ const actions = {
   },
   
   // 设置默认规格
+  // 接口#50: 设置默认规格 - 成功码1004, 失败码1100
   async setDefaultSpecification({ commit, dispatch, state }, { teaId, specId }) {
     try {
       const res = await setDefaultSpecification(specId)
@@ -607,7 +622,7 @@ const actions = {
       // 刷新规格列表
       await dispatch('fetchTeaSpecifications', teaId)
       
-      return res
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('设置默认规格失败:', error)
       throw error
@@ -617,6 +632,7 @@ const actions = {
   // 任务组D：图片管理相关actions
   /**
    * 上传茶叶图片
+   * 接口#51: 上传图片 - 成功码1001, 失败码1101
    * @param {Object} context Vuex context
    * @param {Object} payload { teaId, files: File[] }
    */
@@ -630,16 +646,15 @@ const actions = {
       
       const res = await uploadTeaImages(teaId, formData)
       
-      // 响应拦截器已解包，res 直接是图片数组
-      commit('SET_TEA_IMAGES', res || [])
+      commit('SET_TEA_IMAGES', res.data || [])
       
       // 如果当前茶叶是正在查看的茶叶，更新currentTea的images
       const currentTea = this.state.tea.currentTea
       if (currentTea && currentTea.id === teaId) {
-        currentTea.images = res || []
+        currentTea.images = res.data || []
       }
       
-      return res
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('上传图片失败:', error)
       throw error
@@ -648,12 +663,13 @@ const actions = {
   
   /**
    * 删除茶叶图片
+   * 接口#52: 删除图片 - 成功码1003, 失败码1100
    * @param {Object} context Vuex context
    * @param {Object} payload { teaId, imageId }
    */
   async deleteTeaImage({ commit, state }, { teaId, imageId }) {
     try {
-      await deleteTeaImage(imageId)
+      const res = await deleteTeaImage(imageId)
       
       // 从state中移除
       commit('REMOVE_TEA_IMAGE', imageId)
@@ -664,7 +680,7 @@ const actions = {
         currentTea.images = currentTea.images.filter(img => img.id !== imageId)
       }
       
-      return true
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('删除图片失败:', error)
       throw error
@@ -673,16 +689,17 @@ const actions = {
   
   /**
    * 更新图片顺序
+   * 接口#53: 更新图片顺序 - 成功码1004, 失败码1100
    * @param {Object} context Vuex context
    * @param {Object} payload { teaId, orders: [{imageId, order}] }
    */
   async updateImageOrder({ commit }, { orders }) {
     try {
-      await updateImageOrder(orders)
+      const res = await updateImageOrder(orders)
       
       // 更新state中的顺序
       commit('UPDATE_IMAGE_ORDER', orders)
-      return true
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('更新图片顺序失败:', error)
       throw error
@@ -691,12 +708,13 @@ const actions = {
   
   /**
    * 设置主图
+   * 接口#54: 设置主图 - 成功码1004, 失败码1100
    * @param {Object} context Vuex context
    * @param {Object} payload { teaId, imageId }
    */
   async setMainImage({ commit, state }, { teaId, imageId }) {
     try {
-      await setMainImage(imageId)
+      const res = await setMainImage(imageId)
       
       // 更新state中的主图标记
       commit('SET_MAIN_IMAGE', imageId)
@@ -710,7 +728,7 @@ const actions = {
         }
       }
       
-      return true
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('设置主图失败:', error)
       throw error
@@ -720,6 +738,8 @@ const actions = {
   // 任务组E：状态管理相关actions
   /**
    * 更新茶叶状态（上架/下架）
+   * 接口#55: 上架 - 成功码3020, 失败码3120
+   * 接口#56: 下架 - 成功码3021, 失败码3121
    * @param {Object} context Vuex context
    * @param {Object} payload { teaId, status }
    */
@@ -738,7 +758,7 @@ const actions = {
         state.currentTea.status = status
       }
       
-      return res
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('更新茶叶状态失败:', error)
       throw error
@@ -747,6 +767,8 @@ const actions = {
   
   /**
    * 批量更新茶叶状态（上架/下架）
+   * 接口#57: 批量上架 - 成功码3022, 失败码3122
+   * 接口#58: 批量下架 - 成功码3023, 失败码3123
    * @param {Object} context Vuex context
    * @param {Object} payload { teaIds: string[], status: number }
    */
@@ -767,7 +789,7 @@ const actions = {
         state.currentTea.status = status
       }
       
-      return res
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('批量更新茶叶状态失败:', error)
       throw error
@@ -777,6 +799,7 @@ const actions = {
   // 任务组F：推荐功能相关actions
   /**
    * 获取推荐茶叶
+   * 接口#59: 获取推荐 - 成功码200
    * @param {Object} context Vuex context
    * @param {Object} payload { type: 'random'|'similar'|'popular', teaId?: string, count?: number }
    */
@@ -789,9 +812,8 @@ const actions = {
       
       const res = await getRecommendTeas(params)
       
-      // 响应拦截器已解包，res 直接是数据数组或对象
-      commit('SET_RECOMMEND_TEAS', res || [])
-      return res
+      commit('SET_RECOMMEND_TEAS', res.data || [])
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('获取推荐茶叶失败:', error)
       commit('SET_RECOMMEND_TEAS', [])

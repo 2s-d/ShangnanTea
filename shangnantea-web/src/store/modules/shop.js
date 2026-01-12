@@ -172,6 +172,7 @@ const mutations = {
 
 const actions = {
   // 获取商店列表（任务组A：支持搜索/筛选/排序）
+  // 接口#60: 获取店铺列表 - 成功码200, 失败码5101
   async fetchShops({ commit, state }, extraParams = {}) {
     try {
       commit('SET_LOADING', true)
@@ -197,20 +198,19 @@ const actions = {
         delete params.sortOrder
       }
       
-      // 响应拦截器已解包，res 直接是 data 内容
       const res = await getShops(params)
       
       // 统一处理分页数据格式
-      const list = res?.list || res?.records || (Array.isArray(res) ? res : [])
-      const total = res?.total || list.length || 0
+      const list = res.data?.list || res.data?.records || (Array.isArray(res.data) ? res.data : [])
+      const total = res.data?.total || list.length || 0
       
       commit('SET_SHOP_LIST', list)
       commit('SET_PAGINATION', {
         total: total,
-        currentPage: res?.pageNum || state.pagination.currentPage,
-        pageSize: res?.pageSize || state.pagination.pageSize
+        currentPage: res.data?.pageNum || state.pagination.currentPage,
+        pageSize: res.data?.pageSize || state.pagination.pageSize
       })
-      return res
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('获取店铺列表失败:', error)
       commit('SET_SHOP_LIST', [])
@@ -278,14 +278,14 @@ const actions = {
   },
   
   // 获取商店详情
+  // 接口#61: 获取店铺详情 - 成功码200, 失败码5100/5105
   async fetchShopDetail({ commit }, id) {
     try {
       commit('SET_LOADING', true)
       
-      // 响应拦截器已解包，res 直接是店铺对象
       const res = await getShopDetail(id)
-      commit('SET_CURRENT_SHOP', res || null)
-      return res
+      commit('SET_CURRENT_SHOP', res.data || null)
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('获取店铺详情失败:', error)
       commit('SET_CURRENT_SHOP', null)
@@ -296,14 +296,14 @@ const actions = {
   },
   
   // 获取我的商店（商家）
+  // 接口#62: 获取我的店铺 - 成功码200, 失败码5100
   async fetchMyShop({ commit }) {
     try {
       commit('SET_LOADING', true)
       
-      // 响应拦截器已解包，res 直接是店铺对象
       const res = await getMyShop()
-      commit('SET_MY_SHOP', res || null)
-      return res
+      commit('SET_MY_SHOP', res.data || null)
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('获取我的店铺失败:', error)
       commit('SET_MY_SHOP', null)
@@ -314,26 +314,26 @@ const actions = {
   },
   
   // 获取商店茶叶（任务组C：支持分页、筛选）
+  // 接口#63: 获取店铺茶叶 - 成功码200, 失败码5101
   async fetchShopTeas({ commit }, { shopId, params = {} }) {
     try {
       commit('SET_LOADING', true)
       
-      // 响应拦截器已解包，res 直接是 data 内容
       const res = await getShopTeas(shopId, params)
       
       // 统一处理分页数据格式
-      const list = res?.list || res?.records || (Array.isArray(res) ? res : [])
+      const list = res.data?.list || res.data?.records || (Array.isArray(res.data) ? res.data : [])
       
       commit('SET_SHOP_TEAS', list)
       // 更新分页信息
-      if (res?.total !== undefined) {
+      if (res.data?.total !== undefined) {
         commit('SET_PAGINATION', {
-          total: res.total,
-          currentPage: res.pageNum || 1,
-          pageSize: res.pageSize || 10
+          total: res.data.total,
+          currentPage: res.data.pageNum || 1,
+          pageSize: res.data.pageSize || 10
         })
       }
-      return res
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('获取店铺茶叶列表失败:', error)
       commit('SET_SHOP_TEAS', [])
@@ -344,6 +344,7 @@ const actions = {
   },
   
   // 更新商店信息
+  // 接口#65: 更新店铺 - 成功码5004, 失败码5107
   async updateShop({ commit, state }, shopData) {
     try {
       commit('SET_LOADING', true)
@@ -353,7 +354,6 @@ const actions = {
         throw new Error('店铺ID不能为空')
       }
       
-      // 响应拦截器已解包，res 直接是更新后的店铺对象
       const res = await updateShop({
         ...shopData,
         id: shopId
@@ -361,15 +361,15 @@ const actions = {
       
       // 更新我的商店信息
       if (state.myShop && state.myShop.id === shopId) {
-        commit('SET_MY_SHOP', res)
+        commit('SET_MY_SHOP', res.data)
       }
       
       // 如果当前查看的是我的商店，也更新currentShop
       if (state.currentShop && state.currentShop.id === shopId) {
-        commit('SET_CURRENT_SHOP', res)
+        commit('SET_CURRENT_SHOP', res.data)
       }
       
-      return res
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('更新店铺信息失败:', error)
       throw error
@@ -381,6 +381,7 @@ const actions = {
   // 任务组C：店铺茶叶管理相关actions
   /**
    * 添加茶叶到店铺
+   * 接口#66: 添加店铺茶叶 - 成功码3026, 失败码3125
    * @param {Object} context Vuex context
    * @param {Object} payload { shopId, teaData }
    */
@@ -392,7 +393,7 @@ const actions = {
       
       // 重新加载店铺茶叶列表
       await dispatch('fetchShopTeas', { shopId, params: {} })
-      return res
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('添加茶叶失败:', error)
       throw error
@@ -403,6 +404,7 @@ const actions = {
   
   /**
    * 更新店铺茶叶
+   * 接口#67: 更新店铺茶叶 - 成功码3025, 失败码3125
    * @param {Object} context Vuex context
    * @param {Object} payload { teaId, teaData }
    */
@@ -415,8 +417,8 @@ const actions = {
       // 更新本地列表中的茶叶数据
       const shopTeas = [...state.shopTeas]
       const index = shopTeas.findIndex(tea => tea.id === teaId)
-      if (index !== -1) {
-        shopTeas[index] = res
+      if (index !== -1 && res.data) {
+        shopTeas[index] = res.data
         commit('SET_SHOP_TEAS', shopTeas)
       } else {
         // 如果不在列表中，重新加载
@@ -425,7 +427,7 @@ const actions = {
           await dispatch('fetchShopTeas', { shopId, params: {} })
         }
       }
-      return res
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('更新茶叶失败:', error)
       throw error
@@ -436,6 +438,7 @@ const actions = {
   
   /**
    * 删除店铺茶叶
+   * 接口#68: 删除店铺茶叶 - 成功码3024, 失败码3124
    * @param {Object} context Vuex context
    * @param {Object} payload { teaId, shopId }
    */
@@ -443,7 +446,7 @@ const actions = {
     try {
       commit('SET_LOADING', true)
       
-      await deleteShopTea(teaId)
+      const res = await deleteShopTea(teaId)
       
       // 从列表中移除
       const shopTeas = state.shopTeas.filter(tea => tea.id !== teaId)
@@ -453,7 +456,7 @@ const actions = {
       if (shopId) {
         await dispatch('fetchShopTeas', { shopId, params: {} })
       }
-      return true
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('删除茶叶失败:', error)
       throw error
@@ -464,6 +467,7 @@ const actions = {
   
   /**
    * 茶叶上下架
+   * 接口#69: 茶叶上下架 - 成功码3020/3021, 失败码3120/3121
    * @param {Object} context Vuex context
    * @param {Object} payload { teaId, status }
    */
@@ -480,7 +484,7 @@ const actions = {
         shopTeas[index].status = status
         commit('SET_SHOP_TEAS', shopTeas)
       }
-      return res
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('更新茶叶状态失败:', error)
       throw error
