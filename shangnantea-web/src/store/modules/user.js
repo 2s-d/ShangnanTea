@@ -38,6 +38,7 @@ import {
   processCertification as processCertificationApi
 } from '@/api/user'
 import { useTokenStorage } from '@/composables/useStorage'
+import router from '@/router'
 
 // 创建token存储实例
 const tokenStorage = useTokenStorage()
@@ -331,12 +332,8 @@ const actions = {
       
       // 调用登录API，返回 {code, data}
       const res = await loginApi(loginData)
-      // 拦截器返回格式：{ code, data: { token: string } }
-      const token = res.data?.token
-      
-      if (!token) {
-        throw new Error('登录失败：未返回token')
-      }
+      // 后端返回格式：{ code, data: { token: string } }
+      const { token } = res.data || res
       
       // 存储token
       tokenStorage.setToken(token)
@@ -413,9 +410,9 @@ const actions = {
   async fetchUserPreferences({ commit }) {
     commit('SET_LOADING', true)
     try {
-      // 返回 {code, data}
-      const res = await getUserPreferencesApi()
-      const preferences = res.data || {}
+      const result = await getUserPreferencesApi()
+      // 兼容：后端可能返回 { data: {...} } 或直接返回 {...}
+      const preferences = result?.data || result?.preferences || result
       commit('SET_PREFERENCES', preferences)
       return preferences
     } finally {
@@ -432,12 +429,11 @@ const actions = {
   async saveUserPreferences({ commit }, preferences) {
     commit('SET_LOADING', true)
     try {
-      // 返回 {code, data}
-      const res = await updateUserPreferencesApi(preferences)
-      // 以服务端回写为准，若后端未返回数据则使用入参
-      const saved = res.data || preferences
+      const result = await updateUserPreferencesApi(preferences)
+      // 以服务端回写为准（若后端仅返回 success，则直接使用入参）
+      const saved = result?.data || result?.preferences || result || preferences
       commit('SET_PREFERENCES', saved)
-      return res // 返回 {code, data}，组件调用 showByCode(res.code)
+      return saved
     } finally {
       commit('SET_LOADING', false)
     }
@@ -489,9 +485,8 @@ const actions = {
     try {
       commit('SET_LOADING', true)
       
-      // 从服务器获取最新用户信息，返回 {code, data}
-      const res = await getCurrentUser()
-      const userInfo = res.data
+      // 从服务器获取最新用户信息
+      const userInfo = await getCurrentUser()
       
       // 更新状态
       commit('SET_USER_INFO', userInfo)
@@ -514,9 +509,8 @@ const actions = {
     try {
       commit('SET_LOADING', true)
       
-      // 调用API获取用户信息，返回 {code, data}
-      const res = await getUserInfoApi(userId)
-      const userInfo = res.data
+      // 调用API获取用户信息
+      const userInfo = await getUserInfoApi(userId)
       
       // 更新状态（如果获取的是当前用户信息）
       if (!userId) {
@@ -548,12 +542,11 @@ const actions = {
     try {
       commit('SET_LOADING', true)
       
-      // 调用更新API，返回 {code, data}
+      // 调用更新API
       const res = await updateUserInfo(newUserInfo)
       
-      // 更新状态：合并现有用户信息和返回的数据
-      const updatedUserInfo = { ...state.userInfo, ...res.data }
-      commit('SET_USER_INFO', updatedUserInfo)
+      // 更新状态
+      commit('SET_USER_INFO', res.data || res)
       
       return res // 返回 {code, data}，组件调用 showByCode(res.code)
     } catch (error) {
@@ -564,23 +557,32 @@ const actions = {
   },
   
   // 上传头像
-  // 接口#7: 上传头像 - 成功码2012, 失败码2112
+  // 任务A-3：实现uploadAvatar action
   async uploadAvatar({ commit, state }, file) {
     if (!state.userInfo) {
-      throw new Error('用户未登录')
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      userMessages.error.showSessionExpired()
+      return false
     }
     
     if (!file || !(file instanceof File)) {
-      throw new Error('请选择要上传的文件')
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      userMessages.error.showProfileUpdateFailure('请选择要上传的文件')
+      return false
     }
     
     try {
       commit('SET_LOADING', true)
       
-      // 调用上传头像API，返回 {code, data}
-      const res = await uploadAvatarApi(file)
-      // 从 res.data 中获取头像URL
-      const avatarUrl = res.data?.avatarUrl || res.data?.url || res.data
+      // 调用上传头像API
+      const result = await uploadAvatarApi(file)
+      const avatarUrl = result?.avatarUrl || result?.data?.avatarUrl || result?.data
       
       if (!avatarUrl) {
         throw new Error('上传失败：未返回头像URL')
@@ -593,8 +595,21 @@ const actions = {
       }
       commit('SET_USER_INFO', updatedUserInfo)
       
-      return res // 返回 {code, data}，组件调用 showByCode(res.code)
+      // 显示上传成功消息
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      userMessages.success.showProfileUpdateSuccess()
+      
+      return avatarUrl
     } catch (error) {
+      // 显示上传失败消息
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      userMessages.error.showProfileUpdateFailure(error.message || '头像上传失败')
       throw error
     } finally {
       commit('SET_LOADING', false)
@@ -602,22 +617,36 @@ const actions = {
   },
   
   // 修改密码
-  // 接口#8: 修改密码 - 成功码2011, 失败码2111/2113
   async changePassword({ commit }, passwordData) {
     try {
       commit('SET_LOADING', true)
       
-      // 检查新密码与确认密码是否一致（前端校验，使用 promptMessages）
+      // 检查新密码与确认密码是否一致
       if (passwordData.newPassword !== passwordData.confirmPassword) {
-        // 密码不一致是前端校验，抛出错误让组件处理
-        throw new Error('两次输入的密码不一致')
+        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+        userMessages.error.showPasswordMismatch()
+        return false
       }
       
       // 调用修改密码API
-      const res = await changePassword(passwordData)
+      await changePassword(passwordData)
       
-      return res // 返回 {code, data}，组件调用 showByCode(res.code)
+      // 显示修改成功消息
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      userMessages.success.showPasswordChangeSuccess()
+      
+      return true
     } catch (error) {
+      // 显示修改失败消息
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      userMessages.error.showPasswordChangeFailure(error.message)
       throw error
     } finally {
       commit('SET_LOADING', false)
@@ -628,14 +657,10 @@ const actions = {
   // 任务0-3：使用真实API请求
   async refreshToken({ commit }) {
     try {
-      // 调用刷新Token API，返回 {code, data}
-      const res = await refreshTokenApi()
-      // 从 res.data 中获取 token
-      const token = res.data?.token
-      
-      if (!token) {
-        throw new Error('刷新Token失败：未返回token')
-      }
+      // 调用刷新Token API
+      const response = await refreshTokenApi()
+      // 后端返回格式：{ token: string }
+      const { token } = response
       
       // 更新token
       tokenStorage.setToken(token)
@@ -658,16 +683,25 @@ const actions = {
   },
   
   // 密码找回
-  // 接口#9: 重置密码 - 成功码2004, 失败码2104
+  // 任务0-4：实现findPassword action（密码找回）
   async findPassword({ commit }, resetData) {
     try {
       commit('SET_LOADING', true)
       
       // 调用密码找回API
-      const res = await resetPasswordApi(resetData)
+      const result = await resetPasswordApi(resetData)
       
-      return res // 返回 {code, data}，组件调用 showByCode(res.code)
+      // 显示找回成功消息
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      userMessages.success.showPasswordResetSuccess()
+      
+      return result
     } catch (error) {
+      // 显示找回失败消息
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      userMessages.error.showPasswordResetFailure(error.message)
       throw error
     } finally {
       commit('SET_LOADING', false)
@@ -675,21 +709,27 @@ const actions = {
   },
   
   // 处理会话过期
-  // 状态码2102: 会话过期
   handleSessionExpired({ commit }) {
     // 清除token和用户信息
     tokenStorage.removeToken()
     commit('CLEAR_USER')
     
-    // 返回状态码，让调用方决定是否显示消息
-    return { code: 2102 }
+    // 显示会话过期消息
+    // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+    // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+    userMessages.error.showSessionExpired()
   },
   
   // 处理权限拒绝
-  // 状态码2124: 无权限
   handlePermissionDenied() {
-    // 返回状态码，让调用方决定是否显示消息
-    return { code: 2124 }
+    // 显示权限拒绝消息
+    // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+    // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+    userMessages.error.showPermissionDenied()
   },
   
   // 处理认证错误
@@ -698,8 +738,12 @@ const actions = {
     tokenStorage.removeToken()
     commit('CLEAR_USER')
     
-    // 返回状态码，让调用方决定是否显示消息
-    return { code: 2103 }
+    // 显示认证错误消息
+    // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+    // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+    userMessages.error.showSessionExpired()
   },
   
   // === 地址相关actions ===
@@ -712,9 +756,8 @@ const actions = {
   async fetchAddresses({ commit }) {
     commit('SET_LOADING', true)
     try {
-      // 返回 {code, data}
       const res = await getAddressList()
-      const addressList = (res.data || []).map(mapAddressFromBackend)
+      const addressList = (res || []).map(mapAddressFromBackend)
       commit('SET_ADDRESS_LIST', addressList)
       return addressList
     } catch (error) {
@@ -736,9 +779,8 @@ const actions = {
     try {
       // 任务B-2：将前端字段转换为后端字段
       const backendData = mapAddressToBackend(addressData)
-      // 返回 {code, data}
       const res = await addAddressApi(backendData)
-      const newAddress = mapAddressFromBackend(res.data)
+      const newAddress = mapAddressFromBackend(res)
       commit('ADD_ADDRESS', newAddress)
       return newAddress
     } catch (error) {
@@ -764,9 +806,8 @@ const actions = {
     try {
       // 任务B-2：将前端字段转换为后端字段
       const backendData = mapAddressToBackend(addressData)
-      // 返回 {code, data}
       const res = await updateAddressApi(addressData.id, backendData)
-      const updatedAddress = mapAddressFromBackend(res.data)
+      const updatedAddress = mapAddressFromBackend(res)
       commit('UPDATE_ADDRESS', updatedAddress)
       return updatedAddress
     } catch (error) {
@@ -833,9 +874,8 @@ const actions = {
   async fetchFollowList({ commit }, type = null) {
     commit('SET_LOADING', true)
     try {
-      // 返回 {code, data}
       const res = await getFollowList(type)
-      const followList = res.data || []
+      const followList = res || []
       commit('SET_FOLLOW_LIST', followList)
       return followList
     } catch (error) {
@@ -855,9 +895,8 @@ const actions = {
   async addFollow({ commit }, followData) {
     commit('SET_LOADING', true)
     try {
-      // 返回 {code, data}
       const res = await addFollowApi(followData)
-      const follow = res.data
+      const follow = res
       commit('ADD_FOLLOW', follow)
       return follow
     } catch (error) {
@@ -897,9 +936,8 @@ const actions = {
   async fetchFavoriteList({ commit }, type = null) {
     commit('SET_LOADING', true)
     try {
-      // 返回 {code, data}
       const res = await getFavoriteList(type)
-      const favoriteList = res.data || []
+      const favoriteList = res || []
       commit('SET_FAVORITE_LIST', favoriteList)
       return favoriteList
     } catch (error) {
@@ -919,9 +957,8 @@ const actions = {
   async addFavorite({ commit }, favoriteData) {
     commit('SET_LOADING', true)
     try {
-      // 返回 {code, data}
       const res = await addFavoriteApi(favoriteData)
-      const favorite = res.data
+      const favorite = res
       commit('ADD_FAVORITE', favorite)
       return favorite
     } catch (error) {
@@ -961,9 +998,8 @@ const actions = {
   async addLike({ commit }, likeData) {
     commit('SET_LOADING', true)
     try {
-      // 返回 {code, data}
       const res = await addLikeApi(likeData)
-      const like = res.data
+      const like = res
       commit('ADD_LIKE', like)
       return like
     } catch (error) {
@@ -1005,11 +1041,9 @@ const actions = {
   async fetchUserList({ commit }, params = {}) {
     commit('SET_LOADING', true)
     try {
-      // 返回 {code, data}
       const res = await getAdminUserList(params)
-      const data = res.data || {}
-      const userList = data.list || data.records || (Array.isArray(data) ? data : [])
-      const total = data.total || userList.length
+      const userList = res?.list || res || []
+      const total = res?.total || userList.length
       commit('SET_USER_LIST', userList)
       commit('SET_USER_PAGINATION', { 
         page: params.page || 1, 
@@ -1034,8 +1068,7 @@ const actions = {
   async updateUserRole({ commit }, { userId, role }) {
     commit('SET_LOADING', true)
     try {
-      // API 期望第二个参数是对象 { role }
-      await updateUserRoleApi(userId, { role })
+      await updateUserRoleApi(userId, role)
       commit('UPDATE_USER_IN_LIST', { id: userId, role })
       return true
     } catch (error) {
@@ -1055,8 +1088,7 @@ const actions = {
   async toggleUserStatus({ commit }, { userId, status }) {
     commit('SET_LOADING', true)
     try {
-      // API 期望第二个参数是对象 { status }
-      await toggleUserStatusApi(userId, { status })
+      await toggleUserStatusApi(userId, status)
       commit('UPDATE_USER_IN_LIST', { id: userId, status })
       return true
     } catch (error) {
@@ -1076,10 +1108,8 @@ const actions = {
   async fetchCertificationList({ commit }, params = {}) {
     commit('SET_LOADING', true)
     try {
-      // 返回 {code, data}
       const res = await getCertificationList(params)
-      const data = res.data || {}
-      const certList = data.list || data.records || (Array.isArray(data) ? data : [])
+      const certList = res?.list || res || []
       commit('SET_CERTIFICATION_LIST', certList)
       return certList
     } catch (error) {

@@ -10,8 +10,11 @@ import com.shangnantea.service.ShopService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 /**
  * 店铺控制器
+ * 注意：数据由Apifox模拟，Controller仅保留骨架结构
  */
 @RestController
 @RequestMapping("/api/shop")
@@ -28,8 +31,8 @@ public class ShopController {
      */
     @GetMapping("/{id}")
     public Result<Shop> getShopById(@PathVariable String id) {
-        Shop shop = shopService.getShopById(id);
-        return Result.success(shop);
+        // TODO: 数据由Apifox模拟
+        return Result.success(new Shop());
     }
     
     /**
@@ -43,11 +46,8 @@ public class ShopController {
     public Result<PageResult<Shop>> listShops(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size) {
-        PageParam pageParam = new PageParam();
-        pageParam.setPageNum(page);
-        pageParam.setPageSize(size);
-        PageResult<Shop> pageResult = shopService.listShops(pageParam);
-        return Result.success(pageResult);
+        // TODO: 数据由Apifox模拟
+        return Result.success(PageResult.of(java.util.Collections.emptyList(), 0L, page, size));
     }
     
     /**
@@ -57,10 +57,8 @@ public class ShopController {
      */
     @GetMapping("/mine")
     public Result<Shop> getMyShop() {
-        // TODO: 获取当前登录用户ID
-        String userId = "currentUserId";
-        Shop shop = shopService.getShopByUserId(userId);
-        return Result.success(shop);
+        // TODO: 数据由Apifox模拟
+        return Result.success(new Shop());
     }
 
     /**
@@ -70,7 +68,8 @@ public class ShopController {
      */
     @GetMapping("/my")
     public Result<Shop> getMyShopCompat() {
-        return getMyShop();
+        // TODO: 数据由Apifox模拟
+        return Result.success(new Shop());
     }
     
     /**
@@ -81,19 +80,8 @@ public class ShopController {
      */
     @PostMapping
     public Result<Shop> saveShop(@RequestBody Shop shop) {
-        // TODO: 获取当前登录用户ID
-        String userId = "currentUserId";
-        shop.setOwnerId(userId);
-        
-        Shop existingShop = shopService.getShopByUserId(userId);
-        if (existingShop != null) {
-            shop.setId(existingShop.getId());
-            shopService.updateShop(shop);
-            return Result.success(shop);
-        } else {
-            Shop createdShop = shopService.createShop(shop);
-            return Result.success(createdShop);
-        }
+        // TODO: 数据由Apifox模拟
+        return Result.success(new Shop());
     }
     
     /**
@@ -109,11 +97,8 @@ public class ShopController {
             @PathVariable String shopId,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size) {
-        PageParam pageParam = new PageParam();
-        pageParam.setPageNum(page);
-        pageParam.setPageSize(size);
-        PageResult<Tea> pageResult = shopService.listShopTeas(shopId, pageParam);
-        return Result.success(pageResult);
+        // TODO: 数据由Apifox模拟
+        return Result.success(PageResult.of(java.util.Collections.emptyList(), 0L, page, size));
     }
     
     /**
@@ -124,12 +109,8 @@ public class ShopController {
      */
     @PostMapping("/certification")
     public Result<ShopCertification> applyCertification(@RequestBody ShopCertification certification) {
-        // TODO: 获取当前登录用户ID
-        String userId = "currentUserId";
-        certification.setUserId(userId);
-        
-        ShopCertification result = shopService.createCertification(certification);
-        return Result.success(result);
+        // TODO: 数据由Apifox模拟
+        return Result.success(new ShopCertification());
     }
     
     /**
@@ -139,10 +120,8 @@ public class ShopController {
      */
     @GetMapping("/certification/status")
     public Result<ShopCertification> getCertificationStatus() {
-        // TODO: 获取当前登录用户ID
-        String userId = "currentUserId";
-        ShopCertification certification = shopService.getCertificationByUserId(userId);
-        return Result.success(certification);
+        // TODO: 数据由Apifox模拟
+        return Result.success(new ShopCertification());
     }
     
     /**
@@ -153,8 +132,8 @@ public class ShopController {
      */
     @PostMapping("/certification/confirm/{certificationId}")
     public Result<Boolean> confirmNotification(@PathVariable Integer certificationId) {
-        boolean success = shopService.confirmNotification(certificationId);
-        return Result.success(success);
+        // TODO: 数据由Apifox模拟
+        return Result.success(true);
     }
     
     /**
@@ -170,11 +149,8 @@ public class ShopController {
             @RequestParam(required = false) Integer status,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size) {
-        PageParam pageParam = new PageParam();
-        pageParam.setPageNum(page);
-        pageParam.setPageSize(size);
-        PageResult<ShopCertification> pageResult = shopService.listCertifications(status, pageParam);
-        return Result.success(pageResult);
+        // TODO: 数据由Apifox模拟
+        return Result.success(PageResult.of(java.util.Collections.emptyList(), 0L, page, size));
     }
     
     /**
@@ -190,9 +166,113 @@ public class ShopController {
             @PathVariable Integer id,
             @RequestParam Integer status,
             @RequestParam(required = false) String rejectReason) {
-        // TODO: 获取当前管理员ID
-        String adminId = "currentAdminId";
-        boolean success = shopService.processCertification(id, status, adminId, rejectReason);
-        return Result.success(success);
+        // TODO: 数据由Apifox模拟
+        return Result.success(true);
     }
-} 
+    
+    /**
+     * 获取店铺评价列表
+     *
+     * @param shopId 店铺ID
+     * @param page 页码
+     * @param size 每页数量
+     * @return 评价列表
+     */
+    @GetMapping("/{shopId}/reviews")
+    public Result<PageResult<Map<String, Object>>> getShopReviews(
+            @PathVariable String shopId,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size) {
+        // TODO: 数据由Apifox模拟
+        return Result.success(PageResult.of(java.util.Collections.emptyList(), 0L, page, size));
+    }
+    
+    /**
+     * 提交店铺评价
+     *
+     * @param shopId 店铺ID
+     * @param body 评价信息
+     * @return 提交结果
+     */
+    @PostMapping("/{shopId}/reviews")
+    public Result<Map<String, Object>> submitShopReview(
+            @PathVariable String shopId,
+            @RequestBody(required = false) Map<String, Object> body) {
+        // TODO: 数据由Apifox模拟
+        return Result.success(new java.util.HashMap<>());
+    }
+    
+    /**
+     * 搜索店铺
+     *
+     * @param keyword 关键词
+     * @param page 页码
+     * @param size 每页数量
+     * @return 结果
+     */
+    @GetMapping("/search")
+    public Result<PageResult<Shop>> searchShops(
+            @RequestParam String keyword,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size) {
+        // TODO: 数据由Apifox模拟
+        return Result.success(PageResult.of(java.util.Collections.emptyList(), 0L, page, size));
+    }
+    
+    /**
+     * 更新店铺信息
+     *
+     * @param id 店铺ID
+     * @param shop 店铺信息
+     * @return 更新结果
+     */
+    @PutMapping("/{id}")
+    public Result<Boolean> updateShop(@PathVariable String id, @RequestBody Shop shop) {
+        // TODO: 数据由Apifox模拟
+        return Result.success(true);
+    }
+    
+    /**
+     * 删除店铺（管理员）
+     *
+     * @param id 店铺ID
+     * @return 删除结果
+     */
+    @DeleteMapping("/{id}")
+    public Result<Boolean> deleteShop(@PathVariable String id) {
+        // TODO: 数据由Apifox模拟
+        return Result.success(true);
+    }
+    
+    /**
+     * 获取店铺列表（管理员）
+     *
+     * @param keyword 关键词
+     * @param status 状态
+     * @param page 页码
+     * @param size 每页数量
+     * @return 店铺列表
+     */
+    @GetMapping("/admin/list")
+    public Result<PageResult<Shop>> listAdminShops(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Integer status,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size) {
+        // TODO: 数据由Apifox模拟
+        return Result.success(PageResult.of(java.util.Collections.emptyList(), 0L, page, size));
+    }
+    
+    /**
+     * 审核店铺（管理员）
+     *
+     * @param id 店铺ID
+     * @param body 审核信息
+     * @return 审核结果
+     */
+    @PutMapping("/admin/{id}/audit")
+    public Result<Boolean> auditShop(@PathVariable String id, @RequestBody(required = false) Map<String, Object> body) {
+        // TODO: 数据由Apifox模拟
+        return Result.success(true);
+    }
+}

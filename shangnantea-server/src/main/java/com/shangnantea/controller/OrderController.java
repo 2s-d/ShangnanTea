@@ -14,6 +14,7 @@ import java.util.Map;
 
 /**
  * 订单控制器
+ * 注意：数据由Apifox模拟，Controller仅保留骨架结构
  */
 @RestController
 @RequestMapping("/api/order")
@@ -30,8 +31,8 @@ public class OrderController {
      */
     @GetMapping("/{id}")
     public Result<Order> getOrderById(@PathVariable String id) {
-        Order order = orderService.getOrderById(id);
-        return Result.success(order);
+        // TODO: 数据由Apifox模拟
+        return Result.success(new Order());
     }
     
     /**
@@ -42,12 +43,8 @@ public class OrderController {
      */
     @PostMapping("/create")
     public Result<Order> createOrder(@RequestBody Order order) {
-        // TODO: 获取当前登录用户ID
-        String userId = "currentUserId";
-        order.setUserId(userId);
-        
-        Order createdOrder = orderService.createOrder(order);
-        return Result.success(createdOrder);
+        // TODO: 数据由Apifox模拟
+        return Result.success(new Order());
     }
 
     /**
@@ -60,8 +57,8 @@ public class OrderController {
             @RequestParam(required = false) Integer status,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size) {
-        // TODO-SCRIPT: 后续根据角色（用户/商家/管理员）切换到 /my /shop /admin/list
-        return Result.success(PageResult.of(java.util.Collections.emptyList(), 0, page, size));
+        // TODO: 数据由Apifox模拟
+        return Result.success(PageResult.of(java.util.Collections.emptyList(), 0L, page, size));
     }
 
     /**
@@ -69,7 +66,7 @@ public class OrderController {
      */
     @PostMapping("/pay")
     public Result<Boolean> payOrderCompat(@RequestBody(required = false) Map<String, Object> body) {
-        // TODO-SCRIPT: 后续实现支付流程（仅返回结构）
+        // TODO: 数据由Apifox模拟
         return Result.success(true);
     }
 
@@ -78,6 +75,7 @@ public class OrderController {
      */
     @PostMapping("/cancel")
     public Result<Boolean> cancelOrderCompat(@RequestBody(required = false) Map<String, Object> body) {
+        // TODO: 数据由Apifox模拟
         return Result.success(true);
     }
 
@@ -86,6 +84,7 @@ public class OrderController {
      */
     @PostMapping("/confirm")
     public Result<Boolean> confirmOrderCompat(@RequestBody(required = false) Map<String, Object> body) {
+        // TODO: 数据由Apifox模拟
         return Result.success(true);
     }
 
@@ -94,6 +93,7 @@ public class OrderController {
      */
     @PostMapping("/review")
     public Result<Boolean> reviewOrderCompat(@RequestBody(required = false) Map<String, Object> body) {
+        // TODO: 数据由Apifox模拟
         return Result.success(true);
     }
 
@@ -102,6 +102,7 @@ public class OrderController {
      */
     @PostMapping("/refund")
     public Result<Boolean> refundOrderCompat(@RequestBody(required = false) Map<String, Object> body) {
+        // TODO: 数据由Apifox模拟
         return Result.success(true);
     }
     
@@ -116,8 +117,8 @@ public class OrderController {
     public Result<Boolean> updateOrderStatus(
             @PathVariable String id,
             @RequestParam Integer status) {
-        boolean success = orderService.updateOrderStatus(id, status);
-        return Result.success(success);
+        // TODO: 数据由Apifox模拟
+        return Result.success(true);
     }
     
     /**
@@ -131,8 +132,8 @@ public class OrderController {
     public Result<Boolean> cancelOrder(
             @PathVariable String id,
             @RequestParam String cancelReason) {
-        boolean success = orderService.cancelOrder(id, cancelReason);
-        return Result.success(success);
+        // TODO: 数据由Apifox模拟
+        return Result.success(true);
     }
     
     /**
@@ -143,8 +144,8 @@ public class OrderController {
      */
     @PostMapping("/{id}/complete")
     public Result<Boolean> completeOrder(@PathVariable String id) {
-        boolean success = orderService.completeOrder(id);
-        return Result.success(success);
+        // TODO: 数据由Apifox模拟
+        return Result.success(true);
     }
     
     /**
@@ -160,8 +161,8 @@ public class OrderController {
             @PathVariable String id,
             @RequestParam String logisticsCompany,
             @RequestParam String logisticsNumber) {
-        boolean success = orderService.shipOrder(id, logisticsCompany, logisticsNumber);
-        return Result.success(success);
+        // TODO: 数据由Apifox模拟
+        return Result.success(true);
     }
     
     /**
@@ -177,14 +178,8 @@ public class OrderController {
             @RequestParam(required = false) Integer status,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size) {
-        // TODO: 获取当前登录用户ID
-        String userId = "currentUserId";
-        
-        PageParam pageParam = new PageParam();
-        pageParam.setPageNum(page);
-        pageParam.setPageSize(size);
-        PageResult<Order> pageResult = orderService.listUserOrders(userId, status, pageParam);
-        return Result.success(pageResult);
+        // TODO: 数据由Apifox模拟
+        return Result.success(PageResult.of(java.util.Collections.emptyList(), 0L, page, size));
     }
     
     /**
@@ -200,14 +195,8 @@ public class OrderController {
             @RequestParam(required = false) Integer status,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size) {
-        // TODO: 获取当前商家店铺ID
-        String shopId = "currentShopId";
-        
-        PageParam pageParam = new PageParam();
-        pageParam.setPageNum(page);
-        pageParam.setPageSize(size);
-        PageResult<Order> pageResult = orderService.listShopOrders(shopId, status, pageParam);
-        return Result.success(pageResult);
+        // TODO: 数据由Apifox模拟
+        return Result.success(PageResult.of(java.util.Collections.emptyList(), 0L, page, size));
     }
     
     /**
@@ -223,11 +212,8 @@ public class OrderController {
             @RequestParam(required = false) Integer status,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size) {
-        PageParam pageParam = new PageParam();
-        pageParam.setPageNum(page);
-        pageParam.setPageSize(size);
-        PageResult<Order> pageResult = orderService.listAllOrders(status, pageParam);
-        return Result.success(pageResult);
+        // TODO: 数据由Apifox模拟
+        return Result.success(PageResult.of(java.util.Collections.emptyList(), 0L, page, size));
     }
     
     /**
@@ -237,10 +223,8 @@ public class OrderController {
      */
     @GetMapping("/cart")
     public Result<List<ShoppingCart>> getCart() {
-        // TODO: 获取当前登录用户ID
-        String userId = "currentUserId";
-        List<ShoppingCart> carts = orderService.listUserCarts(userId);
-        return Result.success(carts);
+        // TODO: 数据由Apifox模拟
+        return Result.success(java.util.Collections.emptyList());
     }
     
     /**
@@ -251,12 +235,8 @@ public class OrderController {
      */
     @PostMapping("/cart")
     public Result<ShoppingCart> addToCart(@RequestBody ShoppingCart cart) {
-        // TODO: 获取当前登录用户ID
-        String userId = "currentUserId";
-        cart.setUserId(userId);
-        
-        ShoppingCart savedCart = orderService.addToCart(cart);
-        return Result.success(savedCart);
+        // TODO: 数据由Apifox模拟
+        return Result.success(new ShoppingCart());
     }
 
     /**
@@ -264,10 +244,8 @@ public class OrderController {
      */
     @PostMapping("/cart/add")
     public Result<ShoppingCart> addToCartCompat(@RequestBody(required = false) ShoppingCart cart) {
-        if (cart == null) {
-            return Result.success(null);
-        }
-        return addToCart(cart);
+        // TODO: 数据由Apifox模拟
+        return Result.success(new ShoppingCart());
     }
 
     /**
@@ -275,7 +253,7 @@ public class OrderController {
      */
     @PutMapping("/cart/update")
     public Result<Boolean> updateCartCompat(@RequestBody(required = false) ShoppingCart cart) {
-        // TODO-SCRIPT: 后续对接真实更新逻辑
+        // TODO: 数据由Apifox模拟
         return Result.success(true);
     }
 
@@ -284,7 +262,7 @@ public class OrderController {
      */
     @DeleteMapping("/cart/remove")
     public Result<Boolean> removeFromCartCompat(@RequestParam(required = false) Integer id) {
-        // TODO-SCRIPT: 后续对接真实删除逻辑
+        // TODO: 数据由Apifox模拟
         return Result.success(true);
     }
 
@@ -297,9 +275,8 @@ public class OrderController {
      */
     @PutMapping("/cart/{id}")
     public Result<Boolean> updateCart(@PathVariable Integer id, @RequestBody ShoppingCart cart) {
-        cart.setId(id);
-        boolean success = orderService.updateCart(cart);
-        return Result.success(success);
+        // TODO: 数据由Apifox模拟
+        return Result.success(true);
     }
     
     /**
@@ -310,8 +287,8 @@ public class OrderController {
      */
     @DeleteMapping("/cart/{id}")
     public Result<Boolean> removeFromCart(@PathVariable Integer id) {
-        boolean success = orderService.removeFromCart(id);
-        return Result.success(success);
+        // TODO: 数据由Apifox模拟
+        return Result.success(true);
     }
     
     /**
@@ -321,9 +298,45 @@ public class OrderController {
      */
     @DeleteMapping("/cart/clear")
     public Result<Boolean> clearCart() {
-        // TODO: 获取当前登录用户ID
-        String userId = "currentUserId";
-        boolean success = orderService.clearUserCart(userId);
-        return Result.success(success);
+        // TODO: 数据由Apifox模拟
+        return Result.success(true);
     }
-} 
+    
+    /**
+     * 申请退款
+     *
+     * @param id 订单ID
+     * @param body 退款信息
+     * @return 申请结果
+     */
+    @PostMapping("/{id}/refund")
+    public Result<Boolean> applyRefund(@PathVariable String id, @RequestBody(required = false) Map<String, Object> body) {
+        // TODO: 数据由Apifox模拟
+        return Result.success(true);
+    }
+    
+    /**
+     * 处理退款申请（商家/管理员）
+     *
+     * @param id 订单ID
+     * @param body 处理信息
+     * @return 处理结果
+     */
+    @PutMapping("/{id}/refund")
+    public Result<Boolean> processRefund(@PathVariable String id, @RequestBody(required = false) Map<String, Object> body) {
+        // TODO: 数据由Apifox模拟
+        return Result.success(true);
+    }
+    
+    /**
+     * 获取退款详情
+     *
+     * @param id 订单ID
+     * @return 退款详情
+     */
+    @GetMapping("/{id}/refund")
+    public Result<Map<String, Object>> getRefundDetail(@PathVariable String id) {
+        // TODO: 数据由Apifox模拟
+        return Result.success(new java.util.HashMap<>());
+    }
+}
