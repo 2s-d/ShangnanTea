@@ -78,7 +78,13 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
+                    properties:
+                      token:
+                        type: string
+                        description: 令牌
                 required:
                   - code
               example:
@@ -121,7 +127,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -153,7 +161,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -179,7 +189,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -206,7 +218,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -244,7 +258,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -289,7 +305,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -325,7 +343,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -366,7 +386,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -407,7 +429,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -433,7 +457,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -487,7 +513,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -541,7 +569,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -571,7 +601,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -603,7 +635,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -629,7 +663,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -670,7 +706,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -702,7 +740,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -744,7 +784,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -776,7 +818,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -808,7 +852,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -850,7 +896,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -882,7 +930,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -920,7 +970,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -952,7 +1004,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -978,7 +1032,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -1015,7 +1071,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -1066,7 +1124,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -1124,7 +1184,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -1174,7 +1236,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -1204,7 +1268,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -1248,7 +1314,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -1291,7 +1359,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -1333,7 +1403,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -1383,7 +1455,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -1442,7 +1516,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -1509,7 +1585,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -1539,7 +1617,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -1606,7 +1686,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -1636,7 +1718,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -1660,7 +1744,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -1709,7 +1795,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -1756,7 +1844,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -1786,7 +1876,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -1824,7 +1916,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -1864,7 +1958,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -1920,7 +2016,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -1962,7 +2060,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -1994,7 +2094,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -2024,7 +2126,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -2076,7 +2180,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -2124,7 +2230,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -2154,7 +2262,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -2186,7 +2296,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -2230,7 +2342,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -2264,7 +2378,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -2296,7 +2412,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -2340,7 +2458,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -2382,7 +2502,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -2422,7 +2544,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -2461,7 +2585,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -2520,7 +2646,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -2569,7 +2697,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -2599,7 +2729,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -2650,7 +2782,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -2676,7 +2810,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -2721,7 +2857,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -2774,7 +2912,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -2821,7 +2961,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -2851,7 +2993,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -2893,7 +3037,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -2935,7 +3081,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -2981,7 +3129,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -3012,7 +3162,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -3061,7 +3213,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -3106,7 +3260,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -3136,7 +3292,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -3178,7 +3336,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -3208,7 +3368,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -3256,7 +3418,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -3301,7 +3465,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -3331,7 +3497,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -3363,7 +3531,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -3393,7 +3563,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -3425,7 +3597,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -3464,7 +3638,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -3518,7 +3694,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -3546,7 +3724,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -3594,7 +3774,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -3634,7 +3816,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -3666,7 +3850,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -3692,7 +3878,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -3741,7 +3929,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -3789,7 +3979,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -3836,7 +4028,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -3886,7 +4080,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -3922,7 +4118,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -3958,7 +4156,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -4004,7 +4204,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -4046,7 +4248,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -4088,7 +4292,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -4120,7 +4326,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -4165,7 +4373,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -4197,7 +4407,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -4246,7 +4458,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -4287,7 +4501,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -4351,7 +4567,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -4381,7 +4599,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -4424,7 +4644,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -4448,7 +4670,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -4491,7 +4715,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -4536,7 +4762,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -4566,7 +4794,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -4603,7 +4833,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -4644,7 +4876,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -4695,7 +4929,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -4725,7 +4961,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -4778,7 +5016,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -4808,7 +5048,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -4832,7 +5074,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -4877,7 +5121,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -4907,7 +5153,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -4955,7 +5203,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -4985,7 +5235,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5031,7 +5283,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5087,7 +5341,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5122,7 +5378,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5159,7 +5417,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5212,7 +5472,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5242,7 +5504,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5280,7 +5544,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5330,7 +5596,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5362,7 +5630,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5394,7 +5664,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5424,7 +5696,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5456,7 +5730,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5486,7 +5762,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5518,7 +5796,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5548,7 +5828,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5580,7 +5862,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5622,7 +5906,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5659,7 +5945,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5696,7 +5984,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5738,7 +6028,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5778,7 +6070,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5825,7 +6119,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5863,7 +6159,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5901,7 +6199,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5927,7 +6227,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5970,7 +6272,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -6010,7 +6314,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -6046,7 +6352,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -6080,7 +6388,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -6114,7 +6424,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -6140,7 +6452,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -6189,7 +6503,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -6234,7 +6550,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -6267,7 +6585,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -6299,7 +6619,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -6340,7 +6662,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -6370,7 +6694,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -6419,7 +6745,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -6456,7 +6784,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -6500,7 +6830,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -6542,7 +6874,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -6590,7 +6924,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
@@ -6631,7 +6967,9 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
+                    type: object
                     nullable: true
+                    additionalProperties: true
                 required:
                   - code
               example:
