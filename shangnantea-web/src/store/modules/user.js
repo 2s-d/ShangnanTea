@@ -449,7 +449,8 @@ const actions = {
     }
   },
   
-  // 初始化用户信�?  async initAuth({ commit, state }) {
+  // 初始化用户信�?  
+  // async initAuth({ commit, state }) {
     // 如果已经有用户信息，不再重复初始�?    if (state.userInfo) {
       return state.userInfo
     }
