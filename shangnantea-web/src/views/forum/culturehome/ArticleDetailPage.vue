@@ -192,7 +192,7 @@ export default {
         await nextTick()
         suppressResizeObserverError()
       } catch (error) {
-
+        forumErrorMessages.showLoadFailed('获取文章详情失败')
         console.error('获取文章详情失败:', error)
       }
     }

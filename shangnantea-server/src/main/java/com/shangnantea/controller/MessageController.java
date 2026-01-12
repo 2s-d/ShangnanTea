@@ -61,6 +61,27 @@ public class MessageController {
     }
 
     /**
+     * 发送图片消息
+     * 路径: POST /message/messages/image
+     * 成功码: 7003, 失败码: 7103, 1103, 1104
+     *
+     * @param sessionId 会话ID
+     * @param receiverId 接收者ID
+     * @param image 图片文件
+     * @return 发送结果
+     */
+    @PostMapping("/messages/image")
+    @RequiresLogin
+    public Result<Object> sendImageMessage(
+            @RequestParam("sessionId") String sessionId,
+            @RequestParam("receiverId") String receiverId,
+            @RequestParam("image") MultipartFile image) {
+        logger.info("发送图片消息请求, sessionId: {}, receiverId: {}, 文件名: {}", 
+                sessionId, receiverId, image.getOriginalFilename());
+        return messageService.sendImageMessage(sessionId, receiverId, image);
+    }
+
+    /**
      * 发送消息
      * 路径: POST /message/send
      * 成功码: 7000, 失败码: 7100
@@ -271,29 +292,6 @@ public class MessageController {
     public Result<Boolean> deleteChatSession(@PathVariable String sessionId) {
         logger.info("删除聊天会话请求: {}", sessionId);
         return messageService.deleteChatSession(sessionId);
-    }
-
-    // ==================== 图片消息 ====================
-
-    /**
-     * 发送图片消息
-     * 路径: POST /message/messages/image
-     * 成功码: 7003, 失败码: 7103, 1103, 1104
-     *
-     * @param sessionId 会话ID
-     * @param receiverId 接收者ID
-     * @param image 图片文件
-     * @return 发送结果
-     */
-    @PostMapping("/messages/image")
-    @RequiresLogin
-    public Result<Object> sendImageMessage(
-            @RequestParam("sessionId") String sessionId,
-            @RequestParam("receiverId") String receiverId,
-            @RequestParam("image") MultipartFile image) {
-        logger.info("发送图片消息请求, sessionId: {}, receiverId: {}, 文件名: {}", 
-                sessionId, receiverId, image.getOriginalFilename());
-        return messageService.sendImageMessage(sessionId, receiverId, image);
     }
 
     // ==================== 用户主页 ====================

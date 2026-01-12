@@ -50,11 +50,11 @@
 - [-] 6. 清理旧文件
   - [ ] 6.1 删除旧消息文件
     - 删除 commonMessages.js、userMessages.js、teaMessages.js、orderMessages.js、shopMessages.js、forumMessages.js、messageMessages.js
-    - ⚠️ 注意：这些文件目前仍存在，且仍有代码在引用其 SUCCESS/ERROR 消息
+    - ⚠️ 注意：这些文件目前仍存在，但已无代码引用其 SUCCESS/ERROR 消息
     - _Requirements: 5.1_
-  - [ ] 6.2 更新所有引用旧文件的代码
-    - 搜索所有使用 SUCCESS/ERROR 消息的文件
-    - 修改为使用 showByCode 或直接调用 messageManager
+  - [x] 6.2 更新所有引用旧文件的代码
+    - ✅ 已完成：所有 Vue 文件已迁移到使用 showByCode
+    - 检测脚本 `tools/detect-old-messages.js` 确认：0 个待修改文件
     - _Requirements: 5.2_
 
 - [ ] 7. Final Checkpoint
