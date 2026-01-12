@@ -55,7 +55,7 @@
 <script>
 import { ref, computed, watch } from 'vue'
 import { Picture, Smile } from '@element-plus/icons-vue'
-import { commonErrorMessages } from '@/utils/commonMessages'
+import { commonPromptMessages } from '@/utils/promptMessages'
 import EmojiPicker from './EmojiPicker.vue'
 
 export default {
@@ -91,12 +91,12 @@ export default {
       if (!file) return
       
       if (!file.type.startsWith('image/')) {
-        commonErrorMessages.showImageTypeInvalid()
+        commonPromptMessages.showImageTypeInvalid()
         return
       }
       
       if (file.size > 5 * 1024 * 1024) {
-        commonErrorMessages.showImageSizeExceeded()
+        commonPromptMessages.showImageSizeExceeded()
         return
       }
       

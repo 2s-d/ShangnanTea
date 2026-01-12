@@ -1,38 +1,12 @@
 {
-  "scanTime": "2026-01-12T18:43:38.814Z",
+  "scanTime": "2026-01-12T19:13:05.384Z",
   "summary": {
-    "totalFiles": 14,
-    "totalIssues": 109,
-    "totalImports": 10,
-    "totalCalls": 99
+    "totalFiles": 8,
+    "totalIssues": 64,
+    "totalImports": 5,
+    "totalCalls": 59
   },
   "files": [
-    {
-      "file": "C:\\wendang\\bishe\\tea1\\shangnantea\\shangnantea-web\\src\\components\\message\\chat\\ChatInputArea.vue",
-      "relativePath": "src\\components\\message\\chat\\ChatInputArea.vue",
-      "imports": [
-        {
-          "line": 58,
-          "code": "import { commonErrorMessages } from '@/utils/commonMessages'",
-          "fullLine": "import { commonErrorMessages } from '@/utils/commonMessages'"
-        }
-      ],
-      "calls": [
-        {
-          "line": 94,
-          "code": "commonErrorMessages.showImageTypeInvalid()",
-          "fullLine": "commonErrorMessages.showImageTypeInvalid()"
-        },
-        {
-          "line": 99,
-          "code": "commonErrorMessages.showImageSizeExceeded()",
-          "fullLine": "commonErrorMessages.showImageSizeExceeded()"
-        }
-      ],
-      "total": 3,
-      "hasNewPattern": false,
-      "status": "pending"
-    },
     {
       "file": "C:\\wendang\\bishe\\tea1\\shangnantea\\shangnantea-web\\src\\views\\forum\\culturehome\\ArticleDetailPage.vue",
       "relativePath": "src\\views\\forum\\culturehome\\ArticleDetailPage.vue",
@@ -80,61 +54,9 @@
       "status": "pending"
     },
     {
-      "file": "C:\\wendang\\bishe\\tea1\\shangnantea\\shangnantea-web\\src\\views\\forum\\culturehome\\CultureHomePage.vue",
-      "relativePath": "src\\views\\forum\\culturehome\\CultureHomePage.vue",
-      "imports": [
-        {
-          "line": 138,
-          "code": "import { forumSuccessMessages, forumErrorMessages } from '@/utils/forumMessages'",
-          "fullLine": "import { forumSuccessMessages, forumErrorMessages } from '@/utils/forumMessages'"
-        }
-      ],
-      "calls": [
-        {
-          "line": 178,
-          "code": "forumErrorMessages.showHomeDataLoadFailed()",
-          "fullLine": "forumErrorMessages.showHomeDataLoadFailed()"
-        },
-        {
-          "line": 188,
-          "code": "forumErrorMessages.showBannerLoadFailed()",
-          "fullLine": "forumErrorMessages.showBannerLoadFailed()"
-        },
-        {
-          "line": 198,
-          "code": "forumErrorMessages.showArticleLoadFailed()",
-          "fullLine": "forumErrorMessages.showArticleLoadFailed()"
-        },
-        {
-          "line": 208,
-          "code": "forumErrorMessages.showRecommendTeaLoadFailed()",
-          "fullLine": "forumErrorMessages.showRecommendTeaLoadFailed()"
-        },
-        {
-          "line": 238,
-          "code": "forumSuccessMessages.showArticleRefreshed()",
-          "fullLine": "forumSuccessMessages.showArticleRefreshed()"
-        },
-        {
-          "line": 240,
-          "code": "forumErrorMessages.showArticleRefreshFailed()",
-          "fullLine": "forumErrorMessages.showArticleRefreshFailed()"
-        }
-      ],
-      "total": 7,
-      "hasNewPattern": false,
-      "status": "pending"
-    },
-    {
       "file": "C:\\wendang\\bishe\\tea1\\shangnantea\\shangnantea-web\\src\\views\\forum\\detail\\ForumDetailPage.vue",
       "relativePath": "src\\views\\forum\\detail\\ForumDetailPage.vue",
-      "imports": [
-        {
-          "line": 218,
-          "code": "import { forumSuccessMessages, forumErrorMessages } from '@/utils/forumMessages'",
-          "fullLine": "import { forumSuccessMessages, forumErrorMessages } from '@/utils/forumMessages'"
-        }
-      ],
+      "imports": [],
       "calls": [
         {
           "line": 264,
@@ -147,51 +69,6 @@
           "fullLine": "forumErrorMessages.showLoadRepliesFailed()"
         },
         {
-          "line": 315,
-          "code": "forumSuccessMessages.showPostUnliked()",
-          "fullLine": "forumSuccessMessages.showPostUnliked()"
-        },
-        {
-          "line": 319,
-          "code": "forumSuccessMessages.showPostLiked()",
-          "fullLine": "forumSuccessMessages.showPostLiked()"
-        },
-        {
-          "line": 322,
-          "code": "forumErrorMessages.showOperationFailed(error.message)",
-          "fullLine": "forumErrorMessages.showOperationFailed(error.message)"
-        },
-        {
-          "line": 345,
-          "code": "forumSuccessMessages.showPostUnfavorited()",
-          "fullLine": "forumSuccessMessages.showPostUnfavorited()"
-        },
-        {
-          "line": 349,
-          "code": "forumSuccessMessages.showPostFavorited()",
-          "fullLine": "forumSuccessMessages.showPostFavorited()"
-        },
-        {
-          "line": 352,
-          "code": "forumErrorMessages.showOperationFailed(error.message)",
-          "fullLine": "forumErrorMessages.showOperationFailed(error.message)"
-        },
-        {
-          "line": 426,
-          "code": "forumSuccessMessages.showPostUnliked()",
-          "fullLine": "forumSuccessMessages.showPostUnliked()"
-        },
-        {
-          "line": 429,
-          "code": "forumSuccessMessages.showPostLiked()",
-          "fullLine": "forumSuccessMessages.showPostLiked()"
-        },
-        {
-          "line": 432,
-          "code": "forumErrorMessages.showOperationFailed(error.message)",
-          "fullLine": "forumErrorMessages.showOperationFailed(error.message)"
-        },
-        {
           "line": 607,
           "code": "forumSuccessMessages.showReplyCreated()",
           "fullLine": "forumSuccessMessages.showReplyCreated()"
@@ -202,9 +79,9 @@
           "fullLine": "forumErrorMessages.showReplyCreateFailed(error.message)"
         }
       ],
-      "total": 14,
-      "hasNewPattern": false,
-      "status": "pending"
+      "total": 4,
+      "hasNewPattern": true,
+      "status": "partial"
     },
     {
       "file": "C:\\wendang\\bishe\\tea1\\shangnantea\\shangnantea-web\\src\\views\\forum\\manage\\CultureManagerPage.vue",
@@ -278,19 +155,14 @@
           "fullLine": "forumErrorMessages.showBlockSaveFailed(error.message)"
         },
         {
-          "line": 868,
-          "code": "forumErrorMessages.showArticleLoadFailed()",
-          "fullLine": "forumErrorMessages.showArticleLoadFailed()"
-        },
-        {
           "line": 878,
           "code": "forumErrorMessages.showHomeDataLoadFailed()",
           "fullLine": "forumErrorMessages.showHomeDataLoadFailed()"
         }
       ],
-      "total": 15,
-      "hasNewPattern": false,
-      "status": "pending"
+      "total": 14,
+      "hasNewPattern": true,
+      "status": "partial"
     },
     {
       "file": "C:\\wendang\\bishe\\tea1\\shangnantea\\shangnantea-web\\src\\views\\forum\\manage\\ForumManagePage.vue",
@@ -443,16 +315,11 @@
           "line": 276,
           "code": "commonSuccessMessages.showDeleteSuccess()",
           "fullLine": "commonSuccessMessages.showDeleteSuccess()"
-        },
-        {
-          "line": 300,
-          "code": "commonErrorMessages.showLoadFailed()",
-          "fullLine": "commonErrorMessages.showLoadFailed()"
         }
       ],
-      "total": 4,
-      "hasNewPattern": false,
-      "status": "pending"
+      "total": 3,
+      "hasNewPattern": true,
+      "status": "partial"
     },
     {
       "file": "C:\\wendang\\bishe\\tea1\\shangnantea\\shangnantea-web\\src\\views\\message\\homepage\\UserHomePage.vue",
@@ -493,13 +360,7 @@
     {
       "file": "C:\\wendang\\bishe\\tea1\\shangnantea\\shangnantea-web\\src\\views\\message\\notification\\SystemNotificationsPage.vue",
       "relativePath": "src\\views\\message\\notification\\SystemNotificationsPage.vue",
-      "imports": [
-        {
-          "line": 113,
-          "code": "import { messageSuccessMessages, messageErrorMessages } from '@/utils/messageMessages'",
-          "fullLine": "import { messageSuccessMessages, messageErrorMessages } from '@/utils/messageMessages'"
-        }
-      ],
+      "imports": [],
       "calls": [
         {
           "line": 311,
@@ -527,87 +388,7 @@
           "fullLine": "messageErrorMessages.showOperationFailed('处理商家认证确认失败，请稍后再试')"
         }
       ],
-      "total": 6,
-      "hasNewPattern": false,
-      "status": "pending"
-    },
-    {
-      "file": "C:\\wendang\\bishe\\tea1\\shangnantea\\shangnantea-web\\src\\views\\order\\detail\\OrderDetailPage.vue",
-      "relativePath": "src\\views\\order\\detail\\OrderDetailPage.vue",
-      "imports": [],
-      "calls": [
-        {
-          "line": 397,
-          "code": "orderErrorMessages.showLogisticsLoadFailed(error.message)",
-          "fullLine": "orderErrorMessages.showLogisticsLoadFailed(error.message)"
-        }
-      ],
-      "total": 1,
-      "hasNewPattern": true,
-      "status": "partial"
-    },
-    {
-      "file": "C:\\wendang\\bishe\\tea1\\shangnantea\\shangnantea-web\\src\\views\\order\\manage\\OrderManagePage.vue",
-      "relativePath": "src\\views\\order\\manage\\OrderManagePage.vue",
-      "imports": [],
-      "calls": [
-        {
-          "line": 679,
-          "code": "orderErrorMessages.showRefundDetailLoadFailed()",
-          "fullLine": "orderErrorMessages.showRefundDetailLoadFailed()"
-        },
-        {
-          "line": 720,
-          "code": "orderSuccessMessages.showOrderShipped()",
-          "fullLine": "orderSuccessMessages.showOrderShipped()"
-        },
-        {
-          "line": 724,
-          "code": "orderErrorMessages.showOrderShipFailed()",
-          "fullLine": "orderErrorMessages.showOrderShipFailed()"
-        },
-        {
-          "line": 763,
-          "code": "orderSuccessMessages.showBatchShipSuccess()",
-          "fullLine": "orderSuccessMessages.showBatchShipSuccess()"
-        },
-        {
-          "line": 768,
-          "code": "orderErrorMessages.showBatchShipFailed()",
-          "fullLine": "orderErrorMessages.showBatchShipFailed()"
-        },
-        {
-          "line": 797,
-          "code": "orderSuccessMessages.showRefundApproved()",
-          "fullLine": "orderSuccessMessages.showRefundApproved()"
-        },
-        {
-          "line": 799,
-          "code": "orderSuccessMessages.showRefundRejected()",
-          "fullLine": "orderSuccessMessages.showRefundRejected()"
-        },
-        {
-          "line": 806,
-          "code": "orderErrorMessages.showRefundProcessFailed(action, e?.message)",
-          "fullLine": "orderErrorMessages.showRefundProcessFailed(action, e?.message)"
-        },
-        {
-          "line": 831,
-          "code": "orderErrorMessages.showStatisticsLoadFailed(error.message)",
-          "fullLine": "orderErrorMessages.showStatisticsLoadFailed(error.message)"
-        },
-        {
-          "line": 872,
-          "code": "orderSuccessMessages.showExportSuccess()",
-          "fullLine": "orderSuccessMessages.showExportSuccess()"
-        },
-        {
-          "line": 875,
-          "code": "orderErrorMessages.showExportFailed(error.message)",
-          "fullLine": "orderErrorMessages.showExportFailed(error.message)"
-        }
-      ],
-      "total": 11,
+      "total": 5,
       "hasNewPattern": true,
       "status": "partial"
     },
@@ -625,77 +406,6 @@
           "line": 330,
           "code": "orderErrorMessages.showProductInfoExpired()",
           "fullLine": "orderErrorMessages.showProductInfoExpired()"
-        },
-        {
-          "line": 351,
-          "code": "orderErrorMessages.showProductInfoLoadFailed()",
-          "fullLine": "orderErrorMessages.showProductInfoLoadFailed()"
-        },
-        {
-          "line": 389,
-          "code": "orderErrorMessages.showAddressLoadFailed()",
-          "fullLine": "orderErrorMessages.showAddressLoadFailed()"
-        },
-        {
-          "line": 406,
-          "code": "orderErrorMessages.showProductInfoExpired()",
-          "fullLine": "orderErrorMessages.showProductInfoExpired()"
-        },
-        {
-          "line": 422,
-          "code": "orderErrorMessages.showProductInfoLoadFailed()",
-          "fullLine": "orderErrorMessages.showProductInfoLoadFailed()"
-        }
-      ],
-      "total": 6,
-      "hasNewPattern": true,
-      "status": "partial"
-    },
-    {
-      "file": "C:\\wendang\\bishe\\tea1\\shangnantea\\shangnantea-web\\src\\views\\order\\review\\OrderReviewPage.vue",
-      "relativePath": "src\\views\\order\\review\\OrderReviewPage.vue",
-      "imports": [],
-      "calls": [
-        {
-          "line": 165,
-          "code": "orderErrorMessages.showOrderDetailLoadFailed(error.message)",
-          "fullLine": "orderErrorMessages.showOrderDetailLoadFailed(error.message)"
-        },
-        {
-          "line": 230,
-          "code": "orderSuccessMessages.showReviewSubmitted()",
-          "fullLine": "orderSuccessMessages.showReviewSubmitted()"
-        },
-        {
-          "line": 237,
-          "code": "orderErrorMessages.showReviewSubmitFailed(error.message)",
-          "fullLine": "orderErrorMessages.showReviewSubmitFailed(error.message)"
-        },
-        {
-          "line": 245,
-          "code": "orderErrorMessages.showOrderIdRequired()",
-          "fullLine": "orderErrorMessages.showOrderIdRequired()"
-        }
-      ],
-      "total": 4,
-      "hasNewPattern": true,
-      "status": "partial"
-    },
-    {
-      "file": "C:\\wendang\\bishe\\tea1\\shangnantea\\shangnantea-web\\src\\views\\user\\auth\\ResetPasswordPage.vue",
-      "relativePath": "src\\views\\user\\auth\\ResetPasswordPage.vue",
-      "imports": [
-        {
-          "line": 104,
-          "code": "import { userSuccessMessages } from '@/utils/userMessages'",
-          "fullLine": "import { userSuccessMessages } from '@/utils/userMessages'"
-        }
-      ],
-      "calls": [
-        {
-          "line": 166,
-          "code": "userSuccessMessages.showCaptchaSent()",
-          "fullLine": "userSuccessMessages.showCaptchaSent()"
         }
       ],
       "total": 2,

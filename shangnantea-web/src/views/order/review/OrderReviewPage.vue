@@ -147,7 +147,9 @@ export default {
     // 加载订单详情
     const loadOrderDetail = async () => {
       try {
-        const data = await store.dispatch('order/fetchOrderDetail', orderId)
+        const res = await store.dispatch('order/fetchOrderDetail', orderId)
+        showByCode(res?.code)
+        const data = res?.data || res
         orderDetail.value = data
         
         // 检查订单状态是否可以评价
@@ -162,7 +164,7 @@ export default {
           goBack()
         }
       } catch (error) {
-        orderErrorMessages.showOrderDetailLoadFailed(error.message)
+        console.error('加载订单详情失败:', error)
         orderDetail.value = null
       }
     }
@@ -218,7 +220,7 @@ export default {
         const imageUrls = await uploadImages()
         
         // 提交评价
-        await store.dispatch('order/submitOrderReview', {
+        const res = await store.dispatch('order/submitOrderReview', {
           orderId: orderId,
           teaId: orderDetail.value.tea_id,
           rating: reviewForm.rating,
@@ -227,14 +229,14 @@ export default {
           isAnonymous: reviewForm.isAnonymous ? 1 : 0
         })
         
-        orderSuccessMessages.showReviewSubmitted()
+        showByCode(res?.code)
         
         // 返回订单详情
         setTimeout(() => {
           router.push(`/order/detail/${orderId}`)
         }, 1500)
       } catch (error) {
-        orderErrorMessages.showReviewSubmitFailed(error.message)
+        console.error('提交评价失败:', error)
       } finally {
         submitting.value = false
       }
@@ -242,7 +244,7 @@ export default {
     
     onMounted(() => {
       if (!orderId) {
-        orderErrorMessages.showOrderIdRequired()
+        orderPromptMessages.showOrderIdRequired()
         router.push('/order/list')
         return
       }

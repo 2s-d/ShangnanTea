@@ -101,7 +101,6 @@ import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { userPromptMessages } from '@/utils/promptMessages'
-import { userSuccessMessages } from '@/utils/userMessages'
 
 export default {
   name: 'ResetPasswordPage',
@@ -162,8 +161,8 @@ export default {
       }
       
       // 模拟发送验证码（实际应该调用后端API）
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-      userSuccessMessages.showCaptchaSent()
+      // TODO: 当后端API实现后，改为 const res = await store.dispatch('user/sendCaptcha', data); showByCode(res.code)
+      userPromptMessages.showCaptchaSent()
       
       // 开始倒计时
       codeCountdown.value = 60

@@ -298,8 +298,7 @@ export default {
     const loadAddresses = async () => {
       try {
         loading.value = true
-        const res = await store.dispatch('user/fetchAddresses')
-        showByCode(res?.code)
+        await store.dispatch('user/fetchAddresses')
         addresses.value = store.state.user.addresses || []
         
         // 默认选中默认地址
@@ -310,7 +309,7 @@ export default {
           selectedAddressId.value = addresses.value[0].id
         }
       } catch (error) {
-        console.error('加载地址失败:', error)
+        orderErrorMessages.showAddressLoadFailed()
       } finally {
         loading.value = false
       }
@@ -328,7 +327,7 @@ export default {
           // 直接购买的情况，从缓存获取直接购买的商品
           const directBuyItem = store.state.order.directBuyItem
           if (!directBuyItem) {
-            orderPromptMessages.showProductInfoExpired()
+            orderErrorMessages.showProductInfoExpired()
             router.push('/tea/mall')
             return
           }
@@ -355,136 +354,6 @@ export default {
         loading.value = false
       }
     }
-    
-    /*
-    // 已删除：注释代码已合并到上面的loadOrderItems函数中
-    const store = useStore()
-    const loading = ref(false)
-    const submitting = ref(false)
-    
-    // 收货地址相关
-    const addresses = ref([])
-    const selectedAddressId = ref(null)
-    
-    // 订单商品相关
-    const orderItems = ref([])
-    
-    // 支付方式相关
-    const paymentMethod = ref('alipay')
-    
-    // 加载地址和订单数据
-    const loadAddresses = async () => {
-      try {
-        loading.value = true
-        await store.dispatch('user/fetchAddresses')
-        addresses.value = store.state.user.addresses || []
-        
-        // 默认选中默认地址
-        const defaultAddress = addresses.value.find(addr => addr.isDefault)
-        if (defaultAddress) {
-          selectedAddressId.value = defaultAddress.id
-        } else if (addresses.value.length > 0) {
-          selectedAddressId.value = addresses.value[0].id
-        }
-      } catch (error) {
-        orderErrorMessages.showAddressLoadFailed()
-      } finally {
-        loading.value = false
-      }
-    }
-    
-    const loadOrderItems = async () => {
-      try {
-        loading.value = true
-        
-        // 从路由参数判断是否是直接购买
-        const isDirect = route.query.direct === '1'
-        
-        if (isDirect) {
-          // 直接购买的情况，从缓存获取直接购买的商品
-          const directBuyItem = store.state.order.directBuyItem
-          if (!directBuyItem) {
-            orderErrorMessages.showProductInfoExpired()
-            router.push('/tea/mall')
-            return
-          }
-          orderItems.value = [directBuyItem]
-        } else {
-          // 购物车结算的情况
-          const items = await store.dispatch('order/getSelectedCartItems')
-          if (!items || items.length === 0) {
-            orderPromptMessages.showSelectionRequired()
-            router.push('/order/cart')
-            return
-          }
-          orderItems.value = items
-        }
-      } catch (error) {
-        orderErrorMessages.showProductInfoLoadFailed()
-        router.push('/order/cart')
-      } finally {
-        loading.value = false
-      }
-    }
-    
-    // 金额计算
-    const goodsAmount = computed(() => {
-      return orderItems.value.reduce((sum, item) => {
-        return sum + item.price * item.quantity
-      }, 0)
-    })
-    
-    const shippingFee = computed(() => {
-      // 计算运费逻辑
-      return 0
-    })
-    
-    const totalAmount = computed(() => {
-      return goodsAmount.value + shippingFee.value
-    })
-    
-    // 地址对话框相关
-    const addressDialogVisible = ref(false)
-    const addressSubmitting = ref(false)
-    const addressFormRef = ref(null)
-    
-    const addressForm = reactive({
-      name: '',
-      phone: '',
-      region: [],
-      detail: '',
-      isDefault: false
-    })
-    
-    const addressRules = {
-      name: [
-        { required: true, message: '请输入收货人姓名', trigger: 'blur' },
-        { min: 2, max: 20, message: '收货人姓名长度为2-20个字符', trigger: 'blur' }
-      ],
-      phone: [
-        { required: true, message: '请输入手机号码', trigger: 'blur' },
-        { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号码', trigger: 'blur' }
-      ],
-      region: [
-        { required: true, type: 'array', message: '请选择所在地区', trigger: 'change' }
-      ],
-      detail: [
-        { required: true, message: '请输入详细地址', trigger: 'blur' },
-        { min: 5, max: 100, message: '详细地址长度为5-100个字符', trigger: 'blur' }
-      ]
-    }
-    
-    // 加载地区数据
-    const regionOptions = ref([])
-    const loadRegionData = async () => {
-      try {
-        const data = await store.dispatch('common/getRegionData')
-        regionOptions.value = data
-      } catch (error) {
-        console.error('加载地区数据失败', error)
-      }
-    }
-    */
     
     // 初始化
     onMounted(() => {
