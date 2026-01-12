@@ -200,7 +200,7 @@ import { useStore } from 'vuex'
 import { Refresh, ArrowDown, Grid, EditPen, Delete, Male, Female } from '@element-plus/icons-vue'
 import PostCard from '@/components/forum/PostCard.vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-import { forumSuccessMessages, forumErrorMessages } from '@/utils/forumMessages'
+import { showByCode } from '@/utils/apiMessages'
 
 export default {
   name: 'ForumListPage',
@@ -645,9 +645,9 @@ export default {
     // 获取版块列表
     const fetchTopics = async () => {
       try {
-        await store.dispatch('forum/fetchForumTopics')
+        const res = await store.dispatch('forum/fetchForumTopics')
+        showByCode(res.code)
       } catch (error) {
-        forumErrorMessages.showLoadTopicsFailed()
         console.error('获取版块列表失败:', error)
       }
     }
@@ -661,10 +661,10 @@ export default {
           sortBy: currentSort.value,
           topicId: currentTopicId.value === 'all' ? null : currentTopicId.value
         }
-        await store.dispatch('forum/fetchForumPosts', params)
+        const res = await store.dispatch('forum/fetchForumPosts', params)
+        showByCode(res.code)
         updatePagination()
       } catch (error) {
-        forumErrorMessages.showLoadPostsFailed()
         console.error('获取帖子列表失败:', error)
       }
     }
@@ -733,15 +733,14 @@ export default {
     // 帖子点赞
     const handleLike = async (post) => {
       try {
+        let res
         if (post.isLiked) {
-          await store.dispatch('forum/unlikePost', post.id)
-          forumSuccessMessages.showPostUnliked()
+          res = await store.dispatch('forum/unlikePost', post.id)
         } else {
-          await store.dispatch('forum/likePost', post.id)
-          forumSuccessMessages.showPostLiked()
+          res = await store.dispatch('forum/likePost', post.id)
         }
+        showByCode(res.code)
       } catch (error) {
-        forumErrorMessages.showOperationFailed()
         console.error('点赞操作失败:', error)
       }
     }
@@ -749,15 +748,14 @@ export default {
     // 帖子收藏
     const handleFavorite = async (post) => {
       try {
+        let res
         if (post.isFavorited) {
-          await store.dispatch('forum/unfavoritePost', post.id)
-          forumSuccessMessages.showPostUnfavorited()
+          res = await store.dispatch('forum/unfavoritePost', post.id)
         } else {
-          await store.dispatch('forum/favoritePost', post.id)
-          forumSuccessMessages.showPostFavorited()
+          res = await store.dispatch('forum/favoritePost', post.id)
         }
+        showByCode(res.code)
       } catch (error) {
-        forumErrorMessages.showOperationFailed()
         console.error('收藏操作失败:', error)
       }
     }
@@ -775,18 +773,17 @@ export default {
       localLoading.delete = true
       
       try {
-        await store.dispatch('forum/deletePost', postToDelete.value.id)
+        const res = await store.dispatch('forum/deletePost', postToDelete.value.id)
         // 从我的帖子列表中移除
         myPosts.value = myPosts.value.filter(item => item.id !== postToDelete.value.id)
         
-        forumSuccessMessages.showPostDeleted()
+        showByCode(res.code)
         dialogVisible.delete = false
         postToDelete.value = null
         
         // 刷新帖子列表
         fetchPosts()
       } catch (error) {
-        forumErrorMessages.showPostDeleteFailed()
         console.error('删除帖子失败:', error)
       } finally {
         localLoading.delete = false

@@ -334,15 +334,22 @@ export function showByCode(code, customMessage = null) {
  * 判断状态码是否表示成功
  * @param {number} code - 状态码
  * @returns {boolean} 是否成功
+ * 
+ * 状态码规则：
+ * - 200: HTTP成功
+ * - x0xx: 业务成功码（百位为0，如 6010, 6011, 6012）
+ * - x1xx: 业务失败码（百位为1，如 6110, 6111, 6112）
  */
 export function isSuccess(code) {
   // HTTP 200 成功
   if (code === 200) return true
   
-  // 业务成功码：x0xx 格式（0-49为成功）
+  // 业务状态码：判断百位数字
+  // x0xx = 成功（百位为0）
+  // x1xx = 失败（百位为1）
   if (code >= 1000 && code <= 7999) {
-    const lastTwoDigits = code % 100
-    return lastTwoDigits < 50
+    const hundredsDigit = Math.floor((code % 1000) / 100)
+    return hundredsDigit === 0
   }
   
   return false
