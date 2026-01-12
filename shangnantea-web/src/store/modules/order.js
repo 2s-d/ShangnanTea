@@ -127,83 +127,72 @@ const mutations = {
 
 const actions = {
   // === 购物车相关actions ===
+  // 接口88-92: 购物车操作
   
-  // 获取购物车列表
+  // #88 获取购物车列表 - 成功码200, 失败码4110
   async fetchCartItems({ commit }) {
     try {
       commit('SET_LOADING', true)
-      
       const res = await getCartItems()
-      commit('SET_CART_ITEMS', res)
-      
-      return res
+      commit('SET_CART_ITEMS', res.data)
+      return res // 返回 {code, data}
     } finally {
       commit('SET_LOADING', false)
     }
   },
   
-  // 添加商品到购物车
+  // #89 添加商品到购物车 - 成功码4010, 失败码4111/4116/4117/4118
   async addToCart({ commit, dispatch }, { teaId, quantity }) {
     try {
       commit('SET_LOADING', true)
-      
-      await addToCart({ teaId, quantity })
-      
+      const res = await addToCart({ teaId, quantity })
       // 刷新购物车列表
       dispatch('fetchCartItems')
-      
-      return true
+      return res // 返回 {code, data}
     } finally {
       commit('SET_LOADING', false)
     }
   },
   
-  // 更新购物车商品数量
-  async updateCartItem({ commit }, { id, quantity }) {
+  // #90 更新购物车商品 - 成功码4011/4012, 失败码4112/4116/4117
+  async updateCartItem({ commit, dispatch }, { id, quantity, specificationId }) {
     try {
       commit('SET_LOADING', true)
-      
-      await updateCartItem({ id, quantity })
-      
+      const res = await updateCartItem({ id, quantity, specificationId })
       // 乐观更新前端状态
-      commit('UPDATE_CART_ITEM', { id, quantity })
-      
-      return true
+      if (quantity !== undefined) {
+        commit('UPDATE_CART_ITEM', { id, quantity })
+      }
+      return res // 返回 {code, data}
     } catch (error) {
       // 如果失败，重新获取购物车
-      commit('fetchCartItems')
+      dispatch('fetchCartItems')
       throw error
     } finally {
       commit('SET_LOADING', false)
     }
   },
   
-  // 移除购物车商品
+  // #91 移除购物车商品 - 成功码4013, 失败码4113
   async removeFromCart({ commit }, id) {
     try {
       commit('SET_LOADING', true)
-      
-      await removeFromCart(id)
-      
+      const res = await removeFromCart(id)
       // 乐观更新前端状态
       commit('REMOVE_CART_ITEM', id)
-      
-      return true
+      return res // 返回 {code, data}
     } finally {
       commit('SET_LOADING', false)
     }
   },
   
-  // 清空购物车
+  // #92 清空购物车 - 成功码4015, 失败码4115
   async clearCart({ commit }) {
     try {
       commit('SET_LOADING', true)
-      
-      await clearCart()
-      
+      const res = await clearCart()
       commit('CLEAR_CART')
-      
-      return true
+      return res // 返回 {code, data}
     } finally {
       commit('SET_LOADING', false)
     }
