@@ -72,13 +72,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 2000
-                    data:
-                      token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjeTEwMDAwMiIsInJvbGUiOjIsInVzZXJuYW1lIjoidXNlciIsImp0aSI6Im1vY2stdXVpZCIsImlhdCI6MTczNTA4NDgwMCwiZXhwIjoxNzY3MjI1NjAwLCJpc3MiOiJzaGFuZ25hbnRlYSJ9.mock"
-    
+              example:
+                code: 2000
+                data:
+                  token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjeTEwMDAwMiIsInJvbGUiOjIsInVzZXJuYW1lIjoidXNlciIsImp0aSI6Im1vY2stdXVpZCIsImlhdCI6MTczNTA4NDgwMCwiZXhwIjoxNzY3MjI1NjAwLCJpc3MiOiJzaGFuZ25hbnRlYSJ9.mock"
+
   /user/register:
     post:
       tags: [用户模块]
@@ -108,18 +106,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 2001
-                    data:
-                      id: "cy100002"
-                      username: "newuser"
-                      nickname: "新用户"
-                      avatar: "/images/default-avatar.png"
-                      role: 2
-                      status: 1
-    
+              example:
+                code: 2001
+                data:
+                  id: "cy100002"
+                  username: "newuser"
+                  nickname: "新用户"
+                  avatar: "/images/default-avatar.png"
+                  role: 2
+                  status: 1
+
   /user/logout:
     post:
       tags: [用户模块]
@@ -133,12 +129,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 2002
-                    data: null
-    
+              example:
+                code: 2002
+                data: null
+
   /user/refresh:
     post:
       tags: [用户模块]
@@ -152,13 +146,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjeTEwMDAwMiIsInJvbGUiOjIsInVzZXJuYW1lIjoidXNlciIsImp0aSI6Im1vY2stdXVpZCIsImlhdCI6MTczNTA4NDgwMCwiZXhwIjoxNzY3MjI1NjAwLCJpc3MiOiJzaGFuZ25hbnRlYSJ9.mock"
-    
+              example:
+                code: 200
+                data:
+                  token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjeTEwMDAwMiIsInJvbGUiOjIsInVzZXJuYW1lIjoidXNlciIsImp0aSI6Im1vY2stdXVpZCIsImlhdCI6MTczNTA4NDgwMCwiZXhwIjoxNzY3MjI1NjAwLCJpc3MiOiJzaGFuZ25hbnRlYSJ9.mock"
+
   /user/me:
     get:
       tags: [用户模块]
@@ -172,20 +164,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      id: "cy100002"
-                      username: "user"
-                      nickname: "测试用户"
-                      avatar: "/images/default-avatar.png"
-                      email: "user@example.com"
-                      phone: "13800138000"
-                      role: 2
-                      status: 1
-    
+              example:
+                code: 200
+                data:
+                  id: "cy100002"
+                  username: "user"
+                  nickname: "测试用户"
+                  avatar: "/images/default-avatar.png"
+                  email: "user@example.com"
+                  phone: "13800138000"
+                  role: 2
+                  status: 1
+
   /user/{userId}:
     get:
       tags: [用户模块]
@@ -203,18 +193,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      id: "cy100002"
-                      username: "user"
-                      nickname: "测试用户"
-                      avatar: "/images/default-avatar.png"
-                      role: 2
-                      status: 1
-    
+              example:
+                code: 200
+                data:
+                  id: "cy100002"
+                  username: "user"
+                  nickname: "测试用户"
+                  avatar: "/images/default-avatar.png"
+                  role: 2
+                  status: 1
+
   /user:
     put:
       tags: [用户模块]
@@ -241,12 +229,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 2010
-                    data: null
-    
+              example:
+                code: 2010
+                data: null
+
   /user/avatar:
     post:
       tags: [用户模块]
@@ -270,13 +256,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 2012
-                    data:
-                      avatarUrl: "/uploads/avatar/user_cy100002.jpg"
-    
+              example:
+                code: 2012
+                data:
+                  avatarUrl: "/uploads/avatar/user_cy100002.jpg"
+
   /user/password:
     put:
       tags: [用户模块]
@@ -304,12 +288,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 2011
-                    data: null
-    
+              example:
+                code: 2011
+                data: null
+
   /user/password/reset:
     post:
       tags: [用户模块]
@@ -338,12 +320,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 2004
-                    data: null
-    
+              example:
+                code: 2004
+                data: null
+
   /user/addresses:
     get:
       tags: [用户模块]
@@ -357,19 +337,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      - id: 1
-                        receiverName: "张三"
-                        receiverPhone: "13800138000"
-                        province: "陕西省"
-                        city: "商洛市"
-                        district: "商南县"
-                        detailAddress: "茶城路1号"
-                        isDefault: 1
+              example:
+                code: 200
+                data:
+                  - id: 1
+                    receiverName: "张三"
+                    receiverPhone: "13800138000"
+                    province: "陕西省"
+                    city: "商洛市"
+                    district: "商南县"
+                    detailAddress: "茶城路1号"
+                    isDefault: 1
     post:
       tags: [用户模块]
       summary: 添加收货地址
@@ -404,12 +382,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 4060
-                    data: null
-    
+              example:
+                code: 4060
+                data: null
+
   /user/addresses/{id}:
     put:
       tags: [用户模块]
@@ -451,11 +427,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 1004
-                    data: null
+              example:
+                code: 1004
+                data: null
     delete:
       tags: [用户模块]
       summary: 删除收货地址
@@ -474,12 +448,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 1003
-                    data: null
-    
+              example:
+                code: 1003
+                data: null
+
   /user/addresses/{id}/default:
     put:
       tags: [用户模块]
@@ -499,12 +471,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 1004
-                    data: null
-    
+              example:
+                code: 1004
+                data: null
+
   /user/shop-certification:
     get:
       tags: [用户模块]
@@ -518,13 +488,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      id: 1
-                      status: 0
+              example:
+                code: 200
+                data:
+                  id: 1
+                  status: 0
     post:
       tags: [用户模块]
       summary: 提交商家认证申请
@@ -552,12 +520,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 1000
-                    data: null
-    
+              example:
+                code: 1000
+                data: null
+
   /user/follows:
     get:
       tags: [用户模块]
@@ -577,16 +543,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      - id: 1
-                        targetId: "cy100003"
-                        targetType: "user"
-                        targetName: "茶友小王"
-                        targetAvatar: "/images/avatar1.png"
+              example:
+                code: 200
+                data:
+                  - id: 1
+                    targetId: "cy100003"
+                    targetType: "user"
+                    targetName: "茶友小王"
+                    targetAvatar: "/images/avatar1.png"
     post:
       tags: [用户模块]
       summary: 添加关注
@@ -612,12 +576,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 5000
-                    data: null
-    
+              example:
+                code: 5000
+                data: null
+
   /user/follows/{id}:
     delete:
       tags: [用户模块]
@@ -637,12 +599,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 5001
-                    data: null
-    
+              example:
+                code: 5001
+                data: null
+
   /user/favorites:
     get:
       tags: [用户模块]
@@ -662,16 +622,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      - id: 1
-                        targetId: "1"
-                        targetType: "tea"
-                        targetName: "商南绿茶"
-                        targetImage: "/images/tea1.jpg"
+              example:
+                code: 200
+                data:
+                  - id: 1
+                    targetId: "1"
+                    targetType: "tea"
+                    targetName: "商南绿茶"
+                    targetImage: "/images/tea1.jpg"
     post:
       tags: [用户模块]
       summary: 添加收藏
@@ -697,12 +655,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 3010
-                    data: null
-    
+              example:
+                code: 3010
+                data: null
+
   /user/favorites/{id}:
     delete:
       tags: [用户模块]
@@ -722,12 +678,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 3011
-                    data: null
-    
+              example:
+                code: 3011
+                data: null
+
   /user/likes:
     post:
       tags: [用户模块]
@@ -753,12 +707,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 6010
-                    data: null
-    
+              example:
+                code: 6010
+                data: null
+
   /user/likes/{id}:
     delete:
       tags: [用户模块]
@@ -778,12 +730,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 6011
-                    data: null
-    
+              example:
+                code: 6011
+                data: null
+
   /user/preferences:
     get:
       tags: [用户模块]
@@ -797,13 +747,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      theme: "light"
-                      displayMode: "grid"
+              example:
+                code: 200
+                data:
+                  theme: "light"
+                  displayMode: "grid"
     put:
       tags: [用户模块]
       summary: 更新用户偏好设置
@@ -827,12 +775,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 2013
-                    data: null
-    
+              example:
+                code: 2013
+                data: null
+
   /user/admin/users:
     get:
       tags: [用户模块]
@@ -871,25 +817,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      list:
-                        - id: "cy100001"
-                          username: "admin"
-                          nickname: "管理员"
-                          role: 1
-                          status: 1
-                        - id: "cy100002"
-                          username: "user"
-                          nickname: "普通用户"
-                          role: 2
-                          status: 1
-                      total: 100
-                      page: 1
-                      pageSize: 10
+              example:
+                code: 200
+                data:
+                  list:
+                    - id: "cy100001"
+                      username: "admin"
+                      nickname: "管理员"
+                      role: 1
+                      status: 1
+                    - id: "cy100002"
+                      username: "user"
+                      nickname: "普通用户"
+                      role: 2
+                      status: 1
+                  total: 100
+                  page: 1
+                  pageSize: 10
     post:
       tags: [用户模块]
       summary: 创建管理员账号（管理员）
@@ -922,12 +866,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 2023
-                    data: null
-    
+              example:
+                code: 2023
+                data: null
+
   /user/admin/users/{userId}:
     put:
       tags: [用户模块]
@@ -965,11 +907,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 2022
-                    data: null
+              example:
+                code: 2022
+                data: null
     delete:
       tags: [用户模块]
       summary: 删除用户（管理员）
@@ -988,12 +928,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 2020
-                    data: null
-    
+              example:
+                code: 2020
+                data: null
+
   /user/admin/users/{userId}/role:
     put:
       tags: [用户模块]
@@ -1025,12 +963,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 2022
-                    data: null
-    
+              example:
+                code: 2022
+                data: null
+
   /user/admin/users/{userId}/status:
     put:
       tags: [用户模块]
@@ -1061,12 +997,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 2021
-                    data: null
-    
+              example:
+                code: 2021
+                data: null
+
   /user/admin/certifications:
     get:
       tags: [用户模块]
@@ -1096,19 +1030,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      list:
-                        - id: 1
-                          userId: "cy100002"
-                          shopName: "茶香阁"
-                          status: 0
-                          createTime: "2025-01-01T12:00:00Z"
-                      total: 10
-    
+              example:
+                code: 200
+                data:
+                  list:
+                    - id: 1
+                      userId: "cy100002"
+                      shopName: "茶香阁"
+                      status: 0
+                      createTime: "2025-01-01T12:00:00Z"
+                  total: 10
+
   /user/admin/certifications/{id}:
     put:
       tags: [用户模块]
@@ -1139,13 +1071,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 1000
-                    data: null
-    
-    
+              example:
+                code: 1000
+                data: null
+
+
   # ==================== 茶叶模块 ====================
   /tea/list:
     get:
@@ -1191,26 +1121,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 3000
-                    data:
-                      list:
-                        - id: "1"
-                          name: "商南绿茶"
-                          categoryId: 1
-                          shopId: "1"
-                          price: 99.00
-                          originalPrice: 128.00
-                          stock: 100
-                          sales: 50
-                          description: "优质商南高山绿茶"
-                          images: ["/images/tea1.jpg"]
-                          status: 1
-                      total: 100
-                      page: 1
-                      pageSize: 10
+              example:
+                code: 3000
+                data:
+                  list:
+                    - id: "1"
+                      name: "商南绿茶"
+                      categoryId: 1
+                      shopId: "1"
+                      price: 99.00
+                      originalPrice: 128.00
+                      stock: 100
+                      sales: 50
+                      description: "优质商南高山绿茶"
+                      images: ["/images/tea1.jpg"]
+                      status: 1
+                  total: 100
+                  page: 1
+                  pageSize: 10
     post:
       tags: [茶叶模块]
       summary: 添加茶叶（商家/管理员）
@@ -1251,12 +1179,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 3026
-                    data: null
-    
+              example:
+                code: 3026
+                data: null
+
   /tea/{id}:
     get:
       tags: [茶叶模块]
@@ -1274,22 +1200,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 3001
-                    data:
-                      id: "1"
-                      name: "商南绿茶"
-                      categoryId: 1
-                      shopId: "1"
-                      price: 99.00
-                      originalPrice: 128.00
-                      stock: 100
-                      sales: 50
-                      description: "优质商南高山绿茶"
-                      images: ["/images/tea1.jpg"]
-                      status: 1
+              example:
+                code: 3001
+                data:
+                  id: "1"
+                  name: "商南绿茶"
+                  categoryId: 1
+                  shopId: "1"
+                  price: 99.00
+                  originalPrice: 128.00
+                  stock: 100
+                  sales: 50
+                  description: "优质商南高山绿茶"
+                  images: ["/images/tea1.jpg"]
+                  status: 1
     put:
       tags: [茶叶模块]
       summary: 更新茶叶信息（商家/管理员）
@@ -1334,11 +1258,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 3025
-                    data: null
+              example:
+                code: 3025
+                data: null
     delete:
       tags: [茶叶模块]
       summary: 删除茶叶（商家/管理员）
@@ -1357,12 +1279,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 3024
-                    data: null
-    
+              example:
+                code: 3024
+                data: null
+
   /tea/categories:
     get:
       tags: [茶叶模块]
@@ -1374,21 +1294,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      - id: 1
-                        name: "绿茶"
-                        parentId: 0
-                        sortOrder: 1
-                        icon: "/icons/green-tea.png"
-                      - id: 2
-                        name: "红茶"
-                        parentId: 0
-                        sortOrder: 2
-                        icon: "/icons/black-tea.png"
+              example:
+                code: 200
+                data:
+                  - id: 1
+                    name: "绿茶"
+                    parentId: 0
+                    sortOrder: 1
+                    icon: "/icons/green-tea.png"
+                  - id: 2
+                    name: "红茶"
+                    parentId: 0
+                    sortOrder: 2
+                    icon: "/icons/black-tea.png"
     post:
       tags: [茶叶模块]
       summary: 创建茶叶分类（管理员）
@@ -1416,12 +1334,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 3030
-                    data: null
-    
+              example:
+                code: 3030
+                data: null
+
   /tea/categories/{id}:
     put:
       tags: [茶叶模块]
@@ -1456,11 +1372,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 3031
-                    data: null
+              example:
+                code: 3031
+                data: null
     delete:
       tags: [茶叶模块]
       summary: 删除茶叶分类（管理员）
@@ -1479,12 +1393,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 3032
-                    data: null
-    
+              example:
+                code: 3032
+                data: null
+
   /tea/{teaId}/reviews:
     get:
       tags: [茶叶模块]
@@ -1510,22 +1422,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      list:
-                        - id: 1
-                          userId: "cy100002"
-                          username: "茶友"
-                          avatar: "/images/avatar.png"
-                          rating: 5
-                          content: "茶叶很好喝"
-                          images: []
-                          createTime: "2025-01-01T12:00:00Z"
-                      total: 10
-    
+              example:
+                code: 200
+                data:
+                  list:
+                    - id: 1
+                      userId: "cy100002"
+                      username: "茶友"
+                      avatar: "/images/avatar.png"
+                      rating: 5
+                      content: "茶叶很好喝"
+                      images: []
+                      createTime: "2025-01-01T12:00:00Z"
+                  total: 10
+
   /tea/{teaId}/reviews/stats:
     get:
       tags: [茶叶模块]
@@ -1543,20 +1453,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      averageRating: 4.5
-                      totalCount: 100
-                      ratingDistribution:
-                        "5": 60
-                        "4": 25
-                        "3": 10
-                        "2": 3
-                        "1": 2
-    
+              example:
+                code: 200
+                data:
+                  averageRating: 4.5
+                  totalCount: 100
+                  ratingDistribution:
+                    "5": 60
+                    "4": 25
+                    "3": 10
+                    "2": 3
+                    "1": 2
+
   /tea/reviews:
     post:
       tags: [茶叶模块]
@@ -1592,12 +1500,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 4050
-                    data: null
-    
+              example:
+                code: 4050
+                data: null
+
   /tea/reviews/{reviewId}/reply:
     post:
       tags: [茶叶模块]
@@ -1627,12 +1533,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 3013
-                    data: null
-    
+              example:
+                code: 3013
+                data: null
+
   /tea/reviews/{reviewId}/like:
     post:
       tags: [茶叶模块]
@@ -1652,12 +1556,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 6010
-                    data: null
-    
+              example:
+                code: 6010
+                data: null
+
   /tea/{teaId}/specifications:
     get:
       tags: [茶叶模块]
@@ -1675,17 +1577,15 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      - id: "1"
-                        teaId: "1"
-                        specName: "250g装"
-                        price: 99.00
-                        stock: 100
-                        isDefault: 1
+              example:
+                code: 200
+                data:
+                  - id: "1"
+                    teaId: "1"
+                    specName: "250g装"
+                    price: 99.00
+                    stock: 100
+                    isDefault: 1
     post:
       tags: [茶叶模块]
       summary: 添加茶叶规格
@@ -1720,12 +1620,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 1000
-                    data: null
-    
+              example:
+                code: 1000
+                data: null
+
   /tea/specifications/{specId}:
     put:
       tags: [茶叶模块]
@@ -1761,11 +1659,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 1004
-                    data: null
+              example:
+                code: 1004
+                data: null
     delete:
       tags: [茶叶模块]
       summary: 删除茶叶规格
@@ -1784,12 +1680,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 1003
-                    data: null
-    
+              example:
+                code: 1003
+                data: null
+
   /tea/specifications/{specId}/default:
     put:
       tags: [茶叶模块]
@@ -1809,12 +1703,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 1004
-                    data: null
-    
+              example:
+                code: 1004
+                data: null
+
   /tea/{teaId}/images:
     post:
       tags: [茶叶模块]
@@ -1846,14 +1738,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 1001
-                    data:
-                      - id: "img1"
-                        url: "/uploads/tea/tea1_1.jpg"
-    
+              example:
+                code: 1001
+                data:
+                  - id: "img1"
+                    url: "/uploads/tea/tea1_1.jpg"
+
   /tea/images/{imageId}:
     delete:
       tags: [茶叶模块]
@@ -1873,12 +1763,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 1003
-                    data: null
-    
+              example:
+                code: 1003
+                data: null
+
   /tea/images/{imageId}/main:
     put:
       tags: [茶叶模块]
@@ -1898,12 +1786,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 1004
-                    data: null
-    
+              example:
+                code: 1004
+                data: null
+
   /tea/images/order:
     put:
       tags: [茶叶模块]
@@ -1935,12 +1821,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 1004
-                    data: null
-    
+              example:
+                code: 1004
+                data: null
+
   /tea/{teaId}/status:
     put:
       tags: [茶叶模块]
@@ -1970,12 +1854,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 3020
-                    data: null
-    
+              example:
+                code: 3020
+                data: null
+
   /tea/batch-status:
     put:
       tags: [茶叶模块]
@@ -2003,12 +1885,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 3022
-                    data: null
-    
+              example:
+                code: 3022
+                data: null
+
   /tea/recommend:
     get:
       tags: [茶叶模块]
@@ -2035,17 +1915,15 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      - id: "1"
-                        name: "商南绿茶"
-                        price: 99.00
-                        images: ["/images/tea1.jpg"]
-    
-    
+              example:
+                code: 200
+                data:
+                  - id: "1"
+                    name: "商南绿茶"
+                    price: 99.00
+                    images: ["/images/tea1.jpg"]
+
+
   # ==================== 店铺模块 ====================
   /shop/list:
     get:
@@ -2087,23 +1965,21 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      list:
-                        - id: "1"
-                          name: "商南茶庄"
-                          logo: "/images/shop-logo.png"
-                          description: "专营商南高山绿茶"
-                          rating: 4.8
-                          salesCount: 1000
-                          followCount: 500
-                          ownerId: "cy100003"
-                      total: 50
-                      page: 1
-                      pageSize: 10
+              example:
+                code: 200
+                data:
+                  list:
+                    - id: "1"
+                      name: "商南茶庄"
+                      logo: "/images/shop-logo.png"
+                      description: "专营商南高山绿茶"
+                      rating: 4.8
+                      salesCount: 1000
+                      followCount: 500
+                      ownerId: "cy100003"
+                  total: 50
+                  page: 1
+                  pageSize: 10
     post:
       tags: [店铺模块]
       summary: 创建店铺
@@ -2129,12 +2005,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 1000
-                    data: null
-    
+              example:
+                code: 1000
+                data: null
+
   /shop/{id}:
     get:
       tags: [店铺模块]
@@ -2152,19 +2026,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      id: "1"
-                      name: "商南茶庄"
-                      logo: "/images/shop-logo.png"
-                      description: "专营商南高山绿茶"
-                      rating: 4.8
-                      salesCount: 1000
-                      followCount: 500
-                      ownerId: "cy100003"
+              example:
+                code: 200
+                data:
+                  id: "1"
+                  name: "商南茶庄"
+                  logo: "/images/shop-logo.png"
+                  description: "专营商南高山绿茶"
+                  rating: 4.8
+                  salesCount: 1000
+                  followCount: 500
+                  ownerId: "cy100003"
     put:
       tags: [店铺模块]
       summary: 更新店铺信息
@@ -2196,12 +2068,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 1004
-                    data: null
-    
+              example:
+                code: 1004
+                data: null
+
   /shop/my:
     get:
       tags: [店铺模块]
@@ -2215,19 +2085,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      id: "1"
-                      name: "商南茶庄"
-                      logo: "/images/shop-logo.png"
-                      description: "专营商南高山绿茶"
-                      rating: 4.8
-                      salesCount: 1000
-                      followCount: 500
-    
+              example:
+                code: 200
+                data:
+                  id: "1"
+                  name: "商南茶庄"
+                  logo: "/images/shop-logo.png"
+                  description: "专营商南高山绿茶"
+                  rating: 4.8
+                  salesCount: 1000
+                  followCount: 500
+
   /shop/{shopId}/teas:
     get:
       tags: [店铺模块]
@@ -2253,17 +2121,15 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      list:
-                        - id: "1"
-                          name: "商南绿茶"
-                          price: 99.00
-                          status: 1
-                      total: 20
+              example:
+                code: 200
+                data:
+                  list:
+                    - id: "1"
+                      name: "商南绿茶"
+                      price: 99.00
+                      status: 1
+                  total: 20
     post:
       tags: [店铺模块]
       summary: 添加茶叶到店铺
@@ -2299,12 +2165,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 3026
-                    data: null
-    
+              example:
+                code: 3026
+                data: null
+
   /shop/teas/{teaId}:
     put:
       tags: [店铺模块]
@@ -2339,11 +2203,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 3025
-                    data: null
+              example:
+                code: 3025
+                data: null
     delete:
       tags: [店铺模块]
       summary: 删除店铺茶叶
@@ -2362,12 +2224,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 3024
-                    data: null
-    
+              example:
+                code: 3024
+                data: null
+
   /shop/teas/{teaId}/status:
     put:
       tags: [店铺模块]
@@ -2397,12 +2257,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 3020
-                    data: null
-    
+              example:
+                code: 3020
+                data: null
+
   /shop/{shopId}/statistics:
     get:
       tags: [店铺模块]
@@ -2432,16 +2290,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      totalSales: 50000.00
-                      orderCount: 200
-                      productCount: 30
-                      followCount: 500
-    
+              example:
+                code: 200
+                data:
+                  totalSales: 50000.00
+                  orderCount: 200
+                  productCount: 30
+                  followCount: 500
+
   /shop/{shopId}/logo:
     post:
       tags: [店铺模块]
@@ -2471,13 +2327,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 5030
-                    data:
-                      url: "/uploads/shop/logo_1.jpg"
-    
+              example:
+                code: 5030
+                data:
+                  url: "/uploads/shop/logo_1.jpg"
+
   /shop/{shopId}/banners:
     get:
       tags: [店铺模块]
@@ -2495,16 +2349,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      - id: "1"
-                        imageUrl: "/images/banner1.jpg"
-                        title: "新品上市"
-                        linkUrl: "/tea/1"
-                        sortOrder: 1
+              example:
+                code: 200
+                data:
+                  - id: "1"
+                    imageUrl: "/images/banner1.jpg"
+                    title: "新品上市"
+                    linkUrl: "/tea/1"
+                    sortOrder: 1
     post:
       tags: [店铺模块]
       summary: 上传店铺Banner
@@ -2537,12 +2389,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 5010
-                    data: null
-    
+              example:
+                code: 5010
+                data: null
+
   /shop/banners/{bannerId}:
     put:
       tags: [店铺模块]
@@ -2575,11 +2425,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 5011
-                    data: null
+              example:
+                code: 5011
+                data: null
     delete:
       tags: [店铺模块]
       summary: 删除店铺Banner
@@ -2598,12 +2446,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 5012
-                    data: null
-    
+              example:
+                code: 5012
+                data: null
+
   /shop/banners/order:
     put:
       tags: [店铺模块]
@@ -2633,12 +2479,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 5013
-                    data: null
-    
+              example:
+                code: 5013
+                data: null
+
   /shop/{shopId}/announcements:
     get:
       tags: [店铺模块]
@@ -2656,16 +2500,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      - id: "1"
-                        title: "春茶上市"
-                        content: "2025年春茶已上市"
-                        isTop: true
-                        createTime: "2025-01-01T12:00:00Z"
+              example:
+                code: 200
+                data:
+                  - id: "1"
+                    title: "春茶上市"
+                    content: "2025年春茶已上市"
+                    isTop: true
+                    createTime: "2025-01-01T12:00:00Z"
     post:
       tags: [店铺模块]
       summary: 创建店铺公告
@@ -2697,12 +2539,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 5020
-                    data: null
-    
+              example:
+                code: 5020
+                data: null
+
   /shop/announcements/{announcementId}:
     put:
       tags: [店铺模块]
@@ -2735,11 +2575,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 5021
-                    data: null
+              example:
+                code: 5021
+                data: null
     delete:
       tags: [店铺模块]
       summary: 删除店铺公告
@@ -2758,12 +2596,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 5022
-                    data: null
-    
+              example:
+                code: 5022
+                data: null
+
   /shop/{shopId}/follow:
     post:
       tags: [店铺模块]
@@ -2783,11 +2619,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 5000
-                    data: null
+              example:
+                code: 5000
+                data: null
     delete:
       tags: [店铺模块]
       summary: 取消关注店铺
@@ -2806,12 +2640,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 5001
-                    data: null
-    
+              example:
+                code: 5001
+                data: null
+
   /shop/{shopId}/follow-status:
     get:
       tags: [店铺模块]
@@ -2831,13 +2663,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      isFollowed: true
-    
+              example:
+                code: 200
+                data:
+                  isFollowed: true
+
   /shop/{shopId}/reviews:
     get:
       tags: [店铺模块]
@@ -2863,18 +2693,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      list:
-                        - id: 1
-                          userId: "cy100002"
-                          username: "茶友"
-                          rating: 5
-                          content: "服务很好"
-                      total: 50
+              example:
+                code: 200
+                data:
+                  list:
+                    - id: 1
+                      userId: "cy100002"
+                      username: "茶友"
+                      rating: 5
+                      content: "服务很好"
+                  total: 50
     post:
       tags: [店铺模块]
       summary: 提交店铺评价
@@ -2910,13 +2738,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 5002
-                    data: null
-    
-    
+              example:
+                code: 5002
+                data: null
+
+
   # ==================== 订单模块 ====================
   /order/cart:
     get:
@@ -2931,20 +2757,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      - id: 1
-                        teaId: "1"
-                        teaName: "商南绿茶"
-                        teaImage: "/images/tea1.jpg"
-                        specificationId: "1"
-                        specName: "250g装"
-                        price: 99.00
-                        quantity: 2
-    
+              example:
+                code: 200
+                data:
+                  - id: 1
+                    teaId: "1"
+                    teaName: "商南绿茶"
+                    teaImage: "/images/tea1.jpg"
+                    specificationId: "1"
+                    specName: "250g装"
+                    price: 99.00
+                    quantity: 2
+
   /order/cart/add:
     post:
       tags: [订单模块]
@@ -2972,12 +2796,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 4010
-                    data: null
-    
+              example:
+                code: 4010
+                data: null
+
   /order/cart/update:
     put:
       tags: [订单模块]
@@ -3005,12 +2827,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 4011
-                    data: null
-    
+              example:
+                code: 4011
+                data: null
+
   /order/cart/remove:
     delete:
       tags: [订单模块]
@@ -3030,12 +2850,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 4013
-                    data: null
-    
+              example:
+                code: 4013
+                data: null
+
   /order/cart/clear:
     delete:
       tags: [订单模块]
@@ -3049,12 +2867,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 4015
-                    data: null
-    
+              example:
+                code: 4015
+                data: null
+
   /order/create:
     post:
       tags: [订单模块]
@@ -3091,16 +2907,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 4000
-                    data:
-                      id: "1"
-                      orderNo: "202501010001"
-                      totalAmount: 198.00
-                      status: 0
-    
+              example:
+                code: 4000
+                data:
+                  id: "1"
+                  orderNo: "202501010001"
+                  totalAmount: 198.00
+                  status: 0
+
   /order/list:
     get:
       tags: [订单模块]
@@ -3132,27 +2946,25 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      list:
-                        - id: "1"
-                          orderNo: "202501010001"
-                          userId: "cy100002"
-                          shopId: "1"
-                          totalAmount: 198.00
-                          status: 1
-                          items:
-                            - teaId: "1"
-                              teaName: "商南绿茶"
-                              quantity: 2
-                              price: 99.00
-                      total: 50
-                      page: 1
-                      pageSize: 10
-    
+              example:
+                code: 200
+                data:
+                  list:
+                    - id: "1"
+                      orderNo: "202501010001"
+                      userId: "cy100002"
+                      shopId: "1"
+                      totalAmount: 198.00
+                      status: 1
+                      items:
+                        - teaId: "1"
+                          teaName: "商南绿茶"
+                          quantity: 2
+                          price: 99.00
+                  total: 50
+                  page: 1
+                  pageSize: 10
+
   /order/{id}:
     get:
       tags: [订单模块]
@@ -3172,23 +2984,21 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      id: "1"
-                      orderNo: "202501010001"
-                      userId: "cy100002"
-                      shopId: "1"
-                      totalAmount: 198.00
-                      status: 1
-                      items:
-                        - teaId: "1"
-                          teaName: "商南绿茶"
-                          quantity: 2
-                          price: 99.00
-    
+              example:
+                code: 200
+                data:
+                  id: "1"
+                  orderNo: "202501010001"
+                  userId: "cy100002"
+                  shopId: "1"
+                  totalAmount: 198.00
+                  status: 1
+                  items:
+                    - teaId: "1"
+                      teaName: "商南绿茶"
+                      quantity: 2
+                      price: 99.00
+
   /order/pay:
     post:
       tags: [订单模块]
@@ -3215,12 +3025,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 4020
-                    data: null
-    
+              example:
+                code: 4020
+                data: null
+
   /order/cancel:
     post:
       tags: [订单模块]
@@ -3244,12 +3052,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 4002
-                    data: null
-    
+              example:
+                code: 4002
+                data: null
+
   /order/confirm:
     post:
       tags: [订单模块]
@@ -3273,12 +3079,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 4003
-                    data: null
-    
+              example:
+                code: 4003
+                data: null
+
   /order/review:
     post:
       tags: [订单模块]
@@ -3312,12 +3116,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 4050
-                    data: null
-    
+              example:
+                code: 4050
+                data: null
+
   /order/{id}/ship:
     post:
       tags: [订单模块]
@@ -3347,12 +3149,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 4004
-                    data: null
-    
+              example:
+                code: 4004
+                data: null
+
   /order/batch-ship:
     post:
       tags: [订单模块]
@@ -3382,12 +3182,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 4006
-                    data: null
-    
+              example:
+                code: 4006
+                data: null
+
   /order/{id}/logistics:
     get:
       tags: [订单模块]
@@ -3407,19 +3205,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      logisticsCompany: "顺丰速运"
-                      logisticsNumber: "SF1234567890"
-                      traces:
-                        - time: "2025-01-01T12:00:00Z"
-                          status: "已发货"
-                        - time: "2025-01-02T10:00:00Z"
-                          status: "运输中"
-    
+              example:
+                code: 200
+                data:
+                  logisticsCompany: "顺丰速运"
+                  logisticsNumber: "SF1234567890"
+                  traces:
+                    - time: "2025-01-01T12:00:00Z"
+                      status: "已发货"
+                    - time: "2025-01-02T10:00:00Z"
+                      status: "运输中"
+
   /order/refund:
     post:
       tags: [订单模块]
@@ -3445,12 +3241,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 4030
-                    data: null
-    
+              example:
+                code: 4030
+                data: null
+
   /order/{id}/refund:
     get:
       tags: [订单模块]
@@ -3470,17 +3264,15 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      id: 1
-                      orderId: "1"
-                      reason: "商品质量问题"
-                      status: 0
-                      createTime: "2025-01-01T12:00:00Z"
-    
+              example:
+                code: 200
+                data:
+                  id: 1
+                  orderId: "1"
+                  reason: "商品质量问题"
+                  status: 0
+                  createTime: "2025-01-01T12:00:00Z"
+
   /order/{id}/refund/process:
     post:
       tags: [订单模块]
@@ -3512,12 +3304,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 4031
-                    data: null
-    
+              example:
+                code: 4031
+                data: null
+
   /order/statistics:
     get:
       tags: [订单模块]
@@ -3546,25 +3336,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      totalOrders: 500
-                      totalAmount: 50000.00
-                      statusDistribution:
-                        "0": 10
-                        "1": 20
-                        "2": 30
-                        "3": 400
-                        "4": 30
-                        "5": 10
-                      trend:
-                        - date: "2025-01-01"
-                          orders: 10
-                          amount: 1000.00
-    
+              example:
+                code: 200
+                data:
+                  totalOrders: 500
+                  totalAmount: 50000.00
+                  statusDistribution:
+                    "0": 10
+                    "1": 20
+                    "2": 30
+                    "3": 400
+                    "4": 30
+                    "5": 10
+                  trend:
+                    - date: "2025-01-01"
+                      orders: 10
+                      amount: 1000.00
+
   /order/export:
     get:
       tags: [订单模块]
@@ -3603,11 +3391,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data: null
+              example:
+                code: 200
+                data: null
             application/octet-stream:
               schema:
                 type: string
@@ -3626,24 +3412,22 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      banners:
-                        - id: 1
-                          imageUrl: "/images/forum-banner1.jpg"
-                          title: "茶文化专题"
-                          linkUrl: "/forum/articles/1"
-                      hotPosts:
-                        - id: 1
-                          title: "商南茶文化分享"
-                          viewCount: 1000
-                      latestArticles:
-                        - id: 1
-                          title: "茶道入门"
-                          summary: "茶道基础知识"
+              example:
+                code: 200
+                data:
+                  banners:
+                    - id: 1
+                      imageUrl: "/images/forum-banner1.jpg"
+                      title: "茶文化专题"
+                      linkUrl: "/forum/articles/1"
+                  hotPosts:
+                    - id: 1
+                      title: "商南茶文化分享"
+                      viewCount: 1000
+                  latestArticles:
+                    - id: 1
+                      title: "茶道入门"
+                      summary: "茶道基础知识"
     put:
       tags: [论坛模块]
       summary: 更新论坛首页数据（管理员）
@@ -3662,12 +3446,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 6060
-                    data: null
-    
+              example:
+                code: 6060
+                data: null
+
   /forum/banners:
     get:
       tags: [论坛模块]
@@ -3679,16 +3461,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      - id: 1
-                        imageUrl: "/images/forum-banner1.jpg"
-                        title: "茶文化专题"
-                        linkUrl: "/forum/articles/1"
-                        sortOrder: 1
+              example:
+                code: 200
+                data:
+                  - id: 1
+                    imageUrl: "/images/forum-banner1.jpg"
+                    title: "茶文化专题"
+                    linkUrl: "/forum/articles/1"
+                    sortOrder: 1
     post:
       tags: [论坛模块]
       summary: 上传论坛Banner（管理员）
@@ -3715,12 +3495,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 5010
-                    data: null
-    
+              example:
+                code: 5010
+                data: null
+
   /forum/banners/{id}:
     put:
       tags: [论坛模块]
@@ -3753,11 +3531,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 5011
-                    data: null
+              example:
+                code: 5011
+                data: null
     delete:
       tags: [论坛模块]
       summary: 删除论坛Banner（管理员）
@@ -3776,12 +3552,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 5012
-                    data: null
-    
+              example:
+                code: 5012
+                data: null
+
   /forum/banners/order:
     put:
       tags: [论坛模块]
@@ -3806,12 +3580,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 5013
-                    data: null
-    
+              example:
+                code: 5013
+                data: null
+
   /forum/articles:
     get:
       tags: [论坛模块]
@@ -3840,20 +3612,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      list:
-                        - id: 1
-                          title: "茶道入门"
-                          summary: "茶道基础知识"
-                          coverImage: "/images/article1.jpg"
-                          categoryId: 1
-                          viewCount: 500
-                          createTime: "2025-01-01T12:00:00Z"
-                      total: 50
+              example:
+                code: 200
+                data:
+                  list:
+                    - id: 1
+                      title: "茶道入门"
+                      summary: "茶道基础知识"
+                      coverImage: "/images/article1.jpg"
+                      categoryId: 1
+                      viewCount: 500
+                      createTime: "2025-01-01T12:00:00Z"
+                  total: 50
     post:
       tags: [论坛模块]
       summary: 创建文章（管理员）
@@ -3884,12 +3654,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 6050
-                    data: null
-    
+              example:
+                code: 6050
+                data: null
+
   /forum/articles/{id}:
     get:
       tags: [论坛模块]
@@ -3907,19 +3675,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      id: 1
-                      title: "茶道入门"
-                      content: "茶道是一门艺术..."
-                      summary: "茶道基础知识"
-                      coverImage: "/images/article1.jpg"
-                      categoryId: 1
-                      viewCount: 500
-                      createTime: "2025-01-01T12:00:00Z"
+              example:
+                code: 200
+                data:
+                  id: 1
+                  title: "茶道入门"
+                  content: "茶道是一门艺术..."
+                  summary: "茶道基础知识"
+                  coverImage: "/images/article1.jpg"
+                  categoryId: 1
+                  viewCount: 500
+                  createTime: "2025-01-01T12:00:00Z"
     put:
       tags: [论坛模块]
       summary: 更新文章（管理员）
@@ -3953,11 +3719,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 6051
-                    data: null
+              example:
+                code: 6051
+                data: null
     delete:
       tags: [论坛模块]
       summary: 删除文章（管理员）
@@ -3976,12 +3740,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 6052
-                    data: null
-    
+              example:
+                code: 6052
+                data: null
+
   /forum/topics:
     get:
       tags: [论坛模块]
@@ -3993,16 +3755,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      - id: 1
-                        name: "茶文化"
-                        description: "茶文化交流"
-                        icon: "/icons/culture.png"
-                        sortOrder: 1
+              example:
+                code: 200
+                data:
+                  - id: 1
+                    name: "茶文化"
+                    description: "茶文化交流"
+                    icon: "/icons/culture.png"
+                    sortOrder: 1
     post:
       tags: [论坛模块]
       summary: 创建版块（管理员）
@@ -4031,12 +3791,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 6040
-                    data: null
-    
+              example:
+                code: 6040
+                data: null
+
   /forum/topics/{id}:
     get:
       tags: [论坛模块]
@@ -4054,16 +3812,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      id: 1
-                      name: "茶文化"
-                      description: "茶文化交流"
-                      icon: "/icons/culture.png"
-                      postCount: 100
+              example:
+                code: 200
+                data:
+                  id: 1
+                  name: "茶文化"
+                  description: "茶文化交流"
+                  icon: "/icons/culture.png"
+                  postCount: 100
     put:
       tags: [论坛模块]
       summary: 更新版块（管理员）
@@ -4095,11 +3851,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 6041
-                    data: null
+              example:
+                code: 6041
+                data: null
     delete:
       tags: [论坛模块]
       summary: 删除版块（管理员）
@@ -4118,12 +3872,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 6042
-                    data: null
-    
+              example:
+                code: 6042
+                data: null
+
   /forum/posts:
     get:
       tags: [论坛模块]
@@ -4157,25 +3909,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      list:
-                        - id: 1
-                          title: "商南茶文化分享"
-                          content: "这是一篇关于商南茶文化的帖子"
-                          authorId: "cy100002"
-                          authorName: "茶友"
-                          topicId: 1
-                          viewCount: 100
-                          likeCount: 10
-                          replyCount: 5
-                          isSticky: false
-                          isEssence: false
-                          status: 1
-                      total: 100
+              example:
+                code: 200
+                data:
+                  list:
+                    - id: 1
+                      title: "商南茶文化分享"
+                      content: "这是一篇关于商南茶文化的帖子"
+                      authorId: "cy100002"
+                      authorName: "茶友"
+                      topicId: 1
+                      viewCount: 100
+                      likeCount: 10
+                      replyCount: 5
+                      isSticky: false
+                      isEssence: false
+                      status: 1
+                  total: 100
     post:
       tags: [论坛模块]
       summary: 创建帖子
@@ -4206,12 +3956,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 6000
-                    data: null
-    
+              example:
+                code: 6000
+                data: null
+
   /forum/posts/pending:
     get:
       tags: [论坛模块]
@@ -4234,19 +3982,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      list:
-                        - id: 1
-                          title: "待审核帖子"
-                          authorName: "茶友"
-                          status: 0
-                          createTime: "2025-01-01T12:00:00Z"
-                      total: 10
-    
+              example:
+                code: 200
+                data:
+                  list:
+                    - id: 1
+                      title: "待审核帖子"
+                      authorName: "茶友"
+                      status: 0
+                      createTime: "2025-01-01T12:00:00Z"
+                  total: 10
+
   /forum/posts/{id}:
     get:
       tags: [论坛模块]
@@ -4264,23 +4010,21 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      id: 1
-                      title: "商南茶文化分享"
-                      content: "这是一篇关于商南茶文化的帖子"
-                      authorId: "cy100002"
-                      authorName: "茶友"
-                      topicId: 1
-                      viewCount: 100
-                      likeCount: 10
-                      replyCount: 5
-                      isSticky: false
-                      isEssence: false
-                      status: 1
+              example:
+                code: 200
+                data:
+                  id: 1
+                  title: "商南茶文化分享"
+                  content: "这是一篇关于商南茶文化的帖子"
+                  authorId: "cy100002"
+                  authorName: "茶友"
+                  topicId: 1
+                  viewCount: 100
+                  likeCount: 10
+                  replyCount: 5
+                  isSticky: false
+                  isEssence: false
+                  status: 1
     put:
       tags: [论坛模块]
       summary: 更新帖子
@@ -4310,11 +4054,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 6001
-                    data: null
+              example:
+                code: 6001
+                data: null
     delete:
       tags: [论坛模块]
       summary: 删除帖子
@@ -4333,12 +4075,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 6002
-                    data: null
-    
+              example:
+                code: 6002
+                data: null
+
   /forum/posts/{id}/replies:
     get:
       tags: [论坛模块]
@@ -4364,19 +4104,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      list:
-                        - id: 1
-                          content: "好文章"
-                          authorId: "cy100003"
-                          authorName: "茶友2"
-                          likeCount: 5
-                          createTime: "2025-01-01T13:00:00Z"
-                      total: 20
+              example:
+                code: 200
+                data:
+                  list:
+                    - id: 1
+                      content: "好文章"
+                      authorId: "cy100003"
+                      authorName: "茶友2"
+                      likeCount: 5
+                      createTime: "2025-01-01T13:00:00Z"
+                  total: 20
     post:
       tags: [论坛模块]
       summary: 创建回复
@@ -4407,12 +4145,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 6022
-                    data: null
-    
+              example:
+                code: 6022
+                data: null
+
   /forum/replies/{id}:
     delete:
       tags: [论坛模块]
@@ -4432,12 +4168,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 6021
-                    data: null
-    
+              example:
+                code: 6021
+                data: null
+
   /forum/replies/{id}/like:
     post:
       tags: [论坛模块]
@@ -4457,11 +4191,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 6010
-                    data: null
+              example:
+                code: 6010
+                data: null
     delete:
       tags: [论坛模块]
       summary: 取消点赞回复
@@ -4480,12 +4212,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 6011
-                    data: null
-    
+              example:
+                code: 6011
+                data: null
+
   /forum/posts/{id}/like:
     post:
       tags: [论坛模块]
@@ -4505,11 +4235,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 6010
-                    data: null
+              example:
+                code: 6010
+                data: null
     delete:
       tags: [论坛模块]
       summary: 取消点赞帖子
@@ -4528,12 +4256,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 6011
-                    data: null
-    
+              example:
+                code: 6011
+                data: null
+
   /forum/posts/{id}/favorite:
     post:
       tags: [论坛模块]
@@ -4553,11 +4279,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 6012
-                    data: null
+              example:
+                code: 6012
+                data: null
     delete:
       tags: [论坛模块]
       summary: 取消收藏帖子
@@ -4576,12 +4300,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 6013
-                    data: null
-    
+              example:
+                code: 6013
+                data: null
+
   /forum/posts/{id}/approve:
     post:
       tags: [论坛模块]
@@ -4601,12 +4323,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 6034
-                    data: null
-    
+              example:
+                code: 6034
+                data: null
+
   /forum/posts/{id}/reject:
     post:
       tags: [论坛模块]
@@ -4636,12 +4356,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 6035
-                    data: null
-    
+              example:
+                code: 6035
+                data: null
+
   /forum/posts/{id}/sticky:
     put:
       tags: [论坛模块]
@@ -4666,12 +4384,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 6030
-                    data: null
-    
+              example:
+                code: 6030
+                data: null
+
   /forum/posts/{id}/essence:
     put:
       tags: [论坛模块]
@@ -4696,13 +4412,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 6032
-                    data: null
-    
-    
+              example:
+                code: 6032
+                data: null
+
+
   # ==================== 消息模块 ====================
   /message/list:
     get:
@@ -4731,20 +4445,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      list:
-                        - id: 1
-                          type: "system"
-                          title: "系统通知"
-                          content: "欢迎使用商南茶城"
-                          isRead: false
-                          createTime: "2025-01-01T12:00:00Z"
-                      total: 20
-    
+              example:
+                code: 200
+                data:
+                  list:
+                    - id: 1
+                      type: "system"
+                      title: "系统通知"
+                      content: "欢迎使用商南茶城"
+                      isRead: false
+                      createTime: "2025-01-01T12:00:00Z"
+                  total: 20
+
   /message/{id}:
     get:
       tags: [消息模块]
@@ -4764,18 +4476,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      id: 1
-                      type: "system"
-                      title: "系统通知"
-                      content: "欢迎使用商南茶城"
-                      isRead: true
-                      createTime: "2025-01-01T12:00:00Z"
-    
+              example:
+                code: 200
+                data:
+                  id: 1
+                  type: "system"
+                  title: "系统通知"
+                  content: "欢迎使用商南茶城"
+                  isRead: true
+                  createTime: "2025-01-01T12:00:00Z"
+
   /message/send:
     post:
       tags: [消息模块]
@@ -4804,12 +4514,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 7000
-                    data: null
-    
+              example:
+                code: 7000
+                data: null
+
   /message/read:
     post:
       tags: [消息模块]
@@ -4835,12 +4543,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 7010
-                    data: null
-    
+              example:
+                code: 7010
+                data: null
+
   /message/delete:
     post:
       tags: [消息模块]
@@ -4866,12 +4572,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 7012
-                    data: null
-    
+              example:
+                code: 7012
+                data: null
+
   /message/unread-count:
     get:
       tags: [消息模块]
@@ -4885,15 +4589,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      total: 10
-                      system: 3
-                      chat: 7
-    
+              example:
+                code: 200
+                data:
+                  total: 10
+                  system: 3
+                  chat: 7
+
   /message/notifications:
     get:
       tags: [消息模块]
@@ -4921,20 +4623,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      list:
-                        - id: 1
-                          type: "system"
-                          title: "系统通知"
-                          content: "欢迎使用商南茶城"
-                          isRead: false
-                          createTime: "2025-01-01T12:00:00Z"
-                      total: 20
-    
+              example:
+                code: 200
+                data:
+                  list:
+                    - id: 1
+                      type: "system"
+                      title: "系统通知"
+                      content: "欢迎使用商南茶城"
+                      isRead: false
+                      createTime: "2025-01-01T12:00:00Z"
+                  total: 20
+
   /message/notifications/{id}:
     get:
       tags: [消息模块]
@@ -4954,17 +4654,15 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      id: 1
-                      type: "system"
-                      title: "系统通知"
-                      content: "欢迎使用商南茶城"
-                      isRead: true
-                      createTime: "2025-01-01T12:00:00Z"
+              example:
+                code: 200
+                data:
+                  id: 1
+                  type: "system"
+                  title: "系统通知"
+                  content: "欢迎使用商南茶城"
+                  isRead: true
+                  createTime: "2025-01-01T12:00:00Z"
     delete:
       tags: [消息模块]
       summary: 删除通知
@@ -4983,12 +4681,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 7012
-                    data: null
-    
+              example:
+                code: 7012
+                data: null
+
   /message/notifications/batch-read:
     put:
       tags: [消息模块]
@@ -5010,12 +4706,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 7011
-                    data: null
-    
+              example:
+                code: 7011
+                data: null
+
   /message/notifications/batch:
     delete:
       tags: [消息模块]
@@ -5037,12 +4731,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 7013
-                    data: null
-    
+              example:
+                code: 7013
+                data: null
+
   /message/list/sessions:
     get:
       tags: [消息模块]
@@ -5056,21 +4748,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      - sessionId: "session_1"
-                        targetUser:
-                          id: "cy100003"
-                          username: "茶友"
-                          avatar: "/images/avatar.png"
-                        lastMessage: "你好"
-                        lastMessageTime: "2025-01-01T12:00:00Z"
-                        unreadCount: 2
-                        isPinned: false
-    
+              example:
+                code: 200
+                data:
+                  - sessionId: "session_1"
+                    targetUser:
+                      id: "cy100003"
+                      username: "茶友"
+                      avatar: "/images/avatar.png"
+                    lastMessage: "你好"
+                    lastMessageTime: "2025-01-01T12:00:00Z"
+                    unreadCount: 2
+                    isPinned: false
+
   /message/list/history:
     get:
       tags: [消息模块]
@@ -5098,20 +4788,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      list:
-                        - id: 1
-                          senderId: "cy100002"
-                          receiverId: "cy100003"
-                          content: "你好"
-                          type: "text"
-                          createTime: "2025-01-01T12:00:00Z"
-                      total: 50
-    
+              example:
+                code: 200
+                data:
+                  list:
+                    - id: 1
+                      senderId: "cy100002"
+                      receiverId: "cy100003"
+                      content: "你好"
+                      type: "text"
+                      createTime: "2025-01-01T12:00:00Z"
+                  total: 50
+
   /message/sessions:
     post:
       tags: [消息模块]
@@ -5136,13 +4824,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 1000
-                    data:
-                      sessionId: "session_1"
-    
+              example:
+                code: 1000
+                data:
+                  sessionId: "session_1"
+
   /message/sessions/{sessionId}:
     delete:
       tags: [消息模块]
@@ -5162,12 +4848,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 7001
-                    data: null
-    
+              example:
+                code: 7001
+                data: null
+
   /message/sessions/{sessionId}/pin:
     put:
       tags: [消息模块]
@@ -5187,12 +4871,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 7014
-                    data: null
-    
+              example:
+                code: 7014
+                data: null
+
   /message/messages/image:
     post:
       tags: [消息模块]
@@ -5221,12 +4903,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 7003
-                    data: null
-    
+              example:
+                code: 7003
+                data: null
+
   /message/user/{userId}:
     get:
       tags: [消息模块]
@@ -5244,23 +4924,21 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      user:
-                        id: "cy100002"
-                        username: "茶友"
-                        nickname: "茶友昵称"
-                        avatar: "/images/avatar.png"
-                        role: 2
-                      isFollowed: false
-                      statistics:
-                        postCount: 10
-                        followingCount: 20
-                        followerCount: 30
-    
+              example:
+                code: 200
+                data:
+                  user:
+                    id: "cy100002"
+                    username: "茶友"
+                    nickname: "茶友昵称"
+                    avatar: "/images/avatar.png"
+                    role: 2
+                  isFollowed: false
+                  statistics:
+                    postCount: 10
+                    followingCount: 20
+                    followerCount: 30
+
   /message/user/{userId}/dynamic:
     get:
       tags: [消息模块]
@@ -5286,19 +4964,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      list:
-                        - id: 1
-                          type: "post"
-                          title: "发布了帖子"
-                          content: "商南茶文化分享"
-                          createTime: "2025-01-01T12:00:00Z"
-                      total: 20
-    
+              example:
+                code: 200
+                data:
+                  list:
+                    - id: 1
+                      type: "post"
+                      title: "发布了帖子"
+                      content: "商南茶文化分享"
+                      createTime: "2025-01-01T12:00:00Z"
+                  total: 20
+
   /message/user/{userId}/statistics:
     get:
       tags: [消息模块]
@@ -5316,16 +4992,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      postCount: 10
-                      followingCount: 20
-                      followerCount: 30
-                      favoriteCount: 15
-    
+              example:
+                code: 200
+                data:
+                  postCount: 10
+                  followingCount: 20
+                  followerCount: 30
+                  favoriteCount: 15
+
   /message/user/posts:
     get:
       tags: [消息模块]
@@ -5353,19 +5027,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      list:
-                        - id: 1
-                          title: "商南茶文化分享"
-                          viewCount: 100
-                          likeCount: 10
-                          createTime: "2025-01-01T12:00:00Z"
-                      total: 10
-    
+              example:
+                code: 200
+                data:
+                  list:
+                    - id: 1
+                      title: "商南茶文化分享"
+                      viewCount: 100
+                      likeCount: 10
+                      createTime: "2025-01-01T12:00:00Z"
+                  total: 10
+
   /message/user/reviews:
     get:
       tags: [消息模块]
@@ -5388,20 +5060,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 200
-                    data:
-                      list:
-                        - id: 1
-                          teaId: "1"
-                          teaName: "商南绿茶"
-                          rating: 5
-                          content: "很好喝"
-                          createTime: "2025-01-01T12:00:00Z"
-                      total: 5
-    
+              example:
+                code: 200
+                data:
+                  list:
+                    - id: 1
+                      teaId: "1"
+                      teaName: "商南绿茶"
+                      rating: 5
+                      content: "很好喝"
+                      createTime: "2025-01-01T12:00:00Z"
+                  total: 5
+
   # ==================== 公共模块 ====================
   /upload:
     post:
@@ -5429,14 +5099,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 1001
-                    data:
-                      url: "/uploads/common/file_123.jpg"
-                      filename: "file_123.jpg"
-    
+              example:
+                code: 1001
+                data:
+                  url: "/uploads/common/file_123.jpg"
+                  filename: "file_123.jpg"
+
   /upload/image:
     post:
       tags: [公共模块]
@@ -5463,10 +5131,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Result'
-              examples:
-                default:
-                  value:
-                    code: 1001
-                    data:
-                      url: "/uploads/images/img_123.jpg"
-                      thumbnailUrl: "/uploads/images/thumb_img_123.jpg"
+              example:
+                code: 1001
+                data:
+                  url: "/uploads/images/img_123.jpg"
+                  thumbnailUrl: "/uploads/images/thumb_img_123.jpg"
