@@ -853,25 +853,25 @@ export default {
     }
     
     // 去论坛管理
-    const goToForumManage = () => {
-      router.push('/forum/manage')
-    }
-    
-    // 添加默认图片常量（生产形态：不使用 mock-images）
-    const defaultCover = ''
-    
     // 获取文章列表
     const fetchArticles = async () => {
       try {
-        await store.dispatch('forum/fetchArticles')
+        const res = await store.dispatch('forum/fetchArticles')
+        showByCode(res.code)
       } catch (error) {
-        forumErrorMessages.showArticleLoadFailed()
         console.error('获取文章列表失败:', error)
       }
     }
     
     // 获取首页数据
     const fetchHomeData = async () => {
+      try {
+        const res = await store.dispatch('forum/fetchHomeData')
+        showByCode(res.code)
+      } catch (error) {
+        console.error('获取首页数据失败:', error)
+      }
+    }onst fetchHomeData = async () => {
       try {
         await store.dispatch('forum/fetchHomeData')
       } catch (error) {

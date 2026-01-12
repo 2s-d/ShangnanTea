@@ -215,7 +215,7 @@ import { useStore } from 'vuex'
 
 import { View, ChatDotRound, Star, StarFilled, Share, Back, ChatLineRound, ArrowDown } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-import { forumSuccessMessages, forumErrorMessages } from '@/utils/forumMessages'
+import { showByCode } from '@/utils/apiMessages'
 import { forumPromptMessages } from '@/utils/promptMessages'
 
 export default {
@@ -259,9 +259,9 @@ export default {
     // 获取帖子详情
     const fetchPostDetail = async () => {
       try {
-        const res = await store.dispatch('forum/fetchPostDetail', postId.value)
-        showByCode(res.code)
+        await store.dispatch('forum/fetchPostDetail', postId.value)
       } catch (error) {
+        forumErrorMessages.showLoadPostDetailFailed()
         console.error('获取帖子详情失败:', error)
       }
     }
@@ -276,10 +276,10 @@ export default {
           size: pagination.pageSize,
           sortBy: currentSort.value
         }
-        const res = await store.dispatch('forum/fetchPostReplies', { postId: postId.value, params })
-        showByCode(res.code)
+        await store.dispatch('forum/fetchPostReplies', { postId: postId.value, params })
         updateReplyPagination()
       } catch (error) {
+        forumErrorMessages.showLoadRepliesFailed()
         console.error('获取回复列表失败:', error)
       }
     }
@@ -309,17 +309,17 @@ export default {
       
       likeLoading.value = true
       try {
+        let res
         if (post.value?.isLiked) {
           // 取消点赞
-          await store.dispatch('forum/unlikePost', postId.value)
-          forumSuccessMessages.showPostUnliked()
+          res = await store.dispatch('forum/unlikePost', postId.value)
         } else {
           // 添加点赞
-          await store.dispatch('forum/likePost', postId.value)
-          forumSuccessMessages.showPostLiked()
+          res = await store.dispatch('forum/likePost', postId.value)
         }
+        showByCode(res.code)
       } catch (error) {
-        forumErrorMessages.showOperationFailed(error.message)
+        console.error('点赞操作失败:', error)
       } finally {
         likeLoading.value = false
       }
@@ -339,17 +339,17 @@ export default {
       
       favoriteLoading.value = true
       try {
+        let res
         if (post.value?.isFavorited) {
           // 取消收藏
-          await store.dispatch('forum/unfavoritePost', postId.value)
-          forumSuccessMessages.showPostUnfavorited()
+          res = await store.dispatch('forum/unfavoritePost', postId.value)
         } else {
           // 添加收藏
-          await store.dispatch('forum/favoritePost', postId.value)
-          forumSuccessMessages.showPostFavorited()
+          res = await store.dispatch('forum/favoritePost', postId.value)
         }
+        showByCode(res.code)
       } catch (error) {
-        forumErrorMessages.showOperationFailed(error.message)
+        console.error('收藏操作失败:', error)
       } finally {
         favoriteLoading.value = false
       }
@@ -421,15 +421,15 @@ export default {
     // 点赞回复
     const likeReply = async (reply) => {
       try {
+        let res
         if (reply.isLiked) {
-          await store.dispatch('forum/unlikeReply', reply.id)
-          forumSuccessMessages.showPostUnliked()
+          res = await store.dispatch('forum/unlikeReply', reply.id)
         } else {
-          await store.dispatch('forum/likeReply', reply.id)
-          forumSuccessMessages.showPostLiked()
+          res = await store.dispatch('forum/likeReply', reply.id)
         }
+        showByCode(res.code)
       } catch (error) {
-        forumErrorMessages.showOperationFailed(error.message)
+        console.error('点赞回复失败:', error)
       }
     }
     
