@@ -84,7 +84,7 @@ export default {
     const componentMap = {
       profile: markRaw(ProfileEditPage),
       password: markRaw(ChangePasswordPage),
-      merchant: markRaw(MerchantApplication),
+      merchant: markRaw(MerchantApplication)
     }
     
     // 活动菜单
@@ -106,7 +106,7 @@ export default {
     })
     
     // 监听路由参数变化
-    watch(() => route.params.tab, (newTab) => {
+    watch(() => route.params.tab, newTab => {
       if (newTab && componentMap[newTab]) {
         activeMenu.value = newTab
         currentComponent.value = componentMap[newTab]
@@ -114,7 +114,7 @@ export default {
     })
     
     // 菜单选择处理
-    const handleMenuSelect = (key) => {
+    const handleMenuSelect = key => {
       activeMenu.value = key
       
       // 如果存在对应组件就设置，否则显示开发中

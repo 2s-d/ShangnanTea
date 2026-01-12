@@ -175,7 +175,7 @@ export default {
     }
     
     // 预览图片
-    const handlePreview = (file) => {
+    const handlePreview = file => {
       previewUrl.value = file.url
       previewVisible.value = true
     }

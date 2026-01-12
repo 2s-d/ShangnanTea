@@ -360,7 +360,7 @@ export default {
     }
     
     // 格式化日期
-    const formatDate = (dateString) => {
+    const formatDate = dateString => {
       if (!dateString) return ''
       const date = new Date(dateString)
       return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
@@ -397,28 +397,28 @@ export default {
     // 从Vuex获取回复数据
     const replyList = computed(() => store.state.forum.postReplies)
     const recommendList = ref([])
-// 处理排序变更
-    const handleSortChange = async (sort) => {
+    // 处理排序变更
+    const handleSortChange = async sort => {
       currentSort.value = sort
       pagination.currentPage = 1 // 重置到第一页
       await fetchReplies()
     }
     
     // 处理分页大小变更
-    const handleSizeChange = async (size) => {
+    const handleSizeChange = async size => {
       pagination.pageSize = size
       pagination.currentPage = 1 // 重置到第一页
       await fetchReplies()
     }
     
     // 处理页码变更
-    const handleCurrentChange = async (page) => {
+    const handleCurrentChange = async page => {
       pagination.currentPage = page
       await fetchReplies()
     }
     
     // 点赞回复
-    const likeReply = async (reply) => {
+    const likeReply = async reply => {
       try {
         let res
         if (reply.isLiked) {
@@ -433,7 +433,7 @@ export default {
     }
     
     // 显示回复输入框
-    const showReplyInput = (reply) => {
+    const showReplyInput = reply => {
       currentReply.value = reply
       // 聚焦到输入框
       setTimeout(() => {
@@ -450,7 +450,7 @@ export default {
     }
     
     // 处理回复输入
-    const handleReplyInput = (value) => {
+    const handleReplyInput = value => {
       // 检测@符号
       if (!replyTextareaRef.value || !replyTextareaRef.value.textarea) return
       
@@ -505,7 +505,7 @@ export default {
     }
     
     // 处理键盘事件
-    const handleReplyKeydown = (event) => {
+    const handleReplyKeydown = event => {
       if (showMentionList.value && mentionUsers.value.length > 0) {
         if (event.key === 'ArrowDown') {
           event.preventDefault()
@@ -525,7 +525,7 @@ export default {
     }
     
     // 选择@用户
-    const selectMentionUser = (user) => {
+    const selectMentionUser = user => {
       if (mentionStartPos.value === -1) return
       
       const textBefore = replyContent.value.substring(0, mentionStartPos.value)
@@ -611,18 +611,18 @@ export default {
     }
     
     // 查看帖子详情
-    const viewPost = (postId) => {
+    const viewPost = postId => {
       router.push(`/forum/${postId}`)
     }
     
     // 获取回复用户名
-    const getReplyUserName = (replyId) => {
+    const getReplyUserName = replyId => {
       const reply = replyList.value.find(item => item.id === replyId)
       return reply ? reply.userName : '未知用户'
     }
     
     // 获取回复内容
-    const getReplyContent = (replyId) => {
+    const getReplyContent = replyId => {
       const reply = replyList.value.find(item => item.id === replyId)
       if (!reply) return '该回复已被删除'
       

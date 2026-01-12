@@ -104,7 +104,7 @@ export default {
     })
     
     // 格式化时间
-    const formatTime = (timeString) => {
+    const formatTime = timeString => {
       if (!timeString) return '未知'
       const date = new Date(timeString)
       return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`

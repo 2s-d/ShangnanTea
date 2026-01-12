@@ -79,7 +79,7 @@ export default {
     const { value: subscribedEmails, setValue: setSubscribedEmails } = useStorage('subscribed_emails', [])
     
     // 邮箱验证
-    const isValidEmail = (email) => {
+    const isValidEmail = email => {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
       return emailRegex.test(email)
     }

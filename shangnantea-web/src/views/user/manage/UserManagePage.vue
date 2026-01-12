@@ -283,13 +283,13 @@ export default {
     const total = computed(() => userPagination.value.total)
     const currentPage = computed({
       get: () => userPagination.value.page,
-      set: (val) => {
+      set: val => {
         store.commit('user/SET_USER_PAGINATION', { page: val })
       }
     })
     const pageSize = computed({
       get: () => userPagination.value.pageSize,
-      set: (val) => {
+      set: val => {
         store.commit('user/SET_USER_PAGINATION', { pageSize: val })
       }
     })
@@ -354,9 +354,9 @@ export default {
         { 
           validator: (rule, value, callback) => {
             if (value !== userForm.password) {
-              callback(new Error('两次输入密码不一致'));
+              callback(new Error('两次输入密码不一致'))
             } else {
-              callback();
+              callback()
             }
           }, 
           trigger: 'blur' 
@@ -461,7 +461,7 @@ export default {
     }
     
     // 格式化日期
-    const formatDate = (date) => {
+    const formatDate = date => {
       if (!date) return ''
       
       const d = new Date(date)
@@ -469,11 +469,11 @@ export default {
     }
     
     // 获取角色标签样式
-    const getRoleTagType = (role) => {
+    const getRoleTagType = role => {
       switch (role) {
-        case 1: return 'danger'
-        case 3: return 'success'
-        default: return 'info'
+      case 1: return 'danger'
+      case 3: return 'success'
+      default: return 'info'
       }
     }
     
@@ -493,12 +493,12 @@ export default {
     }
     
     // 分页处理
-    const handleSizeChange = (size) => {
+    const handleSizeChange = size => {
       pageSize.value = size
       fetchUserList()
     }
     
-    const handleCurrentChange = (page) => {
+    const handleCurrentChange = page => {
       currentPage.value = page
       fetchUserList()
     }
@@ -514,7 +514,7 @@ export default {
     }
     
     // 编辑用户
-    const handleEdit = (row) => {
+    const handleEdit = row => {
       isEdit.value = true
       // 复制用户数据到表单
       Object.assign(userForm, { 
@@ -531,7 +531,7 @@ export default {
     }
     
     // 删除用户
-    const handleDelete = (row) => {
+    const handleDelete = row => {
       selectedUser.value = row
       deleteDialogVisible.value = true
     }
@@ -554,7 +554,7 @@ export default {
     }
     
     // 修改用户状态
-    const handleStatusChange = async (user) => {
+    const handleStatusChange = async user => {
       try {
         const newStatus = user.status === 1 ? 0 : 1
         await store.dispatch('user/toggleUserStatus', {
@@ -578,7 +578,7 @@ export default {
     const submitUserForm = async () => {
       if (!userFormRef.value) return
       
-      userFormRef.value.validate(async (valid) => {
+      userFormRef.value.validate(async valid => {
         if (valid) {
           try {
             if (isEdit.value) {
@@ -634,7 +634,7 @@ export default {
     }
     
     // 头像上传前验证
-    const beforeAvatarUpload = (file) => {
+    const beforeAvatarUpload = file => {
       const isImage = file.type.startsWith('image/')
       const isLt2M = file.size / 1024 / 1024 < 2
       
@@ -654,14 +654,14 @@ export default {
     }
     
     // 头像上传处理
-    const uploadAvatar = (options) => {
+    const uploadAvatar = options => {
       const file = options.file
       
       // 在实际项目中，这里应该上传文件到服务器
       // 模拟上传，使用FileReader读取文件为base64
       const reader = new FileReader()
       reader.readAsDataURL(file)
-      reader.onload = (e) => {
+      reader.onload = e => {
         userForm.avatar = e.target.result
       }
     }

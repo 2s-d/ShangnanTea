@@ -76,14 +76,14 @@ const computedPlaceholder = computed(() => {
 })
 
 // 监听外部传入的搜索关键词
-watch(() => props.modelValue, (newVal) => {
+watch(() => props.modelValue, newVal => {
   if (newVal !== undefined && newVal !== null) {
     localSearchQuery.value = newVal
   }
 })
 
 // 监听路由变化，同步搜索关键词
-watch(() => route.query.search, (newVal) => {
+watch(() => route.query.search, newVal => {
   if (newVal && newVal !== localSearchQuery.value) {
     localSearchQuery.value = newVal
     emit('update:modelValue', newVal)
@@ -91,7 +91,7 @@ watch(() => route.query.search, (newVal) => {
 }, { immediate: true })
 
 // 切换搜索类型
-const handleTypeChange = (type) => {
+const handleTypeChange = type => {
   localSearchType.value = type
   emit('type-change', type)
   // 如果当前有搜索关键词，切换类型后自动搜索

@@ -73,7 +73,7 @@ export function usePagination(options = {}) {
    * 处理页码变化
    * @param {number} page 页码
    */
-  const handleCurrentChange = (page) => {
+  const handleCurrentChange = page => {
     if (page === pagination.currentPage) return
     
     pagination.currentPage = page
@@ -91,7 +91,7 @@ export function usePagination(options = {}) {
    * 处理每页条数变化
    * @param {number} size 每页条数
    */
-  const handleSizeChange = (size) => {
+  const handleSizeChange = size => {
     if (size === pagination.pageSize) return
     
     pagination.pageSize = size
@@ -110,7 +110,7 @@ export function usePagination(options = {}) {
    * 处理排序变化
    * @param {Object} params 排序参数 {prop, order}
    */
-  const handleSortChange = (params) => {
+  const handleSortChange = params => {
     if (params.prop === sort.prop && params.order === sort.order) return
     
     sort.prop = params.prop
@@ -129,7 +129,7 @@ export function usePagination(options = {}) {
    * 处理筛选条件变化
    * @param {Object} conditions 筛选条件
    */
-  const handleFilterChange = (conditions) => {
+  const handleFilterChange = conditions => {
     filters.value = { ...conditions }
     pagination.currentPage = 1 // 筛选条件变化时重置到第一页
     
@@ -208,7 +208,7 @@ export function usePagination(options = {}) {
    * 更新总条数
    * @param {number} total 总条数
    */
-  const setTotal = (total) => {
+  const setTotal = total => {
     pagination.total = total
     
     // 如果当前页超出总页数，则跳转到最后一页

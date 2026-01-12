@@ -363,7 +363,7 @@ const actions = {
       
       // 更新我的商店信息
       if (state.myShop && state.myShop.id === shopId) {
-      commit('SET_MY_SHOP', res.data)
+        commit('SET_MY_SHOP', res.data)
       }
       
       // 如果当前查看的是我的商店，也更新currentShop

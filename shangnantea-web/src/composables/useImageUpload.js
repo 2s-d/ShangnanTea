@@ -3,7 +3,7 @@
  */
 import { ref, computed } from 'vue'
 
-import { commonPromptMessages } from '@/utils/promptMessages'
+import { commonPromptMessages, commonErrorMessages } from '@/utils/promptMessages'
 
 
 /**
@@ -32,7 +32,7 @@ export function useImageUpload(options = {}) {
   const currentFile = ref(null)
   
   // 图片列表处理
-  const setFileList = (list) => {
+  const setFileList = list => {
     fileList.value = list.map(item => ({
       ...item,
       status: item.status || 'success',
@@ -50,7 +50,7 @@ export function useImageUpload(options = {}) {
    * @param {File} file 文件对象
    * @returns {boolean} 是否通过验证
    */
-  const validateFileType = (file) => {
+  const validateFileType = file => {
     if (!config.acceptTypes || config.acceptTypes.length === 0) {
       return true
     }
@@ -70,7 +70,7 @@ export function useImageUpload(options = {}) {
    * @param {File} file 文件对象
    * @returns {boolean} 是否通过验证
    */
-  const validateFileSize = (file) => {
+  const validateFileSize = file => {
     const isValid = file.size / 1024 / 1024 <= config.maxSize
     if (!isValid) {
       // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
@@ -85,7 +85,7 @@ export function useImageUpload(options = {}) {
    * @param {File} file 文件对象
    * @returns {boolean} 是否可以上传
    */
-  const beforeUpload = (file) => {
+  const beforeUpload = file => {
     if (isMaxCount.value && !currentFile.value) {
       commonPromptMessages.showFileCountLimit(config.maxCount)
       return false
@@ -98,7 +98,7 @@ export function useImageUpload(options = {}) {
    * 处理文件变化事件
    * @param {Event} e 事件对象
    */
-  const handleFileChange = (e) => {
+  const handleFileChange = e => {
     const files = e.target.files
     if (!files || !files.length) return
     
@@ -124,7 +124,7 @@ export function useImageUpload(options = {}) {
    * 添加文件到列表
    * @param {File} file 文件对象
    */
-  const addFile = (file) => {
+  const addFile = file => {
     // 创建预览URL
     const fileUrl = URL.createObjectURL(file)
     
@@ -161,7 +161,7 @@ export function useImageUpload(options = {}) {
    * 移除文件
    * @param {number|string} index 文件索引或UID
    */
-  const removeFile = (index) => {
+  const removeFile = index => {
     let idx = index
     
     // 如果传入的是uid，查找对应索引
@@ -190,7 +190,7 @@ export function useImageUpload(options = {}) {
    * 上传文件
    * @param {Object} fileItem 文件项
    */
-  const uploadFile = async (fileItem) => {
+  const uploadFile = async fileItem => {
     if (!config.uploadApi || !fileItem || fileItem.status === 'success') return
     
     try {
@@ -202,7 +202,7 @@ export function useImageUpload(options = {}) {
       formData.append('file', fileItem.raw)
       
       // 调用上传API
-      const response = await config.uploadApi(formData, (progress) => {
+      const response = await config.uploadApi(formData, progress => {
         fileItem.percentage = progress
       })
       

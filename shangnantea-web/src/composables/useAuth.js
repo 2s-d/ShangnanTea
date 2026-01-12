@@ -75,7 +75,7 @@ export function useAuth() {
    * @param {Array|number} roles 允许的角色ID数组或单个ID
    * @returns {boolean} 是否有权限
    */
-  const hasRole = (roles) => {
+  const hasRole = roles => {
     const currentRole = getCurrentUserRole()
     if (!currentRole) return false
     
@@ -120,7 +120,7 @@ export function useAuth() {
    * @param {Object} credentials 登录凭证 {username, password}
    * @returns {Promise} 登录结果
    */
-  const login = async (credentials) => {
+  const login = async credentials => {
     loading.value = true
     
     try {
@@ -157,7 +157,7 @@ export function useAuth() {
    * @param {Object} userData 用户注册数据
    * @returns {Promise} 注册结果
    */
-  const register = async (userData) => {
+  const register = async userData => {
     loading.value = true
     
     try {
@@ -219,7 +219,7 @@ export function useAuth() {
    * @param {Object} userData 用户数据
    * @returns {Promise} 更新结果
    */
-  const updateUserInfo = async (userData) => {
+  const updateUserInfo = async userData => {
     loading.value = true
     
     try {
@@ -242,7 +242,7 @@ export function useAuth() {
    * @param {Object} passwordData 密码数据 {oldPassword, newPassword}
    * @returns {Promise} 修改结果
    */
-  const changePassword = async (passwordData) => {
+  const changePassword = async passwordData => {
     loading.value = true
     
     try {

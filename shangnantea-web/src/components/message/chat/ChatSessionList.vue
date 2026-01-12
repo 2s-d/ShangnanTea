@@ -93,15 +93,15 @@ export default {
   setup(props, { emit }) {
     const localSearchQuery = ref(props.searchQuery)
     
-    watch(() => props.searchQuery, (val) => {
+    watch(() => props.searchQuery, val => {
       localSearchQuery.value = val
     })
     
-    const handleSearch = (val) => {
+    const handleSearch = val => {
       emit('search', val)
     }
     
-    const formatTime = (timestamp) => {
+    const formatTime = timestamp => {
       if (!timestamp) return ''
       const date = new Date(timestamp)
       const now = new Date()

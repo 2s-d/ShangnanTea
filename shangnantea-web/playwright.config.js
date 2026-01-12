@@ -1,5 +1,5 @@
 // @ts-check
-const { defineConfig } = require('@playwright/test');
+const { defineConfig } = require('@playwright/test')
 
 module.exports = defineConfig({
   testDir: './e2e',
@@ -19,15 +19,15 @@ module.exports = defineConfig({
     baseURL: 'http://localhost:8083',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
+    video: 'retain-on-failure'
   },
   projects: [
     {
       name: 'chromium',
       use: { 
         browserName: 'chromium',
-        headless: false,  // 显示浏览器窗口，方便调试
-      },
-    },
-  ],
-});
+        headless: false  // 显示浏览器窗口，方便调试
+      }
+    }
+  ]
+})

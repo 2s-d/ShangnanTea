@@ -30,7 +30,7 @@ export function useStorage(key, defaultValue = null, options = {}) {
     prefix: 'shangnantea_', // 键名前缀
     serializer: JSON.stringify, // 序列化方法
     deserializer: JSON.parse, // 反序列化方法
-    onError: (error) => console.error(error) // 错误处理
+    onError: error => console.error(error) // 错误处理
   }
   
   // 合并配置
@@ -55,7 +55,7 @@ export function useStorage(key, defaultValue = null, options = {}) {
   const storedValue = ref(readValue())
   
   // 更新存储
-  const updateStorage = (newValue) => {
+  const updateStorage = newValue => {
     if (newValue === null || newValue === undefined) {
       storage.removeItem(prefixedKey)
     } else {
@@ -68,7 +68,7 @@ export function useStorage(key, defaultValue = null, options = {}) {
   }
   
   // 更新值
-  const setValue = (newValue) => {
+  const setValue = newValue => {
     try {
       // 如果是函数，则执行函数获取新值
       const valueToStore = newValue instanceof Function ? newValue(storedValue.value) : newValue
@@ -106,7 +106,7 @@ export function useStorage(key, defaultValue = null, options = {}) {
   }
   
   // 监听存储事件，实现跨标签页同步
-  const handleStorageChange = (event) => {
+  const handleStorageChange = event => {
     if (event.key === prefixedKey && event.storageArea === storage) {
       try {
         const newValue = event.newValue ? config.deserializer(event.newValue) : defaultValue
@@ -123,7 +123,7 @@ export function useStorage(key, defaultValue = null, options = {}) {
   window.addEventListener('storage', handleStorageChange)
   
   // 监听 storedValue 变化，实时同步到存储
-  watch(storedValue, (newValue) => {
+  watch(storedValue, newValue => {
     updateStorage(newValue)
   })
   
@@ -230,7 +230,7 @@ export function useObjectStorage(key, defaultValue = {}, options = {}) {
    * 移除对象中的特定字段
    * @param {string|Array} fields 字段名或字段名数组
    */
-  const removeField = (fields) => {
+  const removeField = fields => {
     const newValue = { ...value.value }
     
     if (Array.isArray(fields)) {
@@ -249,7 +249,7 @@ export function useObjectStorage(key, defaultValue = {}, options = {}) {
    * @param {string} field 字段名
    * @returns {boolean} 是否存在
    */
-  const hasField = (field) => {
+  const hasField = field => {
     return value.value && Object.prototype.hasOwnProperty.call(value.value, field)
   }
   
@@ -293,7 +293,7 @@ export function useTokenStorage() {
    * 设置token到本地存储
    * @param {string} newToken token字符串
    */
-  const setToken = (newToken) => setTokenValue(newToken)
+  const setToken = newToken => setTokenValue(newToken)
   
   /**
    * 移除本地存储的token
@@ -305,25 +305,25 @@ export function useTokenStorage() {
    * @param {string} tokenStr token字符串
    * @returns {Object|null} 用户信息
    */
-  const decodeToken = (tokenStr) => {
-    if (!tokenStr) return null;
+  const decodeToken = tokenStr => {
+    if (!tokenStr) return null
     
     try {
       // 获取JWT的payload部分
-      const tokenParts = tokenStr.split('.');
-      if (tokenParts.length < 2) return null;
+      const tokenParts = tokenStr.split('.')
+      if (tokenParts.length < 2) return null
       
       // 解码payload - 处理base64url格式
-      const payload = tokenParts[1];
-      const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+      const payload = tokenParts[1]
+      const base64 = payload.replace(/-/g, '+').replace(/_/g, '/')
       const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-      }).join(''));
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+      }).join(''))
       
-      return JSON.parse(jsonPayload);
+      return JSON.parse(jsonPayload)
     } catch (error) {
-      console.error('解析token失败:', error);
-      return null;
+      console.error('解析token失败:', error)
+      return null
     }
   }
   
@@ -332,8 +332,8 @@ export function useTokenStorage() {
    * @returns {Object|null} 用户信息或null
    */
   const getUserFromToken = () => {
-    const currentToken = token.value;
-    return currentToken ? decodeToken(currentToken) : null;
+    const currentToken = token.value
+    return currentToken ? decodeToken(currentToken) : null
   }
   
   /**
@@ -341,31 +341,31 @@ export function useTokenStorage() {
    * @returns {Object|null} 有效则返回标准化用户信息，否则返回null
    */
   const verifyToken = () => {
-    const currentToken = token.value;
-    if (!currentToken) return null;
+    const currentToken = token.value
+    if (!currentToken) return null
     
     try {
       // 解析JWT token
-      const payload = decodeToken(currentToken);
-      if (!payload) return null;
+      const payload = decodeToken(currentToken)
+      if (!payload) return null
       
       // 检查关键字段是否存在 - 必须有sub作为用户ID
       if (!payload.sub) {
-        console.warn("Token缺少用户ID(sub)字段");
-        return null;
+        console.warn('Token缺少用户ID(sub)字段')
+        return null
       }
       
       // 检查角色是否有效 - 只有1,2,3三种角色
       if (![1, 2, 3].includes(Number(payload.role))) {
-        console.warn("Token包含无效的角色值");
-        return null;
+        console.warn('Token包含无效的角色值')
+        return null
       }
       
       // 检查token是否过期 - 根据exp字段（Unix时间戳，秒）
-      const now = Math.floor(Date.now() / 1000); // 转换为秒
+      const now = Math.floor(Date.now() / 1000) // 转换为秒
       if (payload.exp && payload.exp < now) {
-        console.warn("Token已过期");
-        return null;
+        console.warn('Token已过期')
+        return null
       }
       
       // 构建标准用户信息对象，确保与后端格式一致
@@ -374,10 +374,10 @@ export function useTokenStorage() {
         role: Number(payload.role),   // 用户角色：1-管理员，2-普通用户，3-商家
         username: payload.username || payload.preferred_username,
         exp: payload.exp ? payload.exp * 1000 : undefined // 转回毫秒便于前端处理
-      };
+      }
     } catch (error) {
-      console.error('验证token失败:', error);
-      return null;
+      console.error('验证token失败:', error)
+      return null
     }
   }
   
@@ -388,17 +388,17 @@ export function useTokenStorage() {
    */
   const isTokenValid = () => {
     if (!token.value) {
-      return false;
+      return false
     }
     
-    const userInfo = verifyToken();
+    const userInfo = verifyToken()
     if (!userInfo) {
       // token无效，清除
-      removeToken();
-      return false;
+      removeToken()
+      return false
     }
     
-    return true;
+    return true
   }
   
   return {

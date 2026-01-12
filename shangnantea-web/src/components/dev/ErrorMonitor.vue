@@ -150,7 +150,7 @@ export default {
     }
 
     // ========== 错误监控部分 ==========
-    const cleanVueWarn = (content) => {
+    const cleanVueWarn = content => {
       const warnMatch = content.match(/\[Vue warn\]:\s*([^.]+)/)
       const coreMessage = warnMatch ? warnMatch[1].trim() : ''
       
@@ -189,7 +189,7 @@ export default {
       return 'unknown'
     }
 
-    const simplifyContent = (content) => {
+    const simplifyContent = content => {
       let simplified = content.replace(/_[a-zA-Z]+__WEBPACK_IMPORTED_MODULE_\d+__\./g, '')
       simplified = simplified.replace(/\.default\./g, '.')
       if (simplified.length > 300) simplified = simplified.substring(0, 300) + '...'
@@ -197,7 +197,7 @@ export default {
     }
 
     // 安全的 JSON 序列化，处理循环引用
-    const safeStringify = (obj) => {
+    const safeStringify = obj => {
       if (obj === null || obj === undefined) return String(obj)
       if (typeof obj !== 'object') return String(obj)
       
@@ -212,8 +212,8 @@ export default {
           if (typeof value === 'object' && value !== null) {
             if (seen.has(value)) return '[Circular]'
             if (value === window || value === document) return '[Window/Document]'
-            if (value instanceof HTMLElement) return `[HTMLElement]`
-            if (value instanceof Event) return `[Event]`
+            if (value instanceof HTMLElement) return '[HTMLElement]'
+            if (value instanceof Event) return '[Event]'
             seen.add(value)
           }
           return value
@@ -276,14 +276,14 @@ export default {
       if (originalConsoleWarn) console.warn = originalConsoleWarn
     }
 
-    const handleGlobalError = (event) => {
+    const handleGlobalError = event => {
       const { message, filename, lineno, colno } = event
       const file = filename ? filename.split('/').pop() : 'unknown'
       const source = `${file}:${lineno}:${colno}`
       addMessage(message, 'runtime', '运行时错误', source)
     }
 
-    const handleUnhandledRejection = (event) => {
+    const handleUnhandledRejection = event => {
       const reason = event.reason
       let content = '', source = 'Promise'
       
@@ -301,7 +301,7 @@ export default {
     // 使用 fetch/xhr 拦截来捕获所有网络请求
     
     // 判断是否是 API 请求（过滤静态资源）
-    const isApiRequest = (url) => {
+    const isApiRequest = url => {
       // 过滤静态资源
       if (/\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot|map)(\?|$)/i.test(url)) return false
       // 过滤热更新
@@ -350,7 +350,7 @@ export default {
     const startPerformanceObserver = () => {
       if (typeof PerformanceObserver === 'undefined') return
       
-      performanceObserver = new PerformanceObserver((list) => {
+      performanceObserver = new PerformanceObserver(list => {
         for (const entry of list.getEntries()) {
           const url = entry.name
           // 过滤热更新等

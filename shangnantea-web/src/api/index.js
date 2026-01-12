@@ -40,14 +40,14 @@ const service = axios.create({
 })
 
 // 请求计数器，用于生成请求ID
-let requestCounter = 0;
+let requestCounter = 0
 
 // 活跃请求映射，用于开发环境监控
-const activeRequests = new Map();
+const activeRequests = new Map()
 
 // 在开发环境中记录API调用
 const logApiCall = (config, status, response = null, error = null) => {
-  if (process.env.NODE_ENV !== 'development') return;
+  if (process.env.NODE_ENV !== 'development') return
   
   // 确保config有requestId
   if (!config.requestId) {

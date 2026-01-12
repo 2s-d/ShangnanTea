@@ -8,7 +8,7 @@
  * @param {number|string|Date} timestamp - 时间戳或日期字符串
  * @returns {string} 格式化后的时间字符串
  */
-export const timeFormat = (timestamp) => {
+export const timeFormat = timestamp => {
   if (!timestamp) return ''
   
   const date = new Date(timestamp)
@@ -40,7 +40,7 @@ export const timeFormat = (timestamp) => {
  * @param {number|string|Date} timestamp - 时间戳或日期字符串
  * @returns {string} 格式化后的完整日期时间字符串 (YYYY-MM-DD HH:mm:ss)
  */
-export const fullTimeFormat = (timestamp) => {
+export const fullTimeFormat = timestamp => {
   if (!timestamp) return ''
   
   const date = new Date(timestamp)
@@ -52,7 +52,7 @@ export const fullTimeFormat = (timestamp) => {
  * @param {number|string|Date} timestamp - 时间戳或日期字符串
  * @returns {string} 格式化后的日期字符串 (YYYY-MM-DD)
  */
-export const dateFormat = (timestamp) => {
+export const dateFormat = timestamp => {
   if (!timestamp) return ''
   
   const date = new Date(timestamp)
@@ -64,7 +64,7 @@ export const dateFormat = (timestamp) => {
  * @param {number|string|Date} timestamp - 时间戳或日期字符串
  * @returns {string} 相对时间描述
  */
-export const relativeTimeFormat = (timestamp) => {
+export const relativeTimeFormat = timestamp => {
   if (!timestamp) return ''
   
   const date = new Date(timestamp)

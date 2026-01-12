@@ -12,7 +12,7 @@ import { addMessageRecord } from '@/components/common/feedback/MessageMonitor.vu
 
 // 开发环境中的消息日志
 const isDev = process.env.NODE_ENV === 'development' || 
-             (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.DEV);
+             (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.DEV)
 
 // 消息类型
 export const MESSAGE_TYPE = {

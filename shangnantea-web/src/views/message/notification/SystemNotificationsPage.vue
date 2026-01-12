@@ -152,7 +152,7 @@ export default {
         {
           successMessage: null,
           errorMessage: '获取通知列表失败，请稍后再试',
-          successCallback: (data) => {
+          successCallback: data => {
             totalNotifications.value = data?.total || 0
           }
         }
@@ -184,7 +184,7 @@ export default {
     })
     
     // 标记单条通知为已读
-    const markAsRead = async (id) => {
+    const markAsRead = async id => {
       try {
         await handleAsyncOperation(
           store.dispatch('message/markNotificationAsRead', id),
@@ -219,7 +219,7 @@ export default {
     }
     
     // 删除单条通知
-    const deleteNotification = async (id) => {
+    const deleteNotification = async id => {
       try {
         await handleAsyncOperation(
           store.dispatch('message/deleteNotification', id),
@@ -267,7 +267,7 @@ export default {
     }
     
     // 打开通知
-    const openNotification = async (notification) => {
+    const openNotification = async notification => {
       // 标记为已读
       if (notification.isRead === 0) {
         await markAsRead(notification.id)
@@ -275,47 +275,47 @@ export default {
       
       // 根据通知类型跳转到相应页面
       switch (notification.type) {
-        case 'post_reply':
-          // 帖子回复通知，跳转到帖子详情页
-          if (notification.targetId && notification.targetType === 'post') {
-            router.push(`/forum/posts/${notification.targetId}`)
+      case 'post_reply':
+        // 帖子回复通知，跳转到帖子详情页
+        if (notification.targetId && notification.targetType === 'post') {
+          router.push(`/forum/posts/${notification.targetId}`)
+        }
+        break
+      case 'system_announcement':
+        // 系统公告一般不需要跳转
+        break
+      case 'external_link':
+        // 外部链接通知，解析extraData中的链接
+        try {
+          const extraData = JSON.parse(notification.extraData || '{}')
+          if (extraData.externalUrl) {
+            window.open(extraData.externalUrl, '_blank')
           }
-          break
-        case 'system_announcement':
-          // 系统公告一般不需要跳转
-          break
-        case 'external_link':
-          // 外部链接通知，解析extraData中的链接
-          try {
-            const extraData = JSON.parse(notification.extraData || '{}')
-            if (extraData.externalUrl) {
-              window.open(extraData.externalUrl, '_blank')
-            }
-          } catch (e) {
-            console.warn('解析外部链接失败:', e)
+        } catch (e) {
+          console.warn('解析外部链接失败:', e)
+        }
+        break
+      case 'merchant_verification':
+        // 商家认证通知，可能需要确认操作
+        try {
+          const extraData = JSON.parse(notification.extraData || '{}')
+          if (extraData.actionType === 'confirm') {
+            // 商家认证通过，需要确认通知并触发角色变更和店铺创建
+            await handleMerchantCertificationConfirm(notification)
+          } else {
+            // 普通商家认证通知，跳转到商家中心
+            router.push('/shop/my')
           }
-          break
-        case 'merchant_verification':
-          // 商家认证通知，可能需要确认操作
-          try {
-            const extraData = JSON.parse(notification.extraData || '{}')
-            if (extraData.actionType === 'confirm') {
-              // 商家认证通过，需要确认通知并触发角色变更和店铺创建
-              await handleMerchantCertificationConfirm(notification)
-            } else {
-              // 普通商家认证通知，跳转到商家中心
-              router.push('/shop/my')
-            }
-          } catch (e) {
-            console.warn('解析操作数据失败:', e)
-            messagePromptMessages.showPleaseWait()
-          }
-          break
+        } catch (e) {
+          console.warn('解析操作数据失败:', e)
+          messagePromptMessages.showPleaseWait()
+        }
+        break
       }
     }
     
     // 处理商家认证确认通知
-    const handleMerchantCertificationConfirm = async (notification) => {
+    const handleMerchantCertificationConfirm = async notification => {
       try {
         // 1. 标记通知为已读
         await store.dispatch('message/markNotificationAsRead', notification.id)
@@ -361,13 +361,13 @@ export default {
     }
     
     // 切换页码
-    const handlePageChange = (page) => {
+    const handlePageChange = page => {
       currentPage.value = page
       fetchNotifications()
     }
     
     // 格式化时间
-    const formatDate = (dateString) => {
+    const formatDate = dateString => {
       if (!dateString) return ''
       
       const date = new Date(dateString)
@@ -388,7 +388,7 @@ export default {
     }
     
     // 获取通知图标样式
-    const getNotificationIconClass = (type) => {
+    const getNotificationIconClass = type => {
       const classMap = {
         post_reply: 'icon-forum',
         system_announcement: 'icon-system',

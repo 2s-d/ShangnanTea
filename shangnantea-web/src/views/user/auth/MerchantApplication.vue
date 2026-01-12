@@ -250,7 +250,7 @@ export default {
     }
     
     // 验证图片上传
-    const beforeImageUpload = (file) => {
+    const beforeImageUpload = file => {
       // 检查文件类型
       const isImage = file.type === 'image/jpeg' || file.type === 'image/png'
       // 检查文件大小（小于2MB）
@@ -307,7 +307,7 @@ export default {
     
     // 提交申请
     const submitApplication = () => {
-      applicationFormRef.value.validate(async (valid) => {
+      applicationFormRef.value.validate(async valid => {
         if (!valid) {
           shopMessages.prompt.showCertificationIncomplete()
           return
@@ -320,7 +320,7 @@ export default {
             store.dispatch('user/submitShopCertification', applicationForm),
             {
               successMessage: () => // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
- shopMessages.success.showCertificationSubmitted(),
+                shopMessages.success.showCertificationSubmitted(),
               errorMessage: '提交认证申请失败，请重试'
             }
           )

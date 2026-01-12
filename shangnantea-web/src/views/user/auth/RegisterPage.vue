@@ -145,11 +145,11 @@ export default {
     // 确认密码验证
     const validateConfirmPassword = (rule, value, callback) => {
       if (!value) {
-        callback(new Error('请再次输入密码'));
+        callback(new Error('请再次输入密码'))
       } else if (value !== registerForm.password) {
-        callback(new Error('两次输入的密码不一致'));
+        callback(new Error('两次输入的密码不一致'))
       } else {
-        callback();
+        callback()
       }
     }
     
@@ -187,11 +187,11 @@ export default {
           validator: (rule, value, callback) => {
             // 为空时不验证格式
             if (!value || value.trim() === '') {
-              callback();
+              callback()
             } else if (!/^1[3-9]\d{9}$/.test(value)) {
-              callback(new Error('手机号格式不正确'));
+              callback(new Error('手机号格式不正确'))
             } else {
-              callback();
+              callback()
             }
           },
           trigger: 'blur' 
@@ -202,11 +202,11 @@ export default {
           validator: (rule, value, callback) => {
             // 为空时不验证格式
             if (!value || value.trim() === '') {
-              callback();
+              callback()
             } else if (!/^[\w.-]+@[\w.-]+\.\w+$/.test(value)) {
-              callback(new Error('邮箱格式不正确'));
+              callback(new Error('邮箱格式不正确'))
             } else {
-              callback();
+              callback()
             }
           },
           trigger: 'blur' 

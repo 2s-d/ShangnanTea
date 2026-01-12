@@ -312,7 +312,7 @@ export default {
     })
     
     // 格式化日期
-    const formatDate = (dateString) => {
+    const formatDate = dateString => {
       if (!dateString) return ''
       
       const date = new Date(dateString)
@@ -320,32 +320,32 @@ export default {
     }
     
     // 跳转到文章详情
-    const goToArticleDetail = (articleId) => {
+    const goToArticleDetail = articleId => {
       router.push(`/culture/article/${articleId}`)
     }
     
     // 跳转到商品详情
-    const goToProductDetail = (productId) => {
+    const goToProductDetail = productId => {
       router.push(`/tea/${productId}`)
     }
     
     // 跳转到店铺详情
-    const goToShopDetail = (shopId) => {
+    const goToShopDetail = shopId => {
       router.push(`/shop/${shopId}`)
     }
     
     // 跳转到帖子详情
-    const goToPostDetail = (postId) => {
+    const goToPostDetail = postId => {
       router.push(`/forum/${postId}`)
     }
     
     // 跳转到用户主页
-    const goToUserProfile = (userId) => {
+    const goToUserProfile = userId => {
       router.push(`/profile/${userId}`)
     }
     
     // 加入购物车
-    const addToCart = (productId) => {
+    const addToCart = productId => {
       // 实际项目中调用添加购物车API
       showSuccess('已添加到购物车')
     }

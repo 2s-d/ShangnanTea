@@ -73,7 +73,7 @@ export default {
     
     const localMessageInput = computed({
       get: () => props.messageInput,
-      set: (val) => emit('update:messageInput', val)
+      set: val => emit('update:messageInput', val)
     })
     
     const canSend = computed(() => {
@@ -86,7 +86,7 @@ export default {
       }
     }
     
-    const handleImageUpload = (event) => {
+    const handleImageUpload = event => {
       const file = event.target.files[0]
       if (!file) return
       
@@ -110,7 +110,7 @@ export default {
       showEmojiPicker.value = !showEmojiPicker.value
     }
     
-    const insertEmoji = (emoji) => {
+    const insertEmoji = emoji => {
       localMessageInput.value += emoji
       showEmojiPicker.value = false
     }

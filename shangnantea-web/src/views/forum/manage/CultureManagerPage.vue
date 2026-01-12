@@ -533,22 +533,22 @@ export default {
     })
     
     // 根据状态获取标签类型
-    const getStatusType = (status) => {
+    const getStatusType = status => {
       switch (status) {
-        case 1: return 'success'
-        case 0: return 'warning'
-        case 2: return 'info'
-        default: return 'info'
+      case 1: return 'success'
+      case 0: return 'warning'
+      case 2: return 'info'
+      default: return 'info'
       }
     }
     
     // 根据状态获取文本
-    const getStatusText = (status) => {
+    const getStatusText = status => {
       switch (status) {
-        case 1: return '已发布'
-        case 0: return '草稿'
-        case 2: return '已删除'
-        default: return '未知'
+      case 1: return '已发布'
+      case 0: return '草稿'
+      case 2: return '已删除'
+      default: return '未知'
       }
     }
     
@@ -575,7 +575,7 @@ export default {
     }
     
     // 编辑文章
-    const handleEditArticle = (article) => {
+    const handleEditArticle = article => {
       articleForm.value = { ...article }
       // 如果tags是数组，转换为字符串
       if (Array.isArray(articleForm.value.tags)) {
@@ -585,7 +585,7 @@ export default {
     }
     
     // 切换推荐状态
-    const toggleRecommend = async (article) => {
+    const toggleRecommend = async article => {
       try {
         const newRecommendStatus = article.is_recommend === 1 ? 0 : 1
         const res = await store.dispatch('forum/updateArticle', { 
@@ -599,7 +599,7 @@ export default {
     }
     
     // 删除文章
-    const handleDeleteArticle = (article) => {
+    const handleDeleteArticle = article => {
       ElMessageBox.confirm(
         `确定要删除文章 "${article.title}" 吗？`,
         '警告',
@@ -624,7 +624,7 @@ export default {
     const submitArticleForm = () => {
       if (!articleFormRef.value) return
       
-      articleFormRef.value.validate(async (valid) => {
+      articleFormRef.value.validate(async valid => {
         if (!valid) {
           return false
         }
@@ -720,7 +720,7 @@ export default {
     })
     
     // 获取区块友好名称
-    const getBlockName = (section) => {
+    const getBlockName = section => {
       const blockNames = {
         'banner': '顶部轮播图',
         'recommend': '推荐茶叶',
@@ -732,7 +732,7 @@ export default {
     }
     
     // 切换区块状态
-    const toggleBlockStatus = async (block) => {
+    const toggleBlockStatus = async block => {
       try {
         const res = await store.dispatch('forum/updateHomeData', { ...block, status: block.status === 1 ? 0 : 1 })
         showByCode(res.code)
@@ -742,7 +742,7 @@ export default {
     }
     
     // 编辑区块
-    const handleEditBlock = (block) => {
+    const handleEditBlock = block => {
       currentBlock.value = block
       blockForm.value = {
         title: block.title,
@@ -784,7 +784,7 @@ export default {
     }
     
     // 移除轮播图项目
-    const removeBannerItem = (index) => {
+    const removeBannerItem = index => {
       bannerItems.value.splice(index, 1)
     }
     
@@ -799,7 +799,7 @@ export default {
     }
     
     // 移除推荐茶叶项目
-    const removeRecommendItem = (index) => {
+    const removeRecommendItem = index => {
       recommendItems.value.splice(index, 1)
     }
     
@@ -842,7 +842,7 @@ export default {
     
     // ============ 共用函数 ============
     // 格式化日期
-    const formatDate = (dateString) => {
+    const formatDate = dateString => {
       if (!dateString) return ''
       const date = new Date(dateString)
       return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`

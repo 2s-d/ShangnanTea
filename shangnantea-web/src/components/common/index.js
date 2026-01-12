@@ -21,78 +21,78 @@ const message = {
   
   // 清理10秒前的消息记录
   _cleanup() {
-    const now = Date.now();
+    const now = Date.now()
     Object.keys(this._messages).forEach(key => {
       if (now - this._messages[key] > 10000) {
-        delete this._messages[key];
+        delete this._messages[key]
       }
-    });
+    })
   },
   
   // 检查消息是否已显示（3秒内）- 缩短检测重复时间，更积极地防止重复
   _isDuplicate(msg) {
-    const now = Date.now();
-    const lastTime = this._messages[msg];
+    const now = Date.now()
+    const lastTime = this._messages[msg]
     
     // 将消息重复检测窗口从3秒缩短到1秒，更严格防止重复
     if (lastTime && now - lastTime < 1000) {
-      console.log('拦截重复消息:', msg); // 添加日志帮助调试
-      return true;
+      console.log('拦截重复消息:', msg) // 添加日志帮助调试
+      return true
     }
     
-    this._messages[msg] = now;
-    this._cleanup();
-    return false;
+    this._messages[msg] = now
+    this._cleanup()
+    return false
   },
   
   // 清除特定消息的状态
   clearMessage(msg) {
     if (msg && this._messages[msg]) {
-      delete this._messages[msg];
+      delete this._messages[msg]
     }
   },
   
   // 清除所有消息状态
   clearAllMessages() {
-    this._messages = {};
-    console.log('已清除所有消息状态');
+    this._messages = {}
+    console.log('已清除所有消息状态')
   },
   
   success(msg, options = {}) {
     // 默认启用重复检测
-    if (!msg || this._isDuplicate(msg)) return;
-    ElMessage.success(msg);
+    if (!msg || this._isDuplicate(msg)) return
+    ElMessage.success(msg)
   },
   
   warning(msg, options = {}) {
     // 默认启用重复检测
-    if (!msg || this._isDuplicate(msg)) return;
-    ElMessage.warning(msg);
+    if (!msg || this._isDuplicate(msg)) return
+    ElMessage.warning(msg)
   },
   
   info(msg, options = {}) {
     // 默认启用重复检测
-    if (!msg || this._isDuplicate(msg)) return;
-    ElMessage.info(msg);
+    if (!msg || this._isDuplicate(msg)) return
+    ElMessage.info(msg)
   },
   
   error(msg, options = {}) {
     // 默认启用重复检测
-    if (!msg || this._isDuplicate(msg)) return;
-    ElMessage.error(msg);
+    if (!msg || this._isDuplicate(msg)) return
+    ElMessage.error(msg)
   }
 }
 
 // 加载封装
 const loading = {
-  show: (options) => ElLoading.service(options),
+  show: options => ElLoading.service(options),
   hide: () => {
     ElLoading.service().close()
   }
 }
 
 // 安装插件
-const install = (app) => {
+const install = app => {
   // 全局注册组件
   components.forEach(component => {
     app.component(component.name, component)

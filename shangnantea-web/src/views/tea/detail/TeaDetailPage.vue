@@ -347,7 +347,7 @@ import { showByCode, isSuccess } from '@/utils/apiMessages'
 import teaMessages from '@/utils/promptMessages'
 
 export default {
-  name: "TeaDetailPage",
+  name: 'TeaDetailPage',
   components: {
     Back,
     ShoppingCart,
@@ -412,7 +412,7 @@ export default {
     })
     
     // 显示回复表单
-    const showReplyForm = (review) => {
+    const showReplyForm = review => {
       activeReplyId.value = review.id
       replyContent.value = ''
     }
@@ -424,7 +424,7 @@ export default {
     }
     
     // 提交回复
-    const submitReply = async (review) => {
+    const submitReply = async review => {
       if (!replyContent.value.trim()) {
         teaMessages.prompt.showReplyEmpty()
         return
@@ -452,7 +452,7 @@ export default {
     }
     
     // 点赞评价
-    const handleLikeReview = async (review) => {
+    const handleLikeReview = async review => {
       try {
         await store.dispatch('tea/likeReview', review.id)
       } catch (error) {
@@ -463,7 +463,7 @@ export default {
     }
     
     // 评价分页变化
-    const handleReviewPageChange = (page) => {
+    const handleReviewPageChange = page => {
       if (tea.value) {
         store.dispatch('tea/fetchTeaReviews', {
           teaId: tea.value.id,
@@ -474,7 +474,7 @@ export default {
     }
     
     // 格式化时间
-    const formatTime = (time) => {
+    const formatTime = time => {
       if (!time) return ''
       const date = new Date(time)
       const now = new Date()
@@ -499,7 +499,7 @@ export default {
     const categories = computed(() => store.state.tea.categories || [])
     
     // 获取茶叶类别名称
-    const getCategoryName = (categoryId) => {
+    const getCategoryName = categoryId => {
       const category = categories.value.find(c => c.id === categoryId)
       return category ? category.name : '未知分类'
     }
@@ -583,7 +583,7 @@ export default {
     
     // 计算属性 - 是否为平台直售
     const isPlatformTea = computed(() => {
-      return tea.value && (tea.value.shopId === '0' || tea.value.shop_id === '0' || tea.value.shop_id === 'PLATFORM');
+      return tea.value && (tea.value.shopId === '0' || tea.value.shop_id === '0' || tea.value.shop_id === 'PLATFORM')
     })
 
     // 兼容后端返回的图片结构（可能是 string[] 或 {url}[]）
@@ -624,7 +624,7 @@ export default {
     })
     
     // 任务组C：规格选择变化处理
-    const handleSpecChange = (specId) => {
+    const handleSpecChange = specId => {
       const spec = teaSpecifications.value.find(s => s.id === specId)
       if (spec) {
         store.commit('tea/SET_SELECTED_SPEC', spec)
@@ -635,7 +635,7 @@ export default {
     const similarTeas = computed(() => store.state.tea.recommendTeas || [])
     
     // 任务组F：跳转到茶叶详情页
-    const goToTeaDetail = (teaId) => {
+    const goToTeaDetail = teaId => {
       router.push(`/tea/${teaId}`)
     }
     
@@ -713,13 +713,13 @@ export default {
     const goToShop = () => {
       // 如果是平台直售茶叶，不进行跳转
       if (isPlatformTea.value) {
-        return;
+        return
       }
       
       // 否则跳转到对应的店铺详情页
-      const shopId = tea.value?.shopId || tea.value?.shop_id;
+      const shopId = tea.value?.shopId || tea.value?.shop_id
       if (shopId) {
-        router.push(`/shop/${shopId}`);
+        router.push(`/shop/${shopId}`)
       }
     }
     
@@ -727,13 +727,13 @@ export default {
     const contactShop = () => {
       // 如果是平台直售茶叶，不应显示联系按钮
       if (isPlatformTea.value) {
-        return;
+        return
       }
       
       // 跳转到消息中心的私信聊天页面，传递店铺ID
-      const shopId = tea.value?.shopId || tea.value?.shop_id;
+      const shopId = tea.value?.shopId || tea.value?.shop_id
       if (shopId) {
-        router.push(`/message/center/chat?shopId=${shopId}`);
+        router.push(`/message/center/chat?shopId=${shopId}`)
       }
     }
     

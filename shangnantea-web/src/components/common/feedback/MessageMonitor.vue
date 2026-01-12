@@ -156,14 +156,14 @@ export default {
     }
 
     // 全局错误处理
-    const handleGlobalError = (event) => {
+    const handleGlobalError = event => {
       const { message, filename, lineno, colno } = event
       const file = filename ? filename.split('/').pop() : 'unknown'
       addMessageRecord(`${message} (${file}:${lineno}:${colno})`, 'runtime-error', '运行时错误')
     }
 
     // Promise 未捕获错误
-    const handleUnhandledRejection = (event) => {
+    const handleUnhandledRejection = event => {
       const reason = event.reason
       let msg = ''
       let source = 'Promise错误'

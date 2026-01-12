@@ -150,7 +150,7 @@ export default {
     })
     
     // 应用主题设置
-    const applyThemeSettings = (theme) => {
+    const applyThemeSettings = theme => {
       // 获取html根元素
       const htmlEl = document.documentElement
       
@@ -185,7 +185,7 @@ export default {
     // 保存设置
     const savePreferences = async () => {
       try {
-      submitting.value = true
+        submitting.value = true
         const payload = { ...preferences }
         await handleAsyncOperation(
           store.dispatch('user/saveUserPreferences', payload),
@@ -247,7 +247,7 @@ export default {
         {
           successMessage: null,
           errorMessage: '获取设置失败，请稍后再试',
-          successCallback: (result) => {
+          successCallback: result => {
             const source = result || store.state.user.preferences
             Object.assign(preferences, source || {})
             // 初始化时应用主题设置
