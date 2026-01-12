@@ -27,6 +27,10 @@ components:
           description: 状态码
         data:
           description: 响应数据
+          type: object
+          nullable: true
+          additionalProperties: true
+          description: 响应数据
           nullable: true
       required:
         - code
@@ -37,6 +41,10 @@ components:
           type: integer
           description: 状态码
         data:
+          description: 响应数据
+          type: object
+          nullable: true
+          additionalProperties: true
           description: 响应数据
       required:
         - code
@@ -78,18 +86,18 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
-                    properties:
                       token:
-                        type: string
                         description: 令牌
                 required:
                   - code
               example:
                 code: 2000
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjeTEwMDAwMiIsInJvbGUiOjIsInVzZXJuYW1lIjoidXNlciIsImp0aSI6Im1vY2stdXVpZCIsImlhdCI6MTczNTA4NDgwMCwiZXhwIjoxNzY3MjI1NjAwLCJpc3MiOiJzaGFuZ25hbnRlYSJ9.mock"
 
   /user/register:
@@ -127,14 +135,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 2001
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   id: "cy100002"
                   username: "newuser"
                   nickname: "新用户"
@@ -161,9 +171,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -189,14 +197,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjeTEwMDAwMiIsInJvbGUiOjIsInVzZXJuYW1lIjoidXNlciIsImp0aSI6Im1vY2stdXVpZCIsImlhdCI6MTczNTA4NDgwMCwiZXhwIjoxNzY3MjI1NjAwLCJpc3MiOiJzaGFuZ25hbnRlYSJ9.mock"
 
   /user/me:
@@ -218,14 +228,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   id: "cy100002"
                   username: "user"
                   nickname: "测试用户"
@@ -258,14 +270,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   id: "cy100002"
                   username: "user"
                   nickname: "测试用户"
@@ -305,9 +319,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -343,14 +355,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 2012
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   avatarUrl: "/uploads/avatar/user_cy100002.jpg"
 
   /user/password:
@@ -386,9 +400,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -429,9 +441,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -457,14 +467,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   - id: 1
                     receiverName: "张三"
                     receiverPhone: "13800138000"
@@ -513,9 +525,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -569,9 +579,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -601,9 +609,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -635,9 +641,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -663,14 +667,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   id: 1
                   status: 0
     post:
@@ -706,9 +712,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -740,14 +744,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   - id: 1
                     targetId: "cy100003"
                     targetType: "user"
@@ -784,9 +790,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -818,9 +822,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -852,14 +854,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   - id: 1
                     targetId: "1"
                     targetType: "tea"
@@ -896,9 +900,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -930,9 +932,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -970,9 +970,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -1004,9 +1002,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -1032,14 +1028,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   theme: "light"
                   displayMode: "grid"
     put:
@@ -1071,9 +1069,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -1124,14 +1120,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   list:
                     - id: "cy100001"
                       username: "admin"
@@ -1184,9 +1182,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -1236,9 +1232,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -1268,9 +1262,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -1314,9 +1306,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -1359,9 +1349,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -1403,14 +1391,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   list:
                     - id: 1
                       userId: "cy100002"
@@ -1455,9 +1445,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -1516,14 +1504,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 3000
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   list:
                     - id: "1"
                       name: "商南绿茶"
@@ -1585,9 +1575,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -1617,14 +1605,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 3001
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   id: "1"
                   name: "商南绿茶"
                   categoryId: 1
@@ -1686,9 +1676,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -1718,9 +1706,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -1744,14 +1730,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   - id: 1
                     name: "绿茶"
                     parentId: 0
@@ -1795,9 +1783,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -1844,9 +1830,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -1876,9 +1860,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -1916,14 +1898,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   list:
                     - id: 1
                       userId: "cy100002"
@@ -1958,14 +1942,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   averageRating: 4.5
                   totalCount: 100
                   ratingDistribution:
@@ -2016,9 +2002,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -2060,9 +2044,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -2094,9 +2076,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -2126,14 +2106,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   - id: "1"
                     teaId: "1"
                     specName: "250g装"
@@ -2180,9 +2162,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -2230,9 +2210,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -2262,9 +2240,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -2296,9 +2272,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -2342,14 +2316,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 1001
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   - id: "img1"
                     url: "/uploads/tea/tea1_1.jpg"
 
@@ -2378,9 +2354,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -2412,9 +2386,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -2458,9 +2430,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -2502,9 +2472,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -2544,9 +2512,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -2585,14 +2551,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   - id: "1"
                     name: "商南绿茶"
                     price: 99.00
@@ -2646,14 +2614,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   list:
                     - id: "1"
                       name: "商南茶庄"
@@ -2697,9 +2667,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -2729,14 +2697,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   id: "1"
                   name: "商南茶庄"
                   logo: "/images/shop-logo.png"
@@ -2782,9 +2752,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -2810,14 +2778,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   id: "1"
                   name: "商南茶庄"
                   logo: "/images/shop-logo.png"
@@ -2857,14 +2827,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   list:
                     - id: "1"
                       name: "商南绿茶"
@@ -2912,9 +2884,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -2961,9 +2931,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -2993,9 +2961,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -3037,9 +3003,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -3081,14 +3045,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   totalSales: 50000.00
                   orderCount: 200
                   productCount: 30
@@ -3129,14 +3095,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 5030
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   url: "/uploads/shop/logo_1.jpg"
 
   /shop/{shopId}/banners:
@@ -3162,14 +3130,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   - id: "1"
                     imageUrl: "/images/banner1.jpg"
                     title: "新品上市"
@@ -3213,9 +3183,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -3260,9 +3228,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -3292,9 +3258,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -3336,9 +3300,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -3368,14 +3330,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   - id: "1"
                     title: "春茶上市"
                     content: "2025年春茶已上市"
@@ -3418,9 +3382,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -3465,9 +3427,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -3497,9 +3457,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -3531,9 +3489,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -3563,9 +3519,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -3597,14 +3551,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   isFollowed: true
 
   /shop/{shopId}/reviews:
@@ -3638,14 +3594,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   list:
                     - id: 1
                       userId: "cy100002"
@@ -3694,9 +3652,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -3724,14 +3680,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   - id: 1
                     teaId: "1"
                     teaName: "商南绿茶"
@@ -3774,9 +3732,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -3816,9 +3772,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -3850,9 +3804,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -3878,9 +3830,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -3929,14 +3879,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 4000
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   id: "1"
                   orderNo: "202501010001"
                   totalAmount: 198.00
@@ -3979,14 +3931,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   list:
                     - id: "1"
                       orderNo: "202501010001"
@@ -4028,14 +3982,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   id: "1"
                   orderNo: "202501010001"
                   userId: "cy100002"
@@ -4080,9 +4036,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -4118,9 +4072,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -4156,9 +4108,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -4204,9 +4154,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -4248,9 +4196,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -4292,9 +4238,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -4326,14 +4270,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   logisticsCompany: "顺丰速运"
                   logisticsNumber: "SF1234567890"
                   traces:
@@ -4373,9 +4319,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -4407,14 +4351,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   id: 1
                   orderId: "1"
                   reason: "商品质量问题"
@@ -4458,9 +4404,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -4501,14 +4445,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   totalOrders: 500
                   totalAmount: 50000.00
                   statusDistribution:
@@ -4567,9 +4513,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -4599,14 +4543,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   banners:
                     - id: 1
                       imageUrl: "/images/forum-banner1.jpg"
@@ -4644,9 +4590,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -4670,14 +4614,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   - id: 1
                     imageUrl: "/images/forum-banner1.jpg"
                     title: "茶文化专题"
@@ -4715,9 +4661,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -4762,9 +4706,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -4794,9 +4736,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -4833,9 +4773,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -4876,14 +4814,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   list:
                     - id: 1
                       title: "茶道入门"
@@ -4929,9 +4869,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -4961,14 +4899,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   id: 1
                   title: "茶道入门"
                   content: "茶道是一门艺术..."
@@ -5016,9 +4956,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5048,9 +4986,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5074,14 +5010,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   - id: 1
                     name: "茶文化"
                     description: "茶文化交流"
@@ -5121,9 +5059,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5153,14 +5089,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   id: 1
                   name: "茶文化"
                   description: "茶文化交流"
@@ -5203,9 +5141,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5235,9 +5171,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5283,14 +5217,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   list:
                     - id: 1
                       title: "商南茶文化分享"
@@ -5341,9 +5277,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5378,14 +5312,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   list:
                     - id: 1
                       title: "待审核帖子"
@@ -5417,14 +5353,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   id: 1
                   title: "商南茶文化分享"
                   content: "这是一篇关于商南茶文化的帖子"
@@ -5472,9 +5410,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5504,9 +5440,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5544,14 +5478,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   list:
                     - id: 1
                       content: "好文章"
@@ -5596,9 +5532,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5630,9 +5564,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5664,9 +5596,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5696,9 +5626,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5730,9 +5658,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5762,9 +5688,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5796,9 +5720,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5828,9 +5750,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5862,9 +5782,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5906,9 +5824,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5945,9 +5861,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -5984,9 +5898,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -6028,14 +5940,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   list:
                     - id: 1
                       type: "system"
@@ -6070,14 +5984,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   id: 1
                   type: "system"
                   title: "系统通知"
@@ -6119,9 +6035,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -6159,9 +6073,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -6199,9 +6111,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -6227,14 +6137,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   total: 10
                   system: 3
                   chat: 7
@@ -6272,14 +6184,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   list:
                     - id: 1
                       type: "system"
@@ -6314,14 +6228,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   id: 1
                   type: "system"
                   title: "系统通知"
@@ -6352,9 +6268,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -6388,9 +6302,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -6424,9 +6336,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -6452,14 +6362,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   - sessionId: "session_1"
                     targetUser:
                       id: "cy100003"
@@ -6503,14 +6415,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   list:
                     - id: 1
                       senderId: "cy100002"
@@ -6550,14 +6464,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 1000
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   sessionId: "session_1"
 
   /message/sessions/{sessionId}:
@@ -6585,9 +6501,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -6619,9 +6533,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -6662,9 +6574,7 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
@@ -6694,14 +6604,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   user:
                     id: "cy100002"
                     username: "茶友"
@@ -6745,14 +6657,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   list:
                     - id: 1
                       type: "post"
@@ -6784,14 +6698,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   postCount: 10
                   followingCount: 20
                   followerCount: 30
@@ -6830,14 +6746,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   list:
                     - id: 1
                       title: "商南茶文化分享"
@@ -6874,14 +6792,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 200
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   list:
                     - id: 1
                       teaId: "1"
@@ -6924,14 +6844,16 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 1001
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   url: "/uploads/common/file_123.jpg"
                   filename: "file_123.jpg"
 
@@ -6967,13 +6889,15 @@ paths:
                     description: 状态码
                   data:
                     description: 响应数据
-                    type: object
                     nullable: true
-                    additionalProperties: true
                 required:
                   - code
               example:
                 code: 1001
                 data:
+                  description: 响应数据
+                  type: object
+                  nullable: true
+                  additionalProperties: true
                   url: "/uploads/images/img_123.jpg"
                   thumbnailUrl: "/uploads/images/thumb_img_123.jpg"
