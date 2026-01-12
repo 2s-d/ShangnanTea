@@ -1,354 +1,338 @@
 package com.shangnantea.controller;
 
-import com.shangnantea.common.api.PageParam;
-import com.shangnantea.common.api.PageResult;
 import com.shangnantea.common.api.Result;
-import com.shangnantea.model.entity.order.Order;
-import com.shangnantea.model.entity.order.ShoppingCart;
+import com.shangnantea.security.annotation.RequiresLogin;
+import com.shangnantea.security.annotation.RequiresRoles;
 import com.shangnantea.service.OrderService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 
 /**
  * 订单控制器
+ * 参考：前端 order.js 和 code-message-mapping.md
  */
 @RestController
-@RequestMapping("/api/order")
+@RequestMapping({"/order", "/api/order"})
+@Validated
 public class OrderController {
+
+    private static final Logger logger = LoggerFactory.getLogger(OrderController.class);
 
     @Autowired
     private OrderService orderService;
-    
-    /**
-     * 获取订单详情
-     *
-     * @param id 订单ID
-     * @return 结果
-     */
-    @GetMapping("/{id}")
-    public Result<Order> getOrderById(@PathVariable String id) {
-        Order result = orderService.getOrderById(id);
-        return Result.success(result);
-    }
-    
-    /**
-     * 创建订单
-     *
-     * @param order 订单信息
-     * @return 结果
-     */
-    @PostMapping("/create")
-    public Result<Order> createOrder(@RequestBody Order order) {
-        Order result = orderService.createOrder(order);
-        return Result.success(result);
-    }
+
+    // ==================== 购物车相关 ====================
 
     /**
-     * 兼容前端路径：/order/list
+     * 获取购物车列表
+     * 路径: GET /order/cart
+     * 成功码: 200, 失败码: 4110
      *
-     * @return 分页列表
-     */
-    @GetMapping("/list")
-    public Result<PageResult<Order>> listOrdersCompat(
-            @RequestParam(required = false) Integer status,
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
-        PageParam pageParam = new PageParam();
-        pageParam.setPageNum(page);
-        pageParam.setPageSize(size);
-        PageResult<Order> result = orderService.listOrdersCompat(status, pageParam);
-        return Result.success(result);
-    }
-
-    /**
-     * 兼容前端路径：/order/pay
-     */
-    @PostMapping("/pay")
-    public Result<Boolean> payOrderCompat(@RequestBody(required = false) Map<String, Object> body) {
-        Boolean result = orderService.payOrderCompat(body);
-        return Result.success(result);
-    }
-
-    /**
-     * 兼容前端路径：/order/cancel
-     */
-    @PostMapping("/cancel")
-    public Result<Boolean> cancelOrderCompat(@RequestBody(required = false) Map<String, Object> body) {
-        Boolean result = orderService.cancelOrderCompat(body);
-        return Result.success(result);
-    }
-
-    /**
-     * 兼容前端路径：/order/confirm
-     */
-    @PostMapping("/confirm")
-    public Result<Boolean> confirmOrderCompat(@RequestBody(required = false) Map<String, Object> body) {
-        Boolean result = orderService.confirmOrderCompat(body);
-        return Result.success(result);
-    }
-
-    /**
-     * 兼容前端路径：/order/review
-     */
-    @PostMapping("/review")
-    public Result<Boolean> reviewOrderCompat(@RequestBody(required = false) Map<String, Object> body) {
-        Boolean result = orderService.reviewOrderCompat(body);
-        return Result.success(result);
-    }
-
-    /**
-     * 兼容前端路径：/order/refund
-     */
-    @PostMapping("/refund")
-    public Result<Boolean> refundOrderCompat(@RequestBody(required = false) Map<String, Object> body) {
-        Boolean result = orderService.refundOrderCompat(body);
-        return Result.success(result);
-    }
-    
-    /**
-     * 更新订单状态
-     *
-     * @param id 订单ID
-     * @param status 状态
-     * @return 结果
-     */
-    @PutMapping("/{id}/status")
-    public Result<Boolean> updateOrderStatus(
-            @PathVariable String id,
-            @RequestParam Integer status) {
-        Boolean result = orderService.updateOrderStatus(id, status);
-        return Result.success(result);
-    }
-    
-    /**
-     * 取消订单
-     *
-     * @param id 订单ID
-     * @param cancelReason 取消原因
-     * @return 结果
-     */
-    @PostMapping("/{id}/cancel")
-    public Result<Boolean> cancelOrder(
-            @PathVariable String id,
-            @RequestParam String cancelReason) {
-        Boolean result = orderService.cancelOrder(id, cancelReason);
-        return Result.success(result);
-    }
-    
-    /**
-     * 确认收货
-     *
-     * @param id 订单ID
-     * @return 结果
-     */
-    @PostMapping("/{id}/complete")
-    public Result<Boolean> completeOrder(@PathVariable String id) {
-        Boolean result = orderService.completeOrder(id);
-        return Result.success(result);
-    }
-    
-    /**
-     * 发货(商家)
-     *
-     * @param id 订单ID
-     * @param logisticsCompany 物流公司
-     * @param logisticsNumber 物流单号
-     * @return 结果
-     */
-    @PostMapping("/{id}/ship")
-    public Result<Boolean> shipOrder(
-            @PathVariable String id,
-            @RequestParam String logisticsCompany,
-            @RequestParam String logisticsNumber) {
-        Boolean result = orderService.shipOrder(id, logisticsCompany, logisticsNumber);
-        return Result.success(result);
-    }
-    
-    /**
-     * 查询我的订单
-     *
-     * @param status 状态
-     * @param page 页码
-     * @param size 每页数量
-     * @return 结果
-     */
-    @GetMapping("/my")
-    public Result<PageResult<Order>> listMyOrders(
-            @RequestParam(required = false) Integer status,
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
-        PageParam pageParam = new PageParam();
-        pageParam.setPageNum(page);
-        pageParam.setPageSize(size);
-        PageResult<Order> result = orderService.listMyOrders(status, pageParam);
-        return Result.success(result);
-    }
-    
-    /**
-     * 查询店铺订单(商家)
-     *
-     * @param status 状态
-     * @param page 页码
-     * @param size 每页数量
-     * @return 结果
-     */
-    @GetMapping("/shop")
-    public Result<PageResult<Order>> listShopOrders(
-            @RequestParam(required = false) Integer status,
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
-        PageParam pageParam = new PageParam();
-        pageParam.setPageNum(page);
-        pageParam.setPageSize(size);
-        PageResult<Order> result = orderService.listShopOrders(status, pageParam);
-        return Result.success(result);
-    }
-    
-    /**
-     * 查询所有订单(管理员)
-     *
-     * @param status 状态
-     * @param page 页码
-     * @param size 每页数量
-     * @return 结果
-     */
-    @GetMapping("/admin/list")
-    public Result<PageResult<Order>> listAllOrders(
-            @RequestParam(required = false) Integer status,
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
-        PageParam pageParam = new PageParam();
-        pageParam.setPageNum(page);
-        pageParam.setPageSize(size);
-        PageResult<Order> result = orderService.listAllOrders(status, pageParam);
-        return Result.success(result);
-    }
-    
-    /**
-     * 获取购物车
-     *
-     * @return 结果
+     * @return 购物车商品列表
      */
     @GetMapping("/cart")
-    public Result<List<ShoppingCart>> getCart() {
-        List<ShoppingCart> result = orderService.getCart();
-        return Result.success(result);
-    }
-    
-    /**
-     * 添加购物车
-     *
-     * @param cart 购物车信息
-     * @return 结果
-     */
-    @PostMapping("/cart")
-    public Result<ShoppingCart> addToCart(@RequestBody ShoppingCart cart) {
-        ShoppingCart result = orderService.addToCart(cart);
-        return Result.success(result);
+    @RequiresLogin
+    public Result<Object> getCartItems() {
+        logger.info("获取购物车列表请求");
+        return orderService.getCartItems();
     }
 
     /**
-     * 兼容前端路径：/order/cart/add
+     * 添加商品到购物车
+     * 路径: POST /order/cart/add
+     * 成功码: 4010, 失败码: 4111, 4116, 4117, 4118
+     *
+     * @param data 购物车商品数据 {teaId, quantity, specificationId}
+     * @return 添加结果
      */
     @PostMapping("/cart/add")
-    public Result<ShoppingCart> addToCartCompat(@RequestBody(required = false) ShoppingCart cart) {
-        ShoppingCart result = orderService.addToCartCompat(cart);
-        return Result.success(result);
+    @RequiresLogin
+    public Result<Object> addToCart(@RequestBody Map<String, Object> data) {
+        logger.info("添加商品到购物车请求");
+        return orderService.addToCart(data);
     }
 
     /**
-     * 兼容前端路径：/order/cart/update
+     * 更新购物车商品
+     * 路径: PUT /order/cart/update
+     * 成功码: 4011, 4012, 失败码: 4112, 4116, 4117
+     *
+     * @param data 更新数据 {id, quantity, specificationId}
+     * @return 更新结果
      */
     @PutMapping("/cart/update")
-    public Result<Boolean> updateCartCompat(@RequestBody(required = false) ShoppingCart cart) {
-        Boolean result = orderService.updateCartCompat(cart);
-        return Result.success(result);
+    @RequiresLogin
+    public Result<Boolean> updateCartItem(@RequestBody Map<String, Object> data) {
+        logger.info("更新购物车商品请求");
+        return orderService.updateCartItem(data);
     }
 
     /**
-     * 兼容前端路径：/order/cart/remove
+     * 移除购物车商品
+     * 路径: DELETE /order/cart/remove
+     * 成功码: 4013, 失败码: 4113
+     *
+     * @param id 购物车项ID
+     * @return 移除结果
      */
     @DeleteMapping("/cart/remove")
-    public Result<Boolean> removeFromCartCompat(@RequestParam(required = false) Integer id) {
-        Boolean result = orderService.removeFromCartCompat(id);
-        return Result.success(result);
+    @RequiresLogin
+    public Result<Boolean> removeFromCart(@RequestParam Integer id) {
+        logger.info("移除购物车商品请求: {}", id);
+        return orderService.removeFromCart(id);
     }
 
     /**
-     * 更新购物车
-     *
-     * @param id 购物车ID
-     * @param cart 购物车信息
-     * @return 结果
-     */
-    @PutMapping("/cart/{id}")
-    public Result<Boolean> updateCart(@PathVariable Integer id, @RequestBody ShoppingCart cart) {
-        cart.setId(id);
-        Boolean result = orderService.updateCart(cart);
-        return Result.success(result);
-    }
-    
-    /**
-     * 删除购物车
-     *
-     * @param id 购物车ID
-     * @return 结果
-     */
-    @DeleteMapping("/cart/{id}")
-    public Result<Boolean> removeFromCart(@PathVariable Integer id) {
-        Boolean result = orderService.removeFromCart(id);
-        return Result.success(result);
-    }
-    
-    /**
      * 清空购物车
+     * 路径: DELETE /order/cart/clear
+     * 成功码: 4015, 失败码: 4115
      *
-     * @return 结果
+     * @return 清空结果
      */
     @DeleteMapping("/cart/clear")
+    @RequiresLogin
     public Result<Boolean> clearCart() {
-        Boolean result = orderService.clearCart();
-        return Result.success(result);
+        logger.info("清空购物车请求");
+        return orderService.clearCart();
     }
-    
+
+    // ==================== 订单基础操作 ====================
+
     /**
-     * 申请退款
+     * 创建订单
+     * 路径: POST /order/create
+     * 成功码: 4000, 失败码: 4100, 4116, 4118
      *
-     * @param id 订单ID
-     * @param body 退款信息
+     * @param data 订单数据
+     * @return 创建结果
+     */
+    @PostMapping("/create")
+    @RequiresLogin
+    public Result<Object> createOrder(@RequestBody Map<String, Object> data) {
+        logger.info("创建订单请求");
+        return orderService.createOrder(data);
+    }
+
+    /**
+     * 获取订单列表
+     * 路径: GET /order/list
+     * 成功码: 200, 失败码: 1102
+     *
+     * @param params 查询参数 {status, page, pageSize}
+     * @return 订单列表
+     */
+    @GetMapping("/list")
+    @RequiresLogin
+    public Result<Object> getOrders(@RequestParam Map<String, Object> params) {
+        logger.info("获取订单列表请求, params: {}", params);
+        return orderService.getOrders(params);
+    }
+
+    /**
+     * 支付订单
+     * 路径: POST /order/pay
+     * 成功码: 4005, 4020, 失败码: 4120, 4121, 4122, 4124
+     *
+     * @param data 支付数据 {orderId, paymentMethod}
+     * @return 支付结果
+     */
+    @PostMapping("/pay")
+    @RequiresLogin
+    public Result<Object> payOrder(@RequestBody Map<String, Object> data) {
+        logger.info("支付订单请求");
+        return orderService.payOrder(data);
+    }
+
+    /**
+     * 取消订单
+     * 路径: POST /order/cancel
+     * 成功码: 4002, 失败码: 4102, 4105, 4106
+     *
+     * @param data 取消数据 {id}
+     * @return 取消结果
+     */
+    @PostMapping("/cancel")
+    @RequiresLogin
+    public Result<Boolean> cancelOrder(@RequestBody Map<String, Object> data) {
+        logger.info("取消订单请求");
+        return orderService.cancelOrder(data);
+    }
+
+    /**
+     * 确认收货
+     * 路径: POST /order/confirm
+     * 成功码: 4003, 失败码: 4103, 4105, 4106
+     *
+     * @param data 确认数据 {id}
+     * @return 确认结果
+     */
+    @PostMapping("/confirm")
+    @RequiresLogin
+    public Result<Boolean> confirmOrder(@RequestBody Map<String, Object> data) {
+        logger.info("确认收货请求");
+        return orderService.confirmOrder(data);
+    }
+
+    /**
+     * 评价订单
+     * 路径: POST /order/review
+     * 成功码: 4050, 失败码: 4150
+     *
+     * @param data 评价数据
+     * @return 评价结果
+     */
+    @PostMapping("/review")
+    @RequiresLogin
+    public Result<Boolean> reviewOrder(@RequestBody Map<String, Object> data) {
+        logger.info("评价订单请求");
+        return orderService.reviewOrder(data);
+    }
+
+    /**
+     * 申请退款（兼容旧路径）
+     * 路径: POST /order/refund
+     * 成功码: 4030, 失败码: 4130, 4105, 4106
+     *
+     * @param data 退款数据 {orderId, reason}
      * @return 申请结果
      */
-    @PostMapping("/{id}/refund")
-    public Result<Boolean> applyRefund(@PathVariable String id, @RequestBody(required = false) Map<String, Object> body) {
-        Boolean result = orderService.applyRefund(id, body);
-        return Result.success(result);
+    @PostMapping("/refund")
+    @RequiresLogin
+    public Result<Boolean> refundOrder(@RequestBody Map<String, Object> data) {
+        logger.info("申请退款请求");
+        return orderService.refundOrder(data);
     }
-    
+
     /**
-     * 处理退款申请（商家/管理员）
+     * 批量发货
+     * 路径: POST /order/batch-ship
+     * 成功码: 4006, 失败码: 4108, 4106
      *
-     * @param id 订单ID
-     * @param body 处理信息
-     * @return 处理结果
+     * @param data 批量发货数据 {orderIds, logisticsCompany, logisticsNumber}
+     * @return 发货结果
      */
-    @PutMapping("/{id}/refund")
-    public Result<Boolean> processRefund(@PathVariable String id, @RequestBody(required = false) Map<String, Object> body) {
-        Boolean result = orderService.processRefund(id, body);
-        return Result.success(result);
+    @PostMapping("/batch-ship")
+    @RequiresLogin
+    public Result<Boolean> batchShipOrders(@RequestBody Map<String, Object> data) {
+        logger.info("批量发货请求");
+        return orderService.batchShipOrders(data);
     }
-    
+
+    /**
+     * 获取订单统计数据
+     * 路径: GET /order/statistics
+     * 成功码: 200, 失败码: 1102
+     *
+     * @param params 查询参数 {startDate, endDate, shopId}
+     * @return 订单统计数据
+     */
+    @GetMapping("/statistics")
+    @RequiresLogin
+    public Result<Object> getOrderStatistics(@RequestParam Map<String, Object> params) {
+        logger.info("获取订单统计数据请求, params: {}", params);
+        return orderService.getOrderStatistics(params);
+    }
+
+    /**
+     * 导出订单数据
+     * 路径: GET /order/export
+     * 成功码: 200, 失败码: 1100
+     *
+     * @param params 导出参数 {format, startDate, endDate, status, shopId}
+     * @return 文件流
+     */
+    @GetMapping("/export")
+    @RequiresLogin
+    public Result<Object> exportOrders(@RequestParam Map<String, Object> params) {
+        logger.info("导出订单数据请求, params: {}", params);
+        return orderService.exportOrders(params);
+    }
+
+    // ==================== 订单详情相关（路径参数） ====================
+
     /**
      * 获取退款详情
+     * 路径: GET /order/{id}/refund
+     * 成功码: 200, 失败码: 4132, 4105
      *
      * @param id 订单ID
      * @return 退款详情
      */
     @GetMapping("/{id}/refund")
-    public Result<Map<String, Object>> getRefundDetail(@PathVariable String id) {
-        Map<String, Object> result = orderService.getRefundDetail(id);
-        return Result.success(result);
+    @RequiresLogin
+    public Result<Object> getRefundDetail(@PathVariable String id) {
+        logger.info("获取退款详情请求: {}", id);
+        return orderService.getRefundDetail(id);
+    }
+
+    /**
+     * 审批退款
+     * 路径: POST /order/{id}/refund/process
+     * 成功码: 4031, 4032, 失败码: 4131, 4106
+     *
+     * @param id 订单ID
+     * @param data 审批数据 {approve, reason}
+     * @return 审批结果
+     */
+    @PostMapping("/{id}/refund/process")
+    @RequiresLogin
+    public Result<Boolean> processRefund(@PathVariable String id, @RequestBody Map<String, Object> data) {
+        logger.info("审批退款请求: {}", id);
+        return orderService.processRefund(id, data);
+    }
+
+    /**
+     * 发货（单个订单）
+     * 路径: POST /order/{id}/ship
+     * 成功码: 4004, 失败码: 4104, 4105, 4106
+     *
+     * @param id 订单ID
+     * @param logisticsCompany 物流公司
+     * @param logisticsNumber 物流单号
+     * @return 发货结果
+     */
+    @PostMapping("/{id}/ship")
+    @RequiresLogin
+    public Result<Boolean> shipOrder(@PathVariable String id,
+                                     @RequestParam String logisticsCompany,
+                                     @RequestParam String logisticsNumber) {
+        logger.info("发货请求: {}, 物流公司: {}, 物流单号: {}", id, logisticsCompany, logisticsNumber);
+        return orderService.shipOrder(id, logisticsCompany, logisticsNumber);
+    }
+
+    /**
+     * 获取订单物流信息
+     * 路径: GET /order/{id}/logistics
+     * 成功码: 200, 失败码: 4140, 4105
+     *
+     * @param id 订单ID
+     * @return 物流信息
+     */
+    @GetMapping("/{id}/logistics")
+    @RequiresLogin
+    public Result<Object> getOrderLogistics(@PathVariable String id) {
+        logger.info("获取订单物流信息请求: {}", id);
+        return orderService.getOrderLogistics(id);
+    }
+
+    /**
+     * 获取订单详情
+     * 路径: GET /order/{id}
+     * 成功码: 200, 失败码: 4105, 4106, 4107
+     * 注意：此路径应放在最后，避免与更具体的路径冲突
+     *
+     * @param id 订单ID
+     * @return 订单详情
+     */
+    @GetMapping("/{id}")
+    @RequiresLogin
+    public Result<Object> getOrderDetail(@PathVariable String id) {
+        logger.info("获取订单详情请求: {}", id);
+        return orderService.getOrderDetail(id);
     }
 }

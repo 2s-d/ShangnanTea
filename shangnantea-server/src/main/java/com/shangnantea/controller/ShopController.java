@@ -146,21 +146,6 @@ public class ShopController {
         return shopService.getShopReviews(shopId, params);
     }
 
-    /**
-     * 获取店铺详情
-     * 路径: GET /shop/{id}
-     * 成功码: 200, 失败码: 5100, 5105
-     * 注意：此路径应放在最后，避免与更具体的路径冲突
-     *
-     * @param id 店铺ID
-     * @return 店铺详情
-     */
-    @GetMapping("/{id}")
-    public Result<Object> getShopDetail(@PathVariable String id) {
-        logger.info("获取店铺详情请求: {}", id);
-        return shopService.getShopDetail(id);
-    }
-
     // ==================== 店铺管理（商家） ====================
 
     /**
@@ -197,7 +182,7 @@ public class ShopController {
     /**
      * 上传店铺Logo
      * 路径: POST /shop/{shopId}/logo
-     * 成功码: 1001, 失败码: 1101, 1103, 1104
+     * 成功码: 5030, 失败码: 5130, 1103, 1104
      *
      * @param shopId 店铺ID
      * @param file Logo文件
@@ -281,7 +266,7 @@ public class ShopController {
     /**
      * 上传/创建店铺Banner
      * 路径: POST /shop/{shopId}/banners
-     * 成功码: 1000, 失败码: 1100
+     * 成功码: 5010, 失败码: 5111
      *
      * @param shopId 店铺ID
      * @param bannerData Banner数据（包含image、link_url、title等，FormData格式）
@@ -298,7 +283,7 @@ public class ShopController {
     /**
      * 更新店铺Banner
      * 路径: PUT /shop/banners/{bannerId}
-     * 成功码: 1004, 失败码: 1100
+     * 成功码: 5011, 失败码: 5111
      *
      * @param bannerId Banner ID
      * @param bannerData Banner数据
@@ -314,7 +299,7 @@ public class ShopController {
     /**
      * 删除店铺Banner
      * 路径: DELETE /shop/banners/{bannerId}
-     * 成功码: 1003, 失败码: 1100
+     * 成功码: 5012, 失败码: 5112
      *
      * @param bannerId Banner ID
      * @return 删除结果
@@ -329,7 +314,7 @@ public class ShopController {
     /**
      * 更新Banner顺序
      * 路径: PUT /shop/banners/order
-     * 成功码: 1004, 失败码: 1100
+     * 成功码: 5013, 失败码: 5113
      *
      * @param orderData 排序数据 {orders: [{id, order}, ...]}
      * @return 更新结果
@@ -346,7 +331,7 @@ public class ShopController {
     /**
      * 创建店铺公告
      * 路径: POST /shop/{shopId}/announcements
-     * 成功码: 1000, 失败码: 1100
+     * 成功码: 5020, 失败码: 5121
      *
      * @param shopId 店铺ID
      * @param announcementData 公告数据（title、content、is_top等）
@@ -362,7 +347,7 @@ public class ShopController {
     /**
      * 更新店铺公告
      * 路径: PUT /shop/announcements/{announcementId}
-     * 成功码: 1004, 失败码: 1100
+     * 成功码: 5021, 失败码: 5121
      *
      * @param announcementId 公告ID
      * @param announcementData 公告数据
@@ -378,7 +363,7 @@ public class ShopController {
     /**
      * 删除店铺公告
      * 路径: DELETE /shop/announcements/{announcementId}
-     * 成功码: 1003, 失败码: 1100
+     * 成功码: 5022, 失败码: 5122
      *
      * @param announcementId 公告ID
      * @return 删除结果
@@ -484,5 +469,20 @@ public class ShopController {
     public Result<Boolean> auditShop(@PathVariable String id, @RequestBody Map<String, Object> auditData) {
         logger.info("审核店铺请求(管理员): {}", id);
         return shopService.auditShop(id, auditData);
+    }
+
+    /**
+     * 获取店铺详情
+     * 路径: GET /shop/{id}
+     * 成功码: 200, 失败码: 5100, 5105
+     * 注意：此路径应放在最后，避免与更具体的路径冲突
+     *
+     * @param id 店铺ID
+     * @return 店铺详情
+     */
+    @GetMapping("/{id}")
+    public Result<Object> getShopDetail(@PathVariable String id) {
+        logger.info("获取店铺详情请求: {}", id);
+        return shopService.getShopDetail(id);
     }
 }
