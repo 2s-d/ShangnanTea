@@ -170,7 +170,7 @@ import {
   User, UserFilled, Star, Document, Male, Female, Edit, Plus, Shop, Clock, ChatDotRound 
 } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-import { commonSuccessMessages, commonErrorMessages } from '@/utils/commonMessages'
+import { showByCode } from '@/utils/apiMessages'
 
 export default {
   name: 'UserHomePage',
@@ -311,17 +311,17 @@ export default {
       try {
         if (isFollowing.value) {
           // 取消关注 - 这里应该调用用户模块的取消关注方法
-          // await store.dispatch('user/removeFollow', userId.value)
+          // const res = await store.dispatch('user/removeFollow', userId.value)
+          // showByCode(res.code)
           isFollowing.value = false
-          commonSuccessMessages.showOperationSuccess('已取消关注')
         } else {
           // 添加关注 - 这里应该调用用户模块的添加关注方法
-          // await store.dispatch('user/addFollow', { targetId: userId.value, targetType: 'user' })
+          // const res = await store.dispatch('user/addFollow', { targetId: userId.value, targetType: 'user' })
+          // showByCode(res.code)
           isFollowing.value = true
-          commonSuccessMessages.showOperationSuccess('关注成功')
         }
       } catch (error) {
-        commonErrorMessages.showOperationFailed()
+        console.error('关注操作失败:', error)
       }
     }
     
@@ -338,14 +338,15 @@ export default {
         const targetUserId = userId.value === 'current' ? '123' : userId.value // 测试用户ID
         
         // 并行加载用户信息、动态和统计数据
-        await Promise.all([
+        const results = await Promise.all([
           store.dispatch('message/fetchUserProfile', targetUserId),
           store.dispatch('message/fetchUserDynamic', targetUserId),
           store.dispatch('message/fetchUserStatistics', targetUserId)
         ])
+        // 显示第一个请求的结果状态
+        if (results[0]) showByCode(results[0].code)
       } catch (error) {
         console.error('加载用户数据失败：', error)
-        commonErrorMessages.showLoadFailed('加载用户信息失败')
       }
     }
     

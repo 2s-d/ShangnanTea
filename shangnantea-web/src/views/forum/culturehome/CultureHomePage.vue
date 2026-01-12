@@ -135,7 +135,7 @@ import { useStore } from 'vuex'
 
 import { RefreshRight, VideoPlay } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-import { forumSuccessMessages, forumErrorMessages } from '@/utils/forumMessages'
+import { showByCode } from '@/utils/apiMessages'
 import { forumPromptMessages } from '@/utils/promptMessages'
 
 export default {
@@ -173,9 +173,9 @@ export default {
     // 获取首页数据
     const fetchHomeData = async () => {
       try {
-        await store.dispatch('forum/fetchHomeData')
+        const res = await store.dispatch('forum/fetchHomeData')
+        showByCode(res.code)
       } catch (error) {
-        forumErrorMessages.showHomeDataLoadFailed()
         console.error('获取首页数据失败:', error)
       }
     }
@@ -183,9 +183,9 @@ export default {
     // 获取Banner数据
     const fetchBanners = async () => {
       try {
-        await store.dispatch('forum/fetchBanners')
+        const res = await store.dispatch('forum/fetchBanners')
+        showByCode(res.code)
       } catch (error) {
-        forumErrorMessages.showBannerLoadFailed()
         console.error('获取轮播图数据失败:', error)
       }
     }
@@ -193,9 +193,9 @@ export default {
     // 获取文章数据
     const fetchArticles = async () => {
       try {
-        await store.dispatch('forum/fetchArticles')
+        const res = await store.dispatch('forum/fetchArticles')
+        showByCode(res.code)
       } catch (error) {
-        forumErrorMessages.showArticleLoadFailed()
         console.error('获取文章数据失败:', error)
       }
     }
@@ -203,9 +203,9 @@ export default {
     // 获取推荐茶叶
     const fetchRecommendTeas = async () => {
       try {
-        await store.dispatch('tea/fetchRecommendTeas', { type: 'random', count: 6 })
+        const res = await store.dispatch('tea/fetchRecommendTeas', { type: 'random', count: 6 })
+        showByCode(res.code)
       } catch (error) {
-        forumErrorMessages.showRecommendTeaLoadFailed()
         console.error('获取推荐茶叶失败:', error)
       }
     }
@@ -234,10 +234,10 @@ export default {
     const refreshArticles = async () => {
       refreshing.value = true
       try {
-        await fetchArticles()
-        forumSuccessMessages.showArticleRefreshed()
+        const res = await fetchArticles()
+        showByCode(res?.code)
       } catch (error) {
-        forumErrorMessages.showArticleRefreshFailed()
+        console.error('刷新文章失败:', error)
       } finally {
         refreshing.value = false
       }
