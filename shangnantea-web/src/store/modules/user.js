@@ -331,8 +331,12 @@ const actions = {
       
       // 调用登录API，返回 {code, data}
       const res = await loginApi(loginData)
-      // 后端返回格式：{ code, data: { token: string } }
-      const { token } = res.data || res
+      // 拦截器返回格式：{ code, data: { token: string } }
+      const token = res.data?.token
+      
+      if (!token) {
+        throw new Error('登录失败：未返回token')
+      }
       
       // 存储token
       tokenStorage.setToken(token)
@@ -409,9 +413,9 @@ const actions = {
   async fetchUserPreferences({ commit }) {
     commit('SET_LOADING', true)
     try {
-      const result = await getUserPreferencesApi()
-      // 兼容：后端可能返回 { data: {...} } 或直接返回 {...}
-      const preferences = result?.data || result?.preferences || result
+      // 返回 {code, data}
+      const res = await getUserPreferencesApi()
+      const preferences = res.data || {}
       commit('SET_PREFERENCES', preferences)
       return preferences
     } finally {
@@ -428,11 +432,12 @@ const actions = {
   async saveUserPreferences({ commit }, preferences) {
     commit('SET_LOADING', true)
     try {
-      const result = await updateUserPreferencesApi(preferences)
-      // 以服务端回写为准（若后端仅返回 success，则直接使用入参）
-      const saved = result?.data || result?.preferences || result || preferences
+      // 返回 {code, data}
+      const res = await updateUserPreferencesApi(preferences)
+      // 以服务端回写为准，若后端未返回数据则使用入参
+      const saved = res.data || preferences
       commit('SET_PREFERENCES', saved)
-      return saved
+      return res // 返回 {code, data}，组件调用 showByCode(res.code)
     } finally {
       commit('SET_LOADING', false)
     }
@@ -484,8 +489,9 @@ const actions = {
     try {
       commit('SET_LOADING', true)
       
-      // 从服务器获取最新用户信息
-      const userInfo = await getCurrentUser()
+      // 从服务器获取最新用户信息，返回 {code, data}
+      const res = await getCurrentUser()
+      const userInfo = res.data
       
       // 更新状态
       commit('SET_USER_INFO', userInfo)
@@ -508,8 +514,9 @@ const actions = {
     try {
       commit('SET_LOADING', true)
       
-      // 调用API获取用户信息
-      const userInfo = await getUserInfoApi(userId)
+      // 调用API获取用户信息，返回 {code, data}
+      const res = await getUserInfoApi(userId)
+      const userInfo = res.data
       
       // 更新状态（如果获取的是当前用户信息）
       if (!userId) {
@@ -541,11 +548,12 @@ const actions = {
     try {
       commit('SET_LOADING', true)
       
-      // 调用更新API
+      // 调用更新API，返回 {code, data}
       const res = await updateUserInfo(newUserInfo)
       
-      // 更新状态
-      commit('SET_USER_INFO', res.data || res)
+      // 更新状态：合并现有用户信息和返回的数据
+      const updatedUserInfo = { ...state.userInfo, ...res.data }
+      commit('SET_USER_INFO', updatedUserInfo)
       
       return res // 返回 {code, data}，组件调用 showByCode(res.code)
     } catch (error) {
@@ -569,9 +577,10 @@ const actions = {
     try {
       commit('SET_LOADING', true)
       
-      // 调用上传头像API
+      // 调用上传头像API，返回 {code, data}
       const res = await uploadAvatarApi(file)
-      const avatarUrl = res?.data?.avatarUrl || res?.avatarUrl || res?.data
+      // 从 res.data 中获取头像URL
+      const avatarUrl = res.data?.avatarUrl || res.data?.url || res.data
       
       if (!avatarUrl) {
         throw new Error('上传失败：未返回头像URL')
@@ -619,10 +628,14 @@ const actions = {
   // 任务0-3：使用真实API请求
   async refreshToken({ commit }) {
     try {
-      // 调用刷新Token API
-      const response = await refreshTokenApi()
-      // 后端返回格式：{ token: string }
-      const { token } = response
+      // 调用刷新Token API，返回 {code, data}
+      const res = await refreshTokenApi()
+      // 从 res.data 中获取 token
+      const token = res.data?.token
+      
+      if (!token) {
+        throw new Error('刷新Token失败：未返回token')
+      }
       
       // 更新token
       tokenStorage.setToken(token)
@@ -699,8 +712,9 @@ const actions = {
   async fetchAddresses({ commit }) {
     commit('SET_LOADING', true)
     try {
+      // 返回 {code, data}
       const res = await getAddressList()
-      const addressList = (res || []).map(mapAddressFromBackend)
+      const addressList = (res.data || []).map(mapAddressFromBackend)
       commit('SET_ADDRESS_LIST', addressList)
       return addressList
     } catch (error) {
@@ -722,8 +736,9 @@ const actions = {
     try {
       // 任务B-2：将前端字段转换为后端字段
       const backendData = mapAddressToBackend(addressData)
+      // 返回 {code, data}
       const res = await addAddressApi(backendData)
-      const newAddress = mapAddressFromBackend(res)
+      const newAddress = mapAddressFromBackend(res.data)
       commit('ADD_ADDRESS', newAddress)
       return newAddress
     } catch (error) {
@@ -749,8 +764,9 @@ const actions = {
     try {
       // 任务B-2：将前端字段转换为后端字段
       const backendData = mapAddressToBackend(addressData)
+      // 返回 {code, data}
       const res = await updateAddressApi(addressData.id, backendData)
-      const updatedAddress = mapAddressFromBackend(res)
+      const updatedAddress = mapAddressFromBackend(res.data)
       commit('UPDATE_ADDRESS', updatedAddress)
       return updatedAddress
     } catch (error) {
@@ -817,8 +833,9 @@ const actions = {
   async fetchFollowList({ commit }, type = null) {
     commit('SET_LOADING', true)
     try {
+      // 返回 {code, data}
       const res = await getFollowList(type)
-      const followList = res || []
+      const followList = res.data || []
       commit('SET_FOLLOW_LIST', followList)
       return followList
     } catch (error) {
@@ -838,8 +855,9 @@ const actions = {
   async addFollow({ commit }, followData) {
     commit('SET_LOADING', true)
     try {
+      // 返回 {code, data}
       const res = await addFollowApi(followData)
-      const follow = res
+      const follow = res.data
       commit('ADD_FOLLOW', follow)
       return follow
     } catch (error) {
@@ -879,8 +897,9 @@ const actions = {
   async fetchFavoriteList({ commit }, type = null) {
     commit('SET_LOADING', true)
     try {
+      // 返回 {code, data}
       const res = await getFavoriteList(type)
-      const favoriteList = res || []
+      const favoriteList = res.data || []
       commit('SET_FAVORITE_LIST', favoriteList)
       return favoriteList
     } catch (error) {
@@ -900,8 +919,9 @@ const actions = {
   async addFavorite({ commit }, favoriteData) {
     commit('SET_LOADING', true)
     try {
+      // 返回 {code, data}
       const res = await addFavoriteApi(favoriteData)
-      const favorite = res
+      const favorite = res.data
       commit('ADD_FAVORITE', favorite)
       return favorite
     } catch (error) {
@@ -941,8 +961,9 @@ const actions = {
   async addLike({ commit }, likeData) {
     commit('SET_LOADING', true)
     try {
+      // 返回 {code, data}
       const res = await addLikeApi(likeData)
-      const like = res
+      const like = res.data
       commit('ADD_LIKE', like)
       return like
     } catch (error) {
@@ -984,9 +1005,11 @@ const actions = {
   async fetchUserList({ commit }, params = {}) {
     commit('SET_LOADING', true)
     try {
+      // 返回 {code, data}
       const res = await getAdminUserList(params)
-      const userList = res?.list || res || []
-      const total = res?.total || userList.length
+      const data = res.data || {}
+      const userList = data.list || data.records || (Array.isArray(data) ? data : [])
+      const total = data.total || userList.length
       commit('SET_USER_LIST', userList)
       commit('SET_USER_PAGINATION', { 
         page: params.page || 1, 
@@ -1011,7 +1034,8 @@ const actions = {
   async updateUserRole({ commit }, { userId, role }) {
     commit('SET_LOADING', true)
     try {
-      await updateUserRoleApi(userId, role)
+      // API 期望第二个参数是对象 { role }
+      await updateUserRoleApi(userId, { role })
       commit('UPDATE_USER_IN_LIST', { id: userId, role })
       return true
     } catch (error) {
@@ -1031,7 +1055,8 @@ const actions = {
   async toggleUserStatus({ commit }, { userId, status }) {
     commit('SET_LOADING', true)
     try {
-      await toggleUserStatusApi(userId, status)
+      // API 期望第二个参数是对象 { status }
+      await toggleUserStatusApi(userId, { status })
       commit('UPDATE_USER_IN_LIST', { id: userId, status })
       return true
     } catch (error) {
@@ -1051,8 +1076,10 @@ const actions = {
   async fetchCertificationList({ commit }, params = {}) {
     commit('SET_LOADING', true)
     try {
+      // 返回 {code, data}
       const res = await getCertificationList(params)
-      const certList = res?.list || res || []
+      const data = res.data || {}
+      const certList = data.list || data.records || (Array.isArray(data) ? data : [])
       commit('SET_CERTIFICATION_LIST', certList)
       return certList
     } catch (error) {
