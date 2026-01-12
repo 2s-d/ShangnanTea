@@ -6,7 +6,7 @@ import { useStore } from 'vuex'
 import { ElMessageBox } from 'element-plus'
 
 import { showByCode, isSuccess } from '@/utils/apiMessages'
-import { orderPromptMessages, ORDER_PROMPT } from '@/utils/promptMessages'
+import orderMessages from '@/utils/promptMessages'
 
 /**
  * 使用购物车功能

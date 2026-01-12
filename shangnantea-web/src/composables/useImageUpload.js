@@ -4,7 +4,7 @@
 import { ref, computed } from 'vue'
 
 import { commonPromptMessages } from '@/utils/promptMessages'
-import { showByCode } from '@/utils/apiMessages'
+
 
 /**
  * 使用图片上传功能
@@ -57,8 +57,10 @@ export function useImageUpload(options = {}) {
     
     const isValid = config.acceptTypes.includes(file.type)
     if (!isValid) {
-      // 使用状态码 1103: 不支持的文件类型
-      showByCode(1103)
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      // TODO: [common] 迁移到 showByCode(response.code) - error
+      commonErrorMessages.showFileTypeInvalid()
     }
     return isValid
   }
@@ -71,8 +73,9 @@ export function useImageUpload(options = {}) {
   const validateFileSize = (file) => {
     const isValid = file.size / 1024 / 1024 <= config.maxSize
     if (!isValid) {
-      // 使用状态码 1104: 文件大小超限
-      showByCode(1104)
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      commonErrorMessages.showFileSizeExceeded(config.maxSize)
     }
     return isValid
   }
@@ -231,8 +234,9 @@ export function useImageUpload(options = {}) {
         config.onError(error, fileItem)
       }
       
-      // 使用状态码 1101: 上传失败
-      showByCode(1101)
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      commonErrorMessages.showUploadFailed(error.message || '未知错误')
       return Promise.reject(error)
     } finally {
       uploading.value = false

@@ -1,467 +1,79 @@
 package com.shangnantea.controller;
 
-import com.shangnantea.common.api.PageParam;
-import com.shangnantea.common.api.PageResult;
 import com.shangnantea.common.api.Result;
-import com.shangnantea.model.entity.forum.ForumPost;
-import com.shangnantea.model.entity.forum.ForumReply;
-import com.shangnantea.model.entity.forum.ForumTopic;
-import com.shangnantea.model.entity.forum.HomeContent;
+import com.shangnantea.security.annotation.RequiresLogin;
+import com.shangnantea.security.annotation.RequiresRoles;
 import com.shangnantea.service.ForumService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
 import java.util.Map;
 
 /**
  * 论坛控制器
+ * 参考：前端 forum.js 和 code-message-mapping.md
  */
 @RestController
-@RequestMapping("/api/forum")
+@RequestMapping({"/forum", "/api/forum"})
+@Validated
 public class ForumController {
+
+    private static final Logger logger = LoggerFactory.getLogger(ForumController.class);
 
     @Autowired
     private ForumService forumService;
-    
+
+    // ==================== 首页与Banner ====================
+
     /**
-     * 获取论坛主题列表
+     * 获取首页数据
+     * 路径: GET /forum/home
+     * 成功码: 200, 失败码: 6160
      *
-     * @return 结果
+     * @return 首页数据
      */
-    @GetMapping("/topics")
-    public Result<List<Map<String, Object>>> listTopics() {
-        List<Map<String, Object>> result = forumService.listTopics();
-        return Result.success(result);
-    }
-    
-    /**
-     * 获取论坛主题详情
-     *
-     * @param id 主题ID
-     * @return 结果
-     */
-    @GetMapping("/topics/{id}")
-    public Result<ForumTopic> getTopicById(@PathVariable Integer id) {
-        ForumTopic result = forumService.getTopicById(id);
-        return Result.success(result);
-    }
-    
-    /**
-     * 创建论坛主题(管理员)
-     *
-     * @param topic 主题信息
-     * @return 结果
-     */
-    @PostMapping("/topics")
-    public Result<ForumTopic> createTopic(@RequestBody ForumTopic topic) {
-        ForumTopic result = forumService.createTopic(topic);
-        return Result.success(result);
-    }
-    
-    /**
-     * 更新论坛主题(管理员)
-     *
-     * @param id 主题ID
-     * @param topic 主题信息
-     * @return 结果
-     */
-    @PutMapping("/topics/{id}")
-    public Result<Boolean> updateTopic(@PathVariable Integer id, @RequestBody ForumTopic topic) {
-        topic.setId(id);
-        Boolean result = forumService.updateTopic(topic);
-        return Result.success(result);
-    }
-    
-    /**
-     * 删除论坛主题(管理员)
-     *
-     * @param id 主题ID
-     * @return 结果
-     */
-    @DeleteMapping("/topics/{id}")
-    public Result<Boolean> deleteTopic(@PathVariable Integer id) {
-        Boolean result = forumService.deleteTopic(id);
-        return Result.success(result);
-    }
-    
-    /**
-     * 获取帖子详情
-     *
-     * @param id 帖子ID
-     * @return 结果
-     */
-    @GetMapping("/posts/{id}")
-    public Result<Map<String, Object>> getPostById(@PathVariable Long id) {
-        Map<String, Object> result = forumService.getPostById(id);
-        return Result.success(result);
+    @GetMapping("/home")
+    public Result<Object> getHomeData() {
+        logger.info("获取首页数据请求");
+        return forumService.getHomeData();
     }
 
     /**
-     * 获取帖子列表（支持筛选、排序、分页）
+     * 更新首页数据（管理员）
+     * 路径: PUT /forum/home
+     * 成功码: 6060, 失败码: 6163
      *
-     * @param topicId 主题ID（可选）
-     * @param keyword 关键词搜索（可选）
-     * @param sortBy 排序方式（latest/hot/replies）
-     * @param page 页码
-     * @param size 每页数量
-     * @return 分页结果
+     * @param data 首页数据
+     * @return 更新结果
      */
-    @GetMapping("/posts")
-    public Result<Map<String, Object>> listPosts(
-            @RequestParam(required = false) Integer topicId,
-            @RequestParam(required = false) String keyword,
-            @RequestParam(defaultValue = "latest") String sortBy,
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
-        PageParam pageParam = new PageParam();
-        pageParam.setPageNum(page);
-        pageParam.setPageSize(size);
-        Map<String, Object> result = forumService.listPosts(topicId, keyword, sortBy, pageParam);
-        return Result.success(result);
+    @PutMapping("/home")
+    @RequiresRoles({1})
+    public Result<Object> updateHomeData(@RequestBody Map<String, Object> data) {
+        logger.info("更新首页数据请求");
+        return forumService.updateHomeData(data);
     }
-    
-    /**
-     * 获取主题下的帖子列表
-     *
-     * @param topicId 主题ID
-     * @param page 页码
-     * @param size 每页数量
-     * @return 结果
-     */
-    @GetMapping("/topics/{topicId}/posts")
-    public Result<PageResult<ForumPost>> listPostsByTopic(
-            @PathVariable Integer topicId,
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
-        PageParam pageParam = new PageParam();
-        pageParam.setPageNum(page);
-        pageParam.setPageSize(size);
-        PageResult<ForumPost> result = forumService.listPostsByTopic(topicId, pageParam);
-        return Result.success(result);
-    }
-    
-    /**
-     * 创建帖子
-     *
-     * @param postData 帖子信息
-     * @return 结果
-     */
-    @PostMapping("/posts")
-    public Result<Map<String, Object>> createPost(@RequestBody Map<String, Object> postData) {
-        Map<String, Object> result = forumService.createPost(postData);
-        return Result.success(result);
-    }
-    
-    /**
-     * 更新帖子
-     *
-     * @param id 帖子ID
-     * @param postData 帖子信息
-     * @return 结果
-     */
-    @PutMapping("/posts/{id}")
-    public Result<Map<String, Object>> updatePost(@PathVariable Long id, @RequestBody Map<String, Object> postData) {
-        Map<String, Object> result = forumService.updatePost(id, postData);
-        return Result.success(result);
-    }
-    
-    /**
-     * 删除帖子
-     *
-     * @param id 帖子ID
-     * @return 结果
-     */
-    @DeleteMapping("/posts/{id}")
-    public Result<Boolean> deletePost(@PathVariable Long id) {
-        Boolean result = forumService.deletePost(id);
-        return Result.success(result);
-    }
-    
-    /**
-     * 设置帖子置顶(管理员)
-     *
-     * @param id 帖子ID
-     * @param isSticky 是否置顶
-     * @return 结果
-     */
-    @PutMapping("/posts/{id}/sticky")
-    public Result<Map<String, Object>> setPostSticky(
-            @PathVariable Long id,
-            @RequestParam Boolean isSticky) {
-        Map<String, Object> result = forumService.setPostSticky(id, isSticky);
-        return Result.success(result);
-    }
-    
-    /**
-     * 设置帖子精华(管理员)
-     *
-     * @param id 帖子ID
-     * @param isEssence 是否精华
-     * @return 结果
-     */
-    @PutMapping("/posts/{id}/essence")
-    public Result<Map<String, Object>> setPostEssence(
-            @PathVariable Long id,
-            @RequestParam Boolean isEssence) {
-        Map<String, Object> result = forumService.setPostEssence(id, isEssence);
-        return Result.success(result);
-    }
-    
-    /**
-     * 获取待审核帖子列表
-     *
-     * @param page 页码
-     * @param size 每页数量
-     * @return 待审核帖子列表
-     */
-    @GetMapping("/posts/pending")
-    public Result<Map<String, Object>> getPendingPosts(
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
-        PageParam pageParam = new PageParam();
-        pageParam.setPageNum(page);
-        pageParam.setPageSize(size);
-        Map<String, Object> result = forumService.getPendingPosts(pageParam);
-        return Result.success(result);
-    }
-    
-    /**
-     * 审核通过帖子
-     *
-     * @param id 帖子ID
-     * @param auditData 审核数据
-     * @return 审核结果
-     */
-    @PostMapping("/posts/{id}/approve")
-    public Result<Map<String, Object>> approvePost(
-            @PathVariable Long id,
-            @RequestBody Map<String, Object> auditData) {
-        Map<String, Object> result = forumService.approvePost(id, auditData);
-        return Result.success(result);
-    }
-    
-    /**
-     * 审核拒绝帖子
-     *
-     * @param id 帖子ID
-     * @param auditData 审核数据（包含拒绝原因）
-     * @return 审核结果
-     */
-    @PostMapping("/posts/{id}/reject")
-    public Result<Map<String, Object>> rejectPost(
-            @PathVariable Long id,
-            @RequestBody Map<String, Object> auditData) {
-        Map<String, Object> result = forumService.rejectPost(id, auditData);
-        return Result.success(result);
-    }
-    
-    /**
-     * 获取帖子回复列表
-     *
-     * @param postId 帖子ID
-     * @param page 页码
-     * @param size 每页数量
-     * @param sortBy 排序方式（time/timeDesc/hot）
-     * @return 结果
-     */
-    @GetMapping("/posts/{postId}/replies")
-    public Result<Map<String, Object>> listRepliesByPost(
-            @PathVariable Long postId,
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer size,
-            @RequestParam(defaultValue = "time") String sortBy) {
-        PageParam pageParam = new PageParam();
-        pageParam.setPageNum(page);
-        pageParam.setPageSize(size);
-        Map<String, Object> result = forumService.listRepliesByPost(postId, sortBy, pageParam);
-        return Result.success(result);
-    }
-    
-    /**
-     * 创建回复
-     *
-     * @param replyData 回复信息
-     * @return 结果
-     */
-    @PostMapping("/posts/{postId}/replies")
-    public Result<Map<String, Object>> createReply(
-            @PathVariable Long postId,
-            @RequestBody Map<String, Object> replyData) {
-        Map<String, Object> result = forumService.createReply(postId, replyData);
-        return Result.success(result);
-    }
-    
-    /**
-     * 删除回复
-     *
-     * @param id 回复ID
-     * @return 结果
-     */
-    @DeleteMapping("/replies/{id}")
-    public Result<Boolean> deleteReply(@PathVariable Long id) {
-        Boolean result = forumService.deleteReply(id);
-        return Result.success(result);
-    }
-    
-    /**
-     * 点赞回复
-     *
-     * @param id 回复ID
-     * @return 结果
-     */
-    @PostMapping("/replies/{id}/like")
-    public Result<Map<String, Object>> likeReply(@PathVariable Long id) {
-        Map<String, Object> result = forumService.likeReply(id);
-        return Result.success(result);
-    }
-    
-    /**
-     * 取消点赞回复
-     *
-     * @param id 回复ID
-     * @return 结果
-     */
-    @DeleteMapping("/replies/{id}/like")
-    public Result<Map<String, Object>> unlikeReply(@PathVariable Long id) {
-        Map<String, Object> result = forumService.unlikeReply(id);
-        return Result.success(result);
-    }
-    
-    /**
-     * 获取茶文化文章详情
-     *
-     * @param id 文章ID
-     * @return 结果
-     */
-    @GetMapping("/articles/{id}")
-    public Result<Map<String, Object>> getArticleById(@PathVariable Long id) {
-        Map<String, Object> result = forumService.getArticleById(id);
-        return Result.success(result);
-    }
-    
-    /**
-     * 获取茶文化文章列表
-     *
-     * @param page 页码
-     * @param size 每页数量
-     * @param category 文章分类（可选）
-     * @return 结果
-     */
-    @GetMapping("/articles")
-    public Result<Map<String, Object>> listArticles(
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer size,
-            @RequestParam(required = false) String category) {
-        PageParam pageParam = new PageParam();
-        pageParam.setPageNum(page);
-        pageParam.setPageSize(size);
-        Map<String, Object> result = forumService.listArticles(category, pageParam);
-        return Result.success(result);
-    }
-    
-    /**
-     * 创建茶文化文章(管理员)
-     *
-     * @param articleData 文章信息
-     * @return 结果
-     */
-    @PostMapping("/articles")
-    public Result<Map<String, Object>> createArticle(@RequestBody Map<String, Object> articleData) {
-        Map<String, Object> result = forumService.createArticle(articleData);
-        return Result.success(result);
-    }
-    
-    /**
-     * 更新茶文化文章(管理员)
-     *
-     * @param id 文章ID
-     * @param articleData 文章信息
-     * @return 结果
-     */
-    @PutMapping("/articles/{id}")
-    public Result<Map<String, Object>> updateArticle(@PathVariable Long id, @RequestBody Map<String, Object> articleData) {
-        Map<String, Object> result = forumService.updateArticle(id, articleData);
-        return Result.success(result);
-    }
-    
-    /**
-     * 删除茶文化文章(管理员)
-     *
-     * @param id 文章ID
-     * @return 结果
-     */
-    @DeleteMapping("/articles/{id}")
-    public Result<Boolean> deleteArticle(@PathVariable Long id) {
-        Boolean result = forumService.deleteArticle(id);
-        return Result.success(result);
-    }
-    
-    /**
-     * 获取首页内容
-     *
-     * @param section 板块
-     * @return 结果
-     */
-    @GetMapping("/home-contents")
-    public Result<List<HomeContent>> listHomeContents(
-            @RequestParam(required = false) String section) {
-        List<HomeContent> result = forumService.listHomeContents(section);
-        return Result.success(result);
-    }
-    
-    /**
-     * 创建首页内容(管理员)
-     *
-     * @param content 内容信息
-     * @return 结果
-     */
-    @PostMapping("/home-contents")
-    public Result<HomeContent> createHomeContent(@RequestBody HomeContent content) {
-        HomeContent result = forumService.createHomeContent(content);
-        return Result.success(result);
-    }
-    
-    /**
-     * 更新首页内容(管理员)
-     *
-     * @param id 内容ID
-     * @param content 内容信息
-     * @return 结果
-     */
-    @PutMapping("/home-contents/{id}")
-    public Result<Boolean> updateHomeContent(@PathVariable Integer id, @RequestBody HomeContent content) {
-        content.setId(id);
-        Boolean result = forumService.updateHomeContent(content);
-        return Result.success(result);
-    }
-    
-    /**
-     * 删除首页内容(管理员)
-     *
-     * @param id 内容ID
-     * @return 结果
-     */
-    @DeleteMapping("/home-contents/{id}")
-    public Result<Boolean> deleteHomeContent(@PathVariable Integer id) {
-        Boolean result = forumService.deleteHomeContent(id);
-        return Result.success(result);
-    }
-    
+
     /**
      * 获取Banner列表
+     * 路径: GET /forum/banners
+     * 成功码: 200, 失败码: 6161
      *
      * @return Banner列表
      */
     @GetMapping("/banners")
-    public Result<List<Map<String, Object>>> getBanners() {
-        List<Map<String, Object>> result = forumService.getBanners();
-        return Result.success(result);
+    public Result<Object> getBanners() {
+        logger.info("获取Banner列表请求");
+        return forumService.getBanners();
     }
-    
+
     /**
-     * 上传Banner
+     * 上传Banner（管理员）
+     * 路径: POST /forum/banners
+     * 成功码: 5010, 失败码: 5111, 1103, 1104
      *
      * @param file Banner图片文件
      * @param title Banner标题
@@ -470,122 +82,503 @@ public class ForumController {
      * @return 上传结果
      */
     @PostMapping("/banners")
-    public Result<Map<String, Object>> uploadBanner(
-            @RequestParam("file") MultipartFile file,
-            @RequestParam("title") String title,
-            @RequestParam(value = "subtitle", required = false) String subtitle,
-            @RequestParam(value = "linkUrl", required = false) String linkUrl) {
-        Map<String, Object> result = forumService.uploadBanner(file, title, subtitle, linkUrl);
-        return Result.success(result);
+    @RequiresRoles({1})
+    public Result<Object> uploadBanner(@RequestParam("file") MultipartFile file,
+                                       @RequestParam("title") String title,
+                                       @RequestParam(value = "subtitle", required = false) String subtitle,
+                                       @RequestParam(value = "linkUrl", required = false) String linkUrl) {
+        logger.info("上传Banner请求, title: {}, 文件名: {}", title, file.getOriginalFilename());
+        return forumService.uploadBanner(file, title, subtitle, linkUrl);
     }
-    
+
     /**
-     * 更新Banner
+     * 更新Banner顺序（管理员）
+     * 路径: PUT /forum/banners/order
+     * 成功码: 5013, 失败码: 5113
+     *
+     * @param data Banner顺序数据 {bannerIds}
+     * @return 更新结果
+     */
+    @PutMapping("/banners/order")
+    @RequiresRoles({1})
+    public Result<Object> updateBannerOrder(@RequestBody Map<String, Object> data) {
+        logger.info("更新Banner顺序请求");
+        return forumService.updateBannerOrder(data);
+    }
+
+    /**
+     * 更新Banner（管理员）
+     * 路径: PUT /forum/banners/{id}
+     * 成功码: 5011, 失败码: 5111
      *
      * @param id Banner ID
-     * @param bannerData Banner数据
+     * @param data Banner数据
      * @return 更新结果
      */
     @PutMapping("/banners/{id}")
-    public Result<Map<String, Object>> updateBanner(
-            @PathVariable Long id, 
-            @RequestBody Map<String, Object> bannerData) {
-        Map<String, Object> result = forumService.updateBanner(id, bannerData);
-        return Result.success(result);
+    @RequiresRoles({1})
+    public Result<Object> updateBanner(@PathVariable String id, @RequestBody Map<String, Object> data) {
+        logger.info("更新Banner请求: {}", id);
+        return forumService.updateBanner(id, data);
     }
-    
+
     /**
-     * 删除Banner
+     * 删除Banner（管理员）
+     * 路径: DELETE /forum/banners/{id}
+     * 成功码: 5012, 失败码: 5112
      *
      * @param id Banner ID
      * @return 删除结果
      */
     @DeleteMapping("/banners/{id}")
-    public Result<Boolean> deleteBanner(@PathVariable Long id) {
-        Boolean result = forumService.deleteBanner(id);
-        return Result.success(result);
+    @RequiresRoles({1})
+    public Result<Boolean> deleteBanner(@PathVariable String id) {
+        logger.info("删除Banner请求: {}", id);
+        return forumService.deleteBanner(id);
     }
-    
+
+    // ==================== 文章管理 ====================
+
     /**
-     * 更新Banner顺序
+     * 获取文章列表
+     * 路径: GET /forum/articles
+     * 成功码: 200, 失败码: 6153
      *
-     * @param orderData Banner顺序数据
+     * @param params 查询参数 {page, size, category}
+     * @return 文章列表
+     */
+    @GetMapping("/articles")
+    public Result<Object> getArticles(@RequestParam Map<String, Object> params) {
+        logger.info("获取文章列表请求, params: {}", params);
+        return forumService.getArticles(params);
+    }
+
+    /**
+     * 创建文章（管理员）
+     * 路径: POST /forum/articles
+     * 成功码: 6050, 失败码: 6150
+     *
+     * @param data 文章数据
+     * @return 创建结果
+     */
+    @PostMapping("/articles")
+    @RequiresRoles({1})
+    public Result<Object> createArticle(@RequestBody Map<String, Object> data) {
+        logger.info("创建文章请求");
+        return forumService.createArticle(data);
+    }
+
+    /**
+     * 获取文章详情
+     * 路径: GET /forum/articles/{id}
+     * 成功码: 200, 失败码: 6153
+     *
+     * @param id 文章ID
+     * @return 文章详情
+     */
+    @GetMapping("/articles/{id}")
+    public Result<Object> getArticleDetail(@PathVariable String id) {
+        logger.info("获取文章详情请求: {}", id);
+        return forumService.getArticleDetail(id);
+    }
+
+    /**
+     * 更新文章（管理员）
+     * 路径: PUT /forum/articles/{id}
+     * 成功码: 6051, 失败码: 6151
+     *
+     * @param id 文章ID
+     * @param data 文章数据
      * @return 更新结果
      */
-    @PutMapping("/banners/order")
-    public Result<List<Map<String, Object>>> updateBannerOrder(@RequestBody Map<String, Object> orderData) {
-        List<Map<String, Object>> result = forumService.updateBannerOrder(orderData);
-        return Result.success(result);
+    @PutMapping("/articles/{id}")
+    @RequiresRoles({1})
+    public Result<Object> updateArticle(@PathVariable String id, @RequestBody Map<String, Object> data) {
+        logger.info("更新文章请求: {}", id);
+        return forumService.updateArticle(id, data);
     }
-    
+
     /**
-     * 获取首页完整数据
+     * 删除文章（管理员）
+     * 路径: DELETE /forum/articles/{id}
+     * 成功码: 6052, 失败码: 6152
      *
-     * @return 首页数据
+     * @param id 文章ID
+     * @return 删除结果
      */
-    @GetMapping("/home-contents/full")
-    public Result<Map<String, Object>> getHomeContentsFull() {
-        Map<String, Object> result = forumService.getHomeContentsFull();
-        return Result.success(result);
+    @DeleteMapping("/articles/{id}")
+    @RequiresRoles({1})
+    public Result<Boolean> deleteArticle(@PathVariable String id) {
+        logger.info("删除文章请求: {}", id);
+        return forumService.deleteArticle(id);
     }
-    
+
+    // ==================== 版块管理 ====================
+
     /**
-     * 更新首页数据
+     * 获取版块列表
+     * 路径: GET /forum/topics
+     * 成功码: 200, 失败码: 6143
      *
-     * @param homeData 首页数据
+     * @return 版块列表
+     */
+    @GetMapping("/topics")
+    public Result<Object> getForumTopics() {
+        logger.info("获取版块列表请求");
+        return forumService.getForumTopics();
+    }
+
+    /**
+     * 创建版块（管理员）
+     * 路径: POST /forum/topics
+     * 成功码: 6040, 失败码: 6140
+     *
+     * @param data 版块数据
+     * @return 创建结果
+     */
+    @PostMapping("/topics")
+    @RequiresRoles({1})
+    public Result<Object> createTopic(@RequestBody Map<String, Object> data) {
+        logger.info("创建版块请求");
+        return forumService.createTopic(data);
+    }
+
+    /**
+     * 获取版块详情
+     * 路径: GET /forum/topics/{id}
+     * 成功码: 200, 失败码: 6143
+     *
+     * @param id 版块ID
+     * @return 版块详情
+     */
+    @GetMapping("/topics/{id}")
+    public Result<Object> getTopicDetail(@PathVariable String id) {
+        logger.info("获取版块详情请求: {}", id);
+        return forumService.getTopicDetail(id);
+    }
+
+    /**
+     * 更新版块（管理员）
+     * 路径: PUT /forum/topics/{id}
+     * 成功码: 6041, 失败码: 6141
+     *
+     * @param id 版块ID
+     * @param data 版块数据
      * @return 更新结果
      */
-    @PutMapping("/home-contents")
-    public Result<Map<String, Object>> updateHomeContents(@RequestBody Map<String, Object> homeData) {
-        Map<String, Object> result = forumService.updateHomeContents(homeData);
-        return Result.success(result);
+    @PutMapping("/topics/{id}")
+    @RequiresRoles({1})
+    public Result<Object> updateTopic(@PathVariable String id, @RequestBody Map<String, Object> data) {
+        logger.info("更新版块请求: {}", id);
+        return forumService.updateTopic(id, data);
     }
-    
+
+    /**
+     * 删除版块（管理员）
+     * 路径: DELETE /forum/topics/{id}
+     * 成功码: 6042, 失败码: 6142
+     *
+     * @param id 版块ID
+     * @return 删除结果
+     */
+    @DeleteMapping("/topics/{id}")
+    @RequiresRoles({1})
+    public Result<Boolean> deleteTopic(@PathVariable String id) {
+        logger.info("删除版块请求: {}", id);
+        return forumService.deleteTopic(id);
+    }
+
+    // ==================== 帖子操作 ====================
+
+    /**
+     * 获取帖子列表
+     * 路径: GET /forum/posts
+     * 成功码: 200, 失败码: 6103
+     *
+     * @param params 查询参数 {topicId, keyword, sortBy, page, size}
+     * @return 帖子列表
+     */
+    @GetMapping("/posts")
+    public Result<Object> getForumPosts(@RequestParam Map<String, Object> params) {
+        logger.info("获取帖子列表请求, params: {}", params);
+        return forumService.getForumPosts(params);
+    }
+
+    /**
+     * 获取待审核帖子列表（管理员）
+     * 路径: GET /forum/posts/pending
+     * 成功码: 200, 失败码: 6136
+     *
+     * @param params 查询参数 {page, size}
+     * @return 待审核帖子列表
+     */
+    @GetMapping("/posts/pending")
+    @RequiresRoles({1})
+    public Result<Object> getPendingPosts(@RequestParam Map<String, Object> params) {
+        logger.info("获取待审核帖子列表请求, params: {}", params);
+        return forumService.getPendingPosts(params);
+    }
+
+    /**
+     * 创建帖子
+     * 路径: POST /forum/posts
+     * 成功码: 6000, 失败码: 6100
+     *
+     * @param data 帖子数据
+     * @return 创建结果
+     */
+    @PostMapping("/posts")
+    @RequiresLogin
+    public Result<Object> createPost(@RequestBody Map<String, Object> data) {
+        logger.info("创建帖子请求");
+        return forumService.createPost(data);
+    }
+
+    /**
+     * 获取帖子回复列表
+     * 路径: GET /forum/posts/{id}/replies
+     * 成功码: 200, 失败码: 6123
+     *
+     * @param id 帖子ID
+     * @param params 查询参数 {page, size, sortBy}
+     * @return 回复列表
+     */
+    @GetMapping("/posts/{id}/replies")
+    public Result<Object> getPostReplies(@PathVariable String id, @RequestParam Map<String, Object> params) {
+        logger.info("获取帖子回复列表请求: {}, params: {}", id, params);
+        return forumService.getPostReplies(id, params);
+    }
+
+    /**
+     * 创建回复
+     * 路径: POST /forum/posts/{id}/replies
+     * 成功码: 6022, 失败码: 6122
+     *
+     * @param id 帖子ID
+     * @param data 回复数据
+     * @return 创建结果
+     */
+    @PostMapping("/posts/{id}/replies")
+    @RequiresLogin
+    public Result<Object> createReply(@PathVariable String id, @RequestBody Map<String, Object> data) {
+        logger.info("创建回复请求, postId: {}", id);
+        return forumService.createReply(id, data);
+    }
+
     /**
      * 点赞帖子
+     * 路径: POST /forum/posts/{id}/like
+     * 成功码: 6010, 失败码: 6110
      *
      * @param id 帖子ID
      * @return 点赞结果
      */
     @PostMapping("/posts/{id}/like")
-    public Result<Map<String, Object>> likePost(@PathVariable Long id) {
-        Map<String, Object> result = forumService.likePost(id);
-        return Result.success(result);
+    @RequiresLogin
+    public Result<Object> likePost(@PathVariable String id) {
+        logger.info("点赞帖子请求: {}", id);
+        return forumService.likePost(id);
     }
-    
+
     /**
      * 取消点赞帖子
+     * 路径: DELETE /forum/posts/{id}/like
+     * 成功码: 6011, 失败码: 6111
      *
      * @param id 帖子ID
      * @return 取消点赞结果
      */
     @DeleteMapping("/posts/{id}/like")
-    public Result<Map<String, Object>> unlikePost(@PathVariable Long id) {
-        Map<String, Object> result = forumService.unlikePost(id);
-        return Result.success(result);
+    @RequiresLogin
+    public Result<Object> unlikePost(@PathVariable String id) {
+        logger.info("取消点赞帖子请求: {}", id);
+        return forumService.unlikePost(id);
     }
-    
+
     /**
      * 收藏帖子
+     * 路径: POST /forum/posts/{id}/favorite
+     * 成功码: 6012, 失败码: 6112
      *
      * @param id 帖子ID
      * @return 收藏结果
      */
     @PostMapping("/posts/{id}/favorite")
-    public Result<Map<String, Object>> favoritePost(@PathVariable Long id) {
-        Map<String, Object> result = forumService.favoritePost(id);
-        return Result.success(result);
+    @RequiresLogin
+    public Result<Object> favoritePost(@PathVariable String id) {
+        logger.info("收藏帖子请求: {}", id);
+        return forumService.favoritePost(id);
     }
-    
+
     /**
      * 取消收藏帖子
+     * 路径: DELETE /forum/posts/{id}/favorite
+     * 成功码: 6013, 失败码: 6113
      *
      * @param id 帖子ID
      * @return 取消收藏结果
      */
     @DeleteMapping("/posts/{id}/favorite")
-    public Result<Map<String, Object>> unfavoritePost(@PathVariable Long id) {
-        Map<String, Object> result = forumService.unfavoritePost(id);
-        return Result.success(result);
+    @RequiresLogin
+    public Result<Object> unfavoritePost(@PathVariable String id) {
+        logger.info("取消收藏帖子请求: {}", id);
+        return forumService.unfavoritePost(id);
+    }
+
+    /**
+     * 审核通过帖子（管理员）
+     * 路径: POST /forum/posts/{id}/approve
+     * 成功码: 6034, 失败码: 6134
+     *
+     * @param id 帖子ID
+     * @param data 审核数据
+     * @return 审核结果
+     */
+    @PostMapping("/posts/{id}/approve")
+    @RequiresRoles({1})
+    public Result<Object> approvePost(@PathVariable String id, @RequestBody Map<String, Object> data) {
+        logger.info("审核通过帖子请求: {}", id);
+        return forumService.approvePost(id, data);
+    }
+
+    /**
+     * 审核拒绝帖子（管理员）
+     * 路径: POST /forum/posts/{id}/reject
+     * 成功码: 6035, 失败码: 6135
+     *
+     * @param id 帖子ID
+     * @param data 审核数据（包含拒绝原因）
+     * @return 审核结果
+     */
+    @PostMapping("/posts/{id}/reject")
+    @RequiresRoles({1})
+    public Result<Object> rejectPost(@PathVariable String id, @RequestBody Map<String, Object> data) {
+        logger.info("审核拒绝帖子请求: {}", id);
+        return forumService.rejectPost(id, data);
+    }
+
+    /**
+     * 设置帖子置顶/取消置顶（管理员）
+     * 路径: PUT /forum/posts/{id}/sticky
+     * 成功码: 6030, 6031, 失败码: 6130, 6131
+     *
+     * @param id 帖子ID
+     * @param isSticky 是否置顶
+     * @return 操作结果
+     */
+    @PutMapping("/posts/{id}/sticky")
+    @RequiresRoles({1})
+    public Result<Object> togglePostSticky(@PathVariable String id, @RequestParam Boolean isSticky) {
+        logger.info("设置帖子置顶请求: {}, isSticky: {}", id, isSticky);
+        return forumService.togglePostSticky(id, isSticky);
+    }
+
+    /**
+     * 设置帖子精华/取消精华（管理员）
+     * 路径: PUT /forum/posts/{id}/essence
+     * 成功码: 6032, 6033, 失败码: 6132, 6133
+     *
+     * @param id 帖子ID
+     * @param isEssence 是否精华
+     * @return 操作结果
+     */
+    @PutMapping("/posts/{id}/essence")
+    @RequiresRoles({1})
+    public Result<Object> togglePostEssence(@PathVariable String id, @RequestParam Boolean isEssence) {
+        logger.info("设置帖子精华请求: {}, isEssence: {}", id, isEssence);
+        return forumService.togglePostEssence(id, isEssence);
+    }
+
+    /**
+     * 获取帖子详情
+     * 路径: GET /forum/posts/{id}
+     * 成功码: 200, 失败码: 6104
+     * 注意：此路径应放在最后，避免与更具体的路径冲突
+     *
+     * @param id 帖子ID
+     * @return 帖子详情
+     */
+    @GetMapping("/posts/{id}")
+    public Result<Object> getPostDetail(@PathVariable String id) {
+        logger.info("获取帖子详情请求: {}", id);
+        return forumService.getPostDetail(id);
+    }
+
+    /**
+     * 更新帖子
+     * 路径: PUT /forum/posts/{id}
+     * 成功码: 6001, 失败码: 6101
+     *
+     * @param id 帖子ID
+     * @param data 帖子数据
+     * @return 更新结果
+     */
+    @PutMapping("/posts/{id}")
+    @RequiresLogin
+    public Result<Object> updatePost(@PathVariable String id, @RequestBody Map<String, Object> data) {
+        logger.info("更新帖子请求: {}", id);
+        return forumService.updatePost(id, data);
+    }
+
+    /**
+     * 删除帖子
+     * 路径: DELETE /forum/posts/{id}
+     * 成功码: 6002, 失败码: 6102
+     *
+     * @param id 帖子ID
+     * @return 删除结果
+     */
+    @DeleteMapping("/posts/{id}")
+    @RequiresLogin
+    public Result<Boolean> deletePost(@PathVariable String id) {
+        logger.info("删除帖子请求: {}", id);
+        return forumService.deletePost(id);
+    }
+
+    // ==================== 回复管理 ====================
+
+    /**
+     * 点赞回复
+     * 路径: POST /forum/replies/{id}/like
+     * 成功码: 6010, 失败码: 6110
+     *
+     * @param id 回复ID
+     * @return 点赞结果
+     */
+    @PostMapping("/replies/{id}/like")
+    @RequiresLogin
+    public Result<Object> likeReply(@PathVariable String id) {
+        logger.info("点赞回复请求: {}", id);
+        return forumService.likeReply(id);
+    }
+
+    /**
+     * 取消点赞回复
+     * 路径: DELETE /forum/replies/{id}/like
+     * 成功码: 6011, 失败码: 6111
+     *
+     * @param id 回复ID
+     * @return 取消点赞结果
+     */
+    @DeleteMapping("/replies/{id}/like")
+    @RequiresLogin
+    public Result<Object> unlikeReply(@PathVariable String id) {
+        logger.info("取消点赞回复请求: {}", id);
+        return forumService.unlikeReply(id);
+    }
+
+    /**
+     * 删除回复
+     * 路径: DELETE /forum/replies/{id}
+     * 成功码: 6021, 失败码: 6121
+     *
+     * @param id 回复ID
+     * @return 删除结果
+     */
+    @DeleteMapping("/replies/{id}")
+    @RequiresLogin
+    public Result<Boolean> deleteReply(@PathVariable String id) {
+        logger.info("删除回复请求: {}", id);
+        return forumService.deleteReply(id);
     }
 }

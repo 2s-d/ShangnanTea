@@ -1,370 +1,294 @@
 package com.shangnantea.controller;
 
+import com.shangnantea.common.api.PageParam;
+import com.shangnantea.common.api.PageResult;
 import com.shangnantea.common.api.Result;
-import com.shangnantea.security.annotation.RequiresLogin;
+import com.shangnantea.model.entity.message.ChatMessage;
+import com.shangnantea.model.entity.message.ChatSession;
+import com.shangnantea.model.entity.message.UserNotification;
 import com.shangnantea.service.MessageService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
 
 /**
  * 消息控制器
- * 参考：前端 message.js 和 code-message-mapping.md
  */
 @RestController
-@RequestMapping({"/message", "/api/message"})
-@Validated
+@RequestMapping({"/api/messages", "/api/message"})
 public class MessageController {
-
-    private static final Logger logger = LoggerFactory.getLogger(MessageController.class);
 
     @Autowired
     private MessageService messageService;
 
-    // ==================== 消息基础操作 ====================
-
     /**
-     * 获取消息列表
-     * 路径: GET /message/messages
-     * 成功码: 200, 失败码: 7101
-     *
-     * @param params 查询参数
-     * @return 消息列表
+     * 获取当前用户的聊天会话列表
      */
-    @GetMapping("/messages")
-    @RequiresLogin
-    public Result<Object> getMessages(@RequestParam Map<String, Object> params) {
-        logger.info("获取消息列表请求, params: {}", params);
-        return messageService.getMessages(params);
+    @GetMapping("/sessions")
+    public Result<List<ChatSession>> listSessions() {
+        List<ChatSession> result = messageService.listSessions();
+        return Result.success(result);
     }
 
     /**
-     * 获取消息详情
-     * 路径: GET /message/messages/{id}
-     * 成功码: 200, 失败码: 7101
-     *
-     * @param id 消息ID
-     * @return 消息详情
+     * 获取会话详情
      */
-    @GetMapping("/messages/{id}")
-    @RequiresLogin
-    public Result<Object> getMessageDetail(@PathVariable String id) {
-        logger.info("获取消息详情请求: {}", id);
-        return messageService.getMessageDetail(id);
+    @GetMapping("/sessions/{id}")
+    public Result<ChatSession> getSessionById(@PathVariable Long id) {
+        ChatSession result = messageService.getSessionById(id);
+        return Result.success(result);
+    }
+
+    /**
+     * 创建或获取与指定用户/商家的会话
+     */
+    @PostMapping("/sessions")
+    public Result<ChatSession> createOrGetSession(@RequestParam String targetId, @RequestParam String targetType) {
+        ChatSession result = messageService.createOrGetSession(targetId, targetType);
+        return Result.success(result);
+    }
+
+    /**
+     * 获取会话的消息列表
+     */
+    @GetMapping("/sessions/{sessionId}/messages")
+    public Result<PageResult<ChatMessage>> listMessages(
+            @PathVariable Long sessionId,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "20") Integer size) {
+        PageParam pageParam = new PageParam();
+        pageParam.setPageNum(page);
+        pageParam.setPageSize(size);
+        PageResult<ChatMessage> result = messageService.listMessages(sessionId, pageParam);
+        return Result.success(result);
     }
 
     /**
      * 发送消息
-     * 路径: POST /message/send
-     * 成功码: 7000, 失败码: 7100
-     *
-     * @param data 消息数据 {receiverId, content, type}
-     * @return 发送结果
+     */
+    @PostMapping("/messages")
+    public Result<ChatMessage> sendMessage(@RequestBody ChatMessage message) {
+        ChatMessage result = messageService.sendMessage(message);
+        return Result.success(result);
+    }
+
+    /**
+     * 兼容前端占位：/message/send
      */
     @PostMapping("/send")
-    @RequiresLogin
-    public Result<Object> sendMessage(@RequestBody Map<String, Object> data) {
-        logger.info("发送消息请求");
-        return messageService.sendMessage(data);
+    public Result<ChatMessage> sendMessageCompat(@RequestBody ChatMessage message) {
+        ChatMessage result = messageService.sendMessage(message);
+        return Result.success(result);
     }
 
     /**
-     * 标记消息为已读
-     * 路径: POST /message/read
-     * 成功码: 7010, 失败码: 7110
-     *
-     * @param data 消息ID数据 {messageIds}
-     * @return 标记结果
-     */
-    @PostMapping("/read")
-    @RequiresLogin
-    public Result<Boolean> markAsRead(@RequestBody Map<String, Object> data) {
-        logger.info("标记消息为已读请求");
-        return messageService.markAsRead(data);
-    }
-
-    /**
-     * 删除消息
-     * 路径: POST /message/delete
-     * 成功码: 7012, 失败码: 1100
-     *
-     * @param data 消息ID数据 {messageIds}
-     * @return 删除结果
+     * 兼容前端占位：/message/delete
      */
     @PostMapping("/delete")
-    @RequiresLogin
-    public Result<Boolean> deleteMessages(@RequestBody Map<String, Object> data) {
-        logger.info("删除消息请求");
-        return messageService.deleteMessages(data);
+    public Result<Boolean> deleteMessageCompat(@RequestBody(required = false) Object body) {
+        Boolean result = messageService.deleteMessageCompat(body);
+        return Result.success(result);
+    }
+
+    /**
+     * 将会话中的消息标记为已读
+     */
+    @PutMapping("/sessions/{sessionId}/read")
+    public Result<Boolean> markMessagesAsRead(@PathVariable Long sessionId) {
+        Boolean result = messageService.markMessagesAsRead(sessionId);
+        return Result.success(result);
     }
 
     /**
      * 获取未读消息数量
-     * 路径: GET /message/unread-count
-     * 成功码: 200, 失败码: 7101
-     *
-     * @return 未读消息数量
      */
-    @GetMapping("/unread-count")
-    @RequiresLogin
-    public Result<Object> getUnreadCount() {
-        logger.info("获取未读消息数量请求");
-        return messageService.getUnreadCount();
+    @GetMapping("/messages/unread-count")
+    public Result<Integer> countUnreadMessages() {
+        Integer result = messageService.countUnreadMessages();
+        return Result.success(result);
     }
-
-    /**
-     * 发送图片消息
-     * 路径: POST /message/messages/image
-     * 成功码: 7003, 失败码: 7103, 1103, 1104
-     *
-     * @param sessionId 会话ID
-     * @param receiverId 接收者ID
-     * @param image 图片文件
-     * @return 发送结果
-     */
-    @PostMapping("/messages/image")
-    @RequiresLogin
-    public Result<Object> sendImageMessage(@RequestParam("sessionId") String sessionId,
-                                           @RequestParam("receiverId") String receiverId,
-                                           @RequestParam("image") MultipartFile image) {
-        logger.info("发送图片消息请求, sessionId: {}, receiverId: {}, 文件名: {}", 
-                sessionId, receiverId, image.getOriginalFilename());
-        return messageService.sendImageMessage(sessionId, receiverId, image);
-    }
-
-    // ==================== 通知管理 ====================
 
     /**
      * 获取通知列表
-     * 路径: GET /message/notifications
-     * 成功码: 200, 失败码: 7101
-     *
-     * @param params 查询参数 {page, size, type}
-     * @return 通知列表
      */
     @GetMapping("/notifications")
-    @RequiresLogin
-    public Result<Object> getNotifications(@RequestParam Map<String, Object> params) {
-        logger.info("获取通知列表请求, params: {}", params);
-        return messageService.getNotifications(params);
+    public Result<PageResult<UserNotification>> listNotifications(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "20") Integer size,
+            @RequestParam(required = false) String type) {
+        PageParam pageParam = new PageParam();
+        pageParam.setPageNum(page);
+        pageParam.setPageSize(size);
+        PageResult<UserNotification> result = messageService.listNotifications(type, pageParam);
+        return Result.success(result);
     }
 
     /**
-     * 批量标记通知为已读
-     * 路径: PUT /message/notifications/batch-read
-     * 成功码: 7011, 失败码: 7110
-     *
-     * @param ids 通知ID数组
-     * @return 标记结果
+     * 将通知标记为已读
      */
-    @PutMapping("/notifications/batch-read")
-    @RequiresLogin
-    public Result<Boolean> batchMarkAsRead(@RequestBody List<String> ids) {
-        logger.info("批量标记通知为已读请求, ids: {}", ids);
-        return messageService.batchMarkAsRead(ids);
+    @PutMapping("/notifications/{id}/read")
+    public Result<Boolean> markNotificationAsRead(@PathVariable Long id) {
+        Boolean result = messageService.markNotificationAsRead(id);
+        return Result.success(result);
     }
 
     /**
-     * 批量删除通知
-     * 路径: DELETE /message/notifications/batch
-     * 成功码: 7013, 失败码: 1100
-     *
-     * @param ids 通知ID数组
-     * @return 删除结果
+     * 将所有通知标记为已读
      */
-    @DeleteMapping("/notifications/batch")
-    @RequiresLogin
-    public Result<Boolean> batchDeleteNotifications(@RequestBody List<String> ids) {
-        logger.info("批量删除通知请求, ids: {}", ids);
-        return messageService.batchDeleteNotifications(ids);
+    @PutMapping("/notifications/read-all")
+    public Result<Boolean> markAllNotificationsAsRead() {
+        Boolean result = messageService.markAllNotificationsAsRead();
+        return Result.success(result);
     }
 
     /**
      * 获取通知详情
-     * 路径: GET /message/notifications/{id}
-     * 成功码: 200, 失败码: 7101
-     *
-     * @param id 通知ID
-     * @return 通知详情
      */
     @GetMapping("/notifications/{id}")
-    @RequiresLogin
-    public Result<Object> getNotificationDetail(@PathVariable String id) {
-        logger.info("获取通知详情请求: {}", id);
-        return messageService.getNotificationDetail(id);
+    public Result<UserNotification> getNotificationDetail(@PathVariable Long id) {
+        UserNotification result = messageService.getNotificationDetail(id);
+        return Result.success(result);
     }
 
     /**
      * 删除通知
-     * 路径: DELETE /message/notifications/{id}
-     * 成功码: 7012, 失败码: 1100
-     *
-     * @param id 通知ID
-     * @return 删除结果
      */
     @DeleteMapping("/notifications/{id}")
-    @RequiresLogin
-    public Result<Boolean> deleteNotification(@PathVariable String id) {
-        logger.info("删除通知请求: {}", id);
-        return messageService.deleteNotification(id);
+    public Result<Boolean> deleteNotification(@PathVariable Long id) {
+        Boolean result = messageService.deleteNotification(id);
+        return Result.success(result);
     }
 
-    // ==================== 聊天会话 ====================
-
     /**
-     * 获取聊天会话列表
-     * 路径: GET /message/list/sessions
-     * 成功码: 200, 失败码: 7101
-     *
-     * @return 聊天会话列表
+     * 批量标记通知为已读
      */
-    @GetMapping("/list/sessions")
-    @RequiresLogin
-    public Result<Object> getChatSessions() {
-        logger.info("获取聊天会话列表请求");
-        return messageService.getChatSessions();
+    @PutMapping("/notifications/batch-read")
+    public Result<Boolean> batchMarkNotificationsAsRead(@RequestBody List<Long> ids) {
+        Boolean result = messageService.batchMarkNotificationsAsRead(ids);
+        return Result.success(result);
     }
 
     /**
-     * 获取聊天记录
-     * 路径: GET /message/list/history
-     * 成功码: 200, 失败码: 7101
-     *
-     * @param params 查询参数 {userId, page, size}
-     * @return 聊天记录
+     * 批量删除通知
      */
-    @GetMapping("/list/history")
-    @RequiresLogin
-    public Result<Object> getChatHistory(@RequestParam Map<String, Object> params) {
-        logger.info("获取聊天记录请求, params: {}", params);
-        return messageService.getChatHistory(params);
+    @DeleteMapping("/notifications/batch")
+    public Result<Boolean> batchDeleteNotifications(@RequestBody List<Long> ids) {
+        Boolean result = messageService.batchDeleteNotifications(ids);
+        return Result.success(result);
     }
 
     /**
-     * 创建聊天会话
-     * 路径: POST /message/sessions
-     * 成功码: 1000, 失败码: 1100
-     *
-     * @param targetId 目标ID
-     * @param targetType 目标类型
-     * @return 创建结果
+     * 获取未读通知数量
      */
-    @PostMapping("/sessions")
-    @RequiresLogin
-    public Result<Object> createChatSession(@RequestParam String targetId, 
-                                            @RequestParam String targetType) {
-        logger.info("创建聊天会话请求, targetId: {}, targetType: {}", targetId, targetType);
-        return messageService.createChatSession(targetId, targetType);
+    @GetMapping("/notifications/unread-count")
+    public Result<Integer> countUnreadNotifications() {
+        Integer result = messageService.countUnreadNotifications();
+        return Result.success(result);
     }
 
     /**
-     * 置顶聊天会话
-     * 路径: PUT /message/sessions/{sessionId}/pin
-     * 成功码: 7014, 失败码: 1100
-     *
-     * @param sessionId 会话ID
-     * @return 置顶结果
+     * 置顶会话
      */
     @PutMapping("/sessions/{sessionId}/pin")
-    @RequiresLogin
-    public Result<Boolean> pinChatSession(@PathVariable String sessionId) {
-        logger.info("置顶聊天会话请求: {}", sessionId);
-        return messageService.pinChatSession(sessionId);
+    public Result<Boolean> pinChatSession(@PathVariable Long sessionId) {
+        Boolean result = messageService.pinChatSession(sessionId);
+        return Result.success(result);
     }
-
+    
     /**
-     * 删除聊天会话
-     * 路径: DELETE /message/sessions/{sessionId}
-     * 成功码: 7001, 失败码: 1100
-     *
-     * @param sessionId 会话ID
-     * @return 删除结果
+     * 删除会话
      */
     @DeleteMapping("/sessions/{sessionId}")
-    @RequiresLogin
-    public Result<Boolean> deleteChatSession(@PathVariable String sessionId) {
-        logger.info("删除聊天会话请求: {}", sessionId);
-        return messageService.deleteChatSession(sessionId);
+    public Result<Boolean> deleteChatSession(@PathVariable Long sessionId) {
+        Boolean result = messageService.deleteChatSession(sessionId);
+        return Result.success(result);
     }
-
-    // ==================== 用户主页 ====================
+    
+    /**
+     * 发送图片消息
+     */
+    @PostMapping("/messages/image")
+    public Result<ChatMessage> sendImageMessage(
+            @RequestParam("sessionId") String sessionId,
+            @RequestParam("receiverId") String receiverId,
+            @RequestParam("image") org.springframework.web.multipart.MultipartFile image) {
+        ChatMessage result = messageService.sendImageMessage(sessionId, receiverId, image);
+        return Result.success(result);
+    }
+    
+    /**
+     * 获取用户主页信息
+     */
+    @GetMapping("/user/profile/{userId}")
+    public Result<Map<String, Object>> getUserProfile(@PathVariable String userId) {
+        Map<String, Object> result = messageService.getUserProfile(userId);
+        return Result.success(result);
+    }
+    
+    /**
+     * 获取用户动态
+     */
+    @GetMapping("/user/profile/{userId}/dynamic")
+    public Result<Map<String, Object>> getUserDynamic(@PathVariable String userId) {
+        Map<String, Object> result = messageService.getUserDynamic(userId);
+        return Result.success(result);
+    }
+    
+    /**
+     * 获取用户统计数据
+     */
+    @GetMapping("/user/profile/{userId}/statistics")
+    public Result<Map<String, Object>> getUserStatistics(@PathVariable String userId) {
+        Map<String, Object> result = messageService.getUserStatistics(userId);
+        return Result.success(result);
+    }
 
     /**
      * 获取用户发布的帖子列表
-     * 路径: GET /message/user/posts
-     * 成功码: 200, 失败码: 1102
-     *
-     * @param params 查询参数 {page, size, sortBy}
-     * @return 帖子列表
      */
     @GetMapping("/user/posts")
-    @RequiresLogin
-    public Result<Object> getUserPosts(@RequestParam Map<String, Object> params) {
-        logger.info("获取用户帖子列表请求, params: {}", params);
-        return messageService.getUserPosts(params);
+    public Result<PageResult<Map<String, Object>>> getUserPosts(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "20") Integer size,
+            @RequestParam(required = false) String sortBy) {
+        PageParam pageParam = new PageParam();
+        pageParam.setPageNum(page);
+        pageParam.setPageSize(size);
+        PageResult<Map<String, Object>> result = messageService.getUserPosts(sortBy, pageParam);
+        return Result.success(result);
     }
-
+    
     /**
      * 获取用户评价记录
-     * 路径: GET /message/user/reviews
-     * 成功码: 200, 失败码: 1102
-     *
-     * @param params 查询参数 {page, size}
-     * @return 评价记录列表
      */
     @GetMapping("/user/reviews")
-    @RequiresLogin
-    public Result<Object> getUserReviews(@RequestParam Map<String, Object> params) {
-        logger.info("获取用户评价记录请求, params: {}", params);
-        return messageService.getUserReviews(params);
+    public Result<PageResult<Map<String, Object>>> getUserReviews(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "20") Integer size) {
+        PageParam pageParam = new PageParam();
+        pageParam.setPageNum(page);
+        pageParam.setPageSize(size);
+        PageResult<Map<String, Object>> result = messageService.getUserReviews(pageParam);
+        return Result.success(result);
     }
 
     /**
-     * 获取用户动态
-     * 路径: GET /message/user/{userId}/dynamic
-     * 成功码: 200, 失败码: 7120
-     *
-     * @param userId 用户ID
-     * @return 用户动态
+     * 获取客服会话列表 (仅商家权限)
      */
-    @GetMapping("/user/{userId}/dynamic")
-    public Result<Object> getUserDynamic(@PathVariable String userId) {
-        logger.info("获取用户动态请求: {}", userId);
-        return messageService.getUserDynamic(userId);
+    @GetMapping("/customer-service/sessions")
+    public Result<List<ChatSession>> listCustomerServiceSessions() {
+        List<ChatSession> result = messageService.listCustomerServiceSessions();
+        return Result.success(result);
     }
 
     /**
-     * 获取用户统计数据
-     * 路径: GET /message/user/{userId}/statistics
-     * 成功码: 200, 失败码: 7120
-     *
-     * @param userId 用户ID
-     * @return 用户统计数据
+     * 回复客服消息 (仅商家权限)
      */
-    @GetMapping("/user/{userId}/statistics")
-    public Result<Object> getUserStatistics(@PathVariable String userId) {
-        logger.info("获取用户统计数据请求: {}", userId);
-        return messageService.getUserStatistics(userId);
-    }
-
-    /**
-     * 获取用户主页信息
-     * 路径: GET /message/user/{userId}
-     * 成功码: 200, 失败码: 7120, 7121
-     * 注意：此路径应放在 /user/{userId}/dynamic 和 /user/{userId}/statistics 之后
-     *
-     * @param userId 用户ID
-     * @return 用户主页信息
-     */
-    @GetMapping("/user/{userId}")
-    public Result<Object> getUserProfile(@PathVariable String userId) {
-        logger.info("获取用户主页信息请求: {}", userId);
-        return messageService.getUserProfile(userId);
+    @PostMapping("/customer-service/messages")
+    public Result<ChatMessage> replyCustomerService(@RequestBody ChatMessage message) {
+        ChatMessage result = messageService.replyCustomerService(message);
+        return Result.success(result);
     }
 }
