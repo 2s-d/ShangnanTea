@@ -803,15 +803,16 @@ const actions = {
   },
 
   // 帖子点赞收藏相关actions
+  // 接口#135: 点赞帖子 - 成功码6010, 失败码6110
   async likePost({ commit }, id) {
     try {
-      const response = await likePost(id)
+      const res = await likePost(id)
       commit('UPDATE_POST_LIKE', { 
         id, 
         isLiked: true, 
-        likeCount: response?.likeCount 
+        likeCount: res.data?.likeCount 
       })
-      return response
+      return res // 返回 {code, data}
     } catch (error) {
       commit('SET_ERROR', error.message || '点赞失败')
       console.error('点赞帖子失败:', error)
@@ -819,15 +820,16 @@ const actions = {
     }
   },
 
+  // 接口#136: 取消点赞帖子 - 成功码6011, 失败码6111
   async unlikePost({ commit }, id) {
     try {
-      const response = await unlikePost(id)
+      const res = await unlikePost(id)
       commit('UPDATE_POST_LIKE', { 
         id, 
         isLiked: false, 
-        likeCount: response?.likeCount 
+        likeCount: res.data?.likeCount 
       })
-      return response
+      return res // 返回 {code, data}
     } catch (error) {
       commit('SET_ERROR', error.message || '取消点赞失败')
       console.error('取消点赞帖子失败:', error)
@@ -835,15 +837,16 @@ const actions = {
     }
   },
 
+  // 接口#137: 收藏帖子 - 成功码6012, 失败码6112
   async favoritePost({ commit }, id) {
     try {
-      const response = await favoritePost(id)
+      const res = await favoritePost(id)
       commit('UPDATE_POST_FAVORITE', { 
         id, 
         isFavorited: true, 
-        favoriteCount: response?.favoriteCount 
+        favoriteCount: res.data?.favoriteCount 
       })
-      return response
+      return res // 返回 {code, data}
     } catch (error) {
       commit('SET_ERROR', error.message || '收藏失败')
       console.error('收藏帖子失败:', error)
@@ -851,15 +854,16 @@ const actions = {
     }
   },
 
+  // 接口#138: 取消收藏帖子 - 成功码6013, 失败码6113
   async unfavoritePost({ commit }, id) {
     try {
-      const response = await unfavoritePost(id)
+      const res = await unfavoritePost(id)
       commit('UPDATE_POST_FAVORITE', { 
         id, 
         isFavorited: false, 
-        favoriteCount: response?.favoriteCount 
+        favoriteCount: res.data?.favoriteCount 
       })
-      return response
+      return res // 返回 {code, data}
     } catch (error) {
       commit('SET_ERROR', error.message || '取消收藏失败')
       console.error('取消收藏帖子失败:', error)
@@ -868,19 +872,19 @@ const actions = {
   },
 
   // 任务组F：内容审核相关actions
+  // 接口#139: 获取待审核帖子 - 成功码200, 失败码6136
   async fetchPendingPosts({ commit }, params = {}) {
     commit('SET_LOADING', true)
     commit('SET_ERROR', null)
     
     try {
-      const response = await getPendingPosts(params)
-      // response 已经是 unwrap 后的数据
-      const posts = response?.posts || (Array.isArray(response) ? response : [])
+      const res = await getPendingPosts(params)
+      const posts = res.data?.posts || (Array.isArray(res.data) ? res.data : [])
       commit('SET_PENDING_POSTS', posts)
-      if (response?.pagination) {
-        commit('SET_PENDING_POSTS_PAGINATION', response.pagination)
+      if (res.data?.pagination) {
+        commit('SET_PENDING_POSTS_PAGINATION', res.data.pagination)
       }
-      return response
+      return res // 返回 {code, data}
     } catch (error) {
       commit('SET_ERROR', error.message || '获取待审核帖子列表失败')
       console.error('获取待审核帖子列表失败:', error)
@@ -890,15 +894,16 @@ const actions = {
     }
   },
 
+  // 接口#140: 审核通过 - 成功码6034, 失败码6134
   async approvePost({ commit }, { id, data }) {
     commit('SET_LOADING', true)
     commit('SET_ERROR', null)
     
     try {
-      const response = await approvePost(id, data)
+      const res = await approvePost(id, data)
       commit('UPDATE_POST_AUDIT_STATUS', { id, auditStatus: 'approved' })
       commit('REMOVE_PENDING_POST', id)
-      return response
+      return res // 返回 {code, data}
     } catch (error) {
       commit('SET_ERROR', error.message || '审核通过失败')
       console.error('审核通过失败:', error)
@@ -908,15 +913,16 @@ const actions = {
     }
   },
 
+  // 接口#141: 审核拒绝 - 成功码6035, 失败码6135
   async rejectPost({ commit }, { id, data }) {
     commit('SET_LOADING', true)
     commit('SET_ERROR', null)
     
     try {
-      const response = await rejectPost(id, data)
+      const res = await rejectPost(id, data)
       commit('UPDATE_POST_AUDIT_STATUS', { id, auditStatus: 'rejected' })
       commit('REMOVE_PENDING_POST', id)
-      return response
+      return res // 返回 {code, data}
     } catch (error) {
       commit('SET_ERROR', error.message || '审核拒绝失败')
       console.error('审核拒绝失败:', error)
@@ -926,9 +932,10 @@ const actions = {
     }
   },
 
+  // 接口#142: 置顶帖子 - 成功码6030/6031, 失败码6130/6131
   async togglePostSticky({ commit }, { id, isSticky }) {
     try {
-      const response = await togglePostSticky(id, isSticky)
+      const res = await togglePostSticky(id, isSticky)
       // 更新帖子列表中的置顶状态
       const post = state.forumPosts.find(p => p.id === id)
       if (post) {
@@ -938,7 +945,7 @@ const actions = {
       if (state.currentPost && state.currentPost.id === id) {
         state.currentPost.isSticky = isSticky
       }
-      return response
+      return res // 返回 {code, data}
     } catch (error) {
       commit('SET_ERROR', error.message || '置顶操作失败')
       console.error('置顶操作失败:', error)
@@ -946,9 +953,10 @@ const actions = {
     }
   },
 
+  // 接口#143: 加精帖子 - 成功码6032/6033, 失败码6132/6133
   async togglePostEssence({ commit }, { id, isEssence }) {
     try {
-      const response = await togglePostEssence(id, isEssence)
+      const res = await togglePostEssence(id, isEssence)
       // 更新帖子列表中的精华状态
       const post = state.forumPosts.find(p => p.id === id)
       if (post) {
@@ -958,7 +966,7 @@ const actions = {
       if (state.currentPost && state.currentPost.id === id) {
         state.currentPost.isEssence = isEssence
       }
-      return response
+      return res // 返回 {code, data}
     } catch (error) {
       commit('SET_ERROR', error.message || '精华操作失败')
       console.error('精华操作失败:', error)
