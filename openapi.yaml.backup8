@@ -358,6 +358,8 @@ paths:
           description: 添加成功
           content:
             application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
               example:
                 code: 4060
                 data: null
