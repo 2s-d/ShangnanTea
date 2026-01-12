@@ -253,31 +253,27 @@ export default {
         try {
           if (isEditing.value) {
             // 更新地址
-            await handleAsyncOperation(
-              store.dispatch('user/updateAddress', addressData),
-              {
-                successMessage: '地址更新成功',
-                errorMessage: '保存地址失败，请稍后再试',
-                successCallback: () => {
-                  addressModalVisible.value = false;
-                  handleFetchAddressList(); // 重新获取列表
-                }
-              }
-            )
+            const updateResponse = await store.dispatch('user/updateAddress', addressData)
+            
+            if (isSuccess(updateResponse.code)) {
+              showByCode(updateResponse.code)
+              addressModalVisible.value = false
+              handleFetchAddressList()
+            } else {
+              showByCode(updateResponse.code)
+            }
           } else {
             // 新增地址
             delete addressData.id // 新增时不需要ID
-            await handleAsyncOperation(
-              store.dispatch('user/addAddress', addressData),
-              {
-                successMessage: '地址添加成功',
-                errorMessage: '保存地址失败，请稍后再试',
-                successCallback: () => {
-                  addressModalVisible.value = false;
-                  handleFetchAddressList(); // 重新获取列表
-                }
-              }
-            )
+            const addResponse = await store.dispatch('user/addAddress', addressData)
+            
+            if (isSuccess(addResponse.code)) {
+              showByCode(addResponse.code)
+              addressModalVisible.value = false
+              handleFetchAddressList()
+            } else {
+              showByCode(addResponse.code)
+            }
           }
         } finally {
           confirmLoading.value = false

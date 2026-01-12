@@ -126,7 +126,6 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useStore } from 'vuex'
 import { uploadImage } from '@/api/upload'
 import { Plus } from '@element-plus/icons-vue'
-import { handleAsyncOperation } from '@/utils/messageHelper'
 
 import { regionData, getStaticRegionData } from '@/utils/region'
 
@@ -316,19 +315,15 @@ export default {
         submitting.value = true
         
         try {
-          const result = await handleAsyncOperation(
-            store.dispatch('user/submitShopCertification', applicationForm),
-            {
-              successMessage: () => // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
- shopMessages.success.showCertificationSubmitted(),
-              errorMessage: '提交认证申请失败，请重试'
-            }
-          )
+          const response = await store.dispatch('user/submitShopCertification', applicationForm)
           
-          if (result) {
+          if (isSuccess(response.code)) {
+            showByCode(response.code)
             // 提交成功后刷新状态
             await fetchCertificationStatus()
             resetForm()
+          } else {
+            showByCode(response.code)
           }
         } catch (error) {
           console.error('提交认证申请失败:', error)
@@ -347,19 +342,19 @@ export default {
     // 获取认证状态
     const fetchCertificationStatus = async () => {
       try {
-        const result = await handleAsyncOperation(
-          store.dispatch('user/fetchShopCertificationStatus'),
-          {
-            errorMessage: '获取认证状态失败'
-          }
-        )
+        const response = await store.dispatch('user/fetchShopCertificationStatus')
         
-        if (result && result.data) {
-          hasApplied.value = true
-          applicationStatus.value = result.data.status
-          applicationTime.value = result.data.createTime
-          rejectReason.value = result.data.rejectReason || ''
+        if (isSuccess(response.code)) {
+          if (response.data) {
+            hasApplied.value = true
+            applicationStatus.value = response.data.status
+            applicationTime.value = response.data.createTime
+            rejectReason.value = response.data.rejectReason || ''
+          } else {
+            hasApplied.value = false
+          }
         } else {
+          showByCode(response.code)
           hasApplied.value = false
         }
       } catch (error) {

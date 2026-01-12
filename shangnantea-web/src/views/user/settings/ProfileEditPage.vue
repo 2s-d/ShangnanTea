@@ -120,7 +120,6 @@ import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
 import { Sunny, Moon, MagicStick, Grid, List } from '@element-plus/icons-vue'
 
-import { handleAsyncOperation } from '@/utils/messageHelper'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { userPromptMessages as userMessages } from '@/utils/promptMessages'
 
@@ -187,13 +186,13 @@ export default {
       try {
       submitting.value = true
         const payload = { ...preferences }
-        await handleAsyncOperation(
-          store.dispatch('user/saveUserPreferences', payload),
-          {
-            successMessage: '设置已保存',
-            errorMessage: '保存设置失败，请稍后再试'
-          }
-        )
+        const response = await store.dispatch('user/saveUserPreferences', payload)
+        
+        if (isSuccess(response.code)) {
+          showByCode(response.code)
+        } else {
+          showByCode(response.code)
+        }
         
         // 应用主题设置
         applyThemeSettings(preferences.theme)
@@ -242,13 +241,12 @@ export default {
     
     onMounted(() => {
       loading.value = true
-      handleAsyncOperation(
-        store.dispatch('user/fetchUserPreferences'),
-        {
-          successMessage: null,
-          errorMessage: '获取设置失败，请稍后再试',
-          successCallback: (result) => {
-            const source = result || store.state.user.preferences
+      const fetchPreferences = async () => {
+        try {
+          const response = await store.dispatch('user/fetchUserPreferences')
+          
+          if (isSuccess(response.code)) {
+            const source = response.data || store.state.user.preferences
             Object.assign(preferences, source || {})
             // 初始化时应用主题设置
             applyThemeSettings(preferences.theme)
@@ -259,11 +257,17 @@ export default {
               document.documentElement.style.setProperty('--el-font-family', preferences.fontFamily)
               document.body.style.fontFamily = preferences.fontFamily
             }
+          } else {
+            showByCode(response.code)
           }
+        } catch (error) {
+          console.error('获取设置失败:', error)
+        } finally {
+          loading.value = false
         }
-      ).finally(() => {
-        loading.value = false
-      })
+      }
+      
+      fetchPreferences()
     })
     
     return {

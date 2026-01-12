@@ -44,11 +44,12 @@ import { userPromptMessages } from '@/utils/promptMessages'
 // 创建token存储实例
 const tokenStorage = useTokenStorage()
 
-// 用户相关的状态管�?const state = () => ({
+// 用户相关的状态管理
+const state = () => ({
   userInfo: null,
   isLoggedIn: false,
   loading: false,
-  // 用户偏好设置（主�?展示等）
+  // 用户偏好设置（主题/展示等）
   preferences: {
     theme: 'light',
     primaryColor: '#409EFF',
@@ -58,12 +59,12 @@ const tokenStorage = useTokenStorage()
     listMode: 'grid',
     pageSize: 20
   },
-  // 地址相关状�?  addressList: [],
+  // 地址相关状�?  addressList: [],
   defaultAddressId: null,
-  // 任务组D：用户互动相关状�?  followList: [], // 关注列表
+  // 任务组D：用户互动相关状�?  followList: [], // 关注列表
   favoriteList: [], // 收藏列表
   likeList: [], // 点赞列表（可选，根据需求决定是否存储）
-  // 任务组E：管理员用户管理相关状�?  userList: [], // 用户列表
+  // 任务组E：管理员用户管理相关状�?  userList: [], // 用户列表
   userPagination: {
     page: 1,
     pageSize: 20,
@@ -81,9 +82,9 @@ const getters = {
   // 获取用户角色
   userRole: state => state.userInfo?.role || 0,
   
-  // 检查是否是管理�?  isAdmin: state => state.userInfo?.role === 1,
+  // 检查是否是管理�?  isAdmin: state => state.userInfo?.role === 1,
   
-  // 检查是否是普通用�?  isUser: state => state.userInfo?.role === 2,
+  // 检查是否是普通用�?  isUser: state => state.userInfo?.role === 2,
   
   // 检查是否是商家
   isShop: state => state.userInfo?.role === 3,
@@ -104,7 +105,7 @@ const mutations = {
     state.userInfo = userInfo
   },
   
-  // 设置登录状�?  SET_LOGGED_IN(state, status) {
+  // 设置登录状�?  SET_LOGGED_IN(state, status) {
     state.isLoggedIn = status
   },
   
@@ -114,7 +115,7 @@ const mutations = {
     state.isLoggedIn = false
   },
   
-  // 设置加载状�?  SET_LOADING(state, status) {
+  // 设置加载状�?  SET_LOADING(state, status) {
     state.loading = status
   },
 
@@ -145,7 +146,7 @@ const mutations = {
     state.addressList.push(address)
     // 如果设置为默认，更新defaultAddressId
     if (address.isDefault) {
-      // 取消其他地址的默认状�?      state.addressList.forEach(addr => {
+      // 取消其他地址的默认状�?      state.addressList.forEach(addr => {
         if (addr.id !== address.id) {
           addr.isDefault = false
         }
@@ -161,7 +162,7 @@ const mutations = {
       state.addressList.splice(index, 1, updatedAddress)
       // 如果设置为默认，更新defaultAddressId
       if (updatedAddress.isDefault) {
-        // 取消其他地址的默认状�?        state.addressList.forEach(addr => {
+        // 取消其他地址的默认状�?        state.addressList.forEach(addr => {
           if (addr.id !== updatedAddress.id) {
             addr.isDefault = false
           }
@@ -185,7 +186,7 @@ const mutations = {
   
   // 设置默认地址
   SET_DEFAULT_ADDRESS(state, addressId) {
-    // 取消所有地址的默认状�?    state.addressList.forEach(addr => {
+    // 取消所有地址的默认状�?    state.addressList.forEach(addr => {
       addr.isDefault = addr.id === addressId
     })
     state.defaultAddressId = addressId
@@ -248,7 +249,7 @@ const mutations = {
     state.userPagination = { ...state.userPagination, ...pagination }
   },
   
-  // 设置筛选条�?  SET_USER_FILTERS(state, filters) {
+  // 设置筛选条�?  SET_USER_FILTERS(state, filters) {
     state.userFilters = { ...state.userFilters, ...filters }
   },
   
@@ -314,12 +315,12 @@ const mapAddressToBackend = (address) => {
 
 const actions = {
   // 用户登录
-  // 接口#1: 登录 - 成功�?000, 失败�?100/2105
+  // 接口#1: 登录 - 成功�?000, 失败�?100/2105
   async login({ commit }, loginData) {
     try {
       commit('SET_LOADING', true)
       
-      // 调用登录API，返�?{code, data}
+      // 调用登录API，返�?{code, data}
       const res = await loginApi(loginData)
       // 后端返回格式：{ code, data: { token: string } }
       const { token } = res.data || res
@@ -327,15 +328,15 @@ const actions = {
       // 存储token
       tokenStorage.setToken(token)
       
-      // 从token中解析用户信�?      const userInfo = tokenStorage.verifyToken()
+      // 从token中解析用户信�?      const userInfo = tokenStorage.verifyToken()
       if (!userInfo) {
         throw new Error('Token解析失败')
       }
       
-      // 更新状�?      commit('SET_USER_INFO', userInfo)
+      // 更新状�?      commit('SET_USER_INFO', userInfo)
       commit('SET_LOGGED_IN', true)
       
-      return res // 返回 {code, data}，组件调�?showByCode(res.code)
+      return res // 返回 {code, data}，组件调�?showByCode(res.code)
     } catch (error) {
       throw error
     } finally {
@@ -344,7 +345,7 @@ const actions = {
   },
   
   // 用户注册
-  // 接口#2: 注册 - 成功�?001, 失败�?101
+  // 接口#2: 注册 - 成功�?001, 失败�?101
   async register({ commit }, registerData) {
     try {
       commit('SET_LOADING', true)
@@ -352,7 +353,7 @@ const actions = {
       // 调用注册API
       const res = await register(registerData)
       
-      return res // 返回 {code, data}，组件调�?showByCode(res.code)
+      return res // 返回 {code, data}，组件调�?showByCode(res.code)
     } catch (error) {
       throw error
     } finally {
@@ -376,8 +377,8 @@ const actions = {
   },
 
   /**
-   * 获取商家认证状�?   * @param {Object} context Vuex context
-   * @returns {Promise<Object>} 状态数�?   */
+   * 获取商家认证状�?   * @param {Object} context Vuex context
+   * @returns {Promise<Object>} 状态数�?   */
   async fetchShopCertificationStatus({ commit }) {
     commit('SET_LOADING', true)
     try {
@@ -388,7 +389,7 @@ const actions = {
   },
 
   /**
-   * 获取用户偏好设置（主�?展示等）
+   * 获取用户偏好设置（主�?展示等）
    * @param {Object} context Vuex context
    * @returns {Promise<Object>} preferences
    */
@@ -396,7 +397,7 @@ const actions = {
     commit('SET_LOADING', true)
     try {
       const result = await getUserPreferencesApi()
-      // 兼容：后端可能返�?{ data: {...} } 或直接返�?{...}
+      // 兼容：后端可能返�?{ data: {...} } 或直接返�?{...}
       const preferences = result?.data || result?.preferences || result
       commit('SET_PREFERENCES', preferences)
       return preferences
@@ -406,7 +407,7 @@ const actions = {
   },
 
   /**
-   * 保存用户偏好设置（主�?展示等）
+   * 保存用户偏好设置（主�?展示等）
    * @param {Object} context Vuex context
    * @param {Object} preferences 偏好设置
    * @returns {Promise<Object>} 保存结果
@@ -415,7 +416,7 @@ const actions = {
     commit('SET_LOADING', true)
     try {
       const result = await updateUserPreferencesApi(preferences)
-      // 以服务端回写为准（若后端仅返�?success，则直接使用入参�?      const saved = result?.data || result?.preferences || result || preferences
+      // 以服务端回写为准（若后端仅返�?success，则直接使用入参�?      const saved = result?.data || result?.preferences || result || preferences
       commit('SET_PREFERENCES', saved)
       return saved
     } finally {
@@ -423,7 +424,7 @@ const actions = {
     }
   },
   
-  // 退出登�?  // 接口#3: 登出 - 成功�?002
+  // 退出登�?  // 接口#3: 登出 - 成功�?002
   async logout({ commit }) {
     try {
       commit('SET_LOADING', true)
@@ -431,31 +432,31 @@ const actions = {
       // 调用登出API
       const res = await logout()
       
-      // 清除token和用户信�?      tokenStorage.removeToken()
+      // 清除token和用户信�?      tokenStorage.removeToken()
       commit('CLEAR_USER')
       
-      return res // 返回 {code, data}，组件调�?showByCode(res.code)
+      return res // 返回 {code, data}，组件调�?showByCode(res.code)
     } catch (error) {
-      console.error('退出登录失�?', error)
+      console.error('退出登录失�?', error)
       throw error
     } finally {
       commit('SET_LOADING', false)
     }
   },
   
-  // 初始化用户信�?  async initAuth({ commit, state }) {
-    // 如果已经有用户信息，不再重复初始�?    if (state.userInfo) {
+  // 初始化用户信�?  async initAuth({ commit, state }) {
+    // 如果已经有用户信息，不再重复初始�?    if (state.userInfo) {
       return state.userInfo
     }
     
     // 获取token
     const token = tokenStorage.getToken()
     
-    // 没有token，则未登�?    if (!token) {
+    // 没有token，则未登�?    if (!token) {
       return null
     }
     
-    // 检查token有效�?    if (!tokenStorage.verifyToken()) {
+    // 检查token有效�?    if (!tokenStorage.verifyToken()) {
       tokenStorage.removeToken()
       return null
     }
@@ -463,14 +464,14 @@ const actions = {
     try {
       commit('SET_LOADING', true)
       
-      // 从服务器获取最新用户信�?      const userInfo = await getCurrentUser()
+      // 从服务器获取最新用户信�?      const userInfo = await getCurrentUser()
       
-      // 更新状�?      commit('SET_USER_INFO', userInfo)
+      // 更新状�?      commit('SET_USER_INFO', userInfo)
       commit('SET_LOGGED_IN', true)
       
       return userInfo
     } catch (error) {
-      console.error('初始化用户信息失�?', error)
+      console.error('初始化用户信息失�?', error)
       tokenStorage.removeToken()
       commit('CLEAR_USER')
       return null
@@ -488,7 +489,7 @@ const actions = {
       // 调用API获取用户信息
       const userInfo = await getUserInfoApi(userId)
       
-      // 更新状态（如果获取的是当前用户信息�?      if (!userId) {
+      // 更新状态（如果获取的是当前用户信息�?      if (!userId) {
         commit('SET_USER_INFO', userInfo)
         commit('SET_LOGGED_IN', true)
       }
@@ -496,7 +497,7 @@ const actions = {
       return userInfo
     } catch (error) {
       console.error('获取用户信息失败:', error)
-      // 如果是获取当前用户信息失败，清除登录状�?      if (!userId) {
+      // 如果是获取当前用户信息失败，清除登录状�?      if (!userId) {
         tokenStorage.removeToken()
         commit('CLEAR_USER')
       }
@@ -507,10 +508,10 @@ const actions = {
   },
   
   // 更新用户信息
-  // 接口#6: 更新个人资料 - 成功�?010, 失败�?110
+  // 接口#6: 更新个人资料 - 成功�?010, 失败�?110
   async updateUserInfo({ commit, state }, newUserInfo) {
     if (!state.userInfo) {
-      throw new Error('用户未登�?)
+      throw new Error('用户未登�?)
     }
     
     try {
@@ -519,9 +520,9 @@ const actions = {
       // 调用更新API
       const res = await updateUserInfo(newUserInfo)
       
-      // 更新状�?      commit('SET_USER_INFO', res.data || res)
+      // 更新状�?      commit('SET_USER_INFO', res.data || res)
       
-      return res // 返回 {code, data}，组件调�?showByCode(res.code)
+      return res // 返回 {code, data}，组件调�?showByCode(res.code)
     } catch (error) {
       throw error
     } finally {
@@ -594,7 +595,7 @@ const actions = {
     try {
       commit('SET_LOADING', true)
       
-      // 检查新密码与确认密码是否一�?      if (passwordData.newPassword !== passwordData.confirmPassword) {
+      // 检查新密码与确认密码是否一�?      if (passwordData.newPassword !== passwordData.confirmPassword) {
         // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
 
         userPromptMessages.error.showPasswordMismatch()
@@ -637,7 +638,7 @@ const actions = {
       // 更新token
       tokenStorage.setToken(token)
       
-      // 从token中解析用户信�?      const userInfo = tokenStorage.verifyToken()
+      // 从token中解析用户信�?      const userInfo = tokenStorage.verifyToken()
       if (userInfo) {
         commit('SET_USER_INFO', userInfo)
         commit('SET_LOGGED_IN', true)
@@ -646,7 +647,7 @@ const actions = {
       return { token, userInfo }
     } catch (error) {
       console.error('刷新Token失败:', error)
-      // Token刷新失败，清除用户信�?      tokenStorage.removeToken()
+      // Token刷新失败，清除用户信�?      tokenStorage.removeToken()
       commit('CLEAR_USER')
       throw error
     }
@@ -680,7 +681,7 @@ const actions = {
   
   // 处理会话过期
   handleSessionExpired({ commit }) {
-    // 清除token和用户信�?    tokenStorage.removeToken()
+    // 清除token和用户信�?    tokenStorage.removeToken()
     commit('CLEAR_USER')
     
     // 显示会话过期消息
@@ -703,7 +704,7 @@ const actions = {
   
   // 处理认证错误
   handleAuthError({ commit }) {
-    // 清除token和用户信�?    tokenStorage.removeToken()
+    // 清除token和用户信�?    tokenStorage.removeToken()
     commit('CLEAR_USER')
     
     // 显示认证错误消息
@@ -745,7 +746,7 @@ const actions = {
   async addAddress({ commit }, addressData) {
     commit('SET_LOADING', true)
     try {
-      // 任务B-2：将前端字段转换为后端字�?      const backendData = mapAddressToBackend(addressData)
+      // 任务B-2：将前端字段转换为后端字�?      const backendData = mapAddressToBackend(addressData)
       const res = await addAddressApi(backendData)
       const newAddress = mapAddressFromBackend(res)
       commit('ADD_ADDRESS', newAddress)
@@ -761,7 +762,7 @@ const actions = {
   /**
    * 更新地址
    * @param {Object} context Vuex context
-   * @param {Object} addressData 地址数据（必须包含id�?   * @returns {Promise} 更新后的地址
+   * @param {Object} addressData 地址数据（必须包含id�?   * @returns {Promise} 更新后的地址
    */
   async updateAddress({ commit }, addressData) {
     if (!addressData.id) {
@@ -770,7 +771,7 @@ const actions = {
     
     commit('SET_LOADING', true)
     try {
-      // 任务B-2：将前端字段转换为后端字�?      const backendData = mapAddressToBackend(addressData)
+      // 任务B-2：将前端字段转换为后端字�?      const backendData = mapAddressToBackend(addressData)
       const res = await updateAddressApi(addressData.id, backendData)
       const updatedAddress = mapAddressFromBackend(res)
       commit('UPDATE_ADDRESS', updatedAddress)
@@ -833,7 +834,7 @@ const actions = {
   /**
    * 获取关注列表
    * @param {Object} context Vuex context
-   * @param {String} type 关注类型（user/shop），可�?   * @returns {Promise} 关注列表
+   * @param {String} type 关注类型（user/shop），可�?   * @returns {Promise} 关注列表
    */
   async fetchFollowList({ commit }, type = null) {
     commit('SET_LOADING', true)
@@ -894,7 +895,7 @@ const actions = {
   /**
    * 获取收藏列表
    * @param {Object} context Vuex context
-   * @param {String} type 收藏类型（tea/post/article），可�?   * @returns {Promise} 收藏列表
+   * @param {String} type 收藏类型（tea/post/article），可�?   * @returns {Promise} 收藏列表
    */
   async fetchFavoriteList({ commit }, type = null) {
     commit('SET_LOADING', true)
@@ -996,7 +997,7 @@ const actions = {
   // ========== 任务组E：管理员用户管理actions ==========
   
   /**
-   * 获取用户列表（管理员�?   * @param {Object} context Vuex context
+   * 获取用户列表（管理员�?   * @param {Object} context Vuex context
    * @param {Object} params 查询参数
    * @returns {Promise} 用户列表
    */
@@ -1022,7 +1023,7 @@ const actions = {
   },
   
   /**
-   * 更新用户角色（管理员�?   * @param {Object} context Vuex context
+   * 更新用户角色（管理员�?   * @param {Object} context Vuex context
    * @param {Object} data { userId, role }
    * @returns {Promise} 更新结果
    */
@@ -1053,7 +1054,7 @@ const actions = {
       commit('UPDATE_USER_IN_LIST', { id: userId, status })
       return true
     } catch (error) {
-      console.error('切换用户状态失�?', error)
+      console.error('切换用户状态失�?', error)
       throw error
     } finally {
       commit('SET_LOADING', false)
@@ -1061,7 +1062,7 @@ const actions = {
   },
   
   /**
-   * 获取商家认证申请列表（管理员�?   * @param {Object} context Vuex context
+   * 获取商家认证申请列表（管理员�?   * @param {Object} context Vuex context
    * @param {Object} params 查询参数
    * @returns {Promise} 认证申请列表
    */
@@ -1081,7 +1082,7 @@ const actions = {
   },
   
   /**
-   * 处理商家认证申请（管理员�?   * @param {Object} context Vuex context
+   * 处理商家认证申请（管理员�?   * @param {Object} context Vuex context
    * @param {Object} data { certId, action, message }
    * @returns {Promise} 处理结果
    */
@@ -1089,7 +1090,7 @@ const actions = {
     commit('SET_LOADING', true)
     try {
       await processCertificationApi(certId, { action, message })
-      // 更新本地状�?      const status = action === 'approve' ? 2 : 1 // 2-已通过�?-已拒�?      commit('UPDATE_CERTIFICATION_IN_LIST', { id: certId, status })
+      // 更新本地状�?      const status = action === 'approve' ? 2 : 1 // 2-已通过�?-已拒�?      commit('UPDATE_CERTIFICATION_IN_LIST', { id: certId, status })
       return true
     } catch (error) {
       console.error('处理认证申请失败:', error)
@@ -1100,16 +1101,16 @@ const actions = {
   },
 
   /**
-   * 创建管理员账号（仅管理员�?   * @param {Object} context Vuex context
-   * @param {Object} adminData 管理员数�?   * @returns {Promise} 创建结果
+   * 创建管理员账号（仅管理员�?   * @param {Object} context Vuex context
+   * @param {Object} adminData 管理员数�?   * @returns {Promise} 创建结果
    */
   async createAdmin({ commit }, adminData) {
     commit('SET_LOADING', true)
     try {
       const result = await createAdminApi(adminData)
-      // 创建成功后刷新用户列�?      return result
+      // 创建成功后刷新用户列�?      return result
     } catch (error) {
-      console.error('创建管理员失�?', error)
+      console.error('创建管理员失�?', error)
       throw error
     } finally {
       commit('SET_LOADING', false)

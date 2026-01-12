@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="article-detail-page">
     <!-- 文章内容容器 -->
     <div class="article-container">

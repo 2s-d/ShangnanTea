@@ -282,7 +282,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
 import { useStore } from 'vuex'
 import { message } from '@/components/common'
-import { handleAsyncOperation } from '@/utils/messageHelper'
+import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { 
   Check, CircleCheck, Warning, Picture, Smile, Loading, 
   MoreFilled
@@ -341,13 +341,12 @@ export default {
     // 获取所有会话列表
     const fetchSessions = async () => {
       try {
-        await handleAsyncOperation(
-          store.dispatch('message/fetchChatSessions'),
-          {
-            successMessage: null,
-            errorMessage: '获取会话列表失败，请稍后重试'
-          }
-        )
+        const response = await store.dispatch('message/fetchChatSessions')
+        
+        if (!isSuccess(response.code)) {
+          showByCode(response.code)
+          return
+        }
 
         // 从Vuex获取会话列表数据
         const sessions = store.state.message.chatSessions || []
