@@ -47,7 +47,7 @@
   - 确保拦截器正确返回响应格式
   - 确保 showByCode 正常工作
 
-- [ ] 6. 清理旧文件
+- [-] 6. 清理旧文件
   - [ ] 6.1 删除旧消息文件
     - 删除 commonMessages.js、userMessages.js、teaMessages.js、orderMessages.js、shopMessages.js、forumMessages.js、messageMessages.js
     - ⚠️ 注意：这些文件目前仍存在，且仍有代码在引用其 SUCCESS/ERROR 消息
