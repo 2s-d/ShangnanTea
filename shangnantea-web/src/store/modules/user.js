@@ -691,11 +691,17 @@ const actions = {
       // 调用密码找回API
       const result = await resetPasswordApi(resetData)
       
-      ElMessage.success('密码重置成功')
+      // 显示找回成功消息
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      userMessages.success.showPasswordResetSuccess()
       
       return result
     } catch (error) {
-      ElMessage.error(error.message || '密码重置失败')
+      // 显示找回失败消息
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      userMessages.error.showPasswordResetFailure(error.message)
       throw error
     } finally {
       commit('SET_LOADING', false)
@@ -708,12 +714,22 @@ const actions = {
     tokenStorage.removeToken()
     commit('CLEAR_USER')
     
-    ElMessage.error('登录已过期，请重新登录')
+    // 显示会话过期消息
+    // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+    // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+    userMessages.error.showSessionExpired()
   },
   
   // 处理权限拒绝
   handlePermissionDenied() {
-    ElMessage.error('您没有权限执行此操作')
+    // 显示权限拒绝消息
+    // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+    // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+    userMessages.error.showPermissionDenied()
   },
   
   // 处理认证错误
@@ -722,7 +738,12 @@ const actions = {
     tokenStorage.removeToken()
     commit('CLEAR_USER')
     
-    ElMessage.error('认证失败，请重新登录')
+    // 显示认证错误消息
+    // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+    // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+    userMessages.error.showSessionExpired()
   },
   
   // === 地址相关actions ===
