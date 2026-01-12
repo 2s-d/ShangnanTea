@@ -16,6 +16,7 @@ import java.util.Map;
 /**
  * 店铺控制器
  * 参考：前端 shop.js 和 code-message-mapping.md
+ * 接口数量：28个（26个店铺接口 + 2个公共上传接口）
  */
 @RestController
 @RequestMapping({"/shop", "/api/shop", "/upload", "/api/upload"})
