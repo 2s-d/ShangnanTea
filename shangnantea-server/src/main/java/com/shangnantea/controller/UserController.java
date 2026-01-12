@@ -501,8 +501,7 @@ public class UserController {
     @RequiresRoles({1}) // 管理员角色
     public Result<Boolean> updateUser(@PathVariable String userId, @RequestBody Map<String, Object> userData) {
         logger.info("更新用户信息请求(管理员): {}", userId);
-        Boolean result = userService.updateUser(userId, userData);
-        return Result.success(result);
+        return userService.updateUser(userId, userData);
     }
 
     /**
@@ -517,8 +516,7 @@ public class UserController {
     @RequiresRoles({1}) // 管理员角色
     public Result<Boolean> deleteUser(@PathVariable String userId) {
         logger.info("删除用户请求(管理员): {}", userId);
-        Boolean result = userService.deleteUser(userId);
-        return Result.success(result);
+        return userService.deleteUser(userId);
     }
 
     /**
@@ -535,8 +533,7 @@ public class UserController {
     @Deprecated
     public Result<Boolean> updateUserRole(@PathVariable String userId, @RequestBody Map<String, Object> roleData) {
         logger.warn("使用已废弃的更新用户角色接口: {}", userId);
-        Boolean result = userService.updateUserRole(userId, roleData);
-        return Result.success(result);
+        return userService.updateUserRole(userId, roleData);
     }
 
     /**
@@ -552,8 +549,7 @@ public class UserController {
     @RequiresRoles({1}) // 管理员角色
     public Result<Boolean> toggleUserStatus(@PathVariable String userId, @RequestBody Map<String, Object> statusData) {
         logger.info("切换用户状态请求(管理员): {}, status: {}", userId, statusData.get("status"));
-        Boolean result = userService.toggleUserStatus(userId, statusData);
-        return Result.success(result);
+        return userService.toggleUserStatus(userId, statusData);
     }
 
     /**
@@ -573,8 +569,7 @@ public class UserController {
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer pageSize) {
         logger.info("获取商家认证申请列表请求(管理员), status: {}, page: {}, pageSize: {}", status, page, pageSize);
-        Object result = userService.getCertificationList(status, page, pageSize);
-        return Result.success(result);
+        return userService.getCertificationList(status, page, pageSize);
     }
 
     /**
@@ -590,7 +585,6 @@ public class UserController {
     @RequiresRoles({1}) // 管理员角色
     public Result<Boolean> processCertification(@PathVariable Integer id, @RequestBody Map<String, Object> auditData) {
         logger.info("审核认证申请请求(管理员): {}, status: {}", id, auditData.get("status"));
-        Boolean result = userService.processCertification(id, auditData);
-        return Result.success(result);
+        return userService.processCertification(id, auditData);
     }
 }
