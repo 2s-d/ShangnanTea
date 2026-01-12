@@ -177,12 +177,13 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, provide, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { ElMessageBox } from 'element-plus'
-import { showByCode } from '@/utils/apiMessages'
+import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { orderPromptMessages } from '@/utils/promptMessages'
+import { errorMessage } from '@/utils/messageManager'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 export default {
   name: 'CartPage',
@@ -203,24 +204,24 @@ export default {
     const currentCartItemId = ref(null)
     const availableSpecs = ref([])
     const tempSelectedSpecId = ref(null)
-    
-    /**
-     * 初始化购物车数据（生产链路：Vuex→API）
-     * 注意：这里仅做“去除 UI-DEV mock”的改造，不在页面内造数据。
-     */
+  
     const initCartData = async () => {
       loading.value = true
       try {
-        await store.dispatch('order/fetchCartItems')
-        const items = store.state.order.cartItems || []
-        // 选择状态不应由 UI 伪造；若后端暂未提供 selected，则默认全选展示层为 true（仅影响 UI 勾选）
-        cartItems.value = items.map((i) => ({
-          ...i,
-          selected: typeof i.selected === 'boolean' ? i.selected : true
-        }))
-        updateSelectAllStatus()
+        const res = await store.dispatch('order/fetchCartItems')
+        // res = {code, data}
+        if (res && isSuccess(res.code)) {
+          const items = res.data || []
+          cartItems.value = items.map((i) => ({
+            ...i,
+            selected: typeof i.selected === 'boolean' ? i.selected : true
+          }))
+          updateSelectAllStatus()
+        } else if (res) {
+          showByCode(res.code)
+        }
       } catch (error) {
-        orderErrorMessages.showCartLoadFailed(error?.message)
+        errorMessage.show(error?.message || '加载购物车失败')
       } finally {
         loading.value = false
       }
@@ -290,13 +291,16 @@ export default {
       }
       
       try {
-        await store.dispatch('order/updateCartItem', {
+        const res = await store.dispatch('order/updateCartItem', {
           id: item.id,
           quantity: item.quantity
         })
-        orderSuccessMessages.showCartQuantityUpdated()
+        // res = {code, data}
+        if (res && res.code !== 200) {
+          showByCode(res.code)
+        }
       } catch (error) {
-        orderErrorMessages.showCartUpdateFailed(error?.message)
+        errorMessage.show(error?.message || '更新数量失败')
         // 恢复：重新拉取购物车
         await initCartData()
       }
@@ -311,8 +315,8 @@ export default {
       // 获取茶叶的规格列表
       try {
         loading.value = true
-        const specs = await store.dispatch('tea/fetchTeaSpecifications', item.tea_id)
-        availableSpecs.value = specs || []
+        const res = await store.dispatch('tea/fetchTeaSpecifications', item.tea_id)
+        availableSpecs.value = res?.data || res || []
         
         // 如果没有规格，提示用户
         if (availableSpecs.value.length === 0) {
@@ -322,7 +326,7 @@ export default {
         
         specDialogVisible.value = true
       } catch (error) {
-        orderErrorMessages.showSpecLoadFailed(error?.message)
+        errorMessage.show(error?.message || '加载规格失败')
       } finally {
         loading.value = false
       }
@@ -345,16 +349,19 @@ export default {
       try {
         loading.value = true
         // 更新购物车商品的规格
-        await store.dispatch('order/updateCartItem', {
+        const res = await store.dispatch('order/updateCartItem', {
           id: currentCartItemId.value,
           specificationId: tempSelectedSpecId.value
         })
-        orderSuccessMessages.showCartSpecUpdated()
+        // res = {code, data}
+        if (res && res.code !== 200) {
+          showByCode(res.code)
+        }
         specDialogVisible.value = false
         // 重新获取购物车数据以更新价格和库存
         await initCartData()
       } catch (error) {
-        orderErrorMessages.showSpecUpdateFailed(error?.message)
+        errorMessage.show(error?.message || '更新规格失败')
       } finally {
         loading.value = false
       }
@@ -367,12 +374,15 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        store.dispatch('order/removeFromCart', id).then(async () => {
-          orderSuccessMessages.showItemRemoved()
-          // 刷新本地列表（不依赖 UI 伪造状态）
+        store.dispatch('order/removeFromCart', id).then(async (res) => {
+          // res = {code, data}
+          if (res && res.code !== 200) {
+            showByCode(res.code)
+          }
+          // 刷新本地列表
           await initCartData()
         }).catch((error) => {
-          orderErrorMessages.showCartRemoveFailed(error?.message)
+          errorMessage.show(error?.message || '移除商品失败')
         })
       }).catch(() => {
         // 用户取消操作
@@ -395,11 +405,15 @@ export default {
           .filter((item) => item.selected)
           .map((item) => item.id)
 
-        Promise.all(selectedIds.map((id) => store.dispatch('order/removeFromCart', id))).then(async () => {
-          orderSuccessMessages.showSelectedItemsDeleted()
+        Promise.all(selectedIds.map((id) => store.dispatch('order/removeFromCart', id))).then(async (results) => {
+          // 检查是否有失败的
+          const failedRes = results.find(res => res && res.code !== 200 && res.code !== 4013)
+          if (failedRes) {
+            showByCode(failedRes.code)
+          }
           await initCartData()
         }).catch((error) => {
-          orderErrorMessages.showCartDeleteFailed(error?.message)
+          errorMessage.show(error?.message || '删除商品失败')
         })
       }).catch(() => {
         // 用户取消操作

@@ -199,141 +199,117 @@ const actions = {
   },
   
   // === 订单相关actions ===
+  // 接口93-99: 订单基础操作
   
-  // 创建订单
+  // #93 创建订单 - 成功码4000, 失败码4100/4116/4118
   async createOrder({ commit, dispatch }, orderData) {
     try {
       commit('SET_LOADING', true)
-      
       const res = await createOrder(orderData)
-      
       // 订单创建成功后清空购物车
       if (orderData.fromCart) {
         await dispatch('clearCart')
       }
-      
-      return res
+      return res // 返回 {code, data}
     } finally {
       commit('SET_LOADING', false)
     }
   },
   
-  // 获取订单列表
+  // #94 获取订单列表 - 成功码200, 失败码1102
   async fetchOrders({ commit, state }, params = {}) {
     try {
       commit('SET_LOADING', true)
-      
       const queryParams = {
         page: state.pagination.currentPage,
         size: state.pagination.pageSize,
         ...params
       }
-      
       const res = await getOrders(queryParams)
-      
-      commit('SET_ORDER_LIST', res.list)
+      const data = res.data || res
+      commit('SET_ORDER_LIST', data.list || [])
       commit('SET_PAGINATION', {
-        total: res.total,
+        total: data.total || 0,
         currentPage: state.pagination.currentPage,
         pageSize: state.pagination.pageSize
       })
-      
-      return res
+      return res // 返回 {code, data}
     } finally {
       commit('SET_LOADING', false)
     }
   },
   
-  // 获取订单详情
+  // #95 获取订单详情 - 成功码200, 失败码4105/4106/4107
   async fetchOrderDetail({ commit }, id) {
     try {
       commit('SET_LOADING', true)
-      
       const res = await getOrderDetail(id)
-      commit('SET_CURRENT_ORDER', res)
-      
-      return res
+      commit('SET_CURRENT_ORDER', res.data || res)
+      return res // 返回 {code, data}
     } finally {
       commit('SET_LOADING', false)
     }
   },
   
-  // 支付订单
+  // #96 支付订单 - 成功码4005/4020, 失败码4120/4121/4122/4124
   async payOrder({ commit }, { orderId, paymentMethod }) {
     try {
       commit('SET_LOADING', true)
-      
       const res = await payOrder({ orderId, paymentMethod })
-      
       // 更新订单状态
       commit('UPDATE_ORDER_STATUS', { id: orderId, status: 1 }) // 1:待发货
-      
-      return res
+      return res // 返回 {code, data}
     } finally {
       commit('SET_LOADING', false)
     }
   },
   
-  // 取消订单
+  // #97 取消订单 - 成功码4002, 失败码4102/4105/4106
   async cancelOrder({ commit }, id) {
     try {
       commit('SET_LOADING', true)
-      
-      await cancelOrder(id)
-      
+      const res = await cancelOrder(id)
       // 更新订单状态
       commit('UPDATE_ORDER_STATUS', { id, status: 4 }) // 4:已取消
-      
-      return true
+      return res // 返回 {code, data}
     } finally {
       commit('SET_LOADING', false)
     }
   },
 
-  // 确认收货
+  // #98 确认收货 - 成功码4003, 失败码4103/4105/4106
   async confirmReceipt({ commit }, id) {
     try {
       commit('SET_LOADING', true)
-
-      await confirmOrder(id)
-
+      const res = await confirmOrder(id)
       // 更新订单状态：已完成
       commit('UPDATE_ORDER_STATUS', { id, status: 3 })
-
-      return true
+      return res // 返回 {code, data}
     } finally {
       commit('SET_LOADING', false)
     }
   },
 
-  /**
-   * 申请退款（生产版：走后端接口，不在前端本地模拟状态）
-   * @param {Object} context Vuex context
-   * @param {Object} payload { orderId, reason }
-   * @returns {Promise} 接口返回
-   */
-  async applyRefund({ commit }, { orderId, reason }) {
-    try {
-      commit('SET_LOADING', true)
-      const res = await refundOrder({ orderId, reason })
-      return res
-    } finally {
-      commit('SET_LOADING', false)
-    }
-  },
-  
-  /**
-   * 提交订单评价
-   * @param {Object} payload { orderId, teaId, rating, content, images, isAnonymous }
-   */
+  // #99 评价订单 - 成功码4050, 失败码4150
   async submitOrderReview({ commit }, payload) {
     try {
       commit('SET_LOADING', true)
       const res = await reviewOrder(payload)
-      return res
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('提交评价失败:', error)
       throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+
+  // #100 申请退款 - 成功码4030, 失败码4130/4105/4106
+  async applyRefund({ commit }, { orderId, reason }) {
+    try {
+      commit('SET_LOADING', true)
+      const res = await refundOrder({ orderId, reason })
+      return res // 返回 {code, data}
     } finally {
       commit('SET_LOADING', false)
     }
@@ -345,28 +321,23 @@ const actions = {
   },
   
   // === 发货相关 actions ===
+  // 接口103-105: 发货与物流
   
-  /**
-   * 单个订单发货
-   * @param {Object} payload { id, logisticsCompany, logisticsNumber }
-   */
+  // #103 单个订单发货 - 成功码4004, 失败码4104/4105/4106
   async shipOrder({ commit }, { id, logisticsCompany, logisticsNumber }) {
     try {
       commit('SET_LOADING', true)
       const res = await shipOrder({ id, logisticsCompany, logisticsNumber })
       // 更新订单状态为待收货
       commit('UPDATE_ORDER_STATUS', { id, status: 2 })
-      return res
+      return res // 返回 {code, data}
     } finally {
       commit('SET_LOADING', false)
     }
   },
   
-  /**
-   * 批量发货
-   * @param {Object} payload { orderIds, logisticsCompany, logisticsNumber }
-   */
-  async batchShipOrders({ commit, dispatch }, { orderIds, logisticsCompany, logisticsNumber }) {
+  // #104 批量发货 - 成功码4006, 失败码4108/4106
+  async batchShipOrders({ commit }, { orderIds, logisticsCompany, logisticsNumber }) {
     try {
       commit('SET_LOADING', true)
       const res = await batchShipOrders({ orderIds, logisticsCompany, logisticsNumber })
@@ -374,20 +345,17 @@ const actions = {
       orderIds.forEach(id => {
         commit('UPDATE_ORDER_STATUS', { id, status: 2 })
       })
-      return res
+      return res // 返回 {code, data}
     } finally {
       commit('SET_LOADING', false)
     }
   },
   
-  /**
-   * 获取订单物流信息
-   * @param {string} id 订单ID
-   */
-  async fetchOrderLogistics({ commit }, id) {
+  // #105 获取订单物流信息 - 成功码200, 失败码4140/4105
+  async fetchOrderLogistics(_, id) {
     try {
       const res = await getOrderLogistics(id)
-      return res
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('获取物流信息失败:', error)
       throw error
@@ -395,25 +363,9 @@ const actions = {
   },
   
   // === 退款相关 actions ===
+  // 接口101-102: 退款处理
   
-  /**
-   * 获取退款详情
-   * @param {string} orderId 订单ID
-   */
-  async fetchRefundDetail({ commit }, orderId) {
-    try {
-      const res = await getRefundDetail(orderId)
-      return res
-    } catch (error) {
-      console.error('获取退款详情失败:', error)
-      throw error
-    }
-  },
-  
-  /**
-   * 审批退款
-   * @param {Object} payload { orderId, approve, reason }
-   */
+  // #101 审批退款 - 成功码4031/4032, 失败码4131/4106
   async processRefund({ commit }, { orderId, approve, reason }) {
     try {
       commit('SET_LOADING', true)
@@ -422,33 +374,39 @@ const actions = {
       if (approve) {
         commit('UPDATE_ORDER_STATUS', { id: orderId, status: 5 }) // 已退款
       }
-      return res
+      return res // 返回 {code, data}
     } finally {
       commit('SET_LOADING', false)
     }
   },
   
-  // === 统计与导出 actions ===
+  // #102 获取退款详情 - 成功码200, 失败码4132/4105
+  async fetchRefundDetail(_, orderId) {
+    try {
+      const res = await getRefundDetail(orderId)
+      return res // 返回 {code, data}
+    } catch (error) {
+      console.error('获取退款详情失败:', error)
+      throw error
+    }
+  },
   
-  /**
-   * 获取订单统计数据
-   * @param {Object} params { startDate, endDate, shopId }
-   */
+  // === 统计与导出 actions ===
+  // 接口106-107: 统计与导出
+  
+  // #106 获取订单统计数据 - 成功码200, 失败码1102
   async fetchOrderStatistics({ commit }, params = {}) {
     try {
       const res = await getOrderStatistics(params)
-      commit('SET_ORDER_STATISTICS', res)
-      return res
+      commit('SET_ORDER_STATISTICS', res.data || res)
+      return res // 返回 {code, data}
     } catch (error) {
       console.error('获取订单统计失败:', error)
       throw error
     }
   },
   
-  /**
-   * 导出订单数据
-   * @param {Object} params { format, startDate, endDate, status, shopId }
-   */
+  // #107 导出订单数据 - 成功码200, 失败码1100
   async exportOrders({ commit }, params = {}) {
     try {
       commit('SET_LOADING', true)
@@ -465,7 +423,7 @@ const actions = {
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
       
-      return true
+      return { code: 200, data: true } // 导出成功
     } catch (error) {
       console.error('导出订单失败:', error)
       throw error
