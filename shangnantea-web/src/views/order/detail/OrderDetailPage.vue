@@ -375,6 +375,7 @@ export default {
     const viewLogistics = async () => {
       try {
         const res = await store.dispatch('order/fetchOrderLogistics', orderId)
+        showByCode(res?.code)
         const data = res?.data || res
         if (data) {
           logistics.value = {
@@ -387,14 +388,7 @@ export default {
           orderPromptMessages.showNoLogisticsInfo()
         }
       } catch (error) {
-        errorMessage.show(error?.message || '获取物流信息失败')
-      }
-    }
-        } else {
-          orderPromptMessages.showNoLogisticsInfo()
-        }
-      } catch (error) {
-        orderErrorMessages.showLogisticsLoadFailed(error.message)
+        console.error('获取物流信息失败:', error)
       }
     }
     

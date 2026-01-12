@@ -290,14 +290,15 @@ export default {
     // 加载数据
     const loadData = async () => {
       try {
+        let res
         if (activeTab.value === 'posts') {
-          await store.dispatch('message/fetchUserPosts', { sortBy: sortOption.value })
+          res = await store.dispatch('message/fetchUserPosts', { sortBy: sortOption.value })
         } else if (activeTab.value === 'reviews') {
-          await store.dispatch('message/fetchUserReviews')
+          res = await store.dispatch('message/fetchUserReviews')
         }
+        if (res) showByCode(res.code)
       } catch (error) {
         console.error('加载发布内容失败：', error)
-        commonErrorMessages.showLoadFailed()
       }
     }
     

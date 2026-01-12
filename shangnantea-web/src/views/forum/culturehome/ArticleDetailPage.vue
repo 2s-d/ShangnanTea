@@ -128,7 +128,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 
 import SafeImage from '@/components/common/form/SafeImage.vue'
-import { showByCode } from '@/utils/apiMessages'
+import { forumSuccessMessages, forumErrorMessages } from '@/utils/forumMessages'
 import { forumPromptMessages } from '@/utils/promptMessages'
 
 export default {
@@ -184,8 +184,7 @@ export default {
     const loadArticleDetail = async () => {
       try {
         const articleId = route.params.id
-        const res = await store.dispatch('forum/fetchArticleDetail', articleId)
-        showByCode(res.code)
+        await store.dispatch('forum/fetchArticleDetail', articleId)
         
         // 如果文章列表为空，也加载文章列表用于相关文章推荐
         if (!store.state.forum.articles || store.state.forum.articles.length === 0) {
@@ -196,6 +195,7 @@ export default {
         await nextTick()
         suppressResizeObserverError()
       } catch (error) {
+        forumErrorMessages.showLoadFailed('获取文章详情失败')
         console.error('获取文章详情失败:', error)
       }
     }
@@ -224,11 +224,16 @@ export default {
     // 处理收藏
     const handleLike = async () => {
       try {
-        // 这里可以调用文章点赞API，目前暂时使用简单的状态切换
-        isLiked.value = !isLiked.value
-        // 收藏状态切换不需要API调用，只是本地状态变化
-        console.log('收藏状态已切换:', isLiked.value)
+        if (!isLiked.value) {
+          // 这里可以调用文章点赞API，目前暂时使用简单的状态切换
+          isLiked.value = true
+          forumSuccessMessages.showPostFavorited()
+        } else {
+          isLiked.value = false
+          forumSuccessMessages.showPostUnfavorited()
+        }
       } catch (error) {
+        forumErrorMessages.showOperationFailed()
         console.error('收藏操作失败:', error)
       }
     }
@@ -240,8 +245,7 @@ export default {
     
     // 分享到微信
     const shareToWeixin = () => {
-      // 复制链接成功提示
-      forumPromptMessages.showShareDeveloping()
+      forumSuccessMessages.showPostFavorited() // 临时使用，实际应该是复制链接成功
       shareDialogVisible.value = false
     }
     
@@ -259,8 +263,7 @@ export default {
     
     // 复制链接
     const copyLink = () => {
-      // 复制链接成功提示
-      forumPromptMessages.showShareDeveloping()
+      forumSuccessMessages.showPostFavorited() // 临时使用，实际应该是复制链接成功
       shareDialogVisible.value = false
     }
     

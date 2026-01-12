@@ -298,7 +298,8 @@ export default {
     const loadAddresses = async () => {
       try {
         loading.value = true
-        await store.dispatch('user/fetchAddresses')
+        const res = await store.dispatch('user/fetchAddresses')
+        showByCode(res?.code)
         addresses.value = store.state.user.addresses || []
         
         // 默认选中默认地址
@@ -309,7 +310,7 @@ export default {
           selectedAddressId.value = addresses.value[0].id
         }
       } catch (error) {
-        orderErrorMessages.showAddressLoadFailed()
+        console.error('加载地址失败:', error)
       } finally {
         loading.value = false
       }
@@ -327,7 +328,7 @@ export default {
           // 直接购买的情况，从缓存获取直接购买的商品
           const directBuyItem = store.state.order.directBuyItem
           if (!directBuyItem) {
-            orderErrorMessages.showProductInfoExpired()
+            orderPromptMessages.showProductInfoExpired()
             router.push('/tea/mall')
             return
           }
@@ -348,7 +349,7 @@ export default {
           orderItems.value = items
         }
       } catch (error) {
-        orderErrorMessages.showProductInfoLoadFailed()
+        console.error('加载商品信息失败:', error)
         router.push('/order/cart')
       } finally {
         loading.value = false

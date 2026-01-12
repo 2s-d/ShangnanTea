@@ -110,7 +110,7 @@ import { ElMessageBox } from 'element-plus'
 import { Bell, ChatDotRound, Star, User, Check, Delete } from '@element-plus/icons-vue'
 import { useStore } from 'vuex'
 import { handleAsyncOperation } from '@/utils/messageHelper'
-import { messageSuccessMessages, messageErrorMessages } from '@/utils/messageMessages'
+import { showByCode } from '@/utils/apiMessages'
 import { messagePromptMessages } from '@/utils/promptMessages'
 
 export default {

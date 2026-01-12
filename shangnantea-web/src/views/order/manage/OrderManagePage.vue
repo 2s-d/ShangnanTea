@@ -673,10 +673,11 @@ export default {
       
       // 从后端获取退款详情
       try {
-        const detail = await store.dispatch('order/fetchRefundDetail', order.id)
-        refundDetail.value = detail
+        const res = await store.dispatch('order/fetchRefundDetail', order.id)
+        showByCode(res?.code)
+        refundDetail.value = res?.data || res
       } catch (e) {
-        orderErrorMessages.showRefundDetailLoadFailed()
+        console.error('获取退款详情失败:', e)
         // 如果获取失败，使用订单中的基本信息作为后备
         refundDetail.value = {
           reason: order.refund_reason || '',
@@ -711,17 +712,17 @@ export default {
       
       submitting.value = true
       try {
-        await store.dispatch('order/shipOrder', {
+        const res = await store.dispatch('order/shipOrder', {
           id: currentOrder.value.id,
           logisticsCompany: shipForm.company,
           logisticsNumber: shipForm.trackingNumber
         })
+        showByCode(res?.code)
         shipDialogVisible.value = false
-        orderSuccessMessages.showOrderShipped()
         // 成功后刷新列表，确保状态与后端一致
         await fetchOrders()
       } catch (e) {
-        orderErrorMessages.showOrderShipFailed()
+        console.error('发货失败:', e)
       } finally {
         submitting.value = false
       }
@@ -755,17 +756,17 @@ export default {
       
       submitting.value = true
       try {
-        await store.dispatch('order/batchShipOrders', {
+        const res = await store.dispatch('order/batchShipOrders', {
           orderIds: selectedOrderIds.value,
           logisticsCompany: batchShipForm.company,
           logisticsNumber: batchShipForm.trackingNumber
         })
-        orderSuccessMessages.showBatchShipSuccess()
+        showByCode(res?.code)
         batchShipDialogVisible.value = false
         // 刷新列表
         await fetchOrders()
       } catch (e) {
-        orderErrorMessages.showBatchShipFailed()
+        console.error('批量发货失败:', e)
       } finally {
         submitting.value = false
       }
@@ -788,22 +789,18 @@ export default {
       ).then(async () => {
         submitting.value = true
         try {
-          await store.dispatch('order/processRefund', {
+          const res = await store.dispatch('order/processRefund', {
             orderId: order.id,
             approve: isApproved,
             reason: refundDetail.value?.reason || order.refund_reason || ''
           })
-          if (isApproved) {
-            orderSuccessMessages.showRefundApproved()
-          } else {
-            orderSuccessMessages.showRefundRejected()
-          }
+          showByCode(res?.code)
           refundDialogVisible.value = false
           refundDetail.value = null
           // 重新加载订单列表，保持与后端数据一致
           await fetchOrders()
         } catch (e) {
-          orderErrorMessages.showRefundProcessFailed(action, e?.message)
+          console.error('处理退款失败:', e)
         } finally {
           submitting.value = false
         }
@@ -826,9 +823,10 @@ export default {
           params.startDate = statisticsDateRange.value[0]
           params.endDate = statisticsDateRange.value[1]
         }
-        await store.dispatch('order/fetchOrderStatistics', params)
+        const res = await store.dispatch('order/fetchOrderStatistics', params)
+        showByCode(res?.code)
       } catch (error) {
-        orderErrorMessages.showStatisticsLoadFailed(error.message)
+        console.error('加载统计数据失败:', error)
       }
     }
     
@@ -868,11 +866,11 @@ export default {
           params.status = exportForm.status
         }
         
-        await store.dispatch('order/exportOrders', params)
-        orderSuccessMessages.showExportSuccess()
+        const res = await store.dispatch('order/exportOrders', params)
+        showByCode(res?.code)
         exportDialogVisible.value = false
       } catch (error) {
-        orderErrorMessages.showExportFailed(error.message)
+        console.error('导出失败:', error)
       } finally {
         exporting.value = false
       }
