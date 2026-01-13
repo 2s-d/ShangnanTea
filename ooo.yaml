@@ -5,6 +5,8 @@ info:
   version: 1.0.0
 
 servers:
+  - url: http://127.0.0.1:4523/m1/7594087-7332672-default
+    description: Mock服务
   - url: /api
     description: API服务
 
@@ -123,6 +125,7 @@ paths:
 
   /user/me:
     get:
+      operationId: getUserMe
       tags: [用户模块]
       summary: 获取当前用户信息
       security:
@@ -156,6 +159,7 @@ paths:
 
   /user/addresses:
     post:
+      operationId: addAddress
       tags: [用户模块]
       summary: 添加收货地址
       security:
@@ -191,6 +195,7 @@ paths:
   # ==================== 茶叶模块 ====================
   /tea/list:
     get:
+      operationId: getTeaList
       tags: [茶叶模块]
       summary: 获取茶叶列表
       parameters:
@@ -236,6 +241,7 @@ paths:
   # ==================== 店铺模块 ====================
   /shop/list:
     get:
+      operationId: getShopList
       tags: [店铺模块]
       summary: 获取店铺列表
       responses:
@@ -277,6 +283,7 @@ paths:
   # ==================== 订单模块 ====================
   /order/create:
     post:
+      operationId: createOrder
       tags: [订单模块]
       summary: 创建订单
       security:
@@ -318,6 +325,7 @@ paths:
 
   /order/list:
     get:
+      operationId: getOrderList
       tags: [订单模块]
       summary: 获取订单列表
       security:
@@ -357,6 +365,7 @@ paths:
   # ==================== 论坛模块 ====================
   /forum/posts:
     post:
+      operationId: createPost
       tags: [论坛模块]
       summary: 发布帖子
       security:
