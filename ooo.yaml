@@ -1,109 +1,128 @@
 openapi: 3.0.3
 info:
-  title: 商南茶城 API 测试
-  description: 测试接口文档
+  title: 商南茶城 API
+  description: |
+    商南茶城电商平台 API 接口文档
+    
+    ## 认证方式
+    使用 Bearer Token 认证，在请求头中添加：
+    ```
+    Authorization: Bearer <token>
+    ```
   version: 1.0.0
+  contact:
+    name: API Support
+    email: support@shangnantea.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
 
 servers:
   - url: http://127.0.0.1:4523/m1/7594087-7332672-default
-    description: Mock服务
+    description: Mock 服务器
   - url: /api
-    description: API服务
+    description: 生产环境 API
 
 tags:
   - name: 用户模块
+    description: 用户认证、信息管理相关接口
   - name: 茶叶模块
+    description: 茶叶商品相关接口
   - name: 店铺模块
+    description: 店铺信息相关接口
   - name: 订单模块
+    description: 订单管理相关接口
   - name: 论坛模块
+    description: 论坛帖子相关接口
 
 paths:
   # ==================== 用户模块 ====================
   /user/login:
     post:
       operationId: userLogin
-      tags: [用户模块]
+      tags:
+        - 用户模块
       summary: 用户登录
+      description: 使用用户名和密码进行登录，返回 JWT Token
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required: [username, password]
-              properties:
-                username:
-                  type: string
-                password:
-                  type: string
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              username: "testuser"
+              password: "password123"
       responses:
         '200':
           description: 登录成功
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                    example: 2000
-                  data:
-                    type: object
-                    properties:
-                      token:
-                        type: string
-                        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+                $ref: '#/components/schemas/LoginResponse'
               example:
                 code: 2000
+                message: "登录成功"
                 data:
-                  token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+                  token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        '401':
+          description: 认证失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: 2003
+                message: "用户名或密码错误"
+                data: null
 
   /user/register:
     post:
       operationId: userRegister
-      tags: [用户模块]
+      tags:
+        - 用户模块
       summary: 用户注册
+      description: 注册新用户账号
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required: [username, password]
-              properties:
-                username:
-                  type: string
-                password:
-                  type: string
+              $ref: '#/components/schemas/RegisterRequest'
+            example:
+              username: "newuser"
+              password: "password123"
       responses:
         '200':
           description: 注册成功
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                    example: 2001
-                  data:
-                    type: object
-                    properties:
-                      id:
-                        type: string
-                      username:
-                        type: string
+                $ref: '#/components/schemas/RegisterResponse'
               example:
                 code: 2001
+                message: "注册成功"
                 data:
                   id: "cy100002"
                   username: "newuser"
+        '400':
+          description: 注册失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: 2004
+                message: "用户名已存在"
+                data: null
 
   /user/logout:
     post:
       operationId: userLogout
-      tags: [用户模块]
+      tags:
+        - 用户模块
       summary: 退出登录
+      description: 退出当前用户登录状态
       security:
         - BearerAuth: []
       responses:
@@ -112,22 +131,19 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                    example: 2002
-                  data:
-                    nullable: true
+                $ref: '#/components/schemas/BaseResponse'
               example:
                 code: 2002
+                message: "退出成功"
                 data: null
 
   /user/me:
     get:
       operationId: getUserMe
-      tags: [用户模块]
+      tags:
+        - 用户模块
       summary: 获取当前用户信息
+      description: 获取当前登录用户的详细信息
       security:
         - BearerAuth: []
       responses:
@@ -136,32 +152,28 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                    example: 200
-                  data:
-                    type: object
-                    properties:
-                      id:
-                        type: string
-                      username:
-                        type: string
-                      nickname:
-                        type: string
+                $ref: '#/components/schemas/UserInfoResponse'
               example:
                 code: 200
+                message: "获取成功"
                 data:
                   id: "cy100002"
                   username: "user"
                   nickname: "测试用户"
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /user/addresses:
     post:
       operationId: addAddress
-      tags: [用户模块]
+      tags:
+        - 用户模块
       summary: 添加收货地址
+      description: 为当前用户添加新的收货地址
       security:
         - BearerAuth: []
       requestBody:
@@ -169,123 +181,141 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                receiverName:
-                  type: string
-                receiverPhone:
-                  type: string
+              $ref: '#/components/schemas/AddressRequest'
+            example:
+              receiverName: "张三"
+              receiverPhone: "13800138000"
+              province: "陕西省"
+              city: "商洛市"
+              district: "商南县"
+              detail: "茶城路1号"
       responses:
         '200':
           description: 添加成功
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                    example: 4060
-                  data:
-                    nullable: true
+                $ref: '#/components/schemas/BaseResponse'
               example:
                 code: 4060
+                message: "地址添加成功"
                 data: null
 
   # ==================== 茶叶模块 ====================
   /tea/list:
     get:
       operationId: getTeaList
-      tags: [茶叶模块]
+      tags:
+        - 茶叶模块
       summary: 获取茶叶列表
+      description: 分页获取茶叶商品列表
       parameters:
         - name: page
           in: query
+          description: 页码，从1开始
+          required: false
           schema:
             type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          description: 每页数量
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: keyword
+          in: query
+          description: 搜索关键词
+          required: false
+          schema:
+            type: string
+        - name: categoryId
+          in: query
+          description: 分类ID
+          required: false
+          schema:
+            type: string
       responses:
         '200':
           description: 获取成功
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                    example: 200
-                  data:
-                    type: object
-                    properties:
-                      list:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            id:
-                              type: string
-                            name:
-                              type: string
-                      total:
-                        type: integer
+                $ref: '#/components/schemas/TeaListResponse'
               example:
                 code: 200
+                message: "获取成功"
                 data:
                   list:
                     - id: "tea001"
                       name: "商南绿茶"
+                      price: 99.00
+                      image: "/images/tea1.jpg"
                     - id: "tea002"
                       name: "商南红茶"
+                      price: 128.00
+                      image: "/images/tea2.jpg"
                   total: 2
+                  page: 1
+                  pageSize: 10
 
   # ==================== 店铺模块 ====================
   /shop/list:
     get:
       operationId: getShopList
-      tags: [店铺模块]
+      tags:
+        - 店铺模块
       summary: 获取店铺列表
+      description: 获取所有店铺列表
+      parameters:
+        - name: page
+          in: query
+          description: 页码
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          description: 每页数量
+          required: false
+          schema:
+            type: integer
+            default: 10
       responses:
         '200':
           description: 获取成功
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                    example: 200
-                  data:
-                    type: object
-                    properties:
-                      list:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            id:
-                              type: string
-                            name:
-                              type: string
-                            logo:
-                              type: string
+                $ref: '#/components/schemas/ShopListResponse'
               example:
                 code: 200
+                message: "获取成功"
                 data:
                   list:
                     - id: "shop001"
                       name: "商南茶庄"
                       logo: "/images/shop1.png"
+                      rating: 4.8
                     - id: "shop002"
                       name: "高山茶行"
                       logo: "/images/shop2.png"
+                      rating: 4.5
+                  total: 2
 
   # ==================== 订单模块 ====================
   /order/create:
     post:
       operationId: createOrder
-      tags: [订单模块]
+      tags:
+        - 订单模块
       summary: 创建订单
+      description: 创建新的购买订单
       security:
         - BearerAuth: []
       requestBody:
@@ -293,81 +323,92 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                teaId:
-                  type: string
-                quantity:
-                  type: integer
+              $ref: '#/components/schemas/CreateOrderRequest'
+            example:
+              teaId: "tea001"
+              quantity: 2
+              addressId: "addr001"
       responses:
         '200':
           description: 创建成功
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                    example: 4000
-                  data:
-                    type: object
-                    properties:
-                      orderId:
-                        type: string
-                      totalPrice:
-                        type: number
+                $ref: '#/components/schemas/CreateOrderResponse'
               example:
                 code: 4000
+                message: "订单创建成功"
                 data:
                   orderId: "order001"
                   totalPrice: 199.00
+                  status: 0
+        '400':
+          description: 创建失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /order/list:
     get:
       operationId: getOrderList
-      tags: [订单模块]
+      tags:
+        - 订单模块
       summary: 获取订单列表
+      description: 获取当前用户的订单列表
       security:
         - BearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          description: 订单状态筛选
+          required: false
+          schema:
+            type: integer
+            enum: [0, 1, 2, 3, 4]
+            description: |
+              0: 待付款
+              1: 待发货
+              2: 待收货
+              3: 已完成
+              4: 已取消
+        - name: page
+          in: query
+          description: 页码
+          required: false
+          schema:
+            type: integer
+            default: 1
       responses:
         '200':
           description: 获取成功
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                    example: 200
-                  data:
-                    type: object
-                    properties:
-                      list:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            id:
-                              type: string
-                            status:
-                              type: integer
+                $ref: '#/components/schemas/OrderListResponse'
               example:
                 code: 200
+                message: "获取成功"
                 data:
                   list:
                     - id: "order001"
                       status: 1
+                      totalPrice: 199.00
+                      createTime: "2024-01-15T10:30:00Z"
                     - id: "order002"
                       status: 2
+                      totalPrice: 299.00
+                      createTime: "2024-01-14T15:20:00Z"
+                  total: 2
 
   # ==================== 论坛模块 ====================
   /forum/posts:
     post:
       operationId: createPost
-      tags: [论坛模块]
+      tags:
+        - 论坛模块
       summary: 发布帖子
+      description: 发布新的论坛帖子
       security:
         - BearerAuth: []
       requestBody:
@@ -375,35 +416,31 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                title:
-                  type: string
-                content:
-                  type: string
+              $ref: '#/components/schemas/CreatePostRequest'
+            example:
+              title: "茶文化分享"
+              content: "今天来聊聊商南茶的历史..."
+              categoryId: "cat001"
       responses:
         '200':
           description: 发布成功
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                    example: 6000
-                  data:
-                    type: object
-                    properties:
-                      postId:
-                        type: string
-                      title:
-                        type: string
+                $ref: '#/components/schemas/CreatePostResponse'
               example:
                 code: 6000
+                message: "发布成功"
                 data:
                   postId: "post001"
                   title: "茶文化分享"
+                  createTime: "2024-01-15T10:30:00Z"
+        '400':
+          description: 发布失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
 components:
   securitySchemes:
@@ -411,4 +448,389 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+      description: JWT 认证令牌
 
+  schemas:
+    # ========== 基础响应 ==========
+    BaseResponse:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          description: 响应状态码
+        message:
+          type: string
+          description: 响应消息
+        data:
+          nullable: true
+          description: 响应数据
+
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          description: 错误码
+        message:
+          type: string
+          description: 错误信息
+        data:
+          nullable: true
+
+    # ========== 用户模块 ==========
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          description: 用户名
+          minLength: 3
+          maxLength: 50
+        password:
+          type: string
+          description: 密码
+          format: password
+          minLength: 6
+
+    LoginResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 2000
+        message:
+          type: string
+          example: "登录成功"
+        data:
+          type: object
+          properties:
+            token:
+              type: string
+              description: JWT Token
+
+    RegisterRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          description: 用户名
+          minLength: 3
+          maxLength: 50
+        password:
+          type: string
+          description: 密码
+          format: password
+          minLength: 6
+
+    RegisterResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 2001
+        message:
+          type: string
+          example: "注册成功"
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+              description: 用户ID
+            username:
+              type: string
+              description: 用户名
+
+    UserInfoResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/UserInfo'
+
+    UserInfo:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 用户ID
+        username:
+          type: string
+          description: 用户名
+        nickname:
+          type: string
+          description: 昵称
+        avatar:
+          type: string
+          description: 头像URL
+        email:
+          type: string
+          format: email
+          description: 邮箱
+        phone:
+          type: string
+          description: 手机号
+
+    AddressRequest:
+      type: object
+      required:
+        - receiverName
+        - receiverPhone
+      properties:
+        receiverName:
+          type: string
+          description: 收货人姓名
+        receiverPhone:
+          type: string
+          description: 收货人电话
+        province:
+          type: string
+          description: 省份
+        city:
+          type: string
+          description: 城市
+        district:
+          type: string
+          description: 区县
+        detail:
+          type: string
+          description: 详细地址
+        isDefault:
+          type: boolean
+          description: 是否默认地址
+          default: false
+
+    # ========== 茶叶模块 ==========
+    TeaListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            list:
+              type: array
+              items:
+                $ref: '#/components/schemas/TeaItem'
+            total:
+              type: integer
+              description: 总数量
+            page:
+              type: integer
+              description: 当前页码
+            pageSize:
+              type: integer
+              description: 每页数量
+
+    TeaItem:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 茶叶ID
+        name:
+          type: string
+          description: 茶叶名称
+        price:
+          type: number
+          format: double
+          description: 价格
+        image:
+          type: string
+          description: 图片URL
+        description:
+          type: string
+          description: 描述
+        stock:
+          type: integer
+          description: 库存
+        shopId:
+          type: string
+          description: 所属店铺ID
+
+    # ========== 店铺模块 ==========
+    ShopListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            list:
+              type: array
+              items:
+                $ref: '#/components/schemas/ShopItem'
+            total:
+              type: integer
+
+    ShopItem:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 店铺ID
+        name:
+          type: string
+          description: 店铺名称
+        logo:
+          type: string
+          description: 店铺Logo
+        rating:
+          type: number
+          format: float
+          description: 评分
+        description:
+          type: string
+          description: 店铺描述
+
+    # ========== 订单模块 ==========
+    CreateOrderRequest:
+      type: object
+      required:
+        - teaId
+        - quantity
+      properties:
+        teaId:
+          type: string
+          description: 茶叶ID
+        quantity:
+          type: integer
+          description: 购买数量
+          minimum: 1
+        addressId:
+          type: string
+          description: 收货地址ID
+        remark:
+          type: string
+          description: 订单备注
+
+    CreateOrderResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 4000
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            orderId:
+              type: string
+              description: 订单ID
+            totalPrice:
+              type: number
+              format: double
+              description: 订单总价
+            status:
+              type: integer
+              description: 订单状态
+
+    OrderListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            list:
+              type: array
+              items:
+                $ref: '#/components/schemas/OrderItem'
+            total:
+              type: integer
+
+    OrderItem:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 订单ID
+        status:
+          type: integer
+          description: |
+            订单状态：
+            - 0: 待付款
+            - 1: 待发货
+            - 2: 待收货
+            - 3: 已完成
+            - 4: 已取消
+        totalPrice:
+          type: number
+          format: double
+          description: 订单总价
+        createTime:
+          type: string
+          format: date-time
+          description: 创建时间
+
+    # ========== 论坛模块 ==========
+    CreatePostRequest:
+      type: object
+      required:
+        - title
+        - content
+      properties:
+        title:
+          type: string
+          description: 帖子标题
+          minLength: 1
+          maxLength: 200
+        content:
+          type: string
+          description: 帖子内容
+          minLength: 1
+        categoryId:
+          type: string
+          description: 分类ID
+        images:
+          type: array
+          items:
+            type: string
+          description: 图片URL列表
+
+    CreatePostResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 6000
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            postId:
+              type: string
+              description: 帖子ID
+            title:
+              type: string
+              description: 帖子标题
+            createTime:
+              type: string
+              format: date-time
+              description: 创建时间
