@@ -19,6 +19,7 @@ paths:
   # ==================== 用户模块 ====================
   /user/login:
     post:
+      operationId: userLogin
       tags: [用户模块]
       summary: 用户登录
       requestBody:
@@ -57,6 +58,7 @@ paths:
 
   /user/register:
     post:
+      operationId: userRegister
       tags: [用户模块]
       summary: 用户注册
       requestBody:
@@ -97,6 +99,7 @@ paths:
 
   /user/logout:
     post:
+      operationId: userLogout
       tags: [用户模块]
       summary: 退出登录
       security:
