@@ -41,6 +41,88 @@ components:
       required:
         - code
         - data
+    
+    # ========== 用户模块 ==========
+    LoginResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: 状态码
+        data:
+          type: object
+          properties:
+            token:
+              type: string
+              description: JWT Token
+          nullable: true
+      required:
+        - code
+    
+    RegisterResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: 状态码
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+            username:
+              type: string
+            nickname:
+              type: string
+            avatar:
+              type: string
+            role:
+              type: integer
+            status:
+              type: integer
+          nullable: true
+      required:
+        - code
+    
+    LogoutResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: 状态码
+        data:
+          nullable: true
+      required:
+        - code
+    
+    UserInfoResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: 状态码
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+            username:
+              type: string
+            nickname:
+              type: string
+            avatar:
+              type: string
+            email:
+              type: string
+            phone:
+              type: string
+            role:
+              type: integer
+            status:
+              type: integer
+          nullable: true
+      required:
+        - code
   securitySchemes:
     BearerAuth:
       type: http
@@ -108,18 +190,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    type: object
-                    nullable: true
-                    additionalProperties: true
-                required:
-                  - code
+                $ref: '#/components/schemas/RegisterResponse'
               examples:
                 default:
                   summary: 响应示例
@@ -145,16 +216,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    nullable: true
-                required:
-                  - code
+                $ref: '#/components/schemas/LogoutResponse'
               examples:
                 default:
                   summary: 响应示例
@@ -224,14 +286,14 @@ paths:
                   value:
                     code: 200
                     data:
-                    id: "cy100002"
-                    username: "user"
-                    nickname: "测试用户"
-                    avatar: "/images/default-avatar.png"
-                    email: "user@example.com"
-                    phone: "13800138000"
-                    role: 2
-                    status: 1
+                      id: "cy100002"
+                      username: "user"
+                      nickname: "测试用户"
+                      avatar: "/images/default-avatar.png"
+                      email: "user@example.com"
+                      phone: "13800138000"
+                      role: 2
+                      status: 1
 
   /user/{userId}:
     get:
