@@ -71,18 +71,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    type: object
-                    nullable: true
-                    additionalProperties: true
-                required:
-                  - code
+                $ref: '#/components/schemas/LoginResponse'
               examples:
                 default:
                   summary: 响应示例
@@ -137,12 +126,12 @@ paths:
                   value:
                     code: 2001
                     data:
-                    id: "cy100002"
-                    username: "newuser"
-                    nickname: "新用户"
-                    avatar: "/images/default-avatar.png"
-                    role: 2
-                    status: 1
+                      id: "cy100002"
+                      username: "newuser"
+                      nickname: "新用户"
+                      avatar: "/images/default-avatar.png"
+                      role: 2
+                      status: 1
 
   /user/logout:
     post:
@@ -203,7 +192,7 @@ paths:
                   value:
                     code: 200
                     data:
-                      token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjeTEwMDAwMiIsInJvbGUiOjIsInVzZXJuYW1lIjoidXNlciIsImp0aSI6Im1vY2stdXVpZCIsImlhdCI6MTczNTA4NDgwMCwiZXhwIjoxNzY3MjI1NjAwLCJpc3MiOiJzaGFuZ25hbnRlYSJ9.mock"
+                    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjeTEwMDAwMiIsInJvbGUiOjIsInVzZXJuYW1lIjoidXNlciIsImp0aSI6Im1vY2stdXVpZCIsImlhdCI6MTczNTA4NDgwMCwiZXhwIjoxNzY3MjI1NjAwLCJpc3MiOiJzaGFuZ25hbnRlYSJ9.mock"
 
   /user/me:
     get:
