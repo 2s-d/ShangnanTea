@@ -9,6 +9,28 @@ info:
     ```
     Authorization: Bearer <token>
     ```
+    
+    ## 响应格式
+    所有接口统一返回 HTTP 200，通过 `code` 字段区分业务状态：
+    ```json
+    {
+      "code": 2000,
+      "data": { ... }
+    }
+    ```
+    
+    ## 业务状态码规则
+    | 模块 | 成功码范围 | 失败码范围 |
+    |------|-----------|-----------|
+    | 通用 | 10xx | 11xx |
+    | 用户 | 20xx-22xx | 21xx-22xx |
+    | 茶叶 | 30xx-33xx | 31xx-33xx |
+    | 订单 | 40xx-46xx | 41xx-46xx |
+    | 店铺 | 50xx-53xx | 51xx-53xx |
+    | 论坛 | 60xx-66xx | 61xx-66xx |
+    | 消息 | 70xx-72xx | 71xx-72xx |
+    
+    **判断规则**：百位为 0 表示成功，百位为 1 表示失败
   version: 1.0.0
   contact:
     name: API Support
@@ -55,24 +77,23 @@ paths:
               password: "password123"
       responses:
         '200':
-          description: 登录成功
+          description: 请求完成，通过 code 判断业务结果（2000=成功，2100=失败）
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/LoginResponse'
-              example:
-                code: 2000
-                data:
-                  token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-        '401':
-          description: 认证失败
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                code: 2003
-                data: null
+              examples:
+                success:
+                  summary: 登录成功
+                  value:
+                    code: 2000
+                    data:
+                      token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                failure:
+                  summary: 登录失败
+                  value:
+                    code: 2100
+                    data: null
 
   /user/register:
     post:
@@ -92,25 +113,24 @@ paths:
               password: "password123"
       responses:
         '200':
-          description: 注册成功
+          description: 请求完成，通过 code 判断业务结果（2001=成功，2101=失败）
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/RegisterResponse'
-              example:
-                code: 2001
-                data:
-                  id: "cy100002"
-                  username: "newuser"
-        '400':
-          description: 注册失败
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                code: 2004
-                data: null
+              examples:
+                success:
+                  summary: 注册成功
+                  value:
+                    code: 2001
+                    data:
+                      id: "cy100002"
+                      username: "newuser"
+                failure:
+                  summary: 注册失败
+                  value:
+                    code: 2101
+                    data: null
 
   /user/logout:
     post:
@@ -127,7 +147,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseResponse'
+                $ref: '#/components/schemas/LogoutResponse'
               example:
                 code: 2002
                 data: null
@@ -143,7 +163,7 @@ paths:
         - BearerAuth: []
       responses:
         '200':
-          description: 获取成功
+          description: 请求完成，通过 code 判断业务结果
           content:
             application/json:
               schema:
@@ -154,12 +174,6 @@ paths:
                   id: "cy100002"
                   username: "user"
                   nickname: "测试用户"
-        '401':
-          description: 未授权
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
 
   /user/addresses:
     post:
@@ -189,7 +203,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseResponse'
+                $ref: '#/components/schemas/AddAddressResponse'
               example:
                 code: 4060
                 data: null
@@ -321,23 +335,25 @@ paths:
               addressId: "addr001"
       responses:
         '200':
-          description: 创建成功
+          description: 请求完成，通过 code 判断业务结果（4000=成功，4100=失败）
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/CreateOrderResponse'
-              example:
-                code: 4000
-                data:
-                  orderId: "order001"
-                  totalPrice: 199.00
-                  status: 0
-        '400':
-          description: 创建失败
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                success:
+                  summary: 创建成功
+                  value:
+                    code: 4000
+                    data:
+                      orderId: "order001"
+                      totalPrice: 199.00
+                      status: 0
+                failure:
+                  summary: 创建失败
+                  value:
+                    code: 4100
+                    data: null
 
   /order/list:
     get:
@@ -412,23 +428,25 @@ paths:
               categoryId: "cat001"
       responses:
         '200':
-          description: 发布成功
+          description: 请求完成，通过 code 判断业务结果（6000=成功，6100=失败）
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/CreatePostResponse'
-              example:
-                code: 6000
-                data:
-                  postId: "post001"
-                  title: "茶文化分享"
-                  createTime: "2024-01-15T10:30:00Z"
-        '400':
-          description: 发布失败
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                success:
+                  summary: 发布成功
+                  value:
+                    code: 6000
+                    data:
+                      postId: "post001"
+                      title: "茶文化分享"
+                      createTime: "2024-01-15T10:30:00Z"
+                failure:
+                  summary: 发布失败
+                  value:
+                    code: 6100
+                    data: null
 
 components:
   securitySchemes:
@@ -447,7 +465,8 @@ components:
       properties:
         code:
           type: integer
-          description: 响应状态码
+          enum: [200]
+          description: 200=操作成功
         data:
           nullable: true
           description: 响应数据
@@ -459,11 +478,32 @@ components:
       properties:
         code:
           type: integer
-          description: 错误码
+          enum: [1100]
+          description: 1100=操作失败
         data:
           nullable: true
 
     # ========== 用户模块 ==========
+    LogoutResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [2002]
+          description: 2002=退出成功
+        data:
+          nullable: true
+
+    AddAddressResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [4060]
+          description: 4060=地址添加成功
+        data:
+          nullable: true
+
     LoginRequest:
       type: object
       required:
@@ -486,7 +526,8 @@ components:
       properties:
         code:
           type: integer
-          example: 2000
+          enum: [2000]
+          description: 2000=登录成功
         data:
           type: object
           properties:
@@ -516,7 +557,8 @@ components:
       properties:
         code:
           type: integer
-          example: 2001
+          enum: [2001]
+          description: 2001=注册成功
         data:
           type: object
           properties:
@@ -532,6 +574,8 @@ components:
       properties:
         code:
           type: integer
+          enum: [200]
+          description: 200=获取成功
         data:
           $ref: '#/components/schemas/UserInfo'
 
@@ -593,6 +637,8 @@ components:
       properties:
         code:
           type: integer
+          enum: [200]
+          description: 200=获取成功
         data:
           type: object
           properties:
@@ -642,6 +688,8 @@ components:
       properties:
         code:
           type: integer
+          enum: [200]
+          description: 200=获取成功
         data:
           type: object
           properties:
@@ -698,7 +746,8 @@ components:
       properties:
         code:
           type: integer
-          example: 4000
+          enum: [4000]
+          description: 4000=订单创建成功
         data:
           type: object
           properties:
@@ -718,6 +767,8 @@ components:
       properties:
         code:
           type: integer
+          enum: [200]
+          description: 200=获取成功
         data:
           type: object
           properties:
@@ -782,7 +833,8 @@ components:
       properties:
         code:
           type: integer
-          example: 6000
+          enum: [6000]
+          description: 6000=帖子发布成功
         data:
           type: object
           properties:
