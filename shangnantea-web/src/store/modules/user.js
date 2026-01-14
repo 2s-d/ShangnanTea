@@ -333,8 +333,58 @@ const actions = {
       
       // 调用登录API，返回{code, data}
       const res = await loginApi(loginData)
+      console.log('登录API响应:', JSON.stringify(res, null, 2))
+      
       // 后端返回格式：{ code, data: { token: string } }
-      const { token } = res.data || res
+      const token = res.data?.token || res.data?.data?.token || res.token
+      
+      console.log('提取的token:', {
+        hasResData: !!res.data,
+        resDataType: typeof res.data,
+        resDataKeys: res.data ? Object.keys(res.data) : [],
+        tokenFound: !!token,
+        tokenType: typeof token,
+        tokenValue: token
+      })
+      
+      // 检查token是否存在
+      if (!token) {
+        console.error('登录响应中未找到token:', res)
+        throw new Error('登录响应中未找到token')
+      }
+      
+      // 检查token格式（应该是JWT格式，至少包含两个点）
+      const tokenParts = token.split('.')
+      console.log('Token调试信息:', {
+        tokenLength: token.length,
+        tokenPartsCount: tokenParts.length,
+        tokenPreview: token.substring(0, 100) + (token.length > 100 ? '...' : ''),
+        tokenParts: tokenParts.map((part, index) => ({
+          index,
+          length: part.length,
+          preview: part.substring(0, 20) + (part.length > 20 ? '...' : '')
+        }))
+      })
+      
+      if (typeof token !== 'string' || tokenParts.length < 2) {
+        console.error('Token格式不正确:', {
+          type: typeof token,
+          length: token?.length,
+          partsCount: tokenParts.length,
+          fullToken: token
+        })
+        throw new Error('Token格式不正确')
+      }
+      
+      // 检查payload部分是否存在
+      if (!tokenParts[1] || tokenParts[1].length === 0) {
+        console.error('Token payload部分为空:', {
+          fullToken: token,
+          tokenParts: tokenParts,
+          responseData: res.data
+        })
+        throw new Error('Token payload部分为空，可能是Mock服务器返回的token格式不正确')
+      }
       
       // 存储token
       tokenStorage.setToken(token)
@@ -342,6 +392,8 @@ const actions = {
       // 从token中解析用户信息
       const userInfo = tokenStorage.verifyToken()
       if (!userInfo) {
+        console.error('Token解析失败，完整token内容:', token)
+        console.error('响应数据:', res)
         throw new Error('Token解析失败')
       }
       

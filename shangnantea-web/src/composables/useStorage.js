@@ -306,23 +306,67 @@ export function useTokenStorage() {
    * @returns {Object|null} 用户信息
    */
   const decodeToken = tokenStr => {
-    if (!tokenStr) return null
+    if (!tokenStr) {
+      console.warn('decodeToken: token为空')
+      return null
+    }
+    
+    if (typeof tokenStr !== 'string') {
+      console.error('decodeToken: token不是字符串类型:', typeof tokenStr, tokenStr)
+      return null
+    }
     
     try {
       // 获取JWT的payload部分
       const tokenParts = tokenStr.split('.')
-      if (tokenParts.length < 2) return null
+      console.log('decodeToken调试:', {
+        tokenLength: tokenStr.length,
+        partsCount: tokenParts.length,
+        partsLength: tokenParts.map((p, i) => ({ index: i, length: p.length })),
+        fullToken: tokenStr
+      })
+      
+      if (tokenParts.length < 2) {
+        console.error('decodeToken: token格式不正确，缺少分隔符. token:', tokenStr)
+        return null
+      }
       
       // 解码payload - 处理base64url格式
       const payload = tokenParts[1]
+      if (!payload || payload.length === 0) {
+        console.error('decodeToken: payload部分为空', {
+          tokenParts: tokenParts,
+          tokenPartsLength: tokenParts.map((p, i) => ({ index: i, length: p?.length || 0 })),
+          fullToken: tokenStr
+        })
+        return null
+      }
+      
       const base64 = payload.replace(/-/g, '+').replace(/_/g, '/')
-      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
-      }).join(''))
+      let jsonPayload
+      
+      try {
+        // 先尝试base64解码
+        const decoded = atob(base64)
+        // 然后进行URI解码
+        jsonPayload = decodeURIComponent(decoded.split('').map(function(c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+        }).join(''))
+      } catch (decodeError) {
+        console.error('decodeToken: base64解码失败:', decodeError, 'payload:', payload.substring(0, 50))
+        return null
+      }
+      
+      // 验证解码后的字符串是否为有效JSON
+      if (!jsonPayload || jsonPayload.trim().length === 0) {
+        console.error('decodeToken: 解码后的JSON字符串为空')
+        return null
+      }
       
       return JSON.parse(jsonPayload)
     } catch (error) {
       console.error('解析token失败:', error)
+      console.error('Token内容（前100字符）:', tokenStr.substring(0, 100))
       return null
     }
   }
