@@ -3787,6 +3787,297 @@ paths:
                 format: binary
 
   # ==================== 论坛模块 ====================
+  /forum/home:
+    get:
+      tags: [论坛模块]
+      summary: 获取论坛首页数据
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              example:
+                code: 200
+                data:
+                  banners:
+                    - id: 1
+                      imageUrl: "/images/forum-banner1.jpg"
+                      title: "茶文化专题"
+                      linkUrl: "/forum/articles/1"
+                  hotPosts:
+                    - id: 1
+                      title: "商南茶文化分享"
+                      viewCount: 1000
+                  latestArticles:
+                    - id: 1
+                      title: "茶道入门"
+                      summary: "茶道基础知识"
+    put:
+      tags: [论坛模块]
+      summary: 更新论坛首页数据（管理员）
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              example:
+                code: 6060
+                data: null
+
+  /forum/banners:
+    get:
+      tags: [论坛模块]
+      summary: 获取论坛Banner列表
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              example:
+                code: 200
+                data:
+                  - id: 1
+                    imageUrl: "/images/forum-banner1.jpg"
+                    title: "茶文化专题"
+                    linkUrl: "/forum/articles/1"
+                    sortOrder: 1
+    post:
+      tags: [论坛模块]
+      summary: 上传论坛Banner（管理员）
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                title:
+                  type: string
+                linkUrl:
+                  type: string
+      responses:
+        '200':
+          description: 上传成功
+          content:
+            application/json:
+              example:
+                code: 5010
+                data: null
+
+  /forum/banners/{id}:
+    put:
+      tags: [论坛模块]
+      summary: 更新论坛Banner（管理员）
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                linkUrl:
+                  type: string
+                sortOrder:
+                  type: integer
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              example:
+                code: 5011
+                data: null
+    delete:
+      tags: [论坛模块]
+      summary: 删除论坛Banner（管理员）
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              example:
+                code: 5012
+                data: null
+
+  /forum/banners/order:
+    put:
+      tags: [论坛模块]
+      summary: 更新Banner顺序（管理员）
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bannerIds:
+                  type: array
+                  items:
+                    type: integer
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              example:
+                code: 5013
+                data: null
+
+  /forum/topics:
+    get:
+      tags: [论坛模块]
+      summary: 获取版块列表
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              example:
+                code: 200
+                data:
+                  - id: 1
+                    name: "茶文化"
+                    description: "茶文化交流"
+                    icon: "/icons/culture.png"
+                    sortOrder: 1
+    post:
+      tags: [论坛模块]
+      summary: 创建版块（管理员）
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                icon:
+                  type: string
+                sortOrder:
+                  type: integer
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              example:
+                code: 6040
+                data: null
+
+  /forum/topics/{id}:
+    get:
+      tags: [论坛模块]
+      summary: 获取版块详情
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              example:
+                code: 200
+                data:
+                  id: 1
+                  name: "茶文化"
+                  description: "茶文化交流"
+                  icon: "/icons/culture.png"
+                  postCount: 100
+    put:
+      tags: [论坛模块]
+      summary: 更新版块（管理员）
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                icon:
+                  type: string
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              example:
+                code: 6041
+                data: null
+    delete:
+      tags: [论坛模块]
+      summary: 删除版块（管理员）
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              example:
+                code: 6042
+                data: null
+
   /forum/posts:
     get:
       operationId: getForumPosts
@@ -4053,7 +4344,7 @@ paths:
                 code: 6011
                 data: null
 
-  /forum/posts/{id}/comments:
+  /forum/posts/{id}/replies:
     get:
       operationId: getPostComments
       tags:
@@ -4145,7 +4436,7 @@ paths:
                     code: 6120
                     data: null
 
-  /forum/comments/{id}:
+  /forum/replies/{id}:
     delete:
       operationId: deleteComment
       tags:
@@ -4179,7 +4470,7 @@ paths:
                     code: 6121
                     data: null
 
-  /forum/comments/{id}/like:
+  /forum/replies/{id}/like:
     post:
       operationId: likeComment
       tags:
