@@ -4872,3 +4872,1754 @@ components:
                       commentCount: 5
                       createTime: "2025-01-15T10:30:00Z"
                   total: 20
+
+  /forum/posts/hot:
+    get:
+      operationId: getHotPosts
+      tags:
+        - 论坛模块
+      summary: 获取热门帖子
+      description: 获取热门帖子列表
+      parameters:
+        - name: count
+          in: query
+          schema:
+            type: integer
+            default: 10
+            description: 获取数量
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostListSimpleResponse'
+              example:
+                code: 200
+                data:
+                  - id: "1"
+                    title: "茶文化分享"
+                    viewCount: 1000
+                    likeCount: 100
+
+  /forum/posts/recommend:
+    get:
+      operationId: getRecommendPosts
+      tags:
+        - 论坛模块
+      summary: 获取推荐帖子
+      description: 获取推荐帖子列表
+      parameters:
+        - name: count
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostListSimpleResponse'
+              example:
+                code: 200
+                data:
+                  - id: "1"
+                    title: "茶文化分享"
+                    viewCount: 500
+                    likeCount: 50
+
+  /forum/posts/{id}/view:
+    post:
+      operationId: incrementPostView
+      tags:
+        - 论坛模块
+      summary: 增加帖子浏览量
+      description: 记录帖子浏览，增加浏览量
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 记录成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 200
+                data: null
+
+  /forum/posts/{id}/pin:
+    put:
+      operationId: pinPost
+      tags:
+        - 论坛模块
+      summary: 置顶帖子（管理员）
+      description: 管理员将帖子置顶
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 置顶成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 6050
+                data: null
+    delete:
+      operationId: unpinPost
+      tags:
+        - 论坛模块
+      summary: 取消置顶帖子（管理员）
+      description: 管理员取消帖子置顶
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 取消成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 6051
+                data: null
+
+  /forum/posts/{id}/recommend:
+    put:
+      operationId: recommendPost
+      tags:
+        - 论坛模块
+      summary: 推荐帖子（管理员）
+      description: 管理员将帖子设为推荐
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 推荐成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 6052
+                data: null
+    delete:
+      operationId: unrecommendPost
+      tags:
+        - 论坛模块
+      summary: 取消推荐帖子（管理员）
+      description: 管理员取消帖子推荐
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 取消成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 6053
+                data: null
+
+  /forum/search:
+    get:
+      operationId: searchForum
+      tags:
+        - 论坛模块
+      summary: 搜索论坛内容
+      description: 搜索帖子和文章
+      parameters:
+        - name: keyword
+          in: query
+          required: true
+          schema:
+            type: string
+            description: 搜索关键词
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [post, article, all]
+            default: all
+            description: 搜索类型
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 搜索成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResultResponse'
+              example:
+                code: 200
+                data:
+                  posts:
+                    - id: "1"
+                      title: "茶文化分享"
+                      type: "post"
+                  articles:
+                    - id: "1"
+                      title: "商南茶的历史"
+                      type: "article"
+                  total: 2
+
+  # ==================== 消息模块 ====================
+  /message/conversations:
+    get:
+      operationId: getConversations
+      tags:
+        - 消息模块
+      summary: 获取会话列表
+      description: 获取当前用户的聊天会话列表
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationListResponse'
+              example:
+                code: 200
+                data:
+                  list:
+                    - id: "1"
+                      targetUserId: "cy100003"
+                      targetUsername: "茶友"
+                      targetAvatar: "/images/avatar.png"
+                      lastMessage: "你好"
+                      lastMessageTime: "2025-01-15T10:30:00Z"
+                      unreadCount: 2
+                  total: 10
+
+  /message/conversations/{userId}:
+    get:
+      operationId: getConversationMessages
+      tags:
+        - 消息模块
+      summary: 获取会话消息列表
+      description: 获取与指定用户的聊天消息列表
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageListResponse'
+              example:
+                code: 200
+                data:
+                  list:
+                    - id: "1"
+                      senderId: "cy100002"
+                      receiverId: "cy100003"
+                      content: "你好"
+                      type: "text"
+                      isRead: true
+                      createTime: "2025-01-15T10:30:00Z"
+                  total: 50
+
+    post:
+      operationId: sendMessage
+      tags:
+        - 消息模块
+      summary: 发送消息
+      description: 向指定用户发送聊天消息
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendMessageRequest'
+            example:
+              content: "你好"
+              type: "text"
+      responses:
+        '200':
+          description: 发送成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SendMessageResponse'
+              examples:
+                success:
+                  summary: 发送成功
+                  value:
+                    code: 7000
+                    data:
+                      messageId: "msg001"
+                      createTime: "2025-01-15T10:30:00Z"
+                failure:
+                  summary: 发送失败
+                  value:
+                    code: 7100
+                    data: null
+
+  /message/conversations/{userId}/read:
+    put:
+      operationId: markConversationRead
+      tags:
+        - 消息模块
+      summary: 标记会话已读
+      description: 将与指定用户的会话标记为已读
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 标记成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 7001
+                data: null
+
+  /message/conversations/{userId}/delete:
+    delete:
+      operationId: deleteConversation
+      tags:
+        - 消息模块
+      summary: 删除会话
+      description: 删除与指定用户的会话记录
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 7002
+                data: null
+
+  /message/unread-count:
+    get:
+      operationId: getUnreadCount
+      tags:
+        - 消息模块
+      summary: 获取未读消息数
+      description: 获取当前用户的未读消息总数
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnreadCountResponse'
+              example:
+                code: 200
+                data:
+                  chatCount: 5
+                  notificationCount: 3
+                  totalCount: 8
+
+  /message/notifications:
+    get:
+      operationId: getNotifications
+      tags:
+        - 消息模块
+      summary: 获取系统通知列表
+      description: 获取系统通知、点赞、评论等通知列表
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [system, like, comment, follow, all]
+            default: all
+            description: 通知类型
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationListResponse'
+              example:
+                code: 200
+                data:
+                  list:
+                    - id: "1"
+                      type: "like"
+                      title: "点赞通知"
+                      content: "茶友 点赞了你的帖子"
+                      isRead: false
+                      createTime: "2025-01-15T10:30:00Z"
+                  total: 20
+
+  /message/notifications/{id}/read:
+    put:
+      operationId: markNotificationRead
+      tags:
+        - 消息模块
+      summary: 标记通知已读
+      description: 将指定通知标记为已读
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 标记成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 7010
+                data: null
+
+  /message/notifications/read-all:
+    put:
+      operationId: markAllNotificationsRead
+      tags:
+        - 消息模块
+      summary: 标记所有通知已读
+      description: 将所有通知标记为已读
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 标记成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 7011
+                data: null
+
+  /message/notifications/{id}:
+    delete:
+      operationId: deleteNotification
+      tags:
+        - 消息模块
+      summary: 删除通知
+      description: 删除指定通知
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 7012
+                data: null
+
+  /message/notifications/clear:
+    delete:
+      operationId: clearNotifications
+      tags:
+        - 消息模块
+      summary: 清空通知
+      description: 清空所有通知
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 清空成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 7013
+                data: null
+
+  /message/system:
+    post:
+      operationId: sendSystemMessage
+      tags:
+        - 消息模块
+      summary: 发送系统消息（管理员）
+      description: 管理员发送系统消息给指定用户或全体用户
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, content]
+              properties:
+                title:
+                  type: string
+                  description: 消息标题
+                content:
+                  type: string
+                  description: 消息内容
+                targetUserId:
+                  type: string
+                  description: 目标用户ID（不填则发送给全体用户）
+      responses:
+        '200':
+          description: 发送成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 发送成功
+                  value:
+                    code: 7020
+                    data: null
+                failure:
+                  summary: 发送失败
+                  value:
+                    code: 7120
+                    data: null
+
+  /message/settings:
+    get:
+      operationId: getMessageSettings
+      tags:
+        - 消息模块
+      summary: 获取消息设置
+      description: 获取当前用户的消息通知设置
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageSettingsResponse'
+              example:
+                code: 200
+                data:
+                  enableChatNotification: true
+                  enableLikeNotification: true
+                  enableCommentNotification: true
+                  enableFollowNotification: true
+                  enableSystemNotification: true
+    put:
+      operationId: updateMessageSettings
+      tags:
+        - 消息模块
+      summary: 更新消息设置
+      description: 更新当前用户的消息通知设置
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageSettingsRequest'
+            example:
+              enableChatNotification: true
+              enableLikeNotification: false
+              enableCommentNotification: true
+              enableFollowNotification: true
+              enableSystemNotification: true
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 7021
+                data: null
+
+  /message/blacklist:
+    get:
+      operationId: getBlacklist
+      tags:
+        - 消息模块
+      summary: 获取黑名单列表
+      description: 获取当前用户的黑名单用户列表
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlacklistResponse'
+              example:
+                code: 200
+                data:
+                  - userId: "cy100004"
+                    username: "用户A"
+                    avatar: "/images/avatar.png"
+                    createTime: "2025-01-15T10:30:00Z"
+    post:
+      operationId: addToBlacklist
+      tags:
+        - 消息模块
+      summary: 添加到黑名单
+      description: 将指定用户添加到黑名单
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId]
+              properties:
+                userId:
+                  type: string
+                  description: 用户ID
+      responses:
+        '200':
+          description: 添加成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 添加成功
+                  value:
+                    code: 7030
+                    data: null
+                failure:
+                  summary: 添加失败
+                  value:
+                    code: 7130
+                    data: null
+
+  /message/blacklist/{userId}:
+    delete:
+      operationId: removeFromBlacklist
+      tags:
+        - 消息模块
+      summary: 从黑名单移除
+      description: 将指定用户从黑名单移除
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 移除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 7031
+                data: null
+
+  # ==================== 公共模块 ====================
+  /common/upload:
+    post:
+      operationId: uploadFile
+      tags:
+        - 公共模块
+      summary: 上传文件
+      description: 上传图片或其他文件
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: 文件
+                type:
+                  type: string
+                  enum: [avatar, tea, shop, post, article]
+                  description: 文件类型
+      responses:
+        '200':
+          description: 上传成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadResponse'
+              examples:
+                success:
+                  summary: 上传成功
+                  value:
+                    code: 1001
+                    data:
+                      url: "/uploads/images/file123.jpg"
+                failure:
+                  summary: 上传失败
+                  value:
+                    code: 1101
+                    data: null
+
+  /common/captcha:
+    get:
+      operationId: getCaptcha
+      tags:
+        - 公共模块
+      summary: 获取验证码
+      description: 获取图形验证码
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaptchaResponse'
+              example:
+                code: 200
+                data:
+                  captchaId: "captcha123"
+                  captchaImage: "data:image/png;base64,iVBORw0KGgo..."
+
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT 认证令牌
+
+  schemas:
+    # ========== 基础响应 ==========
+    BaseResponse:
+      type: object
+      required:
+        - code
+      properties:
+        code:
+          type: integer
+          description: 业务状态码
+        data:
+          nullable: true
+          description: 响应数据
+
+    # ========== 用户模块 Schemas ==========
+    UpdateUserRequest:
+      type: object
+      properties:
+        nickname:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+
+    UpdatePasswordRequest:
+      type: object
+      required:
+        - oldPassword
+        - newPassword
+        - confirmNewPassword
+      properties:
+        oldPassword:
+          type: string
+          format: password
+        newPassword:
+          type: string
+          format: password
+        confirmNewPassword:
+          type: string
+          format: password
+
+    ResetPasswordRequest:
+      type: object
+      required:
+        - username
+        - newPassword
+      properties:
+        username:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        verificationCode:
+          type: string
+        newPassword:
+          type: string
+          format: password
+
+    AddressListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [200]
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Address'
+
+    Address:
+      type: object
+      properties:
+        id:
+          type: integer
+        receiverName:
+          type: string
+        receiverPhone:
+          type: string
+        province:
+          type: string
+        city:
+          type: string
+        district:
+          type: string
+        detailAddress:
+          type: string
+        isDefault:
+          type: integer
+          enum: [0, 1]
+
+    CertificationResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [200]
+        data:
+          $ref: '#/components/schemas/Certification'
+
+    Certification:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: string
+        shopName:
+          type: string
+        businessLicense:
+          type: string
+        idCardFront:
+          type: string
+        idCardBack:
+          type: string
+        status:
+          type: integer
+          enum: [0, 1, 2]
+          description: 0=待审核, 1=已通过, 2=已拒绝
+        createTime:
+          type: string
+          format: date-time
+
+    CertificationRequest:
+      type: object
+      required:
+        - shopName
+        - businessLicense
+        - idCardFront
+        - idCardBack
+      properties:
+        shopName:
+          type: string
+        businessLicense:
+          type: string
+        idCardFront:
+          type: string
+        idCardBack:
+          type: string
+
+    FollowListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [200]
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Follow'
+
+    Follow:
+      type: object
+      properties:
+        id:
+          type: integer
+        targetId:
+          type: string
+        targetType:
+          type: string
+          enum: [user, shop]
+        targetName:
+          type: string
+        targetAvatar:
+          type: string
+        createTime:
+          type: string
+          format: date-time
+
+    FollowRequest:
+      type: object
+      required:
+        - targetId
+        - targetType
+      properties:
+        targetId:
+          type: string
+        targetType:
+          type: string
+          enum: [user, shop]
+
+    FavoriteListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [200]
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Favorite'
+
+    Favorite:
+      type: object
+      properties:
+        id:
+          type: integer
+        targetId:
+          type: string
+        targetType:
+          type: string
+          enum: [tea, post, article]
+        targetName:
+          type: string
+        targetImage:
+          type: string
+        createTime:
+          type: string
+          format: date-time
+
+    FavoriteRequest:
+      type: object
+      required:
+        - targetId
+        - targetType
+      properties:
+        targetId:
+          type: string
+        targetType:
+          type: string
+          enum: [tea, post, article]
+
+    LikeRequest:
+      type: object
+      required:
+        - targetId
+        - targetType
+      properties:
+        targetId:
+          type: string
+        targetType:
+          type: string
+          enum: [post, comment, review]
+
+    PreferencesResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [200]
+        data:
+          $ref: '#/components/schemas/Preferences'
+
+    Preferences:
+      type: object
+      properties:
+        theme:
+          type: string
+          enum: [light, dark]
+        displayMode:
+          type: string
+          enum: [grid, list]
+        language:
+          type: string
+
+    PreferencesRequest:
+      type: object
+      properties:
+        theme:
+          type: string
+          enum: [light, dark]
+        displayMode:
+          type: string
+          enum: [grid, list]
+        language:
+          type: string
+
+    UserListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [200]
+        data:
+          type: object
+          properties:
+            list:
+              type: array
+              items:
+                $ref: '#/components/schemas/UserInfo'
+            total:
+              type: integer
+            page:
+              type: integer
+            pageSize:
+              type: integer
+
+    CreateAdminRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+          format: password
+        nickname:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        avatar:
+          type: string
+
+    AdminUpdateUserRequest:
+      type: object
+      properties:
+        nickname:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        status:
+          type: integer
+          enum: [0, 1]
+        avatar:
+          type: string
+
+    CertificationListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [200]
+        data:
+          type: object
+          properties:
+            list:
+              type: array
+              items:
+                $ref: '#/components/schemas/Certification'
+            total:
+              type: integer
+
+    # ========== 茶叶模块 Schemas ==========
+    TeaListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [3000, 200]
+        data:
+          type: object
+          properties:
+            list:
+              type: array
+              items:
+                $ref: '#/components/schemas/Tea'
+            total:
+              type: integer
+            page:
+              type: integer
+            pageSize:
+              type: integer
+
+    Tea:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        categoryId:
+          type: integer
+        shopId:
+          type: string
+        price:
+          type: number
+          format: double
+        originalPrice:
+          type: number
+          format: double
+        stock:
+          type: integer
+        sales:
+          type: integer
+        description:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+        status:
+          type: integer
+          enum: [0, 1]
+
+    TeaRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        categoryId:
+          type: integer
+        shopId:
+          type: string
+        price:
+          type: number
+          format: double
+        originalPrice:
+          type: number
+          format: double
+        stock:
+          type: integer
+        description:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+        status:
+          type: integer
+          enum: [0, 1]
+
+    TeaDetailResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [3001, 200]
+        data:
+          $ref: '#/components/schemas/Tea'
+
+    TeaCategoryListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [200]
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/TeaCategory'
+
+    TeaCategory:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        parentId:
+          type: integer
+        sortOrder:
+          type: integer
+        icon:
+          type: string
+
+    TeaCategoryRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        parentId:
+          type: integer
+        sortOrder:
+          type: integer
+        icon:
+          type: string
+
+    ReviewListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [200]
+        data:
+          type: object
+          properties:
+            list:
+              type: array
+              items:
+                $ref: '#/components/schemas/Review'
+            total:
+              type: integer
+
+    Review:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: string
+        username:
+          type: string
+        avatar:
+          type: string
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        content:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+        createTime:
+          type: string
+          format: date-time
+
+    ReviewStatsResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [200]
+        data:
+          type: object
+          properties:
+            averageRating:
+              type: number
+              format: float
+            totalCount:
+              type: integer
+            ratingDistribution:
+              type: object
+              additionalProperties:
+                type: integer
+
+    ReviewRequest:
+      type: object
+      required:
+        - teaId
+        - rating
+        - content
+      properties:
+        teaId:
+          type: string
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        content:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+        orderId:
+          type: string
+
+    SpecificationListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [200]
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Specification'
+
+    Specification:
+      type: object
+      properties:
+        id:
+          type: string
+        teaId:
+          type: string
+        specName:
+          type: string
+        price:
+          type: number
+          format: double
+        stock:
+          type: integer
+        isDefault:
+          type: integer
+          enum: [0, 1]
+
+    SpecificationRequest:
+      type: object
+      properties:
+        specName:
+          type: string
+        price:
+          type: number
+          format: double
+        stock:
+          type: integer
+        isDefault:
+          type: integer
+          enum: [0, 1]
+
+    UploadImagesResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [1001]
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              url:
+                type: string
+
+    TeaListSimpleResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [200]
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              price:
+                type: number
+              images:
+                type: array
+                items:
+                  type: string
+
+    # ========== 店铺模块 Schemas ==========
+    ShopListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [200]
+        data:
+          type: object
+          properties:
+            list:
+              type: array
+              items:
+                $ref: '#/components/schemas/Shop'
+            total:
+              type: integer
+            page:
+              type: integer
+            pageSize:
+              type: integer
+
+    Shop:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        logo:
+          type: string
+        description:
+          type: string
+        rating:
+          type: number
+          format: float
+        salesCount:
+          type: integer
+        followCount:
+          type: integer
+        ownerId:
+          type: string
+
+    ShopRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        logo:
+          type: string
+        description:
+          type: string
+
+    ShopDetailResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [200]
+        data:
+          $ref: '#/components/schemas/Shop'
+
+    ShopStatisticsResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [200]
+        data:
+          type: object
+          properties:
+            totalSales:
+              type: number
+              format: double
+            orderCount:
+              type: integer
+            productCount:
+              type: integer
+            followCount:
+              type: integer
+
+    BannerListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [200]
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Banner'
+
+    Banner:
+      type: object
+      properties:
+        id:
+          type: string
+        imageUrl:
+          type: string
+        title:
+          type: string
+        linkUrl:
+          type: string
+        sortOrder:
+          type: integer
+
+    AnnouncementListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [200]
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Announcement'
+
+    Announcement:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        content:
+          type: string
+        isTop:
+          type: boolean
+        createTime:
+          type: string
+          format: date-time
+
+    AnnouncementRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        isTop:
+          type: boolean
+
+    FollowStatusResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [200]
+        data:
+          type: object
+          properties:
+            isFollowed:
+              type: boolean
+
+    # ========== 订单模块 Schemas ==========
+    CreateOrderRequest:
+      type: object
+      required:
+        - items
+        - addressId
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              teaId:
+                type: string
+              specId:
+                type: string
+              quantity:
+                type: integer
+                minimum: 1
+        addressId:
+          type: string
+        remark:
+          type: string
+
+    CreateOrderResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [4000]
+        data:
+          type: object
+          properties:
+            orderId:
+              type: string
+            totalPrice:
+              type: number
+              format: double
+            status:
+              type: integer
+
+    OrderListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [200]
+        data:
+          type: object
+          properties:
+            list:
+              type: array
+              items:
+                $ref: '#/components/schemas/Order'
+            total:
+              type: integer
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        shopId:
+          type: string
+        status:
+          type: integer
+          enum: [0, 1, 2, 3, 4]
+          description: 0=待付款, 1=待发货, 2=待收货, 3=已完成, 4=已取消
+        totalPrice:
+          type: number
+          format: double
+        createTime:
+          type: string
+          format: date-time
+
+    OrderDetailResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [200]
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+            userId:
+              type: string
+            status:
+              type: integer
+            totalPrice:
+              type: number
+            items:
+              type: array
+              items:
+                type: object
+                properties:
+                  teaId:
+                    type: string
+                  teaName:
+                    type: string
+                  quantity:
+                    type: integer
+                  price:
+                    type: number
+            address:
+              type: object
+              properties:
+                receiverName:
+                  type: string
+                receiverPhone:
+                  type: string
+                detailAddress:
+                  type: string
+            createTime:
+              type: string
+              format: date-time
+
+    PayOrderResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [4002]
+        data:
+          type: object
+          properties:
+            paymentUrl:
+              type: string
