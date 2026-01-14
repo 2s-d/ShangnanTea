@@ -333,30 +333,19 @@ const actions = {
       
       // 调用登录API，返回{code, data}
       const res = await loginApi(loginData)
+      console.log('登录API响应:', JSON.stringify(res, null, 2))
       
       // 后端返回格式：{ code, data: { token: string } }
-      // 直接从原始响应中提取token，避免被截断
       const token = res.data?.token || res.data?.data?.token || res.token
       
-      // 调试信息：检查原始响应数据
-      console.log('登录API响应调试:', {
-        code: res.code,
-        hasData: !!res.data,
-        dataKeys: res.data ? Object.keys(res.data) : [],
-        tokenExists: !!token,
-        tokenLength: token?.length || 0,
+      console.log('提取的token:', {
+        hasResData: !!res.data,
+        resDataType: typeof res.data,
+        resDataKeys: res.data ? Object.keys(res.data) : [],
+        tokenFound: !!token,
         tokenType: typeof token,
-        // 显示完整token（不会被截断）
-        fullToken: token,
-        // 检查原始响应对象
-        rawResponse: res
+        tokenValue: token
       })
-      
-      // 如果token被截断，尝试从原始响应中获取
-      if (token && token.length < 100) {
-        console.warn('⚠️ Token可能被截断，尝试从原始响应中获取完整token')
-        // 这里可以添加从原始响应中获取完整token的逻辑
-      }
       
       // 检查token是否存在
       if (!token) {
