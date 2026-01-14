@@ -1297,3 +1297,1708 @@ components:
               example:
                 code: 2021
                 data: null
+
+  /user/admin/certifications:
+    get:
+      operationId: adminGetCertifications
+      tags:
+        - 用户模块
+      summary: 获取商家认证申请列表（管理员）
+      description: 管理员获取所有商家认证申请列表，支持状态筛选和分页
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: integer
+            enum: [0, 1, 2]
+            description: 0=待审核, 1=已通过, 2=已拒绝
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificationListResponse'
+              example:
+                code: 200
+                data:
+                  list:
+                    - id: 1
+                      userId: "cy100002"
+                      shopName: "茶香阁"
+                      status: 0
+                      createTime: "2025-01-01T12:00:00Z"
+                  total: 10
+
+  /user/admin/certifications/{id}:
+    put:
+      operationId: adminReviewCertification
+      tags:
+        - 用户模块
+      summary: 审核认证申请（管理员）
+      description: 管理员审核商家认证申请，通过或拒绝
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: integer
+                  enum: [1, 2]
+                  description: 1=通过, 2=拒绝
+                reason:
+                  type: string
+                  description: 拒绝原因（status=2时必填）
+      responses:
+        '200':
+          description: 审核成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 审核成功
+                  value:
+                    code: 1000
+                    data: null
+                failure:
+                  summary: 审核失败
+                  value:
+                    code: 1100
+                    data: null
+
+  # ==================== 茶叶模块 ====================
+  /tea/list:
+    get:
+      operationId: getTeaList
+      tags:
+        - 茶叶模块
+      summary: 获取茶叶列表
+      description: 分页获取茶叶商品列表，支持分类、关键词搜索和排序
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+            description: 页码
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+            description: 每页数量
+        - name: categoryId
+          in: query
+          schema:
+            type: integer
+            description: 分类ID
+        - name: keyword
+          in: query
+          schema:
+            type: string
+            description: 搜索关键词
+        - name: shopId
+          in: query
+          schema:
+            type: string
+            description: 店铺ID
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: [price, sales, rating]
+            description: 排序字段
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+            description: 排序方向
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeaListResponse'
+              example:
+                code: 3000
+                data:
+                  list:
+                    - id: "1"
+                      name: "商南绿茶"
+                      categoryId: 1
+                      shopId: "1"
+                      price: 99.00
+                      originalPrice: 128.00
+                      stock: 100
+                      sales: 50
+                      description: "优质商南高山绿茶"
+                      images: ["/images/tea1.jpg"]
+                      status: 1
+                  total: 100
+                  page: 1
+                  pageSize: 10
+    post:
+      operationId: addTea
+      tags:
+        - 茶叶模块
+      summary: 添加茶叶（商家/管理员）
+      description: 商家或管理员添加新的茶叶商品
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeaRequest'
+            example:
+              name: "商南绿茶"
+              categoryId: 1
+              shopId: "1"
+              price: 99.00
+              originalPrice: 128.00
+              stock: 100
+              description: "优质商南高山绿茶"
+              images: ["/images/tea1.jpg"]
+              status: 1
+      responses:
+        '200':
+          description: 添加成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 添加成功
+                  value:
+                    code: 3026
+                    data: null
+                failure:
+                  summary: 添加失败
+                  value:
+                    code: 3126
+                    data: null
+
+  /tea/{id}:
+    get:
+      operationId: getTeaDetail
+      tags:
+        - 茶叶模块
+      summary: 获取茶叶详情
+      description: 根据ID获取茶叶商品的详细信息
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeaDetailResponse'
+              example:
+                code: 3001
+                data:
+                  id: "1"
+                  name: "商南绿茶"
+                  categoryId: 1
+                  shopId: "1"
+                  price: 99.00
+                  originalPrice: 128.00
+                  stock: 100
+                  sales: 50
+                  description: "优质商南高山绿茶"
+                  images: ["/images/tea1.jpg"]
+                  status: 1
+    put:
+      operationId: updateTea
+      tags:
+        - 茶叶模块
+      summary: 更新茶叶信息（商家/管理员）
+      description: 商家或管理员更新茶叶商品信息
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeaRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 更新成功
+                  value:
+                    code: 3025
+                    data: null
+                failure:
+                  summary: 更新失败
+                  value:
+                    code: 3125
+                    data: null
+    delete:
+      operationId: deleteTea
+      tags:
+        - 茶叶模块
+      summary: 删除茶叶（商家/管理员）
+      description: 商家或管理员删除茶叶商品
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 删除成功
+                  value:
+                    code: 3024
+                    data: null
+                failure:
+                  summary: 删除失败
+                  value:
+                    code: 3124
+                    data: null
+
+  /tea/categories:
+    get:
+      operationId: getTeaCategories
+      tags:
+        - 茶叶模块
+      summary: 获取茶叶分类列表
+      description: 获取所有茶叶分类，包括父子分类关系
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeaCategoryListResponse'
+              example:
+                code: 200
+                data:
+                  - id: 1
+                    name: "绿茶"
+                    parentId: 0
+                    sortOrder: 1
+                    icon: "/icons/green-tea.png"
+                  - id: 2
+                    name: "红茶"
+                    parentId: 0
+                    sortOrder: 2
+                    icon: "/icons/black-tea.png"
+    post:
+      operationId: createTeaCategory
+      tags:
+        - 茶叶模块
+      summary: 创建茶叶分类（管理员）
+      description: 管理员创建新的茶叶分类
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeaCategoryRequest'
+            example:
+              name: "白茶"
+              parentId: 0
+              sortOrder: 3
+              icon: "/icons/white-tea.png"
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 创建成功
+                  value:
+                    code: 3030
+                    data: null
+                failure:
+                  summary: 创建失败
+                  value:
+                    code: 3130
+                    data: null
+
+  /tea/categories/{id}:
+    put:
+      operationId: updateTeaCategory
+      tags:
+        - 茶叶模块
+      summary: 更新茶叶分类（管理员）
+      description: 管理员更新茶叶分类信息
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeaCategoryRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 更新成功
+                  value:
+                    code: 3031
+                    data: null
+                failure:
+                  summary: 更新失败
+                  value:
+                    code: 3131
+                    data: null
+    delete:
+      operationId: deleteTeaCategory
+      tags:
+        - 茶叶模块
+      summary: 删除茶叶分类（管理员）
+      description: 管理员删除茶叶分类
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 删除成功
+                  value:
+                    code: 3032
+                    data: null
+                failure:
+                  summary: 删除失败
+                  value:
+                    code: 3132
+                    data: null
+
+  /tea/{teaId}/reviews:
+    get:
+      operationId: getTeaReviews
+      tags:
+        - 茶叶模块
+      summary: 获取茶叶评价列表
+      description: 获取指定茶叶的用户评价列表，支持分页
+      parameters:
+        - name: teaId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewListResponse'
+              example:
+                code: 200
+                data:
+                  list:
+                    - id: 1
+                      userId: "cy100002"
+                      username: "茶友"
+                      avatar: "/images/avatar.png"
+                      rating: 5
+                      content: "茶叶很好喝"
+                      images: []
+                      createTime: "2025-01-01T12:00:00Z"
+                  total: 10
+
+  /tea/{teaId}/reviews/stats:
+    get:
+      operationId: getTeaReviewStats
+      tags:
+        - 茶叶模块
+      summary: 获取茶叶评价统计
+      description: 获取茶叶的评价统计信息，包括平均评分和评分分布
+      parameters:
+        - name: teaId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewStatsResponse'
+              example:
+                code: 200
+                data:
+                  averageRating: 4.5
+                  totalCount: 100
+                  ratingDistribution:
+                    "5": 60
+                    "4": 25
+                    "3": 10
+                    "2": 3
+                    "1": 2
+
+  /tea/reviews:
+    post:
+      operationId: submitTeaReview
+      tags:
+        - 茶叶模块
+      summary: 提交茶叶评价
+      description: 用户提交茶叶商品评价
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewRequest'
+            example:
+              teaId: "1"
+              rating: 5
+              content: "茶叶很好喝"
+              images: []
+              orderId: "order001"
+      responses:
+        '200':
+          description: 提交成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 提交成功
+                  value:
+                    code: 4050
+                    data: null
+                failure:
+                  summary: 提交失败
+                  value:
+                    code: 4150
+                    data: null
+
+  /tea/reviews/{reviewId}/reply:
+    post:
+      operationId: replyTeaReview
+      tags:
+        - 茶叶模块
+      summary: 商家回复评价
+      description: 商家对用户评价进行回复
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: reviewId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reply]
+              properties:
+                reply:
+                  type: string
+                  description: 回复内容
+      responses:
+        '200':
+          description: 回复成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 回复成功
+                  value:
+                    code: 3013
+                    data: null
+                failure:
+                  summary: 回复失败
+                  value:
+                    code: 3113
+                    data: null
+
+  /tea/reviews/{reviewId}/like:
+    post:
+      operationId: likeTeaReview
+      tags:
+        - 茶叶模块
+      summary: 点赞评价
+      description: 用户对评价进行点赞
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: reviewId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 点赞成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 点赞成功
+                  value:
+                    code: 6010
+                    data: null
+                failure:
+                  summary: 点赞失败
+                  value:
+                    code: 6110
+                    data: null
+
+  /tea/{teaId}/specifications:
+    get:
+      operationId: getTeaSpecifications
+      tags:
+        - 茶叶模块
+      summary: 获取茶叶规格列表
+      description: 获取指定茶叶的所有规格选项
+      parameters:
+        - name: teaId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecificationListResponse'
+              example:
+                code: 200
+                data:
+                  - id: "1"
+                    teaId: "1"
+                    specName: "250g装"
+                    price: 99.00
+                    stock: 100
+                    isDefault: 1
+    post:
+      operationId: addTeaSpecification
+      tags:
+        - 茶叶模块
+      summary: 添加茶叶规格
+      description: 为茶叶添加新的规格选项
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: teaId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpecificationRequest'
+            example:
+              specName: "500g装"
+              price: 188.00
+              stock: 50
+              isDefault: 0
+      responses:
+        '200':
+          description: 添加成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 添加成功
+                  value:
+                    code: 1000
+                    data: null
+                failure:
+                  summary: 添加失败
+                  value:
+                    code: 1100
+                    data: null
+
+  /tea/specifications/{specId}:
+    put:
+      operationId: updateTeaSpecification
+      tags:
+        - 茶叶模块
+      summary: 更新茶叶规格
+      description: 更新茶叶规格信息
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: specId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpecificationRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 更新成功
+                  value:
+                    code: 1004
+                    data: null
+                failure:
+                  summary: 更新失败
+                  value:
+                    code: 1104
+                    data: null
+    delete:
+      operationId: deleteTeaSpecification
+      tags:
+        - 茶叶模块
+      summary: 删除茶叶规格
+      description: 删除指定的茶叶规格
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: specId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 删除成功
+                  value:
+                    code: 1003
+                    data: null
+                failure:
+                  summary: 删除失败
+                  value:
+                    code: 1103
+                    data: null
+
+  /tea/specifications/{specId}/default:
+    put:
+      operationId: setDefaultSpecification
+      tags:
+        - 茶叶模块
+      summary: 设置默认规格
+      description: 将指定规格设置为默认规格
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: specId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 设置成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 设置成功
+                  value:
+                    code: 1004
+                    data: null
+                failure:
+                  summary: 设置失败
+                  value:
+                    code: 1104
+                    data: null
+
+  /tea/{teaId}/images:
+    post:
+      operationId: uploadTeaImages
+      tags:
+        - 茶叶模块
+      summary: 上传茶叶图片
+      description: 为茶叶上传商品图片
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: teaId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: 图片文件列表
+      responses:
+        '200':
+          description: 上传成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadImagesResponse'
+              examples:
+                success:
+                  summary: 上传成功
+                  value:
+                    code: 1001
+                    data:
+                      - id: "img1"
+                        url: "/uploads/tea/tea1_1.jpg"
+                failure:
+                  summary: 上传失败
+                  value:
+                    code: 1101
+                    data: null
+
+  /tea/images/{imageId}:
+    delete:
+      operationId: deleteTeaImage
+      tags:
+        - 茶叶模块
+      summary: 删除茶叶图片
+      description: 删除指定的茶叶图片
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: imageId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 删除成功
+                  value:
+                    code: 1003
+                    data: null
+                failure:
+                  summary: 删除失败
+                  value:
+                    code: 1103
+                    data: null
+
+  /tea/images/{imageId}/main:
+    put:
+      operationId: setMainTeaImage
+      tags:
+        - 茶叶模块
+      summary: 设置主图
+      description: 将指定图片设置为茶叶主图
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: imageId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 设置成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 1004
+                data: null
+
+  /tea/images/order:
+    put:
+      operationId: updateTeaImageOrder
+      tags:
+        - 茶叶模块
+      summary: 更新图片顺序
+      description: 更新茶叶图片的显示顺序
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                teaId:
+                  type: string
+                  description: 茶叶ID
+                orders:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      imageId:
+                        type: string
+                      order:
+                        type: integer
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 1004
+                data: null
+
+  /tea/{teaId}/status:
+    put:
+      operationId: updateTeaStatus
+      tags:
+        - 茶叶模块
+      summary: 更新茶叶状态（上架/下架）
+      description: 商家或管理员更新茶叶的上架/下架状态
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: teaId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: integer
+                  enum: [0, 1]
+                  description: 0=下架, 1=上架
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 3020
+                data: null
+
+  /tea/batch-status:
+    put:
+      operationId: batchUpdateTeaStatus
+      tags:
+        - 茶叶模块
+      summary: 批量更新茶叶状态
+      description: 批量更新多个茶叶的上架/下架状态
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                teaIds:
+                  type: array
+                  items:
+                    type: string
+                  description: 茶叶ID列表
+                status:
+                  type: integer
+                  enum: [0, 1]
+                  description: 0=下架, 1=上架
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 更新成功
+                  value:
+                    code: 3022
+                    data: null
+                failure:
+                  summary: 更新失败
+                  value:
+                    code: 3122
+                    data: null
+
+  /tea/recommend:
+    get:
+      operationId: getRecommendTeas
+      tags:
+        - 茶叶模块
+      summary: 获取推荐茶叶
+      description: 获取推荐的茶叶列表，支持随机推荐、相似推荐、热门推荐
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [random, similar, popular]
+            description: 推荐类型
+        - name: teaId
+          in: query
+          schema:
+            type: string
+            description: 参考茶叶ID（相似推荐时使用）
+        - name: count
+          in: query
+          schema:
+            type: integer
+            default: 6
+            description: 推荐数量
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeaListSimpleResponse'
+              example:
+                code: 200
+                data:
+                  - id: "1"
+                    name: "商南绿茶"
+                    price: 99.00
+                    images: ["/images/tea1.jpg"]
+
+  # ==================== 店铺模块 ====================
+  /shop/list:
+    get:
+      operationId: getShopList
+      tags:
+        - 店铺模块
+      summary: 获取店铺列表
+      description: 获取店铺列表，支持搜索、筛选和排序
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: keyword
+          in: query
+          schema:
+            type: string
+            description: 搜索关键词
+        - name: rating
+          in: query
+          schema:
+            type: number
+            description: 最低评分筛选
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: [rating, salesCount, followCount]
+            description: 排序字段
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShopListResponse'
+              example:
+                code: 200
+                data:
+                  list:
+                    - id: "1"
+                      name: "商南茶庄"
+                      logo: "/images/shop-logo.png"
+                      description: "专营商南高山绿茶"
+                      rating: 4.8
+                      salesCount: 1000
+                      followCount: 500
+                      ownerId: "cy100003"
+                  total: 50
+                  page: 1
+                  pageSize: 10
+
+    post:
+      operationId: createShop
+      tags:
+        - 店铺模块
+      summary: 创建店铺
+      description: 商家创建新店铺
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShopRequest'
+            example:
+              name: "商南茶庄"
+              logo: "/images/shop-logo.png"
+              description: "专营商南高山绿茶"
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 创建成功
+                  value:
+                    code: 1000
+                    data: null
+                failure:
+                  summary: 创建失败
+                  value:
+                    code: 1100
+                    data: null
+
+  /shop/{id}:
+    get:
+      operationId: getShopDetail
+      tags:
+        - 店铺模块
+      summary: 获取店铺详情
+      description: 根据ID获取店铺详细信息
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShopDetailResponse'
+              example:
+                code: 200
+                data:
+                  id: "1"
+                  name: "商南茶庄"
+                  logo: "/images/shop-logo.png"
+                  description: "专营商南高山绿茶"
+                  rating: 4.8
+                  salesCount: 1000
+                  followCount: 500
+                  ownerId: "cy100003"
+
+    put:
+      operationId: updateShop
+      tags:
+        - 店铺模块
+      summary: 更新店铺信息
+      description: 商家更新店铺信息
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShopRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 更新成功
+                  value:
+                    code: 1004
+                    data: null
+                failure:
+                  summary: 更新失败
+                  value:
+                    code: 1104
+                    data: null
+
+  /shop/my:
+    get:
+      operationId: getMyShop
+      tags:
+        - 店铺模块
+      summary: 获取我的店铺信息
+      description: 获取当前登录商家的店铺信息
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShopDetailResponse'
+              example:
+                code: 200
+                data:
+                  id: "1"
+                  name: "商南茶庄"
+                  logo: "/images/shop-logo.png"
+                  description: "专营商南高山绿茶"
+                  rating: 4.8
+                  salesCount: 1000
+                  followCount: 500
+
+  /shop/{shopId}/teas:
+    get:
+      operationId: getShopTeas
+      tags:
+        - 店铺模块
+      summary: 获取店铺茶叶列表
+      description: 获取指定店铺的茶叶商品列表
+      parameters:
+        - name: shopId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeaListResponse'
+              example:
+                code: 200
+                data:
+                  list:
+                    - id: "1"
+                      name: "商南绿茶"
+                      price: 99.00
+                      status: 1
+                  total: 20
+    post:
+      operationId: addShopTea
+      tags:
+        - 店铺模块
+      summary: 添加茶叶到店铺
+      description: 商家为店铺添加新的茶叶商品
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: shopId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeaRequest'
+      responses:
+        '200':
+          description: 添加成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 3026
+                data: null
+
+  /shop/teas/{teaId}:
+    put:
+      operationId: updateShopTea
+      tags:
+        - 店铺模块
+      summary: 更新店铺茶叶
+      description: 商家更新店铺中的茶叶信息
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: teaId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeaRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 3025
+                data: null
+    delete:
+      operationId: deleteShopTea
+      tags:
+        - 店铺模块
+      summary: 删除店铺茶叶
+      description: 商家删除店铺中的茶叶
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: teaId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 3024
+                data: null
+
+  /shop/teas/{teaId}/status:
+    put:
+      operationId: updateShopTeaStatus
+      tags:
+        - 店铺模块
+      summary: 茶叶上下架
+      description: 商家更新店铺茶叶的上下架状态
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: teaId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: integer
+                  enum: [0, 1]
+                  description: 0=下架, 1=上架
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 3020
+                data: null
+
+  /shop/{shopId}/statistics:
+    get:
+      operationId: getShopStatistics
+      tags:
+        - 店铺模块
+      summary: 获取店铺统计数据
+      description: 获取店铺的销售统计数据
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: shopId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+            description: 开始日期
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+            description: 结束日期
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShopStatisticsResponse'
+              example:
+                code: 200
+                data:
+                  totalSales: 50000.00
+                  orderCount: 200
+                  productCount: 30
+                  followCount: 500
+
+  /shop/{shopId}/logo:
+    post:
+      operationId: uploadShopLogo
+      tags:
+        - 店铺模块
+      summary: 上传店铺Logo
+      description: 商家上传店铺Logo图片
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: shopId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Logo图片文件
+      responses:
+        '200':
+          description: 上传成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadResponse'
+              examples:
+                success:
+                  summary: 上传成功
+                  value:
+                    code: 5030
+                    data:
+                      url: "/uploads/shop/logo_1.jpg"
+                failure:
+                  summary: 上传失败
+                  value:
+                    code: 5130
+                    data: null
+
+  /shop/{shopId}/banners:
+    get:
+      operationId: getShopBanners
+      tags:
+        - 店铺模块
+      summary: 获取店铺Banner列表
+      description: 获取店铺的轮播Banner列表
+      parameters:
+        - name: shopId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BannerListResponse'
+              example:
+                code: 200
+                data:
+                  - id: "1"
+                    imageUrl: "/images/banner1.jpg"
+                    title: "新品上市"
+                    linkUrl: "/tea/1"
+                    sortOrder: 1
+    post:
+      operationId: uploadShopBanner
+      tags:
+        - 店铺模块
+      summary: 上传店铺Banner
+      description: 商家上传店铺Banner图片
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: shopId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: Banner图片
+                title:
+                  type: string
+                  description: Banner标题
+                linkUrl:
+                  type: string
+                  description: 跳转链接
+      responses:
+        '200':
+          description: 上传成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 上传成功
+                  value:
+                    code: 5010
+                    data: null
+                failure:
+                  summary: 上传失败
+                  value:
+                    code: 5110
+                    data: null
+
+  /shop/banners/{bannerId}:
+    put:
+      operationId: updateShopBanner
+      tags:
+        - 店铺模块
+      summary: 更新店铺Banner
+      description: 商家更新Banner信息
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: bannerId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                linkUrl:
+                  type: string
+                sortOrder:
+                  type: integer
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 更新成功
+                  value:
+                    code: 5011
+                    data: null
+                failure:
+                  summary: 更新失败
+                  value:
+                    code: 5111
+                    data: null
+    delete:
+      operationId: deleteShopBanner
+      tags:
+        - 店铺模块
+      summary: 删除店铺Banner
+      description: 商家删除Banner
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: bannerId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 删除成功
+                  value:
+                    code: 5012
+                    data: null
+                failure:
+                  summary: 删除失败
+                  value:
+                    code: 5112
+                    data: null
