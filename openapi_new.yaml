@@ -1,0 +1,1299 @@
+openapi: 3.0.3
+info:
+  title: 商南茶城 API
+  description: |
+    商南茶城电商平台 API 接口文档
+    
+    ## 认证方式
+    使用 Bearer Token 认证，在请求头中添加：
+    ```
+    Authorization: Bearer <token>
+    ```
+    
+    ## 响应格式
+    所有接口统一返回 HTTP 200，通过 `code` 字段区分业务状态：
+    ```json
+    {
+      "code": 2000,
+      "data": { ... }
+    }
+    ```
+    
+    ## 业务状态码规则
+    | 模块 | 成功码范围 | 失败码范围 |
+    |------|-----------|-----------|
+    | 通用 | 10xx | 11xx |
+    | 用户 | 20xx-22xx | 21xx-22xx |
+    | 茶叶 | 30xx-33xx | 31xx-33xx |
+    | 订单 | 40xx-46xx | 41xx-46xx |
+    | 店铺 | 50xx-53xx | 51xx-53xx |
+    | 论坛 | 60xx-66xx | 61xx-66xx |
+    | 消息 | 70xx-72xx | 71xx-72xx |
+    
+    **判断规则**：百位为 0 表示成功，百位为 1 表示失败
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@shangnantea.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://127.0.0.1:4523/m1/7594087-7332672-default
+    description: Mock 服务器
+  - url: /api
+    description: 生产环境 API
+
+tags:
+  - name: 用户模块
+    description: 用户认证、信息管理相关接口
+  - name: 茶叶模块
+    description: 茶叶商品相关接口
+  - name: 店铺模块
+    description: 店铺信息相关接口
+  - name: 订单模块
+    description: 订单管理相关接口
+  - name: 论坛模块
+    description: 论坛帖子相关接口
+  - name: 消息模块
+    description: 消息通知相关接口
+  - name: 公共模块
+    description: 文件上传等公共接口
+
+paths:
+  # ==================== 用户模块 ====================
+  /user/login:
+    post:
+      operationId: userLogin
+      tags:
+        - 用户模块
+      summary: 用户登录
+      description: 使用用户名和密码进行登录，返回 JWT Token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              username: "testuser"
+              password: "password123"
+      responses:
+        '200':
+          description: 请求完成，通过 code 判断业务结果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+              examples:
+                success:
+                  summary: 登录成功
+                  value:
+                    code: 2000
+                    data:
+                      token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                failure:
+                  summary: 登录失败
+                  value:
+                    code: 2100
+                    data: null
+
+  /user/register:
+    post:
+      operationId: userRegister
+      tags:
+        - 用户模块
+      summary: 用户注册
+      description: 注册新用户账号
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            example:
+              username: "newuser"
+              password: "password123"
+              confirmPassword: "password123"
+      responses:
+        '200':
+          description: 请求完成，通过 code 判断业务结果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+              examples:
+                success:
+                  summary: 注册成功
+                  value:
+                    code: 2001
+                    data:
+                      id: "cy100003"
+                      username: "newuser"
+                      nickname: "新用户"
+                      avatar: "/images/default-avatar.png"
+                      role: 2
+                      status: 1
+                failure:
+                  summary: 注册失败
+                  value:
+                    code: 2101
+                    data: null
+
+  /user/logout:
+    post:
+      operationId: userLogout
+      tags:
+        - 用户模块
+      summary: 退出登录
+      description: 退出当前用户登录状态
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 退出成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 2002
+                data: null
+
+  /user/refresh:
+    post:
+      operationId: refreshToken
+      tags:
+        - 用户模块
+      summary: 刷新令牌
+      description: 刷新JWT令牌
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 刷新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshTokenResponse'
+              example:
+                code: 200
+                data:
+                  token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+  /user/me:
+    get:
+      operationId: getUserMe
+      tags:
+        - 用户模块
+      summary: 获取当前用户信息
+      description: 获取当前登录用户的详细信息
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfoResponse'
+              example:
+                code: 200
+                data:
+                  id: "cy100002"
+                  username: "user"
+                  nickname: "测试用户"
+                  avatar: "/images/default-avatar.png"
+                  email: "user@example.com"
+                  phone: "13800138000"
+                  role: 2
+                  status: 1
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT 认证令牌
+
+  schemas:
+    # ========== 基础响应 ==========
+    BaseResponse:
+      type: object
+      required:
+        - code
+      properties:
+        code:
+          type: integer
+          description: 业务状态码
+        data:
+          nullable: true
+          description: 响应数据
+
+    # ========== 用户模块 ==========
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          description: 用户名
+          minLength: 3
+          maxLength: 50
+        password:
+          type: string
+          description: 密码
+          format: password
+          minLength: 6
+
+    LoginResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [2000, 2100]
+          description: 2000=登录成功, 2100=登录失败
+        data:
+          type: object
+          nullable: true
+          properties:
+            token:
+              type: string
+              description: JWT Token
+
+    RegisterRequest:
+      type: object
+      required:
+        - username
+        - password
+        - confirmPassword
+      properties:
+        username:
+          type: string
+          description: 用户名
+          minLength: 3
+          maxLength: 50
+        password:
+          type: string
+          description: 密码
+          format: password
+          minLength: 6
+        confirmPassword:
+          type: string
+          description: 确认密码
+          format: password
+          minLength: 6
+        email:
+          type: string
+          format: email
+          description: 邮箱
+        phone:
+          type: string
+          description: 手机号
+
+    RegisterResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [2001, 2101]
+          description: 2001=注册成功, 2101=注册失败
+        data:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: string
+              description: 用户ID
+            username:
+              type: string
+              description: 用户名
+            nickname:
+              type: string
+              description: 昵称
+            avatar:
+              type: string
+              description: 头像URL
+            role:
+              type: integer
+              description: 角色
+            status:
+              type: integer
+              description: 状态
+
+    RefreshTokenResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [200]
+          description: 200=刷新成功
+        data:
+          type: object
+          properties:
+            token:
+              type: string
+              description: 新的JWT Token
+
+    UserInfoResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [200]
+          description: 200=获取成功
+        data:
+          $ref: '#/components/schemas/UserInfo'
+
+    UserInfo:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 用户ID
+        username:
+          type: string
+          description: 用户名
+        nickname:
+          type: string
+          description: 昵称
+        avatar:
+          type: string
+          description: 头像URL
+        email:
+          type: string
+          format: email
+          description: 邮箱
+        phone:
+          type: string
+          description: 手机号
+        role:
+          type: integer
+          description: 角色 (1=管理员, 2=普通用户, 3=商家)
+        status:
+          type: integer
+          description: 状态 (0=禁用, 1=启用)
+
+  /user/{userId}:
+    get:
+      operationId: getUserById
+      tags:
+        - 用户模块
+      summary: 获取指定用户信息
+      description: 根据用户ID获取用户公开信息
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfoResponse'
+              example:
+                code: 200
+                data:
+                  id: "cy100002"
+                  username: "user"
+                  nickname: "测试用户"
+                  avatar: "/images/default-avatar.png"
+                  role: 2
+                  status: 1
+
+  /user:
+    put:
+      operationId: updateUser
+      tags:
+        - 用户模块
+      summary: 更新用户信息
+      description: 更新当前用户的个人信息
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+            example:
+              nickname: "新昵称"
+              email: "newemail@example.com"
+              phone: "13900139000"
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 更新成功
+                  value:
+                    code: 2010
+                    data: null
+                failure:
+                  summary: 更新失败
+                  value:
+                    code: 2110
+                    data: null
+
+  /user/avatar:
+    post:
+      operationId: uploadAvatar
+      tags:
+        - 用户模块
+      summary: 上传头像
+      description: 上传用户头像图片
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: 头像图片文件
+      responses:
+        '200':
+          description: 上传成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadResponse'
+              examples:
+                success:
+                  summary: 上传成功
+                  value:
+                    code: 2012
+                    data:
+                      avatarUrl: "/uploads/avatar/user_cy100002.jpg"
+                failure:
+                  summary: 上传失败
+                  value:
+                    code: 2112
+                    data: null
+
+  /user/password:
+    put:
+      operationId: updatePassword
+      tags:
+        - 用户模块
+      summary: 修改密码
+      description: 修改当前用户密码
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePasswordRequest'
+            example:
+              oldPassword: "oldpass123"
+              newPassword: "newpass123"
+              confirmNewPassword: "newpass123"
+      responses:
+        '200':
+          description: 修改结果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 修改成功
+                  value:
+                    code: 2011
+                    data: null
+                failure:
+                  summary: 修改失败
+                  value:
+                    code: 2111
+                    data: null
+
+  /user/password/reset:
+    post:
+      operationId: resetPassword
+      tags:
+        - 用户模块
+      summary: 密码找回/重置
+      description: 通过验证码重置密码
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+            example:
+              username: "testuser"
+              phone: "13800138000"
+              verificationCode: "123456"
+              newPassword: "newpass123"
+      responses:
+        '200':
+          description: 重置结果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 重置成功
+                  value:
+                    code: 2004
+                    data: null
+                failure:
+                  summary: 重置失败
+                  value:
+                    code: 2104
+                    data: null
+
+  /user/addresses:
+    get:
+      operationId: getAddresses
+      tags:
+        - 用户模块
+      summary: 获取收货地址列表
+      description: 获取当前用户的所有收货地址
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressListResponse'
+              example:
+                code: 200
+                data:
+                  - id: 1
+                    receiverName: "张三"
+                    receiverPhone: "13800138000"
+                    province: "陕西省"
+                    city: "商洛市"
+                    district: "商南县"
+                    detailAddress: "茶城路1号"
+                    isDefault: 1
+    post:
+      operationId: addAddress
+      tags:
+        - 用户模块
+      summary: 添加收货地址
+      description: 为当前用户添加新的收货地址
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddressRequest'
+            example:
+              receiverName: "张三"
+              receiverPhone: "13800138000"
+              province: "陕西省"
+              city: "商洛市"
+              district: "商南县"
+              detailAddress: "茶城路1号"
+              isDefault: 0
+      responses:
+        '200':
+          description: 添加成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 添加成功
+                  value:
+                    code: 4060
+                    data: null
+                failure:
+                  summary: 添加失败
+                  value:
+                    code: 4161
+                    data: null
+
+  /user/addresses/{id}:
+    put:
+      operationId: updateAddress
+      tags:
+        - 用户模块
+      summary: 更新收货地址
+      description: 更新指定的收货地址信息
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddressRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 1004
+                data: null
+    delete:
+      operationId: deleteAddress
+      tags:
+        - 用户模块
+      summary: 删除收货地址
+      description: 删除指定的收货地址
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 1003
+                data: null
+
+  /user/addresses/{id}/default:
+    put:
+      operationId: setDefaultAddress
+      tags:
+        - 用户模块
+      summary: 设置默认地址
+      description: 将指定地址设置为默认收货地址
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 设置成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 1004
+                data: null
+
+  /user/shop-certification:
+    get:
+      operationId: getShopCertification
+      tags:
+        - 用户模块
+      summary: 获取商家认证状态
+      description: 获取当前用户的商家认证申请状态
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificationResponse'
+              example:
+                code: 200
+                data:
+                  id: 1
+                  userId: "cy100002"
+                  shopName: "茶香阁"
+                  businessLicense: "/uploads/license.jpg"
+                  idCardFront: "/uploads/id_front.jpg"
+                  idCardBack: "/uploads/id_back.jpg"
+                  status: 0
+                  createTime: "2025-01-01T12:00:00Z"
+    post:
+      operationId: submitShopCertification
+      tags:
+        - 用户模块
+      summary: 提交商家认证申请
+      description: 提交商家认证申请资料
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CertificationRequest'
+            example:
+              shopName: "茶香阁"
+              businessLicense: "/uploads/license.jpg"
+              idCardFront: "/uploads/id_front.jpg"
+              idCardBack: "/uploads/id_back.jpg"
+      responses:
+        '200':
+          description: 提交成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 1000
+                data: null
+
+  /user/follows:
+    get:
+      operationId: getFollows
+      tags:
+        - 用户模块
+      summary: 获取关注列表
+      description: 获取当前用户的关注列表（用户或店铺）
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [user, shop]
+            description: 关注类型
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FollowListResponse'
+              example:
+                code: 200
+                data:
+                  - id: 1
+                    targetId: "cy100003"
+                    targetType: "user"
+                    targetName: "茶友小王"
+                    targetAvatar: "/images/avatar1.png"
+                    createTime: "2025-01-01T12:00:00Z"
+    post:
+      operationId: addFollow
+      tags:
+        - 用户模块
+      summary: 添加关注
+      description: 关注用户或店铺
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FollowRequest'
+            example:
+              targetId: "cy100003"
+              targetType: "user"
+      responses:
+        '200':
+          description: 关注成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 5000
+                data: null
+
+  /user/follows/{id}:
+    delete:
+      operationId: removeFollow
+      tags:
+        - 用户模块
+      summary: 取消关注
+      description: 取消关注用户或店铺
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 取消成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 5001
+                data: null
+
+  /user/favorites:
+    get:
+      operationId: getFavorites
+      tags:
+        - 用户模块
+      summary: 获取收藏列表
+      description: 获取当前用户的收藏列表（茶叶、帖子、文章）
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [tea, post, article]
+            description: 收藏类型
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FavoriteListResponse'
+              example:
+                code: 200
+                data:
+                  - id: 1
+                    targetId: "1"
+                    targetType: "tea"
+                    targetName: "商南绿茶"
+                    targetImage: "/images/tea1.jpg"
+                    createTime: "2025-01-01T12:00:00Z"
+    post:
+      operationId: addFavorite
+      tags:
+        - 用户模块
+      summary: 添加收藏
+      description: 收藏茶叶、帖子或文章
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FavoriteRequest'
+            example:
+              targetId: "1"
+              targetType: "tea"
+      responses:
+        '200':
+          description: 收藏成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 收藏成功
+                  value:
+                    code: 3010
+                    data: null
+                failure:
+                  summary: 收藏失败
+                  value:
+                    code: 3110
+                    data: null
+
+  /user/favorites/{id}:
+    delete:
+      operationId: removeFavorite
+      tags:
+        - 用户模块
+      summary: 取消收藏
+      description: 取消收藏茶叶、帖子或文章
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 取消成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 3011
+                data: null
+
+  /user/likes:
+    post:
+      operationId: addLike
+      tags:
+        - 用户模块
+      summary: 点赞
+      description: 对帖子、评论等内容点赞
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LikeRequest'
+            example:
+              targetId: "1"
+              targetType: "post"
+      responses:
+        '200':
+          description: 点赞成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 点赞成功
+                  value:
+                    code: 6010
+                    data: null
+                failure:
+                  summary: 点赞失败
+                  value:
+                    code: 6110
+                    data: null
+
+  /user/likes/{id}:
+    delete:
+      operationId: removeLike
+      tags:
+        - 用户模块
+      summary: 取消点赞
+      description: 取消对内容的点赞
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 取消成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 6011
+                data: null
+
+  /user/preferences:
+    get:
+      operationId: getPreferences
+      tags:
+        - 用户模块
+      summary: 获取用户偏好设置
+      description: 获取当前用户的偏好设置（主题、显示模式等）
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PreferencesResponse'
+              example:
+                code: 200
+                data:
+                  theme: "light"
+                  displayMode: "grid"
+                  language: "zh-CN"
+    put:
+      operationId: updatePreferences
+      tags:
+        - 用户模块
+      summary: 更新用户偏好设置
+      description: 更新当前用户的偏好设置
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PreferencesRequest'
+            example:
+              theme: "dark"
+              displayMode: "list"
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 更新成功
+                  value:
+                    code: 2013
+                    data: null
+                failure:
+                  summary: 更新失败
+                  value:
+                    code: 2114
+                    data: null
+
+  /user/admin/users:
+    get:
+      operationId: adminGetUsers
+      tags:
+        - 用户模块
+      summary: 获取用户列表（管理员）
+      description: 管理员获取用户列表，支持筛选和分页
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: keyword
+          in: query
+          schema:
+            type: string
+            description: 搜索关键词
+        - name: role
+          in: query
+          schema:
+            type: integer
+            enum: [1, 2, 3]
+            description: 角色筛选
+        - name: status
+          in: query
+          schema:
+            type: integer
+            enum: [0, 1]
+            description: 状态筛选
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserListResponse'
+              example:
+                code: 200
+                data:
+                  list:
+                    - id: "cy100001"
+                      username: "admin"
+                      nickname: "管理员"
+                      role: 1
+                      status: 1
+                      createTime: "2024-01-01T00:00:00Z"
+                    - id: "cy100002"
+                      username: "user"
+                      nickname: "普通用户"
+                      role: 2
+                      status: 1
+                      createTime: "2024-01-02T00:00:00Z"
+                  total: 100
+                  page: 1
+                  pageSize: 10
+    post:
+      operationId: adminCreateUser
+      tags:
+        - 用户模块
+      summary: 创建管理员账号（管理员）
+      description: 管理员创建新的管理员账号
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAdminRequest'
+            example:
+              username: "newadmin"
+              password: "admin123"
+              nickname: "新管理员"
+              email: "admin@example.com"
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 2023
+                data: null
+
+  /user/admin/users/{userId}:
+    put:
+      operationId: adminUpdateUser
+      tags:
+        - 用户模块
+      summary: 更新用户信息（管理员）
+      description: 管理员更新指定用户的信息
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUpdateUserRequest'
+            example:
+              nickname: "新昵称"
+              email: "newemail@example.com"
+              status: 1
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 2022
+                data: null
+    delete:
+      operationId: adminDeleteUser
+      tags:
+        - 用户模块
+      summary: 删除用户（管理员）
+      description: 管理员删除指定用户
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 2020
+                data: null
+
+  /user/admin/users/{userId}/role:
+    put:
+      operationId: adminUpdateUserRole
+      tags:
+        - 用户模块
+      summary: 更新用户角色（管理员，已废弃）
+      description: 管理员更新用户角色（此接口已废弃）
+      deprecated: true
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [role]
+              properties:
+                role:
+                  type: integer
+                  enum: [1, 2, 3]
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 2022
+                data: null
+
+  /user/admin/users/{userId}/status:
+    put:
+      operationId: adminUpdateUserStatus
+      tags:
+        - 用户模块
+      summary: 启用/禁用用户（管理员）
+      description: 管理员启用或禁用指定用户
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: integer
+                  enum: [0, 1]
+                  description: 0=禁用, 1=启用
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 2021
+                data: null
