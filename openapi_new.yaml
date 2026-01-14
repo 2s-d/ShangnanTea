@@ -5924,14 +5924,6 @@ paths:
                 data: null
 
   # ==================== 公共模块 ====================
-  /upload:
-    post:
-      operationId: uploadFile
-      tags:
-        - 消息模块
-      summary: 获取消息设置
-      description: 获取当前用户的消息通知设置
-      security:
         - BearerAuth: []
       responses:
         '200':
