@@ -37,8 +37,8 @@ public class UserServiceImpl implements UserService {
     private JwtUtil jwtUtil;
     
     /**
-     * 用户登录（新接口，返回Result）
-     * 成功码：2000，失败码：2100
+     * 用户登录
+     * 成功码：2000，失败码：2100, 2105
      */
     @Override
     public Result<TokenVO> login(LoginDTO loginDTO) {
@@ -116,11 +116,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean isUserExist(String username) {
         return getUserByUsername(username) != null;
-    }
-    
-    @Override
-    public User login(String username, String password) {
-        return checkUserAndPassword(username, password);
     }
     
     /**

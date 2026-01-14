@@ -11,7 +11,7 @@ import com.shangnantea.model.vo.user.TokenVO;
 public interface UserService {
     
     /**
-     * 用户登录（新接口，返回Result）
+     * 用户登录
      *
      * @param loginDTO 登录信息
      * @return 登录结果，包含token和用户信息
@@ -50,15 +50,6 @@ public interface UserService {
      * @return 是否已存在
      */
     boolean isUserExist(String username);
-    
-    /**
-     * 用户登录（旧接口，保留用于兼容）
-     *
-     * @param username 用户名
-     * @param password 密码
-     * @return 用户对象，如果登录失败则返回null
-     */
-    User login(String username, String password);
     
     /**
      * 注册用户
