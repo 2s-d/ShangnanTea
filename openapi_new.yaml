@@ -3419,11 +3419,11 @@ paths:
                 data: null
 
   /order/{id}/ship:
-    put:
+    post:
       operationId: shipOrder
       tags:
         - 订单模块
-      summary: 发货（商家）
+      summary: 发货
       description: 商家发货并填写物流信息
       security:
         - BearerAuth: []
@@ -3433,20 +3433,16 @@ paths:
           required: true
           schema:
             type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [expressCompany, expressNumber]
-              properties:
-                expressCompany:
-                  type: string
-                  description: 快递公司
-                expressNumber:
-                  type: string
-                  description: 快递单号
+        - name: logisticsCompany
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: logisticsNumber
+          in: query
+          required: true
+          schema:
+            type: string
       responses:
         '200':
           description: 发货成功
@@ -3454,49 +3450,119 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              examples:
-                success:
-                  summary: 发货成功
-                  value:
-                    code: 4004
-                    data: null
-                failure:
-                  summary: 发货失败
-                  value:
-                    code: 4104
-                    data: null
+              example:
+                code: 4004
+                data: null
 
-  /order/{id}/refund:
+  /order/review:
     post:
-      operationId: refundOrder
+      operationId: reviewOrder
       tags:
         - 订单模块
-      summary: 申请退款
-      description: 用户申请订单退款
+      summary: 评价订单
+      description: 用户对订单进行评价
       security:
         - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [reason]
+              required: [orderId, rating, content]
               properties:
-                reason:
+                orderId:
                   type: string
-                  description: 退款原因
+                rating:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                content:
+                  type: string
                 images:
                   type: array
                   items:
                     type: string
-                  description: 凭证图片
+            example:
+              orderId: "order001"
+              rating: 5
+              content: "商品很好"
+              images: []
+      responses:
+        '200':
+          description: 评价成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 4050
+                data: null
+
+  /order/batch-ship:
+    post:
+      operationId: batchShipOrder
+      tags:
+        - 订单模块
+      summary: 批量发货
+      description: 商家批量发货
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [orderIds, logisticsCompany, logisticsNumber]
+              properties:
+                orderIds:
+                  type: array
+                  items:
+                    type: string
+                logisticsCompany:
+                  type: string
+                logisticsNumber:
+                  type: string
+            example:
+              orderIds: ["order001", "order002"]
+              logisticsCompany: "顺丰速运"
+              logisticsNumber: "SF1234567890"
+      responses:
+        '200':
+          description: 批量发货成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 4006
+                data: null
+
+  /order/refund:
+    post:
+      operationId: refundOrderCompat
+      tags:
+        - 订单模块
+      summary: 申请退款（兼容旧接口）
+      description: 用户申请订单退款（兼容旧接口）
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [orderId, reason]
+              properties:
+                orderId:
+                  type: string
+                reason:
+                  type: string
+            example:
+              orderId: "order001"
+              reason: "商品质量问题"
       responses:
         '200':
           description: 申请成功
@@ -3504,25 +3570,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              examples:
-                success:
-                  summary: 申请成功
-                  value:
-                    code: 4005
-                    data: null
-                failure:
-                  summary: 申请失败
-                  value:
-                    code: 4105
-                    data: null
+              example:
+                code: 4030
+                data: null
 
-  /order/{id}/refund/approve:
-    put:
-      operationId: approveRefund
+  /order/{id}/refund:
+    get:
+      operationId: getRefundDetail
       tags:
         - 订单模块
-      summary: 同意退款（商家）
-      description: 商家同意用户的退款申请
+      summary: 获取退款详情
+      description: 获取订单退款详情
       security:
         - BearerAuth: []
       parameters:
@@ -3533,30 +3591,27 @@ paths:
             type: string
       responses:
         '200':
-          description: 同意成功
+          description: 获取成功
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              examples:
-                success:
-                  summary: 同意成功
-                  value:
-                    code: 4006
-                    data: null
-                failure:
-                  summary: 同意失败
-                  value:
-                    code: 4106
-                    data: null
+              example:
+                code: 200
+                data:
+                  id: 1
+                  orderId: "1"
+                  reason: "商品质量问题"
+                  status: 0
+                  createTime: "2025-01-01T12:00:00Z"
 
-  /order/{id}/refund/reject:
-    put:
-      operationId: rejectRefund
+  /order/{id}/refund/process:
+    post:
+      operationId: processRefund
       tags:
         - 订单模块
-      summary: 拒绝退款（商家）
-      description: 商家拒绝用户的退款申请
+      summary: 审批退款
+      description: 商家审批退款申请
       security:
         - BearerAuth: []
       parameters:
@@ -3571,31 +3626,27 @@ paths:
           application/json:
             schema:
               type: object
-              required: [reason]
+              required: [approve]
               properties:
+                approve:
+                  type: boolean
                 reason:
                   type: string
-                  description: 拒绝原因
+            example:
+              approve: true
+              reason: ""
       responses:
         '200':
-          description: 拒绝成功
+          description: 审批成功
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              examples:
-                success:
-                  summary: 拒绝成功
-                  value:
-                    code: 4007
-                    data: null
-                failure:
-                  summary: 拒绝失败
-                  value:
-                    code: 4107
-                    data: null
+              example:
+                code: 4031
+                data: null
 
-  /order/{id}/express:
+  /order/{id}/logistics:
     get:
       operationId: getOrderExpress
       tags:
@@ -3830,21 +3881,21 @@ paths:
                       createTime: "2024-01-15T10:30:00Z"
                   total: 50
 
-  /order/statistics:
+  /order/export:
     get:
-      operationId: getOrderStatistics
+      operationId: exportOrders
       tags:
         - 订单模块
-      summary: 获取订单统计（商家/管理员）
-      description: 获取订单统计数据
+      summary: 导出订单数据
+      description: 导出订单数据为Excel或CSV格式
       security:
         - BearerAuth: []
       parameters:
-        - name: shopId
+        - name: format
           in: query
           schema:
             type: string
-            description: 店铺ID（商家必填）
+            enum: [excel, csv]
         - name: startDate
           in: query
           schema:
@@ -3855,6 +3906,54 @@ paths:
           schema:
             type: string
             format: date
+        - name: status
+          in: query
+          schema:
+            type: integer
+            enum: [0, 1, 2, 3, 4, 5]
+        - name: shopId
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 导出成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 200
+                data: null
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+
+  /order/statistics:
+    get:
+      operationId: getOrderStatistics
+      tags:
+        - 订单模块
+      summary: 获取订单统计数据
+      description: 获取订单统计数据
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: shopId
+          in: query
+          schema:
+            type: string
       responses:
         '200':
           description: 获取成功
@@ -3865,12 +3964,19 @@ paths:
               example:
                 code: 200
                 data:
-                  totalOrders: 100
-                  totalSales: 10000.00
-                  pendingOrders: 10
-                  shippedOrders: 20
-                  completedOrders: 60
-                  cancelledOrders: 10
+                  totalOrders: 500
+                  totalAmount: 50000.00
+                  statusDistribution:
+                    "0": 10
+                    "1": 20
+                    "2": 30
+                    "3": 400
+                    "4": 30
+                    "5": 10
+                  trend:
+                    - date: "2025-01-01"
+                      orders: 10
+                      amount: 1000.00
 
   # ==================== 论坛模块 ====================
   /forum/posts:
