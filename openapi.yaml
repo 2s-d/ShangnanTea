@@ -5,6 +5,8 @@ info:
   version: 1.0.0
 
 servers:
+  - url: http://127.0.0.1:4523/m1/7594087-7332672-default
+    description: Mock 服务器
   - url: /api
     description: API服务
 
@@ -41,7 +43,7 @@ components:
       required:
         - code
         - data
-    
+
     # ========== 用户模块 ==========
     LoginResponse:
       type: object
@@ -58,7 +60,7 @@ components:
           nullable: true
       required:
         - code
-    
+
     RegisterResponse:
       type: object
       properties:
@@ -83,7 +85,7 @@ components:
           nullable: true
       required:
         - code
-    
+
     LogoutResponse:
       type: object
       properties:
@@ -94,7 +96,7 @@ components:
           nullable: true
       required:
         - code
-    
+
     UserInfoResponse:
       type: object
       properties:
@@ -268,18 +270,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                    description: 状态码
-                  data:
-                    description: 响应数据
-                    type: object
-                    nullable: true
-                    additionalProperties: true
-                required:
-                  - code
+                $ref: '#/components/schemas/UserInfoResponse'
               examples:
                 default:
                   summary: 响应示例
