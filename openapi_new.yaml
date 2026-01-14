@@ -69,7 +69,18 @@ paths:
       tags:
         - 用户模块
       summary: 用户登录
-      description: 使用用户名和密码进行登录，返回 JWT Token
+      description: |
+        使用用户名和密码进行登录，返回 JWT Token。
+        
+        JWT Token Payload 包含以下字段：
+        - sub: 用户ID
+        - role: 用户角色 (1-管理员, 2-普通用户, 3-商家)
+        - username: 用户名
+        - iat: 签发时间 (Unix时间戳，秒)
+        - exp: 过期时间 (Unix时间戳，秒)
+        - iss: 签发者 ("shangnantea")
+        
+        Token有效期：24小时
       requestBody:
         required: true
         content:
@@ -89,14 +100,24 @@ paths:
               examples:
                 success:
                   summary: 登录成功
+                  description: |
+                    返回JWT Token，前端需要：
+                    1. 存储token到localStorage
+                    2. 解析token获取用户信息(sub=用户ID, role=角色, username=用户名)
+                    3. 后续请求在Header中携带: Authorization: Bearer <token>
                   value:
                     code: 2000
                     data:
-                      token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                failure:
-                  summary: 登录失败
+                      token: "eyJhbGciOiJIUzM4NCIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjeTEwMDAwMiIsInJvbGUiOjIsInVzZXJuYW1lIjoidGVzdHVzZXIiLCJpYXQiOjE3MzcwMDAwMDAsImV4cCI6MTczNzA4NjQwMCwiaXNzIjoic2hhbmduYW50ZWEifQ.SIGNATURE_PLACEHOLDER"
+                failure_wrong_password:
+                  summary: 密码错误
                   value:
                     code: 2100
+                    data: null
+                failure_user_disabled:
+                  summary: 用户已禁用
+                  value:
+                    code: 2105
                     data: null
 
   /user/register:
@@ -167,20 +188,40 @@ paths:
       tags:
         - 用户模块
       summary: 刷新令牌
-      description: 刷新JWT令牌
+      description: |
+        刷新JWT令牌，获取新的有效token。
+        
+        刷新规则：
+        - 需要在Header中携带原token: Authorization: Bearer <token>
+        - 即使原token已过期，只要未被篡改，仍可刷新
+        - 刷新后返回新token，原token失效
+        - 新token有效期：24小时
       security:
         - BearerAuth: []
       responses:
         '200':
-          description: 刷新成功
+          description: 刷新结果
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/RefreshTokenResponse'
-              example:
-                code: 200
-                data:
-                  token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+              examples:
+                success:
+                  summary: 刷新成功
+                  value:
+                    code: 200
+                    data:
+                      token: "eyJhbGciOiJIUzM4NCIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjeTEwMDAwMiIsInJvbGUiOjIsInVzZXJuYW1lIjoidGVzdHVzZXIiLCJpYXQiOjE3MzcwODY0MDAsImV4cCI6MTczNzE3MjgwMCwiaXNzIjoic2hhbmduYW50ZWEifQ.NEW_SIGNATURE_PLACEHOLDER"
+                failure_invalid_token:
+                  summary: Token无效
+                  value:
+                    code: 2102
+                    data: null
+                failure_not_logged_in:
+                  summary: 未登录
+                  value:
+                    code: 2103
+                    data: null
 
   /user/me:
     get:
@@ -5986,15 +6027,30 @@ components:
       properties:
         code:
           type: integer
-          enum: [2000, 2100]
-          description: 2000=登录成功, 2100=登录失败
+          enum: [2000, 2100, 2105]
+          description: |
+            业务状态码：
+            - 2000: 登录成功
+            - 2100: 用户名或密码错误
+            - 2105: 用户已被禁用
         data:
           type: object
           nullable: true
+          description: 登录成功时返回token对象，失败时为null
           properties:
             token:
               type: string
-              description: JWT Token
+              description: |
+                JWT Token字符串，格式为 header.payload.signature
+                
+                Payload解码后包含：
+                - sub: 用户ID (如 "cy100002")
+                - role: 用户角色 (1=管理员, 2=普通用户, 3=商家)
+                - username: 用户名
+                - iat: 签发时间 (Unix时间戳，秒)
+                - exp: 过期时间 (Unix时间戳，秒)
+                - iss: 签发者 ("shangnantea")
+              example: "eyJhbGciOiJIUzM4NCIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjeTEwMDAwMiIsInJvbGUiOjIsInVzZXJuYW1lIjoidGVzdHVzZXIiLCJpYXQiOjE3MzcwMDAwMDAsImV4cCI6MTczNzA4NjQwMCwiaXNzIjoic2hhbmduYW50ZWEifQ.SIGNATURE"
 
     RegisterRequest:
       type: object
@@ -6061,14 +6117,30 @@ components:
       properties:
         code:
           type: integer
-          enum: [200]
-          description: 200=刷新成功
+          enum: [200, 2102, 2103]
+          description: |
+            业务状态码：
+            - 200: 刷新成功
+            - 2102: Token无效或已被篡改
+            - 2103: 未登录（未携带Token）
         data:
           type: object
+          nullable: true
+          description: 刷新成功时返回新token对象，失败时为null
           properties:
             token:
               type: string
-              description: 新的JWT Token
+              description: |
+                新的JWT Token字符串
+                
+                Payload结构与登录返回的token相同：
+                - sub: 用户ID
+                - role: 用户角色
+                - username: 用户名
+                - iat: 新的签发时间
+                - exp: 新的过期时间（24小时后）
+                - iss: "shangnantea"
+              example: "eyJhbGciOiJIUzM4NCIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjeTEwMDAwMiIsInJvbGUiOjIsInVzZXJuYW1lIjoidGVzdHVzZXIiLCJpYXQiOjE3MzcwODY0MDAsImV4cCI6MTczNzE3MjgwMCwiaXNzIjoic2hhbmduYW50ZWEifQ.NEW_SIGNATURE"
 
     UserInfoResponse:
       type: object
