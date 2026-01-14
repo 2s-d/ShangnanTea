@@ -4,11 +4,11 @@
 
 ## 统计概览
 
-- **总接口数**: 168个
+- **总接口数**: 167个
 - **用户模块**: 35个
 - **茶叶模块**: 26个
 - **店铺模块**: 26个
-- **订单模块**: 21个
+- **订单模块**: 20个
 - **论坛模块**: 36个
 - **消息模块**: 22个
 - **公共模块**: 2个
@@ -123,7 +123,7 @@
 
 ---
 
-## 四、订单模块（21个接口）
+## 四、订单模块（20个接口）
 
 | 序号 | 行号 | HTTP方法 | 接口路径 | 接口描述 |
 |------|------|----------|----------|----------|
@@ -136,18 +136,17 @@
 | 7 | 3753 | PUT | /order/cart/update | 更新购物车商品 |
 | 8 | 3390 | POST | /order/confirm | 确认收货 |
 | 9 | 3194 | POST | /order/create | 创建订单 |
-| 10 | 3885 | GET | /order/export | 导出订单数据 |
+| 10 | 3836 | GET | /order/export | 导出订单数据 |
 | 11 | 3238 | GET | /order/list | 获取订单列表 |
 | 12 | 3321 | POST | /order/pay | 支付订单 |
 | 13 | 3543 | POST | /order/refund | 申请退款（兼容旧接口） |
 | 14 | 3458 | POST | /order/review | 评价订单 |
-| 15 | 3837 | GET | /order/shop/{shopId} | 获取店铺订单列表（商家） |
-| 16 | 3934 | GET | /order/statistics | 获取订单统计数据 |
-| 17 | 3281 | GET | /order/{id} | 获取订单详情 |
-| 18 | 3650 | GET | /order/{id}/logistics | 查询物流信息 |
-| 19 | 3578 | GET | /order/{id}/refund | 获取退款详情 |
-| 20 | 3609 | POST | /order/{id}/refund/process | 审批退款 |
-| 21 | 3422 | POST | /order/{id}/ship | 发货 |
+| 15 | 3885 | GET | /order/statistics | 获取订单统计数据 |
+| 16 | 3281 | GET | /order/{id} | 获取订单详情 |
+| 17 | 3650 | GET | /order/{id}/logistics | 查询物流信息 |
+| 18 | 3578 | GET | /order/{id}/refund | 获取退款详情 |
+| 19 | 3609 | POST | /order/{id}/refund/process | 审批退款 |
+| 20 | 3422 | POST | /order/{id}/ship | 发货 |
 
 ---
 

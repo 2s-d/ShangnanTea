@@ -11,11 +11,11 @@
 | 用户模块 | 35 | 35 | 0 | ✅ 一致 |
 | 茶叶模块 | 26 | 26 | 0 | ✅ 一致 |
 | 店铺模块 | 26 | 26 | 0 | ✅ 一致 |
-| 订单模块 | 20 | 21 | +1 | ⚠️ 增加1个 |
+| 订单模块 | 20 | 20 | 0 | ✅ 一致 |
 | 论坛模块 | 36 | 36 | 0 | ✅ 一致 |
 | 消息模块 | 22 | 22 | 0 | ✅ 一致 |
 | 公共模块 | 2 | 2 | 0 | ✅ 一致 |
-| **总计** | **167** | **168** | **+1** | ⚠️ 增加1个 |
+| **总计** | **167** | **167** | **0** | ✅ 一致 |
 
 ---
 
@@ -73,48 +73,22 @@
 
 ### 统计
 - **backup3**: 20个接口
-- **new**: 21个接口
-- **差异**: +1个
-- **状态**: ⚠️ 增加1个接口
+- **new**: 20个接口
+- **差异**: 0个
+- **状态**: ✅ 完全一致
 
-### 新增的接口（在backup3中不存在）
+### 详细对比
+所有20个接口在两个文档中完全一致，包括：
+- 接口路径一致
+- HTTP方法一致
+- 功能描述一致
 
-| 方法 | 接口路径 | 接口描述 |
-|------|----------|----------|
-| GET | `/order/shop/{shopId}` | 获取店铺订单列表（商家） |
-
-### 修正说明
+**修正说明**：
 - ✅ 已补充缺失的 `GET /order/export` 接口（导出订单数据）
 - ✅ 已补充缺失的 `POST /order/batch-ship` 接口（批量发货）
 - ✅ 已补充缺失的 `POST /order/review` 接口（评价订单）
-- ✅ 已修正所有路径和方法，与backup3保持一致
-- ✅ 新增了 `GET /order/shop/{shopId}` 接口（获取店铺订单列表）
-
-### 接口列表对比
-
-| backup3 | new | 状态 |
-|---------|-----|------|
-| GET `/order/cart` | GET `/order/cart` | ✅ 一致 |
-| POST `/order/cart/add` | POST `/order/cart/add` | ✅ 一致 |
-| PUT `/order/cart/update` | PUT `/order/cart/update` | ✅ 一致 |
-| DELETE `/order/cart/remove` | DELETE `/order/cart/remove` | ✅ 一致 |
-| DELETE `/order/cart/clear` | DELETE `/order/cart/clear` | ✅ 一致 |
-| POST `/order/create` | POST `/order/create` | ✅ 一致 |
-| GET `/order/list` | GET `/order/list` | ✅ 一致 |
-| GET `/order/{id}` | GET `/order/{id}` | ✅ 一致 |
-| POST `/order/pay` | POST `/order/pay` | ✅ 一致 |
-| POST `/order/cancel` | POST `/order/cancel` | ✅ 一致 |
-| POST `/order/confirm` | POST `/order/confirm` | ✅ 一致 |
-| POST `/order/review` | POST `/order/review` | ✅ 已补充 |
-| POST `/order/{id}/ship` | POST `/order/{id}/ship` | ✅ 一致 |
-| POST `/order/batch-ship` | POST `/order/batch-ship` | ✅ 已补充 |
-| GET `/order/{id}/logistics` | GET `/order/{id}/logistics` | ✅ 一致 |
-| POST `/order/refund` | POST `/order/refund` | ✅ 一致 |
-| GET `/order/{id}/refund` | GET `/order/{id}/refund` | ✅ 一致 |
-| POST `/order/{id}/refund/process` | POST `/order/{id}/refund/process` | ✅ 一致 |
-| GET `/order/statistics` | GET `/order/statistics` | ✅ 一致 |
-| GET `/order/export` | GET `/order/export` | ✅ 已补充 |
-| - | GET `/order/shop/{shopId}` | ✅ 新增（商家功能） |
+- ✅ 已删除新增的 `GET /order/shop/{shopId}` 接口，保持与backup3一致
+- ✅ 已修正所有路径和方法，与backup3完全对齐
 
 ---
 
@@ -190,27 +164,23 @@
 
 ### 主要差异总结
 
-1. **接口总数**：backup3有167个接口，new有168个接口，差异+1个
+1. **接口总数**：backup3有167个接口，new有167个接口，完全一致 ✅
 
 2. **模块影响**：
    - ✅ **用户模块**：完全一致（35个接口）
    - ✅ **茶叶模块**：完全一致（26个接口）
    - ✅ **店铺模块**：完全一致（26个接口）
-   - ⚠️ **订单模块**：增加1个接口（backup3: 20个，new: 21个）
-     - 新增：`GET /order/shop/{shopId}` - 获取店铺订单列表（商家功能）
+   - ✅ **订单模块**：完全一致（20个接口）
    - ✅ **论坛模块**：完全一致（36个接口）
    - ✅ **消息模块**：完全一致（22个接口）
    - ✅ **公共模块**：完全一致（2个接口）
 
 3. **修正状态**：
-   - ✅ 所有模块接口已与backup3对齐
+   - ✅ 所有模块接口已与backup3完全对齐
    - ✅ 路径和方法已修正
    - ✅ 缺失接口已补充
-   - ✅ 新增接口已删除（除订单模块新增的商家功能接口）
-   - ✅ 所有接口路径和方法与backup3保持一致
-
-4. **唯一差异**：
-   - 订单模块新增了 `GET /order/shop/{shopId}` 接口，这是商家获取店铺订单列表的功能，属于合理的业务扩展
+   - ✅ 新增接口已删除
+   - ✅ 所有接口路径和方法与backup3完全一致
 
 ### 建议
 
@@ -219,8 +189,8 @@
 2. **文档同步**：确保前后端开发人员了解接口已对齐的情况，特别是订单模块新增的商家功能接口
 
 3. **版本管理**：建议将修正后的 `openapi_new.yaml` 作为正式版本，因为：
-   - 已与backup3完全对齐
+   - 已与backup3完全对齐（167个接口，完全一致）
    - 格式更加规范（包含完整的examples和schema）
-   - 新增了合理的商家功能接口
+   - 所有接口路径和方法与backup3保持一致
 
 4. **后续维护**：建议在后续开发中，如有接口变更，应同步更新两个文档，保持一致性

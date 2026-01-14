@@ -3833,54 +3833,6 @@ paths:
                 code: 4063
                 data: null
 
-  /order/shop/{shopId}:
-    get:
-      operationId: getShopOrders
-      tags:
-        - 订单模块
-      summary: 获取店铺订单列表（商家）
-      description: 商家获取自己店铺的订单列表
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: shopId
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: status
-          in: query
-          schema:
-            type: integer
-            enum: [0, 1, 2, 3, 4]
-        - name: page
-          in: query
-          schema:
-            type: integer
-            default: 1
-        - name: pageSize
-          in: query
-          schema:
-            type: integer
-            default: 10
-      responses:
-        '200':
-          description: 获取成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OrderListResponse'
-              example:
-                code: 200
-                data:
-                  list:
-                    - id: "order001"
-                      userId: "cy100002"
-                      status: 1
-                      totalPrice: 199.00
-                      createTime: "2024-01-15T10:30:00Z"
-                  total: 50
-
   /order/export:
     get:
       operationId: exportOrders
