@@ -1,12 +1,14 @@
 package com.shangnantea.service.impl;
 
-import com.shangnantea.common.constants.Constants;
+import com.shangnantea.common.api.Result;
 import com.shangnantea.mapper.UserMapper;
+import com.shangnantea.model.dto.LoginDTO;
 import com.shangnantea.model.entity.user.User;
-import com.shangnantea.security.context.UserContext;
+import com.shangnantea.model.vo.user.TokenVO;
+import com.shangnantea.model.vo.user.UserVO;
+import com.shangnantea.security.util.JwtUtil;
 import com.shangnantea.security.util.PasswordEncoder;
 import com.shangnantea.service.UserService;
-import com.shangnantea.utils.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.Random;
-import java.util.UUID;
 
 /**
  * 用户服务实现类
@@ -31,6 +32,67 @@ public class UserServiceImpl implements UserService {
     
     @Autowired
     private PasswordEncoder passwordEncoder;
+    
+    @Autowired
+    private JwtUtil jwtUtil;
+    
+    /**
+     * 用户登录（新接口，返回Result）
+     * 成功码：2000，失败码：2100
+     */
+    @Override
+    public Result<TokenVO> login(LoginDTO loginDTO) {
+        logger.info("用户登录请求: {}", loginDTO.getUsername());
+        
+        // 验证用户名和密码
+        User user = checkUserAndPassword(loginDTO.getUsername(), loginDTO.getPassword());
+        if (user == null) {
+            logger.warn("登录失败: 用户名或密码错误, username: {}", loginDTO.getUsername());
+            return Result.failure(2100); // 登录失败，请检查用户名和密码
+        }
+        
+        // 检查用户状态
+        if (user.getStatus() != null && user.getStatus() == 0) {
+            logger.warn("登录失败: 用户已被禁用, username: {}", loginDTO.getUsername());
+            return Result.failure(2100); // 登录失败
+        }
+        
+        // 生成JWT token
+        String token = jwtUtil.generateToken(user);
+        if (token == null) {
+            logger.error("登录失败: Token生成失败, username: {}", loginDTO.getUsername());
+            return Result.failure(2105); // 登录失败，服务器返回的Token无效
+        }
+        
+        // 构建TokenVO
+        TokenVO tokenVO = new TokenVO();
+        tokenVO.setToken(token);
+        tokenVO.setUserInfo(convertToUserVO(user));
+        
+        logger.info("登录成功: username: {}, userId: {}", loginDTO.getUsername(), user.getId());
+        return Result.success(2000, tokenVO); // 登录成功
+    }
+    
+    /**
+     * 将User实体转换为UserVO
+     */
+    private UserVO convertToUserVO(User user) {
+        if (user == null) {
+            return null;
+        }
+        UserVO userVO = new UserVO();
+        userVO.setId(user.getId());
+        userVO.setUsername(user.getUsername());
+        userVO.setNickname(user.getNickname());
+        userVO.setEmail(user.getEmail());
+        userVO.setPhone(user.getPhone());
+        userVO.setAvatar(user.getAvatar());
+        userVO.setRole(user.getRole());
+        userVO.setStatus(user.getStatus());
+        userVO.setCreateTime(user.getCreateTime());
+        userVO.setUpdateTime(user.getUpdateTime());
+        return userVO;
+    }
     
     @Override
     public User getUserById(String id) {

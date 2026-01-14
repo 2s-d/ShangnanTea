@@ -1,11 +1,22 @@
 package com.shangnantea.service;
 
+import com.shangnantea.common.api.Result;
+import com.shangnantea.model.dto.LoginDTO;
 import com.shangnantea.model.entity.user.User;
+import com.shangnantea.model.vo.user.TokenVO;
 
 /**
  * 用户服务接口
  */
 public interface UserService {
+    
+    /**
+     * 用户登录（新接口，返回Result）
+     *
+     * @param loginDTO 登录信息
+     * @return 登录结果，包含token和用户信息
+     */
+    Result<TokenVO> login(LoginDTO loginDTO);
     
     /**
      * 根据用户ID获取用户
@@ -41,7 +52,7 @@ public interface UserService {
     boolean isUserExist(String username);
     
     /**
-     * 用户登录
+     * 用户登录（旧接口，保留用于兼容）
      *
      * @param username 用户名
      * @param password 密码
