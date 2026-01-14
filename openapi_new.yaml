@@ -149,15 +149,10 @@ paths:
                   summary: 注册成功
                   value:
                     code: 2001
-                    data:
-                      id: "cy100003"
-                      username: "newuser"
-                      nickname: "新用户"
-                      avatar: "/images/default-avatar.png"
-                      role: 2
-                      status: 1
+                    data: null
+
                 failure:
-                  summary: 注册失败
+                  summary: 用户名已存在
                   value:
                     code: 2101
                     data: null
