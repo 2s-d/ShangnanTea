@@ -2,8 +2,10 @@ package com.shangnantea.service;
 
 import com.shangnantea.common.api.Result;
 import com.shangnantea.model.dto.LoginDTO;
+import com.shangnantea.model.dto.RegisterDTO;
 import com.shangnantea.model.entity.user.User;
 import com.shangnantea.model.vo.user.TokenVO;
+import com.shangnantea.model.vo.user.UserVO;
 
 /**
  * 用户服务接口
@@ -17,6 +19,14 @@ public interface UserService {
      * @return 登录结果，包含token和用户信息
      */
     Result<TokenVO> login(LoginDTO loginDTO);
+    
+    /**
+     * 用户注册
+     *
+     * @param registerDTO 注册信息
+     * @return 注册结果，包含用户信息
+     */
+    Result<UserVO> register(RegisterDTO registerDTO);
     
     /**
      * 根据用户ID获取用户
@@ -50,14 +60,6 @@ public interface UserService {
      * @return 是否已存在
      */
     boolean isUserExist(String username);
-    
-    /**
-     * 注册用户
-     *
-     * @param user 用户对象
-     * @return 注册成功的用户对象，失败则返回null
-     */
-    User register(User user);
     
     /**
      * 更新用户信息

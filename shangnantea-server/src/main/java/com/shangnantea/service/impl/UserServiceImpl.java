@@ -3,6 +3,7 @@ package com.shangnantea.service.impl;
 import com.shangnantea.common.api.Result;
 import com.shangnantea.mapper.UserMapper;
 import com.shangnantea.model.dto.LoginDTO;
+import com.shangnantea.model.dto.RegisterDTO;
 import com.shangnantea.model.entity.user.User;
 import com.shangnantea.model.vo.user.TokenVO;
 import com.shangnantea.model.vo.user.UserVO;
@@ -74,6 +75,66 @@ public class UserServiceImpl implements UserService {
     }
     
     /**
+     * 用户注册
+     * 成功码：2001，失败码：2101
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<UserVO> register(RegisterDTO registerDTO) {
+        logger.info("用户注册请求: {}", registerDTO.getUsername());
+        
+        // 检查用户名是否已存在
+        if (isUserExist(registerDTO.getUsername())) {
+            logger.warn("注册失败: 用户名已存在, username: {}", registerDTO.getUsername());
+            return Result.failure(2101); // 注册失败
+        }
+        
+        // 验证密码和确认密码是否一致
+        if (!registerDTO.getPassword().equals(registerDTO.getConfirmPassword())) {
+            logger.warn("注册失败: 两次输入的密码不一致, username: {}", registerDTO.getUsername());
+            return Result.failure(2101); // 注册失败
+        }
+        
+        // 将RegisterDTO转换为User实体
+        User user = new User();
+        user.setUsername(registerDTO.getUsername());
+        user.setPassword(registerDTO.getPassword());
+        user.setPhone(registerDTO.getPhone());
+        user.setEmail(registerDTO.getEmail());
+        
+        // 生成用户ID，格式为 'cy' + 6位数字
+        String userId = generateUserId();
+        user.setId(userId);
+        
+        // 加密密码
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        
+        // 设置默认值
+        user.setRole(2); // 默认为普通用户
+        user.setStatus(1); // 默认为正常状态
+        user.setIsDeleted(0); // 默认为未删除
+        user.setCreateTime(new Date());
+        user.setUpdateTime(new Date());
+        
+        // 保存用户到数据库
+        int result = userMapper.insert(user);
+        if (result <= 0) {
+            logger.error("注册失败: 数据库插入失败, username: {}", registerDTO.getUsername());
+            return Result.failure(2101); // 注册失败
+        }
+        
+        // 查询刚注册的用户（获取完整信息）
+        User savedUser = getUserById(userId);
+        if (savedUser == null) {
+            logger.error("注册失败: 无法获取注册后的用户信息, userId: {}", userId);
+            return Result.failure(2101); // 注册失败
+        }
+        
+        logger.info("用户注册成功: username: {}, userId: {}", registerDTO.getUsername(), userId);
+        return Result.success(2001, convertToUserVO(savedUser)); // 注册成功，请登录
+    }
+    
+    /**
      * 将User实体转换为UserVO
      */
     private UserVO convertToUserVO(User user) {
@@ -137,45 +198,6 @@ public class UserServiceImpl implements UserService {
         }
         
         return userId;
-    }
-    
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public User register(User user) {
-        // 检查用户名是否已存在
-        if (isUserExist(user.getUsername())) {
-            return null;
-        }
-        
-        // 生成用户ID，格式为 'cy' + 6位数字
-        String userId = generateUserId();
-        user.setId(userId);
-        
-        // 加密密码
-        if (user.getPassword() != null) {
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
-        }
-        
-        // 设置默认值
-        if (user.getRole() == null) {
-            user.setRole(2); // 默认为普通用户
-        }
-        if (user.getStatus() == null) {
-            user.setStatus(1); // 默认为正常状态
-        }
-        if (user.getIsDeleted() == null) {
-            user.setIsDeleted(0); // 默认为未删除
-        }
-        if (user.getCreateTime() == null) {
-            user.setCreateTime(new Date());
-        }
-        user.setUpdateTime(new Date());
-        
-        // 保存用户到数据库
-        userMapper.insert(user);
-        
-        logger.info("用户注册成功: {}, ID: {}", user.getUsername(), userId);
-        return user;
     }
     
     @Override
