@@ -3143,6 +3143,52 @@ paths:
                       createTime: "2025-01-01T12:00:00Z"
                   total: 50
 
+    post:
+      operationId: submitShopReview
+      tags:
+        - 店铺模块
+      summary: 提交店铺评价
+      description: 提交对店铺的评价
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: shopId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rating:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                content:
+                  type: string
+                images:
+                  type: array
+                  items:
+                    type: string
+            example:
+              rating: 5
+              content: "店铺服务很好"
+              images: []
+      responses:
+        '200':
+          description: 提交成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 5002
+                data: null
+
   # ==================== 订单模块 ====================
   /order/create:
     post:
@@ -3271,41 +3317,7 @@ paths:
                     detailAddress: "陕西省商洛市商南县茶城路1号"
                   createTime: "2024-01-15T10:30:00Z"
 
-  /order/{id}/cancel:
-    put:
-      operationId: cancelOrder
-      tags:
-        - 订单模块
-      summary: 取消订单
-      description: 用户取消待付款订单
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: 取消成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BaseResponse'
-              examples:
-                success:
-                  summary: 取消成功
-                  value:
-                    code: 4001
-                    data: null
-                failure:
-                  summary: 取消失败
-                  value:
-                    code: 4101
-                    data: null
-
-  /order/{id}/pay:
+  /order/pay:
     post:
       operationId: payOrder
       tags:
@@ -3314,45 +3326,68 @@ paths:
       description: 用户支付订单
       security:
         - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
+              required: [orderId, paymentMethod]
               properties:
+                orderId:
+                  type: string
                 paymentMethod:
                   type: string
                   enum: [alipay, wechat, balance]
                   description: 支付方式
+            example:
+              orderId: "order001"
+              paymentMethod: "alipay"
       responses:
         '200':
           description: 支付成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PayOrderResponse'
-              examples:
-                success:
-                  summary: 支付成功
-                  value:
-                    code: 4002
-                    data:
-                      paymentUrl: "https://pay.example.com/..."
-                failure:
-                  summary: 支付失败
-                  value:
-                    code: 4102
-                    data: null
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 4020
+                data: null
 
-  /order/{id}/confirm:
-    put:
+  /order/cancel:
+    post:
+      operationId: cancelOrder
+      tags:
+        - 订单模块
+      summary: 取消订单
+      description: 用户取消待付款订单
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id:
+                  type: string
+            example:
+              id: "order001"
+      responses:
+        '200':
+          description: 取消成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 4002
+                data: null
+
+  /order/confirm:
+    post:
       operationId: confirmOrder
       tags:
         - 订单模块
@@ -3360,12 +3395,18 @@ paths:
       description: 用户确认收货
       security:
         - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id:
+                  type: string
+            example:
+              id: "order001"
       responses:
         '200':
           description: 确认成功
@@ -3373,17 +3414,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              examples:
-                success:
-                  summary: 确认成功
-                  value:
-                    code: 4003
-                    data: null
-                failure:
-                  summary: 确认失败
-                  value:
-                    code: 4103
-                    data: null
+              example:
+                code: 4003
+                data: null
 
   /order/{id}/ship:
     put:
@@ -3600,7 +3633,7 @@ paths:
       operationId: getCart
       tags:
         - 订单模块
-      summary: 获取购物车
+      summary: 获取购物车列表
       description: 获取当前用户的购物车商品列表
       security:
         - BearerAuth: []
@@ -3614,21 +3647,21 @@ paths:
               example:
                 code: 200
                 data:
-                  items:
-                    - id: "1"
-                      teaId: "1"
-                      teaName: "商南绿茶"
-                      specId: "1"
-                      specName: "250g装"
-                      price: 99.00
-                      quantity: 2
-                      selected: true
-                  totalPrice: 198.00
+                  - id: 1
+                    teaId: "1"
+                    teaName: "商南绿茶"
+                    teaImage: "/images/tea1.jpg"
+                    specificationId: "1"
+                    specName: "250g装"
+                    price: 99.00
+                    quantity: 2
+
+  /order/cart/add:
     post:
       operationId: addToCart
       tags:
         - 订单模块
-      summary: 添加到购物车
+      summary: 添加商品到购物车
       description: 将商品添加到购物车
       security:
         - BearerAuth: []
@@ -3643,13 +3676,17 @@ paths:
                 teaId:
                   type: string
                   description: 茶叶ID
-                specId:
-                  type: string
-                  description: 规格ID
                 quantity:
                   type: integer
                   minimum: 1
                   description: 数量
+                specificationId:
+                  type: string
+                  description: 规格ID
+            example:
+              teaId: "1"
+              quantity: 2
+              specificationId: "1"
       responses:
         '200':
           description: 添加成功
@@ -3657,19 +3694,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              examples:
-                success:
-                  summary: 添加成功
-                  value:
-                    code: 4060
-                    data: null
-                failure:
-                  summary: 添加失败
-                  value:
-                    code: 4160
-                    data: null
+              example:
+                code: 4010
+                data: null
 
-  /order/cart/{itemId}:
+  /order/cart/update:
     put:
       operationId: updateCartItem
       tags:
@@ -3678,24 +3707,24 @@ paths:
       description: 更新购物车中商品的数量或规格
       security:
         - BearerAuth: []
-      parameters:
-        - name: itemId
-          in: path
-          required: true
-          schema:
-            type: string
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
+              required: [id]
               properties:
+                id:
+                  type: integer
                 quantity:
                   type: integer
-                  minimum: 1
-                specId:
+                specificationId:
                   type: string
+            example:
+              id: 1
+              quantity: 3
+              specificationId: "1"
       responses:
         '200':
           description: 更新成功
@@ -3704,32 +3733,33 @@ paths:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
               example:
-                code: 4061
+                code: 4011
                 data: null
 
+  /order/cart/remove:
     delete:
       operationId: removeFromCart
       tags:
         - 订单模块
-      summary: 从购物车删除
+      summary: 移除购物车商品
       description: 从购物车中删除商品
       security:
         - BearerAuth: []
       parameters:
-        - name: itemId
-          in: path
+        - name: id
+          in: query
           required: true
           schema:
-            type: string
+            type: integer
       responses:
         '200':
-          description: 删除成功
+          description: 移除成功
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
               example:
-                code: 4062
+                code: 4013
                 data: null
 
   /order/cart/clear:
@@ -3841,55 +3871,6 @@ paths:
                   shippedOrders: 20
                   completedOrders: 60
                   cancelledOrders: 10
-
-  /order/admin/list:
-    get:
-      operationId: adminGetOrders
-      tags:
-        - 订单模块
-      summary: 获取所有订单（管理员）
-      description: 管理员获取所有订单列表
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: status
-          in: query
-          schema:
-            type: integer
-            enum: [0, 1, 2, 3, 4]
-        - name: keyword
-          in: query
-          schema:
-            type: string
-            description: 搜索关键词（订单号、用户名）
-        - name: page
-          in: query
-          schema:
-            type: integer
-            default: 1
-        - name: pageSize
-          in: query
-          schema:
-            type: integer
-            default: 10
-      responses:
-        '200':
-          description: 获取成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OrderListResponse'
-              example:
-                code: 200
-                data:
-                  list:
-                    - id: "order001"
-                      userId: "cy100002"
-                      shopId: "1"
-                      status: 1
-                      totalPrice: 199.00
-                      createTime: "2024-01-15T10:30:00Z"
-                  total: 200
 
   # ==================== 论坛模块 ====================
   /forum/posts:
