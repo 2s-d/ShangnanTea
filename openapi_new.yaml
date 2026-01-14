@@ -7230,3 +7230,77 @@ components:
               type: string
             captchaImage:
               type: string
+
+    AddressRequest:
+      type: object
+      required:
+        - receiverName
+        - receiverPhone
+      properties:
+        receiverName:
+          type: string
+          description: 收货人姓名
+        receiverPhone:
+          type: string
+          description: 收货人电话
+        province:
+          type: string
+          description: 省份
+        city:
+          type: string
+          description: 城市
+        district:
+          type: string
+          description: 区县
+        detailAddress:
+          type: string
+          description: 详细地址
+        isDefault:
+          type: integer
+          enum: [0, 1]
+          description: 是否默认地址
+
+    CreatePostRequest:
+      type: object
+      required:
+        - title
+        - content
+      properties:
+        title:
+          type: string
+          description: 帖子标题
+          minLength: 1
+          maxLength: 200
+        content:
+          type: string
+          description: 帖子内容
+          minLength: 1
+        categoryId:
+          type: string
+          description: 分类ID
+        images:
+          type: array
+          items:
+            type: string
+          description: 图片URL列表
+
+    CreatePostResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [6000]
+          description: 6000=帖子发布成功
+        data:
+          type: object
+          properties:
+            postId:
+              type: string
+              description: 帖子ID
+            title:
+              type: string
+              description: 帖子标题
+            createTime:
+              type: string
+              format: date-time
+              description: 创建时间
