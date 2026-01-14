@@ -3979,6 +3979,415 @@ paths:
                       amount: 1000.00
 
   # ==================== 论坛模块 ====================
+  /forum/home:
+    get:
+      operationId: getForumHome
+      tags:
+        - 论坛模块
+      summary: 获取论坛首页数据
+      description: 获取论坛首页的数据（Banner、热门帖子、最新文章等）
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 200
+                data:
+                  banners:
+                    - id: 1
+                      imageUrl: "/images/forum-banner1.jpg"
+                      title: "茶文化专题"
+                      linkUrl: "/forum/articles/1"
+                  hotPosts:
+                    - id: 1
+                      title: "商南茶文化分享"
+                      viewCount: 1000
+                  latestArticles:
+                    - id: 1
+                      title: "茶道入门"
+                      summary: "茶道基础知识"
+
+    put:
+      operationId: updateForumHome
+      tags:
+        - 论坛模块
+      summary: 更新论坛首页数据（管理员）
+      description: 管理员更新论坛首页数据
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+            example: {}
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 6060
+                data: null
+
+  /forum/banners:
+    get:
+      operationId: getForumBanners
+      tags:
+        - 论坛模块
+      summary: 获取论坛Banner列表
+      description: 获取论坛Banner列表
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 200
+                data:
+                  - id: 1
+                    imageUrl: "/images/forum-banner1.jpg"
+                    title: "茶文化专题"
+                    linkUrl: "/forum/articles/1"
+                    sortOrder: 1
+
+    post:
+      operationId: createForumBanner
+      tags:
+        - 论坛模块
+      summary: 上传论坛Banner（管理员）
+      description: 管理员上传论坛Banner
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                title:
+                  type: string
+                linkUrl:
+                  type: string
+      responses:
+        '200':
+          description: 上传成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 5010
+                data: null
+
+  /forum/banners/{id}:
+    put:
+      operationId: updateForumBanner
+      tags:
+        - 论坛模块
+      summary: 更新论坛Banner（管理员）
+      description: 管理员更新论坛Banner信息
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                linkUrl:
+                  type: string
+                sortOrder:
+                  type: integer
+            example:
+              title: "茶文化专题"
+              linkUrl: "/forum/articles/1"
+              sortOrder: 1
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 5011
+                data: null
+
+    delete:
+      operationId: deleteForumBanner
+      tags:
+        - 论坛模块
+      summary: 删除论坛Banner（管理员）
+      description: 管理员删除论坛Banner
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 5012
+                data: null
+
+  /forum/banners/order:
+    put:
+      operationId: updateBannerOrder
+      tags:
+        - 论坛模块
+      summary: 更新Banner顺序（管理员）
+      description: 管理员更新Banner显示顺序
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bannerIds:
+                  type: array
+                  items:
+                    type: integer
+            example:
+              bannerIds: [1, 2, 3]
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 5013
+                data: null
+
+  /forum/topics:
+    get:
+      operationId: getForumTopics
+      tags:
+        - 论坛模块
+      summary: 获取版块列表
+      description: 获取论坛版块列表
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 200
+                data:
+                  - id: 1
+                    name: "茶文化"
+                    description: "茶文化交流"
+                    icon: "/icons/culture.png"
+                    sortOrder: 1
+
+    post:
+      operationId: createForumTopic
+      tags:
+        - 论坛模块
+      summary: 创建版块（管理员）
+      description: 管理员创建新版块
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                icon:
+                  type: string
+                sortOrder:
+                  type: integer
+            example:
+              name: "茶文化"
+              description: "茶文化交流"
+              icon: "/icons/culture.png"
+              sortOrder: 1
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 6040
+                data: null
+
+  /forum/topics/{id}:
+    get:
+      operationId: getForumTopic
+      tags:
+        - 论坛模块
+      summary: 获取版块详情
+      description: 根据版块ID获取版块详细信息
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 200
+                data:
+                  id: 1
+                  name: "茶文化"
+                  description: "茶文化交流"
+                  icon: "/icons/culture.png"
+                  postCount: 100
+
+    put:
+      operationId: updateForumTopic
+      tags:
+        - 论坛模块
+      summary: 更新版块（管理员）
+      description: 管理员更新版块信息
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                icon:
+                  type: string
+            example:
+              name: "茶文化"
+              description: "茶文化交流"
+              icon: "/icons/culture.png"
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 6041
+                data: null
+
+    delete:
+      operationId: deleteForumTopic
+      tags:
+        - 论坛模块
+      summary: 删除版块（管理员）
+      description: 管理员删除版块
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 6042
+                data: null
+
+  /forum/posts/pending:
+    get:
+      operationId: getPendingPosts
+      tags:
+        - 论坛模块
+      summary: 获取待审核帖子列表（管理员）
+      description: 管理员获取待审核的帖子列表
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 200
+                data:
+                  list:
+                    - id: 1
+                      title: "待审核帖子"
+                      authorName: "茶友"
+                      status: 0
+                      createTime: "2025-01-01T12:00:00Z"
+                  total: 10
+
   /forum/posts:
     get:
       operationId: getForumPosts
@@ -4077,6 +4486,42 @@ paths:
                   value:
                     code: 6100
                     data: null
+
+  /forum/posts/pending:
+    get:
+      operationId: getPendingPosts
+      tags:
+        - 论坛模块
+      summary: 获取待审核帖子列表（管理员）
+      description: 管理员获取待审核的帖子列表
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 200
+                data:
+                  list:
+                    - id: 1
+                      title: "待审核帖子"
+                      authorName: "茶友"
+                      status: 0
+                      createTime: "2025-01-01T12:00:00Z"
+                  total: 10
 
   /forum/posts/{id}:
     get:
@@ -4245,13 +4690,13 @@ paths:
                 code: 6011
                 data: null
 
-  /forum/posts/{id}/comments:
+  /forum/posts/{id}/replies:
     get:
       operationId: getPostComments
       tags:
         - 论坛模块
-      summary: 获取帖子评论列表
-      description: 获取指定帖子的评论列表
+      summary: 获取帖子回复列表
+      description: 获取帖子的回复列表，支持分页
       parameters:
         - name: id
           in: path
@@ -4292,8 +4737,8 @@ paths:
       operationId: addPostComment
       tags:
         - 论坛模块
-      summary: 发表评论
-      description: 用户对帖子发表评论
+      summary: 创建回复
+      description: 对帖子进行回复
       security:
         - BearerAuth: []
       parameters:
@@ -4337,7 +4782,7 @@ paths:
                     code: 6120
                     data: null
 
-  /forum/comments/{id}:
+  /forum/replies/{id}:
     delete:
       operationId: deleteComment
       tags:
@@ -4371,13 +4816,13 @@ paths:
                     code: 6121
                     data: null
 
-  /forum/comments/{id}/like:
+  /forum/replies/{id}/like:
     post:
       operationId: likeComment
       tags:
         - 论坛模块
-      summary: 点赞评论
-      description: 用户对评论进行点赞
+      summary: 点赞回复
+      description: 对回复进行点赞
       security:
         - BearerAuth: []
       parameters:
