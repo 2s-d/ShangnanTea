@@ -4350,43 +4350,7 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               example:
                 code: 6042
-                data: null
-
-  /forum/posts/pending:
-    get:
-      operationId: getPendingPosts
-      tags:
-        - 论坛模块
-      summary: 获取待审核帖子列表（管理员）
-      description: 管理员获取待审核的帖子列表
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: page
-          in: query
-          schema:
-            type: integer
-        - name: pageSize
-          in: query
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: 获取成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 200
-                data:
-                  list:
-                    - id: 1
-                      title: "待审核帖子"
-                      authorName: "茶友"
-                      status: 0
-                      createTime: "2025-01-01T12:00:00Z"
-                  total: 10
+                    data: null
 
   /forum/posts:
     get:
@@ -4845,8 +4809,8 @@ paths:
       operationId: unlikeComment
       tags:
         - 论坛模块
-      summary: 取消点赞评论
-      description: 用户取消对评论的点赞
+      summary: 取消点赞回复
+      description: 取消对回复的点赞
       security:
         - BearerAuth: []
       parameters:
@@ -4866,74 +4830,13 @@ paths:
                 code: 6011
                 data: null
 
-  /forum/categories:
-    get:
-      operationId: getForumCategories
-      tags:
-        - 论坛模块
-      summary: 获取论坛分类列表
-      description: 获取所有论坛分类
-      responses:
-        '200':
-          description: 获取成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ForumCategoryListResponse'
-              example:
-                code: 200
-                data:
-                  - id: "cat001"
-                    name: "茶文化"
-                    description: "分享茶文化知识"
-                    icon: "/icons/culture.png"
-                    sortOrder: 1
-
+  /forum/posts/{id}/favorite:
     post:
-      operationId: createForumCategory
+      operationId: favoritePost
       tags:
         - 论坛模块
-      summary: 创建论坛分类（管理员）
-      description: 管理员创建新的论坛分类
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ForumCategoryRequest'
-            example:
-              name: "茶艺交流"
-              description: "茶艺技巧交流"
-              icon: "/icons/tea-art.png"
-              sortOrder: 2
-      responses:
-        '200':
-          description: 创建成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BaseResponse'
-              examples:
-                success:
-                  summary: 创建成功
-                  value:
-                    code: 6030
-                    data: null
-                failure:
-                  summary: 创建失败
-                  value:
-                    code: 6130
-                    data: null
-
-  /forum/categories/{id}:
-    put:
-      operationId: updateForumCategory
-      tags:
-        - 论坛模块
-      summary: 更新论坛分类（管理员）
-      description: 管理员更新论坛分类信息
+      summary: 收藏帖子
+      description: 收藏指定帖子
       security:
         - BearerAuth: []
       parameters:
@@ -4941,29 +4844,24 @@ paths:
           in: path
           required: true
           schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ForumCategoryRequest'
+            type: integer
       responses:
         '200':
-          description: 更新成功
+          description: 收藏成功
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
               example:
-                code: 6031
+                code: 6012
                 data: null
+
     delete:
-      operationId: deleteForumCategory
+      operationId: unfavoritePost
       tags:
         - 论坛模块
-      summary: 删除论坛分类（管理员）
-      description: 管理员删除论坛分类
+      summary: 取消收藏帖子
+      description: 取消收藏指定帖子
       security:
         - BearerAuth: []
       parameters:
@@ -4971,10 +4869,136 @@ paths:
           in: path
           required: true
           schema:
-            type: string
+            type: integer
       responses:
         '200':
-          description: 删除成功
+          description: 取消成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 6013
+                data: null
+
+  /forum/posts/{id}/approve:
+    post:
+      operationId: approvePost
+      tags:
+        - 论坛模块
+      summary: 审核通过帖子（管理员）
+      description: 管理员审核通过帖子
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 审核成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 6034
+                data: null
+
+  /forum/posts/{id}/reject:
+    post:
+      operationId: rejectPost
+      tags:
+        - 论坛模块
+      summary: 审核拒绝帖子（管理员）
+      description: 管理员审核拒绝帖子
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason:
+                  type: string
+            example:
+              reason: "内容不符合规范"
+      responses:
+        '200':
+          description: 审核成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 6035
+                data: null
+
+  /forum/posts/{id}/sticky:
+    put:
+      operationId: stickyPost
+      tags:
+        - 论坛模块
+      summary: 设置帖子置顶（管理员）
+      description: 管理员设置帖子置顶状态
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: isSticky
+          in: query
+          required: true
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: 设置成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 6030
+                data: null
+
+  /forum/posts/{id}/essence:
+    put:
+      operationId: essencePost
+      tags:
+        - 论坛模块
+      summary: 设置帖子精华（管理员）
+      description: 管理员设置帖子精华状态
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: isEssence
+          in: query
+          required: true
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: 设置成功
           content:
             application/json:
               schema:
@@ -5155,307 +5179,6 @@ paths:
               example:
                 code: 6042
                 data: null
-
-  /forum/posts/my:
-    get:
-      operationId: getMyPosts
-      tags:
-        - 论坛模块
-      summary: 获取我的帖子列表
-      description: 获取当前用户发布的帖子列表
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: page
-          in: query
-          schema:
-            type: integer
-            default: 1
-        - name: pageSize
-          in: query
-          schema:
-            type: integer
-            default: 10
-      responses:
-        '200':
-          description: 获取成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PostListResponse'
-              example:
-                code: 200
-                data:
-                  list:
-                    - id: "1"
-                      title: "我的茶文化分享"
-                      viewCount: 100
-                      likeCount: 10
-                      commentCount: 5
-                      createTime: "2025-01-15T10:30:00Z"
-                  total: 10
-
-  /forum/posts/user/{userId}:
-    get:
-      operationId: getUserPosts
-      tags:
-        - 论坛模块
-      summary: 获取用户帖子列表
-      description: 获取指定用户发布的帖子列表
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: page
-          in: query
-          schema:
-            type: integer
-            default: 1
-        - name: pageSize
-          in: query
-          schema:
-            type: integer
-            default: 10
-      responses:
-        '200':
-          description: 获取成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PostListResponse'
-              example:
-                code: 200
-                data:
-                  list:
-                    - id: "1"
-                      title: "茶文化分享"
-                      viewCount: 100
-                      likeCount: 10
-                      commentCount: 5
-                      createTime: "2025-01-15T10:30:00Z"
-                  total: 20
-
-  /forum/posts/hot:
-    get:
-      operationId: getHotPosts
-      tags:
-        - 论坛模块
-      summary: 获取热门帖子
-      description: 获取热门帖子列表
-      parameters:
-        - name: count
-          in: query
-          schema:
-            type: integer
-            default: 10
-            description: 获取数量
-      responses:
-        '200':
-          description: 获取成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PostListSimpleResponse'
-              example:
-                code: 200
-                data:
-                  - id: "1"
-                    title: "茶文化分享"
-                    viewCount: 1000
-                    likeCount: 100
-
-  /forum/posts/recommend:
-    get:
-      operationId: getRecommendPosts
-      tags:
-        - 论坛模块
-      summary: 获取推荐帖子
-      description: 获取推荐帖子列表
-      parameters:
-        - name: count
-          in: query
-          schema:
-            type: integer
-            default: 10
-      responses:
-        '200':
-          description: 获取成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PostListSimpleResponse'
-              example:
-                code: 200
-                data:
-                  - id: "1"
-                    title: "茶文化分享"
-                    viewCount: 500
-                    likeCount: 50
-
-  /forum/posts/{id}/view:
-    post:
-      operationId: incrementPostView
-      tags:
-        - 论坛模块
-      summary: 增加帖子浏览量
-      description: 记录帖子浏览，增加浏览量
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: 记录成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 200
-                data: null
-
-  /forum/posts/{id}/pin:
-    put:
-      operationId: pinPost
-      tags:
-        - 论坛模块
-      summary: 置顶帖子（管理员）
-      description: 管理员将帖子置顶
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: 置顶成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 6050
-                data: null
-    delete:
-      operationId: unpinPost
-      tags:
-        - 论坛模块
-      summary: 取消置顶帖子（管理员）
-      description: 管理员取消帖子置顶
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: 取消成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 6051
-                data: null
-
-  /forum/posts/{id}/recommend:
-    put:
-      operationId: recommendPost
-      tags:
-        - 论坛模块
-      summary: 推荐帖子（管理员）
-      description: 管理员将帖子设为推荐
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: 推荐成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 6052
-                data: null
-    delete:
-      operationId: unrecommendPost
-      tags:
-        - 论坛模块
-      summary: 取消推荐帖子（管理员）
-      description: 管理员取消帖子推荐
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: 取消成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 6053
-                data: null
-
-  /forum/search:
-    get:
-      operationId: searchForum
-      tags:
-        - 论坛模块
-      summary: 搜索论坛内容
-      description: 搜索帖子和文章
-      parameters:
-        - name: keyword
-          in: query
-          required: true
-          schema:
-            type: string
-            description: 搜索关键词
-        - name: type
-          in: query
-          schema:
-            type: string
-            enum: [post, article, all]
-            default: all
-            description: 搜索类型
-        - name: page
-          in: query
-          schema:
-            type: integer
-            default: 1
-        - name: pageSize
-          in: query
-          schema:
-            type: integer
-            default: 10
-      responses:
-        '200':
-          description: 搜索成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SearchResultResponse'
               example:
                 code: 200
                 data:
