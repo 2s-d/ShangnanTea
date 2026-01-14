@@ -3002,3 +3002,1873 @@ components:
                   value:
                     code: 5112
                     data: null
+
+  /shop/banners/order:
+    put:
+      operationId: updateBannerOrder
+      tags:
+        - 店铺模块
+      summary: 更新Banner顺序
+      description: 商家更新Banner的显示顺序
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                orders:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      order:
+                        type: integer
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 更新成功
+                  value:
+                    code: 5013
+                    data: null
+                failure:
+                  summary: 更新失败
+                  value:
+                    code: 5113
+                    data: null
+
+  /shop/{shopId}/announcements:
+    get:
+      operationId: getShopAnnouncements
+      tags:
+        - 店铺模块
+      summary: 获取店铺公告列表
+      description: 获取店铺的公告列表
+      parameters:
+        - name: shopId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnnouncementListResponse'
+              example:
+                code: 200
+                data:
+                  - id: "1"
+                    title: "春茶上市"
+                    content: "2025年春茶已上市"
+                    isTop: true
+                    createTime: "2025-01-01T12:00:00Z"
+
+    post:
+      operationId: createShopAnnouncement
+      tags:
+        - 店铺模块
+      summary: 创建店铺公告
+      description: 商家创建店铺公告
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: shopId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnnouncementRequest'
+            example:
+              title: "春茶上市"
+              content: "2025年春茶已上市"
+              isTop: true
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 创建成功
+                  value:
+                    code: 5020
+                    data: null
+                failure:
+                  summary: 创建失败
+                  value:
+                    code: 5120
+                    data: null
+
+  /shop/announcements/{announcementId}:
+    put:
+      operationId: updateShopAnnouncement
+      tags:
+        - 店铺模块
+      summary: 更新店铺公告
+      description: 商家更新店铺公告
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: announcementId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnnouncementRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 5021
+                data: null
+
+    delete:
+      operationId: deleteShopAnnouncement
+      tags:
+        - 店铺模块
+      summary: 删除店铺公告
+      description: 商家删除店铺公告
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: announcementId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 5022
+                data: null
+
+  /shop/{shopId}/follow:
+    post:
+      operationId: followShop
+      tags:
+        - 店铺模块
+      summary: 关注店铺
+      description: 用户关注店铺
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: shopId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 关注成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 关注成功
+                  value:
+                    code: 5000
+                    data: null
+                failure:
+                  summary: 关注失败
+                  value:
+                    code: 5100
+                    data: null
+    delete:
+      operationId: unfollowShop
+      tags:
+        - 店铺模块
+      summary: 取消关注店铺
+      description: 用户取消关注店铺
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: shopId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 取消成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 取消成功
+                  value:
+                    code: 5001
+                    data: null
+                failure:
+                  summary: 取消失败
+                  value:
+                    code: 5101
+                    data: null
+
+  /shop/{shopId}/follow-status:
+    get:
+      operationId: getShopFollowStatus
+      tags:
+        - 店铺模块
+      summary: 获取店铺关注状态
+      description: 获取当前用户对店铺的关注状态
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: shopId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FollowStatusResponse'
+              example:
+                code: 200
+                data:
+                  isFollowed: true
+
+  /shop/{shopId}/reviews:
+    get:
+      operationId: getShopReviews
+      tags:
+        - 店铺模块
+      summary: 获取店铺评价列表
+      description: 获取店铺的用户评价列表
+      parameters:
+        - name: shopId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewListResponse'
+              example:
+                code: 200
+                data:
+                  list:
+                    - id: 1
+                      userId: "cy100002"
+                      username: "茶友"
+                      rating: 5
+                      content: "店铺服务很好"
+                      createTime: "2025-01-01T12:00:00Z"
+                  total: 50
+
+  # ==================== 订单模块 ====================
+  /order/create:
+    post:
+      operationId: createOrder
+      tags:
+        - 订单模块
+      summary: 创建订单
+      description: 用户创建新的购买订单
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderRequest'
+            example:
+              items:
+                - teaId: "1"
+                  specId: "1"
+                  quantity: 2
+              addressId: "1"
+              remark: "请尽快发货"
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateOrderResponse'
+              examples:
+                success:
+                  summary: 创建成功
+                  value:
+                    code: 4000
+                    data:
+                      orderId: "order001"
+                      totalPrice: 199.00
+                      status: 0
+                failure:
+                  summary: 创建失败
+                  value:
+                    code: 4100
+                    data: null
+
+  /order/list:
+    get:
+      operationId: getOrderList
+      tags:
+        - 订单模块
+      summary: 获取订单列表
+      description: 获取当前用户的订单列表，支持状态筛选
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: integer
+            enum: [0, 1, 2, 3, 4]
+            description: 0=待付款, 1=待发货, 2=待收货, 3=已完成, 4=已取消
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderListResponse'
+              example:
+                code: 200
+                data:
+                  list:
+                    - id: "order001"
+                      status: 1
+                      totalPrice: 199.00
+                      createTime: "2024-01-15T10:30:00Z"
+                  total: 20
+
+  /order/{id}:
+    get:
+      operationId: getOrderDetail
+      tags:
+        - 订单模块
+      summary: 获取订单详情
+      description: 根据ID获取订单详细信息
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderDetailResponse'
+              example:
+                code: 200
+                data:
+                  id: "order001"
+                  userId: "cy100002"
+                  status: 1
+                  totalPrice: 199.00
+                  items:
+                    - teaId: "1"
+                      teaName: "商南绿茶"
+                      quantity: 2
+                      price: 99.00
+                  address:
+                    receiverName: "张三"
+                    receiverPhone: "13800138000"
+                    detailAddress: "陕西省商洛市商南县茶城路1号"
+                  createTime: "2024-01-15T10:30:00Z"
+
+  /order/{id}/cancel:
+    put:
+      operationId: cancelOrder
+      tags:
+        - 订单模块
+      summary: 取消订单
+      description: 用户取消待付款订单
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 取消成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 取消成功
+                  value:
+                    code: 4001
+                    data: null
+                failure:
+                  summary: 取消失败
+                  value:
+                    code: 4101
+                    data: null
+
+  /order/{id}/pay:
+    post:
+      operationId: payOrder
+      tags:
+        - 订单模块
+      summary: 支付订单
+      description: 用户支付订单
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                paymentMethod:
+                  type: string
+                  enum: [alipay, wechat, balance]
+                  description: 支付方式
+      responses:
+        '200':
+          description: 支付成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PayOrderResponse'
+              examples:
+                success:
+                  summary: 支付成功
+                  value:
+                    code: 4002
+                    data:
+                      paymentUrl: "https://pay.example.com/..."
+                failure:
+                  summary: 支付失败
+                  value:
+                    code: 4102
+                    data: null
+
+  /order/{id}/confirm:
+    put:
+      operationId: confirmOrder
+      tags:
+        - 订单模块
+      summary: 确认收货
+      description: 用户确认收货
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 确认成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 确认成功
+                  value:
+                    code: 4003
+                    data: null
+                failure:
+                  summary: 确认失败
+                  value:
+                    code: 4103
+                    data: null
+
+  /order/{id}/ship:
+    put:
+      operationId: shipOrder
+      tags:
+        - 订单模块
+      summary: 发货（商家）
+      description: 商家发货并填写物流信息
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [expressCompany, expressNumber]
+              properties:
+                expressCompany:
+                  type: string
+                  description: 快递公司
+                expressNumber:
+                  type: string
+                  description: 快递单号
+      responses:
+        '200':
+          description: 发货成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 发货成功
+                  value:
+                    code: 4004
+                    data: null
+                failure:
+                  summary: 发货失败
+                  value:
+                    code: 4104
+                    data: null
+
+  /order/{id}/refund:
+    post:
+      operationId: refundOrder
+      tags:
+        - 订单模块
+      summary: 申请退款
+      description: 用户申请订单退款
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason:
+                  type: string
+                  description: 退款原因
+                images:
+                  type: array
+                  items:
+                    type: string
+                  description: 凭证图片
+      responses:
+        '200':
+          description: 申请成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 申请成功
+                  value:
+                    code: 4005
+                    data: null
+                failure:
+                  summary: 申请失败
+                  value:
+                    code: 4105
+                    data: null
+
+  /order/{id}/refund/approve:
+    put:
+      operationId: approveRefund
+      tags:
+        - 订单模块
+      summary: 同意退款（商家）
+      description: 商家同意用户的退款申请
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 同意成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 同意成功
+                  value:
+                    code: 4006
+                    data: null
+                failure:
+                  summary: 同意失败
+                  value:
+                    code: 4106
+                    data: null
+
+  /order/{id}/refund/reject:
+    put:
+      operationId: rejectRefund
+      tags:
+        - 订单模块
+      summary: 拒绝退款（商家）
+      description: 商家拒绝用户的退款申请
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason:
+                  type: string
+                  description: 拒绝原因
+      responses:
+        '200':
+          description: 拒绝成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 拒绝成功
+                  value:
+                    code: 4007
+                    data: null
+                failure:
+                  summary: 拒绝失败
+                  value:
+                    code: 4107
+                    data: null
+
+  /order/{id}/express:
+    get:
+      operationId: getOrderExpress
+      tags:
+        - 订单模块
+      summary: 查询物流信息
+      description: 查询订单的物流跟踪信息
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExpressInfoResponse'
+              example:
+                code: 200
+                data:
+                  expressCompany: "顺丰速运"
+                  expressNumber: "SF1234567890"
+                  traces:
+                    - time: "2025-01-15T10:00:00Z"
+                      status: "已发货"
+                    - time: "2025-01-15T14:00:00Z"
+                      status: "运输中"
+
+  /order/cart:
+    get:
+      operationId: getCart
+      tags:
+        - 订单模块
+      summary: 获取购物车
+      description: 获取当前用户的购物车商品列表
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+              example:
+                code: 200
+                data:
+                  items:
+                    - id: "1"
+                      teaId: "1"
+                      teaName: "商南绿茶"
+                      specId: "1"
+                      specName: "250g装"
+                      price: 99.00
+                      quantity: 2
+                      selected: true
+                  totalPrice: 198.00
+    post:
+      operationId: addToCart
+      tags:
+        - 订单模块
+      summary: 添加到购物车
+      description: 将商品添加到购物车
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [teaId, quantity]
+              properties:
+                teaId:
+                  type: string
+                  description: 茶叶ID
+                specId:
+                  type: string
+                  description: 规格ID
+                quantity:
+                  type: integer
+                  minimum: 1
+                  description: 数量
+      responses:
+        '200':
+          description: 添加成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 添加成功
+                  value:
+                    code: 4060
+                    data: null
+                failure:
+                  summary: 添加失败
+                  value:
+                    code: 4160
+                    data: null
+
+  /order/cart/{itemId}:
+    put:
+      operationId: updateCartItem
+      tags:
+        - 订单模块
+      summary: 更新购物车商品
+      description: 更新购物车中商品的数量或规格
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                quantity:
+                  type: integer
+                  minimum: 1
+                specId:
+                  type: string
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 4061
+                data: null
+
+    delete:
+      operationId: removeFromCart
+      tags:
+        - 订单模块
+      summary: 从购物车删除
+      description: 从购物车中删除商品
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 4062
+                data: null
+
+  /order/cart/clear:
+    delete:
+      operationId: clearCart
+      tags:
+        - 订单模块
+      summary: 清空购物车
+      description: 清空购物车中的所有商品
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 清空成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 4063
+                data: null
+
+  /order/shop/{shopId}:
+    get:
+      operationId: getShopOrders
+      tags:
+        - 订单模块
+      summary: 获取店铺订单列表（商家）
+      description: 商家获取自己店铺的订单列表
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: shopId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: integer
+            enum: [0, 1, 2, 3, 4]
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderListResponse'
+              example:
+                code: 200
+                data:
+                  list:
+                    - id: "order001"
+                      userId: "cy100002"
+                      status: 1
+                      totalPrice: 199.00
+                      createTime: "2024-01-15T10:30:00Z"
+                  total: 50
+
+  /order/statistics:
+    get:
+      operationId: getOrderStatistics
+      tags:
+        - 订单模块
+      summary: 获取订单统计（商家/管理员）
+      description: 获取订单统计数据
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: shopId
+          in: query
+          schema:
+            type: string
+            description: 店铺ID（商家必填）
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderStatisticsResponse'
+              example:
+                code: 200
+                data:
+                  totalOrders: 100
+                  totalSales: 10000.00
+                  pendingOrders: 10
+                  shippedOrders: 20
+                  completedOrders: 60
+                  cancelledOrders: 10
+
+  /order/admin/list:
+    get:
+      operationId: adminGetOrders
+      tags:
+        - 订单模块
+      summary: 获取所有订单（管理员）
+      description: 管理员获取所有订单列表
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: integer
+            enum: [0, 1, 2, 3, 4]
+        - name: keyword
+          in: query
+          schema:
+            type: string
+            description: 搜索关键词（订单号、用户名）
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderListResponse'
+              example:
+                code: 200
+                data:
+                  list:
+                    - id: "order001"
+                      userId: "cy100002"
+                      shopId: "1"
+                      status: 1
+                      totalPrice: 199.00
+                      createTime: "2024-01-15T10:30:00Z"
+                  total: 200
+
+  # ==================== 论坛模块 ====================
+  /forum/posts:
+    get:
+      operationId: getForumPosts
+      tags:
+        - 论坛模块
+      summary: 获取帖子列表
+      description: 获取论坛帖子列表，支持分类筛选和排序
+      parameters:
+        - name: categoryId
+          in: query
+          schema:
+            type: string
+            description: 分类ID
+        - name: keyword
+          in: query
+          schema:
+            type: string
+            description: 搜索关键词
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: [latest, hot, recommend]
+            default: latest
+            description: 排序方式
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostListResponse'
+              example:
+                code: 200
+                data:
+                  list:
+                    - id: "1"
+                      title: "茶文化分享"
+                      content: "今天来聊聊商南茶的历史..."
+                      authorId: "cy100002"
+                      authorName: "茶友"
+                      categoryId: "cat001"
+                      viewCount: 100
+                      likeCount: 10
+                      commentCount: 5
+                      createTime: "2025-01-15T10:30:00Z"
+                  total: 50
+
+    post:
+      operationId: createForumPost
+      tags:
+        - 论坛模块
+      summary: 发布帖子
+      description: 用户发布新的论坛帖子
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePostRequest'
+            example:
+              title: "茶文化分享"
+              content: "今天来聊聊商南茶的历史..."
+              categoryId: "cat001"
+              images: ["/images/post1.jpg"]
+      responses:
+        '200':
+          description: 发布成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatePostResponse'
+              examples:
+                success:
+                  summary: 发布成功
+                  value:
+                    code: 6000
+                    data:
+                      postId: "post001"
+                      title: "茶文化分享"
+                      createTime: "2024-01-15T10:30:00Z"
+                failure:
+                  summary: 发布失败
+                  value:
+                    code: 6100
+                    data: null
+
+  /forum/posts/{id}:
+    get:
+      operationId: getForumPostDetail
+      tags:
+        - 论坛模块
+      summary: 获取帖子详情
+      description: 根据ID获取帖子详细内容
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostDetailResponse'
+              example:
+                code: 200
+                data:
+                  id: "1"
+                  title: "茶文化分享"
+                  content: "今天来聊聊商南茶的历史..."
+                  authorId: "cy100002"
+                  authorName: "茶友"
+                  authorAvatar: "/images/avatar.png"
+                  categoryId: "cat001"
+                  images: ["/images/post1.jpg"]
+                  viewCount: 100
+                  likeCount: 10
+                  commentCount: 5
+                  isLiked: false
+                  createTime: "2025-01-15T10:30:00Z"
+
+    put:
+      operationId: updateForumPost
+      tags:
+        - 论坛模块
+      summary: 更新帖子
+      description: 作者更新自己的帖子
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePostRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 更新成功
+                  value:
+                    code: 6001
+                    data: null
+                failure:
+                  summary: 更新失败
+                  value:
+                    code: 6101
+                    data: null
+    delete:
+      operationId: deleteForumPost
+      tags:
+        - 论坛模块
+      summary: 删除帖子
+      description: 作者或管理员删除帖子
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 删除成功
+                  value:
+                    code: 6002
+                    data: null
+                failure:
+                  summary: 删除失败
+                  value:
+                    code: 6102
+                    data: null
+
+  /forum/posts/{id}/like:
+    post:
+      operationId: likeForumPost
+      tags:
+        - 论坛模块
+      summary: 点赞帖子
+      description: 用户对帖子进行点赞
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 点赞成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 点赞成功
+                  value:
+                    code: 6010
+                    data: null
+                failure:
+                  summary: 点赞失败
+                  value:
+                    code: 6110
+                    data: null
+
+    delete:
+      operationId: unlikeForumPost
+      tags:
+        - 论坛模块
+      summary: 取消点赞帖子
+      description: 用户取消对帖子的点赞
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 取消成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 6011
+                data: null
+
+  /forum/posts/{id}/comments:
+    get:
+      operationId: getPostComments
+      tags:
+        - 论坛模块
+      summary: 获取帖子评论列表
+      description: 获取指定帖子的评论列表
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommentListResponse'
+              example:
+                code: 200
+                data:
+                  list:
+                    - id: "1"
+                      postId: "1"
+                      userId: "cy100002"
+                      username: "茶友"
+                      avatar: "/images/avatar.png"
+                      content: "写得很好"
+                      likeCount: 5
+                      createTime: "2025-01-15T11:00:00Z"
+                  total: 20
+    post:
+      operationId: addPostComment
+      tags:
+        - 论坛模块
+      summary: 发表评论
+      description: 用户对帖子发表评论
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [content]
+              properties:
+                content:
+                  type: string
+                  description: 评论内容
+                  minLength: 1
+                  maxLength: 500
+                parentId:
+                  type: string
+                  description: 父评论ID（回复评论时使用）
+      responses:
+        '200':
+          description: 发表成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 发表成功
+                  value:
+                    code: 6020
+                    data: null
+                failure:
+                  summary: 发表失败
+                  value:
+                    code: 6120
+                    data: null
+
+  /forum/comments/{id}:
+    delete:
+      operationId: deleteComment
+      tags:
+        - 论坛模块
+      summary: 删除评论
+      description: 作者或管理员删除评论
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 删除成功
+                  value:
+                    code: 6021
+                    data: null
+                failure:
+                  summary: 删除失败
+                  value:
+                    code: 6121
+                    data: null
+
+  /forum/comments/{id}/like:
+    post:
+      operationId: likeComment
+      tags:
+        - 论坛模块
+      summary: 点赞评论
+      description: 用户对评论进行点赞
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 点赞成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 6010
+                data: null
+    delete:
+      operationId: unlikeComment
+      tags:
+        - 论坛模块
+      summary: 取消点赞评论
+      description: 用户取消对评论的点赞
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 取消成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 6011
+                data: null
+
+  /forum/categories:
+    get:
+      operationId: getForumCategories
+      tags:
+        - 论坛模块
+      summary: 获取论坛分类列表
+      description: 获取所有论坛分类
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForumCategoryListResponse'
+              example:
+                code: 200
+                data:
+                  - id: "cat001"
+                    name: "茶文化"
+                    description: "分享茶文化知识"
+                    icon: "/icons/culture.png"
+                    sortOrder: 1
+
+    post:
+      operationId: createForumCategory
+      tags:
+        - 论坛模块
+      summary: 创建论坛分类（管理员）
+      description: 管理员创建新的论坛分类
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForumCategoryRequest'
+            example:
+              name: "茶艺交流"
+              description: "茶艺技巧交流"
+              icon: "/icons/tea-art.png"
+              sortOrder: 2
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 创建成功
+                  value:
+                    code: 6030
+                    data: null
+                failure:
+                  summary: 创建失败
+                  value:
+                    code: 6130
+                    data: null
+
+  /forum/categories/{id}:
+    put:
+      operationId: updateForumCategory
+      tags:
+        - 论坛模块
+      summary: 更新论坛分类（管理员）
+      description: 管理员更新论坛分类信息
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForumCategoryRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 6031
+                data: null
+    delete:
+      operationId: deleteForumCategory
+      tags:
+        - 论坛模块
+      summary: 删除论坛分类（管理员）
+      description: 管理员删除论坛分类
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 6032
+                data: null
+
+  /forum/articles:
+    get:
+      operationId: getArticles
+      tags:
+        - 论坛模块
+      summary: 获取文章列表
+      description: 获取茶文化文章列表
+      parameters:
+        - name: categoryId
+          in: query
+          schema:
+            type: string
+        - name: keyword
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArticleListResponse'
+              example:
+                code: 200
+                data:
+                  list:
+                    - id: "1"
+                      title: "商南茶的历史"
+                      summary: "商南茶有着悠久的历史..."
+                      coverImage: "/images/article1.jpg"
+                      authorId: "cy100001"
+                      authorName: "管理员"
+                      viewCount: 500
+                      createTime: "2025-01-01T00:00:00Z"
+                  total: 20
+    post:
+      operationId: createArticle
+      tags:
+        - 论坛模块
+      summary: 创建文章（管理员）
+      description: 管理员创建茶文化文章
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArticleRequest'
+            example:
+              title: "商南茶的历史"
+              content: "商南茶有着悠久的历史..."
+              summary: "商南茶历史简介"
+              coverImage: "/images/article1.jpg"
+              categoryId: "cat001"
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 创建成功
+                  value:
+                    code: 6040
+                    data: null
+                failure:
+                  summary: 创建失败
+                  value:
+                    code: 6140
+                    data: null
+
+  /forum/articles/{id}:
+    get:
+      operationId: getArticleDetail
+      tags:
+        - 论坛模块
+      summary: 获取文章详情
+      description: 根据ID获取文章详细内容
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArticleDetailResponse'
+              example:
+                code: 200
+                data:
+                  id: "1"
+                  title: "商南茶的历史"
+                  content: "商南茶有着悠久的历史..."
+                  summary: "商南茶历史简介"
+                  coverImage: "/images/article1.jpg"
+                  authorId: "cy100001"
+                  authorName: "管理员"
+                  categoryId: "cat001"
+                  viewCount: 500
+                  createTime: "2025-01-01T00:00:00Z"
+    put:
+      operationId: updateArticle
+      tags:
+        - 论坛模块
+      summary: 更新文章（管理员）
+      description: 管理员更新文章内容
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArticleRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 6041
+                data: null
+    delete:
+      operationId: deleteArticle
+      tags:
+        - 论坛模块
+      summary: 删除文章（管理员）
+      description: 管理员删除文章
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              example:
+                code: 6042
+                data: null
+
+  /forum/posts/my:
+    get:
+      operationId: getMyPosts
+      tags:
+        - 论坛模块
+      summary: 获取我的帖子列表
+      description: 获取当前用户发布的帖子列表
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostListResponse'
+              example:
+                code: 200
+                data:
+                  list:
+                    - id: "1"
+                      title: "我的茶文化分享"
+                      viewCount: 100
+                      likeCount: 10
+                      commentCount: 5
+                      createTime: "2025-01-15T10:30:00Z"
+                  total: 10
+
+  /forum/posts/user/{userId}:
+    get:
+      operationId: getUserPosts
+      tags:
+        - 论坛模块
+      summary: 获取用户帖子列表
+      description: 获取指定用户发布的帖子列表
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostListResponse'
+              example:
+                code: 200
+                data:
+                  list:
+                    - id: "1"
+                      title: "茶文化分享"
+                      viewCount: 100
+                      likeCount: 10
+                      commentCount: 5
+                      createTime: "2025-01-15T10:30:00Z"
+                  total: 20
