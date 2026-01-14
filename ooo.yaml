@@ -40,7 +40,7 @@ info:
     url: https://opensource.org/licenses/MIT
 
 servers:
-  - url: http://127.0.0.1:4523/m1/7594087-7332672-default
+  - url: http://127.0.0.1:4523/m1/7709181-7451992-default
     description: Mock 服务器
   - url: /api
     description: 生产环境 API
