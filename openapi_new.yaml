@@ -5131,18 +5131,6 @@ paths:
               example:
                 code: 6042
                 data: null
-              example:
-                code: 200
-                data:
-                  posts:
-                    - id: "1"
-                      title: "茶文化分享"
-                      type: "post"
-                  articles:
-                    - id: "1"
-                      title: "商南茶的历史"
-                      type: "article"
-                  total: 2
 
   # ==================== 消息模块 ====================
   /message/list:
