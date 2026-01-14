@@ -74,26 +74,10 @@ const logApiCall = (config, status, response = null, error = null) => {
     const requestData = activeRequests.get(config.requestId) || {}
     const duration = Date.now() - (requestData.startTime || Date.now())
     
-    // 对于登录接口，特殊处理token显示，避免被截断
-    let responseData = response
-    if (config.url?.includes('/login') && response?.data?.data?.token) {
-      const token = response.data.data.token
-      responseData = {
-        ...response,
-        data: {
-          ...response.data,
-          data: {
-            ...response.data.data,
-            token: token.length > 50 ? token.substring(0, 50) + '...' : token
-          }
-        }
-      }
-    }
-    
     console.log(
       `%cAPI响应 [${config.requestId}]: ${requestInfo.url} (${duration}ms)`, 
       'color: #2e7d32;',
-      responseData
+      response
     )
     
     // 完成请求，从活跃请求中移除
@@ -142,18 +126,6 @@ service.interceptors.request.use(
 // 响应拦截器 - 统一处理错误和认证问题
 service.interceptors.response.use(
   response => {
-    // 对于登录接口，检查token是否完整
-    if (response.config.url?.includes('/login') && response.data?.data?.token) {
-      const token = response.data.data.token
-      console.log('[响应拦截器] 登录接口token检查:', {
-        tokenLength: token.length,
-        tokenPreview: token.substring(0, 100),
-        fullToken: token,
-        expectedLength: '~200+',
-        isComplete: token.length > 100
-      })
-    }
-    
     // 记录API调用成功
     logApiCall(response.config, 'success', response.data)
     

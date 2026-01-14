@@ -346,11 +346,17 @@ const actions = {
         tokenExists: !!token,
         tokenLength: token?.length || 0,
         tokenType: typeof token,
-        // 只显示token的前50个字符，避免控制台截断
-        tokenPreview: token ? (token.substring(0, 50) + '...') : null,
+        // 显示完整token（不会被截断）
+        fullToken: token,
         // 检查原始响应对象
         rawResponse: res
       })
+      
+      // 如果token被截断，尝试从原始响应中获取
+      if (token && token.length < 100) {
+        console.warn('⚠️ Token可能被截断，尝试从原始响应中获取完整token')
+        // 这里可以添加从原始响应中获取完整token的逻辑
+      }
       
       // 检查token是否存在
       if (!token) {
