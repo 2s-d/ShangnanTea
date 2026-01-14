@@ -4302,7 +4302,7 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               example:
                 code: 6042
-                    data: null
+                data: null
 
   /forum/posts:
     get:
