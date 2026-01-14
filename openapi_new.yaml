@@ -6623,3 +6623,632 @@ components:
           properties:
             paymentUrl:
               type: string
+
+    ExpressInfoResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [200]
+        data:
+          type: object
+          properties:
+            expressCompany:
+              type: string
+            expressNumber:
+              type: string
+            traces:
+              type: array
+              items:
+                type: object
+                properties:
+                  time:
+                    type: string
+                    format: date-time
+                  status:
+                    type: string
+
+    CartResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [200]
+        data:
+          type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/CartItem'
+            totalPrice:
+              type: number
+              format: double
+
+    CartItem:
+      type: object
+      properties:
+        id:
+          type: string
+        teaId:
+          type: string
+        teaName:
+          type: string
+        specId:
+          type: string
+        specName:
+          type: string
+        price:
+          type: number
+          format: double
+        quantity:
+          type: integer
+        selected:
+          type: boolean
+
+    OrderStatisticsResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [200]
+        data:
+          type: object
+          properties:
+            totalOrders:
+              type: integer
+            totalSales:
+              type: number
+              format: double
+            pendingOrders:
+              type: integer
+            shippedOrders:
+              type: integer
+            completedOrders:
+              type: integer
+            cancelledOrders:
+              type: integer
+
+    # ========== 论坛模块 Schemas ==========
+    PostListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [200]
+        data:
+          type: object
+          properties:
+            list:
+              type: array
+              items:
+                $ref: '#/components/schemas/Post'
+            total:
+              type: integer
+
+    Post:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        content:
+          type: string
+        authorId:
+          type: string
+        authorName:
+          type: string
+        categoryId:
+          type: string
+        viewCount:
+          type: integer
+        likeCount:
+          type: integer
+        commentCount:
+          type: integer
+        createTime:
+          type: string
+          format: date-time
+
+    PostDetailResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [200]
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+            title:
+              type: string
+            content:
+              type: string
+            authorId:
+              type: string
+            authorName:
+              type: string
+            authorAvatar:
+              type: string
+            categoryId:
+              type: string
+            images:
+              type: array
+              items:
+                type: string
+            viewCount:
+              type: integer
+            likeCount:
+              type: integer
+            commentCount:
+              type: integer
+            isLiked:
+              type: boolean
+            createTime:
+              type: string
+              format: date-time
+
+    UpdatePostRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        categoryId:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+
+    CommentListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [200]
+        data:
+          type: object
+          properties:
+            list:
+              type: array
+              items:
+                $ref: '#/components/schemas/Comment'
+            total:
+              type: integer
+
+    Comment:
+      type: object
+      properties:
+        id:
+          type: string
+        postId:
+          type: string
+        userId:
+          type: string
+        username:
+          type: string
+        avatar:
+          type: string
+        content:
+          type: string
+        likeCount:
+          type: integer
+        createTime:
+          type: string
+          format: date-time
+
+    ForumCategoryListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [200]
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ForumCategory'
+
+    ForumCategory:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        icon:
+          type: string
+        sortOrder:
+          type: integer
+
+    ForumCategoryRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        icon:
+          type: string
+        sortOrder:
+          type: integer
+
+    ArticleListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [200]
+        data:
+          type: object
+          properties:
+            list:
+              type: array
+              items:
+                $ref: '#/components/schemas/Article'
+            total:
+              type: integer
+
+    Article:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        summary:
+          type: string
+        coverImage:
+          type: string
+        authorId:
+          type: string
+        authorName:
+          type: string
+        viewCount:
+          type: integer
+        createTime:
+          type: string
+          format: date-time
+
+    ArticleDetailResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [200]
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+            title:
+              type: string
+            content:
+              type: string
+            summary:
+              type: string
+            coverImage:
+              type: string
+            authorId:
+              type: string
+            authorName:
+              type: string
+            categoryId:
+              type: string
+            viewCount:
+              type: integer
+            createTime:
+              type: string
+              format: date-time
+
+    ArticleRequest:
+      type: object
+      required:
+        - title
+        - content
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        summary:
+          type: string
+        coverImage:
+          type: string
+        categoryId:
+          type: string
+
+    PostListSimpleResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [200]
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              title:
+                type: string
+              viewCount:
+                type: integer
+              likeCount:
+                type: integer
+
+    SearchResultResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [200]
+        data:
+          type: object
+          properties:
+            posts:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  title:
+                    type: string
+                  type:
+                    type: string
+            articles:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  title:
+                    type: string
+                  type:
+                    type: string
+            total:
+              type: integer
+
+    # ========== 消息模块 Schemas ==========
+    ConversationListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [200]
+        data:
+          type: object
+          properties:
+            list:
+              type: array
+              items:
+                $ref: '#/components/schemas/Conversation'
+            total:
+              type: integer
+
+    Conversation:
+      type: object
+      properties:
+        id:
+          type: string
+        targetUserId:
+          type: string
+        targetUsername:
+          type: string
+        targetAvatar:
+          type: string
+        lastMessage:
+          type: string
+        lastMessageTime:
+          type: string
+          format: date-time
+        unreadCount:
+          type: integer
+
+    MessageListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [200]
+        data:
+          type: object
+          properties:
+            list:
+              type: array
+              items:
+                $ref: '#/components/schemas/Message'
+            total:
+              type: integer
+
+    Message:
+      type: object
+      properties:
+        id:
+          type: string
+        senderId:
+          type: string
+        receiverId:
+          type: string
+        content:
+          type: string
+        type:
+          type: string
+          enum: [text, image, file]
+        isRead:
+          type: boolean
+        createTime:
+          type: string
+          format: date-time
+
+    SendMessageRequest:
+      type: object
+      required:
+        - content
+        - type
+      properties:
+        content:
+          type: string
+        type:
+          type: string
+          enum: [text, image, file]
+
+    SendMessageResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [7000]
+        data:
+          type: object
+          properties:
+            messageId:
+              type: string
+            createTime:
+              type: string
+              format: date-time
+
+    UnreadCountResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [200]
+        data:
+          type: object
+          properties:
+            chatCount:
+              type: integer
+            notificationCount:
+              type: integer
+            totalCount:
+              type: integer
+
+    NotificationListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [200]
+        data:
+          type: object
+          properties:
+            list:
+              type: array
+              items:
+                $ref: '#/components/schemas/Notification'
+            total:
+              type: integer
+
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [system, like, comment, follow]
+        title:
+          type: string
+        content:
+          type: string
+        isRead:
+          type: boolean
+        createTime:
+          type: string
+          format: date-time
+
+    MessageSettingsResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [200]
+        data:
+          $ref: '#/components/schemas/MessageSettings'
+
+    MessageSettings:
+      type: object
+      properties:
+        enableChatNotification:
+          type: boolean
+        enableLikeNotification:
+          type: boolean
+        enableCommentNotification:
+          type: boolean
+        enableFollowNotification:
+          type: boolean
+        enableSystemNotification:
+          type: boolean
+
+    MessageSettingsRequest:
+      type: object
+      properties:
+        enableChatNotification:
+          type: boolean
+        enableLikeNotification:
+          type: boolean
+        enableCommentNotification:
+          type: boolean
+        enableFollowNotification:
+          type: boolean
+        enableSystemNotification:
+          type: boolean
+
+    BlacklistResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [200]
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              userId:
+                type: string
+              username:
+                type: string
+              avatar:
+                type: string
+              createTime:
+                type: string
+                format: date-time
+
+    # ========== 公共模块 Schemas ==========
+    UploadResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [1001, 2012, 5030]
+        data:
+          type: object
+          properties:
+            url:
+              type: string
+            avatarUrl:
+              type: string
+
+    CaptchaResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [200]
+        data:
+          type: object
+          properties:
+            captchaId:
+              type: string
+            captchaImage:
+              type: string
