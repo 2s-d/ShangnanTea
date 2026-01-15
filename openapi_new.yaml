@@ -5950,13 +5950,13 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 取消成功
+                  summary: 已取消收藏
                   value:
                     code: 6017
                     message: 已取消收藏
                     data: null
                 failure:
-                  summary: 取消失败
+                  summary: 取消收藏失败
                   value:
                     code: 6128
                     message: 取消收藏失败
@@ -5986,13 +5986,13 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 审核成功
+                  summary: 帖子审核通过
                   value:
                     code: 6022
                     message: 帖子审核通过
                     data: null
                 failure:
-                  summary: 审核失败
+                  summary: 审核通过失败
                   value:
                     code: 6134
                     message: 审核通过失败
@@ -6187,7 +6187,7 @@ paths:
                 $ref: '#/components/schemas/ArticleListResponse'
               examples:
                 success:
-                  summary: 获取成功
+                  summary: 操作成功
                   value:
                     code: 200
                     message: 操作成功
@@ -6203,7 +6203,7 @@ paths:
                           createTime: "2025-01-01T00:00:00Z"
                       total: 20
                 failure:
-                  summary: 获取失败
+                  summary: 获取文章列表失败
                   value:
                     code: 6109
                     message: 获取文章列表失败
@@ -6237,13 +6237,13 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 创建成功
+                  summary: 文章创建成功
                   value:
                     code: 6005
                     message: 文章创建成功
                     data: null
                 failure:
-                  summary: 创建失败
+                  summary: 文章创建失败
                   value:
                     code: 6111
                     message: 文章创建失败
@@ -6269,19 +6269,29 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ArticleDetailResponse'
-              example:
-                code: 200
-                data:
-                  id: "1"
-                  title: "商南茶的历史"
-                  content: "商南茶有着悠久的历史..."
-                  summary: "商南茶历史简介"
-                  coverImage: "/images/article1.jpg"
-                  authorId: "cy100001"
-                  authorName: "管理员"
-                  categoryId: "cat001"
-                  viewCount: 500
-                  createTime: "2025-01-01T00:00:00Z"
+              examples:
+                success:
+                  summary: 操作成功
+                  value:
+                    code: 200
+                    message: 操作成功
+                    data:
+                      id: "1"
+                      title: "商南茶的历史"
+                      content: "商南茶有着悠久的历史..."
+                      summary: "商南茶历史简介"
+                      coverImage: "/images/article1.jpg"
+                      authorId: "cy100001"
+                      authorName: "管理员"
+                      categoryId: "cat001"
+                      viewCount: 500
+                      createTime: "2025-01-01T00:00:00Z"
+                failure:
+                  summary: 获取文章详情失败
+                  value:
+                    code: 6110
+                    message: 获取文章详情失败
+                    data: null
     put:
       operationId: updateArticle
       tags:
@@ -6309,9 +6319,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 6041
-                data: null
+              examples:
+                success:
+                  summary: 文章更新成功
+                  value:
+                    code: 6006
+                    message: 文章更新成功
+                    data: null
+                failure:
+                  summary: 文章更新失败
+                  value:
+                    code: 6112
+                    message: 文章更新失败
+                    data: null
     delete:
       operationId: deleteArticle
       tags:
@@ -6333,9 +6353,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 6042
-                data: null
+              examples:
+                success:
+                  summary: 文章已删除
+                  value:
+                    code: 6007
+                    message: 文章已删除
+                    data: null
+                failure:
+                  summary: 文章删除失败
+                  value:
+                    code: 6113
+                    message: 文章删除失败
+                    data: null
 
   # ==================== 消息模块 ====================
   /message/list:
