@@ -182,9 +182,13 @@ export default {
           addresses.value = []
         }
       } catch (error) {
-        console.error('获取地址列表失败', error)
+        // 捕获意外的运行时错误（非API业务错误）
+        // API业务失败已通过 showByCode 显示，网络错误已在响应拦截器显示
         // 当获取失败时，初始化为空数组，确保页面不会崩溃
         addresses.value = []
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[开发调试] 获取地址列表时发生意外错误：', error)
+        }
       } finally {
         loading.value = false
       }

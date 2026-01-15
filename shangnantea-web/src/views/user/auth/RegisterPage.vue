@@ -262,8 +262,12 @@ export default {
           router.push('/login')
         }
       } catch (error) {
-        console.error('注册失败:', error)
+        // 捕获意外的运行时错误（非API业务错误）
+        // API业务失败已通过 showByCode 显示，网络错误已在响应拦截器显示
         loading.value = false
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[开发调试] 注册时发生意外错误：', error)
+        }
         return false
       }
     }

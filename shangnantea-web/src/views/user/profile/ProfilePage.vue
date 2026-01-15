@@ -317,7 +317,11 @@ export default {
           }
         }
         } catch (error) {
-        console.error('头像上传失败:', error)
+        // 捕获意外的运行时错误（非API业务错误）
+        // API业务失败已通过 showByCode 显示，网络错误已在响应拦截器显示
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[开发调试] 头像上传时发生意外错误：', error)
+        }
       } finally {
         loading.value = false
       }
@@ -351,7 +355,11 @@ export default {
           }
         })
       } catch (error) {
-        console.error('保存用户信息失败:', error)
+        // 捕获意外的运行时错误（非API业务错误）
+        // API业务失败已通过 showByCode 显示，网络错误已在响应拦截器显示
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[开发调试] 保存用户信息时发生意外错误：', error)
+        }
       } finally {
         saving.value = false
         loading.value = false

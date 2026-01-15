@@ -272,11 +272,18 @@ export default {
     const uploadIdCardFront = async ({ file }) => {
       try {
         const result = await uploadImage(file)
-        if (result && result.data && result.data.url) {
+        // 显示API响应消息（成功或失败都通过状态码映射显示）
+        showByCode(result.code)
+        
+        // 只有成功时才更新表单
+        if (isSuccess(result.code) && result.data && result.data.url) {
           applicationForm.idCardFront = result.data.url
         }
       } catch (error) {
-        console.error('上传身份证正面失败:', error)
+        // 捕获意外的运行时错误（非API业务错误）
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[开发调试] 上传身份证正面时发生意外错误：', error)
+        }
       }
     }
     
@@ -284,11 +291,18 @@ export default {
     const uploadIdCardBack = async ({ file }) => {
       try {
         const result = await uploadImage(file)
-        if (result && result.data && result.data.url) {
+        // 显示API响应消息（成功或失败都通过状态码映射显示）
+        showByCode(result.code)
+        
+        // 只有成功时才更新表单
+        if (isSuccess(result.code) && result.data && result.data.url) {
           applicationForm.idCardBack = result.data.url
         }
       } catch (error) {
-        console.error('上传身份证背面失败:', error)
+        // 捕获意外的运行时错误（非API业务错误）
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[开发调试] 上传身份证背面时发生意外错误：', error)
+        }
       }
     }
     
@@ -296,11 +310,18 @@ export default {
     const uploadBusinessLicense = async ({ file }) => {
       try {
         const result = await uploadImage(file)
-        if (result && result.data && result.data.url) {
+        // 显示API响应消息（成功或失败都通过状态码映射显示）
+        showByCode(result.code)
+        
+        // 只有成功时才更新表单
+        if (isSuccess(result.code) && result.data && result.data.url) {
           applicationForm.businessLicense = result.data.url
         }
       } catch (error) {
-        console.error('上传营业执照失败:', error)
+        // 捕获意外的运行时错误（非API业务错误）
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[开发调试] 上传营业执照时发生意外错误：', error)
+        }
       }
     }
     
@@ -345,6 +366,10 @@ export default {
       try {
         const response = await store.dispatch('user/fetchShopCertificationStatus')
         
+        // 显示API响应消息（成功或失败都通过状态码映射显示）
+        showByCode(response.code)
+        
+        // 只有成功时才处理数据
         if (isSuccess(response.code)) {
           if (response.data) {
             hasApplied.value = true
@@ -355,12 +380,15 @@ export default {
             hasApplied.value = false
           }
         } else {
-          showByCode(response.code)
           hasApplied.value = false
         }
       } catch (error) {
-        console.error('获取认证状态失败:', error)
+        // 捕获意外的运行时错误（非API业务错误）
+        // API业务失败已通过 showByCode 显示，网络错误已在响应拦截器显示
         hasApplied.value = false
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[开发调试] 获取认证状态时发生意外错误：', error)
+        }
       }
     }
     
