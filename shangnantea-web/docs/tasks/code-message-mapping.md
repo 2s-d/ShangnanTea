@@ -570,12 +570,32 @@
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 59 | getShops | GET | /shop/list | 200 | 5101 | 获取店铺列表 |
-| 60 | getShopDetail | GET | /shop/{id} | 200 | 5100, 5105 | 获取店铺详情 |
-| 61 | getMyShop | GET | /shop/my | 200 | 5100 | 获取我的店铺 |
-| 62 | createShop | POST | /shop | 1000 | 1100 | 创建店铺 |
-| 63 | updateShop | PUT | /shop/{id} | 1004 | 1100 | 更新店铺信息 |
-| 64 | getShopStatistics | GET | /shop/{id}/statistics | 200 | 1102 | 获取店铺统计 |
+| 62 | getShops | GET | /shop/list | 200 | 5101 | 获取店铺列表 |
+| 63 | createShop | POST | /shop/list | 1000 | 1100 | 创建店铺 |
+| 64 | getShopDetail | GET | /shop/{id} | 200 | 5100, 5105 | 获取店铺详情 |
+| 65 | updateShop | PUT | /shop/{id} | 1004 | 1100 | 更新店铺信息 |
+| 66 | getMyShop | GET | /shop/my | 200 | 5100 | 获取我的店铺 |
+| 67 | getShopTeas | GET | /shop/{shopId}/teas | 200 | 5101 | 获取店铺茶叶 |
+| 68 | addShopTea | POST | /shop/{shopId}/teas | 3026 | 3125 | 添加店铺茶叶 |
+| 69 | updateShopTea | PUT | /shop/teas/{teaId} | 3025 | 3125 | 更新店铺茶叶 |
+| 70 | deleteShopTea | DELETE | /shop/teas/{teaId} | 3024 | 3124 | 删除店铺茶叶 |
+| 71 | toggleShopTeaStatus | PUT | /shop/teas/{teaId}/status | 3020, 3021 | 3120, 3121 | 茶叶上下架 |
+| 72 | getShopStatistics | GET | /shop/{shopId}/statistics | 200 | 1102 | 获取店铺统计 |
+| 73 | uploadShopLogo | POST | /shop/{shopId}/logo | 5030 | 5130, 1103, 1104 | 上传Logo |
+| 74 | getShopBanners | GET | /shop/{shopId}/banners | 200 | 5110 | 获取Banner列表 |
+| 75 | uploadBanner | POST | /shop/{shopId}/banners | 5010 | 5111, 1103, 1104 | 上传Banner |
+| 76 | updateBanner | PUT | /shop/banners/{bannerId} | 5011 | 5111 | 更新Banner |
+| 77 | deleteBanner | DELETE | /shop/banners/{bannerId} | 5012 | 5112 | 删除Banner |
+| 78 | updateBannerOrder | PUT | /shop/banners/order | 5013 | 5113 | 更新Banner排序 |
+| 79 | getShopAnnouncements | GET | /shop/{shopId}/announcements | 200 | 5120 | 获取公告列表 |
+| 80 | createAnnouncement | POST | /shop/{shopId}/announcements | 5020 | 5121 | 创建公告 |
+| 81 | updateAnnouncement | PUT | /shop/announcements/{announcementId} | 5021 | 5121 | 更新公告 |
+| 82 | deleteAnnouncement | DELETE | /shop/announcements/{announcementId} | 5022 | 5122 | 删除公告 |
+| 83 | followShop | POST | /shop/{shopId}/follow | 5000 | 5102 | 关注店铺 |
+| 84 | unfollowShop | DELETE | /shop/{shopId}/follow | 5001 | 5102 | 取消关注 |
+| 85 | checkFollowStatus | GET | /shop/{shopId}/follow-status | 200 | 1102 | 获取关注状态 |
+| 86 | getShopReviews | GET | /shop/{shopId}/reviews | 200 | 5103 | 获取店铺评价 |
+| 87 | submitShopReview | POST | /shop/{shopId}/reviews | 5002 | 5104 | 提交店铺评价 |
 
 ### 3.2 店铺茶叶管理 (5个)
 
@@ -671,7 +691,7 @@
 | 104 | exportOrders | GET | /order/export | 200 | 1100 | 导出订单数据 |
 
 
-## 五、论坛模块接口 (forum.js) - 共35个接口
+## 五、论坛模块接口 (forum.js) - 共36个接口
 
 ### 5.1 首页与Banner (7个)
 
@@ -710,35 +730,35 @@
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
 | 122 | getForumPosts | GET | /forum/posts | 200 | 6103 | 获取帖子列表 |
-| 123 | getPostDetail | GET | /forum/posts/{id} | 200 | 6104 | 获取帖子详情 |
-| 124 | createPost | POST | /forum/posts | 6000 | 6100 | 创建帖子 |
-| 125 | updatePost | PUT | /forum/posts/{id} | 6001 | 6101 | 更新帖子 |
-| 126 | deletePost | DELETE | /forum/posts/{id} | 6002 | 6102 | 删除帖子 |
+| 123 | createPost | POST | /forum/posts | 6000 | 6100 | 创建帖子 |
+| 124 | getPendingPosts | GET | /forum/posts/pending | 200 | 6136 | 获取待审核帖子 |
+| 125 | getPostDetail | GET | /forum/posts/{id} | 200 | 6104 | 获取帖子详情 |
+| 126 | updatePost | PUT | /forum/posts/{id} | 6001 | 6101 | 更新帖子 |
+| 127 | deletePost | DELETE | /forum/posts/{id} | 6002 | 6102 | 删除帖子 |
 
 ### 5.5 帖子互动 (4个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 127 | likePost | POST | /forum/posts/{id}/like | 6010 | 6110 | 点赞帖子 |
-| 128 | unlikePost | DELETE | /forum/posts/{id}/like | 6011 | 6111 | 取消点赞 |
-| 129 | favoritePost | POST | /forum/posts/{id}/favorite | 6012 | 6112 | 收藏帖子 |
-| 130 | unfavoritePost | DELETE | /forum/posts/{id}/favorite | 6013 | 6113 | 取消收藏 |
+| 128 | likePost | POST | /forum/posts/{id}/like | 6010 | 6110 | 点赞帖子 |
+| 129 | unlikePost | DELETE | /forum/posts/{id}/like | 6011 | 6111 | 取消点赞 |
+| 130 | favoritePost | POST | /forum/posts/{id}/favorite | 6012 | 6112 | 收藏帖子 |
+| 131 | unfavoritePost | DELETE | /forum/posts/{id}/favorite | 6013 | 6113 | 取消收藏 |
 
 ### 5.6 回复管理 (5个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 131 | getPostReplies | GET | /forum/posts/{id}/replies | 200 | 6123 | 获取回复列表 |
-| 132 | createReply | POST | /forum/posts/{id}/replies | 6022 | 6122 | 创建回复 |
-| 133 | deleteReply | DELETE | /forum/replies/{id} | 6021 | 6121 | 删除回复 |
-| 134 | likeReply | POST | /forum/replies/{id}/like | 6010 | 6110 | 点赞回复 |
-| 135 | unlikeReply | DELETE | /forum/replies/{id}/like | 6011 | 6111 | 取消点赞回复 |
+| 132 | getPostReplies | GET | /forum/posts/{id}/replies | 200 | 6123 | 获取回复列表 |
+| 133 | createReply | POST | /forum/posts/{id}/replies | 6022 | 6122 | 创建回复 |
+| 134 | deleteReply | DELETE | /forum/replies/{id} | 6021 | 6121 | 删除回复 |
+| 135 | likeReply | POST | /forum/replies/{id}/like | 6010 | 6110 | 点赞回复 |
+| 136 | unlikeReply | DELETE | /forum/replies/{id}/like | 6011 | 6111 | 取消点赞回复 |
 
 ### 5.7 内容审核 (4个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 136 | getPendingPosts | GET | /forum/posts/pending | 200 | 6136 | 获取待审核帖子 |
 | 137 | approvePost | POST | /forum/posts/{id}/approve | 6034 | 6134 | 审核通过 |
 | 138 | rejectPost | POST | /forum/posts/{id}/reject | 6035 | 6135 | 审核拒绝 |
 | 139 | togglePostSticky | PUT | /forum/posts/{id}/sticky | 6030, 6031 | 6130, 6131 | 置顶/取消置顶 |
