@@ -36,7 +36,7 @@ import { apiMessage } from './messageManager'
 // 这些状态码不会显示消息给用户，但会在开发环境记录日志
 // ⚠️ 必须与 docs/code-message-mapping.md 中的 [静默] 标注完全一致
 const SILENT_CODES = [
-  // 将从文档中提取，待实现
+我  // 将从文档中提取，待实现
 ]
 
 // 状态码消息映射表

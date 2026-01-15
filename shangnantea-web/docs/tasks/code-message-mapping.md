@@ -1394,7 +1394,7 @@
 | 31 | deleteUser | DELETE | /user/admin/users/{userId} | 2021 | 2138, 2139 | 删除用户 |
 | 32 | toggleUserStatus | PUT | /user/admin/users/{userId}/status | 2022 | 2140, 2141 | 切换用户状态 |
 | 33 | getCertificationList | GET | /user/admin/certifications | 200 | 2142, 2143 | 获取认证列表 |
-| 35 | processCertification | PUT | /user/admin/certifications/{id} | 2023 | 2144, 2145 | 审核认证 |
+| 34 | processCertification | PUT | /user/admin/certifications/{id} | 2023 | 2144, 2145 | 审核认证 |
 
 
 ## 二、茶叶模块接口 (tea.js) - 共26个接口
@@ -1403,7 +1403,7 @@
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 36 | getTeas | GET | /tea/list | 3000 | 3100 | 获取茶叶列表 |
+| 1 | getTeas | GET | /tea/list | 3000 | 3100 | 获取茶叶列表 |
 | 37 | addTea | POST | /tea/list | 3026 | 3125 | 添加茶叶 |
 | 38 | getTeaDetail | GET | /tea/{id} | 3001 | 3101 | 获取茶叶详情 |
 | 39 | updateTea | PUT | /tea/{id} | 3025 | 3125 | 更新茶叶 |
