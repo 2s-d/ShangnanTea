@@ -5453,16 +5453,26 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 200
-                data:
-                  list:
-                    - id: 1
-                      title: "待审核帖子"
-                      authorName: "茶友"
-                      status: 0
-                      createTime: "2025-01-01T12:00:00Z"
-                  total: 10
+              examples:
+                success:
+                  summary: 获取成功
+                  value:
+                    code: 200
+                    message: 操作成功
+                    data:
+                      list:
+                        - id: 1
+                          title: "待审核帖子"
+                          authorName: "茶友"
+                          status: 0
+                          createTime: "2025-01-01T12:00:00Z"
+                      total: 10
+                failure:
+                  summary: 获取失败
+                  value:
+                    code: 6121
+                    message: 获取待审核帖子列表失败
+                    data: null
 
   /forum/posts/{id}:
     get:
@@ -5484,22 +5494,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PostDetailResponse'
-              example:
-                code: 200
-                data:
-                  id: "1"
-                  title: "茶文化分享"
-                  content: "今天来聊聊商南茶的历史..."
-                  authorId: "cy100002"
-                  authorName: "茶友"
-                  authorAvatar: "/images/avatar.png"
-                  categoryId: "cat001"
-                  images: ["/images/post1.jpg"]
-                  viewCount: 100
-                  likeCount: 10
-                  commentCount: 5
-                  isLiked: false
-                  createTime: "2025-01-15T10:30:00Z"
+              examples:
+                success:
+                  summary: 获取成功
+                  value:
+                    code: 200
+                    message: 操作成功
+                    data:
+                      id: "1"
+                      title: "茶文化分享"
+                      content: "今天来聊聊商南茶的历史..."
+                      authorId: "cy100002"
+                      authorName: "茶友"
+                      authorAvatar: "/images/avatar.png"
+                      categoryId: "cat001"
+                      images: ["/images/post1.jpg"]
+                      viewCount: 100
+                      likeCount: 10
+                      commentCount: 5
+                      isLiked: false
+                      createTime: "2025-01-15T10:30:00Z"
+                failure:
+                  summary: 获取失败
+                  value:
+                    code: 6122
+                    message: 获取帖子详情失败
+                    data: null
 
     put:
       operationId: updateForumPost
@@ -5532,12 +5552,14 @@ paths:
                 success:
                   summary: 更新成功
                   value:
-                    code: 6001
+                    code: 6012
+                    message: 帖子更新成功
                     data: null
                 failure:
                   summary: 更新失败
                   value:
-                    code: 6101
+                    code: 6123
+                    message: 帖子更新失败
                     data: null
     delete:
       operationId: deleteForumPost
@@ -5564,12 +5586,14 @@ paths:
                 success:
                   summary: 删除成功
                   value:
-                    code: 6002
+                    code: 6013
+                    message: 帖子删除成功
                     data: null
                 failure:
                   summary: 删除失败
                   value:
-                    code: 6102
+                    code: 6124
+                    message: 帖子删除失败
                     data: null
 
   /forum/posts/{id}/like:
@@ -5598,12 +5622,14 @@ paths:
                 success:
                   summary: 点赞成功
                   value:
-                    code: 6010
+                    code: 6014
+                    message: 点赞成功
                     data: null
                 failure:
                   summary: 点赞失败
                   value:
-                    code: 6110
+                    code: 6125
+                    message: 点赞失败
                     data: null
 
     delete:
@@ -5627,9 +5653,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 6011
-                data: null
+              examples:
+                success:
+                  summary: 取消成功
+                  value:
+                    code: 6015
+                    message: 已取消点赞
+                    data: null
+                failure:
+                  summary: 取消失败
+                  value:
+                    code: 6126
+                    message: 取消点赞失败
+                    data: null
 
   /forum/posts/{id}/replies:
     get:
