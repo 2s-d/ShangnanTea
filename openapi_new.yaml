@@ -3762,17 +3762,31 @@ paths:
                 $ref: '#/components/schemas/CreateOrderResponse'
               examples:
                 success:
-                  summary: 创建成功
+                  summary: 订单创建成功
                   value:
-                    code: 4000
+                    code: 5005
+                    message: 订单创建成功
                     data:
                       orderId: "order001"
                       totalPrice: 199.00
                       status: 0
                 failure:
-                  summary: 创建失败
+                  summary: 创建订单失败
                   value:
-                    code: 4100
+                    code: 5110
+                    message: 创建订单失败
+                    data: null
+                failure_stock:
+                  summary: 商品库存不足
+                  value:
+                    code: 5111
+                    message: 商品库存不足
+                    data: null
+                failure_unavailable:
+                  summary: 商品已下架或不可用
+                  value:
+                    code: 5112
+                    message: 商品已下架或不可用
                     data: null
 
   /order/list:
