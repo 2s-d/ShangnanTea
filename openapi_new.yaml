@@ -4826,22 +4826,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 200
-                data:
-                  banners:
-                    - id: 1
-                      imageUrl: "/images/forum-banner1.jpg"
-                      title: "茶文化专题"
-                      linkUrl: "/forum/articles/1"
-                  hotPosts:
-                    - id: 1
-                      title: "商南茶文化分享"
-                      viewCount: 1000
-                  latestArticles:
-                    - id: 1
-                      title: "茶道入门"
-                      summary: "茶道基础知识"
+              examples:
+                success:
+                  summary: 获取成功
+                  value:
+                    code: 200
+                    message: 操作成功
+                    data:
+                      banners:
+                        - id: 1
+                          imageUrl: "/images/forum-banner1.jpg"
+                          title: "茶文化专题"
+                          linkUrl: "/forum/articles/1"
+                      hotPosts:
+                        - id: 1
+                          title: "商南茶文化分享"
+                          viewCount: 1000
+                      latestArticles:
+                        - id: 1
+                          title: "茶道入门"
+                          summary: "茶道基础知识"
+                failure:
+                  summary: 获取失败
+                  value:
+                    code: 6100
+                    message: 获取首页数据失败
+                    data: null
 
     put:
       operationId: updateForumHome
@@ -4865,9 +4875,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 6060
-                data: null
+              examples:
+                success:
+                  summary: 更新成功
+                  value:
+                    code: 6000
+                    message: 区块内容已保存
+                    data: null
+                failure:
+                  summary: 更新失败
+                  value:
+                    code: 6101
+                    message: 保存失败
+                    data: null
 
   /forum/banners:
     get:
@@ -4883,14 +4903,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 200
-                data:
-                  - id: 1
-                    imageUrl: "/images/forum-banner1.jpg"
-                    title: "茶文化专题"
-                    linkUrl: "/forum/articles/1"
-                    sortOrder: 1
+              examples:
+                success:
+                  summary: 获取成功
+                  value:
+                    code: 200
+                    message: 操作成功
+                    data:
+                      - id: 1
+                        imageUrl: "/images/forum-banner1.jpg"
+                        title: "茶文化专题"
+                        linkUrl: "/forum/articles/1"
+                        sortOrder: 1
+                failure:
+                  summary: 获取失败
+                  value:
+                    code: 6102
+                    message: 获取轮播图数据失败
+                    data: null
 
     post:
       operationId: createForumBanner
@@ -4921,9 +4951,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 5010
-                data: null
+              examples:
+                success:
+                  summary: 上传成功
+                  value:
+                    code: 6001
+                    message: Banner添加成功
+                    data: null
+                failure:
+                  summary: 上传失败
+                  value:
+                    code: 6103
+                    message: 保存失败
+                    data: null
+                failure_type:
+                  summary: 文件类型错误
+                  value:
+                    code: 6104
+                    message: 不支持的文件类型
+                    data: null
+                failure_size:
+                  summary: 文件过大
+                  value:
+                    code: 6105
+                    message: 文件大小超限
+                    data: null
 
   /forum/banners/{id}:
     put:
@@ -4964,9 +5016,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 5011
-                data: null
+              examples:
+                success:
+                  summary: 更新成功
+                  value:
+                    code: 6002
+                    message: Banner更新成功
+                    data: null
+                failure:
+                  summary: 更新失败
+                  value:
+                    code: 6106
+                    message: 保存失败
+                    data: null
 
     delete:
       operationId: deleteForumBanner
@@ -4989,9 +5051,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 5012
-                data: null
+              examples:
+                success:
+                  summary: 删除成功
+                  value:
+                    code: 6003
+                    message: 删除成功
+                    data: null
+                failure:
+                  summary: 删除失败
+                  value:
+                    code: 6107
+                    message: 删除失败
+                    data: null
 
   /forum/banners/order:
     put:
@@ -5022,9 +5094,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 5013
-                data: null
+              examples:
+                success:
+                  summary: 更新成功
+                  value:
+                    code: 6004
+                    message: 排序更新成功
+                    data: null
+                failure:
+                  summary: 更新失败
+                  value:
+                    code: 6108
+                    message: 排序更新失败
+                    data: null
 
   /forum/topics:
     get:
@@ -5040,14 +5122,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 200
-                data:
-                  - id: 1
-                    name: "茶文化"
-                    description: "茶文化交流"
-                    icon: "/icons/culture.png"
-                    sortOrder: 1
+              examples:
+                success:
+                  summary: 获取成功
+                  value:
+                    code: 200
+                    message: 操作成功
+                    data:
+                      - id: 1
+                        name: "茶文化"
+                        description: "茶文化交流"
+                        icon: "/icons/culture.png"
+                        sortOrder: 1
+                failure:
+                  summary: 获取失败
+                  value:
+                    code: 6114
+                    message: 获取版块列表失败
+                    data: null
 
     post:
       operationId: createForumTopic
@@ -5085,9 +5177,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 6040
-                data: null
+              examples:
+                success:
+                  summary: 创建成功
+                  value:
+                    code: 6008
+                    message: 添加版块成功
+                    data: null
+                failure:
+                  summary: 创建失败
+                  value:
+                    code: 6116
+                    message: 添加版块失败
+                    data: null
 
   /forum/topics/{id}:
     get:
@@ -5109,14 +5211,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 200
-                data:
-                  id: 1
-                  name: "茶文化"
-                  description: "茶文化交流"
-                  icon: "/icons/culture.png"
-                  postCount: 100
+              examples:
+                success:
+                  summary: 获取成功
+                  value:
+                    code: 200
+                    message: 操作成功
+                    data:
+                      id: 1
+                      name: "茶文化"
+                      description: "茶文化交流"
+                      icon: "/icons/culture.png"
+                      postCount: 100
+                failure:
+                  summary: 获取失败
+                  value:
+                    code: 6115
+                    message: 获取版块详情失败
+                    data: null
 
     put:
       operationId: updateForumTopic
@@ -5156,9 +5268,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 6041
-                data: null
+              examples:
+                success:
+                  summary: 更新成功
+                  value:
+                    code: 6009
+                    message: 更新版块成功
+                    data: null
+                failure:
+                  summary: 更新失败
+                  value:
+                    code: 6117
+                    message: 更新版块失败
+                    data: null
 
     delete:
       operationId: deleteForumTopic
@@ -5181,9 +5303,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 6042
-                data: null
+              examples:
+                success:
+                  summary: 删除成功
+                  value:
+                    code: 6010
+                    message: 删除版块成功
+                    data: null
+                failure:
+                  summary: 删除失败
+                  value:
+                    code: 6118
+                    message: 删除版块失败
+                    data: null
 
   /forum/posts:
     get:
@@ -5227,21 +5359,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PostListResponse'
-              example:
-                code: 200
-                data:
-                  list:
-                    - id: "1"
-                      title: "茶文化分享"
-                      content: "今天来聊聊商南茶的历史..."
-                      authorId: "cy100002"
-                      authorName: "茶友"
-                      categoryId: "cat001"
-                      viewCount: 100
-                      likeCount: 10
-                      commentCount: 5
-                      createTime: "2025-01-15T10:30:00Z"
-                  total: 50
+              examples:
+                success:
+                  summary: 获取成功
+                  value:
+                    code: 200
+                    message: 操作成功
+                    data:
+                      list:
+                        - id: "1"
+                          title: "茶文化分享"
+                          content: "今天来聊聊商南茶的历史..."
+                          authorId: "cy100002"
+                          authorName: "茶友"
+                          categoryId: "cat001"
+                          viewCount: 100
+                          likeCount: 10
+                          commentCount: 5
+                          createTime: "2025-01-15T10:30:00Z"
+                      total: 50
+                failure:
+                  summary: 获取失败
+                  value:
+                    code: 6119
+                    message: 获取帖子列表失败
+                    data: null
 
     post:
       operationId: createForumPost
@@ -5273,7 +5415,8 @@ paths:
                 success:
                   summary: 发布成功
                   value:
-                    code: 6000
+                    code: 6011
+                    message: 帖子发布成功
                     data:
                       postId: "post001"
                       title: "茶文化分享"
@@ -5281,7 +5424,8 @@ paths:
                 failure:
                   summary: 发布失败
                   value:
-                    code: 6100
+                    code: 6120
+                    message: 帖子发布失败
                     data: null
 
   /forum/posts/pending:
