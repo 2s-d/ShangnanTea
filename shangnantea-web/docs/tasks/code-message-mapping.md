@@ -1443,17 +1443,17 @@
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 55 | uploadTeaImages | POST | /tea/{teaId}/images | 1001 | 1101, 1103, 1104 | 上传图片 |
-| 56 | deleteTeaImage | DELETE | /tea/images/{imageId} | 1003 | 1100 | 删除图片 |
-| 57 | setMainImage | PUT | /tea/images/{imageId}/main | 1004 | 1100 | 设置主图 |
-| 58 | updateImageOrder | PUT | /tea/images/order | 1004 | 1100 | 更新图片顺序 |
+| 21 | uploadTeaImages | POST | /tea/{teaId}/images | 3014 | 3120, 3121, 3122 | 上传图片 |
+| 22 | deleteTeaImage | DELETE | /tea/images/{imageId} | 3015 | 3123 | 删除图片 |
+| 23 | setMainImage | PUT | /tea/images/{imageId}/main | 3016 | 3124 | 设置主图 |
+| 24 | updateImageOrder | PUT | /tea/images/order | 3017 | 3125 | 更新图片顺序 |
 
 ### 2.6 状态管理 (2个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 59 | toggleTeaStatus | PUT | /tea/{teaId}/status | 3020, 3021 | 3120, 3121 | 上架/下架 |
-| 60 | batchToggleTeaStatus | PUT | /tea/batch-status | 3022, 3023 | 3122, 3123 | 批量上架/下架 |
+| 25 | toggleTeaStatus | PUT | /tea/{teaId}/status | 3018, 3019 | 3126, 3127 | 上架/下架 |
+| 26 | batchToggleTeaStatus | PUT | /tea/batch-status | 3020, 3021 | 3128, 3129 | 批量上架/下架 |
 
 
 ## 三、店铺模块接口 (shop.js) - 共26个接口
@@ -1462,22 +1462,22 @@
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 62 | getShops | GET | /shop/list | 200 | 5101 | 获取店铺列表 |
-| 63 | createShop | POST | /shop/list | 1000 | 1100 | 创建店铺 |
-| 64 | getShopDetail | GET | /shop/{id} | 200 | 5100, 5105 | 获取店铺详情 |
-| 65 | updateShop | PUT | /shop/{id} | 1004 | 1100 | 更新店铺信息 |
-| 66 | getMyShop | GET | /shop/my | 200 | 5100 | 获取我的店铺 |
-| 72 | getShopStatistics | GET | /shop/{shopId}/statistics | 200 | 1102 | 获取店铺统计 |
+| 1 | getShops | GET | /shop/list | 200 | 5100 | 获取店铺列表 |
+| 2 | createShop | POST | /shop/list | 5000 | 5101 | 创建店铺 |
+| 3 | getShopDetail | GET | /shop/{id} | 200 | 5102, 5103 | 获取店铺详情 |
+| 4 | updateShop | PUT | /shop/{id} | 5001 | 5104 | 更新店铺信息 |
+| 5 | getMyShop | GET | /shop/my | 200 | 5105 | 获取我的店铺 |
+| 6 | getShopStatistics | GET | /shop/{shopId}/statistics | 200 | 5106 | 获取店铺统计 |
 
 ### 3.2 店铺茶叶管理 (5个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 67 | getShopTeas | GET | /shop/{shopId}/teas | 200 | 5101 | 获取店铺茶叶 |
-| 68 | addShopTea | POST | /shop/{shopId}/teas | 3026 | 3125 | 添加店铺茶叶 |
-| 69 | updateShopTea | PUT | /shop/teas/{teaId} | 3025 | 3125 | 更新店铺茶叶 |
-| 70 | deleteShopTea | DELETE | /shop/teas/{teaId} | 3024 | 3124 | 删除店铺茶叶 |
-| 71 | toggleShopTeaStatus | PUT | /shop/teas/{teaId}/status | 3020, 3021 | 3120, 3121 | 茶叶上下架 |
+| 7 | getShopTeas | GET | /shop/{shopId}/teas | 200 | 5107 | 获取店铺茶叶 |
+| 8 | addShopTea | POST | /shop/{shopId}/teas | 5002 | 5108 | 添加店铺茶叶 |
+| 9 | updateShopTea | PUT | /shop/teas/{teaId} | 5003 | 5109 | 更新店铺茶叶 |
+| 10 | deleteShopTea | DELETE | /shop/teas/{teaId} | 5004 | 5110 | 删除店铺茶叶 |
+| 11 | toggleShopTeaStatus | PUT | /shop/teas/{teaId}/status | 5005, 5006 | 5111, 5112 | 茶叶上下架 |
 
 ### 3.3 Logo上传 (1个)
 
