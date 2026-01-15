@@ -172,9 +172,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 2002
-                data: null
+              examples:
+                success:
+                  summary: 已安全退出系统
+                  value:
+                    code: 2002
+                    data: null
+                failure:
+                  summary: 退出登录失败
+                  value:
+                    code: 2103
+                    data: null
 
   /user/refresh:
     post:
@@ -206,15 +214,15 @@ paths:
                     code: 200
                     data:
                       token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjeTEwMDAwMiIsInJvbGUiOjIsInVzZXJuYW1lIjoidGVzdHVzZXIiLCJpYXQiOjE3MzcwMDAwMDAsImV4cCI6MTg5MzQ1NjAwMCwiaXNzIjoic2hhbmduYW50ZWEifQ.mock_signature_for_testing"
-                failure_invalid_token:
-                  summary: Token无效
+                failure_refresh_failed:
+                  summary: 刷新令牌失败
                   value:
-                    code: 2102
+                    code: 2105
                     data: null
-                failure_not_logged_in:
-                  summary: 未登录
+                failure_token_expired:
+                  summary: 您的登录已过期，请重新登录
                   value:
-                    code: 2103
+                    code: 2106
                     data: null
 
   /user/me:
@@ -233,17 +241,25 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserInfoResponse'
-              example:
-                code: 200
-                data:
-                  id: "cy100002"
-                  username: "user"
-                  nickname: "测试用户"
-                  avatar: "/images/default-avatar.png"
-                  email: "user@example.com"
-                  phone: "13800138000"
-                  role: 2
-                  status: 1
+              examples:
+                success:
+                  summary: 获取当前用户信息成功
+                  value:
+                    code: 200
+                    data:
+                      id: "cy100002"
+                      username: "user"
+                      nickname: "测试用户"
+                      avatar: "/images/default-avatar.png"
+                      email: "user@example.com"
+                      phone: "13800138000"
+                      role: 2
+                      status: 1
+                failure:
+                  summary: 获取当前用户信息失败
+                  value:
+                    code: 2104
+                    data: null
 
   /user/{userId}:
     get:
@@ -265,15 +281,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserInfoResponse'
-              example:
-                code: 200
-                data:
-                  id: "cy100002"
-                  username: "user"
-                  nickname: "测试用户"
-                  avatar: "/images/default-avatar.png"
-                  role: 2
-                  status: 1
+              examples:
+                success:
+                  summary: 获取用户信息成功
+                  value:
+                    code: 200
+                    data:
+                      id: "cy100002"
+                      username: "user"
+                      nickname: "测试用户"
+                      avatar: "/images/default-avatar.png"
+                      role: 2
+                      status: 1
+                failure:
+                  summary: 获取用户信息失败
+                  value:
+                    code: 2107
+                    data: null
 
   /user:
     put:
@@ -303,14 +327,14 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 更新成功
+                  summary: 个人资料更新成功
                   value:
-                    code: 2010
+                    code: 2003
                     data: null
                 failure:
-                  summary: 更新失败
+                  summary: 个人资料更新失败
                   value:
-                    code: 2110
+                    code: 2108
                     data: null
 
   /user/avatar:
