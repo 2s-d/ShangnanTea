@@ -11,7 +11,7 @@
  * - apiMessages.js: API状态码消息映射（后端响应消息）
  */
 
-import message from '@/components/common'
+import { message } from '@/components/common'
 import { addMessageRecord } from '@/components/common/feedback/MessageMonitor.vue'
 
 // 开发环境中的消息日志
