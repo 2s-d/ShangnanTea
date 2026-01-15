@@ -1462,38 +1462,38 @@
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 62 | getShops | GET | /shop/list | 200 | 5101 | 获取店铺列表 |
-| 63 | createShop | POST | /shop/list | 1000 | 1100 | 创建店铺 |
-| 64 | getShopDetail | GET | /shop/{id} | 200 | 5100, 5105 | 获取店铺详情 |
-| 65 | updateShop | PUT | /shop/{id} | 1004 | 1100 | 更新店铺信息 |
-| 66 | getMyShop | GET | /shop/my | 200 | 5100 | 获取我的店铺 |
-| 72 | getShopStatistics | GET | /shop/{shopId}/statistics | 200 | 1102 | 获取店铺统计 |
+| 1 | getShops | GET | /shop/list | 200 | 4100 | 获取店铺列表 |
+| 2 | createShop | POST | /shop/list | 4000 | 4101 | 创建店铺 |
+| 3 | getShopDetail | GET | /shop/{id} | 200 | 4102, 4103 | 获取店铺详情 |
+| 4 | updateShop | PUT | /shop/{id} | 4001 | 4104 | 更新店铺信息 |
+| 5 | getMyShop | GET | /shop/my | 200 | 4105 | 获取我的店铺 |
+| 6 | getShopStatistics | GET | /shop/{shopId}/statistics | 200 | 4106 | 获取店铺统计 |
 
 ### 3.2 店铺茶叶管理 (5个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 67 | getShopTeas | GET | /shop/{shopId}/teas | 200 | 5101 | 获取店铺茶叶 |
-| 68 | addShopTea | POST | /shop/{shopId}/teas | 3026 | 3125 | 添加店铺茶叶 |
-| 69 | updateShopTea | PUT | /shop/teas/{teaId} | 3025 | 3125 | 更新店铺茶叶 |
-| 70 | deleteShopTea | DELETE | /shop/teas/{teaId} | 3024 | 3124 | 删除店铺茶叶 |
-| 71 | toggleShopTeaStatus | PUT | /shop/teas/{teaId}/status | 3020, 3021 | 3120, 3121 | 茶叶上下架 |
+| 7 | getShopTeas | GET | /shop/{shopId}/teas | 200 | 4107 | 获取店铺茶叶 |
+| 8 | addShopTea | POST | /shop/{shopId}/teas | 4002 | 4108 | 添加店铺茶叶 |
+| 9 | updateShopTea | PUT | /shop/teas/{teaId} | 4003 | 4109 | 更新店铺茶叶 |
+| 10 | deleteShopTea | DELETE | /shop/teas/{teaId} | 4004 | 4110 | 删除店铺茶叶 |
+| 11 | toggleShopTeaStatus | PUT | /shop/teas/{teaId}/status | 4005, 4006 | 4111, 4112 | 茶叶上下架 |
 
 ### 3.3 Logo上传 (1个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 73 | uploadShopLogo | POST | /shop/{shopId}/logo | 5030 | 5130, 1103, 1104 | 上传Logo |
+| 12 | uploadShopLogo | POST | /shop/{shopId}/logo | 4007 | 4113, 4114, 4115 | 上传Logo |
 
 ### 3.4 Banner管理 (5个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 74 | getShopBanners | GET | /shop/{shopId}/banners | 200 | 5110 | 获取Banner列表 |
-| 75 | uploadBanner | POST | /shop/{shopId}/banners | 5010 | 5111, 1103, 1104 | 上传Banner |
-| 76 | updateBanner | PUT | /shop/banners/{bannerId} | 5011 | 5111 | 更新Banner |
-| 77 | deleteBanner | DELETE | /shop/banners/{bannerId} | 5012 | 5112 | 删除Banner |
-| 78 | updateBannerOrder | PUT | /shop/banners/order | 5013 | 5113 | 更新Banner排序 |
+| 13 | getShopBanners | GET | /shop/{shopId}/banners | 200 | 4116 | 获取Banner列表 |
+| 14 | uploadBanner | POST | /shop/{shopId}/banners | 4008 | 4117, 4118, 4119 | 上传Banner |
+| 15 | updateBanner | PUT | /shop/banners/{bannerId} | 4009 | 4120 | 更新Banner |
+| 16 | deleteBanner | DELETE | /shop/banners/{bannerId} | 4010 | 4121 | 删除Banner |
+| 17 | updateBannerOrder | PUT | /shop/banners/order | 4011 | 4122 | 更新Banner排序 |
 
 ### 3.5 公告管理 (4个)
 
