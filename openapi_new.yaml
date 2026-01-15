@@ -6398,17 +6398,27 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 200
-                data:
-                  list:
-                    - id: 1
-                      type: "system"
-                      title: "系统通知"
-                      content: "欢迎使用商南茶城"
-                      isRead: false
-                      createTime: "2025-01-01T12:00:00Z"
-                  total: 20
+              examples:
+                success:
+                  summary: 获取消息列表成功
+                  value:
+                    code: 200
+                    message: 操作成功
+                    data:
+                      list:
+                        - id: 1
+                          type: "system"
+                          title: "系统通知"
+                          content: "欢迎使用商南茶城"
+                          isRead: false
+                          createTime: "2025-01-01T12:00:00Z"
+                      total: 20
+                failure:
+                  summary: 获取消息列表失败
+                  value:
+                    code: 7100
+                    message: 加载失败
+                    data: null
 
   /message/{id}:
     get:
@@ -6740,10 +6750,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 1000
-                data:
-                  sessionId: "session_1"
+              examples:
+                success:
+                  summary: 创建会话成功
+                  value:
+                    code: 7006
+                    message: 操作成功
+                    data:
+                      sessionId: "session_1"
+                failure:
+                  summary: 创建会话失败
+                  value:
+                    code: 7113
+                    message: 操作失败
+                    data: null
 
   /message/sessions/{sessionId}:
     delete:
@@ -6767,9 +6787,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 7001
-                data: null
+              examples:
+                success:
+                  summary: 删除会话成功
+                  value:
+                    code: 7008
+                    message: 会话已删除
+                    data: null
+                failure:
+                  summary: 删除会话失败
+                  value:
+                    code: 7115
+                    message: 操作失败
+                    data: null
 
   /message/sessions/{sessionId}/pin:
     put:
@@ -6793,9 +6823,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 7014
-                data: null
+              examples:
+                success:
+                  summary: 置顶会话成功
+                  value:
+                    code: 7007
+                    message: 通知已置顶
+                    data: null
+                failure:
+                  summary: 置顶会话失败
+                  value:
+                    code: 7114
+                    message: 操作失败
+                    data: null
 
   /message/messages/image:
     post:
@@ -6828,9 +6868,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 7003
-                data: null
+              examples:
+                success:
+                  summary: 发送图片消息成功
+                  value:
+                    code: 7009
+                    message: 图片上传成功
+                    data: null
+                failure1:
+                  summary: 发送图片消息失败
+                  value:
+                    code: 7116
+                    message: 图片上传失败
+                    data: null
+                failure2:
+                  summary: 不支持的文件类型
+                  value:
+                    code: 7117
+                    message: 不支持的文件类型
+                    data: null
+                failure3:
+                  summary: 文件大小超限
+                  value:
+                    code: 7118
+                    message: 文件大小超限
+                    data: null
 
   /message/user/{userId}:
     get:
@@ -6852,20 +6914,36 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 200
-                data:
-                  user:
-                    id: "cy100002"
-                    username: "茶友"
-                    nickname: "茶友昵称"
-                    avatar: "/images/avatar.png"
-                    role: 2
-                  isFollowed: false
-                  statistics:
-                    postCount: 10
-                    followingCount: 20
-                    followerCount: 30
+              examples:
+                success:
+                  summary: 获取用户主页成功
+                  value:
+                    code: 200
+                    message: 操作成功
+                    data:
+                      user:
+                        id: "cy100002"
+                        username: "茶友"
+                        nickname: "茶友昵称"
+                        avatar: "/images/avatar.png"
+                        role: 2
+                      isFollowed: false
+                      statistics:
+                        postCount: 10
+                        followingCount: 20
+                        followerCount: 30
+                failure1:
+                  summary: 获取用户主页失败
+                  value:
+                    code: 7119
+                    message: 未能获取到用户信息
+                    data: null
+                failure2:
+                  summary: 用户信息不完整
+                  value:
+                    code: 7120
+                    message: 用户信息不完整
+                    data: null
 
   /message/user/{userId}/dynamic:
     get:
@@ -6895,16 +6973,26 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 200
-                data:
-                  list:
-                    - id: 1
-                      type: "post"
-                      title: "发布了帖子"
-                      content: "商南茶文化分享"
-                      createTime: "2025-01-01T12:00:00Z"
-                  total: 20
+              examples:
+                success:
+                  summary: 获取用户动态成功
+                  value:
+                    code: 200
+                    message: 操作成功
+                    data:
+                      list:
+                        - id: 1
+                          type: "post"
+                          title: "发布了帖子"
+                          content: "商南茶文化分享"
+                          createTime: "2025-01-01T12:00:00Z"
+                      total: 20
+                failure:
+                  summary: 获取用户动态失败
+                  value:
+                    code: 7121
+                    message: 未能获取到用户信息
+                    data: null
 
   /message/user/{userId}/statistics:
     get:
@@ -6926,13 +7014,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 200
-                data:
-                  postCount: 10
-                  followingCount: 20
-                  followerCount: 30
-                  favoriteCount: 15
+              examples:
+                success:
+                  summary: 获取用户统计成功
+                  value:
+                    code: 200
+                    message: 操作成功
+                    data:
+                      postCount: 10
+                      followingCount: 20
+                      followerCount: 30
+                      favoriteCount: 15
+                failure:
+                  summary: 获取用户统计失败
+                  value:
+                    code: 7122
+                    message: 未能获取到用户信息
+                    data: null
 
   /message/user/posts:
     get:
@@ -6964,16 +7062,26 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 200
-                data:
-                  list:
-                    - id: 1
-                      title: "商南茶文化分享"
-                      viewCount: 100
-                      likeCount: 10
-                      createTime: "2025-01-01T12:00:00Z"
-                  total: 10
+              examples:
+                success:
+                  summary: 获取用户帖子成功
+                  value:
+                    code: 200
+                    message: 操作成功
+                    data:
+                      list:
+                        - id: 1
+                          title: "商南茶文化分享"
+                          viewCount: 100
+                          likeCount: 10
+                          createTime: "2025-01-01T12:00:00Z"
+                      total: 10
+                failure:
+                  summary: 获取用户帖子失败
+                  value:
+                    code: 7123
+                    message: 加载失败
+                    data: null
 
   /message/user/reviews:
     get:
@@ -7000,16 +7108,26 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 200
-                data:
-                  list:
-                    - id: 1
-                      orderId: "order001"
-                      rating: 5
-                      content: "商品很好"
-                      createTime: "2025-01-01T12:00:00Z"
-                  total: 10
+              examples:
+                success:
+                  summary: 获取用户评价成功
+                  value:
+                    code: 200
+                    message: 操作成功
+                    data:
+                      list:
+                        - id: 1
+                          orderId: "order001"
+                          rating: 5
+                          content: "商品很好"
+                          createTime: "2025-01-01T12:00:00Z"
+                      total: 10
+                failure:
+                  summary: 获取用户评价失败
+                  value:
+                    code: 7124
+                    message: 加载失败
+                    data: null
 
   /message/notifications:
     get:
