@@ -2848,15 +2848,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TeaListResponse'
-              example:
-                code: 200
-                data:
-                  list:
-                    - id: "1"
-                      name: "商南绿茶"
-                      price: 99.00
-                      status: 1
-                  total: 20
+              examples:
+                success:
+                  summary: 获取店铺茶叶成功
+                  value:
+                    code: 200
+                    data:
+                      list:
+                        - id: "1"
+                          name: "商南绿茶"
+                          price: 99.00
+                          status: 1
+                      total: 20
+                failure:
+                  summary: 获取店铺茶叶失败
+                  value:
+                    code: 4107
+                    message: "加载店铺数据失败"
     post:
       operationId: addShopTea
       tags:
@@ -2884,9 +2892,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 3026
-                data: null
+              examples:
+                success:
+                  summary: 添加店铺茶叶成功
+                  value:
+                    code: 4002
+                    message: "茶叶添加成功"
+                    data: null
+                failure:
+                  summary: 添加店铺茶叶失败
+                  value:
+                    code: 4108
+                    message: "操作失败"
 
   /shop/teas/{teaId}:
     put:
@@ -2916,9 +2933,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 3025
-                data: null
+              examples:
+                success:
+                  summary: 更新店铺茶叶成功
+                  value:
+                    code: 4003
+                    message: "茶叶更新成功"
+                    data: null
+                failure:
+                  summary: 更新店铺茶叶失败
+                  value:
+                    code: 4109
+                    message: "操作失败"
     delete:
       operationId: deleteShopTea
       tags:
@@ -2940,9 +2966,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 3024
-                data: null
+              examples:
+                success:
+                  summary: 删除店铺茶叶成功
+                  value:
+                    code: 4004
+                    message: "删除成功"
+                    data: null
+                failure:
+                  summary: 删除店铺茶叶失败
+                  value:
+                    code: 4110
+                    message: "删除失败"
 
   /shop/teas/{teaId}/status:
     put:
@@ -2977,9 +3012,29 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 3020
-                data: null
+              examples:
+                success_online:
+                  summary: 茶叶上架成功
+                  value:
+                    code: 4005
+                    message: "上架成功"
+                    data: null
+                success_offline:
+                  summary: 茶叶下架成功
+                  value:
+                    code: 4006
+                    message: "下架成功"
+                    data: null
+                failure_online:
+                  summary: 茶叶上架失败
+                  value:
+                    code: 4111
+                    message: "上架失败"
+                failure_offline:
+                  summary: 茶叶下架失败
+                  value:
+                    code: 4112
+                    message: "下架失败"
 
   /shop/{shopId}/statistics:
     get:
@@ -3066,16 +3121,27 @@ paths:
                 $ref: '#/components/schemas/UploadResponse'
               examples:
                 success:
-                  summary: 上传成功
+                  summary: 上传Logo成功
                   value:
-                    code: 5030
+                    code: 4007
+                    message: "Logo上传成功"
                     data:
                       url: "/uploads/shop/logo_1.jpg"
                 failure:
-                  summary: 上传失败
+                  summary: 上传Logo失败
                   value:
-                    code: 5130
-                    data: null
+                    code: 4113
+                    message: "Logo上传失败"
+                file_type_error:
+                  summary: 文件类型错误
+                  value:
+                    code: 4114
+                    message: "不支持的文件类型"
+                file_size_error:
+                  summary: 文件过大
+                  value:
+                    code: 4115
+                    message: "文件大小超限"
 
   /shop/{shopId}/banners:
     get:
@@ -3097,14 +3163,22 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BannerListResponse'
-              example:
-                code: 200
-                data:
-                  - id: "1"
-                    imageUrl: "/images/banner1.jpg"
-                    title: "新品上市"
-                    linkUrl: "/tea/1"
-                    sortOrder: 1
+              examples:
+                success:
+                  summary: 获取Banner列表成功
+                  value:
+                    code: 200
+                    data:
+                      - id: "1"
+                        imageUrl: "/images/banner1.jpg"
+                        title: "新品上市"
+                        linkUrl: "/tea/1"
+                        sortOrder: 1
+                failure:
+                  summary: 获取Banner列表失败
+                  value:
+                    code: 4116
+                    message: "加载Banner列表失败"
     post:
       operationId: uploadShopBanner
       tags:
@@ -3145,15 +3219,26 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 上传成功
+                  summary: 上传Banner成功
                   value:
-                    code: 5010
+                    code: 4008
+                    message: "Banner添加成功"
                     data: null
                 failure:
-                  summary: 上传失败
+                  summary: 上传Banner失败
                   value:
-                    code: 5110
-                    data: null
+                    code: 4117
+                    message: "保存失败"
+                file_type_error:
+                  summary: 文件类型错误
+                  value:
+                    code: 4118
+                    message: "不支持的文件类型"
+                file_size_error:
+                  summary: 文件过大
+                  value:
+                    code: 4119
+                    message: "文件大小超限"
 
   /shop/banners/{bannerId}:
     put:
@@ -3192,15 +3277,16 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 更新成功
+                  summary: 更新Banner成功
                   value:
-                    code: 5011
+                    code: 4009
+                    message: "Banner更新成功"
                     data: null
                 failure:
-                  summary: 更新失败
+                  summary: 更新Banner失败
                   value:
-                    code: 5111
-                    data: null
+                    code: 4120
+                    message: "保存失败"
     delete:
       operationId: deleteShopBanner
       tags:
@@ -3224,15 +3310,16 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 删除成功
+                  summary: 删除Banner成功
                   value:
-                    code: 5012
+                    code: 4010
+                    message: "删除成功"
                     data: null
                 failure:
-                  summary: 删除失败
+                  summary: 删除Banner失败
                   value:
-                    code: 5112
-                    data: null
+                    code: 4121
+                    message: "删除失败"
 
   /shop/banners/order:
     put:
@@ -3268,15 +3355,16 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 更新成功
+                  summary: 更新Banner排序成功
                   value:
-                    code: 5013
+                    code: 4011
+                    message: "排序更新成功"
                     data: null
                 failure:
-                  summary: 更新失败
+                  summary: 更新Banner排序失败
                   value:
-                    code: 5113
-                    data: null
+                    code: 4122
+                    message: "排序更新失败"
 
   /shop/{shopId}/announcements:
     get:
@@ -3298,14 +3386,22 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AnnouncementListResponse'
-              example:
-                code: 200
-                data:
-                  - id: "1"
-                    title: "春茶上市"
-                    content: "2025年春茶已上市"
-                    isTop: true
-                    createTime: "2025-01-01T12:00:00Z"
+              examples:
+                success:
+                  summary: 获取公告列表成功
+                  value:
+                    code: 200
+                    data:
+                      - id: "1"
+                        title: "春茶上市"
+                        content: "2025年春茶已上市"
+                        isTop: true
+                        createTime: "2025-01-01T12:00:00Z"
+                failure:
+                  summary: 获取公告列表失败
+                  value:
+                    code: 4123
+                    message: "加载公告列表失败"
 
     post:
       operationId: createShopAnnouncement
@@ -3340,15 +3436,16 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 创建成功
+                  summary: 创建公告成功
                   value:
-                    code: 5020
+                    code: 4012
+                    message: "公告添加成功"
                     data: null
                 failure:
-                  summary: 创建失败
+                  summary: 创建公告失败
                   value:
-                    code: 5120
-                    data: null
+                    code: 4124
+                    message: "保存失败"
 
   /shop/announcements/{announcementId}:
     put:
@@ -3378,9 +3475,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 5021
-                data: null
+              examples:
+                success:
+                  summary: 更新公告成功
+                  value:
+                    code: 4013
+                    message: "公告更新成功"
+                    data: null
+                failure:
+                  summary: 更新公告失败
+                  value:
+                    code: 4125
+                    message: "保存失败"
 
     delete:
       operationId: deleteShopAnnouncement
@@ -3403,9 +3509,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 5022
-                data: null
+              examples:
+                success:
+                  summary: 删除公告成功
+                  value:
+                    code: 4014
+                    message: "删除成功"
+                    data: null
+                failure:
+                  summary: 删除公告失败
+                  value:
+                    code: 4126
+                    message: "删除失败"
 
   /shop/{shopId}/follow:
     post:
@@ -3431,15 +3546,16 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 关注成功
+                  summary: 关注店铺成功
                   value:
-                    code: 5000
+                    code: 4015
+                    message: "已关注店铺"
                     data: null
                 failure:
-                  summary: 关注失败
+                  summary: 关注店铺失败
                   value:
-                    code: 5100
-                    data: null
+                    code: 4127
+                    message: "操作失败"
     delete:
       operationId: unfollowShop
       tags:
@@ -3463,15 +3579,16 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 取消成功
+                  summary: 取消关注成功
                   value:
-                    code: 5001
+                    code: 4016
+                    message: "已取消关注"
                     data: null
                 failure:
-                  summary: 取消失败
+                  summary: 取消关注失败
                   value:
-                    code: 5101
-                    data: null
+                    code: 4128
+                    message: "操作失败"
 
   /shop/{shopId}/follow-status:
     get:
