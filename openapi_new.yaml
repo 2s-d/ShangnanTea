@@ -3660,20 +3660,22 @@ paths:
                   summary: 获取店铺评价成功
                   value:
                     code: 200
+                    message: 操作成功
                     data:
                       list:
                         - id: 1
                           userId: "cy100002"
                           username: "茶友"
+                          rating: 5
+                          content: "店铺服务很好"
+                          createTime: "2025-01-01T12:00:00Z"
+                      total: 50
                 failure:
                   summary: 获取店铺评价失败
                   value:
                     code: 4130
-                    message: "加载评价失败"
-                      rating: 5
-                      content: "店铺服务很好"
-                      createTime: "2025-01-01T12:00:00Z"
-                  total: 50
+                    message: 加载评价失败
+                    data: null
 
     post:
       operationId: submitShopReview
