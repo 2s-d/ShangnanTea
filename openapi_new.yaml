@@ -820,9 +820,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 5001
-                data: null
+              examples:
+                success:
+                  summary: 已取消关注
+                  value:
+                    code: 2013
+                    data: null
+                failure:
+                  summary: 操作失败
+                  value:
+                    code: 2124
+                    data: null
 
   /user/favorites:
     get:
@@ -847,15 +855,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FavoriteListResponse'
-              example:
-                code: 200
-                data:
-                  - id: 1
-                    targetId: "1"
-                    targetType: "tea"
-                    targetName: "商南绿茶"
-                    targetImage: "/images/tea1.jpg"
-                    createTime: "2025-01-01T12:00:00Z"
+              examples:
+                success:
+                  summary: 获取收藏列表成功
+                  value:
+                    code: 200
+                    data:
+                      - id: 1
+                        targetId: "1"
+                        targetType: "tea"
+                        targetName: "商南绿茶"
+                        targetImage: "/images/tea1.jpg"
+                        createTime: "2025-01-01T12:00:00Z"
+                failure:
+                  summary: 加载失败
+                  value:
+                    code: 2125
+                    data: null
     post:
       operationId: addFavorite
       tags:
@@ -882,14 +898,14 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 收藏成功
+                  summary: 已收藏
                   value:
-                    code: 3010
+                    code: 2014
                     data: null
                 failure:
-                  summary: 收藏失败
+                  summary: 操作失败
                   value:
-                    code: 3110
+                    code: 2126
                     data: null
 
   /user/favorites/{id}:
@@ -914,9 +930,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 3011
-                data: null
+              examples:
+                success:
+                  summary: 已取消收藏
+                  value:
+                    code: 2015
+                    data: null
+                failure:
+                  summary: 操作失败
+                  value:
+                    code: 2127
+                    data: null
 
   /user/likes:
     post:
@@ -947,12 +971,12 @@ paths:
                 success:
                   summary: 点赞成功
                   value:
-                    code: 6010
+                    code: 2016
                     data: null
                 failure:
                   summary: 点赞失败
                   value:
-                    code: 6110
+                    code: 2128
                     data: null
 
   /user/likes/{id}:
@@ -977,9 +1001,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 6011
-                data: null
+              examples:
+                success:
+                  summary: 已取消点赞
+                  value:
+                    code: 2017
+                    data: null
+                failure:
+                  summary: 取消点赞失败
+                  value:
+                    code: 2129
+                    data: null
 
   /user/preferences:
     get:
@@ -997,12 +1029,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PreferencesResponse'
-              example:
-                code: 200
-                data:
-                  theme: "light"
-                  displayMode: "grid"
-                  language: "zh-CN"
+              examples:
+                success:
+                  summary: 获取用户偏好设置成功
+                  value:
+                    code: 200
+                    data:
+                      theme: "light"
+                      displayMode: "grid"
+                      language: "zh-CN"
+                failure:
+                  summary: 加载失败
+                  value:
+                    code: 2130
+                    data: null
     put:
       operationId: updatePreferences
       tags:
@@ -1029,14 +1069,14 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 更新成功
+                  summary: 偏好设置更新成功
                   value:
-                    code: 2013
+                    code: 2018
                     data: null
                 failure:
-                  summary: 更新失败
+                  summary: 偏好设置更新失败
                   value:
-                    code: 2114
+                    code: 2131
                     data: null
 
   /user/admin/users:
@@ -1083,25 +1123,38 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserListResponse'
-              example:
-                code: 200
-                data:
-                  list:
-                    - id: "cy100001"
-                      username: "admin"
-                      nickname: "管理员"
-                      role: 1
-                      status: 1
-                      createTime: "2024-01-01T00:00:00Z"
-                    - id: "cy100002"
-                      username: "user"
-                      nickname: "普通用户"
-                      role: 2
-                      status: 1
-                      createTime: "2024-01-02T00:00:00Z"
-                  total: 100
-                  page: 1
-                  pageSize: 10
+              examples:
+                success:
+                  summary: 获取用户列表成功
+                  value:
+                    code: 200
+                    data:
+                      list:
+                        - id: "cy100001"
+                          username: "admin"
+                          nickname: "管理员"
+                          role: 1
+                          status: 1
+                          createTime: "2024-01-01T00:00:00Z"
+                        - id: "cy100002"
+                          username: "user"
+                          nickname: "普通用户"
+                          role: 2
+                          status: 1
+                          createTime: "2024-01-02T00:00:00Z"
+                      total: 100
+                      page: 1
+                      pageSize: 10
+                failure:
+                  summary: 获取用户列表失败
+                  value:
+                    code: 2132
+                    message: "获取用户列表失败"
+                forbidden:
+                  summary: 权限不足
+                  value:
+                    code: 2133
+                    message: "您没有权限执行此操作"
     post:
       operationId: adminCreateUser
       tags:
@@ -1128,9 +1181,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 2023
-                data: null
+              examples:
+                success:
+                  summary: 创建管理员成功
+                  value:
+                    code: 2019
+                    message: "管理员已添加"
+                    data: null
+                failure:
+                  summary: 创建管理员失败
+                  value:
+                    code: 2134
+                    message: "提交失败"
+                forbidden:
+                  summary: 权限不足
+                  value:
+                    code: 2135
+                    message: "您没有权限执行此操作"
 
   /user/admin/users/{userId}:
     put:
@@ -1164,9 +1231,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 2022
-                data: null
+              examples:
+                success:
+                  summary: 更新用户成功
+                  value:
+                    code: 2020
+                    message: "用户已更新"
+                    data: null
+                failure:
+                  summary: 更新用户失败
+                  value:
+                    code: 2136
+                    message: "提交失败"
+                forbidden:
+                  summary: 权限不足
+                  value:
+                    code: 2137
+                    message: "您没有权限执行此操作"
     delete:
       operationId: adminDeleteUser
       tags:
@@ -1188,9 +1269,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 2020
-                data: null
+              examples:
+                success:
+                  summary: 删除用户成功
+                  value:
+                    code: 2021
+                    message: "用户已删除"
+                    data: null
+                failure:
+                  summary: 删除用户失败
+                  value:
+                    code: 2138
+                    message: "删除用户失败"
+                forbidden:
+                  summary: 权限不足
+                  value:
+                    code: 2139
+                    message: "您没有权限执行此操作"
 
   /user/admin/users/{userId}/status:
     put:
@@ -1226,9 +1321,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 2021
-                data: null
+              examples:
+                success:
+                  summary: 切换用户状态成功
+                  value:
+                    code: 2022
+                    message: "用户状态已修改"
+                    data: null
+                failure:
+                  summary: 切换用户状态失败
+                  value:
+                    code: 2140
+                    message: "修改用户状态失败"
+                forbidden:
+                  summary: 权限不足
+                  value:
+                    code: 2141
+                    message: "您没有权限执行此操作"
 
   /user/admin/certifications:
     get:
