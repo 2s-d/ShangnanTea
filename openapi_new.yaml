@@ -665,17 +665,25 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CertificationResponse'
-              example:
-                code: 200
-                data:
-                  id: 1
-                  userId: "cy100002"
-                  shopName: "茶香阁"
-                  businessLicense: "/uploads/license.jpg"
-                  idCardFront: "/uploads/id_front.jpg"
-                  idCardBack: "/uploads/id_back.jpg"
-                  status: 0
-                  createTime: "2025-01-01T12:00:00Z"
+              examples:
+                success:
+                  summary: 获取认证状态成功
+                  value:
+                    code: 200
+                    data:
+                      id: 1
+                      userId: "cy100002"
+                      shopName: "茶香阁"
+                      businessLicense: "/uploads/license.jpg"
+                      idCardFront: "/uploads/id_front.jpg"
+                      idCardBack: "/uploads/id_back.jpg"
+                      status: 0
+                      createTime: "2025-01-01T12:00:00Z"
+                failure:
+                  summary: 加载失败
+                  value:
+                    code: 2121
+                    data: null
     post:
       operationId: submitShopCertification
       tags:
@@ -702,9 +710,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 1000
-                data: null
+              examples:
+                success:
+                  summary: 操作成功
+                  value:
+                    code: 2011
+                    data: null
+                failure:
+                  summary: 操作失败
+                  value:
+                    code: 2120
+                    data: null
 
   /user/follows:
     get:
@@ -729,15 +745,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FollowListResponse'
-              example:
-                code: 200
-                data:
-                  - id: 1
-                    targetId: "cy100003"
-                    targetType: "user"
-                    targetName: "茶友小王"
-                    targetAvatar: "/images/avatar1.png"
-                    createTime: "2025-01-01T12:00:00Z"
+              examples:
+                success:
+                  summary: 获取关注列表成功
+                  value:
+                    code: 200
+                    data:
+                      - id: 1
+                        targetId: "cy100003"
+                        targetType: "user"
+                        targetName: "茶友小王"
+                        targetAvatar: "/images/avatar1.png"
+                        createTime: "2025-01-01T12:00:00Z"
+                failure:
+                  summary: 加载失败
+                  value:
+                    code: 2122
+                    data: null
     post:
       operationId: addFollow
       tags:
@@ -762,9 +786,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 5000
-                data: null
+              examples:
+                success:
+                  summary: 已关注店铺
+                  value:
+                    code: 2012
+                    data: null
+                failure:
+                  summary: 操作失败
+                  value:
+                    code: 2123
+                    data: null
 
   /user/follows/{id}:
     delete:
