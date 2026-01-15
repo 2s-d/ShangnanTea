@@ -1149,10 +1149,12 @@ paths:
                   summary: 获取用户列表失败
                   value:
                     code: 2132
+                    data: null
                 forbidden:
                   summary: 权限不足
                   value:
                     code: 2133
+                    data: null
     post:
       operationId: adminCreateUser
       tags:
@@ -1189,10 +1191,12 @@ paths:
                   summary: 创建管理员失败
                   value:
                     code: 2134
+                    data: null
                 forbidden:
                   summary: 权限不足
                   value:
                     code: 2135
+                    data: null
 
   /user/admin/users/{userId}:
     put:
