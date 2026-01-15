@@ -366,15 +366,25 @@ paths:
                 $ref: '#/components/schemas/UploadResponse'
               examples:
                 success:
-                  summary: 上传成功
+                  summary: 头像更新成功
                   value:
-                    code: 2012
+                    code: 2004
                     data:
                       avatarUrl: "/uploads/avatar/user_cy100002.jpg"
-                failure:
-                  summary: 上传失败
+                failure_upload:
+                  summary: 头像更新失败
                   value:
-                    code: 2112
+                    code: 2109
+                    data: null
+                failure_file_type:
+                  summary: 不支持的文件类型
+                  value:
+                    code: 2110
+                    data: null
+                failure_file_size:
+                  summary: 文件大小超限
+                  value:
+                    code: 2111
                     data: null
 
   /user/password:
@@ -405,14 +415,19 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 修改成功
+                  summary: 密码修改成功，请使用新密码登录
                   value:
-                    code: 2011
+                    code: 2005
                     data: null
-                failure:
-                  summary: 修改失败
+                failure_wrong_password:
+                  summary: 密码修改失败，请检查原密码是否正确
                   value:
-                    code: 2111
+                    code: 2112
+                    data: null
+                failure_mismatch:
+                  summary: 两次输入的密码不一致
+                  value:
+                    code: 2113
                     data: null
 
   /user/password/reset:
@@ -442,14 +457,14 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 重置成功
+                  summary: 密码重置成功
                   value:
-                    code: 2004
+                    code: 2006
                     data: null
                 failure:
-                  summary: 重置失败
+                  summary: 密码重置失败
                   value:
-                    code: 2104
+                    code: 2114
                     data: null
 
   /user/addresses:
@@ -468,17 +483,25 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AddressListResponse'
-              example:
-                code: 200
-                data:
-                  - id: 1
-                    receiverName: "张三"
-                    receiverPhone: "13800138000"
-                    province: "陕西省"
-                    city: "商洛市"
-                    district: "商南县"
-                    detailAddress: "茶城路1号"
-                    isDefault: 1
+              examples:
+                success:
+                  summary: 获取地址列表成功
+                  value:
+                    code: 200
+                    data:
+                      - id: 1
+                        receiverName: "张三"
+                        receiverPhone: "13800138000"
+                        province: "陕西省"
+                        city: "商洛市"
+                        district: "商南县"
+                        detailAddress: "茶城路1号"
+                        isDefault: 1
+                failure:
+                  summary: 获取地址失败
+                  value:
+                    code: 2115
+                    data: null
     post:
       operationId: addAddress
       tags:
@@ -510,14 +533,14 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 添加成功
+                  summary: 地址添加成功
                   value:
-                    code: 4060
+                    code: 2007
                     data: null
                 failure:
-                  summary: 添加失败
+                  summary: 保存地址失败
                   value:
-                    code: 4161
+                    code: 2116
                     data: null
 
   /user/addresses/{id}:
@@ -548,9 +571,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 1004
-                data: null
+              examples:
+                success:
+                  summary: 更新成功
+                  value:
+                    code: 2008
+                    data: null
+                failure:
+                  summary: 保存地址失败
+                  value:
+                    code: 2117
+                    data: null
     delete:
       operationId: deleteAddress
       tags:
@@ -572,9 +603,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 1003
-                data: null
+              examples:
+                success:
+                  summary: 删除成功
+                  value:
+                    code: 2009
+                    data: null
+                failure:
+                  summary: 操作失败
+                  value:
+                    code: 2118
+                    data: null
 
   /user/addresses/{id}/default:
     put:
@@ -598,9 +637,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 1004
-                data: null
+              examples:
+                success:
+                  summary: 更新成功
+                  value:
+                    code: 2010
+                    data: null
+                failure:
+                  summary: 操作失败
+                  value:
+                    code: 2119
+                    data: null
 
   /user/shop-certification:
     get:
