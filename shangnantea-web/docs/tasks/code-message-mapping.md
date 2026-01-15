@@ -505,66 +505,66 @@
 | 35 | processCertification | PUT | /user/admin/certifications/{id} | 1000 | 1100, 2124 | 审核认证 |
 
 
-## 二、茶叶模块接口 (tea.js) - 共24个接口
+## 二、茶叶模块接口 (tea.js) - 共26个接口
 
 ### 2.1 茶叶基础操作 (6个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 33 | getTeas | GET | /tea/list | 3000 | 3100 | 获取茶叶列表 |
-| 34 | getTeaDetail | GET | /tea/{id} | 3001 | 3101 | 获取茶叶详情 |
-| 35 | addTea | POST | /tea/list | 3026 | 3125 | 添加茶叶 |
-| 36 | updateTea | PUT | /tea/{id} | 3025 | 3125 | 更新茶叶 |
-| 37 | deleteTea | DELETE | /tea/{id} | 3024 | 3124 | 删除茶叶 |
-| 38 | getRecommendTeas | GET | /tea/recommend | 200 | 3100 | 获取推荐茶叶 |
+| 36 | getTeas | GET | /tea/list | 3000 | 3100 | 获取茶叶列表 |
+| 37 | addTea | POST | /tea/list | 3026 | 3125 | 添加茶叶 |
+| 38 | getTeaDetail | GET | /tea/{id} | 3001 | 3101 | 获取茶叶详情 |
+| 39 | updateTea | PUT | /tea/{id} | 3025 | 3125 | 更新茶叶 |
+| 40 | deleteTea | DELETE | /tea/{id} | 3024 | 3124 | 删除茶叶 |
+| 61 | getRecommendTeas | GET | /tea/recommend | 200 | 3100 | 获取推荐茶叶 |
 
 ### 2.2 分类管理 (4个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 39 | getTeaCategories | GET | /tea/categories | 200 | 3130 | 获取分类列表 |
-| 40 | createCategory | POST | /tea/categories | 3030 | 3130 | 创建分类 |
-| 41 | updateCategory | PUT | /tea/categories/{id} | 3031 | 3130 | 更新分类 |
-| 42 | deleteCategory | DELETE | /tea/categories/{id} | 3032 | 3131 | 删除分类 |
+| 41 | getTeaCategories | GET | /tea/categories | 200 | 3130 | 获取分类列表 |
+| 42 | createCategory | POST | /tea/categories | 3030 | 3130 | 创建分类 |
+| 43 | updateCategory | PUT | /tea/categories/{id} | 3031 | 3130 | 更新分类 |
+| 44 | deleteCategory | DELETE | /tea/categories/{id} | 3032 | 3131 | 删除分类 |
 
 ### 2.3 评价系统 (5个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 43 | getTeaReviews | GET | /tea/{teaId}/reviews | 200 | 1102 | 获取评价列表 |
-| 44 | getReviewStats | GET | /tea/{teaId}/reviews/stats | 200 | 1102 | 获取评价统计 |
-| 45 | submitReview | POST | /tea/reviews | 4050 | 4150 | 提交评价 |
-| 46 | replyReview | POST | /tea/reviews/{id}/reply | 3013 | 3112 | 回复评价 |
-| 47 | likeReview | POST | /tea/reviews/{id}/like | 6010 | 3113 | 点赞评价 |
+| 45 | getTeaReviews | GET | /tea/{teaId}/reviews | 200 | 1102 | 获取评价列表 |
+| 46 | getReviewStats | GET | /tea/{teaId}/reviews/stats | 200 | 1102 | 获取评价统计 |
+| 47 | submitReview | POST | /tea/reviews | 4050 | 4150 | 提交评价 |
+| 48 | replyReview | POST | /tea/reviews/{reviewId}/reply | 3013 | 3112 | 回复评价 |
+| 49 | likeReview | POST | /tea/reviews/{reviewId}/like | 6010 | 3113 | 点赞评价 |
 
 ### 2.4 规格管理 (5个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 48 | getTeaSpecifications | GET | /tea/{teaId}/specifications | 200 | 1102 | 获取规格列表 |
-| 49 | addSpecification | POST | /tea/{teaId}/specifications | 1000 | 1100 | 添加规格 |
-| 50 | updateSpecification | PUT | /tea/specifications/{id} | 1004 | 1100 | 更新规格 |
-| 51 | deleteSpecification | DELETE | /tea/specifications/{id} | 1003 | 1100 | 删除规格 |
-| 52 | setDefaultSpecification | PUT | /tea/specifications/{id}/default | 1004 | 1100 | 设置默认规格 |
+| 50 | getTeaSpecifications | GET | /tea/{teaId}/specifications | 200 | 1102 | 获取规格列表 |
+| 51 | addSpecification | POST | /tea/{teaId}/specifications | 1000 | 1100 | 添加规格 |
+| 52 | updateSpecification | PUT | /tea/specifications/{specId} | 1004 | 1100 | 更新规格 |
+| 53 | deleteSpecification | DELETE | /tea/specifications/{specId} | 1003 | 1100 | 删除规格 |
+| 54 | setDefaultSpecification | PUT | /tea/specifications/{specId}/default | 1004 | 1100 | 设置默认规格 |
 
 ### 2.5 图片管理 (4个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 53 | uploadTeaImages | POST | /tea/{teaId}/images | 1001 | 1101, 1103, 1104 | 上传图片 |
-| 54 | deleteTeaImage | DELETE | /tea/images/{id} | 1003 | 1100 | 删除图片 |
-| 55 | updateImageOrder | PUT | /tea/images/order | 1004 | 1100 | 更新图片顺序 |
-| 56 | setMainImage | PUT | /tea/images/{id}/main | 1004 | 1100 | 设置主图 |
+| 55 | uploadTeaImages | POST | /tea/{teaId}/images | 1001 | 1101, 1103, 1104 | 上传图片 |
+| 56 | deleteTeaImage | DELETE | /tea/images/{imageId} | 1003 | 1100 | 删除图片 |
+| 57 | setMainImage | PUT | /tea/images/{imageId}/main | 1004 | 1100 | 设置主图 |
+| 58 | updateImageOrder | PUT | /tea/images/order | 1004 | 1100 | 更新图片顺序 |
 
 ### 2.6 状态管理 (2个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 57 | toggleTeaStatus | PUT | /tea/{teaId}/status | 3020, 3021 | 3120, 3121 | 上架/下架 |
-| 58 | batchToggleTeaStatus | PUT | /tea/batch-status | 3022, 3023 | 3122, 3123 | 批量上架/下架 |
+| 59 | toggleTeaStatus | PUT | /tea/{teaId}/status | 3020, 3021 | 3120, 3121 | 上架/下架 |
+| 60 | batchToggleTeaStatus | PUT | /tea/batch-status | 3022, 3023 | 3122, 3123 | 批量上架/下架 |
 
 
-## 三、店铺模块接口 (shop.js) - 共24个接口
+## 三、店铺模块接口 (shop.js) - 共26个接口
 
 ### 3.1 店铺基础操作 (6个)
 
