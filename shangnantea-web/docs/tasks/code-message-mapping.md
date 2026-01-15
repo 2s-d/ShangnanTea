@@ -1543,24 +1543,24 @@
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 97 | refundOrder | POST | /order/refund | 4030 | 4130, 4105, 4106 | 申请退款 |
-| 98 | processRefund | POST | /order/{id}/refund/process | 4031, 4032 | 4131, 4106 | 审批退款 |
-| 99 | getRefundDetail | GET | /order/{id}/refund | 200 | 4132, 4105 | 获取退款详情 |
+| 13 | refundOrder | POST | /order/refund | 5011 | 5128, 5129, 5130 | 申请退款 |
+| 14 | processRefund | POST | /order/{id}/refund/process | 5012, 5013 | 5131, 5132 | 审批退款 |
+| 15 | getRefundDetail | GET | /order/{id}/refund | 200 | 5133, 5134 | 获取退款详情 |
 
 ### 4.4 发货与物流 (3个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 100 | shipOrder | POST | /order/{id}/ship | 4004 | 4104, 4105, 4106 | 发货 |
-| 101 | batchShipOrders | POST | /order/batch-ship | 4006 | 4108, 4106 | 批量发货 |
-| 102 | getOrderLogistics | GET | /order/{id}/logistics | 200 | 4140, 4105 | 获取物流信息 |
+| 16 | shipOrder | POST | /order/{id}/ship | 5014 | 5135, 5136, 5137 | 发货 |
+| 17 | batchShipOrders | POST | /order/batch-ship | 5015 | 5138, 5139 | 批量发货 |
+| 18 | getOrderLogistics | GET | /order/{id}/logistics | 200 | 5140, 5141 | 获取物流信息 |
 
 ### 4.5 统计与导出 (2个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 103 | getOrderStatistics | GET | /order/statistics | 200 | 1102 | 获取订单统计 |
-| 104 | exportOrders | GET | /order/export | 200 | 1100 | 导出订单数据 |
+| 19 | getOrderStatistics | GET | /order/statistics | 200 | 5142 | 获取订单统计 |
+| 20 | exportOrders | GET | /order/export | 200 | 5143 | 导出订单数据 |
 
 
 ## 五、论坛模块接口 (forum.js) - 共36个接口
@@ -1569,72 +1569,72 @@
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 105 | getHomeData | GET | /forum/home | 200 | 6160 | 获取首页数据 |
-| 106 | updateHomeData | PUT | /forum/home | 6060 | 6163 | 更新首页数据 |
-| 107 | getBanners | GET | /forum/banners | 200 | 6161 | 获取Banner列表 |
-| 108 | uploadBanner | POST | /forum/banners | 5010 | 5111, 1103, 1104 | 上传Banner |
-| 109 | updateBanner | PUT | /forum/banners/{id} | 5011 | 5111 | 更新Banner |
-| 110 | deleteBanner | DELETE | /forum/banners/{id} | 5012 | 5112 | 删除Banner |
-| 111 | updateBannerOrder | PUT | /forum/banners/order | 5013 | 5113 | 更新Banner排序 |
+| 1 | getHomeData | GET | /forum/home | 200 | 6100 | 获取首页数据 |
+| 2 | updateHomeData | PUT | /forum/home | 6000 | 6101 | 更新首页数据 |
+| 3 | getBanners | GET | /forum/banners | 200 | 6102 | 获取Banner列表 |
+| 4 | uploadBanner | POST | /forum/banners | 6001 | 6103, 6104, 6105 | 上传Banner |
+| 5 | updateBanner | PUT | /forum/banners/{id} | 6002 | 6106 | 更新Banner |
+| 6 | deleteBanner | DELETE | /forum/banners/{id} | 6003 | 6107 | 删除Banner |
+| 7 | updateBannerOrder | PUT | /forum/banners/order | 6004 | 6108 | 更新Banner排序 |
 
 ### 5.2 文章管理 (5个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 112 | getArticles | GET | /forum/articles | 200 | 6153 | 获取文章列表 |
-| 113 | getArticleDetail | GET | /forum/articles/{id} | 200 | 6153 | 获取文章详情 |
-| 114 | createArticle | POST | /forum/articles | 6050 | 6150 | 创建文章 |
-| 115 | updateArticle | PUT | /forum/articles/{id} | 6051 | 6151 | 更新文章 |
-| 116 | deleteArticle | DELETE | /forum/articles/{id} | 6052 | 6152 | 删除文章 |
+| 8 | getArticles | GET | /forum/articles | 200 | 6109 | 获取文章列表 |
+| 9 | getArticleDetail | GET | /forum/articles/{id} | 200 | 6110 | 获取文章详情 |
+| 10 | createArticle | POST | /forum/articles | 6005 | 6111 | 创建文章 |
+| 11 | updateArticle | PUT | /forum/articles/{id} | 6006 | 6112 | 更新文章 |
+| 12 | deleteArticle | DELETE | /forum/articles/{id} | 6007 | 6113 | 删除文章 |
 
 ### 5.3 版块管理 (5个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 117 | getForumTopics | GET | /forum/topics | 200 | 6143 | 获取版块列表 |
-| 118 | getTopicDetail | GET | /forum/topics/{id} | 200 | 6143 | 获取版块详情 |
-| 119 | createTopic | POST | /forum/topics | 6040 | 6140 | 创建版块 |
-| 120 | updateTopic | PUT | /forum/topics/{id} | 6041 | 6141 | 更新版块 |
-| 121 | deleteTopic | DELETE | /forum/topics/{id} | 6042 | 6142 | 删除版块 |
+| 13 | getForumTopics | GET | /forum/topics | 200 | 6114 | 获取版块列表 |
+| 14 | getTopicDetail | GET | /forum/topics/{id} | 200 | 6115 | 获取版块详情 |
+| 15 | createTopic | POST | /forum/topics | 6008 | 6116 | 创建版块 |
+| 16 | updateTopic | PUT | /forum/topics/{id} | 6009 | 6117 | 更新版块 |
+| 17 | deleteTopic | DELETE | /forum/topics/{id} | 6010 | 6118 | 删除版块 |
 
 ### 5.4 帖子操作 (5个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 122 | getForumPosts | GET | /forum/posts | 200 | 6103 | 获取帖子列表 |
-| 123 | createPost | POST | /forum/posts | 6000 | 6100 | 创建帖子 |
-| 124 | getPendingPosts | GET | /forum/posts/pending | 200 | 6136 | 获取待审核帖子 |
-| 125 | getPostDetail | GET | /forum/posts/{id} | 200 | 6104 | 获取帖子详情 |
-| 126 | updatePost | PUT | /forum/posts/{id} | 6001 | 6101 | 更新帖子 |
-| 127 | deletePost | DELETE | /forum/posts/{id} | 6002 | 6102 | 删除帖子 |
+| 18 | getForumPosts | GET | /forum/posts | 200 | 6119 | 获取帖子列表 |
+| 19 | createPost | POST | /forum/posts | 6011 | 6120 | 创建帖子 |
+| 20 | getPendingPosts | GET | /forum/posts/pending | 200 | 6121 | 获取待审核帖子 |
+| 21 | getPostDetail | GET | /forum/posts/{id} | 200 | 6122 | 获取帖子详情 |
+| 22 | updatePost | PUT | /forum/posts/{id} | 6012 | 6123 | 更新帖子 |
+| 23 | deletePost | DELETE | /forum/posts/{id} | 6013 | 6124 | 删除帖子 |
 
 ### 5.5 帖子互动 (4个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 128 | likePost | POST | /forum/posts/{id}/like | 6010 | 6110 | 点赞帖子 |
-| 129 | unlikePost | DELETE | /forum/posts/{id}/like | 6011 | 6111 | 取消点赞 |
-| 130 | favoritePost | POST | /forum/posts/{id}/favorite | 6012 | 6112 | 收藏帖子 |
-| 131 | unfavoritePost | DELETE | /forum/posts/{id}/favorite | 6013 | 6113 | 取消收藏 |
+| 24 | likePost | POST | /forum/posts/{id}/like | 6014 | 6125 | 点赞帖子 |
+| 25 | unlikePost | DELETE | /forum/posts/{id}/like | 6015 | 6126 | 取消点赞 |
+| 26 | favoritePost | POST | /forum/posts/{id}/favorite | 6016 | 6127 | 收藏帖子 |
+| 27 | unfavoritePost | DELETE | /forum/posts/{id}/favorite | 6017 | 6128 | 取消收藏 |
 
 ### 5.6 回复管理 (5个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 132 | getPostReplies | GET | /forum/posts/{id}/replies | 200 | 6123 | 获取回复列表 |
-| 133 | createReply | POST | /forum/posts/{id}/replies | 6022 | 6122 | 创建回复 |
-| 134 | deleteReply | DELETE | /forum/replies/{id} | 6021 | 6121 | 删除回复 |
-| 135 | likeReply | POST | /forum/replies/{id}/like | 6010 | 6110 | 点赞回复 |
-| 136 | unlikeReply | DELETE | /forum/replies/{id}/like | 6011 | 6111 | 取消点赞回复 |
+| 28 | getPostReplies | GET | /forum/posts/{id}/replies | 200 | 6129 | 获取回复列表 |
+| 29 | createReply | POST | /forum/posts/{id}/replies | 6018 | 6130 | 创建回复 |
+| 30 | deleteReply | DELETE | /forum/replies/{id} | 6019 | 6131 | 删除回复 |
+| 31 | likeReply | POST | /forum/replies/{id}/like | 6020 | 6132 | 点赞回复 |
+| 32 | unlikeReply | DELETE | /forum/replies/{id}/like | 6021 | 6133 | 取消点赞回复 |
 
 ### 5.7 内容审核 (4个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 137 | approvePost | POST | /forum/posts/{id}/approve | 6034 | 6134 | 审核通过 |
-| 138 | rejectPost | POST | /forum/posts/{id}/reject | 6035 | 6135 | 审核拒绝 |
-| 139 | togglePostSticky | PUT | /forum/posts/{id}/sticky | 6030, 6031 | 6130, 6131 | 置顶/取消置顶 |
-| 140 | togglePostEssence | PUT | /forum/posts/{id}/essence | 6032, 6033 | 6132, 6133 | 加精/取消加精 |
+| 33 | approvePost | POST | /forum/posts/{id}/approve | 6022 | 6134 | 审核通过 |
+| 34 | rejectPost | POST | /forum/posts/{id}/reject | 6023 | 6135 | 审核拒绝 |
+| 35 | togglePostSticky | PUT | /forum/posts/{id}/sticky | 6024, 6025 | 6136, 6137 | 置顶/取消置顶 |
+| 36 | togglePostEssence | PUT | /forum/posts/{id}/essence | 6026, 6027 | 6138, 6139 | 加精/取消加精 |
 
 
 ## 六、消息模块接口 (message.js) - 共22个接口
@@ -1643,12 +1643,12 @@
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 141 | getMessages | GET | /message/list | 200 | 7101 | 获取消息列表 |
-| 142 | getMessageDetail | GET | /message/{id} | 200 | 7101 | 获取消息详情 |
-| 143 | sendMessage | POST | /message/send | 7000 | 7100 | 发送消息 |
-| 144 | markAsRead | POST | /message/read | 7010 | 7110 | 标记已读 |
-| 145 | deleteMessages | POST | /message/delete | 7012 | 1100 | 删除消息 |
-| 146 | getUnreadCount | GET | /message/unread-count | 200 | 7101 | 获取未读数量 |
+| 1 | getMessages | GET | /message/list | 200 | 7100 | 获取消息列表 |
+| 2 | getMessageDetail | GET | /message/{id} | 200 | 7101 | 获取消息详情 |
+| 3 | sendMessage | POST | /message/send | 7000 | 7102 | 发送消息 |
+| 4 | markAsRead | POST | /message/read | 7001 | 7103 | 标记已读 |
+| 5 | deleteMessages | POST | /message/delete | 7002 | 7104 | 删除消息 |
+| 6 | getUnreadCount | GET | /message/unread-count | 200 | 7105 | 获取未读数量 |
 
 ### 6.2 通知管理 (5个)
 
