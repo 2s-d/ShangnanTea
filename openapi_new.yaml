@@ -7159,17 +7159,27 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 200
-                data:
-                  list:
-                    - id: 1
-                      type: "system"
-                      title: "系统通知"
-                      content: "欢迎使用商南茶城"
-                      isRead: false
-                      createTime: "2025-01-01T12:00:00Z"
-                  total: 20
+              examples:
+                success:
+                  summary: 获取通知列表成功
+                  value:
+                    code: 200
+                    message: 操作成功
+                    data:
+                      list:
+                        - id: 1
+                          type: "system"
+                          title: "系统通知"
+                          content: "欢迎使用商南茶城"
+                          isRead: false
+                          createTime: "2025-01-01T12:00:00Z"
+                      total: 20
+                failure:
+                  summary: 获取通知列表失败
+                  value:
+                    code: 7100
+                    message: 加载失败
+                    data: null
 
   /message/notifications/{id}:
     get:
@@ -7193,15 +7203,25 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 200
-                data:
-                  id: 1
-                  type: "system"
-                  title: "系统通知"
-                  content: "欢迎使用商南茶城"
-                  isRead: true
-                  createTime: "2025-01-01T12:00:00Z"
+              examples:
+                success:
+                  summary: 获取通知详情成功
+                  value:
+                    code: 200
+                    message: 操作成功
+                    data:
+                      id: 1
+                      type: "system"
+                      title: "系统通知"
+                      content: "欢迎使用商南茶城"
+                      isRead: true
+                      createTime: "2025-01-01T12:00:00Z"
+                failure:
+                  summary: 获取通知详情失败
+                  value:
+                    code: 7101
+                    message: 加载失败
+                    data: null
 
     delete:
       operationId: deleteNotification
@@ -7224,9 +7244,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 7012
-                data: null
+              examples:
+                success:
+                  summary: 删除通知成功
+                  value:
+                    code: 7003
+                    message: 通知已删除
+                    data: null
+                failure:
+                  summary: 删除通知失败
+                  value:
+                    code: 7107
+                    message: 删除失败
+                    data: null
 
   /message/notifications/batch-read:
     put:
@@ -7253,9 +7283,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 7011
-                data: null
+              examples:
+                success:
+                  summary: 批量标记通知为已读成功
+                  value:
+                    code: 7004
+                    message: 已标记为已读
+                    data: null
+                failure:
+                  summary: 批量标记通知为已读失败
+                  value:
+                    code: 7108
+                    message: 标记失败
+                    data: null
 
   /message/notifications/batch:
     delete:
@@ -7282,9 +7322,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 7013
-                data: null
+              examples:
+                success:
+                  summary: 批量删除通知成功
+                  value:
+                    code: 7005
+                    message: 通知已删除
+                    data: null
+                failure:
+                  summary: 批量删除通知失败
+                  value:
+                    code: 7109
+                    message: 删除失败
+                    data: null
 
   # ==================== 公共模块 ====================
   /upload:
@@ -7319,11 +7369,33 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 1001
-                data:
-                  url: "/uploads/common/file_123.jpg"
-                  filename: "file_123.jpg"
+              examples:
+                success:
+                  summary: 上传文件成功
+                  value:
+                    code: 1000
+                    message: 上传成功
+                    data:
+                      url: "/uploads/common/file_123.jpg"
+                      filename: "file_123.jpg"
+                failure1:
+                  summary: 上传文件失败
+                  value:
+                    code: 1100
+                    message: 上传失败
+                    data: null
+                failure2:
+                  summary: 不支持的文件类型
+                  value:
+                    code: 1101
+                    message: 不支持的文件类型
+                    data: null
+                failure3:
+                  summary: 文件大小超限
+                  value:
+                    code: 1102
+                    message: 文件大小超限
+                    data: null
 
   /upload/image:
     post:
@@ -7357,11 +7429,33 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 1001
-                data:
-                  url: "/uploads/images/img_123.jpg"
-                  thumbnailUrl: "/uploads/images/thumb_img_123.jpg"
+              examples:
+                success:
+                  summary: 上传图片成功
+                  value:
+                    code: 1001
+                    message: 上传成功
+                    data:
+                      url: "/uploads/images/img_123.jpg"
+                      thumbnailUrl: "/uploads/images/thumb_img_123.jpg"
+                failure1:
+                  summary: 上传图片失败
+                  value:
+                    code: 1103
+                    message: 上传失败
+                    data: null
+                failure2:
+                  summary: 不支持的文件类型
+                  value:
+                    code: 1104
+                    message: 不支持的文件类型
+                    data: null
+                failure3:
+                  summary: 文件大小超限
+                  value:
+                    code: 1105
+                    message: 文件大小超限
+                    data: null
 
 
 components:
