@@ -348,7 +348,11 @@ export default {
             resetForm()
           }
         } catch (error) {
-          console.error('提交认证申请失败:', error)
+          // 捕获意外的运行时错误（非API业务错误）
+          // API业务失败已通过 showByCode 显示，网络错误已在响应拦截器显示
+          if (process.env.NODE_ENV === 'development') {
+            console.error('[开发调试] 提交认证申请时发生意外错误：', error)
+          }
         } finally {
           submitting.value = false
         }
