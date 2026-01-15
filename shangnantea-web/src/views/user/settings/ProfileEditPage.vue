@@ -231,9 +231,9 @@ export default {
         // 但保留 catch 块用于：
         // - 确保 submitting 状态被重置（在 finally 中）
         // - 开发环境记录意外错误用于调试
-        if (process.env.NODE_ENV === 'development') {
+        
           console.error('[开发调试] 保存偏好设置时发生意外错误：', e)
-        }
+        
       } finally {
         submitting.value = false
       }
