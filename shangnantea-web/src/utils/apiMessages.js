@@ -37,10 +37,11 @@ import { apiMessage } from './messageManager'
 // ⚠️ 必须与 docs/code-message-mapping.md 中的 [静默] 标注完全一致
 const SILENT_CODES = [
   200,  // HTTP成功 - 静默
-  2013, // 接口20: removeFollow - 已取消关注
-  2015, // 接口23: removeFavorite - 已取消收藏
-  2017, // 接口25: removeLike - 已取消点赞
-  3000  // 茶叶模块-接口1: getTeas - 茶叶列表加载成功
+  2013, // 用户模块-接口20: removeFollow - 已取消关注
+  2015, // 用户模块-接口23: removeFavorite - 已取消收藏
+  2017, // 用户模块-接口25: removeLike - 已取消点赞
+  3000, // 茶叶模块-接口1: getTeas - 茶叶列表加载成功
+  4016  // 店铺模块-接口23: unfollowShop - 已取消关注
 ]
 
 // 状态码消息映射表
@@ -299,6 +300,109 @@ export const CODE_MAP = {
   3021: '批量下架成功',
   3128: '批量上架失败',
   3129: '批量下架失败',
+  
+  // ========== 店铺模块 (4xxx) ==========
+  // 接口1: getShops - /shop/list
+  4100: '加载店铺数据失败',
+  
+  // 接口2: createShop - /shop/list
+  4000: '操作成功',
+  4101: '操作失败',
+  
+  // 接口3: getShopDetail - /shop/{id}
+  4102: '加载店铺信息失败',
+  4103: '店铺信息不存在',
+  
+  // 接口4: updateShop - /shop/{id}
+  4001: '更新成功',
+  4104: '操作失败',
+  
+  // 接口5: getMyShop - /shop/my
+  4105: '加载店铺信息失败',
+  
+  // 接口6: getShopStatistics - /shop/{shopId}/statistics
+  4106: '加载失败',
+  
+  // 接口7: getShopTeas - /shop/{shopId}/teas
+  4107: '加载店铺数据失败',
+  
+  // 接口8: addShopTea - /shop/{shopId}/teas
+  4002: '茶叶添加成功',
+  4108: '操作失败',
+  
+  // 接口9: updateShopTea - /shop/teas/{teaId}
+  4003: '茶叶更新成功',
+  4109: '操作失败',
+  
+  // 接口10: deleteShopTea - /shop/teas/{teaId}
+  4004: '删除成功',
+  4110: '删除失败',
+  
+  // 接口11: toggleShopTeaStatus - /shop/teas/{teaId}/status
+  4005: '上架成功',
+  4006: '下架成功',
+  4111: '上架失败',
+  4112: '下架失败',
+  
+  // 接口12: uploadShopLogo - /shop/{shopId}/logo
+  4007: 'Logo上传成功',
+  4113: 'Logo上传失败',
+  4114: '不支持的文件类型',
+  4115: '文件大小超限',
+  
+  // 接口13: getShopBanners - /shop/{shopId}/banners
+  4116: '加载Banner列表失败',
+  
+  // 接口14: uploadBanner - /shop/{shopId}/banners
+  4008: 'Banner添加成功',
+  4117: '保存失败',
+  4118: '不支持的文件类型',
+  4119: '文件大小超限',
+  
+  // 接口15: updateBanner - /shop/banners/{bannerId}
+  4009: 'Banner更新成功',
+  4120: '保存失败',
+  
+  // 接口16: deleteBanner - /shop/banners/{bannerId}
+  4010: '删除成功',
+  4121: '删除失败',
+  
+  // 接口17: updateBannerOrder - /shop/banners/order
+  4011: '排序更新成功',
+  4122: '排序更新失败',
+  
+  // 接口18: getShopAnnouncements - /shop/{shopId}/announcements
+  4123: '加载公告列表失败',
+  
+  // 接口19: createAnnouncement - /shop/{shopId}/announcements
+  4012: '公告添加成功',
+  4124: '保存失败',
+  
+  // 接口20: updateAnnouncement - /shop/announcements/{announcementId}
+  4013: '公告更新成功',
+  4125: '保存失败',
+  
+  // 接口21: deleteAnnouncement - /shop/announcements/{announcementId}
+  4014: '删除成功',
+  4126: '删除失败',
+  
+  // 接口22: followShop - /shop/{shopId}/follow
+  4015: '已关注店铺',
+  4127: '操作失败',
+  
+  // 接口23: unfollowShop - /shop/{shopId}/follow
+  4016: '已取消关注',
+  4128: '操作失败',
+  
+  // 接口24: checkFollowStatus - /shop/{shopId}/follow-status
+  4129: '加载失败',
+  
+  // 接口25: getShopReviews - /shop/{shopId}/reviews
+  4130: '加载评价失败',
+  
+  // 接口26: submitShopReview - /shop/{shopId}/reviews
+  4017: '评价提交成功',
+  4131: '提交评价失败',
   
 }
 
