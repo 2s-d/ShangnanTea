@@ -254,11 +254,12 @@ export default {
         // 调用注册API
         const response = await store.dispatch('user/register', registerData)
         
+        // 显示API响应消息（成功或失败都通过状态码映射显示）
+        showByCode(response.code)
+        
+        // 只有成功时才跳转到登录页
         if (isSuccess(response.code)) {
-          showByCode(response.code)
           router.push('/login')
-        } else {
-          showByCode(response.code)
         }
       } catch (error) {
         console.error('注册失败:', error)

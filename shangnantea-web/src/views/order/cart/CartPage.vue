@@ -210,15 +210,19 @@ export default {
       try {
         const res = await store.dispatch('order/fetchCartItems')
         // res = {code, data}
-        if (res && isSuccess(res.code)) {
-          const items = res.data || []
-          cartItems.value = items.map((i) => ({
-            ...i,
-            selected: typeof i.selected === 'boolean' ? i.selected : true
-          }))
-          updateSelectAllStatus()
-        } else if (res) {
+        if (res) {
+          // 显示API响应消息（成功或失败都通过状态码映射显示）
           showByCode(res.code)
+          
+          // 只有成功时才处理数据
+          if (isSuccess(res.code)) {
+            const items = res.data || []
+            cartItems.value = items.map((i) => ({
+              ...i,
+              selected: typeof i.selected === 'boolean' ? i.selected : true
+            }))
+            updateSelectAllStatus()
+          }
         }
       } catch (error) {
         apiMessage.error(error?.message || '加载购物车失败')

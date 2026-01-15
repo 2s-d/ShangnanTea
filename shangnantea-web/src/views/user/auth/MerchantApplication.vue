@@ -317,13 +317,14 @@ export default {
         try {
           const response = await store.dispatch('user/submitShopCertification', applicationForm)
           
+          // 显示API响应消息（成功或失败都通过状态码映射显示）
+          showByCode(response.code)
+          
+          // 只有成功时才执行后续操作
           if (isSuccess(response.code)) {
-            showByCode(response.code)
             // 提交成功后刷新状态
             await fetchCertificationStatus()
             resetForm()
-          } else {
-            showByCode(response.code)
           }
         } catch (error) {
           console.error('提交认证申请失败:', error)

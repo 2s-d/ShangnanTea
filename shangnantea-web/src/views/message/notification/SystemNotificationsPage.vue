@@ -148,10 +148,12 @@ export default {
         type: typeFilter.value
       })
       
+      // 显示API响应消息（成功或失败都通过状态码映射显示）
+      showByCode(response.code)
+      
+      // 只有成功时才更新总数
       if (isSuccess(response.code)) {
         totalNotifications.value = response.data?.total || 0
-      } else {
-        showByCode(response.code)
       }
     }
     

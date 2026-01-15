@@ -256,10 +256,12 @@ export default {
         
         const response = await store.dispatch('user/getUserInfo')
         
+        // 显示API响应消息（成功或失败都通过状态码映射显示）
+        showByCode(response.code)
+        
+        // 只有成功时才初始化表单
         if (isSuccess(response.code)) {
           handleInitForm()
-        } else {
-          showByCode(response.code)
         }
       } catch (error) {
         // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)

@@ -211,11 +211,12 @@ export default {
     const handleDeleteAddress = async id => {
       const response = await store.dispatch('user/deleteAddress', id)
       
+      // 显示API响应消息（成功或失败都通过状态码映射显示）
+      showByCode(response.code)
+      
+      // 只有成功时才刷新列表
       if (isSuccess(response.code)) {
-        showByCode(response.code)
         handleFetchAddressList()
-      } else {
-        showByCode(response.code)
       }
     }
     
@@ -223,11 +224,12 @@ export default {
     const handleSetDefaultAddress = async id => {
       const response = await store.dispatch('user/setDefaultAddress', id)
       
+      // 显示API响应消息（成功或失败都通过状态码映射显示）
+      showByCode(response.code)
+      
+      // 只有成功时才刷新列表
       if (isSuccess(response.code)) {
-        showByCode(response.code)
         handleFetchAddressList()
-      } else {
-        showByCode(response.code)
       }
     }
     
