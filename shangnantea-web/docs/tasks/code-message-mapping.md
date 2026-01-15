@@ -432,7 +432,7 @@
 
 本章节列出所有API接口及其对应的状态码，方便后端开发时参考。
 
-## 一、用户模块接口 (user.js) - 共32个接口
+## 一、用户模块接口 (user.js) - 共35个接口
 
 ### 1.1 认证相关 (5个)
 
@@ -449,7 +449,7 @@
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
 | 6 | getUserInfo | GET | /user/{userId} | 200 | 2120 | 获取用户信息 |
-| 7 | updateUserInfo | PUT | /user/ | 2010 | 2110 | 更新用户信息 |
+| 7 | updateUserInfo | PUT | /user | 2010 | 2110 | 更新用户信息 |
 | 8 | uploadAvatar | POST | /user/avatar | 2012 | 2112, 1103, 1104 | 上传头像 |
 | 9 | changePassword | PUT | /user/password | 2011 | 2111, 2113 | 修改密码 |
 | 10 | resetPassword | POST | /user/password/reset | 2004 | 2104 | 密码重置 |
@@ -484,17 +484,25 @@
 | 24 | addLike | POST | /user/likes | 6010 | 6110 | 点赞 |
 | 25 | removeLike | DELETE | /user/likes/{id} | 6011 | 6111 | 取消点赞 |
 
-### 1.6 管理员用户管理 (7个)
+### 1.6 用户偏好设置 (2个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 26 | getAdminUserList | GET | /user/admin/users | 200 | 2120, 2124 | 获取用户列表 |
-| 27 | createAdmin | POST | /user/admin/users | 2023 | 2123, 2124 | 创建管理员 |
-| 28 | updateUser | PUT | /user/admin/users/{id} | 2022 | 2123, 2124 | 更新用户 |
-| 29 | deleteUser | DELETE | /user/admin/users/{id} | 2020 | 2121, 2124 | 删除用户 |
-| 30 | toggleUserStatus | PUT | /user/admin/users/{id}/status | 2021 | 2122, 2124 | 切换用户状态 |
-| 31 | getCertificationList | GET | /user/admin/certifications | 200 | 1102, 2124 | 获取认证列表 |
-| 32 | processCertification | PUT | /user/admin/certifications/{id} | 1000 | 1100, 2124 | 审核认证 |
+| 26 | getUserPreferences | GET | /user/preferences | 200 | 1102 | 获取用户偏好设置 |
+| 27 | updateUserPreferences | PUT | /user/preferences | 2013 | 2114 | 更新用户偏好设置 |
+
+### 1.7 管理员用户管理 (7个)
+
+| 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
+|------|----------|----------|------|--------|--------|------|
+| 28 | getAdminUserList | GET | /user/admin/users | 200 | 2120, 2124 | 获取用户列表 |
+| 29 | createAdmin | POST | /user/admin/users | 2023 | 2123, 2124 | 创建管理员 |
+| 30 | updateUser | PUT | /user/admin/users/{userId} | 2022 | 2123, 2124 | 更新用户 |
+| 31 | deleteUser | DELETE | /user/admin/users/{userId} | 2020 | 2121, 2124 | 删除用户 |
+| 32 | updateUserRole | PUT | /user/admin/users/{userId}/role | 1000 | 1100, 2124 | 更新用户角色（已废弃） |
+| 33 | toggleUserStatus | PUT | /user/admin/users/{userId}/status | 2021 | 2122, 2124 | 切换用户状态 |
+| 34 | getCertificationList | GET | /user/admin/certifications | 200 | 1102, 2124 | 获取认证列表 |
+| 35 | processCertification | PUT | /user/admin/certifications/{id} | 1000 | 1100, 2124 | 审核认证 |
 
 
 ## 二、茶叶模块接口 (tea.js) - 共24个接口
