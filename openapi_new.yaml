@@ -3612,10 +3612,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FollowStatusResponse'
-              example:
-                code: 200
-                data:
-                  isFollowed: true
+              examples:
+                success:
+                  summary: 获取关注状态成功
+                  value:
+                    code: 200
+                    data:
+                      isFollowed: true
+                failure:
+                  summary: 获取关注状态失败
+                  value:
+                    code: 4129
+                    message: "加载失败"
 
   /shop/{shopId}/reviews:
     get:
@@ -3647,13 +3655,21 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ReviewListResponse'
-              example:
-                code: 200
-                data:
-                  list:
-                    - id: 1
-                      userId: "cy100002"
-                      username: "茶友"
+              examples:
+                success:
+                  summary: 获取店铺评价成功
+                  value:
+                    code: 200
+                    data:
+                      list:
+                        - id: 1
+                          userId: "cy100002"
+                          username: "茶友"
+                failure:
+                  summary: 获取店铺评价失败
+                  value:
+                    code: 4130
+                    message: "加载评价失败"
                       rating: 5
                       content: "店铺服务很好"
                       createTime: "2025-01-01T12:00:00Z"
@@ -3701,9 +3717,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 5002
-                data: null
+              examples:
+                success:
+                  summary: 提交店铺评价成功
+                  value:
+                    code: 4017
+                    message: "评价提交成功"
+                    data: null
+                failure:
+                  summary: 提交店铺评价失败
+                  value:
+                    code: 4131
+                    message: "提交评价失败"
 
   # ==================== 订单模块 ====================
   /order/create:
