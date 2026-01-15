@@ -1372,16 +1372,29 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CertificationListResponse'
-              example:
-                code: 200
-                data:
-                  list:
-                    - id: 1
-                      userId: "cy100002"
-                      shopName: "茶香阁"
-                      status: 0
-                      createTime: "2025-01-01T12:00:00Z"
-                  total: 10
+              examples:
+                success:
+                  summary: 获取认证列表成功
+                  value:
+                    code: 200
+                    data:
+                      list:
+                        - id: 1
+                          userId: "cy100002"
+                          shopName: "茶香阁"
+                          status: 0
+                          createTime: "2025-01-01T12:00:00Z"
+                      total: 10
+                failure:
+                  summary: 获取认证列表失败
+                  value:
+                    code: 2142
+                    message: "加载失败"
+                forbidden:
+                  summary: 权限不足
+                  value:
+                    code: 2143
+                    message: "您没有权限执行此操作"
 
   /user/admin/certifications/{id}:
     put:
@@ -1422,15 +1435,21 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 审核成功
+                  summary: 审核认证成功
                   value:
-                    code: 1000
+                    code: 2023
+                    message: "操作成功"
                     data: null
                 failure:
-                  summary: 审核失败
+                  summary: 审核认证失败
                   value:
-                    code: 1100
-                    data: null
+                    code: 2144
+                    message: "操作失败"
+                forbidden:
+                  summary: 权限不足
+                  value:
+                    code: 2145
+                    message: "您没有权限执行此操作"
 
   # ==================== 茶叶模块 ====================
   /tea/list:
