@@ -1654,44 +1654,44 @@
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 147 | getNotifications | GET | /message/notifications | 200 | 7101 | 获取通知列表 |
-| 148 | getNotificationDetail | GET | /message/notifications/{id} | 200 | 7101 | 获取通知详情 |
-| 149 | deleteNotification | DELETE | /message/notifications/{id} | 7012 | 1100 | 删除通知 |
-| 150 | batchMarkAsRead | PUT | /message/notifications/batch-read | 7011 | 7110 | 批量标记已读 |
-| 151 | batchDeleteNotifications | DELETE | /message/notifications/batch | 7013 | 1100 | 批量删除通知 |
+| 7 | getNotifications | GET | /message/notifications | 200 | 7106 | 获取通知列表 |
+| 8 | getNotificationDetail | GET | /message/notifications/{id} | 200 | 7107 | 获取通知详情 |
+| 9 | deleteNotification | DELETE | /message/notifications/{id} | 7003 | 7108 | 删除通知 |
+| 10 | batchMarkAsRead | PUT | /message/notifications/batch-read | 7004 | 7109 | 批量标记已读 |
+| 11 | batchDeleteNotifications | DELETE | /message/notifications/batch | 7005 | 7110 | 批量删除通知 |
 
 ### 6.3 聊天会话 (5个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 152 | getChatSessions | GET | /message/list/sessions | 200 | 7101 | 获取会话列表 |
-| 153 | getChatHistory | GET | /message/list/history | 200 | 7101 | 获取聊天记录 |
-| 154 | createChatSession | POST | /message/sessions | 1000 | 1100 | 创建会话 |
-| 155 | pinChatSession | PUT | /message/sessions/{sessionId}/pin | 7014 | 1100 | 置顶会话 |
-| 156 | deleteChatSession | DELETE | /message/sessions/{sessionId} | 7001 | 1100 | 删除会话 |
+| 12 | getChatSessions | GET | /message/list/sessions | 200 | 7111 | 获取会话列表 |
+| 13 | getChatHistory | GET | /message/list/history | 200 | 7112 | 获取聊天记录 |
+| 14 | createChatSession | POST | /message/sessions | 7006 | 7113 | 创建会话 |
+| 15 | pinChatSession | PUT | /message/sessions/{sessionId}/pin | 7007 | 7114 | 置顶会话 |
+| 16 | deleteChatSession | DELETE | /message/sessions/{sessionId} | 7008 | 7115 | 删除会话 |
 
 ### 6.4 图片消息 (1个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 157 | sendImageMessage | POST | /message/messages/image | 7003 | 7103, 1103, 1104 | 发送图片消息 |
+| 17 | sendImageMessage | POST | /message/messages/image | 7009 | 7116, 7117, 7118 | 发送图片消息 |
 
 ### 6.5 用户主页 (5个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 158 | getUserProfile | GET | /message/user/{userId} | 200 | 7120, 7121 | 获取用户主页 |
-| 159 | getUserDynamic | GET | /message/user/{userId}/dynamic | 200 | 7120 | 获取用户动态 |
-| 160 | getUserStatistics | GET | /message/user/{userId}/statistics | 200 | 7120 | 获取用户统计 |
-| 161 | getUserPosts | GET | /message/user/posts | 200 | 1102 | 获取用户帖子 |
-| 162 | getUserReviews | GET | /message/user/reviews | 200 | 1102 | 获取用户评价 |
+| 18 | getUserProfile | GET | /message/user/{userId} | 200 | 7119, 7120 | 获取用户主页 |
+| 19 | getUserDynamic | GET | /message/user/{userId}/dynamic | 200 | 7121 | 获取用户动态 |
+| 20 | getUserStatistics | GET | /message/user/{userId}/statistics | 200 | 7122 | 获取用户统计 |
+| 21 | getUserPosts | GET | /message/user/posts | 200 | 7123 | 获取用户帖子 |
+| 22 | getUserReviews | GET | /message/user/reviews | 200 | 7124 | 获取用户评价 |
 
 ## 七、系统通用接口 (upload.js) - 共2个接口
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 163 | uploadFile | POST | /upload | 1001 | 1101, 1103, 1104 | 上传文件 |
-| 164 | uploadImage | POST | /upload/image | 1001 | 1101, 1103, 1104 | 上传图片 |
+| 1 | uploadFile | POST | /upload | 1000 | 1100, 1101, 1102 | 上传文件 |
+| 2 | uploadImage | POST | /upload/image | 1001 | 1103, 1104, 1105 | 上传图片 |
 
 ---
 
