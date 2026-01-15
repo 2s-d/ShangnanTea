@@ -5713,7 +5713,7 @@ paths:
                 $ref: '#/components/schemas/CommentListResponse'
               examples:
                 success:
-                  summary: 获取成功
+                  summary: 操作成功
                   value:
                     code: 200
                     message: 操作成功
@@ -5729,7 +5729,7 @@ paths:
                           createTime: "2025-01-15T11:00:00Z"
                       total: 20
                 failure:
-                  summary: 获取失败
+                  summary: 获取回复列表失败
                   value:
                     code: 6129
                     message: 获取回复列表失败
@@ -5773,13 +5773,13 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 发表成功
+                  summary: 回复发布成功
                   value:
                     code: 6018
                     message: 回复发布成功
                     data: null
                 failure:
-                  summary: 发表失败
+                  summary: 回复发布失败
                   value:
                     code: 6130
                     message: 回复发布失败
@@ -5809,13 +5809,13 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 删除成功
+                  summary: 评论已删除
                   value:
                     code: 6019
                     message: 评论已删除
                     data: null
                 failure:
-                  summary: 删除失败
+                  summary: 评论删除失败
                   value:
                     code: 6131
                     message: 评论删除失败
@@ -5879,13 +5879,13 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 取消成功
+                  summary: 已取消点赞
                   value:
                     code: 6021
                     message: 已取消点赞
                     data: null
                 failure:
-                  summary: 取消失败
+                  summary: 取消点赞失败
                   value:
                     code: 6133
                     message: 取消点赞失败
