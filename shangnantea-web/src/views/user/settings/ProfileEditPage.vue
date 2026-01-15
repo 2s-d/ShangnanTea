@@ -210,10 +210,22 @@ export default {
           }
         }
       } catch (e) {
-        // 捕获意外的运行时错误（非API错误）
-        // API错误已通过响应拦截器转换为 {code, data} 格式，不会进入catch
-        // 这里只记录意外错误，不显示误导性的"保存失败"消息
-        console.error('保存偏好设置时发生意外错误：', e)
+        // 捕获意外的运行时错误（非API业务错误）
+        // 
+        // 说明：
+        // 1. API业务失败：响应拦截器会返回 {code: 错误码, data: null}，不会抛出异常
+        //    业务失败消息已通过 showByCode(response.code) 显示，有对应的状态码映射
+        // 
+        // 2. 网络错误等：响应拦截器会显示错误消息并 reject，但 Vuex action 会捕获
+        //    如果 Vuex action 没有 catch，会抛出异常进入这里的 catch
+        // 
+        // 3. 真正的意外错误：如 DOM 操作失败、消息显示错误等
+        //    这些错误不应该显示给用户，因为不是业务逻辑问题
+        // 
+        // 因此，这里只记录日志用于开发调试，不显示给用户
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[开发调试] 保存偏好设置时发生意外错误：', e)
+        }
       } finally {
         submitting.value = false
       }
