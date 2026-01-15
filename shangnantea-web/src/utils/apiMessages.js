@@ -215,6 +215,91 @@ export const CODE_MAP = {
   3003: '删除成功',
   3104: '删除失败',
   
+  // 接口6: getRecommendTeas - /tea/recommend
+  3105: '加载茶叶数据失败',
+  
+  // 接口7: getTeaCategories - /tea/categories
+  3106: '操作失败',
+  
+  // 接口8: createCategory - /tea/categories
+  3004: '分类创建成功',
+  3107: '操作失败',
+  
+  // 接口9: updateCategory - /tea/categories/{id}
+  3005: '分类更新成功',
+  3108: '操作失败',
+  
+  // 接口10: deleteCategory - /tea/categories/{id}
+  3006: '分类删除成功',
+  3109: '删除分类失败',
+  
+  // 接口11: getTeaReviews - /tea/{teaId}/reviews
+  3110: '加载失败',
+  
+  // 接口12: getReviewStats - /tea/{teaId}/reviews/stats
+  3111: '加载失败',
+  
+  // 接口13: submitReview - /tea/reviews
+  3007: '评价提交成功，感谢您的反馈',
+  3112: '评价提交失败',
+  
+  // 接口14: replyReview - /tea/reviews/{reviewId}/reply
+  3008: '回复成功',
+  3113: '回复失败',
+  
+  // 接口15: likeReview - /tea/reviews/{reviewId}/like
+  3009: '点赞成功',
+  3114: '点赞失败',
+  
+  // 接口16: getTeaSpecifications - /tea/{teaId}/specifications
+  3115: '加载失败',
+  
+  // 接口17: addSpecification - /tea/{teaId}/specifications
+  3010: '操作成功',
+  3116: '操作失败',
+  
+  // 接口18: updateSpecification - /tea/specifications/{specId}
+  3011: '更新成功',
+  3117: '操作失败',
+  
+  // 接口19: deleteSpecification - /tea/specifications/{specId}
+  3012: '删除成功',
+  3118: '操作失败',
+  
+  // 接口20: setDefaultSpecification - /tea/specifications/{specId}/default
+  3013: '更新成功',
+  3119: '操作失败',
+  
+  // 接口21: uploadTeaImages - /tea/{teaId}/images
+  3014: '上传成功',
+  3120: '上传失败',
+  3121: '不支持的文件类型',
+  3122: '文件大小超限',
+  
+  // 接口22: deleteTeaImage - /tea/images/{imageId}
+  3015: '删除成功',
+  3123: '操作失败',
+  
+  // 接口23: setMainImage - /tea/images/{imageId}/main
+  3016: '更新成功',
+  3124: '操作失败',
+  
+  // 接口24: updateImageOrder - /tea/images/order
+  3017: '更新成功',
+  3125: '操作失败',
+  
+  // 接口25: toggleTeaStatus - /tea/{teaId}/status
+  3018: '上架成功',
+  3019: '下架成功',
+  3126: '上架失败',
+  3127: '下架失败',
+  
+  // 接口26: batchToggleTeaStatus - /tea/batch-status
+  3020: '批量上架成功',
+  3021: '批量下架成功',
+  3128: '批量上架失败',
+  3129: '批量下架失败',
+  
 }
 
 /**
