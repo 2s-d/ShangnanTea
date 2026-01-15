@@ -1240,10 +1240,12 @@ paths:
                   summary: 更新用户失败
                   value:
                     code: 2136
+                    data: null
                 forbidden:
                   summary: 权限不足
                   value:
                     code: 2137
+                    data: null
     delete:
       operationId: adminDeleteUser
       tags:
@@ -1275,6 +1277,7 @@ paths:
                   summary: 删除用户失败
                   value:
                     code: 2138
+                    data: null
                 forbidden:
                   summary: 权限不足
                   value:
