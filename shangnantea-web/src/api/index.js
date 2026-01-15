@@ -112,14 +112,6 @@ service.interceptors.request.use(
       config.headers['Authorization'] = `Bearer ${token}`
     }
     
-    // 记录完整请求URL（包括baseURL）
-    const fullUrl = (config.baseURL || '') + (config.url || '')
-    console.log(`[请求完整URL] ${config.method.toUpperCase()} ${fullUrl}`, {
-      baseURL: config.baseURL,
-      url: config.url,
-      fullUrl: fullUrl
-    })
-    
     // 记录API调用开始
     logApiCall(config, 'start')
     
