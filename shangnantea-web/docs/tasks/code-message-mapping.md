@@ -1499,20 +1499,20 @@
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 79 | getShopAnnouncements | GET | /shop/{shopId}/announcements | 200 | 5120 | 获取公告列表 |
-| 80 | createAnnouncement | POST | /shop/{shopId}/announcements | 5020 | 5121 | 创建公告 |
-| 81 | updateAnnouncement | PUT | /shop/announcements/{announcementId} | 5021 | 5121 | 更新公告 |
-| 82 | deleteAnnouncement | DELETE | /shop/announcements/{announcementId} | 5022 | 5122 | 删除公告 |
+| 18 | getShopAnnouncements | GET | /shop/{shopId}/announcements | 200 | 4123 | 获取公告列表 |
+| 19 | createAnnouncement | POST | /shop/{shopId}/announcements | 4012 | 4124 | 创建公告 |
+| 20 | updateAnnouncement | PUT | /shop/announcements/{announcementId} | 4013 | 4125 | 更新公告 |
+| 21 | deleteAnnouncement | DELETE | /shop/announcements/{announcementId} | 4014 | 4126 | 删除公告 |
 
 ### 3.6 店铺关注与评价 (5个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 83 | followShop | POST | /shop/{shopId}/follow | 5000 | 5102 | 关注店铺 |
-| 84 | unfollowShop | DELETE | /shop/{shopId}/follow | 5001 | 5102 | 取消关注 |
-| 85 | checkFollowStatus | GET | /shop/{shopId}/follow-status | 200 | 1102 | 获取关注状态 |
-| 86 | getShopReviews | GET | /shop/{shopId}/reviews | 200 | 5103 | 获取店铺评价 |
-| 87 | submitShopReview | POST | /shop/{shopId}/reviews | 5002 | 5104 | 提交店铺评价 |
+| 22 | followShop | POST | /shop/{shopId}/follow | 4015 | 4127 | 关注店铺 |
+| 23 | unfollowShop | DELETE | /shop/{shopId}/follow | 4016 | 4128 | 取消关注 |
+| 24 | checkFollowStatus | GET | /shop/{shopId}/follow-status | 200 | 4129 | 获取关注状态 |
+| 25 | getShopReviews | GET | /shop/{shopId}/reviews | 200 | 4130 | 获取店铺评价 |
+| 26 | submitShopReview | POST | /shop/{shopId}/reviews | 4017 | 4131 | 提交店铺评价 |
 
 
 ## 四、订单模块接口 (order.js) - 共20个接口
@@ -1521,23 +1521,23 @@
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 85 | getCartItems | GET | /order/cart | 200 | 4110 | 获取购物车 |
-| 86 | addToCart | POST | /order/cart/add | 4010 | 4111, 4116, 4117, 4118 | 加入购物车 |
-| 87 | updateCartItem | PUT | /order/cart/update | 4011, 4012 | 4112, 4116, 4117 | 更新购物车 |
-| 88 | removeFromCart | DELETE | /order/cart/remove | 4013 | 4113 | 移除商品 |
-| 89 | clearCart | DELETE | /order/cart/clear | 4015 | 4115 | 清空购物车 |
+| 1 | getCartItems | GET | /order/cart | 200 | 5100 | 获取购物车 |
+| 2 | addToCart | POST | /order/cart/add | 5000 | 5101, 5102, 5103, 5104 | 加入购物车 |
+| 3 | updateCartItem | PUT | /order/cart/update | 5001, 5002 | 5105, 5106, 5107 | 更新购物车 |
+| 4 | removeFromCart | DELETE | /order/cart/remove | 5003 | 5108 | 移除商品 |
+| 5 | clearCart | DELETE | /order/cart/clear | 5004 | 5109 | 清空购物车 |
 
 ### 4.2 订单基础操作 (7个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 90 | createOrder | POST | /order/create | 4000 | 4100, 4116, 4118 | 创建订单 |
-| 91 | getOrders | GET | /order/list | 200 | 1102 | 获取订单列表 |
-| 92 | getOrderDetail | GET | /order/{id} | 200 | 4105, 4106, 4107 | 获取订单详情 |
-| 93 | payOrder | POST | /order/pay | 4005, 4020 | 4120, 4121, 4122, 4124 | 支付订单 |
-| 94 | cancelOrder | POST | /order/cancel | 4002 | 4102, 4105, 4106 | 取消订单 |
-| 95 | confirmOrder | POST | /order/confirm | 4003 | 4103, 4105, 4106 | 确认收货 |
-| 96 | reviewOrder | POST | /order/review | 4050 | 4150 | 评价订单 |
+| 6 | createOrder | POST | /order/create | 5005 | 5110, 5111, 5112 | 创建订单 |
+| 7 | getOrders | GET | /order/list | 200 | 5113 | 获取订单列表 |
+| 8 | getOrderDetail | GET | /order/{id} | 200 | 5114, 5115, 5116 | 获取订单详情 |
+| 9 | payOrder | POST | /order/pay | 5006, 5007 | 5117, 5118, 5119, 5120 | 支付订单 |
+| 10 | cancelOrder | POST | /order/cancel | 5008 | 5121, 5122, 5123 | 取消订单 |
+| 11 | confirmOrder | POST | /order/confirm | 5009 | 5124, 5125, 5126 | 确认收货 |
+| 12 | reviewOrder | POST | /order/review | 5010 | 5127 | 评价订单 |
 
 ### 4.3 退款相关 (3个)
 
