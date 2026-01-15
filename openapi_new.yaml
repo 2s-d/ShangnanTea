@@ -2047,15 +2047,16 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 点赞成功
+                  summary: 点赞评价成功
                   value:
-                    code: 6010
+                    code: 3009
+                    message: "点赞成功"
                     data: null
                 failure:
-                  summary: 点赞失败
+                  summary: 点赞评价失败
                   value:
-                    code: 6110
-                    data: null
+                    code: 3114
+                    message: "点赞失败"
 
   /tea/{teaId}/specifications:
     get:
@@ -2077,15 +2078,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SpecificationListResponse'
-              example:
-                code: 200
-                data:
-                  - id: "1"
-                    teaId: "1"
-                    specName: "250g装"
-                    price: 99.00
-                    stock: 100
-                    isDefault: 1
+              examples:
+                success:
+                  summary: 获取规格列表成功
+                  value:
+                    code: 200
+                    data:
+                      - id: "1"
+                        teaId: "1"
+                        specName: "250g装"
+                        price: 99.00
+                        stock: 100
+                        isDefault: 1
+                failure:
+                  summary: 获取规格列表失败
+                  value:
+                    code: 3115
+                    message: "加载失败"
     post:
       operationId: addTeaSpecification
       tags:
@@ -2120,15 +2129,16 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 添加成功
+                  summary: 添加规格成功
                   value:
-                    code: 1000
+                    code: 3010
+                    message: "操作成功"
                     data: null
                 failure:
-                  summary: 添加失败
+                  summary: 添加规格失败
                   value:
-                    code: 1100
-                    data: null
+                    code: 3116
+                    message: "操作失败"
 
   /tea/specifications/{specId}:
     put:
@@ -2160,15 +2170,16 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 更新成功
+                  summary: 更新规格成功
                   value:
-                    code: 1004
+                    code: 3011
+                    message: "更新成功"
                     data: null
                 failure:
-                  summary: 更新失败
+                  summary: 更新规格失败
                   value:
-                    code: 1104
-                    data: null
+                    code: 3117
+                    message: "操作失败"
     delete:
       operationId: deleteTeaSpecification
       tags:
@@ -2192,15 +2203,16 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 删除成功
+                  summary: 删除规格成功
                   value:
-                    code: 1003
+                    code: 3012
+                    message: "删除成功"
                     data: null
                 failure:
-                  summary: 删除失败
+                  summary: 删除规格失败
                   value:
-                    code: 1103
-                    data: null
+                    code: 3118
+                    message: "操作失败"
 
   /tea/specifications/{specId}/default:
     put:
@@ -2226,15 +2238,16 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 设置成功
+                  summary: 设置默认规格成功
                   value:
-                    code: 1004
+                    code: 3013
+                    message: "更新成功"
                     data: null
                 failure:
-                  summary: 设置失败
+                  summary: 设置默认规格失败
                   value:
-                    code: 1104
-                    data: null
+                    code: 3119
+                    message: "操作失败"
 
   /tea/{teaId}/images:
     post:
@@ -2273,17 +2286,28 @@ paths:
                 $ref: '#/components/schemas/UploadImagesResponse'
               examples:
                 success:
-                  summary: 上传成功
+                  summary: 上传图片成功
                   value:
-                    code: 1001
+                    code: 3014
+                    message: "上传成功"
                     data:
                       - id: "img1"
                         url: "/uploads/tea/tea1_1.jpg"
                 failure:
-                  summary: 上传失败
+                  summary: 上传图片失败
                   value:
-                    code: 1101
-                    data: null
+                    code: 3120
+                    message: "上传失败"
+                file_type_error:
+                  summary: 文件类型错误
+                  value:
+                    code: 3121
+                    message: "不支持的文件类型"
+                file_size_error:
+                  summary: 文件过大
+                  value:
+                    code: 3122
+                    message: "文件大小超限"
 
   /tea/images/{imageId}:
     delete:
@@ -2309,15 +2333,16 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 删除成功
+                  summary: 删除图片成功
                   value:
-                    code: 1003
+                    code: 3015
+                    message: "删除成功"
                     data: null
                 failure:
-                  summary: 删除失败
+                  summary: 删除图片失败
                   value:
-                    code: 1103
-                    data: null
+                    code: 3123
+                    message: "操作失败"
 
   /tea/images/{imageId}/main:
     put:
