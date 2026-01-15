@@ -1341,41 +1341,41 @@
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 6 | getUserInfo | GET | /user/{userId} | 200 | 2120 | 获取用户信息 |
-| 7 | updateUserInfo | PUT | /user | 2010 | 2110 | 更新用户信息 |
-| 8 | uploadAvatar | POST | /user/avatar | 2012 | 2112, 1103, 1104 | 上传头像 |
-| 9 | changePassword | PUT | /user/password | 2011 | 2111, 2113 | 修改密码 |
-| 10 | resetPassword | POST | /user/password/reset | 2004 | 2104 | 密码重置 |
+| 6 | getUserInfo | GET | /user/{userId} | 200 | 2107 | 获取用户信息 |
+| 7 | updateUserInfo | PUT | /user | 2003 | 2108 | 更新用户信息 |
+| 8 | uploadAvatar | POST | /user/avatar | 2004 | 2109, 2110, 2111 | 上传头像 |
+| 9 | changePassword | PUT | /user/password | 2005 | 2112, 2113 | 修改密码 |
+| 10 | resetPassword | POST | /user/password/reset | 2006 | 2114 | 密码重置 |
 
 ### 1.3 用户地址相关 (5个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 11 | getAddressList | GET | /user/addresses | 200 | 4160 | 获取地址列表 |
-| 12 | addAddress | POST | /user/addresses | 4060 | 4161 | 添加地址 |
-| 13 | updateAddress | PUT | /user/addresses/{id} | 1004 | 4161 | 更新地址 |
-| 14 | deleteAddress | DELETE | /user/addresses/{id} | 1003 | 1100 | 删除地址 |
-| 15 | setDefaultAddress | PUT | /user/addresses/{id}/default | 1004 | 1100 | 设置默认地址 |
+| 11 | getAddressList | GET | /user/addresses | 200 | 2115 | 获取地址列表 |
+| 12 | addAddress | POST | /user/addresses | 2007 | 2116 | 添加地址 |
+| 13 | updateAddress | PUT | /user/addresses/{id} | 2008 | 2117 | 更新地址 |
+| 14 | deleteAddress | DELETE | /user/addresses/{id} | 2009 | 2118 | 删除地址 |
+| 15 | setDefaultAddress | PUT | /user/addresses/{id}/default | 2010 | 2119 | 设置默认地址 |
 
 ### 1.4 商家认证相关 (2个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 16 | submitShopCertification | POST | /user/shop-certification | 1000 | 1100 | 提交商家认证 |
-| 17 | getShopCertificationStatus | GET | /user/shop-certification | 200 | 1102 | 获取认证状态 |
+| 16 | submitShopCertification | POST | /user/shop-certification | 2011 | 2120 | 提交商家认证 |
+| 17 | getShopCertificationStatus | GET | /user/shop-certification | 200 | 2121 | 获取认证状态 |
 
 ### 1.5 用户互动相关 (8个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 18 | getFollowList | GET | /user/follows | 200 | 1102 | 获取关注列表 |
-| 19 | addFollow | POST | /user/follows | 5000 | 5102 | 添加关注 |
-| 20 | removeFollow | DELETE | /user/follows/{id} | 5001 | 5102 | 取消关注 |
-| 21 | getFavoriteList | GET | /user/favorites | 200 | 1102 | 获取收藏列表 |
-| 22 | addFavorite | POST | /user/favorites | 3010, 6012 | 3110, 6112 | 添加收藏 |
-| 23 | removeFavorite | DELETE | /user/favorites/{id} | 3011, 6013 | 3110, 6113 | 取消收藏 |
-| 24 | addLike | POST | /user/likes | 6010 | 6110 | 点赞 |
-| 25 | removeLike | DELETE | /user/likes/{id} | 6011 | 6111 | 取消点赞 |
+| 18 | getFollowList | GET | /user/follows | 200 | 2122 | 获取关注列表 |
+| 19 | addFollow | POST | /user/follows | 2012 | 2123 | 添加关注 |
+| 20 | removeFollow | DELETE | /user/follows/{id} | 2013 | 2124 | 取消关注 |
+| 21 | getFavoriteList | GET | /user/favorites | 200 | 2125 | 获取收藏列表 |
+| 22 | addFavorite | POST | /user/favorites | 2014 | 2126 | 添加收藏 |
+| 23 | removeFavorite | DELETE | /user/favorites/{id} | 2015 | 2127 | 取消收藏 |
+| 24 | addLike | POST | /user/likes | 2016 | 2128 | 点赞 |
+| 25 | removeLike | DELETE | /user/likes/{id} | 2017 | 2129 | 取消点赞 |
 
 ### 1.6 用户偏好设置 (2个)
 
