@@ -597,51 +597,6 @@
 | 86 | getShopReviews | GET | /shop/{shopId}/reviews | 200 | 5103 | 获取店铺评价 |
 | 87 | submitShopReview | POST | /shop/{shopId}/reviews | 5002 | 5104 | 提交店铺评价 |
 
-### 3.2 店铺茶叶管理 (5个)
-
-| 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
-|------|----------|----------|------|--------|--------|------|
-| 65 | getShopTeas | GET | /shop/{id}/teas | 200 | 5101 | 获取店铺茶叶 |
-| 66 | addShopTea | POST | /shop/{id}/teas | 3026 | 3125 | 添加店铺茶叶 |
-| 67 | updateShopTea | PUT | /shop/teas/{id} | 3025 | 3125 | 更新店铺茶叶 |
-| 68 | deleteShopTea | DELETE | /shop/teas/{id} | 3024 | 3124 | 删除店铺茶叶 |
-| 69 | toggleShopTeaStatus | PUT | /shop/teas/{id}/status | 3020, 3021 | 3120, 3121 | 茶叶上下架 |
-
-### 3.3 Banner管理 (5个)
-
-| 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
-|------|----------|----------|------|--------|--------|------|
-| 70 | getShopBanners | GET | /shop/{id}/banners | 200 | 5110 | 获取Banner列表 |
-| 71 | uploadBanner | POST | /shop/{id}/banners | 5010 | 5111, 1103, 1104 | 上传Banner |
-| 72 | updateBanner | PUT | /shop/banners/{id} | 5011 | 5111 | 更新Banner |
-| 73 | deleteBanner | DELETE | /shop/banners/{id} | 5012 | 5112 | 删除Banner |
-| 74 | updateBannerOrder | PUT | /shop/banners/order | 5013 | 5113 | 更新Banner排序 |
-
-### 3.4 公告管理 (4个)
-
-| 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
-|------|----------|----------|------|--------|--------|------|
-| 75 | getShopAnnouncements | GET | /shop/{id}/announcements | 200 | 5120 | 获取公告列表 |
-| 76 | createAnnouncement | POST | /shop/{id}/announcements | 5020 | 5121 | 创建公告 |
-| 77 | updateAnnouncement | PUT | /shop/announcements/{id} | 5021 | 5121 | 更新公告 |
-| 78 | deleteAnnouncement | DELETE | /shop/announcements/{id} | 5022 | 5122 | 删除公告 |
-
-### 3.5 店铺关注与评价 (5个)
-
-| 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
-|------|----------|----------|------|--------|--------|------|
-| 79 | followShop | POST | /shop/{id}/follow | 5000 | 5102 | 关注店铺 |
-| 80 | unfollowShop | DELETE | /shop/{id}/follow | 5001 | 5102 | 取消关注 |
-| 81 | checkFollowStatus | GET | /shop/{id}/follow-status | 200 | 1102 | 获取关注状态 |
-| 82 | getShopReviews | GET | /shop/{id}/reviews | 200 | 5103 | 获取店铺评价 |
-| 83 | submitShopReview | POST | /shop/{id}/reviews | 5002 | 5104 | 提交店铺评价 |
-
-### 3.6 Logo上传 (1个)
-
-| 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
-|------|----------|----------|------|--------|--------|------|
-| 84 | uploadShopLogo | POST | /shop/{id}/logo | 5030 | 5130, 1103, 1104 | 上传Logo |
-
 
 ## 四、订单模块接口 (order.js) - 共20个接口
 
@@ -651,7 +606,7 @@
 |------|----------|----------|------|--------|--------|------|
 | 85 | getCartItems | GET | /order/cart | 200 | 4110 | 获取购物车 |
 | 86 | addToCart | POST | /order/cart/add | 4010 | 4111, 4116, 4117, 4118 | 加入购物车 |
-| 87 | updateCartItem | PUT | /order/cart/update | 4011, 4012 | 4112, 4116, 4117 | 更新购物车 |
+| 87 | updateCartItem | PUT | /order/cart/update | 401好1, 4012 | 4112, 4116, 4117 | 更新购物车 |
 | 88 | removeFromCart | DELETE | /order/cart/remove | 4013 | 4113 | 移除商品 |
 | 89 | clearCart | DELETE | /order/cart/clear | 4015 | 4115 | 清空购物车 |
 
