@@ -413,12 +413,17 @@ export default {
             showTimeDivider: false // 可以根据时间间隔计算
           }))
         } else {
+          // TODO: 迁移到 Vuex，使用 showByCode 处理错误
           message.error('获取聊天记录失败，请稍后重试')
         }
 
         return
       } catch (error) {
-        console.error('获取消息列表失败：', error)
+        // 捕获意外的运行时错误（非API业务错误）
+        // TODO: 迁移到 Vuex，使用 showByCode 处理错误
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[开发调试] 获取消息列表时发生意外错误：', error)
+        }
         message.error('获取消息列表失败，请稍后重试')
       } finally {
         loadingMessages.value = false
@@ -595,8 +600,11 @@ export default {
           scrollToBottom()
         }
       } catch (error) {
-        console.error('发送消息失败：', error)
-        message.error('发送消息失败，请稍后重试')
+        // 捕获意外的运行时错误（非API业务错误）
+        // API业务失败已通过 showByCode 显示，网络错误已在响应拦截器显示
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[开发调试] 发送消息时发生意外错误：', error)
+        }
       }
     }
     
