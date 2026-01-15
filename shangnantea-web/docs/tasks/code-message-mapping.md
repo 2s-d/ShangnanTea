@@ -1331,11 +1331,11 @@
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 1 | login | POST | /user/login | 2000 | 2100, 2105 | 用户登录 |
-| 2 | register | POST | /user/register | 2001 | 2101 | 用户注册 |
+| 1 | login | POST | /user/login | 2000 | 2100, 2101 | 用户登录 |
+| 2 | register | POST | /user/register | 2001 | 2102 | 用户注册 |
 | 3 | logout | POST | /user/logout | 2002 | 2103 | 退出登录 |
-| 4 | getCurrentUser | GET | /user/me | 200 | 2103 | 获取当前用户 |
-| 5 | refreshToken | POST | /user/refresh | 200 | 2102, 2103 | 刷新令牌 |
+| 4 | getCurrentUser | GET | /user/me | 200 | 2104 | 获取当前用户 |
+| 5 | refreshToken | POST | /user/refresh | 200 | 2105, 2106 | 刷新令牌 |
 
 ### 1.2 用户信息相关 (5个)
 
