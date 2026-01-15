@@ -212,7 +212,8 @@ if (isSuccess(response.code)) {
 ```javascript
 // apiMessages.js
 // 静默状态码列表 - 这些状态码不会显示消息
-// ⚠️ 重要：此列表必须与 code-message-mapping.md 中的 [静默] 标注完全一致
+// ⚠️ 重要：此列表必须与 code-message-mapping.md 文档中的 [静默] 标注完全一致
+// 文档更新时，必须同步更新此列表
 const SILENT_CODES = [
   // HTTP成功码（查询类）
   200,
@@ -231,8 +232,7 @@ const SILENT_CODES = [
   6013,  // 已取消收藏（帖子）
   7010,  // 通知已标记为已读
   7011,  // 所有通知已标记为已读
-  
-  // ... 其他静默码（完整列表见 code-message-mapping.md）
+  // ... 其他静默码
 ]
 ```
 
@@ -247,7 +247,7 @@ export function showByCode(code, customMessage = null) {
       const message = customMessage || getMessageByCode(code)
       console.log(`[静默] ${code}: ${message}`)
     }
-    return // 直接返回，不显示消息
+    return  // 直接返回，不显示消息
   }
   
   // 2. 获取消息
@@ -568,7 +568,7 @@ if (isSuccess(response.code)) {
 **A:** 系统处理方式：
 - **开发环境**：在控制台输出警告 `[警告] 未知状态码: xxx`，不显示消息
 - **生产环境**：静默处理，不显示消息
-- **建议**：及时在 `apiMessages.js` 的 `CODE_MAP` 中添加映射，并在 `code-message-mapping.md` 中记录
+- **建议**：及时在 `code-message-mapping.md` 和 `apiMessages.js` 中添加映射
 
 ### Q4: 可以自定义消息显示方式吗？
 
@@ -653,29 +653,16 @@ if (isSuccess(response.code)) {
 
 ### 静默列表维护规范
 
-**同步更新原则（⚠️ 强制要求）：**
-- **代码与文档必须完全同步**：`apiMessages.js` 中的 `SILENT_CODES` 列表必须与 `code-message-mapping.md` 中的 `[静默]` 标注完全一致
-- **双向同步**：
-  - 新增静默状态码时，必须同时更新代码和文档
-  - 移除静默状态码时，必须同时从代码和文档中删除
-  - 修改静默状态码时，必须同时更新代码和文档
-- **验证机制**：每次修改后，必须验证代码和文档的一致性
+**同步更新原则：**
+- 代码中的 `SILENT_CODES` 列表必须与文档中的 `[静默]` 标注保持一致
+- 新增静默状态码时，必须同时更新代码和文档
+- 移除静默状态码时，必须同时从代码和文档中删除
 
 **维护流程：**
-1. **在文档中标注**：在 `code-message-mapping.md` 中标注需要静默的状态码（添加 `[静默]`）
-2. **在代码中添加**：在 `apiMessages.js` 的 `SILENT_CODES` 列表中添加对应状态码
-3. **验证一致性**：检查文档中所有 `[静默]` 标注的状态码是否都在 `SILENT_CODES` 中
-4. **测试验证**：调用 `showByCode()` 时不应显示消息，但开发环境应记录日志
-5. **提交检查**：提交代码前，确保代码和文档同步更新
-
-**状态码映射同步规范（⚠️ 强制要求）：**
-- **CODE_MAP 与文档必须完全同步**：`apiMessages.js` 中的 `CODE_MAP` 必须包含 `code-message-mapping.md` 中列出的所有状态码
-- **数据来源**：`CODE_MAP` 的数据必须从 `code-message-mapping.md` 中提取，确保一致性
-- **去重规则**：同一状态码在不同接口中出现时，只保留一个消息（通常消息是一致的）
-- **更新流程**：
-  1. 在 `code-message-mapping.md` 中添加或修改状态码映射
-  2. 同步更新 `apiMessages.js` 中的 `CODE_MAP`
-  3. 验证所有状态码都已正确映射
+1. 在 `code-message-mapping.md` 中标注需要静默的状态码
+2. 在 `apiMessages.js` 的 `SILENT_CODES` 列表中添加对应状态码
+3. 测试验证：调用 `showByCode()` 时不应显示消息
+4. 提交代码时，确保代码和文档同步更新
 
 ---
 
