@@ -172,10 +172,13 @@ export default {
       try {
         const response = await store.dispatch('user/fetchAddresses')
         
+        // 显示API响应消息（成功或失败都通过状态码映射显示）
+        showByCode(response.code)
+        
+        // 只有成功时才更新地址列表
         if (isSuccess(response.code)) {
           addresses.value = store.state.user.addressList || []
         } else {
-          showByCode(response.code)
           addresses.value = []
         }
       } catch (error) {
@@ -257,24 +260,26 @@ export default {
             // 更新地址
             const updateResponse = await store.dispatch('user/updateAddress', addressData)
             
+            // 显示API响应消息（成功或失败都通过状态码映射显示）
+            showByCode(updateResponse.code)
+            
+            // 只有成功时才执行后续操作
             if (isSuccess(updateResponse.code)) {
-              showByCode(updateResponse.code)
               addressModalVisible.value = false
               handleFetchAddressList()
-            } else {
-              showByCode(updateResponse.code)
             }
           } else {
             // 新增地址
             delete addressData.id // 新增时不需要ID
             const addResponse = await store.dispatch('user/addAddress', addressData)
             
+            // 显示API响应消息（成功或失败都通过状态码映射显示）
+            showByCode(addResponse.code)
+            
+            // 只有成功时才执行后续操作
             if (isSuccess(addResponse.code)) {
-              showByCode(addResponse.code)
               addressModalVisible.value = false
               handleFetchAddressList()
-            } else {
-              showByCode(addResponse.code)
             }
           }
         } finally {

@@ -585,12 +585,14 @@ export default {
           type: messageType
         })
         
+        // 显示API响应消息（成功或失败都通过状态码映射显示）
+        showByCode(sendResponse.code)
+        
+        // 只有成功时才刷新消息列表
         if (isSuccess(sendResponse.code)) {
           await fetchMessages(currentSessionId.value, false)
           await nextTick()
           scrollToBottom()
-        } else {
-          showByCode(sendResponse.code)
         }
       } catch (error) {
         console.error('发送消息失败：', error)

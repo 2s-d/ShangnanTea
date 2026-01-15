@@ -306,15 +306,15 @@ export default {
         // 上传头像
         const uploadResponse = await store.dispatch('user/uploadAvatar', file)
         
+        // 显示API响应消息（成功或失败都通过状态码映射显示）
+        showByCode(uploadResponse.code)
+        
+        // 只有成功时才刷新用户信息
         if (isSuccess(uploadResponse.code)) {
-          showByCode(uploadResponse.code)
-          // 刷新用户信息
           const userInfoResponse = await store.dispatch('user/getUserInfo')
           if (isSuccess(userInfoResponse.code)) {
             handleInitForm()
           }
-        } else {
-          showByCode(uploadResponse.code)
         }
         } catch (error) {
         console.error('头像上传失败:', error)
@@ -339,15 +339,15 @@ export default {
           // 更新用户信息
           const updateResponse = await store.dispatch('user/updateUserInfo', userData)
           
+          // 显示API响应消息（成功或失败都通过状态码映射显示）
+          showByCode(updateResponse.code)
+          
+          // 只有成功时才刷新用户信息
           if (isSuccess(updateResponse.code)) {
-            showByCode(updateResponse.code)
-            // 刷新用户信息
             const userInfoResponse = await store.dispatch('user/getUserInfo')
             if (isSuccess(userInfoResponse.code)) {
               handleInitForm()
             }
-          } else {
-            showByCode(updateResponse.code)
           }
         })
       } catch (error) {
