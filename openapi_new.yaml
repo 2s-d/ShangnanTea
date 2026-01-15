@@ -6034,13 +6034,13 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 审核成功
+                  summary: 帖子审核拒绝
                   value:
                     code: 6023
                     message: 帖子审核拒绝
                     data: null
                 failure:
-                  summary: 审核失败
+                  summary: 审核拒绝失败
                   value:
                     code: 6135
                     message: 审核拒绝失败
