@@ -2366,9 +2366,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 1004
-                data: null
+              examples:
+                success:
+                  summary: 设置主图成功
+                  value:
+                    code: 3016
+                    message: "更新成功"
+                    data: null
+                failure:
+                  summary: 设置主图失败
+                  value:
+                    code: 3124
+                    message: "操作失败"
 
   /tea/images/order:
     put:
@@ -2405,9 +2414,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 1004
-                data: null
+              examples:
+                success:
+                  summary: 更新图片顺序成功
+                  value:
+                    code: 3017
+                    message: "更新成功"
+                    data: null
+                failure:
+                  summary: 更新图片顺序失败
+                  value:
+                    code: 3125
+                    message: "操作失败"
 
   /tea/{teaId}/status:
     put:
@@ -2442,9 +2460,29 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 3020
-                data: null
+              examples:
+                success_online:
+                  summary: 茶叶上架成功
+                  value:
+                    code: 3018
+                    message: "上架成功"
+                    data: null
+                success_offline:
+                  summary: 茶叶下架成功
+                  value:
+                    code: 3019
+                    message: "下架成功"
+                    data: null
+                failure_online:
+                  summary: 茶叶上架失败
+                  value:
+                    code: 3126
+                    message: "上架失败"
+                failure_offline:
+                  summary: 茶叶下架失败
+                  value:
+                    code: 3127
+                    message: "下架失败"
 
   /tea/batch-status:
     put:
@@ -2479,16 +2517,28 @@ paths:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
-                success:
-                  summary: 更新成功
+                success_online:
+                  summary: 批量上架成功
                   value:
-                    code: 3022
+                    code: 3020
+                    message: "批量上架成功"
                     data: null
-                failure:
-                  summary: 更新失败
+                success_offline:
+                  summary: 批量下架成功
                   value:
-                    code: 3122
+                    code: 3021
+                    message: "批量下架成功"
                     data: null
+                failure_online:
+                  summary: 批量上架失败
+                  value:
+                    code: 3128
+                    message: "批量上架失败"
+                failure_offline:
+                  summary: 批量下架失败
+                  value:
+                    code: 3129
+                    message: "批量下架失败"
 
   /tea/recommend:
     get:
