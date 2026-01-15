@@ -158,6 +158,7 @@ import { ElMessage } from 'element-plus'
 import { Search, Male, Female, Message, Service } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 import { apiMessage } from '@/utils/messageManager'
+import { showByCode } from '@/utils/apiMessages'
 
 export default {
   name: 'FollowsPage',

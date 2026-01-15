@@ -377,8 +377,12 @@ export default {
 
         return
       } catch (error) {
-        console.error('获取会话列表失败：', error)
-        message.error('获取会话列表失败，请稍后重试')
+        // 捕获意外的运行时错误（非API业务错误）
+        // API业务失败已通过 showByCode 显示，网络错误已在响应拦截器显示
+        // 这里只记录日志用于开发调试
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[开发调试] 获取会话列表时发生意外错误：', error)
+        }
       }
     }
     

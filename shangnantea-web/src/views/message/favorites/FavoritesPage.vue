@@ -166,6 +166,7 @@ import { useStore } from 'vuex'
 import { Search, View, ChatDotRound, Star, ShoppingCart } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 import { apiMessage } from '@/utils/messageManager'
+import { showByCode } from '@/utils/apiMessages'
 
 export default {
   name: 'FavoritesPage',
