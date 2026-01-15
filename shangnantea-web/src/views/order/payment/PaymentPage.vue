@@ -121,7 +121,7 @@ import { ElMessageBox } from 'element-plus'
 import { InfoFilled, Timer } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
-import { errorMessage } from '@/utils/messageManager'
+import { apiMessage } from '@/utils/messageManager'
 import { orderPromptMessages } from '@/utils/promptMessages'
 
 export default {
@@ -259,7 +259,7 @@ export default {
         if (res?.code) showByCode(res.code)
         router.push(`/order/detail/${orderId.value}`)
       } catch (error) {
-        errorMessage.show(error?.message || '支付失败')
+        apiMessage.error(error?.message || '支付失败')
       } finally {
         submitting.value = false
       }
@@ -280,7 +280,7 @@ export default {
             const res = await store.dispatch('order/cancelOrder', orderId.value)
             if (res?.code) showByCode(res.code)
           } catch (error) {
-            errorMessage.show(error?.message || '取消订单失败')
+            apiMessage.error(error?.message || '取消订单失败')
           } finally {
             router.push('/order/list')
           }

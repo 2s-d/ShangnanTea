@@ -459,11 +459,11 @@ const actions = {
   async fetchUserPreferences({ commit }) {
     commit('SET_LOADING', true)
     try {
-      const result = await getUserPreferencesApi()
+      const res = await getUserPreferencesApi()
       // 兼容：后端可能返回{ data: {...} } 或直接返回{...}
-      const preferences = result?.data || result?.preferences || result
+      const preferences = res?.data || res?.preferences || res
       commit('SET_PREFERENCES', preferences)
-      return preferences
+      return res // 返回 {code, data}，组件调用showByCode(res.code)
     } finally {
       commit('SET_LOADING', false)
     }
@@ -478,11 +478,11 @@ const actions = {
   async saveUserPreferences({ commit }, preferences) {
     commit('SET_LOADING', true)
     try {
-      const result = await updateUserPreferencesApi(preferences)
+      const res = await updateUserPreferencesApi(preferences)
       // 以服务端回写为准（若后端仅返回success，则直接使用入参）
-      const saved = result?.data || result?.preferences || result || preferences
+      const saved = res?.data || res?.preferences || res || preferences
       commit('SET_PREFERENCES', saved)
-      return saved
+      return res // 返回 {code, data}，组件调用showByCode(res.code)
     } finally {
       commit('SET_LOADING', false)
     }
@@ -559,21 +559,34 @@ const actions = {
       commit('SET_LOADING', true)
       
       // 调用API获取用户信息
-      const userInfo = await getUserInfoApi(userId)
+      const res = await getUserInfoApi(userId)
       
       // 更新状态（如果获取的是当前用户信息）
       if (!userId) {
+        const userInfo = res?.data || res
         commit('SET_USER_INFO', userInfo)
         commit('SET_LOGGED_IN', true)
       }
       
-      return userInfo
+      return res // 返回 {code, data}，组件调用showByCode(res.code)
     } catch (error) {
       console.error('获取用户信息失败:', error)
-      // 如果是获取当前用户信息失败，清除登录状态
+      // 只有在认证错误（401/403）时才清除登录状态
+      // 其他错误（网络错误、服务器错误等）不应该清除用户信息
       if (!userId) {
-        tokenStorage.removeToken()
-        commit('CLEAR_USER')
+        // 检查是否是认证错误
+        const isAuthError = error?.response?.status === 401 || 
+                           error?.response?.status === 403 ||
+                           error?.code === 401 ||
+                           error?.code === 403 ||
+                           error?.message?.includes('认证') ||
+                           error?.message?.includes('401') ||
+                           error?.message?.includes('403')
+        
+        if (isAuthError) {
+          tokenStorage.removeToken()
+          commit('CLEAR_USER')
+        }
       }
       throw error
     } finally {
@@ -628,8 +641,8 @@ const actions = {
       commit('SET_LOADING', true)
       
       // 调用上传头像API
-      const result = await uploadAvatarApi(file)
-      const avatarUrl = result?.avatarUrl || result?.data?.avatarUrl || result?.data
+      const res = await uploadAvatarApi(file)
+      const avatarUrl = res?.data?.avatarUrl || res?.avatarUrl || res?.data
       
       if (!avatarUrl) {
         throw new Error('上传失败：未返回头像URL')
@@ -642,14 +655,7 @@ const actions = {
       }
       commit('SET_USER_INFO', updatedUserInfo)
       
-      // 显示上传成功消息
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      userPromptMessages.success.showProfileUpdateSuccess()
-      
-      return avatarUrl
+      return res // 返回 {code, data}，组件调用showByCode(res.code)
     } catch (error) {
       // 显示上传失败消息
       // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
@@ -804,9 +810,10 @@ const actions = {
     commit('SET_LOADING', true)
     try {
       const res = await getAddressList()
-      const addressList = (res || []).map(mapAddressFromBackend)
+      // 映射地址数据用于更新状态
+      const addressList = (res.data || []).map(mapAddressFromBackend)
       commit('SET_ADDRESS_LIST', addressList)
-      return addressList
+      return res // 返回 {code, data}，组件调用showByCode(res.code)
     } catch (error) {
       console.error('获取地址列表失败:', error)
       throw error
@@ -827,9 +834,10 @@ const actions = {
       // 任务B-2：将前端字段转换为后端字段
       const backendData = mapAddressToBackend(addressData)
       const res = await addAddressApi(backendData)
-      const newAddress = mapAddressFromBackend(res)
+      // 映射地址数据用于更新状态
+      const newAddress = mapAddressFromBackend(res.data)
       commit('ADD_ADDRESS', newAddress)
-      return newAddress
+      return res // 返回 {code, data}，组件调用showByCode(res.code)
     } catch (error) {
       console.error('添加地址失败:', error)
       throw error
@@ -854,9 +862,10 @@ const actions = {
       // 任务B-2：将前端字段转换为后端字段
       const backendData = mapAddressToBackend(addressData)
       const res = await updateAddressApi(addressData.id, backendData)
-      const updatedAddress = mapAddressFromBackend(res)
+      // 映射地址数据用于更新状态
+      const updatedAddress = mapAddressFromBackend(res.data)
       commit('UPDATE_ADDRESS', updatedAddress)
-      return updatedAddress
+      return res // 返回 {code, data}，组件调用showByCode(res.code)
     } catch (error) {
       console.error('更新地址失败:', error)
       throw error
@@ -922,9 +931,10 @@ const actions = {
     commit('SET_LOADING', true)
     try {
       const res = await getFollowList(type)
-      const followList = res || []
+      // 更新状态使用 res.data
+      const followList = res.data || res || []
       commit('SET_FOLLOW_LIST', followList)
-      return followList
+      return res // 返回 {code, data}，组件调用showByCode(res.code)
     } catch (error) {
       console.error('获取关注列表失败:', error)
       throw error
@@ -943,9 +953,10 @@ const actions = {
     commit('SET_LOADING', true)
     try {
       const res = await addFollowApi(followData)
-      const follow = res
+      // 更新状态使用 res.data
+      const follow = res.data || res
       commit('ADD_FOLLOW', follow)
-      return follow
+      return res // 返回 {code, data}，组件调用showByCode(res.code)
     } catch (error) {
       console.error('添加关注失败:', error)
       throw error
@@ -984,9 +995,10 @@ const actions = {
     commit('SET_LOADING', true)
     try {
       const res = await getFavoriteList(type)
-      const favoriteList = res || []
+      // 更新状态使用 res.data
+      const favoriteList = res.data || res || []
       commit('SET_FAVORITE_LIST', favoriteList)
-      return favoriteList
+      return res // 返回 {code, data}，组件调用showByCode(res.code)
     } catch (error) {
       console.error('获取收藏列表失败:', error)
       throw error
@@ -1005,9 +1017,10 @@ const actions = {
     commit('SET_LOADING', true)
     try {
       const res = await addFavoriteApi(favoriteData)
-      const favorite = res
+      // 更新状态使用 res.data
+      const favorite = res.data || res
       commit('ADD_FAVORITE', favorite)
-      return favorite
+      return res // 返回 {code, data}，组件调用showByCode(res.code)
     } catch (error) {
       console.error('添加收藏失败:', error)
       throw error
@@ -1046,9 +1059,10 @@ const actions = {
     commit('SET_LOADING', true)
     try {
       const res = await addLikeApi(likeData)
-      const like = res
+      // 更新状态使用 res.data
+      const like = res.data || res
       commit('ADD_LIKE', like)
-      return like
+      return res // 返回 {code, data}，组件调用showByCode(res.code)
     } catch (error) {
       console.error('点赞失败:', error)
       throw error
@@ -1089,15 +1103,16 @@ const actions = {
     commit('SET_LOADING', true)
     try {
       const res = await getAdminUserList(params)
-      const userList = res?.list || res || []
-      const total = res?.total || userList.length
+      // 更新状态使用 res.data
+      const userList = res?.data?.list || res?.list || res?.data || res || []
+      const total = res?.data?.total || res?.total || userList.length
       commit('SET_USER_LIST', userList)
       commit('SET_USER_PAGINATION', { 
         page: params.page || 1, 
         pageSize: params.pageSize || 20, 
         total 
       })
-      return { list: userList, total }
+      return res // 返回 {code, data}，组件调用showByCode(res.code)
     } catch (error) {
       console.error('获取用户列表失败:', error)
       throw error
@@ -1156,9 +1171,10 @@ const actions = {
     commit('SET_LOADING', true)
     try {
       const res = await getCertificationList(params)
-      const certList = res?.list || res || []
+      // 更新状态使用 res.data
+      const certList = res?.data?.list || res?.list || res?.data || res || []
       commit('SET_CERTIFICATION_LIST', certList)
-      return certList
+      return res // 返回 {code, data}，组件调用showByCode(res.code)
     } catch (error) {
       console.error('获取认证申请列表失败:', error)
       throw error

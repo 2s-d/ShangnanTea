@@ -16,7 +16,7 @@ import router from '@/router'
 // 使用composable代替直接导入tokenUtils
 import { useTokenStorage } from '@/composables/useStorage'
 // 导入消息管理器
-import { errorMessage } from '@/utils/messageManager'
+import { apiMessage } from '@/utils/messageManager'
 
 // 创建token存储实例
 const tokenStorage = useTokenStorage()
@@ -146,13 +146,14 @@ service.interceptors.response.use(
     }
     
     // 认证相关错误（未登录、令牌无效等）
-    if ([401, 403].includes(res.code)) {
+    // 注意：只匹配精确的 401 和 403，不匹配业务错误码（如 4010, 4030 等）
+    if (res.code === 401 || res.code === 403) {
       // 清除token和用户信息
       tokenStorage.removeToken()
       store.commit('user/CLEAR_USER')
       
       // 显示错误信息
-      errorMessage.show(res.message || '认证失败，请重新登录')
+      apiMessage.error(res.message || '认证失败，请重新登录')
       
       // 如果不是登录页，则跳转到登录页
       if (router.currentRoute.value.path !== '/login') {
@@ -186,18 +187,31 @@ service.interceptors.response.use(
         
         // 跳转到登录页
         if (router.currentRoute.value.path !== '/login') {
-          errorMessage.show(data.message || '认证失败，请重新登录')
+          apiMessage.error(data.message || '认证失败，请重新登录')
           router.push(`/login?redirect=${router.currentRoute.value.path}`)
         }
       } else if (status === 500) {
-        errorMessage.show('服务器错误，请稍后再试')
+        apiMessage.error('服务器错误，请稍后再试')
       } else {
-        errorMessage.show(data.message || `请求失败: ${status}`)
+        apiMessage.error(data.message || `请求失败: ${status}`)
       }
-    } else if (error.message.includes('timeout')) {
-      errorMessage.show('请求超时，请检查网络连接')
     } else {
-      errorMessage.show('网络错误，请检查网络连接')
+      // 处理非HTTP错误（网络错误、连接被拒绝等）
+      // 这些错误不应该清除用户信息，因为可能是后端服务器未运行
+      const errorMessage = error.message || ''
+      const errorCode = error.code || ''
+      
+      if (errorMessage.includes('timeout') || errorCode === 'ETIMEDOUT') {
+        apiMessage.error('请求超时，请检查网络连接')
+      } else if (errorCode === 'ECONNREFUSED' || errorMessage.includes('ECONNREFUSED')) {
+        // 连接被拒绝（后端服务器未运行），不显示错误消息，避免干扰用户
+        // 只在开发环境显示提示
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('后端服务器未运行或无法连接，请检查后端服务状态')
+        }
+      } else {
+        apiMessage.error('网络错误，请检查网络连接')
+      }
     }
     
     return Promise.reject(error)

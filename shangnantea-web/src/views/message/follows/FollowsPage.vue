@@ -157,7 +157,7 @@ import { useStore } from 'vuex'
 import { ElMessage } from 'element-plus'
 import { Search, Male, Female, Message, Service } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-import { showSuccess, showError } from '@/utils/messageManager'
+import { apiMessage } from '@/utils/messageManager'
 
 export default {
   name: 'FollowsPage',
@@ -338,15 +338,15 @@ export default {
         item.targetType === 'user' && item.targetId === userId
       )
       if (!followItem) {
-        showError('未找到关注记录')
+        apiMessage.error('未找到关注记录')
         return
       }
       
       try {
         await store.dispatch('user/removeFollow', followItem.id)
-        showSuccess('已取消关注')
+        apiMessage.success('已取消关注')
       } catch (error) {
-        showError(error.message || '取消关注失败')
+        apiMessage.error(error.message || '取消关注失败')
       }
     }
     
@@ -368,15 +368,15 @@ export default {
         item.targetType === 'shop' && item.targetId === shopId
       )
       if (!followItem) {
-        showError('未找到关注记录')
+        apiMessage.error('未找到关注记录')
         return
       }
       
       try {
         await store.dispatch('user/removeFollow', followItem.id)
-        showSuccess('已取消关注该店铺')
+        apiMessage.success('已取消关注该店铺')
       } catch (error) {
-        showError(error.message || '取消关注失败')
+        apiMessage.error(error.message || '取消关注失败')
       }
     }
     
@@ -391,7 +391,7 @@ export default {
         await store.dispatch('user/fetchFollowList')
       } catch (error) {
         console.error('加载关注列表失败:', error)
-        showError('加载关注列表失败')
+        apiMessage.error('加载关注列表失败')
       }
     }
     

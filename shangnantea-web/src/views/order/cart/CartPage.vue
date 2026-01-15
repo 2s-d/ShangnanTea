@@ -183,7 +183,7 @@ import { useStore } from 'vuex'
 import { ElMessageBox } from 'element-plus'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { orderPromptMessages } from '@/utils/promptMessages'
-import { errorMessage } from '@/utils/messageManager'
+import { apiMessage } from '@/utils/messageManager'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 export default {
   name: 'CartPage',
@@ -221,7 +221,7 @@ export default {
           showByCode(res.code)
         }
       } catch (error) {
-        errorMessage.show(error?.message || '加载购物车失败')
+        apiMessage.error(error?.message || '加载购物车失败')
       } finally {
         loading.value = false
       }
@@ -300,7 +300,7 @@ export default {
           showByCode(res.code)
         }
       } catch (error) {
-        errorMessage.show(error?.message || '更新数量失败')
+        apiMessage.error(error?.message || '更新数量失败')
         // 恢复：重新拉取购物车
         await initCartData()
       }
@@ -326,7 +326,7 @@ export default {
         
         specDialogVisible.value = true
       } catch (error) {
-        errorMessage.show(error?.message || '加载规格失败')
+        apiMessage.error(error?.message || '加载规格失败')
       } finally {
         loading.value = false
       }
@@ -361,7 +361,7 @@ export default {
         // 重新获取购物车数据以更新价格和库存
         await initCartData()
       } catch (error) {
-        errorMessage.show(error?.message || '更新规格失败')
+        apiMessage.error(error?.message || '更新规格失败')
       } finally {
         loading.value = false
       }
@@ -382,7 +382,7 @@ export default {
           // 刷新本地列表
           await initCartData()
         }).catch((error) => {
-          errorMessage.show(error?.message || '移除商品失败')
+          apiMessage.error(error?.message || '移除商品失败')
         })
       }).catch(() => {
         // 用户取消操作
@@ -413,7 +413,7 @@ export default {
           }
           await initCartData()
         }).catch((error) => {
-          errorMessage.show(error?.message || '删除商品失败')
+          apiMessage.error(error?.message || '删除商品失败')
         })
       }).catch(() => {
         // 用户取消操作

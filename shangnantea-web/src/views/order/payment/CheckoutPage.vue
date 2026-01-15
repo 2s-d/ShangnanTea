@@ -212,7 +212,7 @@ import { useStore } from 'vuex'
 import { ArrowLeft, Plus } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
-import { errorMessage } from '@/utils/messageManager'
+import { apiMessage } from '@/utils/messageManager'
 import { orderPromptMessages } from '@/utils/promptMessages'
 
 export default {
@@ -410,7 +410,7 @@ export default {
           
           // 静默成功，不显示消息
         } catch (error) {
-          errorMessage.show(error?.message || '保存地址失败')
+          apiMessage.error(error?.message || '保存地址失败')
         } finally {
           addressSubmitting.value = false
         }
@@ -450,7 +450,7 @@ export default {
         if (res?.code) showByCode(res.code)
         router.push(`/order/detail/${res?.data?.order_id || res?.data?.id || ''}`)
       } catch (error) {
-        errorMessage.show(error?.message || '提交订单失败')
+        apiMessage.error(error?.message || '提交订单失败')
       } finally {
         submitting.value = false
       }

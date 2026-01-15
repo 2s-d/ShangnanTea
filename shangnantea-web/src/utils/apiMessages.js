@@ -15,7 +15,7 @@
  * 最后更新: 2026-01-13
  */
 
-import { successMessage, errorMessage } from './messageManager'
+import { apiMessage } from './messageManager'
 
 // 状态码消息映射表
 // 基于 docs/code-message-mapping.md 文档，与167个接口完全对应
@@ -324,9 +324,9 @@ export function showByCode(code, customMessage = null) {
   const message = customMessage || getMessageByCode(code)
   
   if (isSuccess(code)) {
-    successMessage.show(message)
+    apiMessage.success(message)
   } else {
-    errorMessage.show(message)
+    apiMessage.error(message)
   }
 }
 

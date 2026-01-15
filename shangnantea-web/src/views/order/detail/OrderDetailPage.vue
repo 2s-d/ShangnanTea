@@ -210,7 +210,7 @@ import { useStore } from 'vuex'
 import { ElMessageBox } from 'element-plus'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { orderPromptMessages } from '@/utils/promptMessages'
-import { errorMessage } from '@/utils/messageManager'
+import { apiMessage } from '@/utils/messageManager'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 export default {
   name: 'OrderDetailPage',
@@ -341,7 +341,7 @@ export default {
             loadOrderDetail()
           })
           .catch((error) => {
-            errorMessage.show(error?.message || '取消订单失败')
+            apiMessage.error(error?.message || '取消订单失败')
           })
       }).catch(() => {
         // 用户取消操作，不做任何处理
@@ -364,7 +364,7 @@ export default {
             loadOrderDetail()
           })
           .catch((error) => {
-            errorMessage.show(error?.message || '确认收货失败')
+            apiMessage.error(error?.message || '确认收货失败')
           })
       }).catch(() => {
         // 用户取消操作，不做任何处理
@@ -446,7 +446,7 @@ export default {
           }
         }
       } catch (error) {
-        errorMessage.show(error?.message || '退款申请失败')
+        apiMessage.error(error?.message || '退款申请失败')
       } finally {
         refundSubmitting.value = false
       }
@@ -520,7 +520,7 @@ export default {
             })
         })
         .catch((error) => {
-          errorMessage.show(error?.message || '获取订单详情失败')
+          apiMessage.error(error?.message || '获取订单详情失败')
           orderDetail.value = null
         })
     }
@@ -531,7 +531,7 @@ export default {
     // 初始化
     onMounted(() => {
       if (!orderId) {
-        errorMessage.show('订单ID不能为空')
+        apiMessage.error('订单ID不能为空')
         goBack()
         return
       }

@@ -1,10 +1,14 @@
 /**
- * 消息管理器 - 统一处理应用消息
+ * 消息管理器 - 双轨制消息系统的底层显示引擎
  * 
- * 按照数据流向分配消息职责：
- * - API层: 处理网络级别错误
- * - Vuex层: 处理业务操作结果消息
- * - 组件层: 处理UI交互消息
+ * 本文件是双轨制消息系统的底层实现，提供基础的消息显示功能：
+ * - apiMessage: 供 apiMessages.js 使用，用于API响应消息显示
+ * - promptMessage: 供 promptMessages.js 使用，用于前端提示消息显示
+ * 
+ * 注意：本文件只提供底层消息显示功能，不包含业务消息定义
+ * 业务消息定义请参考：
+ * - promptMessages.js: 提示消息定义（表单验证、用户确认等）
+ * - apiMessages.js: API状态码消息映射（后端响应消息）
  */
 
 import message from '@/components/common'
@@ -22,11 +26,10 @@ export const MESSAGE_TYPE = {
   ERROR: 'error'
 }
 
-// 消息层级
+// 消息层级（用于日志标识）
 export const MESSAGE_LAYER = {
-  API: 'API层', // API响应消息
-  VUEX: 'Vuex层', // 业务逻辑消息
-  COMPONENT: 'UI层'  // 组件交互消息
+  API: 'API消息',      // API响应消息
+  PROMPT: '提示消息'   // 前端提示消息
 }
 
 // 防止重复消息，存储最近的消息
@@ -172,7 +175,7 @@ export function clearAllMessageStates() {
 }
 
 /**
- * API层消息 - 用于网络请求响应消息
+ * API消息 - 供 apiMessages.js 使用，用于API响应消息显示
  */
 export const apiMessage = {
   success(content, duration = 3000) {
@@ -205,87 +208,21 @@ export const apiMessage = {
 }
 
 /**
- * Vuex层消息 - 用于业务逻辑消息
- */
-export const vuexMessage = {
-  success(content, duration = 3000) {
-    if (isDuplicateMessage(content, MESSAGE_TYPE.SUCCESS)) return
-    
-    logMessage(content, MESSAGE_TYPE.SUCCESS, MESSAGE_LAYER.VUEX)
-    enqueueMessage(content, MESSAGE_TYPE.SUCCESS, duration)
-  },
-  
-  error(content, duration = 5000) {
-    if (isDuplicateMessage(content, MESSAGE_TYPE.ERROR)) return
-    
-    logMessage(content, MESSAGE_TYPE.ERROR, MESSAGE_LAYER.VUEX)
-    enqueueMessage(content, MESSAGE_TYPE.ERROR, duration)
-  },
-  
-  warning(content, duration = 4000) {
-    if (isDuplicateMessage(content, MESSAGE_TYPE.WARNING)) return
-    
-    logMessage(content, MESSAGE_TYPE.WARNING, MESSAGE_LAYER.VUEX)
-    enqueueMessage(content, MESSAGE_TYPE.WARNING, duration)
-  },
-  
-  info(content, duration = 3000) {
-    if (isDuplicateMessage(content, MESSAGE_TYPE.INFO)) return
-    
-    logMessage(content, MESSAGE_TYPE.INFO, MESSAGE_LAYER.VUEX)
-    enqueueMessage(content, MESSAGE_TYPE.INFO, duration)
-  }
-}
-
-/**
- * 组件层消息 - 用于用户界面交互消息
- */
-export const uiMessage = {
-  success(content, duration = 3000) {
-    if (isDuplicateMessage(content, MESSAGE_TYPE.SUCCESS)) return
-    
-    logMessage(content, MESSAGE_TYPE.SUCCESS, MESSAGE_LAYER.COMPONENT)
-    enqueueMessage(content, MESSAGE_TYPE.SUCCESS, duration)
-  },
-  
-  error(content, duration = 5000) {
-    if (isDuplicateMessage(content, MESSAGE_TYPE.ERROR)) return
-    
-    logMessage(content, MESSAGE_TYPE.ERROR, MESSAGE_LAYER.COMPONENT)
-    enqueueMessage(content, MESSAGE_TYPE.ERROR, duration)
-  },
-  
-  warning(content, duration = 4000) {
-    if (isDuplicateMessage(content, MESSAGE_TYPE.WARNING)) return
-    
-    logMessage(content, MESSAGE_TYPE.WARNING, MESSAGE_LAYER.COMPONENT)
-    enqueueMessage(content, MESSAGE_TYPE.WARNING, duration)
-  },
-  
-  info(content, duration = 3000) {
-    if (isDuplicateMessage(content, MESSAGE_TYPE.INFO)) return
-    
-    logMessage(content, MESSAGE_TYPE.INFO, MESSAGE_LAYER.COMPONENT)
-    enqueueMessage(content, MESSAGE_TYPE.INFO, duration)
-  }
-}
-
-/**
- * 提示消息 - 用于纯前端提示（表单验证、确认框等）
+ * 提示消息 - 供 promptMessages.js 使用，用于前端提示消息显示
  * 统一使用 warning 类型显示，info 用于确认类提示
  */
 export const promptMessage = {
   show(content, duration = 3000) {
     if (isDuplicateMessage(content, MESSAGE_TYPE.WARNING)) return
     
-    logMessage(content, MESSAGE_TYPE.WARNING, MESSAGE_LAYER.COMPONENT)
+    logMessage(content, MESSAGE_TYPE.WARNING, MESSAGE_LAYER.PROMPT)
     enqueueMessage(content, MESSAGE_TYPE.WARNING, duration)
   },
   
   info(content, duration = 3000) {
     if (isDuplicateMessage(content, MESSAGE_TYPE.INFO)) return
     
-    logMessage(content, MESSAGE_TYPE.INFO, MESSAGE_LAYER.COMPONENT)
+    logMessage(content, MESSAGE_TYPE.INFO, MESSAGE_LAYER.PROMPT)
     enqueueMessage(content, MESSAGE_TYPE.INFO, duration)
   }
 }
@@ -308,8 +245,6 @@ export function loadMessageMonitor() {
 // 模块默认导出
 export default {
   apiMessage,
-  vuexMessage,
-  uiMessage,
   promptMessage,
   clearAllMessageStates
 } 

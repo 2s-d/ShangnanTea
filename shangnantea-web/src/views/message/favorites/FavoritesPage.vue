@@ -165,7 +165,7 @@ import { useStore } from 'vuex'
 
 import { Search, View, ChatDotRound, Star, ShoppingCart } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-import { showSuccess, showError } from '@/utils/messageManager'
+import { apiMessage } from '@/utils/messageManager'
 
 export default {
   name: 'FavoritesPage',
@@ -347,7 +347,7 @@ export default {
     // 加入购物车
     const addToCart = (productId) => {
       // 实际项目中调用添加购物车API
-      showSuccess('已添加到购物车')
+      apiMessage.success('已添加到购物车')
     }
     
     // 取消收藏
@@ -355,14 +355,14 @@ export default {
       try {
         await store.dispatch('user/removeFavorite', favoriteId)
         if (type === 'culture') {
-          showSuccess('已取消收藏文章')
+          apiMessage.success('已取消收藏文章')
         } else if (type === 'product') {
-          showSuccess('已取消收藏茶叶')
+          apiMessage.success('已取消收藏茶叶')
         } else if (type === 'post') {
-          showSuccess('已取消收藏帖子')
+          apiMessage.success('已取消收藏帖子')
         }
       } catch (error) {
-        showError(error.message || '取消收藏失败')
+        apiMessage.error(error.message || '取消收藏失败')
       }
     }
     
@@ -372,7 +372,7 @@ export default {
         await store.dispatch('user/fetchFavoriteList')
       } catch (error) {
         console.error('加载收藏列表失败:', error)
-        showError('加载收藏列表失败')
+        apiMessage.error('加载收藏列表失败')
       }
     }
     
