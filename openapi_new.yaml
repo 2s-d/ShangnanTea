@@ -4891,13 +4891,13 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 更新成功
+                  summary: 区块内容已保存
                   value:
                     code: 6000
                     message: 区块内容已保存
                     data: null
                 failure:
-                  summary: 更新失败
+                  summary: 保存失败
                   value:
                     code: 6101
                     message: 保存失败
@@ -4919,7 +4919,7 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 获取成功
+                  summary: 操作成功
                   value:
                     code: 200
                     message: 操作成功
@@ -4930,7 +4930,7 @@ paths:
                         linkUrl: "/forum/articles/1"
                         sortOrder: 1
                 failure:
-                  summary: 获取失败
+                  summary: 获取轮播图数据失败
                   value:
                     code: 6102
                     message: 获取轮播图数据失败
@@ -4967,25 +4967,25 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 上传成功
+                  summary: Banner添加成功
                   value:
                     code: 6001
                     message: Banner添加成功
                     data: null
                 failure:
-                  summary: 上传失败
+                  summary: 保存失败
                   value:
                     code: 6103
                     message: 保存失败
                     data: null
                 failure_type:
-                  summary: 文件类型错误
+                  summary: 不支持的文件类型
                   value:
                     code: 6104
                     message: 不支持的文件类型
                     data: null
                 failure_size:
-                  summary: 文件过大
+                  summary: 文件大小超限
                   value:
                     code: 6105
                     message: 文件大小超限
@@ -5032,13 +5032,13 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 更新成功
+                  summary: Banner更新成功
                   value:
                     code: 6002
                     message: Banner更新成功
                     data: null
                 failure:
-                  summary: 更新失败
+                  summary: 保存失败
                   value:
                     code: 6106
                     message: 保存失败
@@ -5110,13 +5110,13 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 更新成功
+                  summary: 排序更新成功
                   value:
                     code: 6004
                     message: 排序更新成功
                     data: null
                 failure:
-                  summary: 更新失败
+                  summary: 排序更新失败
                   value:
                     code: 6108
                     message: 排序更新失败
@@ -5138,7 +5138,7 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 获取成功
+                  summary: 操作成功
                   value:
                     code: 200
                     message: 操作成功
@@ -5149,7 +5149,7 @@ paths:
                         icon: "/icons/culture.png"
                         sortOrder: 1
                 failure:
-                  summary: 获取失败
+                  summary: 获取版块列表失败
                   value:
                     code: 6114
                     message: 获取版块列表失败
@@ -5193,13 +5193,13 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 创建成功
+                  summary: 添加版块成功
                   value:
                     code: 6008
                     message: 添加版块成功
                     data: null
                 failure:
-                  summary: 创建失败
+                  summary: 添加版块失败
                   value:
                     code: 6116
                     message: 添加版块失败
@@ -5227,7 +5227,7 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 获取成功
+                  summary: 操作成功
                   value:
                     code: 200
                     message: 操作成功
@@ -5238,7 +5238,7 @@ paths:
                       icon: "/icons/culture.png"
                       postCount: 100
                 failure:
-                  summary: 获取失败
+                  summary: 获取版块详情失败
                   value:
                     code: 6115
                     message: 获取版块详情失败
@@ -5284,13 +5284,13 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 更新成功
+                  summary: 更新版块成功
                   value:
                     code: 6009
                     message: 更新版块成功
                     data: null
                 failure:
-                  summary: 更新失败
+                  summary: 更新版块失败
                   value:
                     code: 6117
                     message: 更新版块失败
@@ -5319,13 +5319,13 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 删除成功
+                  summary: 删除版块成功
                   value:
                     code: 6010
                     message: 删除版块成功
                     data: null
                 failure:
-                  summary: 删除失败
+                  summary: 删除版块失败
                   value:
                     code: 6118
                     message: 删除版块失败
@@ -5375,7 +5375,7 @@ paths:
                 $ref: '#/components/schemas/PostListResponse'
               examples:
                 success:
-                  summary: 获取成功
+                  summary: 操作成功
                   value:
                     code: 200
                     message: 操作成功
@@ -5393,7 +5393,7 @@ paths:
                           createTime: "2025-01-15T10:30:00Z"
                       total: 50
                 failure:
-                  summary: 获取失败
+                  summary: 获取帖子列表失败
                   value:
                     code: 6119
                     message: 获取帖子列表失败
@@ -5427,7 +5427,7 @@ paths:
                 $ref: '#/components/schemas/CreatePostResponse'
               examples:
                 success:
-                  summary: 发布成功
+                  summary: 帖子发布成功
                   value:
                     code: 6011
                     message: 帖子发布成功
@@ -5436,7 +5436,7 @@ paths:
                       title: "茶文化分享"
                       createTime: "2024-01-15T10:30:00Z"
                 failure:
-                  summary: 发布失败
+                  summary: 帖子发布失败
                   value:
                     code: 6120
                     message: 帖子发布失败
@@ -5469,7 +5469,7 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 获取成功
+                  summary: 操作成功
                   value:
                     code: 200
                     message: 操作成功
@@ -5482,7 +5482,7 @@ paths:
                           createTime: "2025-01-01T12:00:00Z"
                       total: 10
                 failure:
-                  summary: 获取失败
+                  summary: 获取待审核帖子列表失败
                   value:
                     code: 6121
                     message: 获取待审核帖子列表失败
@@ -5510,7 +5510,7 @@ paths:
                 $ref: '#/components/schemas/PostDetailResponse'
               examples:
                 success:
-                  summary: 获取成功
+                  summary: 操作成功
                   value:
                     code: 200
                     message: 操作成功
@@ -5529,7 +5529,7 @@ paths:
                       isLiked: false
                       createTime: "2025-01-15T10:30:00Z"
                 failure:
-                  summary: 获取失败
+                  summary: 获取帖子详情失败
                   value:
                     code: 6122
                     message: 获取帖子详情失败
@@ -5564,13 +5564,13 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 更新成功
+                  summary: 帖子更新成功
                   value:
                     code: 6012
                     message: 帖子更新成功
                     data: null
                 failure:
-                  summary: 更新失败
+                  summary: 帖子更新失败
                   value:
                     code: 6123
                     message: 帖子更新失败
@@ -5598,13 +5598,13 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 删除成功
+                  summary: 帖子删除成功
                   value:
                     code: 6013
                     message: 帖子删除成功
                     data: null
                 failure:
-                  summary: 删除失败
+                  summary: 帖子删除失败
                   value:
                     code: 6124
                     message: 帖子删除失败
@@ -5669,13 +5669,13 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 取消成功
+                  summary: 已取消点赞
                   value:
                     code: 6015
                     message: 已取消点赞
                     data: null
                 failure:
-                  summary: 取消失败
+                  summary: 取消点赞失败
                   value:
                     code: 6126
                     message: 取消点赞失败
@@ -5711,19 +5711,29 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CommentListResponse'
-              example:
-                code: 200
-                data:
-                  list:
-                    - id: "1"
-                      postId: "1"
-                      userId: "cy100002"
-                      username: "茶友"
-                      avatar: "/images/avatar.png"
-                      content: "写得很好"
-                      likeCount: 5
-                      createTime: "2025-01-15T11:00:00Z"
-                  total: 20
+              examples:
+                success:
+                  summary: 获取成功
+                  value:
+                    code: 200
+                    message: 操作成功
+                    data:
+                      list:
+                        - id: "1"
+                          postId: "1"
+                          userId: "cy100002"
+                          username: "茶友"
+                          avatar: "/images/avatar.png"
+                          content: "写得很好"
+                          likeCount: 5
+                          createTime: "2025-01-15T11:00:00Z"
+                      total: 20
+                failure:
+                  summary: 获取失败
+                  value:
+                    code: 6129
+                    message: 获取回复列表失败
+                    data: null
     post:
       operationId: addPostComment
       tags:
@@ -5765,12 +5775,14 @@ paths:
                 success:
                   summary: 发表成功
                   value:
-                    code: 6020
+                    code: 6018
+                    message: 回复发布成功
                     data: null
                 failure:
                   summary: 发表失败
                   value:
-                    code: 6120
+                    code: 6130
+                    message: 回复发布失败
                     data: null
 
   /forum/replies/{id}:
@@ -5799,12 +5811,14 @@ paths:
                 success:
                   summary: 删除成功
                   value:
-                    code: 6021
+                    code: 6019
+                    message: 评论已删除
                     data: null
                 failure:
                   summary: 删除失败
                   value:
-                    code: 6121
+                    code: 6131
+                    message: 评论删除失败
                     data: null
 
   /forum/replies/{id}/like:
@@ -5829,9 +5843,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 6010
-                data: null
+              examples:
+                success:
+                  summary: 点赞成功
+                  value:
+                    code: 6020
+                    message: 点赞成功
+                    data: null
+                failure:
+                  summary: 点赞失败
+                  value:
+                    code: 6132
+                    message: 点赞失败
+                    data: null
     delete:
       operationId: unlikeComment
       tags:
@@ -5853,9 +5877,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 6011
-                data: null
+              examples:
+                success:
+                  summary: 取消成功
+                  value:
+                    code: 6021
+                    message: 已取消点赞
+                    data: null
+                failure:
+                  summary: 取消失败
+                  value:
+                    code: 6133
+                    message: 取消点赞失败
+                    data: null
 
   /forum/posts/{id}/favorite:
     post:
@@ -5879,9 +5913,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 6012
-                data: null
+              examples:
+                success:
+                  summary: 收藏成功
+                  value:
+                    code: 6016
+                    message: 收藏成功
+                    data: null
+                failure:
+                  summary: 收藏失败
+                  value:
+                    code: 6127
+                    message: 收藏失败
+                    data: null
 
     delete:
       operationId: unfavoritePost
@@ -5904,9 +5948,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 6013
-                data: null
+              examples:
+                success:
+                  summary: 取消成功
+                  value:
+                    code: 6017
+                    message: 已取消收藏
+                    data: null
+                failure:
+                  summary: 取消失败
+                  value:
+                    code: 6128
+                    message: 取消收藏失败
+                    data: null
 
   /forum/posts/{id}/approve:
     post:
@@ -5930,9 +5984,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 6034
-                data: null
+              examples:
+                success:
+                  summary: 审核成功
+                  value:
+                    code: 6022
+                    message: 帖子审核通过
+                    data: null
+                failure:
+                  summary: 审核失败
+                  value:
+                    code: 6134
+                    message: 审核通过失败
+                    data: null
 
   /forum/posts/{id}/reject:
     post:
@@ -5968,9 +6032,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 6035
-                data: null
+              examples:
+                success:
+                  summary: 审核成功
+                  value:
+                    code: 6023
+                    message: 帖子审核拒绝
+                    data: null
+                failure:
+                  summary: 审核失败
+                  value:
+                    code: 6135
+                    message: 审核拒绝失败
+                    data: null
 
   /forum/posts/{id}/sticky:
     put:
@@ -5999,9 +6073,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 6030
-                data: null
+              examples:
+                success_sticky:
+                  summary: 置顶成功
+                  value:
+                    code: 6024
+                    message: 帖子已置顶
+                    data: null
+                success_unsticky:
+                  summary: 取消置顶成功
+                  value:
+                    code: 6025
+                    message: 帖子已取消置顶
+                    data: null
+                failure_sticky:
+                  summary: 置顶失败
+                  value:
+                    code: 6136
+                    message: 置顶失败
+                    data: null
+                failure_unsticky:
+                  summary: 取消置顶失败
+                  value:
+                    code: 6137
+                    message: 取消置顶失败
+                    data: null
 
   /forum/posts/{id}/essence:
     put:
@@ -6030,9 +6126,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 6032
-                data: null
+              examples:
+                success_essence:
+                  summary: 加精成功
+                  value:
+                    code: 6026
+                    message: 帖子已加精
+                    data: null
+                success_unessence:
+                  summary: 取消加精成功
+                  value:
+                    code: 6027
+                    message: 帖子已取消加精
+                    data: null
+                failure_essence:
+                  summary: 加精失败
+                  value:
+                    code: 6138
+                    message: 加精失败
+                    data: null
+                failure_unessence:
+                  summary: 取消加精失败
+                  value:
+                    code: 6139
+                    message: 取消加精失败
+                    data: null
 
   /forum/articles:
     get:
@@ -6067,19 +6185,29 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ArticleListResponse'
-              example:
-                code: 200
-                data:
-                  list:
-                    - id: "1"
-                      title: "商南茶的历史"
-                      summary: "商南茶有着悠久的历史..."
-                      coverImage: "/images/article1.jpg"
-                      authorId: "cy100001"
-                      authorName: "管理员"
-                      viewCount: 500
-                      createTime: "2025-01-01T00:00:00Z"
-                  total: 20
+              examples:
+                success:
+                  summary: 获取成功
+                  value:
+                    code: 200
+                    message: 操作成功
+                    data:
+                      list:
+                        - id: "1"
+                          title: "商南茶的历史"
+                          summary: "商南茶有着悠久的历史..."
+                          coverImage: "/images/article1.jpg"
+                          authorId: "cy100001"
+                          authorName: "管理员"
+                          viewCount: 500
+                          createTime: "2025-01-01T00:00:00Z"
+                      total: 20
+                failure:
+                  summary: 获取失败
+                  value:
+                    code: 6109
+                    message: 获取文章列表失败
+                    data: null
     post:
       operationId: createArticle
       tags:
@@ -6111,12 +6239,14 @@ paths:
                 success:
                   summary: 创建成功
                   value:
-                    code: 6040
+                    code: 6005
+                    message: 文章创建成功
                     data: null
                 failure:
                   summary: 创建失败
                   value:
-                    code: 6140
+                    code: 6111
+                    message: 文章创建失败
                     data: null
 
   /forum/articles/{id}:
