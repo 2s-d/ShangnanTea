@@ -350,8 +350,8 @@ export function useTokenStorage() {
         const decoded = atob(base64)
         // 然后进行URI解码
         jsonPayload = decodeURIComponent(decoded.split('').map(function(c) {
-          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
-        }).join(''))
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+      }).join(''))
       } catch (decodeError) {
         console.error('decodeToken: base64解码失败:', decodeError, 'payload:', payload.substring(0, 50))
         return null
