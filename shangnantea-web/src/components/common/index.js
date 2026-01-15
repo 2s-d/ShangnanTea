@@ -58,28 +58,40 @@ const message = {
     console.log('已清除所有消息状态')
   },
   
-  success(msg, options = {}) {
+  success(msg, duration = 3000) {
     // 默认启用重复检测
     if (!msg || this._isDuplicate(msg)) return
-    ElMessage.success(msg)
+    ElMessage.success({
+      message: msg,
+      duration: duration
+    })
   },
   
-  warning(msg, options = {}) {
+  warning(msg, duration = 4000) {
     // 默认启用重复检测
     if (!msg || this._isDuplicate(msg)) return
-    ElMessage.warning(msg)
+    ElMessage.warning({
+      message: msg,
+      duration: duration
+    })
   },
   
-  info(msg, options = {}) {
+  info(msg, duration = 3000) {
     // 默认启用重复检测
     if (!msg || this._isDuplicate(msg)) return
-    ElMessage.info(msg)
+    ElMessage.info({
+      message: msg,
+      duration: duration
+    })
   },
   
-  error(msg, options = {}) {
+  error(msg, duration = 5000) {
     // 默认启用重复检测
     if (!msg || this._isDuplicate(msg)) return
-    ElMessage.error(msg)
+    ElMessage.error({
+      message: msg,
+      duration: duration
+    })
   }
 }
 
