@@ -6432,15 +6432,25 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 200
-                data:
-                  id: 1
-                  type: "system"
-                  title: "系统通知"
-                  content: "欢迎使用商南茶城"
-                  isRead: true
-                  createTime: "2025-01-01T12:00:00Z"
+              examples:
+                success:
+                  summary: 获取消息详情成功
+                  value:
+                    code: 200
+                    message: 操作成功
+                    data:
+                      id: 1
+                      type: "system"
+                      title: "系统通知"
+                      content: "欢迎使用商南茶城"
+                      isRead: true
+                      createTime: "2025-01-01T12:00:00Z"
+                failure:
+                  summary: 获取消息详情失败
+                  value:
+                    code: 7101
+                    message: 加载失败
+                    data: null
 
   /message/send:
     post:
@@ -6477,9 +6487,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 7000
-                data: null
+              examples:
+                success:
+                  summary: 发送消息成功
+                  value:
+                    code: 7000
+                    message: 消息已发送
+                    data: null
+                failure:
+                  summary: 发送消息失败
+                  value:
+                    code: 7102
+                    message: 发送失败
+                    data: null
 
   /message/read:
     post:
@@ -6511,9 +6531,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 7010
-                data: null
+              examples:
+                success:
+                  summary: 标记消息为已读成功
+                  value:
+                    code: 7001
+                    message: 已标记为已读
+                    data: null
+                failure:
+                  summary: 标记消息为已读失败
+                  value:
+                    code: 7103
+                    message: 标记失败
+                    data: null
 
   /message/delete:
     post:
@@ -6545,9 +6575,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 7012
-                data: null
+              examples:
+                success:
+                  summary: 删除消息成功
+                  value:
+                    code: 7002
+                    message: 消息已删除
+                    data: null
+                failure:
+                  summary: 删除消息失败
+                  value:
+                    code: 7104
+                    message: 删除失败
+                    data: null
 
   /message/unread-count:
     get:
@@ -6565,12 +6605,22 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UnreadCountResponse'
-              example:
-                code: 200
-                data:
-                  total: 10
-                  system: 3
-                  chat: 7
+              examples:
+                success:
+                  summary: 获取未读消息数成功
+                  value:
+                    code: 200
+                    message: 操作成功
+                    data:
+                      total: 10
+                      system: 3
+                      chat: 7
+                failure:
+                  summary: 获取未读消息数失败
+                  value:
+                    code: 7105
+                    message: 加载失败
+                    data: null
 
   /message/list/sessions:
     get:
@@ -6588,18 +6638,28 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 200
-                data:
-                  - sessionId: "session_1"
-                    targetUser:
-                      id: "cy100003"
-                      username: "茶友"
-                      avatar: "/images/avatar.png"
-                    lastMessage: "你好"
-                    lastMessageTime: "2025-01-01T12:00:00Z"
-                    unreadCount: 2
-                    isPinned: false
+              examples:
+                success:
+                  summary: 获取聊天会话列表成功
+                  value:
+                    code: 200
+                    message: 操作成功
+                    data:
+                      - sessionId: "session_1"
+                        targetUser:
+                          id: "cy100003"
+                          username: "茶友"
+                          avatar: "/images/avatar.png"
+                        lastMessage: "你好"
+                        lastMessageTime: "2025-01-01T12:00:00Z"
+                        unreadCount: 2
+                        isPinned: false
+                failure:
+                  summary: 获取聊天会话列表失败
+                  value:
+                    code: 7106
+                    message: 加载失败
+                    data: null
 
   /message/list/history:
     get:
@@ -6631,17 +6691,27 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 200
-                data:
-                  list:
-                    - id: 1
-                      senderId: "cy100002"
-                      receiverId: "cy100003"
-                      content: "你好"
-                      type: "text"
-                      createTime: "2025-01-01T12:00:00Z"
-                  total: 50
+              examples:
+                success:
+                  summary: 获取聊天记录成功
+                  value:
+                    code: 200
+                    message: 操作成功
+                    data:
+                      list:
+                        - id: 1
+                          senderId: "cy100002"
+                          receiverId: "cy100003"
+                          content: "你好"
+                          type: "text"
+                          createTime: "2025-01-01T12:00:00Z"
+                      total: 50
+                failure:
+                  summary: 获取聊天记录失败
+                  value:
+                    code: 7112
+                    message: 加载失败
+                    data: null
 
   /message/sessions:
     post:
