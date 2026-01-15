@@ -50,9 +50,8 @@
 | 29 | 967 | POST | /user/admin/users | 创建管理员账号（管理员） |
 | 30 | 998 | PUT | /user/admin/users/{userId} | 更新用户信息（管理员） |
 | 31 | 1032 | DELETE | /user/admin/users/{userId} | 删除用户（管理员） |
-| 32 | 1058 | PUT | /user/admin/users/{userId}/role | 更新用户角色（管理员，已废弃） |
-| 33 | 1096 | PUT | /user/admin/users/{userId}/status | 启用/禁用用户（管理员） |
-| 34 | 1134 | GET | /user/admin/certifications | 获取商家认证申请列表（管理员） |
+| 32 | 1096 | PUT | /user/admin/users/{userId}/status | 启用/禁用用户（管理员） |
+| 33 | 1134 | GET | /user/admin/certifications | 获取商家认证申请列表（管理员） |
 | 35 | 1178 | PUT | /user/admin/certifications/{id} | 审核认证申请（管理员） |
 
 ---

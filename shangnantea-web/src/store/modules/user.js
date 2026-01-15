@@ -32,7 +32,6 @@ import {
   createAdmin as createAdminApi,
   updateUser as updateUserApi,
   deleteUser as deleteUserApi,
-  updateUserRole as updateUserRoleApi,
   toggleUserStatus as toggleUserStatusApi,
   getCertificationList,
   processCertification as processCertificationApi
@@ -1115,26 +1114,6 @@ const actions = {
       return res // 返回 {code, data}，组件调用showByCode(res.code)
     } catch (error) {
       console.error('获取用户列表失败:', error)
-      throw error
-    } finally {
-      commit('SET_LOADING', false)
-    }
-  },
-  
-  /**
-   * 更新用户角色（管理员）
-   * @param {Object} context Vuex context
-   * @param {Object} data { userId, role }
-   * @returns {Promise} 更新结果
-   */
-  async updateUserRole({ commit }, { userId, role }) {
-    commit('SET_LOADING', true)
-    try {
-      await updateUserRoleApi(userId, role)
-      commit('UPDATE_USER_IN_LIST', { id: userId, role })
-      return true
-    } catch (error) {
-      console.error('更新用户角色失败:', error)
       throw error
     } finally {
       commit('SET_LOADING', false)

@@ -1362,9 +1362,8 @@
 | 29 | createAdmin | POST | /user/admin/users | 2023 | 2123, 2124 | 创建管理员 |
 | 30 | updateUser | PUT | /user/admin/users/{userId} | 2022 | 2123, 2124 | 更新用户 |
 | 31 | deleteUser | DELETE | /user/admin/users/{userId} | 2020 | 2121, 2124 | 删除用户 |
-| 32 | updateUserRole | PUT | /user/admin/users/{userId}/role | 1000 | 1100, 2124 | 更新用户角色（已废弃） |
-| 33 | toggleUserStatus | PUT | /user/admin/users/{userId}/status | 2021 | 2122, 2124 | 切换用户状态 |
-| 34 | getCertificationList | GET | /user/admin/certifications | 200 | 1102, 2124 | 获取认证列表 |
+| 32 | toggleUserStatus | PUT | /user/admin/users/{userId}/status | 2021 | 2122, 2124 | 切换用户状态 |
+| 33 | getCertificationList | GET | /user/admin/certifications | 200 | 1102, 2124 | 获取认证列表 |
 | 35 | processCertification | PUT | /user/admin/certifications/{id} | 1000 | 1100, 2124 | 审核认证 |
 
 

@@ -1090,44 +1090,6 @@ paths:
                 code: 2020
                 data: null
 
-  /user/admin/users/{userId}/role:
-    put:
-      operationId: adminUpdateUserRole
-      tags:
-        - 用户模块
-      summary: 更新用户角色（管理员，已废弃）
-      description: 管理员更新用户角色（此接口已废弃）
-      deprecated: true
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [role]
-              properties:
-                role:
-                  type: integer
-                  enum: [1, 2, 3]
-      responses:
-        '200':
-          description: 更新成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 2022
-                data: null
-
   /user/admin/users/{userId}/status:
     put:
       operationId: adminUpdateUserStatus

@@ -521,23 +521,6 @@ public class UserController {
     }
 
     /**
-     * 更新用户角色（管理员，已废弃）
-     * 路径: PUT /user/admin/users/{userId}/role
-     * 注意: 此接口已废弃，角色变更应通过商家认证审核实现
-     *
-     * @param userId 用户ID
-     * @param roleData 角色数据
-     * @return 更新结果
-     */
-    @PutMapping("/admin/users/{userId}/role")
-    @RequiresRoles({1}) // 管理员角色
-    @Deprecated
-    public Result<Boolean> updateUserRole(@PathVariable String userId, @RequestBody Map<String, Object> roleData) {
-        logger.warn("使用已废弃的更新用户角色接口: {}", userId);
-        return userService.updateUserRole(userId, roleData);
-    }
-
-    /**
      * 启用/禁用用户（管理员）
      * 路径: PUT /user/admin/users/{userId}/status
      * 成功码: 2021, 失败码: 2122, 2124

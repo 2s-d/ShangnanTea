@@ -385,25 +385,6 @@ export function deleteUser(userId) {
 }
 
 /**
- * 更新用户角色（仅管理员）
- * @deprecated 已废弃：根据设计规范，管理员不能随意修改用户角色权限
- * 角色变更只能通过以下方式：
- * - 注册：固定为普通用户（role=2）
- * - 商家认证审核通过：普通用户（role=2）自动变为商家（role=3）
- * - 管理员账号：通过"添加管理员"功能创建（role=1）
- * @param {String} userId 用户ID
- * @param {Object} data 角色数据 {role}
- * @returns {Promise} 更新结果
- */
-export function updateUserRole(userId, data) {
-  return request({
-    url: `${API.USER.ADMIN_USERS}/${userId}/role`,
-    method: 'put',
-    data
-  })
-}
-
-/**
  * 启用/禁用用户（仅管理员）
  * @param {String} userId 用户ID
  * @param {Object} data 状态数据 {status}
