@@ -36,7 +36,10 @@ import { apiMessage } from './messageManager'
 // 这些状态码不会显示消息给用户，但会在开发环境记录日志
 // ⚠️ 必须与 docs/code-message-mapping.md 中的 [静默] 标注完全一致
 const SILENT_CODES = [
-我  // 将从文档中提取，待实现
+  200,  // HTTP成功 - 静默
+  2013, // 接口20: removeFollow - 已取消关注
+  2015, // 接口23: removeFavorite - 已取消收藏
+  2017  // 接口25: removeLike - 已取消点赞
 ]
 
 // 状态码消息映射表
@@ -52,8 +55,144 @@ export const CODE_MAP = {
   404: '资源不存在',
   500: '服务器错误',
 
-  // ========== 通用模块 (1xxx) ==========
-  // 将从文档中提取，待实现
+  // ========== 用户模块 (2xxx) ==========
+  // 接口1: login - /user/login
+  2000: '登录成功',
+  2100: '登录失败，请检查用户名和密码',
+  2101: '登录失败，服务器Token生成失败',
+  
+  // 接口2: register - /user/register
+  2001: '注册成功，请登录',
+  2102: '注册失败，用户名已存在或数据格式错误',
+  
+  // 接口3: logout - /user/logout
+  2002: '已安全退出系统',
+  2103: '退出登录失败',
+  
+  // 接口4: getCurrentUser - /user/me
+  2104: '获取当前用户信息失败',
+  
+  // 接口5: refreshToken - /user/refresh
+  2105: '刷新令牌失败',
+  2106: '您的登录已过期，请重新登录',
+  
+  // 接口6: getUserInfo - /user/{userId}
+  2107: '获取用户信息失败',
+  
+  // 接口7: updateUserInfo - /user
+  2003: '个人资料更新成功',
+  2108: '个人资料更新失败',
+  
+  // 接口8: uploadAvatar - /user/avatar
+  2004: '头像更新成功',
+  2109: '头像更新失败',
+  2110: '不支持的文件类型',
+  2111: '文件大小超限',
+  
+  // 接口9: changePassword - /user/password
+  2005: '密码修改成功，请使用新密码登录',
+  2112: '密码修改失败，请检查原密码是否正确',
+  2113: '两次输入的密码不一致',
+  
+  // 接口10: resetPassword - /user/password/reset
+  2006: '密码重置成功',
+  2114: '密码重置失败',
+  
+  // 接口11: getAddressList - /user/addresses
+  2115: '获取地址失败',
+  
+  // 接口12: addAddress - /user/addresses
+  2007: '地址添加成功',
+  2116: '保存地址失败',
+  
+  // 接口13: updateAddress - /user/addresses/{id}
+  2008: '更新成功',
+  2117: '保存地址失败',
+  
+  // 接口14: deleteAddress - /user/addresses/{id}
+  2009: '删除成功',
+  2118: '操作失败',
+  
+  // 接口15: setDefaultAddress - /user/addresses/{id}/default
+  2010: '更新成功',
+  2119: '操作失败',
+  
+  // 接口16: submitShopCertification - /user/shop-certification
+  2011: '操作成功',
+  2120: '操作失败',
+  
+  // 接口17: getShopCertificationStatus - /user/shop-certification
+  2121: '加载失败',
+  
+  // 接口18: getFollowList - /user/follows
+  2122: '加载失败',
+  
+  // 接口19: addFollow - /user/follows
+  2012: '已关注店铺',
+  2123: '操作失败',
+  
+  // 接口20: removeFollow - /user/follows/{id}
+  2013: '已取消关注',
+  2124: '操作失败',
+  
+  // 接口21: getFavoriteList - /user/favorites
+  2125: '加载失败',
+  
+  // 接口22: addFavorite - /user/favorites
+  2014: '已收藏',
+  2126: '操作失败',
+  
+  // 接口23: removeFavorite - /user/favorites/{id}
+  2015: '已取消收藏',
+  2127: '操作失败',
+  
+  // 接口24: addLike - /user/likes
+  2016: '点赞成功',
+  2128: '点赞失败',
+  
+  // 接口25: removeLike - /user/likes/{id}
+  2017: '已取消点赞',
+  2129: '取消点赞失败',
+  
+  // 接口26: getUserPreferences - /user/preferences
+  2130: '加载失败',
+  
+  // 接口27: updateUserPreferences - /user/preferences
+  2018: '偏好设置更新成功',
+  2131: '偏好设置更新失败',
+  
+  // 接口28: getAdminUserList - /user/admin/users
+  2132: '获取用户列表失败',
+  2133: '您没有权限执行此操作',
+  
+  // 接口29: createAdmin - /user/admin/users
+  2019: '管理员已添加',
+  2134: '提交失败',
+  2135: '您没有权限执行此操作',
+  
+  // 接口30: updateUser - /user/admin/users/{userId}
+  2020: '用户已更新',
+  2136: '提交失败',
+  2137: '您没有权限执行此操作',
+  
+  // 接口31: deleteUser - /user/admin/users/{userId}
+  2021: '用户已删除',
+  2138: '删除用户失败',
+  2139: '您没有权限执行此操作',
+  
+  // 接口32: toggleUserStatus - /user/admin/users/{userId}/status
+  2022: '用户状态已修改',
+  2140: '修改用户状态失败',
+  2141: '您没有权限执行此操作',
+  
+  // 接口33: getCertificationList - /user/admin/certifications
+  2142: '加载失败',
+  2143: '您没有权限执行此操作',
+  
+  // 接口34: processCertification - /user/admin/certifications/{id}
+  2023: '操作成功',
+  2144: '操作失败',
+  2145: '您没有权限执行此操作',
   
 }
 
