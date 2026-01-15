@@ -5,11 +5,17 @@
  * - 根据状态码获取对应消息
  * - 自动显示成功/错误消息
  * - 判断响应是否成功
+ * - 支持静默状态码（不显示消息）
  * 
  * 状态码规则：
- * - 200: HTTP成功（静默，不显示消息）
- * - x0xx: 业务成功码（需要显示消息）
- * - x1xx: 业务失败码（需要显示消息）
+ * - 200: HTTP成功（查询类静默）
+ * - x0xx: 业务成功码（部分静默，如查询类、轻量级操作）
+ * - x1xx: 业务失败码（全部显示）
+ * 
+ * 静默状态码列表：
+ * - 查询类成功码（200、3000、3001等）
+ * - 后台自动操作（refreshToken的200）
+ * - 轻量级操作（取消点赞、取消收藏、取消关注、标记已读等）
  * 
  * 与 docs/code-message-mapping.md 保持同步
  * 最后更新: 2026-01-13
@@ -17,10 +23,31 @@
 
 import { apiMessage } from './messageManager'
 
+// 静默状态码列表 - 这些状态码不会显示消息给用户
+// 基于 docs/code-message-mapping.md 文档中的 [静默] 标注
+const SILENT_CODES = [
+  // HTTP 200 - 所有查询类成功（GET请求）
+  200,
+  
+  // 查询类成功码
+  3000, // 茶叶列表加载成功
+  3001, // 茶叶详情加载成功
+  
+  // 轻量级操作（UI已反馈，无需额外消息）
+  3011, // 已取消收藏（茶叶）
+  5001, // 已取消关注
+  6011, // 已取消点赞
+  6013, // 已取消收藏（帖子）
+  
+  // 后台自动操作
+  7010, // 通知已标记为已读
+  7011, // 所有通知已标记为已读
+]
+
 // 状态码消息映射表
-// 基于 docs/code-message-mapping.md 文档，与167个接口完全对应
+// 基于 docs/code-message-mapping.md 文档，从166个接口中提取的所有状态码
 export const CODE_MAP = {
-  // HTTP状态码
+  // ========== HTTP状态码 ==========
   200: '操作成功',
   400: '请求错误',
   401: '未认证',
@@ -307,6 +334,15 @@ export const CODE_MAP = {
 }
 
 /**
+ * 检查状态码是否在静默列表中
+ * @param {number} code - 状态码
+ * @returns {boolean} 是否静默
+ */
+function isSilentCode(code) {
+  return SILENT_CODES.includes(code)
+}
+
+/**
  * 根据状态码获取对应消息
  * @param {number} code - 状态码
  * @returns {string} 对应的消息文本
@@ -321,6 +357,16 @@ export function getMessageByCode(code) {
  * @param {string} customMessage - 自定义消息（可选）
  */
 export function showByCode(code, customMessage = null) {
+  // 检查是否为静默状态码
+  if (isSilentCode(code)) {
+    // 静默状态码不显示消息，但仍记录日志（开发环境）
+    if (process.env.NODE_ENV === 'development') {
+      const message = customMessage || getMessageByCode(code)
+      console.log(`[静默] ${message} (状态码: ${code})`)
+    }
+    return
+  }
+  
   const message = customMessage || getMessageByCode(code)
   
   if (isSuccess(code)) {
