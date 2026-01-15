@@ -20,7 +20,8 @@
     "check:build": "node tools/check-build-errors.js",
     "check:build:quick": "node tools/check-build-errors.js --quick",
     "test:task-group": "node tools/test-task-group.js",
-    "test:browser": "node tools/run-browser-test.js"
+    "test:browser": "node tools/run-browser-test.js",
+    "auto-commit": "powershell -ExecutionPolicy Bypass -File ..\\auto-commit.ps1"
   },
   "dependencies": {
     "axios": "^0.27.2",
