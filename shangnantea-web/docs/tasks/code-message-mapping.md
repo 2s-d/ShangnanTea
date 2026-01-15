@@ -1381,20 +1381,20 @@
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 26 | getUserPreferences | GET | /user/preferences | 200 | 1102 | 获取用户偏好设置 |
-| 27 | updateUserPreferences | PUT | /user/preferences | 2013 | 2114 | 更新用户偏好设置 |
+| 26 | getUserPreferences | GET | /user/preferences | 200 | 2130 | 获取用户偏好设置 |
+| 27 | updateUserPreferences | PUT | /user/preferences | 2018 | 2131 | 更新用户偏好设置 |
 
 ### 1.7 管理员用户管理 (7个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 28 | getAdminUserList | GET | /user/admin/users | 200 | 2120, 2124 | 获取用户列表 |
-| 29 | createAdmin | POST | /user/admin/users | 2023 | 2123, 2124 | 创建管理员 |
-| 30 | updateUser | PUT | /user/admin/users/{userId} | 2022 | 2123, 2124 | 更新用户 |
-| 31 | deleteUser | DELETE | /user/admin/users/{userId} | 2020 | 2121, 2124 | 删除用户 |
-| 32 | toggleUserStatus | PUT | /user/admin/users/{userId}/status | 2021 | 2122, 2124 | 切换用户状态 |
-| 33 | getCertificationList | GET | /user/admin/certifications | 200 | 1102, 2124 | 获取认证列表 |
-| 35 | processCertification | PUT | /user/admin/certifications/{id} | 1000 | 1100, 2124 | 审核认证 |
+| 28 | getAdminUserList | GET | /user/admin/users | 200 | 2132, 2133 | 获取用户列表 |
+| 29 | createAdmin | POST | /user/admin/users | 2019 | 2134, 2135 | 创建管理员 |
+| 30 | updateUser | PUT | /user/admin/users/{userId} | 2020 | 2136, 2137 | 更新用户 |
+| 31 | deleteUser | DELETE | /user/admin/users/{userId} | 2021 | 2138, 2139 | 删除用户 |
+| 32 | toggleUserStatus | PUT | /user/admin/users/{userId}/status | 2022 | 2140, 2141 | 切换用户状态 |
+| 33 | getCertificationList | GET | /user/admin/certifications | 200 | 2142, 2143 | 获取认证列表 |
+| 35 | processCertification | PUT | /user/admin/certifications/{id} | 2023 | 2144, 2145 | 审核认证 |
 
 
 ## 二、茶叶模块接口 (tea.js) - 共26个接口
