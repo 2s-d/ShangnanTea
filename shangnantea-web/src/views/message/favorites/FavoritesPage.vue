@@ -369,10 +369,16 @@ export default {
     // 加载收藏列表
     const loadFavoriteList = async () => {
       try {
-        await store.dispatch('user/fetchFavoriteList')
+        const response = await store.dispatch('user/fetchFavoriteList')
+        // 显示API响应消息（成功或失败都通过状态码映射显示）
+        showByCode(response.code)
       } catch (error) {
-        console.error('加载收藏列表失败:', error)
-        apiMessage.error('加载收藏列表失败')
+        // 捕获意外的运行时错误（非API业务错误）
+        // API业务失败已通过 showByCode 显示，网络错误已在响应拦截器显示
+        // 这里只记录日志用于开发调试
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[开发调试] 加载收藏列表时发生意外错误：', error)
+        }
       }
     }
     

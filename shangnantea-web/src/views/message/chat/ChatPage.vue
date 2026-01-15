@@ -343,8 +343,11 @@ export default {
       try {
         const response = await store.dispatch('message/fetchChatSessions')
         
+        // 显示API响应消息（成功或失败都通过状态码映射显示）
+        showByCode(response.code)
+        
+        // 失败时直接返回
         if (!isSuccess(response.code)) {
-          showByCode(response.code)
           return
         }
 
