@@ -1,4 +1,4 @@
-openapi: 3.0.3
+﻿openapi: 3.0.3
 info:
   title: 商南茶城 API
   description: |
@@ -1149,12 +1149,10 @@ paths:
                   summary: 获取用户列表失败
                   value:
                     code: 2132
-                    message: "获取用户列表失败"
                 forbidden:
                   summary: 权限不足
                   value:
                     code: 2133
-                    message: "您没有权限执行此操作"
     post:
       operationId: adminCreateUser
       tags:
@@ -1186,18 +1184,15 @@ paths:
                   summary: 创建管理员成功
                   value:
                     code: 2019
-                    message: "管理员已添加"
                     data: null
                 failure:
                   summary: 创建管理员失败
                   value:
                     code: 2134
-                    message: "提交失败"
                 forbidden:
                   summary: 权限不足
                   value:
                     code: 2135
-                    message: "您没有权限执行此操作"
 
   /user/admin/users/{userId}:
     put:
@@ -1236,18 +1231,15 @@ paths:
                   summary: 更新用户成功
                   value:
                     code: 2020
-                    message: "用户已更新"
                     data: null
                 failure:
                   summary: 更新用户失败
                   value:
                     code: 2136
-                    message: "提交失败"
                 forbidden:
                   summary: 权限不足
                   value:
                     code: 2137
-                    message: "您没有权限执行此操作"
     delete:
       operationId: adminDeleteUser
       tags:
@@ -1274,18 +1266,15 @@ paths:
                   summary: 删除用户成功
                   value:
                     code: 2021
-                    message: "用户已删除"
                     data: null
                 failure:
                   summary: 删除用户失败
                   value:
                     code: 2138
-                    message: "删除用户失败"
                 forbidden:
                   summary: 权限不足
                   value:
                     code: 2139
-                    message: "您没有权限执行此操作"
 
   /user/admin/users/{userId}/status:
     put:
@@ -1326,18 +1315,15 @@ paths:
                   summary: 切换用户状态成功
                   value:
                     code: 2022
-                    message: "用户状态已修改"
                     data: null
                 failure:
                   summary: 切换用户状态失败
                   value:
                     code: 2140
-                    message: "修改用户状态失败"
                 forbidden:
                   summary: 权限不足
                   value:
                     code: 2141
-                    message: "您没有权限执行此操作"
 
   /user/admin/certifications:
     get:
@@ -1389,12 +1375,10 @@ paths:
                   summary: 获取认证列表失败
                   value:
                     code: 2142
-                    message: "加载失败"
                 forbidden:
                   summary: 权限不足
                   value:
                     code: 2143
-                    message: "您没有权限执行此操作"
 
   /user/admin/certifications/{id}:
     put:
@@ -1438,18 +1422,15 @@ paths:
                   summary: 审核认证成功
                   value:
                     code: 2023
-                    message: "操作成功"
                     data: null
                 failure:
                   summary: 审核认证失败
                   value:
                     code: 2144
-                    message: "操作失败"
                 forbidden:
                   summary: 权限不足
                   value:
                     code: 2145
-                    message: "您没有权限执行此操作"
 
   # ==================== 茶叶模块 ====================
   /tea/list:
@@ -1515,7 +1496,6 @@ paths:
                   summary: 获取茶叶列表成功
                   value:
                     code: 3000
-                    message: "茶叶列表加载成功"
                     data:
                       list:
                         - id: "1"
@@ -1536,7 +1516,6 @@ paths:
                   summary: 获取茶叶列表失败
                   value:
                     code: 3100
-                    message: "加载茶叶数据失败"
     post:
       operationId: addTea
       tags:
@@ -1573,13 +1552,11 @@ paths:
                   summary: 添加茶叶成功
                   value:
                     code: 3001
-                    message: "茶叶添加成功"
                     data: null
                 failure:
                   summary: 添加茶叶失败
                   value:
                     code: 3101
-                    message: "操作失败"
 
   /tea/{id}:
     get:
@@ -1622,7 +1599,6 @@ paths:
                   summary: 获取茶叶详情失败
                   value:
                     code: 3102
-                    message: "加载茶叶详情失败"
     put:
       operationId: updateTea
       tags:
@@ -1655,13 +1631,11 @@ paths:
                   summary: 更新茶叶成功
                   value:
                     code: 3002
-                    message: "茶叶更新成功"
                     data: null
                 failure:
                   summary: 更新茶叶失败
                   value:
                     code: 3103
-                    message: "操作失败"
     delete:
       operationId: deleteTea
       tags:
@@ -1688,13 +1662,11 @@ paths:
                   summary: 删除茶叶成功
                   value:
                     code: 3003
-                    message: "删除成功"
                     data: null
                 failure:
                   summary: 删除茶叶失败
                   value:
                     code: 3104
-                    message: "删除失败"
 
   /tea/categories:
     get:
@@ -1730,7 +1702,6 @@ paths:
                   summary: 获取分类列表失败
                   value:
                     code: 3106
-                    message: "操作失败"
     post:
       operationId: createTeaCategory
       tags:
@@ -1762,13 +1733,11 @@ paths:
                   summary: 创建分类成功
                   value:
                     code: 3004
-                    message: "分类创建成功"
                     data: null
                 failure:
                   summary: 创建分类失败
                   value:
                     code: 3107
-                    message: "操作失败"
 
   /tea/categories/{id}:
     put:
@@ -1803,13 +1772,11 @@ paths:
                   summary: 更新分类成功
                   value:
                     code: 3005
-                    message: "分类更新成功"
                     data: null
                 failure:
                   summary: 更新分类失败
                   value:
                     code: 3108
-                    message: "操作失败"
     delete:
       operationId: deleteTeaCategory
       tags:
@@ -1836,13 +1803,11 @@ paths:
                   summary: 删除分类成功
                   value:
                     code: 3006
-                    message: "分类删除成功"
                     data: null
                 failure:
                   summary: 删除分类失败
                   value:
                     code: 3109
-                    message: "删除分类失败"
 
   /tea/{teaId}/reviews:
     get:
@@ -1894,7 +1859,6 @@ paths:
                   summary: 获取评价列表失败
                   value:
                     code: 3110
-                    message: "加载失败"
 
   /tea/{teaId}/reviews/stats:
     get:
@@ -1934,7 +1898,6 @@ paths:
                   summary: 获取评价统计失败
                   value:
                     code: 3111
-                    message: "加载失败"
 
   /tea/reviews:
     post:
@@ -1969,13 +1932,11 @@ paths:
                   summary: 提交评价成功
                   value:
                     code: 3007
-                    message: "评价提交成功，感谢您的反馈"
                     data: null
                 failure:
                   summary: 提交评价失败
                   value:
                     code: 3112
-                    message: "评价提交失败"
 
   /tea/reviews/{reviewId}/reply:
     post:
@@ -2015,13 +1976,11 @@ paths:
                   summary: 回复评价成功
                   value:
                     code: 3008
-                    message: "回复成功"
                     data: null
                 failure:
                   summary: 回复评价失败
                   value:
                     code: 3113
-                    message: "回复失败"
 
   /tea/reviews/{reviewId}/like:
     post:
@@ -2050,13 +2009,11 @@ paths:
                   summary: 点赞评价成功
                   value:
                     code: 3009
-                    message: "点赞成功"
                     data: null
                 failure:
                   summary: 点赞评价失败
                   value:
                     code: 3114
-                    message: "点赞失败"
 
   /tea/{teaId}/specifications:
     get:
@@ -2094,7 +2051,6 @@ paths:
                   summary: 获取规格列表失败
                   value:
                     code: 3115
-                    message: "加载失败"
     post:
       operationId: addTeaSpecification
       tags:
@@ -2132,13 +2088,11 @@ paths:
                   summary: 添加规格成功
                   value:
                     code: 3010
-                    message: "操作成功"
                     data: null
                 failure:
                   summary: 添加规格失败
                   value:
                     code: 3116
-                    message: "操作失败"
 
   /tea/specifications/{specId}:
     put:
@@ -2173,13 +2127,11 @@ paths:
                   summary: 更新规格成功
                   value:
                     code: 3011
-                    message: "更新成功"
                     data: null
                 failure:
                   summary: 更新规格失败
                   value:
                     code: 3117
-                    message: "操作失败"
     delete:
       operationId: deleteTeaSpecification
       tags:
@@ -2206,13 +2158,11 @@ paths:
                   summary: 删除规格成功
                   value:
                     code: 3012
-                    message: "删除成功"
                     data: null
                 failure:
                   summary: 删除规格失败
                   value:
                     code: 3118
-                    message: "操作失败"
 
   /tea/specifications/{specId}/default:
     put:
@@ -2241,13 +2191,11 @@ paths:
                   summary: 设置默认规格成功
                   value:
                     code: 3013
-                    message: "更新成功"
                     data: null
                 failure:
                   summary: 设置默认规格失败
                   value:
                     code: 3119
-                    message: "操作失败"
 
   /tea/{teaId}/images:
     post:
@@ -2289,7 +2237,6 @@ paths:
                   summary: 上传图片成功
                   value:
                     code: 3014
-                    message: "上传成功"
                     data:
                       - id: "img1"
                         url: "/uploads/tea/tea1_1.jpg"
@@ -2297,17 +2244,14 @@ paths:
                   summary: 上传图片失败
                   value:
                     code: 3120
-                    message: "上传失败"
                 file_type_error:
                   summary: 文件类型错误
                   value:
                     code: 3121
-                    message: "不支持的文件类型"
                 file_size_error:
                   summary: 文件过大
                   value:
                     code: 3122
-                    message: "文件大小超限"
 
   /tea/images/{imageId}:
     delete:
@@ -2336,13 +2280,11 @@ paths:
                   summary: 删除图片成功
                   value:
                     code: 3015
-                    message: "删除成功"
                     data: null
                 failure:
                   summary: 删除图片失败
                   value:
                     code: 3123
-                    message: "操作失败"
 
   /tea/images/{imageId}/main:
     put:
@@ -2371,13 +2313,11 @@ paths:
                   summary: 设置主图成功
                   value:
                     code: 3016
-                    message: "更新成功"
                     data: null
                 failure:
                   summary: 设置主图失败
                   value:
                     code: 3124
-                    message: "操作失败"
 
   /tea/images/order:
     put:
@@ -2419,13 +2359,11 @@ paths:
                   summary: 更新图片顺序成功
                   value:
                     code: 3017
-                    message: "更新成功"
                     data: null
                 failure:
                   summary: 更新图片顺序失败
                   value:
                     code: 3125
-                    message: "操作失败"
 
   /tea/{teaId}/status:
     put:
@@ -2465,24 +2403,20 @@ paths:
                   summary: 茶叶上架成功
                   value:
                     code: 3018
-                    message: "上架成功"
                     data: null
                 success_offline:
                   summary: 茶叶下架成功
                   value:
                     code: 3019
-                    message: "下架成功"
                     data: null
                 failure_online:
                   summary: 茶叶上架失败
                   value:
                     code: 3126
-                    message: "上架失败"
                 failure_offline:
                   summary: 茶叶下架失败
                   value:
                     code: 3127
-                    message: "下架失败"
 
   /tea/batch-status:
     put:
@@ -2521,24 +2455,20 @@ paths:
                   summary: 批量上架成功
                   value:
                     code: 3020
-                    message: "批量上架成功"
                     data: null
                 success_offline:
                   summary: 批量下架成功
                   value:
                     code: 3021
-                    message: "批量下架成功"
                     data: null
                 failure_online:
                   summary: 批量上架失败
                   value:
                     code: 3128
-                    message: "批量上架失败"
                 failure_offline:
                   summary: 批量下架失败
                   value:
                     code: 3129
-                    message: "批量下架失败"
 
   /tea/recommend:
     get:
@@ -2586,7 +2516,6 @@ paths:
                   summary: 获取推荐茶叶失败
                   value:
                     code: 3105
-                    message: "加载茶叶数据失败"
 
   # ==================== 店铺模块 ====================
   /shop/list:
@@ -2658,7 +2587,6 @@ paths:
                   summary: 获取店铺列表失败
                   value:
                     code: 4100
-                    message: "加载店铺数据失败"
 
     post:
       operationId: createShop
@@ -2690,13 +2618,11 @@ paths:
                   summary: 创建店铺成功
                   value:
                     code: 4000
-                    message: "操作成功"
                     data: null
                 failure:
                   summary: 创建店铺失败
                   value:
                     code: 4101
-                    message: "操作失败"
 
   /shop/{id}:
     get:
@@ -2736,12 +2662,10 @@ paths:
                   summary: 获取店铺详情失败
                   value:
                     code: 4102
-                    message: "加载店铺信息失败"
                 not_found:
                   summary: 店铺不存在
                   value:
                     code: 4103
-                    message: "店铺信息不存在"
 
     put:
       operationId: updateShop
@@ -2775,13 +2699,11 @@ paths:
                   summary: 更新店铺信息成功
                   value:
                     code: 4001
-                    message: "更新成功"
                     data: null
                 failure:
                   summary: 更新店铺信息失败
                   value:
                     code: 4104
-                    message: "操作失败"
 
   /shop/my:
     get:
@@ -2816,7 +2738,6 @@ paths:
                   summary: 获取我的店铺失败
                   value:
                     code: 4105
-                    message: "加载店铺信息失败"
 
   /shop/{shopId}/teas:
     get:
@@ -2864,7 +2785,6 @@ paths:
                   summary: 获取店铺茶叶失败
                   value:
                     code: 4107
-                    message: "加载店铺数据失败"
     post:
       operationId: addShopTea
       tags:
@@ -2897,13 +2817,11 @@ paths:
                   summary: 添加店铺茶叶成功
                   value:
                     code: 4002
-                    message: "茶叶添加成功"
                     data: null
                 failure:
                   summary: 添加店铺茶叶失败
                   value:
                     code: 4108
-                    message: "操作失败"
 
   /shop/teas/{teaId}:
     put:
@@ -2938,13 +2856,11 @@ paths:
                   summary: 更新店铺茶叶成功
                   value:
                     code: 4003
-                    message: "茶叶更新成功"
                     data: null
                 failure:
                   summary: 更新店铺茶叶失败
                   value:
                     code: 4109
-                    message: "操作失败"
     delete:
       operationId: deleteShopTea
       tags:
@@ -2971,13 +2887,11 @@ paths:
                   summary: 删除店铺茶叶成功
                   value:
                     code: 4004
-                    message: "删除成功"
                     data: null
                 failure:
                   summary: 删除店铺茶叶失败
                   value:
                     code: 4110
-                    message: "删除失败"
 
   /shop/teas/{teaId}/status:
     put:
@@ -3017,24 +2931,20 @@ paths:
                   summary: 茶叶上架成功
                   value:
                     code: 4005
-                    message: "上架成功"
                     data: null
                 success_offline:
                   summary: 茶叶下架成功
                   value:
                     code: 4006
-                    message: "下架成功"
                     data: null
                 failure_online:
                   summary: 茶叶上架失败
                   value:
                     code: 4111
-                    message: "上架失败"
                 failure_offline:
                   summary: 茶叶下架失败
                   value:
                     code: 4112
-                    message: "下架失败"
 
   /shop/{shopId}/statistics:
     get:
@@ -3084,7 +2994,6 @@ paths:
                   summary: 获取店铺统计失败
                   value:
                     code: 4106
-                    message: "加载失败"
 
   /shop/{shopId}/logo:
     post:
@@ -3124,24 +3033,20 @@ paths:
                   summary: 上传Logo成功
                   value:
                     code: 4007
-                    message: "Logo上传成功"
                     data:
                       url: "/uploads/shop/logo_1.jpg"
                 failure:
                   summary: 上传Logo失败
                   value:
                     code: 4113
-                    message: "Logo上传失败"
                 file_type_error:
                   summary: 文件类型错误
                   value:
                     code: 4114
-                    message: "不支持的文件类型"
                 file_size_error:
                   summary: 文件过大
                   value:
                     code: 4115
-                    message: "文件大小超限"
 
   /shop/{shopId}/banners:
     get:
@@ -3178,7 +3083,6 @@ paths:
                   summary: 获取Banner列表失败
                   value:
                     code: 4116
-                    message: "加载Banner列表失败"
     post:
       operationId: uploadShopBanner
       tags:
@@ -3222,23 +3126,19 @@ paths:
                   summary: 上传Banner成功
                   value:
                     code: 4008
-                    message: "Banner添加成功"
                     data: null
                 failure:
                   summary: 上传Banner失败
                   value:
                     code: 4117
-                    message: "保存失败"
                 file_type_error:
                   summary: 文件类型错误
                   value:
                     code: 4118
-                    message: "不支持的文件类型"
                 file_size_error:
                   summary: 文件过大
                   value:
                     code: 4119
-                    message: "文件大小超限"
 
   /shop/banners/{bannerId}:
     put:
@@ -3280,13 +3180,11 @@ paths:
                   summary: 更新Banner成功
                   value:
                     code: 4009
-                    message: "Banner更新成功"
                     data: null
                 failure:
                   summary: 更新Banner失败
                   value:
                     code: 4120
-                    message: "保存失败"
     delete:
       operationId: deleteShopBanner
       tags:
@@ -3313,13 +3211,11 @@ paths:
                   summary: 删除Banner成功
                   value:
                     code: 4010
-                    message: "删除成功"
                     data: null
                 failure:
                   summary: 删除Banner失败
                   value:
                     code: 4121
-                    message: "删除失败"
 
   /shop/banners/order:
     put:
@@ -3358,13 +3254,11 @@ paths:
                   summary: 更新Banner排序成功
                   value:
                     code: 4011
-                    message: "排序更新成功"
                     data: null
                 failure:
                   summary: 更新Banner排序失败
                   value:
                     code: 4122
-                    message: "排序更新失败"
 
   /shop/{shopId}/announcements:
     get:
@@ -3401,7 +3295,6 @@ paths:
                   summary: 获取公告列表失败
                   value:
                     code: 4123
-                    message: "加载公告列表失败"
 
     post:
       operationId: createShopAnnouncement
@@ -3439,13 +3332,11 @@ paths:
                   summary: 创建公告成功
                   value:
                     code: 4012
-                    message: "公告添加成功"
                     data: null
                 failure:
                   summary: 创建公告失败
                   value:
                     code: 4124
-                    message: "保存失败"
 
   /shop/announcements/{announcementId}:
     put:
@@ -3480,13 +3371,11 @@ paths:
                   summary: 更新公告成功
                   value:
                     code: 4013
-                    message: "公告更新成功"
                     data: null
                 failure:
                   summary: 更新公告失败
                   value:
                     code: 4125
-                    message: "保存失败"
 
     delete:
       operationId: deleteShopAnnouncement
@@ -3514,13 +3403,11 @@ paths:
                   summary: 删除公告成功
                   value:
                     code: 4014
-                    message: "删除成功"
                     data: null
                 failure:
                   summary: 删除公告失败
                   value:
                     code: 4126
-                    message: "删除失败"
 
   /shop/{shopId}/follow:
     post:
@@ -3549,13 +3436,11 @@ paths:
                   summary: 关注店铺成功
                   value:
                     code: 4015
-                    message: "已关注店铺"
                     data: null
                 failure:
                   summary: 关注店铺失败
                   value:
                     code: 4127
-                    message: "操作失败"
     delete:
       operationId: unfollowShop
       tags:
@@ -3582,13 +3467,11 @@ paths:
                   summary: 取消关注成功
                   value:
                     code: 4016
-                    message: "已取消关注"
                     data: null
                 failure:
                   summary: 取消关注失败
                   value:
                     code: 4128
-                    message: "操作失败"
 
   /shop/{shopId}/follow-status:
     get:
@@ -3623,7 +3506,6 @@ paths:
                   summary: 获取关注状态失败
                   value:
                     code: 4129
-                    message: "加载失败"
 
   /shop/{shopId}/reviews:
     get:
@@ -3660,7 +3542,6 @@ paths:
                   summary: 获取店铺评价成功
                   value:
                     code: 200
-                    message: 操作成功
                     data:
                       list:
                         - id: 1
@@ -3674,7 +3555,6 @@ paths:
                   summary: 获取店铺评价失败
                   value:
                     code: 4130
-                    message: 加载评价失败
                     data: null
 
     post:
@@ -3724,13 +3604,11 @@ paths:
                   summary: 提交店铺评价成功
                   value:
                     code: 4017
-                    message: "评价提交成功"
                     data: null
                 failure:
                   summary: 提交店铺评价失败
                   value:
                     code: 4131
-                    message: "提交评价失败"
 
   # ==================== 订单模块 ====================
   /order/create:
@@ -3767,7 +3645,6 @@ paths:
                   summary: 订单创建成功
                   value:
                     code: 5005
-                    message: 订单创建成功
                     data:
                       orderId: "order001"
                       totalPrice: 199.00
@@ -3776,19 +3653,16 @@ paths:
                   summary: 创建订单失败
                   value:
                     code: 5110
-                    message: 创建订单失败
                     data: null
                 failure_stock:
                   summary: 商品库存不足
                   value:
                     code: 5111
-                    message: 商品库存不足
                     data: null
                 failure_unavailable:
                   summary: 商品已下架或不可用
                   value:
                     code: 5112
-                    message: 商品已下架或不可用
                     data: null
 
   /order/list:
@@ -3829,7 +3703,6 @@ paths:
                   summary: 获取成功
                   value:
                     code: 200
-                    message: 操作成功
                     data:
                       list:
                         - id: "order001"
@@ -3841,7 +3714,6 @@ paths:
                   summary: 获取失败
                   value:
                     code: 5113
-                    message: 加载失败
                     data: null
 
   /order/{id}:
@@ -3871,7 +3743,6 @@ paths:
                   summary: 获取成功
                   value:
                     code: 200
-                    message: 操作成功
                     data:
                       id: "order001"
                       userId: "cy100002"
@@ -3891,19 +3762,16 @@ paths:
                   summary: 订单不存在
                   value:
                     code: 5114
-                    message: 订单不存在
                     data: null
                 failure_permission:
                   summary: 无权限
                   value:
                     code: 5115
-                    message: 您没有权限操作此订单
                     data: null
                 failure:
                   summary: 获取失败
                   value:
                     code: 5116
-                    message: 获取订单详情失败
                     data: null
 
   /order/pay:
@@ -3944,37 +3812,31 @@ paths:
                   summary: 订单已支付
                   value:
                     code: 5006
-                    message: 订单已支付
                     data: null
                 success:
                   summary: 支付成功
                   value:
                     code: 5007
-                    message: 支付成功
                     data: null
                 failure:
                   summary: 支付失败
                   value:
                     code: 5117
-                    message: 支付失败
                     data: null
                 failure_cancelled:
                   summary: 支付已取消
                   value:
                     code: 5118
-                    message: 支付已取消
                     data: null
                 failure_timeout:
                   summary: 支付超时
                   value:
                     code: 5119
-                    message: 支付超时，订单已自动取消
                     data: null
                 failure_balance:
                   summary: 余额不足
                   value:
                     code: 5120
-                    message: 余额不足
                     data: null
 
   /order/cancel:
@@ -4010,25 +3872,21 @@ paths:
                   summary: 取消成功
                   value:
                     code: 5008
-                    message: 订单已取消
                     data: null
                 failure:
                   summary: 取消失败
                   value:
                     code: 5121
-                    message: 取消订单失败
                     data: null
                 failure_not_found:
                   summary: 订单不存在
                   value:
                     code: 5122
-                    message: 订单不存在
                     data: null
                 failure_permission:
                   summary: 无权限
                   value:
                     code: 5123
-                    message: 您没有权限操作此订单
                     data: null
 
   /order/confirm:
@@ -4064,25 +3922,21 @@ paths:
                   summary: 确认成功
                   value:
                     code: 5009
-                    message: 确认收货成功
                     data: null
                 failure:
                   summary: 确认失败
                   value:
                     code: 5124
-                    message: 确认收货失败
                     data: null
                 failure_not_found:
                   summary: 订单不存在
                   value:
                     code: 5125
-                    message: 订单不存在
                     data: null
                 failure_permission:
                   summary: 无权限
                   value:
                     code: 5126
-                    message: 您没有权限操作此订单
                     data: null
 
   /order/{id}/ship:
@@ -4122,25 +3976,21 @@ paths:
                   summary: 发货成功
                   value:
                     code: 5014
-                    message: 发货成功
                     data: null
                 failure:
                   summary: 发货失败
                   value:
                     code: 5135
-                    message: 发货失败
                     data: null
                 failure_not_found:
                   summary: 订单不存在
                   value:
                     code: 5136
-                    message: 订单不存在
                     data: null
                 failure_permission:
                   summary: 无权限
                   value:
                     code: 5137
-                    message: 您没有权限操作此订单
                     data: null
 
   /order/review:
@@ -4189,13 +4039,11 @@ paths:
                   summary: 评价成功
                   value:
                     code: 5010
-                    message: 评价提交成功，感谢您的反馈
                     data: null
                 failure:
                   summary: 评价失败
                   value:
                     code: 5127
-                    message: 评价提交失败
                     data: null
 
   /order/batch-ship:
@@ -4239,19 +4087,16 @@ paths:
                   summary: 批量发货成功
                   value:
                     code: 5015
-                    message: 批量发货成功
                     data: null
                 failure:
                   summary: 批量发货失败
                   value:
                     code: 5138
-                    message: 批量发货失败
                     data: null
                 failure_permission:
                   summary: 无权限
                   value:
                     code: 5139
-                    message: 您没有权限操作此订单
                     data: null
 
   /order/refund:
@@ -4290,25 +4135,21 @@ paths:
                   summary: 申请成功
                   value:
                     code: 5011
-                    message: 退款申请已提交，等待商家审核
                     data: null
                 failure:
                   summary: 申请失败
                   value:
                     code: 5128
-                    message: 退款申请提交失败
                     data: null
                 failure_not_found:
                   summary: 订单不存在
                   value:
                     code: 5129
-                    message: 订单不存在
                     data: null
                 failure_permission:
                   summary: 无权限
                   value:
                     code: 5130
-                    message: 您没有权限操作此订单
                     data: null
 
   /order/{id}/refund:
@@ -4338,7 +4179,6 @@ paths:
                   summary: 获取成功
                   value:
                     code: 200
-                    message: 操作成功
                     data:
                       id: 1
                       orderId: "1"
@@ -4349,13 +4189,11 @@ paths:
                   summary: 获取失败
                   value:
                     code: 5133
-                    message: 获取退款详情失败
                     data: null
                 failure_not_found:
                   summary: 订单不存在
                   value:
                     code: 5134
-                    message: 订单不存在
                     data: null
 
   /order/{id}/refund/process:
@@ -4400,25 +4238,21 @@ paths:
                   summary: 同意退款
                   value:
                     code: 5012
-                    message: 已同意退款申请
                     data: null
                 success_reject:
                   summary: 拒绝退款
                   value:
                     code: 5013
-                    message: 已拒绝退款申请
                     data: null
                 failure:
                   summary: 处理失败
                   value:
                     code: 5131
-                    message: 退款申请失败
                     data: null
                 failure_permission:
                   summary: 无权限
                   value:
                     code: 5132
-                    message: 您没有权限操作此订单
                     data: null
 
   /order/{id}/logistics:
@@ -4448,7 +4282,6 @@ paths:
                   summary: 查询成功
                   value:
                     code: 200
-                    message: 操作成功
                     data:
                       expressCompany: "顺丰速运"
                       expressNumber: "SF1234567890"
@@ -4461,13 +4294,11 @@ paths:
                   summary: 获取失败
                   value:
                     code: 5140
-                    message: 获取物流信息失败
                     data: null
                 failure_not_found:
                   summary: 订单不存在
                   value:
                     code: 5141
-                    message: 订单不存在
                     data: null
 
   /order/cart:
@@ -4491,7 +4322,6 @@ paths:
                   summary: 获取成功
                   value:
                     code: 200
-                    message: 操作成功
                     data:
                       - id: 1
                         teaId: "1"
@@ -4505,7 +4335,6 @@ paths:
                   summary: 获取失败
                   value:
                     code: 5100
-                    message: 加载失败
                     data: null
 
   /order/cart/add:
@@ -4551,31 +4380,26 @@ paths:
                   summary: 添加成功
                   value:
                     code: 5000
-                    message: 商品已添加到购物车
                     data: null
                 failure_add:
                   summary: 添加失败
                   value:
                     code: 5101
-                    message: 添加失败
                     data: null
                 failure_not_found:
                   summary: 商品不存在
                   value:
                     code: 5102
-                    message: 商品不存在或已下架
                     data: null
                 failure_stock:
                   summary: 库存不足
                   value:
                     code: 5103
-                    message: 商品库存不足
                     data: null
                 failure_limit:
                   summary: 数量上限
                   value:
                     code: 5104
-                    message: 已达到购买数量上限
                     data: null
 
   /order/cart/update:
@@ -4617,31 +4441,26 @@ paths:
                   summary: 更新数量成功
                   value:
                     code: 5001
-                    message: 商品数量已更新
                     data: null
                 success_spec:
                   summary: 更新规格成功
                   value:
                     code: 5002
-                    message: 规格已更新
                     data: null
                 failure:
                   summary: 更新失败
                   value:
                     code: 5105
-                    message: 更新数量失败
                     data: null
                 failure_stock:
                   summary: 库存不足
                   value:
                     code: 5106
-                    message: 商品库存不足
                     data: null
                 failure_limit:
                   summary: 数量上限
                   value:
                     code: 5107
-                    message: 已达到购买数量上限
                     data: null
 
   /order/cart/remove:
@@ -4671,13 +4490,11 @@ paths:
                   summary: 移除成功
                   value:
                     code: 5003
-                    message: 商品已从购物车移除
                     data: null
                 failure:
                   summary: 移除失败
                   value:
                     code: 5108
-                    message: 移除商品失败
                     data: null
 
   /order/cart/clear:
@@ -4701,13 +4518,11 @@ paths:
                   summary: 清空成功
                   value:
                     code: 5004
-                    message: 购物车已清空
                     data: null
                 failure:
                   summary: 清空失败
                   value:
                     code: 5109
-                    message: 清空购物车失败
                     data: null
 
   /order/export:
@@ -4756,13 +4571,11 @@ paths:
                   summary: 导出成功
                   value:
                     code: 200
-                    message: 操作成功
                     data: null
                 failure:
                   summary: 导出失败
                   value:
                     code: 5143
-                    message: 操作失败
                     data: null
             application/octet-stream:
               schema:
@@ -4805,7 +4618,6 @@ paths:
                   summary: 获取成功
                   value:
                     code: 200
-                    message: 操作成功
                     data:
                       totalOrders: 500
                       totalAmount: 50000.00
@@ -4824,7 +4636,6 @@ paths:
                   summary: 获取失败
                   value:
                     code: 5142
-                    message: 加载失败
                     data: null
 
   # ==================== 论坛模块 ====================
@@ -4847,7 +4658,6 @@ paths:
                   summary: 获取成功
                   value:
                     code: 200
-                    message: 操作成功
                     data:
                       banners:
                         - id: 1
@@ -4866,7 +4676,6 @@ paths:
                   summary: 获取失败
                   value:
                     code: 6100
-                    message: 获取首页数据失败
                     data: null
 
     put:
@@ -4896,13 +4705,11 @@ paths:
                   summary: 区块内容已保存
                   value:
                     code: 6000
-                    message: 区块内容已保存
                     data: null
                 failure:
                   summary: 保存失败
                   value:
                     code: 6101
-                    message: 保存失败
                     data: null
 
   /forum/banners:
@@ -4924,7 +4731,6 @@ paths:
                   summary: 操作成功
                   value:
                     code: 200
-                    message: 操作成功
                     data:
                       - id: 1
                         imageUrl: "/images/forum-banner1.jpg"
@@ -4935,7 +4741,6 @@ paths:
                   summary: 获取轮播图数据失败
                   value:
                     code: 6102
-                    message: 获取轮播图数据失败
                     data: null
 
     post:
@@ -4972,25 +4777,21 @@ paths:
                   summary: Banner添加成功
                   value:
                     code: 6001
-                    message: Banner添加成功
                     data: null
                 failure:
                   summary: 保存失败
                   value:
                     code: 6103
-                    message: 保存失败
                     data: null
                 failure_type:
                   summary: 不支持的文件类型
                   value:
                     code: 6104
-                    message: 不支持的文件类型
                     data: null
                 failure_size:
                   summary: 文件大小超限
                   value:
                     code: 6105
-                    message: 文件大小超限
                     data: null
 
   /forum/banners/{id}:
@@ -5037,13 +4838,11 @@ paths:
                   summary: Banner更新成功
                   value:
                     code: 6002
-                    message: Banner更新成功
                     data: null
                 failure:
                   summary: 保存失败
                   value:
                     code: 6106
-                    message: 保存失败
                     data: null
 
     delete:
@@ -5072,13 +4871,11 @@ paths:
                   summary: 删除成功
                   value:
                     code: 6003
-                    message: 删除成功
                     data: null
                 failure:
                   summary: 删除失败
                   value:
                     code: 6107
-                    message: 删除失败
                     data: null
 
   /forum/banners/order:
@@ -5115,13 +4912,11 @@ paths:
                   summary: 排序更新成功
                   value:
                     code: 6004
-                    message: 排序更新成功
                     data: null
                 failure:
                   summary: 排序更新失败
                   value:
                     code: 6108
-                    message: 排序更新失败
                     data: null
 
   /forum/topics:
@@ -5143,7 +4938,6 @@ paths:
                   summary: 操作成功
                   value:
                     code: 200
-                    message: 操作成功
                     data:
                       - id: 1
                         name: "茶文化"
@@ -5154,7 +4948,6 @@ paths:
                   summary: 获取版块列表失败
                   value:
                     code: 6114
-                    message: 获取版块列表失败
                     data: null
 
     post:
@@ -5198,13 +4991,11 @@ paths:
                   summary: 添加版块成功
                   value:
                     code: 6008
-                    message: 添加版块成功
                     data: null
                 failure:
                   summary: 添加版块失败
                   value:
                     code: 6116
-                    message: 添加版块失败
                     data: null
 
   /forum/topics/{id}:
@@ -5232,7 +5023,6 @@ paths:
                   summary: 操作成功
                   value:
                     code: 200
-                    message: 操作成功
                     data:
                       id: 1
                       name: "茶文化"
@@ -5243,7 +5033,6 @@ paths:
                   summary: 获取版块详情失败
                   value:
                     code: 6115
-                    message: 获取版块详情失败
                     data: null
 
     put:
@@ -5289,13 +5078,11 @@ paths:
                   summary: 更新版块成功
                   value:
                     code: 6009
-                    message: 更新版块成功
                     data: null
                 failure:
                   summary: 更新版块失败
                   value:
                     code: 6117
-                    message: 更新版块失败
                     data: null
 
     delete:
@@ -5324,13 +5111,11 @@ paths:
                   summary: 删除版块成功
                   value:
                     code: 6010
-                    message: 删除版块成功
                     data: null
                 failure:
                   summary: 删除版块失败
                   value:
                     code: 6118
-                    message: 删除版块失败
                     data: null
 
   /forum/posts:
@@ -5380,7 +5165,6 @@ paths:
                   summary: 操作成功
                   value:
                     code: 200
-                    message: 操作成功
                     data:
                       list:
                         - id: "1"
@@ -5398,7 +5182,6 @@ paths:
                   summary: 获取帖子列表失败
                   value:
                     code: 6119
-                    message: 获取帖子列表失败
                     data: null
 
     post:
@@ -5432,7 +5215,6 @@ paths:
                   summary: 帖子发布成功
                   value:
                     code: 6011
-                    message: 帖子发布成功
                     data:
                       postId: "post001"
                       title: "茶文化分享"
@@ -5441,7 +5223,6 @@ paths:
                   summary: 帖子发布失败
                   value:
                     code: 6120
-                    message: 帖子发布失败
                     data: null
 
   /forum/posts/pending:
@@ -5474,7 +5255,6 @@ paths:
                   summary: 操作成功
                   value:
                     code: 200
-                    message: 操作成功
                     data:
                       list:
                         - id: 1
@@ -5487,7 +5267,6 @@ paths:
                   summary: 获取待审核帖子列表失败
                   value:
                     code: 6121
-                    message: 获取待审核帖子列表失败
                     data: null
 
   /forum/posts/{id}:
@@ -5515,7 +5294,6 @@ paths:
                   summary: 操作成功
                   value:
                     code: 200
-                    message: 操作成功
                     data:
                       id: "1"
                       title: "茶文化分享"
@@ -5534,7 +5312,6 @@ paths:
                   summary: 获取帖子详情失败
                   value:
                     code: 6122
-                    message: 获取帖子详情失败
                     data: null
 
     put:
@@ -5569,13 +5346,11 @@ paths:
                   summary: 帖子更新成功
                   value:
                     code: 6012
-                    message: 帖子更新成功
                     data: null
                 failure:
                   summary: 帖子更新失败
                   value:
                     code: 6123
-                    message: 帖子更新失败
                     data: null
     delete:
       operationId: deleteForumPost
@@ -5603,13 +5378,11 @@ paths:
                   summary: 帖子删除成功
                   value:
                     code: 6013
-                    message: 帖子删除成功
                     data: null
                 failure:
                   summary: 帖子删除失败
                   value:
                     code: 6124
-                    message: 帖子删除失败
                     data: null
 
   /forum/posts/{id}/like:
@@ -5639,13 +5412,11 @@ paths:
                   summary: 点赞成功
                   value:
                     code: 6014
-                    message: 点赞成功
                     data: null
                 failure:
                   summary: 点赞失败
                   value:
                     code: 6125
-                    message: 点赞失败
                     data: null
 
     delete:
@@ -5674,13 +5445,11 @@ paths:
                   summary: 已取消点赞
                   value:
                     code: 6015
-                    message: 已取消点赞
                     data: null
                 failure:
                   summary: 取消点赞失败
                   value:
                     code: 6126
-                    message: 取消点赞失败
                     data: null
 
   /forum/posts/{id}/replies:
@@ -5718,7 +5487,6 @@ paths:
                   summary: 操作成功
                   value:
                     code: 200
-                    message: 操作成功
                     data:
                       list:
                         - id: "1"
@@ -5734,7 +5502,6 @@ paths:
                   summary: 获取回复列表失败
                   value:
                     code: 6129
-                    message: 获取回复列表失败
                     data: null
     post:
       operationId: addPostComment
@@ -5778,13 +5545,11 @@ paths:
                   summary: 回复发布成功
                   value:
                     code: 6018
-                    message: 回复发布成功
                     data: null
                 failure:
                   summary: 回复发布失败
                   value:
                     code: 6130
-                    message: 回复发布失败
                     data: null
 
   /forum/replies/{id}:
@@ -5814,13 +5579,11 @@ paths:
                   summary: 评论已删除
                   value:
                     code: 6019
-                    message: 评论已删除
                     data: null
                 failure:
                   summary: 评论删除失败
                   value:
                     code: 6131
-                    message: 评论删除失败
                     data: null
 
   /forum/replies/{id}/like:
@@ -5850,13 +5613,11 @@ paths:
                   summary: 点赞成功
                   value:
                     code: 6020
-                    message: 点赞成功
                     data: null
                 failure:
                   summary: 点赞失败
                   value:
                     code: 6132
-                    message: 点赞失败
                     data: null
     delete:
       operationId: unlikeComment
@@ -5884,13 +5645,11 @@ paths:
                   summary: 已取消点赞
                   value:
                     code: 6021
-                    message: 已取消点赞
                     data: null
                 failure:
                   summary: 取消点赞失败
                   value:
                     code: 6133
-                    message: 取消点赞失败
                     data: null
 
   /forum/posts/{id}/favorite:
@@ -5920,13 +5679,11 @@ paths:
                   summary: 收藏成功
                   value:
                     code: 6016
-                    message: 收藏成功
                     data: null
                 failure:
                   summary: 收藏失败
                   value:
                     code: 6127
-                    message: 收藏失败
                     data: null
 
     delete:
@@ -5955,13 +5712,11 @@ paths:
                   summary: 已取消收藏
                   value:
                     code: 6017
-                    message: 已取消收藏
                     data: null
                 failure:
                   summary: 取消收藏失败
                   value:
                     code: 6128
-                    message: 取消收藏失败
                     data: null
 
   /forum/posts/{id}/approve:
@@ -5991,13 +5746,11 @@ paths:
                   summary: 帖子审核通过
                   value:
                     code: 6022
-                    message: 帖子审核通过
                     data: null
                 failure:
                   summary: 审核通过失败
                   value:
                     code: 6134
-                    message: 审核通过失败
                     data: null
 
   /forum/posts/{id}/reject:
@@ -6039,13 +5792,11 @@ paths:
                   summary: 帖子审核拒绝
                   value:
                     code: 6023
-                    message: 帖子审核拒绝
                     data: null
                 failure:
                   summary: 审核拒绝失败
                   value:
                     code: 6135
-                    message: 审核拒绝失败
                     data: null
 
   /forum/posts/{id}/sticky:
@@ -6080,25 +5831,21 @@ paths:
                   summary: 置顶成功
                   value:
                     code: 6024
-                    message: 帖子已置顶
                     data: null
                 success_unsticky:
                   summary: 取消置顶成功
                   value:
                     code: 6025
-                    message: 帖子已取消置顶
                     data: null
                 failure_sticky:
                   summary: 置顶失败
                   value:
                     code: 6136
-                    message: 置顶失败
                     data: null
                 failure_unsticky:
                   summary: 取消置顶失败
                   value:
                     code: 6137
-                    message: 取消置顶失败
                     data: null
 
   /forum/posts/{id}/essence:
@@ -6133,25 +5880,21 @@ paths:
                   summary: 加精成功
                   value:
                     code: 6026
-                    message: 帖子已加精
                     data: null
                 success_unessence:
                   summary: 取消加精成功
                   value:
                     code: 6027
-                    message: 帖子已取消加精
                     data: null
                 failure_essence:
                   summary: 加精失败
                   value:
                     code: 6138
-                    message: 加精失败
                     data: null
                 failure_unessence:
                   summary: 取消加精失败
                   value:
                     code: 6139
-                    message: 取消加精失败
                     data: null
 
   /forum/articles:
@@ -6192,7 +5935,6 @@ paths:
                   summary: 操作成功
                   value:
                     code: 200
-                    message: 操作成功
                     data:
                       list:
                         - id: "1"
@@ -6208,7 +5950,6 @@ paths:
                   summary: 获取文章列表失败
                   value:
                     code: 6109
-                    message: 获取文章列表失败
                     data: null
     post:
       operationId: createArticle
@@ -6242,13 +5983,11 @@ paths:
                   summary: 文章创建成功
                   value:
                     code: 6005
-                    message: 文章创建成功
                     data: null
                 failure:
                   summary: 文章创建失败
                   value:
                     code: 6111
-                    message: 文章创建失败
                     data: null
 
   /forum/articles/{id}:
@@ -6276,7 +6015,6 @@ paths:
                   summary: 操作成功
                   value:
                     code: 200
-                    message: 操作成功
                     data:
                       id: "1"
                       title: "商南茶的历史"
@@ -6292,7 +6030,6 @@ paths:
                   summary: 获取文章详情失败
                   value:
                     code: 6110
-                    message: 获取文章详情失败
                     data: null
     put:
       operationId: updateArticle
@@ -6326,13 +6063,11 @@ paths:
                   summary: 文章更新成功
                   value:
                     code: 6006
-                    message: 文章更新成功
                     data: null
                 failure:
                   summary: 文章更新失败
                   value:
                     code: 6112
-                    message: 文章更新失败
                     data: null
     delete:
       operationId: deleteArticle
@@ -6360,13 +6095,11 @@ paths:
                   summary: 文章已删除
                   value:
                     code: 6007
-                    message: 文章已删除
                     data: null
                 failure:
                   summary: 文章删除失败
                   value:
                     code: 6113
-                    message: 文章删除失败
                     data: null
 
   # ==================== 消息模块 ====================
@@ -6405,7 +6138,6 @@ paths:
                   summary: 获取消息列表成功
                   value:
                     code: 200
-                    message: 操作成功
                     data:
                       list:
                         - id: 1
@@ -6419,7 +6151,6 @@ paths:
                   summary: 获取消息列表失败
                   value:
                     code: 7100
-                    message: 加载失败
                     data: null
 
   /message/{id}:
@@ -6449,7 +6180,6 @@ paths:
                   summary: 获取消息详情成功
                   value:
                     code: 200
-                    message: 操作成功
                     data:
                       id: 1
                       type: "system"
@@ -6461,7 +6191,6 @@ paths:
                   summary: 获取消息详情失败
                   value:
                     code: 7101
-                    message: 加载失败
                     data: null
 
   /message/send:
@@ -6504,13 +6233,11 @@ paths:
                   summary: 发送消息成功
                   value:
                     code: 7000
-                    message: 消息已发送
                     data: null
                 failure:
                   summary: 发送消息失败
                   value:
                     code: 7102
-                    message: 发送失败
                     data: null
 
   /message/read:
@@ -6548,13 +6275,11 @@ paths:
                   summary: 标记消息为已读成功
                   value:
                     code: 7001
-                    message: 已标记为已读
                     data: null
                 failure:
                   summary: 标记消息为已读失败
                   value:
                     code: 7103
-                    message: 标记失败
                     data: null
 
   /message/delete:
@@ -6592,13 +6317,11 @@ paths:
                   summary: 删除消息成功
                   value:
                     code: 7002
-                    message: 消息已删除
                     data: null
                 failure:
                   summary: 删除消息失败
                   value:
                     code: 7104
-                    message: 删除失败
                     data: null
 
   /message/unread-count:
@@ -6622,7 +6345,6 @@ paths:
                   summary: 获取未读消息数成功
                   value:
                     code: 200
-                    message: 操作成功
                     data:
                       total: 10
                       system: 3
@@ -6631,7 +6353,6 @@ paths:
                   summary: 获取未读消息数失败
                   value:
                     code: 7105
-                    message: 加载失败
                     data: null
 
   /message/list/sessions:
@@ -6655,7 +6376,6 @@ paths:
                   summary: 获取聊天会话列表成功
                   value:
                     code: 200
-                    message: 操作成功
                     data:
                       - sessionId: "session_1"
                         targetUser:
@@ -6670,7 +6390,6 @@ paths:
                   summary: 获取聊天会话列表失败
                   value:
                     code: 7106
-                    message: 加载失败
                     data: null
 
   /message/list/history:
@@ -6708,7 +6427,6 @@ paths:
                   summary: 获取聊天记录成功
                   value:
                     code: 200
-                    message: 操作成功
                     data:
                       list:
                         - id: 1
@@ -6722,7 +6440,6 @@ paths:
                   summary: 获取聊天记录失败
                   value:
                     code: 7112
-                    message: 加载失败
                     data: null
 
   /message/sessions:
@@ -6757,14 +6474,12 @@ paths:
                   summary: 创建会话成功
                   value:
                     code: 7006
-                    message: 操作成功
                     data:
                       sessionId: "session_1"
                 failure:
                   summary: 创建会话失败
                   value:
                     code: 7113
-                    message: 操作失败
                     data: null
 
   /message/sessions/{sessionId}:
@@ -6794,13 +6509,11 @@ paths:
                   summary: 删除会话成功
                   value:
                     code: 7008
-                    message: 会话已删除
                     data: null
                 failure:
                   summary: 删除会话失败
                   value:
                     code: 7115
-                    message: 操作失败
                     data: null
 
   /message/sessions/{sessionId}/pin:
@@ -6830,13 +6543,11 @@ paths:
                   summary: 置顶会话成功
                   value:
                     code: 7007
-                    message: 通知已置顶
                     data: null
                 failure:
                   summary: 置顶会话失败
                   value:
                     code: 7114
-                    message: 操作失败
                     data: null
 
   /message/messages/image:
@@ -6875,25 +6586,21 @@ paths:
                   summary: 发送图片消息成功
                   value:
                     code: 7009
-                    message: 图片上传成功
                     data: null
                 failure1:
                   summary: 发送图片消息失败
                   value:
                     code: 7116
-                    message: 图片上传失败
                     data: null
                 failure2:
                   summary: 不支持的文件类型
                   value:
                     code: 7117
-                    message: 不支持的文件类型
                     data: null
                 failure3:
                   summary: 文件大小超限
                   value:
                     code: 7118
-                    message: 文件大小超限
                     data: null
 
   /message/user/{userId}:
@@ -6921,7 +6628,6 @@ paths:
                   summary: 获取用户主页成功
                   value:
                     code: 200
-                    message: 操作成功
                     data:
                       user:
                         id: "cy100002"
@@ -6938,13 +6644,11 @@ paths:
                   summary: 获取用户主页失败
                   value:
                     code: 7119
-                    message: 未能获取到用户信息
                     data: null
                 failure2:
                   summary: 用户信息不完整
                   value:
                     code: 7120
-                    message: 用户信息不完整
                     data: null
 
   /message/user/{userId}/dynamic:
@@ -6980,7 +6684,6 @@ paths:
                   summary: 获取用户动态成功
                   value:
                     code: 200
-                    message: 操作成功
                     data:
                       list:
                         - id: 1
@@ -6993,7 +6696,6 @@ paths:
                   summary: 获取用户动态失败
                   value:
                     code: 7121
-                    message: 未能获取到用户信息
                     data: null
 
   /message/user/{userId}/statistics:
@@ -7021,7 +6723,6 @@ paths:
                   summary: 获取用户统计成功
                   value:
                     code: 200
-                    message: 操作成功
                     data:
                       postCount: 10
                       followingCount: 20
@@ -7031,7 +6732,6 @@ paths:
                   summary: 获取用户统计失败
                   value:
                     code: 7122
-                    message: 未能获取到用户信息
                     data: null
 
   /message/user/posts:
@@ -7069,7 +6769,6 @@ paths:
                   summary: 获取用户帖子成功
                   value:
                     code: 200
-                    message: 操作成功
                     data:
                       list:
                         - id: 1
@@ -7082,7 +6781,6 @@ paths:
                   summary: 获取用户帖子失败
                   value:
                     code: 7123
-                    message: 加载失败
                     data: null
 
   /message/user/reviews:
@@ -7115,7 +6813,6 @@ paths:
                   summary: 获取用户评价成功
                   value:
                     code: 200
-                    message: 操作成功
                     data:
                       list:
                         - id: 1
@@ -7128,7 +6825,6 @@ paths:
                   summary: 获取用户评价失败
                   value:
                     code: 7124
-                    message: 加载失败
                     data: null
 
   /message/notifications:
@@ -7166,7 +6862,6 @@ paths:
                   summary: 获取通知列表成功
                   value:
                     code: 200
-                    message: 操作成功
                     data:
                       list:
                         - id: 1
@@ -7180,7 +6875,6 @@ paths:
                   summary: 获取通知列表失败
                   value:
                     code: 7100
-                    message: 加载失败
                     data: null
 
   /message/notifications/{id}:
@@ -7210,7 +6904,6 @@ paths:
                   summary: 获取通知详情成功
                   value:
                     code: 200
-                    message: 操作成功
                     data:
                       id: 1
                       type: "system"
@@ -7222,7 +6915,6 @@ paths:
                   summary: 获取通知详情失败
                   value:
                     code: 7101
-                    message: 加载失败
                     data: null
 
     delete:
@@ -7251,13 +6943,11 @@ paths:
                   summary: 删除通知成功
                   value:
                     code: 7003
-                    message: 通知已删除
                     data: null
                 failure:
                   summary: 删除通知失败
                   value:
                     code: 7107
-                    message: 删除失败
                     data: null
 
   /message/notifications/batch-read:
@@ -7290,13 +6980,11 @@ paths:
                   summary: 批量标记通知为已读成功
                   value:
                     code: 7004
-                    message: 已标记为已读
                     data: null
                 failure:
                   summary: 批量标记通知为已读失败
                   value:
                     code: 7108
-                    message: 标记失败
                     data: null
 
   /message/notifications/batch:
@@ -7329,13 +7017,11 @@ paths:
                   summary: 批量删除通知成功
                   value:
                     code: 7005
-                    message: 通知已删除
                     data: null
                 failure:
                   summary: 批量删除通知失败
                   value:
                     code: 7109
-                    message: 删除失败
                     data: null
 
   # ==================== 公共模块 ====================
@@ -7376,7 +7062,6 @@ paths:
                   summary: 上传文件成功
                   value:
                     code: 1000
-                    message: 上传成功
                     data:
                       url: "/uploads/common/file_123.jpg"
                       filename: "file_123.jpg"
@@ -7384,19 +7069,16 @@ paths:
                   summary: 上传文件失败
                   value:
                     code: 1100
-                    message: 上传失败
                     data: null
                 failure2:
                   summary: 不支持的文件类型
                   value:
                     code: 1101
-                    message: 不支持的文件类型
                     data: null
                 failure3:
                   summary: 文件大小超限
                   value:
                     code: 1102
-                    message: 文件大小超限
                     data: null
 
   /upload/image:
@@ -7436,7 +7118,6 @@ paths:
                   summary: 上传图片成功
                   value:
                     code: 1001
-                    message: 上传成功
                     data:
                       url: "/uploads/images/img_123.jpg"
                       thumbnailUrl: "/uploads/images/thumb_img_123.jpg"
@@ -7444,19 +7125,16 @@ paths:
                   summary: 上传图片失败
                   value:
                     code: 1103
-                    message: 上传失败
                     data: null
                 failure2:
                   summary: 不支持的文件类型
                   value:
                     code: 1104
-                    message: 不支持的文件类型
                     data: null
                 failure3:
                   summary: 文件大小超限
                   value:
                     code: 1105
-                    message: 文件大小超限
                     data: null
 
 
@@ -9004,9 +8682,6 @@ components:
                 $ref: '#/components/schemas/Message'
             total:
               type: integer
-
-    Message:
-      type: object
       properties:
         id:
           type: string
