@@ -1510,24 +1510,33 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TeaListResponse'
-              example:
-                code: 3000
-                data:
-                  list:
-                    - id: "1"
-                      name: "商南绿茶"
-                      categoryId: 1
-                      shopId: "1"
-                      price: 99.00
-                      originalPrice: 128.00
-                      stock: 100
-                      sales: 50
-                      description: "优质商南高山绿茶"
-                      images: ["/images/tea1.jpg"]
-                      status: 1
-                  total: 100
-                  page: 1
-                  pageSize: 10
+              examples:
+                success:
+                  summary: 获取茶叶列表成功
+                  value:
+                    code: 3000
+                    message: "茶叶列表加载成功"
+                    data:
+                      list:
+                        - id: "1"
+                          name: "商南绿茶"
+                          categoryId: 1
+                          shopId: "1"
+                          price: 99.00
+                          originalPrice: 128.00
+                          stock: 100
+                          sales: 50
+                          description: "优质商南高山绿茶"
+                          images: ["/images/tea1.jpg"]
+                          status: 1
+                      total: 100
+                      page: 1
+                      pageSize: 10
+                failure:
+                  summary: 获取茶叶列表失败
+                  value:
+                    code: 3100
+                    message: "加载茶叶数据失败"
     post:
       operationId: addTea
       tags:
@@ -1561,15 +1570,16 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 添加成功
+                  summary: 添加茶叶成功
                   value:
-                    code: 3026
+                    code: 3001
+                    message: "茶叶添加成功"
                     data: null
                 failure:
-                  summary: 添加失败
+                  summary: 添加茶叶失败
                   value:
-                    code: 3126
-                    data: null
+                    code: 3101
+                    message: "操作失败"
 
   /tea/{id}:
     get:
@@ -1591,20 +1601,28 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TeaDetailResponse'
-              example:
-                code: 3001
-                data:
-                  id: "1"
-                  name: "商南绿茶"
-                  categoryId: 1
-                  shopId: "1"
-                  price: 99.00
-                  originalPrice: 128.00
-                  stock: 100
-                  sales: 50
-                  description: "优质商南高山绿茶"
-                  images: ["/images/tea1.jpg"]
-                  status: 1
+              examples:
+                success:
+                  summary: 获取茶叶详情成功
+                  value:
+                    code: 200
+                    data:
+                      id: "1"
+                      name: "商南绿茶"
+                      categoryId: 1
+                      shopId: "1"
+                      price: 99.00
+                      originalPrice: 128.00
+                      stock: 100
+                      sales: 50
+                      description: "优质商南高山绿茶"
+                      images: ["/images/tea1.jpg"]
+                      status: 1
+                failure:
+                  summary: 获取茶叶详情失败
+                  value:
+                    code: 3102
+                    message: "加载茶叶详情失败"
     put:
       operationId: updateTea
       tags:
@@ -1634,15 +1652,16 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 更新成功
+                  summary: 更新茶叶成功
                   value:
-                    code: 3025
+                    code: 3002
+                    message: "茶叶更新成功"
                     data: null
                 failure:
-                  summary: 更新失败
+                  summary: 更新茶叶失败
                   value:
-                    code: 3125
-                    data: null
+                    code: 3103
+                    message: "操作失败"
     delete:
       operationId: deleteTea
       tags:
@@ -1666,15 +1685,16 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 删除成功
+                  summary: 删除茶叶成功
                   value:
-                    code: 3024
+                    code: 3003
+                    message: "删除成功"
                     data: null
                 failure:
-                  summary: 删除失败
+                  summary: 删除茶叶失败
                   value:
-                    code: 3124
-                    data: null
+                    code: 3104
+                    message: "删除失败"
 
   /tea/categories:
     get:
@@ -1690,19 +1710,27 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TeaCategoryListResponse'
-              example:
-                code: 200
-                data:
-                  - id: 1
-                    name: "绿茶"
-                    parentId: 0
-                    sortOrder: 1
-                    icon: "/icons/green-tea.png"
-                  - id: 2
-                    name: "红茶"
-                    parentId: 0
-                    sortOrder: 2
-                    icon: "/icons/black-tea.png"
+              examples:
+                success:
+                  summary: 获取分类列表成功
+                  value:
+                    code: 200
+                    data:
+                      - id: 1
+                        name: "绿茶"
+                        parentId: 0
+                        sortOrder: 1
+                        icon: "/icons/green-tea.png"
+                      - id: 2
+                        name: "红茶"
+                        parentId: 0
+                        sortOrder: 2
+                        icon: "/icons/black-tea.png"
+                failure:
+                  summary: 获取分类列表失败
+                  value:
+                    code: 3106
+                    message: "操作失败"
     post:
       operationId: createTeaCategory
       tags:
@@ -1731,15 +1759,16 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 创建成功
+                  summary: 创建分类成功
                   value:
-                    code: 3030
+                    code: 3004
+                    message: "分类创建成功"
                     data: null
                 failure:
-                  summary: 创建失败
+                  summary: 创建分类失败
                   value:
-                    code: 3130
-                    data: null
+                    code: 3107
+                    message: "操作失败"
 
   /tea/categories/{id}:
     put:
@@ -1771,15 +1800,16 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 更新成功
+                  summary: 更新分类成功
                   value:
-                    code: 3031
+                    code: 3005
+                    message: "分类更新成功"
                     data: null
                 failure:
-                  summary: 更新失败
+                  summary: 更新分类失败
                   value:
-                    code: 3131
-                    data: null
+                    code: 3108
+                    message: "操作失败"
     delete:
       operationId: deleteTeaCategory
       tags:
@@ -1803,15 +1833,16 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 删除成功
+                  summary: 删除分类成功
                   value:
-                    code: 3032
+                    code: 3006
+                    message: "分类删除成功"
                     data: null
                 failure:
-                  summary: 删除失败
+                  summary: 删除分类失败
                   value:
-                    code: 3132
-                    data: null
+                    code: 3109
+                    message: "删除分类失败"
 
   /tea/{teaId}/reviews:
     get:
@@ -1843,19 +1874,27 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ReviewListResponse'
-              example:
-                code: 200
-                data:
-                  list:
-                    - id: 1
-                      userId: "cy100002"
-                      username: "茶友"
-                      avatar: "/images/avatar.png"
-                      rating: 5
-                      content: "茶叶很好喝"
-                      images: []
-                      createTime: "2025-01-01T12:00:00Z"
-                  total: 10
+              examples:
+                success:
+                  summary: 获取评价列表成功
+                  value:
+                    code: 200
+                    data:
+                      list:
+                        - id: 1
+                          userId: "cy100002"
+                          username: "茶友"
+                          avatar: "/images/avatar.png"
+                          rating: 5
+                          content: "茶叶很好喝"
+                          images: []
+                          createTime: "2025-01-01T12:00:00Z"
+                      total: 10
+                failure:
+                  summary: 获取评价列表失败
+                  value:
+                    code: 3110
+                    message: "加载失败"
 
   /tea/{teaId}/reviews/stats:
     get:
@@ -1877,17 +1916,25 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ReviewStatsResponse'
-              example:
-                code: 200
-                data:
-                  averageRating: 4.5
-                  totalCount: 100
-                  ratingDistribution:
-                    "5": 60
-                    "4": 25
-                    "3": 10
-                    "2": 3
-                    "1": 2
+              examples:
+                success:
+                  summary: 获取评价统计成功
+                  value:
+                    code: 200
+                    data:
+                      averageRating: 4.5
+                      totalCount: 100
+                      ratingDistribution:
+                        "5": 60
+                        "4": 25
+                        "3": 10
+                        "2": 3
+                        "1": 2
+                failure:
+                  summary: 获取评价统计失败
+                  value:
+                    code: 3111
+                    message: "加载失败"
 
   /tea/reviews:
     post:
@@ -1919,15 +1966,16 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 提交成功
+                  summary: 提交评价成功
                   value:
-                    code: 4050
+                    code: 3007
+                    message: "评价提交成功，感谢您的反馈"
                     data: null
                 failure:
-                  summary: 提交失败
+                  summary: 提交评价失败
                   value:
-                    code: 4150
-                    data: null
+                    code: 3112
+                    message: "评价提交失败"
 
   /tea/reviews/{reviewId}/reply:
     post:
@@ -1964,15 +2012,16 @@ paths:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: 回复成功
+                  summary: 回复评价成功
                   value:
-                    code: 3013
+                    code: 3008
+                    message: "回复成功"
                     data: null
                 failure:
-                  summary: 回复失败
+                  summary: 回复评价失败
                   value:
                     code: 3113
-                    data: null
+                    message: "回复失败"
 
   /tea/reviews/{reviewId}/like:
     post:
@@ -2448,13 +2497,21 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TeaListSimpleResponse'
-              example:
-                code: 200
-                data:
-                  - id: "1"
-                    name: "商南绿茶"
-                    price: 99.00
-                    images: ["/images/tea1.jpg"]
+              examples:
+                success:
+                  summary: 获取推荐茶叶成功
+                  value:
+                    code: 200
+                    data:
+                      - id: "1"
+                        name: "商南绿茶"
+                        price: 99.00
+                        images: ["/images/tea1.jpg"]
+                failure:
+                  summary: 获取推荐茶叶失败
+                  value:
+                    code: 3105
+                    message: "加载茶叶数据失败"
 
   # ==================== 店铺模块 ====================
   /shop/list:
