@@ -3808,15 +3808,25 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OrderListResponse'
-              example:
-                code: 200
-                data:
-                  list:
-                    - id: "order001"
-                      status: 1
-                      totalPrice: 199.00
-                      createTime: "2024-01-15T10:30:00Z"
-                  total: 20
+              examples:
+                success:
+                  summary: 获取成功
+                  value:
+                    code: 200
+                    message: 操作成功
+                    data:
+                      list:
+                        - id: "order001"
+                          status: 1
+                          totalPrice: 199.00
+                          createTime: "2024-01-15T10:30:00Z"
+                      total: 20
+                failure:
+                  summary: 获取失败
+                  value:
+                    code: 5113
+                    message: 加载失败
+                    data: null
 
   /order/{id}:
     get:
@@ -3840,23 +3850,45 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OrderDetailResponse'
-              example:
-                code: 200
-                data:
-                  id: "order001"
-                  userId: "cy100002"
-                  status: 1
-                  totalPrice: 199.00
-                  items:
-                    - teaId: "1"
-                      teaName: "商南绿茶"
-                      quantity: 2
-                      price: 99.00
-                  address:
-                    receiverName: "张三"
-                    receiverPhone: "13800138000"
-                    detailAddress: "陕西省商洛市商南县茶城路1号"
-                  createTime: "2024-01-15T10:30:00Z"
+              examples:
+                success:
+                  summary: 获取成功
+                  value:
+                    code: 200
+                    message: 操作成功
+                    data:
+                      id: "order001"
+                      userId: "cy100002"
+                      status: 1
+                      totalPrice: 199.00
+                      items:
+                        - teaId: "1"
+                          teaName: "商南绿茶"
+                          quantity: 2
+                          price: 99.00
+                      address:
+                        receiverName: "张三"
+                        receiverPhone: "13800138000"
+                        detailAddress: "陕西省商洛市商南县茶城路1号"
+                      createTime: "2024-01-15T10:30:00Z"
+                failure_not_found:
+                  summary: 订单不存在
+                  value:
+                    code: 5114
+                    message: 订单不存在
+                    data: null
+                failure_permission:
+                  summary: 无权限
+                  value:
+                    code: 5115
+                    message: 您没有权限操作此订单
+                    data: null
+                failure:
+                  summary: 获取失败
+                  value:
+                    code: 5116
+                    message: 获取订单详情失败
+                    data: null
 
   /order/pay:
     post:
@@ -3891,9 +3923,43 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 4020
-                data: null
+              examples:
+                success_paid:
+                  summary: 订单已支付
+                  value:
+                    code: 5006
+                    message: 订单已支付
+                    data: null
+                success:
+                  summary: 支付成功
+                  value:
+                    code: 5007
+                    message: 支付成功
+                    data: null
+                failure:
+                  summary: 支付失败
+                  value:
+                    code: 5117
+                    message: 支付失败
+                    data: null
+                failure_cancelled:
+                  summary: 支付已取消
+                  value:
+                    code: 5118
+                    message: 支付已取消
+                    data: null
+                failure_timeout:
+                  summary: 支付超时
+                  value:
+                    code: 5119
+                    message: 支付超时，订单已自动取消
+                    data: null
+                failure_balance:
+                  summary: 余额不足
+                  value:
+                    code: 5120
+                    message: 余额不足
+                    data: null
 
   /order/cancel:
     post:
@@ -3923,9 +3989,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 4002
-                data: null
+              examples:
+                success:
+                  summary: 取消成功
+                  value:
+                    code: 5008
+                    message: 订单已取消
+                    data: null
+                failure:
+                  summary: 取消失败
+                  value:
+                    code: 5121
+                    message: 取消订单失败
+                    data: null
+                failure_not_found:
+                  summary: 订单不存在
+                  value:
+                    code: 5122
+                    message: 订单不存在
+                    data: null
+                failure_permission:
+                  summary: 无权限
+                  value:
+                    code: 5123
+                    message: 您没有权限操作此订单
+                    data: null
 
   /order/confirm:
     post:
@@ -3955,9 +4043,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 4003
-                data: null
+              examples:
+                success:
+                  summary: 确认成功
+                  value:
+                    code: 5009
+                    message: 确认收货成功
+                    data: null
+                failure:
+                  summary: 确认失败
+                  value:
+                    code: 5124
+                    message: 确认收货失败
+                    data: null
+                failure_not_found:
+                  summary: 订单不存在
+                  value:
+                    code: 5125
+                    message: 订单不存在
+                    data: null
+                failure_permission:
+                  summary: 无权限
+                  value:
+                    code: 5126
+                    message: 您没有权限操作此订单
+                    data: null
 
   /order/{id}/ship:
     post:
@@ -3991,9 +4101,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 4004
-                data: null
+              examples:
+                success:
+                  summary: 发货成功
+                  value:
+                    code: 5014
+                    message: 发货成功
+                    data: null
+                failure:
+                  summary: 发货失败
+                  value:
+                    code: 5135
+                    message: 发货失败
+                    data: null
+                failure_not_found:
+                  summary: 订单不存在
+                  value:
+                    code: 5136
+                    message: 订单不存在
+                    data: null
+                failure_permission:
+                  summary: 无权限
+                  value:
+                    code: 5137
+                    message: 您没有权限操作此订单
+                    data: null
 
   /order/review:
     post:
@@ -4036,9 +4168,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 4050
-                data: null
+              examples:
+                success:
+                  summary: 评价成功
+                  value:
+                    code: 5010
+                    message: 评价提交成功，感谢您的反馈
+                    data: null
+                failure:
+                  summary: 评价失败
+                  value:
+                    code: 5127
+                    message: 评价提交失败
+                    data: null
 
   /order/batch-ship:
     post:
@@ -4076,9 +4218,25 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 4006
-                data: null
+              examples:
+                success:
+                  summary: 批量发货成功
+                  value:
+                    code: 5015
+                    message: 批量发货成功
+                    data: null
+                failure:
+                  summary: 批量发货失败
+                  value:
+                    code: 5138
+                    message: 批量发货失败
+                    data: null
+                failure_permission:
+                  summary: 无权限
+                  value:
+                    code: 5139
+                    message: 您没有权限操作此订单
+                    data: null
 
   /order/refund:
     post:
@@ -4111,9 +4269,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 4030
-                data: null
+              examples:
+                success:
+                  summary: 申请成功
+                  value:
+                    code: 5011
+                    message: 退款申请已提交，等待商家审核
+                    data: null
+                failure:
+                  summary: 申请失败
+                  value:
+                    code: 5128
+                    message: 退款申请提交失败
+                    data: null
+                failure_not_found:
+                  summary: 订单不存在
+                  value:
+                    code: 5129
+                    message: 订单不存在
+                    data: null
+                failure_permission:
+                  summary: 无权限
+                  value:
+                    code: 5130
+                    message: 您没有权限操作此订单
+                    data: null
 
   /order/{id}/refund:
     get:
@@ -4137,14 +4317,30 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 200
-                data:
-                  id: 1
-                  orderId: "1"
-                  reason: "商品质量问题"
-                  status: 0
-                  createTime: "2025-01-01T12:00:00Z"
+              examples:
+                success:
+                  summary: 获取成功
+                  value:
+                    code: 200
+                    message: 操作成功
+                    data:
+                      id: 1
+                      orderId: "1"
+                      reason: "商品质量问题"
+                      status: 0
+                      createTime: "2025-01-01T12:00:00Z"
+                failure:
+                  summary: 获取失败
+                  value:
+                    code: 5133
+                    message: 获取退款详情失败
+                    data: null
+                failure_not_found:
+                  summary: 订单不存在
+                  value:
+                    code: 5134
+                    message: 订单不存在
+                    data: null
 
   /order/{id}/refund/process:
     post:
@@ -4183,9 +4379,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 4031
-                data: null
+              examples:
+                success_approve:
+                  summary: 同意退款
+                  value:
+                    code: 5012
+                    message: 已同意退款申请
+                    data: null
+                success_reject:
+                  summary: 拒绝退款
+                  value:
+                    code: 5013
+                    message: 已拒绝退款申请
+                    data: null
+                failure:
+                  summary: 处理失败
+                  value:
+                    code: 5131
+                    message: 退款申请失败
+                    data: null
+                failure_permission:
+                  summary: 无权限
+                  value:
+                    code: 5132
+                    message: 您没有权限操作此订单
+                    data: null
 
   /order/{id}/logistics:
     get:
@@ -4209,16 +4427,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ExpressInfoResponse'
-              example:
-                code: 200
-                data:
-                  expressCompany: "顺丰速运"
-                  expressNumber: "SF1234567890"
-                  traces:
-                    - time: "2025-01-15T10:00:00Z"
-                      status: "已发货"
-                    - time: "2025-01-15T14:00:00Z"
-                      status: "运输中"
+              examples:
+                success:
+                  summary: 查询成功
+                  value:
+                    code: 200
+                    message: 操作成功
+                    data:
+                      expressCompany: "顺丰速运"
+                      expressNumber: "SF1234567890"
+                      traces:
+                        - time: "2025-01-15T10:00:00Z"
+                          status: "已发货"
+                        - time: "2025-01-15T14:00:00Z"
+                          status: "运输中"
+                failure:
+                  summary: 获取失败
+                  value:
+                    code: 5140
+                    message: 获取物流信息失败
+                    data: null
+                failure_not_found:
+                  summary: 订单不存在
+                  value:
+                    code: 5141
+                    message: 订单不存在
+                    data: null
 
   /order/cart:
     get:
@@ -4236,17 +4470,27 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CartResponse'
-              example:
-                code: 200
-                data:
-                  - id: 1
-                    teaId: "1"
-                    teaName: "商南绿茶"
-                    teaImage: "/images/tea1.jpg"
-                    specificationId: "1"
-                    specName: "250g装"
-                    price: 99.00
-                    quantity: 2
+              examples:
+                success:
+                  summary: 获取成功
+                  value:
+                    code: 200
+                    message: 操作成功
+                    data:
+                      - id: 1
+                        teaId: "1"
+                        teaName: "商南绿茶"
+                        teaImage: "/images/tea1.jpg"
+                        specificationId: "1"
+                        specName: "250g装"
+                        price: 99.00
+                        quantity: 2
+                failure:
+                  summary: 获取失败
+                  value:
+                    code: 5100
+                    message: 加载失败
+                    data: null
 
   /order/cart/add:
     post:
@@ -4286,9 +4530,37 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 4010
-                data: null
+              examples:
+                success:
+                  summary: 添加成功
+                  value:
+                    code: 5000
+                    message: 商品已添加到购物车
+                    data: null
+                failure_add:
+                  summary: 添加失败
+                  value:
+                    code: 5101
+                    message: 添加失败
+                    data: null
+                failure_not_found:
+                  summary: 商品不存在
+                  value:
+                    code: 5102
+                    message: 商品不存在或已下架
+                    data: null
+                failure_stock:
+                  summary: 库存不足
+                  value:
+                    code: 5103
+                    message: 商品库存不足
+                    data: null
+                failure_limit:
+                  summary: 数量上限
+                  value:
+                    code: 5104
+                    message: 已达到购买数量上限
+                    data: null
 
   /order/cart/update:
     put:
@@ -4324,9 +4596,37 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 4011
-                data: null
+              examples:
+                success_quantity:
+                  summary: 更新数量成功
+                  value:
+                    code: 5001
+                    message: 商品数量已更新
+                    data: null
+                success_spec:
+                  summary: 更新规格成功
+                  value:
+                    code: 5002
+                    message: 规格已更新
+                    data: null
+                failure:
+                  summary: 更新失败
+                  value:
+                    code: 5105
+                    message: 更新数量失败
+                    data: null
+                failure_stock:
+                  summary: 库存不足
+                  value:
+                    code: 5106
+                    message: 商品库存不足
+                    data: null
+                failure_limit:
+                  summary: 数量上限
+                  value:
+                    code: 5107
+                    message: 已达到购买数量上限
+                    data: null
 
   /order/cart/remove:
     delete:
@@ -4350,9 +4650,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 4013
-                data: null
+              examples:
+                success:
+                  summary: 移除成功
+                  value:
+                    code: 5003
+                    message: 商品已从购物车移除
+                    data: null
+                failure:
+                  summary: 移除失败
+                  value:
+                    code: 5108
+                    message: 移除商品失败
+                    data: null
 
   /order/cart/clear:
     delete:
@@ -4370,9 +4680,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 4063
-                data: null
+              examples:
+                success:
+                  summary: 清空成功
+                  value:
+                    code: 5004
+                    message: 购物车已清空
+                    data: null
+                failure:
+                  summary: 清空失败
+                  value:
+                    code: 5109
+                    message: 清空购物车失败
+                    data: null
 
   /order/export:
     get:
@@ -4415,9 +4735,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
-              example:
-                code: 200
-                data: null
+              examples:
+                success:
+                  summary: 导出成功
+                  value:
+                    code: 200
+                    message: 操作成功
+                    data: null
+                failure:
+                  summary: 导出失败
+                  value:
+                    code: 5143
+                    message: 操作失败
+                    data: null
             application/octet-stream:
               schema:
                 type: string
@@ -4454,22 +4784,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OrderStatisticsResponse'
-              example:
-                code: 200
-                data:
-                  totalOrders: 500
-                  totalAmount: 50000.00
-                  statusDistribution:
-                    "0": 10
-                    "1": 20
-                    "2": 30
-                    "3": 400
-                    "4": 30
-                    "5": 10
-                  trend:
-                    - date: "2025-01-01"
-                      orders: 10
-                      amount: 1000.00
+              examples:
+                success:
+                  summary: 获取成功
+                  value:
+                    code: 200
+                    message: 操作成功
+                    data:
+                      totalOrders: 500
+                      totalAmount: 50000.00
+                      statusDistribution:
+                        "0": 10
+                        "1": 20
+                        "2": 30
+                        "3": 400
+                        "4": 30
+                        "5": 10
+                      trend:
+                        - date: "2025-01-01"
+                          orders: 10
+                          amount: 1000.00
+                failure:
+                  summary: 获取失败
+                  value:
+                    code: 5142
+                    message: 加载失败
+                    data: null
 
   # ==================== 论坛模块 ====================
   /forum/home:
