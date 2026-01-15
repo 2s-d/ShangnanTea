@@ -771,8 +771,8 @@
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 141 | getMessages | GET | /message/messages | 200 | 7101 | 获取消息列表 |
-| 142 | getMessageDetail | GET | /message/messages/{id} | 200 | 7101 | 获取消息详情 |
+| 141 | getMessages | GET | /message/list | 200 | 7101 | 获取消息列表 |
+| 142 | getMessageDetail | GET | /message/{id} | 200 | 7101 | 获取消息详情 |
 | 143 | sendMessage | POST | /message/send | 7000 | 7100 | 发送消息 |
 | 144 | markAsRead | POST | /message/read | 7010 | 7110 | 标记已读 |
 | 145 | deleteMessages | POST | /message/delete | 7012 | 1100 | 删除消息 |
@@ -795,8 +795,8 @@
 | 152 | getChatSessions | GET | /message/list/sessions | 200 | 7101 | 获取会话列表 |
 | 153 | getChatHistory | GET | /message/list/history | 200 | 7101 | 获取聊天记录 |
 | 154 | createChatSession | POST | /message/sessions | 1000 | 1100 | 创建会话 |
-| 155 | pinChatSession | PUT | /message/sessions/{id}/pin | 7014 | 1100 | 置顶会话 |
-| 156 | deleteChatSession | DELETE | /message/sessions/{id} | 7001 | 1100 | 删除会话 |
+| 155 | pinChatSession | PUT | /message/sessions/{sessionId}/pin | 7014 | 1100 | 置顶会话 |
+| 156 | deleteChatSession | DELETE | /message/sessions/{sessionId} | 7001 | 1100 | 删除会话 |
 
 ### 6.4 图片消息 (1个)
 
@@ -808,9 +808,9 @@
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 158 | getUserProfile | GET | /message/user/{id} | 200 | 7120, 7121 | 获取用户主页 |
-| 159 | getUserDynamic | GET | /message/user/{id}/dynamic | 200 | 7120 | 获取用户动态 |
-| 160 | getUserStatistics | GET | /message/user/{id}/statistics | 200 | 7120 | 获取用户统计 |
+| 158 | getUserProfile | GET | /message/user/{userId} | 200 | 7120, 7121 | 获取用户主页 |
+| 159 | getUserDynamic | GET | /message/user/{userId}/dynamic | 200 | 7120 | 获取用户动态 |
+| 160 | getUserStatistics | GET | /message/user/{userId}/statistics | 200 | 7120 | 获取用户统计 |
 | 161 | getUserPosts | GET | /message/user/posts | 200 | 1102 | 获取用户帖子 |
 | 162 | getUserReviews | GET | /message/user/reviews | 200 | 1102 | 获取用户评价 |
 
@@ -819,7 +819,7 @@
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
 | 163 | uploadFile | POST | /upload | 1001 | 1101, 1103, 1104 | 上传文件 |
-| 164 | uploadImage | POST | /upload | 1001 | 1101, 1103, 1104 | 上传图片 |
+| 164 | uploadImage | POST | /upload/image | 1001 | 1101, 1103, 1104 | 上传图片 |
 
 ---
 
@@ -827,14 +827,14 @@
 
 | 模块 | 接口数量 | 状态码范围 |
 |------|----------|------------|
-| 用户模块 | 32 | 2xxx |
-| 茶叶模块 | 24 | 3xxx |
-| 店铺模块 | 24 | 5xxx |
+| 用户模块 | 35 | 2xxx |
+| 茶叶模块 | 26 | 3xxx |
+| 店铺模块 | 26 | 5xxx |
 | 订单模块 | 20 | 4xxx |
-| 论坛模块 | 35 | 6xxx |
+| 论坛模块 | 36 | 6xxx |
 | 消息模块 | 22 | 7xxx |
 | 系统通用 | 2 | 1xxx |
-| **总计** | **159** | - |
+| **总计** | **167** | - |
 
 ---
 
