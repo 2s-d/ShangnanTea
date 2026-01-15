@@ -1404,40 +1404,40 @@
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
 | 1 | getTeas | GET | /tea/list | 3000 | 3100 | 获取茶叶列表 |
-| 37 | addTea | POST | /tea/list | 3026 | 3125 | 添加茶叶 |
-| 38 | getTeaDetail | GET | /tea/{id} | 3001 | 3101 | 获取茶叶详情 |
-| 39 | updateTea | PUT | /tea/{id} | 3025 | 3125 | 更新茶叶 |
-| 40 | deleteTea | DELETE | /tea/{id} | 3024 | 3124 | 删除茶叶 |
-| 61 | getRecommendTeas | GET | /tea/recommend | 200 | 3100 | 获取推荐茶叶 |
+| 2 | addTea | POST | /tea/list | 3001 | 3101 | 添加茶叶 |
+| 3 | getTeaDetail | GET | /tea/{id} | 200 | 3102 | 获取茶叶详情 |
+| 4 | updateTea | PUT | /tea/{id} | 3002 | 3103 | 更新茶叶 |
+| 5 | deleteTea | DELETE | /tea/{id} | 3003 | 3104 | 删除茶叶 |
+| 6 | getRecommendTeas | GET | /tea/recommend | 200 | 3105 | 获取推荐茶叶 |
 
 ### 2.2 分类管理 (4个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 41 | getTeaCategories | GET | /tea/categories | 200 | 3130 | 获取分类列表 |
-| 42 | createCategory | POST | /tea/categories | 3030 | 3130 | 创建分类 |
-| 43 | updateCategory | PUT | /tea/categories/{id} | 3031 | 3130 | 更新分类 |
-| 44 | deleteCategory | DELETE | /tea/categories/{id} | 3032 | 3131 | 删除分类 |
+| 7 | getTeaCategories | GET | /tea/categories | 200 | 3106 | 获取分类列表 |
+| 8 | createCategory | POST | /tea/categories | 3004 | 3107 | 创建分类 |
+| 9 | updateCategory | PUT | /tea/categories/{id} | 3005 | 3108 | 更新分类 |
+| 10 | deleteCategory | DELETE | /tea/categories/{id} | 3006 | 3109 | 删除分类 |
 
 ### 2.3 评价系统 (5个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 45 | getTeaReviews | GET | /tea/{teaId}/reviews | 200 | 1102 | 获取评价列表 |
-| 46 | getReviewStats | GET | /tea/{teaId}/reviews/stats | 200 | 1102 | 获取评价统计 |
-| 47 | submitReview | POST | /tea/reviews | 4050 | 4150 | 提交评价 |
-| 48 | replyReview | POST | /tea/reviews/{reviewId}/reply | 3013 | 3112 | 回复评价 |
-| 49 | likeReview | POST | /tea/reviews/{reviewId}/like | 6010 | 3113 | 点赞评价 |
+| 11 | getTeaReviews | GET | /tea/{teaId}/reviews | 200 | 3110 | 获取评价列表 |
+| 12 | getReviewStats | GET | /tea/{teaId}/reviews/stats | 200 | 3111 | 获取评价统计 |
+| 13 | submitReview | POST | /tea/reviews | 3007 | 3112 | 提交评价 |
+| 14 | replyReview | POST | /tea/reviews/{reviewId}/reply | 3008 | 3113 | 回复评价 |
+| 15 | likeReview | POST | /tea/reviews/{reviewId}/like | 3009 | 3114 | 点赞评价 |
 
 ### 2.4 规格管理 (5个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 50 | getTeaSpecifications | GET | /tea/{teaId}/specifications | 200 | 1102 | 获取规格列表 |
-| 51 | addSpecification | POST | /tea/{teaId}/specifications | 1000 | 1100 | 添加规格 |
-| 52 | updateSpecification | PUT | /tea/specifications/{specId} | 1004 | 1100 | 更新规格 |
-| 53 | deleteSpecification | DELETE | /tea/specifications/{specId} | 1003 | 1100 | 删除规格 |
-| 54 | setDefaultSpecification | PUT | /tea/specifications/{specId}/default | 1004 | 1100 | 设置默认规格 |
+| 16 | getTeaSpecifications | GET | /tea/{teaId}/specifications | 200 | 3115 | 获取规格列表 |
+| 17 | addSpecification | POST | /tea/{teaId}/specifications | 3010 | 3116 | 添加规格 |
+| 18 | updateSpecification | PUT | /tea/specifications/{specId} | 3011 | 3117 | 更新规格 |
+| 19 | deleteSpecification | DELETE | /tea/specifications/{specId} | 3012 | 3118 | 删除规格 |
+| 20 | setDefaultSpecification | PUT | /tea/specifications/{specId}/default | 3013 | 3119 | 设置默认规格 |
 
 ### 2.5 图片管理 (4个)
 
