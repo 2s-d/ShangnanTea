@@ -64,10 +64,12 @@
 | 2010 | 个人资料更新成功 | 更新资料 |
 | 2011 | 密码修改成功，请使用新密码登录 | 修改密码 |
 | 2012 | 头像更新成功 | 更新头像 |
+| 2013 | 偏好设置更新成功 | 更新用户偏好 |
 | 2110 | 个人资料更新失败 | 更新资料失败 |
 | 2111 | 密码修改失败，请检查原密码是否正确 | 修改密码失败 |
 | 2112 | 头像更新失败 | 更新头像失败 |
 | 2113 | 两次输入的密码不一致 | 密码不匹配 |
+| 2114 | 偏好设置更新失败 | 更新偏好失败 |
 
 ### 用户管理 (22xx)
 
@@ -575,22 +577,47 @@
 | 64 | getShopDetail | GET | /shop/{id} | 200 | 5100, 5105 | 获取店铺详情 |
 | 65 | updateShop | PUT | /shop/{id} | 1004 | 1100 | 更新店铺信息 |
 | 66 | getMyShop | GET | /shop/my | 200 | 5100 | 获取我的店铺 |
+| 72 | getShopStatistics | GET | /shop/{shopId}/statistics | 200 | 1102 | 获取店铺统计 |
+
+### 3.2 店铺茶叶管理 (5个)
+
+| 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
+|------|----------|----------|------|--------|--------|------|
 | 67 | getShopTeas | GET | /shop/{shopId}/teas | 200 | 5101 | 获取店铺茶叶 |
 | 68 | addShopTea | POST | /shop/{shopId}/teas | 3026 | 3125 | 添加店铺茶叶 |
 | 69 | updateShopTea | PUT | /shop/teas/{teaId} | 3025 | 3125 | 更新店铺茶叶 |
 | 70 | deleteShopTea | DELETE | /shop/teas/{teaId} | 3024 | 3124 | 删除店铺茶叶 |
 | 71 | toggleShopTeaStatus | PUT | /shop/teas/{teaId}/status | 3020, 3021 | 3120, 3121 | 茶叶上下架 |
-| 72 | getShopStatistics | GET | /shop/{shopId}/statistics | 200 | 1102 | 获取店铺统计 |
+
+### 3.3 Logo上传 (1个)
+
+| 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
+|------|----------|----------|------|--------|--------|------|
 | 73 | uploadShopLogo | POST | /shop/{shopId}/logo | 5030 | 5130, 1103, 1104 | 上传Logo |
+
+### 3.4 Banner管理 (5个)
+
+| 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
+|------|----------|----------|------|--------|--------|------|
 | 74 | getShopBanners | GET | /shop/{shopId}/banners | 200 | 5110 | 获取Banner列表 |
 | 75 | uploadBanner | POST | /shop/{shopId}/banners | 5010 | 5111, 1103, 1104 | 上传Banner |
 | 76 | updateBanner | PUT | /shop/banners/{bannerId} | 5011 | 5111 | 更新Banner |
 | 77 | deleteBanner | DELETE | /shop/banners/{bannerId} | 5012 | 5112 | 删除Banner |
 | 78 | updateBannerOrder | PUT | /shop/banners/order | 5013 | 5113 | 更新Banner排序 |
+
+### 3.5 公告管理 (4个)
+
+| 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
+|------|----------|----------|------|--------|--------|------|
 | 79 | getShopAnnouncements | GET | /shop/{shopId}/announcements | 200 | 5120 | 获取公告列表 |
 | 80 | createAnnouncement | POST | /shop/{shopId}/announcements | 5020 | 5121 | 创建公告 |
 | 81 | updateAnnouncement | PUT | /shop/announcements/{announcementId} | 5021 | 5121 | 更新公告 |
 | 82 | deleteAnnouncement | DELETE | /shop/announcements/{announcementId} | 5022 | 5122 | 删除公告 |
+
+### 3.6 店铺关注与评价 (5个)
+
+| 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
+|------|----------|----------|------|--------|--------|------|
 | 83 | followShop | POST | /shop/{shopId}/follow | 5000 | 5102 | 关注店铺 |
 | 84 | unfollowShop | DELETE | /shop/{shopId}/follow | 5001 | 5102 | 取消关注 |
 | 85 | checkFollowStatus | GET | /shop/{shopId}/follow-status | 200 | 1102 | 获取关注状态 |
@@ -606,7 +633,7 @@
 |------|----------|----------|------|--------|--------|------|
 | 85 | getCartItems | GET | /order/cart | 200 | 4110 | 获取购物车 |
 | 86 | addToCart | POST | /order/cart/add | 4010 | 4111, 4116, 4117, 4118 | 加入购物车 |
-| 87 | updateCartItem | PUT | /order/cart/update | 401好1, 4012 | 4112, 4116, 4117 | 更新购物车 |
+| 87 | updateCartItem | PUT | /order/cart/update | 4011, 4012 | 4112, 4116, 4117 | 更新购物车 |
 | 88 | removeFromCart | DELETE | /order/cart/remove | 4013 | 4113 | 移除商品 |
 | 89 | clearCart | DELETE | /order/cart/clear | 4015 | 4115 | 清空购物车 |
 
