@@ -188,30 +188,32 @@ export default {
         const payload = { ...preferences }
         const response = await store.dispatch('user/saveUserPreferences', payload)
         
+        // 显示API响应消息（成功或失败都通过状态码映射显示）
+        showByCode(response.code)
+        
+        // 只有成功时才应用设置
         if (isSuccess(response.code)) {
-          showByCode(response.code)
-        } else {
-          showByCode(response.code)
-        }
-        
-        // 应用主题设置
-        applyThemeSettings(preferences.theme)
-        
-        // 应用颜色和字体设置
-        document.documentElement.style.setProperty('--el-color-primary', preferences.primaryColor)
-        document.documentElement.style.setProperty('--el-font-size-base', preferences.fontSize + 'px')
-        
-        // 如果设置了字体，应用字体设置
-        if (preferences.fontFamily) {
-          document.documentElement.style.setProperty('--el-font-family', preferences.fontFamily)
-          document.body.style.fontFamily = preferences.fontFamily
-        } else {
-          document.documentElement.style.removeProperty('--el-font-family')
-          document.body.style.fontFamily = ''
+          // 应用主题设置
+          applyThemeSettings(preferences.theme)
+          
+          // 应用颜色和字体设置
+          document.documentElement.style.setProperty('--el-color-primary', preferences.primaryColor)
+          document.documentElement.style.setProperty('--el-font-size-base', preferences.fontSize + 'px')
+          
+          // 如果设置了字体，应用字体设置
+          if (preferences.fontFamily) {
+            document.documentElement.style.setProperty('--el-font-family', preferences.fontFamily)
+            document.body.style.fontFamily = preferences.fontFamily
+          } else {
+            document.documentElement.style.removeProperty('--el-font-family')
+            document.body.style.fontFamily = ''
+          }
         }
       } catch (e) {
-        // handleAsyncOperation 已负责提示；这里仅保证不吞异常
-        console.error('保存偏好设置失败：', e)
+        // 捕获意外的运行时错误（非API错误）
+        // API错误已通过响应拦截器转换为 {code, data} 格式，不会进入catch
+        // 这里只记录意外错误，不显示误导性的"保存失败"消息
+        console.error('保存偏好设置时发生意外错误：', e)
       } finally {
         submitting.value = false
       }
