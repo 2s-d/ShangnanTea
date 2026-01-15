@@ -36,7 +36,9 @@
 │   └── 用于：表单验证、用户确认、前端提示
 │
 └── API消息系统 (apiMessages.js)
-    ├── 状态码映射 (code-message-mapping.md)
+    ├── 状态码映射 (CODE_MAP)
+    ├── 静默列表 (SILENT_CODES)
+    ├── 状态码映射文档 (code-message-mapping.md)
     └── 用于：API响应消息自动显示
 ```
 
@@ -51,10 +53,19 @@ API 返回 { code, data }
   ↓
 组件调用 showByCode(code)
   ↓
-apiMessages.js 查找状态码映射
+apiMessages.js 检查静默列表
   ↓
-自动显示对应消息
+  是静默码？ → 不显示消息（仅记录日志）
+  否 → 查找状态码映射 → 自动显示对应消息
 ```
+
+### 静默列表机制
+
+静默列表用于控制哪些状态码不需要显示消息给用户，但仍在开发环境中记录日志：
+
+- **代码层面**：`apiMessages.js` 中的 `SILENT_CODES` 数组
+- **文档层面**：`code-message-mapping.md` 中标注 `[静默]` 的状态码
+- **同步原则**：代码和文档必须保持一致
 
 ---
 
@@ -588,14 +599,29 @@ if (isSuccess(response.code)) {
 - [ ] 在 `promptMessages.js` 中添加常量和方法（如果是提示消息）
 - [ ] 在 `code-message-mapping.md` 中记录状态码（如果是API消息）
 - [ ] 在 `apiMessages.js` 的 `CODE_MAP` 中添加映射（如果是API消息）
+- [ ] **判断是否需要静默**：如果是查询类或后台操作，添加到 `SILENT_CODES` 列表
+- [ ] **在文档中标注**：如果静默，在 `code-message-mapping.md` 表格中标注 `[静默]`
 - [ ] 更新本文档（如果涉及新模块或重大变更）
-- [ ] 测试消息显示是否正确
+- [ ] 测试消息显示是否正确（静默码不应显示消息）
 
 ### 文件修改优先级
 
 1. **高优先级**：`apiMessages.js`、`promptMessages.js`（核心文件）
-2. **中优先级**：`code-message-mapping.md`（文档同步）
+2. **中优先级**：`code-message-mapping.md`（文档同步，包括静默标注）
 3. **低优先级**：本文档（使用指南更新）
+
+### 静默列表维护规范
+
+**同步更新原则：**
+- 代码中的 `SILENT_CODES` 列表必须与文档中的 `[静默]` 标注保持一致
+- 新增静默状态码时，必须同时更新代码和文档
+- 移除静默状态码时，必须同时从代码和文档中删除
+
+**维护流程：**
+1. 在 `code-message-mapping.md` 中标注需要静默的状态码
+2. 在 `apiMessages.js` 的 `SILENT_CODES` 列表中添加对应状态码
+3. 测试验证：调用 `showByCode()` 时不应显示消息
+4. 提交代码时，确保代码和文档同步更新
 
 ---
 
