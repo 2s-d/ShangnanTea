@@ -2078,6 +2078,7 @@ paths:
                   summary: 获取规格列表失败
                   value:
                     code: 3115
+                    data: null
     post:
       operationId: addTeaSpecification
       tags:
@@ -2120,6 +2121,7 @@ paths:
                   summary: 添加规格失败
                   value:
                     code: 3116
+                    data: null
 
   /tea/specifications/{specId}:
     put:
@@ -2159,6 +2161,7 @@ paths:
                   summary: 更新规格失败
                   value:
                     code: 3117
+                    data: null
     delete:
       operationId: deleteTeaSpecification
       tags:
@@ -2190,6 +2193,7 @@ paths:
                   summary: 删除规格失败
                   value:
                     code: 3118
+                    data: null
 
   /tea/specifications/{specId}/default:
     put:
@@ -2223,6 +2227,7 @@ paths:
                   summary: 设置默认规格失败
                   value:
                     code: 3119
+                    data: null
 
   /tea/{teaId}/images:
     post:
@@ -2271,14 +2276,17 @@ paths:
                   summary: 上传图片失败
                   value:
                     code: 3120
+                    data: null
                 file_type_error:
                   summary: 文件类型错误
                   value:
                     code: 3121
+                    data: null
                 file_size_error:
                   summary: 文件过大
                   value:
                     code: 3122
+                    data: null
 
   /tea/images/{imageId}:
     delete:
@@ -2312,6 +2320,7 @@ paths:
                   summary: 删除图片失败
                   value:
                     code: 3123
+                    data: null
 
   /tea/images/{imageId}/main:
     put:
@@ -2345,6 +2354,7 @@ paths:
                   summary: 设置主图失败
                   value:
                     code: 3124
+                    data: null
 
   /tea/images/order:
     put:
@@ -2391,6 +2401,7 @@ paths:
                   summary: 更新图片顺序失败
                   value:
                     code: 3125
+                    data: null
 
   /tea/{teaId}/status:
     put:
@@ -2440,10 +2451,12 @@ paths:
                   summary: 茶叶上架失败
                   value:
                     code: 3126
+                    data: null
                 failure_offline:
                   summary: 茶叶下架失败
                   value:
                     code: 3127
+                    data: null
 
   /tea/batch-status:
     put:
@@ -2492,10 +2505,12 @@ paths:
                   summary: 批量上架失败
                   value:
                     code: 3128
+                    data: null
                 failure_offline:
                   summary: 批量下架失败
                   value:
                     code: 3129
+                    data: null
 
   /tea/recommend:
     get:
@@ -2543,6 +2558,7 @@ paths:
                   summary: 获取推荐茶叶失败
                   value:
                     code: 3105
+                    data: null
 
   # ==================== 店铺模块 ====================
   /shop/list:
@@ -2614,6 +2630,7 @@ paths:
                   summary: 获取店铺列表失败
                   value:
                     code: 4100
+                    data: null
 
     post:
       operationId: createShop
@@ -2650,6 +2667,7 @@ paths:
                   summary: 创建店铺失败
                   value:
                     code: 4101
+                    data: null
 
   /shop/{id}:
     get:
@@ -2689,10 +2707,12 @@ paths:
                   summary: 获取店铺详情失败
                   value:
                     code: 4102
+                    data: null
                 not_found:
                   summary: 店铺不存在
                   value:
                     code: 4103
+                    data: null
 
     put:
       operationId: updateShop
