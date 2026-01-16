@@ -1,0 +1,12 @@
+{
+  "totalPages": 0,
+  "pagesWithErrors": 0,
+  "totalErrors": 0,
+  "errorsByPage": {},
+  "errorsByType": {
+    "console": 0,
+    "network": 0,
+    "resource": 0,
+    "runtime": 0
+  }
+}
