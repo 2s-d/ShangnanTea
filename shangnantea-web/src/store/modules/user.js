@@ -620,19 +620,13 @@ const actions = {
   async uploadAvatar({ commit, state }, file) {
     if (!state.userInfo) {
       // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      userPromptMessages.error.showSessionExpired()
+      console.warn('Token已过期')
       return false
     }
     
     if (!file || !(file instanceof File)) {
       // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      userPromptMessages.error.showProfileUpdateFailure('请选择要上传的文件')
+      userPromptMessages.showFormIncomplete()
       return false
     }
     
@@ -767,22 +761,14 @@ const actions = {
     commit('CLEAR_USER')
     
     // 显示会话过期消息
-    // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-    // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-    userPromptMessages.error.showSessionExpired()
+    console.warn('Token已过期')
   },
   
   // 处理权限拒绝
   handlePermissionDenied() {
     // 显示权限拒绝消息
-    // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-    // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-    userPromptMessages.error.showPermissionDenied()
-  },
+    console.warn('权限不足')
+  },  },
   
   // 处理认证错误
   handleAuthError({ commit }) {
@@ -791,11 +777,7 @@ const actions = {
     commit('CLEAR_USER')
     
     // 显示认证错误消息
-    // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-    // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-    userPromptMessages.error.showSessionExpired()
+    console.warn('路由认证错误')
   },
   
   // === 地址相关actions ===
