@@ -3281,6 +3281,7 @@ paths:
                   summary: 删除Banner失败
                   value:
                     code: 4121
+                    data: null
 
   /shop/banners/order:
     put:
@@ -3324,6 +3325,7 @@ paths:
                   summary: 更新Banner排序失败
                   value:
                     code: 4122
+                    data: null
 
   /shop/{shopId}/announcements:
     get:
@@ -3360,6 +3362,7 @@ paths:
                   summary: 获取公告列表失败
                   value:
                     code: 4123
+                    data: null
 
     post:
       operationId: createShopAnnouncement
@@ -3402,6 +3405,7 @@ paths:
                   summary: 创建公告失败
                   value:
                     code: 4124
+                    data: null
 
   /shop/announcements/{announcementId}:
     put:
@@ -3441,6 +3445,7 @@ paths:
                   summary: 更新公告失败
                   value:
                     code: 4125
+                    data: null
 
     delete:
       operationId: deleteShopAnnouncement
@@ -3473,6 +3478,7 @@ paths:
                   summary: 删除公告失败
                   value:
                     code: 4126
+                    data: null
 
   /shop/{shopId}/follow:
     post:
@@ -3506,6 +3512,7 @@ paths:
                   summary: 关注店铺失败
                   value:
                     code: 4127
+                    data: null
     delete:
       operationId: unfollowShop
       tags:
@@ -3537,6 +3544,7 @@ paths:
                   summary: 取消关注失败
                   value:
                     code: 4128
+                    data: null
 
   /shop/{shopId}/follow-status:
     get:
@@ -3571,6 +3579,7 @@ paths:
                   summary: 获取关注状态失败
                   value:
                     code: 4129
+                    data: null
 
   /shop/{shopId}/reviews:
     get:
@@ -3674,6 +3683,7 @@ paths:
                   summary: 提交店铺评价失败
                   value:
                     code: 4131
+                    data: null
 
   # ==================== 订单模块 ====================
   /order/create:
