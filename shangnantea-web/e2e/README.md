@@ -106,40 +106,22 @@ run-api-test.bat user/login      # 直接运行指定测试
 
 ## 测试报告
 
-测试完成后，报告保存在以下位置：
-
-### 报告结构
+测试完成后，报告保存在 `e2e-report/` 目录：
 
 ```
 e2e-report/
-├── api-tests/              # API 测试报告（JSON 格式）
-│   ├── user-login.json     # 编号 1: 用户登录
-│   ├── user-register.json  # 编号 2: 用户注册
-│   └── ...
-└── screenshots/            # 错误截图（仅在有错误时）
-    ├── api-user-login-error.png
-    └── ...
+├── test-report.json           # 测试报告（每次覆盖）
+└── error-screenshot.png       # 错误截图（仅在失败时生成）
 ```
 
-### 报告内容
+**报告内容**：
+- 测试统计（总数、通过、失败）
+- 错误详情（类型、消息、时间）
+- 测试时间戳
 
-每个 JSON 报告包含：
-- `moduleName`: 测试模块名称
-- `totalTests`: 总测试数
-- `passedTests`: 通过数
-- `failedTests`: 失败数
-- `totalErrors`: 总错误数
-- `errors`: 错误详情数组
-- `timestamp`: 测试时间
-
-### 查看报告
-
+**查看报告**：
 ```bash
-# 查看 JSON 报告
-cat e2e-report/api-tests/user-login.json
-
-# 查看错误截图
-start e2e-report/screenshots/
+cat e2e-report/test-report.json
 ```
 
 ## 辅助工具

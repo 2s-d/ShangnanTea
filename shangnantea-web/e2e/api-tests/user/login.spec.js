@@ -73,7 +73,7 @@ test.describe('API 测试 - 用户登录', () => {
         
         // 截图保存错误现场
         await page.screenshot({ 
-          path: path.join(__dirname, '../../e2e-report/screenshots/api-user-login-error.png'),
+          path: path.join(__dirname, '../../e2e-report/error-screenshot.png'),
           fullPage: true 
         });
       } else {
@@ -169,12 +169,12 @@ test.afterAll(async () => {
   }
   
   // 保存报告
-  const reportDir = path.join(__dirname, '../../e2e-report/api-tests');
+  const reportDir = path.join(__dirname, '../../e2e-report');
   if (!fs.existsSync(reportDir)) {
     fs.mkdirSync(reportDir, { recursive: true });
   }
   
-  const reportPath = path.join(reportDir, 'user-login.json');
+  const reportPath = path.join(reportDir, 'test-report.json');
   fs.writeFileSync(reportPath, JSON.stringify(report, null, 2), 'utf-8');
   
   console.log(`\n📄 详细报告: ${reportPath}`);

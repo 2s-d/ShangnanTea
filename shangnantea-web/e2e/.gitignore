@@ -1,6 +1,6 @@
-# 测试报告
-e2e-report/
-e2e-screenshots/
+# 测试报告（每次运行覆盖）
+e2e-report/test-report.json
+e2e-report/error-screenshot.png
 
 # Playwright 缓存
 .playwright/
