@@ -8757,6 +8757,9 @@ components:
                 $ref: '#/components/schemas/Message'
             total:
               type: integer
+
+    Message:
+      type: object
       properties:
         id:
           type: string
