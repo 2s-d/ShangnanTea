@@ -323,42 +323,46 @@ test.describe('全站控制台错误扫描', () => {
     });
   }
   
-  // 所有测试完成后，生成汇总报告
-  test.afterAll(async () => {
-    console.log('\n' + '='.repeat(80));
-    console.log('📊 测试汇总报告');
-    console.log('='.repeat(80));
-    console.log(`总测试页面数: ${testResults.totalPages}`);
-    console.log(`有错误的页面: ${testResults.pagesWithErrors}`);
-    console.log(`总错误数: ${testResults.totalErrors}`);
-    console.log('\n错误类型分布:');
-    console.log(`  - 控制台错误: ${testResults.errorsByType.console}`);
-    console.log(`  - 网络请求错误: ${testResults.errorsByType.network}`);
-    console.log(`  - 资源加载错误: ${testResults.errorsByType.resource}`);
-    console.log(`  - 运行时错误: ${testResults.errorsByType.runtime}`);
-    
-    if (testResults.pagesWithErrors > 0) {
-      console.log('\n❌ 有错误的页面详情:');
-      Object.entries(testResults.errorsByPage).forEach(([pageName, errors]) => {
-        console.log(`\n  ${pageName}:`);
-        errors.forEach((err, i) => {
-          console.log(`    ${i + 1}. [${err.type}] ${err.message}`);
-        });
+});
+
+// 使用 test.afterAll 在所有测试完成后生成汇总报告
+// 注意：必须在 describe 块外部，这样才能确保在所有测试完成后执行
+test.afterAll(async () => {
+  console.log('\n' + '='.repeat(80));
+  console.log('📊 测试汇总报告');
+  console.log('='.repeat(80));
+  console.log(`总测试页面数: ${testResults.totalPages}`);
+  console.log(`有错误的页面: ${testResults.pagesWithErrors}`);
+  console.log(`总错误数: ${testResults.totalErrors}`);
+  console.log('\n错误类型分布:');
+  console.log(`  - 控制台错误: ${testResults.errorsByType.console}`);
+  console.log(`  - 网络请求错误: ${testResults.errorsByType.network}`);
+  console.log(`  - 资源加载错误: ${testResults.errorsByType.resource}`);
+  console.log(`  - 运行时错误: ${testResults.errorsByType.runtime}`);
+  
+  if (testResults.pagesWithErrors > 0) {
+    console.log('\n❌ 有错误的页面详情:');
+    Object.entries(testResults.errorsByPage).forEach(([pageName, errors]) => {
+      console.log(`\n  ${pageName}:`);
+      errors.forEach((err, i) => {
+        console.log(`    ${i + 1}. [${err.type}] ${err.message}`);
       });
-    }
-    
-    // 保存 JSON 格式的详细报告
-    const reportDir = 'e2e-report';
-    if (!fs.existsSync(reportDir)) {
-      fs.mkdirSync(reportDir, { recursive: true });
-    }
-    
-    fs.writeFileSync(
-      path.join(reportDir, 'error-summary.json'),
-      JSON.stringify(testResults, null, 2)
-    );
-    
-    console.log(`\n📄 详细报告已保存到: ${reportDir}/error-summary.json`);
-    console.log('='.repeat(80) + '\n');
-  });
+    });
+  }
+  
+  // 保存 JSON 格式的详细报告
+  const reportDir = path.join(__dirname, '..', 'e2e-report');
+  if (!fs.existsSync(reportDir)) {
+    fs.mkdirSync(reportDir, { recursive: true });
+  }
+  
+  const reportPath = path.join(reportDir, 'error-summary.json');
+  fs.writeFileSync(
+    reportPath,
+    JSON.stringify(testResults, null, 2),
+    'utf-8'
+  );
+  
+  console.log(`\n📄 详细报告已保存到: ${reportPath}`);
+  console.log('='.repeat(80) + '\n');
 });
