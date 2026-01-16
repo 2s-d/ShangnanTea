@@ -133,7 +133,7 @@ export const TEA_PROMPT = {
   IMAGE_REQUIRED: '请至少上传一张商品图片',
   SUBMITTING: '正在提交数据，请稍候...'
 }
-就是
+
 export const teaPromptMessages = {
   showReplyEmpty() {
     promptMessage.show(TEA_PROMPT.REPLY_EMPTY)
