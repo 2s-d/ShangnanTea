@@ -3,8 +3,7 @@
  * 提供常用的表单验证规则和方法
  */
 import { reactive } from 'vue'
-import { commonPromptMessages } from '@/utils/promptMessages'
-import { showByCode } from '@/utils/apiMessages'
+import commonMessages from '@/utils/promptMessages'
 
 /**
  * 使用表单验证
@@ -16,7 +15,7 @@ export function useFormValidation() {
    * @param {string} email 邮箱地址
    * @returns {boolean} 是否是有效的邮箱
    */
-  const isValidEmail = email => {
+  const isValidEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     return emailRegex.test(email)
   }
@@ -26,7 +25,7 @@ export function useFormValidation() {
    * @param {string} phone 手机号
    * @returns {boolean} 是否是有效的手机号
    */
-  const isValidPhone = phone => {
+  const isValidPhone = (phone) => {
     const phoneRegex = /^1[3-9]\d{9}$/
     return phoneRegex.test(phone)
   }
@@ -36,7 +35,7 @@ export function useFormValidation() {
    * @param {string} password 密码
    * @returns {boolean} 是否是强密码
    */
-  const isStrongPassword = password => {
+  const isStrongPassword = (password) => {
     // 至少8位，包含大小写字母和数字
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/
     return passwordRegex.test(password)
@@ -121,8 +120,9 @@ export function useFormValidation() {
    */
   const validateForm = async (formRef, onValid) => {
     if (!formRef) {
-      // 表单引用不存在，使用通用错误提示
-      showByCode(1100)
+      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+
+      commonMessages.error.showFormRefNotFound()
       return false
     }
     
@@ -142,7 +142,7 @@ export function useFormValidation() {
    * 重置表单
    * @param {Object} formRef 表单引用
    */
-  const resetForm = formRef => {
+  const resetForm = (formRef) => {
     if (formRef) {
       formRef.resetFields()
     }

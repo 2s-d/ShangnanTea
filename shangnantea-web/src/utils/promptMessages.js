@@ -14,9 +14,8 @@ export const COMMON_PROMPT = {
   EMAIL_REQUIRED: '请输入您的邮箱',
   EMAIL_ALREADY_SUBSCRIBED: '该邮箱已订阅，无需重复操作',
   PROCESSING: '处理中...',
-  FILE_TYPE_INVALID: '文件类型不支持，请上传JPG、PNG或GIF格式的图片',
-  FILE_SIZE_EXCEEDED: '文件大小不能超过{size}MB',
-  UPLOAD_FAILED: '文件上传失败：{message}'
+  IMAGE_TYPE_INVALID: '请选择图片文件',
+  IMAGE_SIZE_EXCEEDED: '图片大小不能超过5MB'
 }
 
 export const commonPromptMessages = {
@@ -36,16 +35,11 @@ export const commonPromptMessages = {
   showProcessing() {
     promptMessage.info(COMMON_PROMPT.PROCESSING)
   },
-  showFileTypeInvalid() {
-    promptMessage.show(COMMON_PROMPT.FILE_TYPE_INVALID)
+  showImageTypeInvalid() {
+    promptMessage.show(COMMON_PROMPT.IMAGE_TYPE_INVALID)
   },
-  showFileSizeExceeded(size) {
-    const msg = COMMON_PROMPT.FILE_SIZE_EXCEEDED.replace('{size}', size)
-    promptMessage.show(msg)
-  },
-  showUploadFailed(message) {
-    const msg = COMMON_PROMPT.UPLOAD_FAILED.replace('{message}', message || '未知错误')
-    promptMessage.show(msg)
+  showImageSizeExceeded() {
+    promptMessage.show(COMMON_PROMPT.IMAGE_SIZE_EXCEEDED)
   }
 }
 
@@ -66,7 +60,8 @@ export const USER_PROMPT = {
   PHONE_INPUT_REQUIRED: '请先输入手机号',
   EMAIL_INPUT_REQUIRED: '请先输入邮箱',
   REGION_DATA_INCOMPLETE: '省市区数据加载不完整，将使用备用数据',
-  EXPORT_FEATURE_DEVELOPING: '导出功能开发中，敬请期待...'
+  EXPORT_FEATURE_DEVELOPING: '导出功能开发中，敬请期待...',
+  CAPTCHA_SENT: '验证码已发送，请注意查收'
 }
 
 
@@ -118,6 +113,9 @@ export const userPromptMessages = {
   },
   showExportFeatureDeveloping() {
     promptMessage.info(USER_PROMPT.EXPORT_FEATURE_DEVELOPING)
+  },
+  showCaptchaSent() {
+    promptMessage.success(USER_PROMPT.CAPTCHA_SENT)
   }
 }
 
@@ -135,7 +133,7 @@ export const TEA_PROMPT = {
   IMAGE_REQUIRED: '请至少上传一张商品图片',
   SUBMITTING: '正在提交数据，请稍候...'
 }
-
+就是
 export const teaPromptMessages = {
   showReplyEmpty() {
     promptMessage.show(TEA_PROMPT.REPLY_EMPTY)

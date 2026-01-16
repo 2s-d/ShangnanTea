@@ -312,18 +312,19 @@ export default {
       try {
         if (isFollowing.value) {
           // 取消关注 - 这里应该调用用户模块的取消关注方法
-          // await store.dispatch('user/removeFollow', userId.value)
+          // const res = await store.dispatch('user/removeFollow', userId.value)
+          // showByCode(res.code)
           isFollowing.value = false
           commonPromptMessages.showProcessing()
         } else {
           // 添加关注 - 这里应该调用用户模块的添加关注方法
-          // await store.dispatch('user/addFollow', { targetId: userId.value, targetType: 'user' })
+          // const res = await store.dispatch('user/addFollow', { targetId: userId.value, targetType: 'user' })
+          // showByCode(res.code)
           isFollowing.value = true
           commonPromptMessages.showProcessing()
         }
       } catch (error) {
-        console.error('操作失败', error)
-        showByCode(error.code || 4000)
+        console.error('关注操作失败:', error)
       }
     }
     
@@ -346,8 +347,7 @@ export default {
           store.dispatch('message/fetchUserStatistics', targetUserId)
         ])
       } catch (error) {
-        console.error('加载用户数据失败', error)
-        showByCode(error.code || 4000)
+        console.error('加载用户数据失败：', error)
       }
     }
     
@@ -357,7 +357,7 @@ export default {
       const d = new Date(date)
       return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`
     }
-    
+
     // 默认图片
     const defaultImage = ''
     

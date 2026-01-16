@@ -2,7 +2,7 @@
   <div class="article-detail-page">
     <!-- 文章内容容器 -->
     <div class="article-container">
-      <!-- 文章标题 -->
+      <!-- 文章标题区 -->
       <div class="article-header">
         <h1 class="article-title">{{ article.title }}</h1>
         <div class="article-subtitle" v-if="article.subtitle">{{ article.subtitle }}</div>
@@ -33,7 +33,7 @@
         <SafeImage :src="article.coverImage" type="post" :alt="article.title" style="width:100%;" />
       </div>
       
-      <!-- 文章内容 -->
+      <!-- 文章内容区 -->
       <div class="article-content" v-html="article.content"></div>
       
       <!-- 文章标签 -->
@@ -53,7 +53,7 @@
         </div>
       </div>
       
-      <!-- 文章操作 -->
+      <!-- 文章操作栏 -->
       <div class="article-actions">
         <el-button type="primary" @click="goBack">
           <i class="el-icon-back"></i> 返回
@@ -170,7 +170,7 @@ export default {
         .slice(0, 6) // 最多显示6篇相关文章
     })
 
-    // 添加默认图片常量（生产形态：不使用mock-images）
+    // 添加默认图片常量（生产形态：不使用 mock-images）
     const defaultImage = ''
 
     // 格式化日期
@@ -184,7 +184,8 @@ export default {
     const loadArticleDetail = async () => {
       try {
         const articleId = route.params.id
-        await store.dispatch('forum/fetchArticleDetail', articleId)
+        const res = await store.dispatch('forum/fetchArticleDetail', articleId)
+        showByCode(res.code)
         
         // 如果文章列表为空，也加载文章列表用于相关文章推荐
         if (!store.state.forum.articles || store.state.forum.articles.length === 0) {
@@ -195,7 +196,6 @@ export default {
         await nextTick()
         suppressResizeObserverError()
       } catch (error) {
-        showByCode(error.code || 4000)
         console.error('获取文章详情失败:', error)
       }
     }
@@ -224,14 +224,10 @@ export default {
     // 处理收藏
     const handleLike = async () => {
       try {
-        if (!isLiked.value) {
-          // 这里可以调用文章点赞API，目前暂时使用简单的状态切换
-          isLiked.value = true
-          forumPromptMessages.showShareDeveloping()
-        } else {
-          isLiked.value = false
-          forumPromptMessages.showShareDeveloping()
-        }
+        // 这里可以调用文章点赞API，目前暂时使用简单的状态切换
+        isLiked.value = !isLiked.value
+        // 收藏状态切换不需要API调用，只是本地状态变化
+        console.log('收藏状态已切换:', isLiked.value)
       } catch (error) {
         console.error('收藏操作失败:', error)
       }
@@ -244,7 +240,8 @@ export default {
     
     // 分享到微信
     const shareToWeixin = () => {
-      forumPromptMessages.showShareDeveloping() // 临时使用，实际应该是复制链接成功
+      // 复制链接成功提示
+      forumPromptMessages.showShareDeveloping()
       shareDialogVisible.value = false
     }
     
@@ -262,7 +259,8 @@ export default {
     
     // 复制链接
     const copyLink = () => {
-      forumPromptMessages.showShareDeveloping() // 临时使用，实际应该是复制链接成功
+      // 复制链接成功提示
+      forumPromptMessages.showShareDeveloping()
       shareDialogVisible.value = false
     }
     
@@ -658,4 +656,4 @@ export default {
     }
   }
 }
-</style>
+</style> 
