@@ -768,7 +768,7 @@ const actions = {
   handlePermissionDenied() {
     // 显示权限拒绝消息
     console.warn('权限不足')
-  },  },
+  },
   
   // 处理认证错误
   handleAuthError({ commit }) {
