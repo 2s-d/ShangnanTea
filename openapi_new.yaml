@@ -1,17 +1,17 @@
 ﻿openapi: 3.0.3
 info:
-  title: ���ϲ��� API
+  title: 商南茶城 API
   description: |
-    ���ϲ��ǵ���ƽ̨ API �ӿ��ĵ�
+    商南茶城电商平台 API 接口文档
     
-    ## ��֤��ʽ
-    ʹ�� Bearer Token ��֤��������ͷ�����ӣ�
+    ## 认证方式
+    使用 Bearer Token 认证，在请求头中添加：
     ```
     Authorization: Bearer <token>
     ```
     
-    ## ��Ӧ��ʽ
-    ���нӿ�ͳһ���� HTTP 200��ͨ�� `code` �ֶ�����ҵ��״̬��
+    ## 响应格式
+    所有接口统一返回 HTTP 200，通过 `code` 字段区分业务状态：
     ```json
     {
       "code": 2000,
@@ -19,18 +19,18 @@ info:
     }
     ```
     
-    ## ҵ��״̬������
-    | ģ�� | �ɹ��뷶Χ | ʧ���뷶Χ |
+    ## 业务状态码规则
+    | 模块 | 成功码范围 | 失败码范围 |
     |------|-----------|-----------|
-    | ͨ�� | 10xx | 11xx |
-    | �û� | 20xx-22xx | 21xx-22xx |
-    | ��Ҷ | 30xx-33xx | 31xx-33xx |
-    | ���� | 40xx-46xx | 41xx-46xx |
-    | ���� | 50xx-53xx | 51xx-53xx |
-    | ��̳ | 60xx-66xx | 61xx-66xx |
-    | ��Ϣ | 70xx-72xx | 71xx-72xx |
+    | 通用 | 10xx | 11xx |
+    | 用户 | 20xx-22xx | 21xx-22xx |
+    | 茶叶 | 30xx-33xx | 31xx-33xx |
+    | 订单 | 40xx-46xx | 41xx-46xx |
+    | 店铺 | 50xx-53xx | 51xx-53xx |
+    | 论坛 | 60xx-66xx | 61xx-66xx |
+    | 消息 | 70xx-72xx | 71xx-72xx |
     
-    **�жϹ���**����λΪ 0 ��ʾ�ɹ�����λΪ 1 ��ʾʧ��
+    **判断规则**：百位为 0 表示成功，百位为 1 表示失败
   version: 1.0.0
   contact:
     name: API Support
@@ -41,46 +41,46 @@ info:
 
 servers:
   - url: http://127.0.0.1:4523/m1/7594087-7332672-default
-    description: Mock ������
+    description: Mock 服务器
   - url: /api
-    description: �������� API
+    description: 生产环境 API
 
 tags:
-  - name: �û�ģ��
-    description: �û���֤����Ϣ�������ؽӿ�
-  - name: ��Ҷģ��
-    description: ��Ҷ��Ʒ���ؽӿ�
-  - name: ����ģ��
-    description: ������Ϣ���ؽӿ�
-  - name: ����ģ��
-    description: �����������ؽӿ�
-  - name: ��̳ģ��
-    description: ��̳�������ؽӿ�
-  - name: ��Ϣģ��
-    description: ��Ϣ֪ͨ���ؽӿ�
-  - name: ����ģ��
-    description: �ļ��ϴ��ȹ����ӿ�
+  - name: 用户模块
+    description: 用户认证、信息管理相关接口
+  - name: 茶叶模块
+    description: 茶叶商品相关接口
+  - name: 店铺模块
+    description: 店铺信息相关接口
+  - name: 订单模块
+    description: 订单管理相关接口
+  - name: 论坛模块
+    description: 论坛帖子相关接口
+  - name: 消息模块
+    description: 消息通知相关接口
+  - name: 公共模块
+    description: 文件上传等公共接口
 
 paths:
-  # ==================== �û�ģ�� ====================
+  # ==================== 用户模块 ====================
   /user/login:
     post:
       operationId: userLogin
       tags:
-        - �û�ģ��
-      summary: �û���¼
+        - 用户模块
+      summary: 用户登录
       description: |
-        ʹ���û������������е�¼������ JWT Token��
+        使用用户名和密码进行登录，返回 JWT Token。
         
-        JWT Token Payload ���������ֶΣ�
-        - sub: �û�ID
-        - role: �û���ɫ (1-����Ա, 2-��ͨ�û�, 3-�̼�)
-        - username: �û���
-        - iat: ǩ��ʱ�� (Unixʱ��������)
-        - exp: ����ʱ�� (Unixʱ��������)
-        - iss: ǩ���� ("shangnantea")
+        JWT Token Payload 包含以下字段：
+        - sub: 用户ID
+        - role: 用户角色 (1-管理员, 2-普通用户, 3-商家)
+        - username: 用户名
+        - iat: 签发时间 (Unix时间戳，秒)
+        - exp: 过期时间 (Unix时间戳，秒)
+        - iss: 签发者 ("shangnantea")
         
-        Token��Ч�ڣ�24Сʱ
+        Token有效期：24小时
       requestBody:
         required: true
         content:
@@ -92,30 +92,30 @@ paths:
               password: "password123"
       responses:
         '200':
-          description: �������ɣ�ͨ�� code �ж�ҵ������
+          description: 请求完成，通过 code 判断业务结果
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/LoginResponse'
               examples:
                 success:
-                  summary: ��¼�ɹ�
+                  summary: 登录成功
                   description: |
-                    ����JWT Token��ǰ����Ҫ��
-                    1. �洢token��localStorage
-                    2. ����token��ȡ�û���Ϣ(sub=�û�ID, role=��ɫ, username=�û���)
-                    3. ����������Header��Я��: Authorization: Bearer <token>
+                    返回JWT Token，前端需要：
+                    1. 存储token到localStorage
+                    2. 解析token获取用户信息(sub=用户ID, role=角色, username=用户名)
+                    3. 后续请求在Header中携带: Authorization: Bearer <token>
                   value:
                     code: 2000
                     data:
                       token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjeTEwMDAwMiIsInJvbGUiOjIsInVzZXJuYW1lIjoidGVzdHVzZXIiLCJpYXQiOjE3MzcwMDAwMDAsImV4cCI6MTg5MzQ1NjAwMCwiaXNzIjoic2hhbmduYW50ZWEifQ.mock_signature_for_testing"
                 failure_wrong_password:
-                  summary: ��¼ʧ�ܣ��������û���������
+                  summary: 登录失败，请检查用户名和密码
                   value:
                     code: 2100
                     data: null
                 failure_token_generation:
-                  summary: ��¼ʧ�ܣ�������Token����ʧ��
+                  summary: 登录失败，服务器Token生成失败
                   value:
                     code: 2101
                     data: null
@@ -124,9 +124,9 @@ paths:
     post:
       operationId: userRegister
       tags:
-        - �û�ģ��
-      summary: �û�ע��
-      description: ע�����û��˺�
+        - 用户模块
+      summary: 用户注册
+      description: 注册新用户账号
       requestBody:
         required: true
         content:
@@ -139,19 +139,19 @@ paths:
               confirmPassword: "password123"
       responses:
         '200':
-          description: �������ɣ�ͨ�� code �ж�ҵ������
+          description: 请求完成，通过 code 判断业务结果
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/RegisterResponse'
               examples:
                 success:
-                  summary: ע���ɹ�������¼
+                  summary: 注册成功，请登录
                   value:
                     code: 2001
                     data: null
                 failure:
-                  summary: ע��ʧ�ܣ��û����Ѵ��ڻ����ݸ�ʽ����
+                  summary: 注册失败，用户名已存在或数据格式错误
                   value:
                     code: 2102
                     data: null
@@ -160,26 +160,26 @@ paths:
     post:
       operationId: userLogout
       tags:
-        - �û�ģ��
-      summary: �˳���¼
-      description: �˳���ǰ�û���¼״̬
+        - 用户模块
+      summary: 退出登录
+      description: 退出当前用户登录状态
       security:
         - BearerAuth: []
       responses:
         '200':
-          description: �˳��ɹ�
+          description: 退出成功
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: �Ѱ�ȫ�˳�ϵͳ
+                  summary: 已安全退出系统
                   value:
                     code: 2002
                     data: null
                 failure:
-                  summary: �˳���¼ʧ��
+                  summary: 退出登录失败
                   value:
                     code: 2103
                     data: null
@@ -188,39 +188,39 @@ paths:
     post:
       operationId: refreshToken
       tags:
-        - �û�ģ��
-      summary: ˢ������
+        - 用户模块
+      summary: 刷新令牌
       description: |
-        ˢ��JWT���ƣ���ȡ�µ���Чtoken��
+        刷新JWT令牌，获取新的有效token。
         
-        ˢ�¹�����
-        - ��Ҫ��Header��Я��ԭtoken: Authorization: Bearer <token>
-        - ��ʹԭtoken�ѹ��ڣ�ֻҪδ���۸ģ��Կ�ˢ��
-        - ˢ�º󷵻���token��ԭtokenʧЧ
-        - ��token��Ч�ڣ�24Сʱ
+        刷新规则：
+        - 需要在Header中携带原token: Authorization: Bearer <token>
+        - 即使原token已过期，只要未被篡改，仍可刷新
+        - 刷新后返回新token，原token失效
+        - 新token有效期：24小时
       security:
         - BearerAuth: []
       responses:
         '200':
-          description: ˢ�½���
+          description: 刷新结果
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/RefreshTokenResponse'
               examples:
                 success:
-                  summary: ˢ�³ɹ�
+                  summary: 刷新成功
                   value:
                     code: 200
                     data:
                       token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjeTEwMDAwMiIsInJvbGUiOjIsInVzZXJuYW1lIjoidGVzdHVzZXIiLCJpYXQiOjE3MzcwMDAwMDAsImV4cCI6MTg5MzQ1NjAwMCwiaXNzIjoic2hhbmduYW50ZWEifQ.mock_signature_for_testing"
                 failure_refresh_failed:
-                  summary: ˢ������ʧ��
+                  summary: 刷新令牌失败
                   value:
                     code: 2105
                     data: null
                 failure_token_expired:
-                  summary: ���ĵ�¼�ѹ��ڣ������µ�¼
+                  summary: 您的登录已过期，请重新登录
                   value:
                     code: 2106
                     data: null
@@ -229,34 +229,34 @@ paths:
     get:
       operationId: getUserMe
       tags:
-        - �û�ģ��
-      summary: ��ȡ��ǰ�û���Ϣ
-      description: ��ȡ��ǰ��¼�û�����ϸ��Ϣ
+        - 用户模块
+      summary: 获取当前用户信息
+      description: 获取当前登录用户的详细信息
       security:
         - BearerAuth: []
       responses:
         '200':
-          description: ��ȡ�ɹ�
+          description: 获取成功
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserInfoResponse'
               examples:
                 success:
-                  summary: ��ȡ��ǰ�û���Ϣ�ɹ�
+                  summary: 获取当前用户信息成功
                   value:
                     code: 200
                     data:
                       id: "cy100002"
                       username: "user"
-                      nickname: "�����û�"
+                      nickname: "测试用户"
                       avatar: "/images/default-avatar.png"
                       email: "user@example.com"
                       phone: "13800138000"
                       role: 2
                       status: 1
                 failure:
-                  summary: ��ȡ��ǰ�û���Ϣʧ��
+                  summary: 获取当前用户信息失败
                   value:
                     code: 2104
                     data: null
@@ -265,9 +265,9 @@ paths:
     get:
       operationId: getUserById
       tags:
-        - �û�ģ��
-      summary: ��ȡָ���û���Ϣ
-      description: �����û�ID��ȡ�û�������Ϣ
+        - 用户模块
+      summary: 获取指定用户信息
+      description: 根据用户ID获取用户公开信息
       parameters:
         - name: userId
           in: path
@@ -276,25 +276,25 @@ paths:
             type: string
       responses:
         '200':
-          description: ��ȡ�ɹ�
+          description: 获取成功
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserInfoResponse'
               examples:
                 success:
-                  summary: ��ȡ�û���Ϣ�ɹ�
+                  summary: 获取用户信息成功
                   value:
                     code: 200
                     data:
                       id: "cy100002"
                       username: "user"
-                      nickname: "�����û�"
+                      nickname: "测试用户"
                       avatar: "/images/default-avatar.png"
                       role: 2
                       status: 1
                 failure:
-                  summary: ��ȡ�û���Ϣʧ��
+                  summary: 获取用户信息失败
                   value:
                     code: 2107
                     data: null
@@ -303,9 +303,9 @@ paths:
     put:
       operationId: updateUser
       tags:
-        - �û�ģ��
-      summary: �����û���Ϣ
-      description: ���µ�ǰ�û��ĸ�����Ϣ
+        - 用户模块
+      summary: 更新用户信息
+      description: 更新当前用户的个人信息
       security:
         - BearerAuth: []
       requestBody:
@@ -315,24 +315,24 @@ paths:
             schema:
               $ref: '#/components/schemas/UpdateUserRequest'
             example:
-              nickname: "���ǳ�"
+              nickname: "新昵称"
               email: "newemail@example.com"
               phone: "13900139000"
       responses:
         '200':
-          description: ���³ɹ�
+          description: 更新成功
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseResponse'
               examples:
                 success:
-                  summary: �������ϸ��³ɹ�
+                  summary: 个人资料更新成功
                   value:
                     code: 2003
                     data: null
                 failure:
-                  summary: �������ϸ���ʧ��
+                  summary: 个人资料更新失败
                   value:
                     code: 2108
                     data: null
@@ -341,9 +341,9 @@ paths:
     post:
       operationId: uploadAvatar
       tags:
-        - �û�ģ��
-      summary: �ϴ�ͷ��
-      description: �ϴ��û�ͷ��ͼƬ
+        - 用户模块
+      summary: 上传头像
+      description: 上传用户头像图片
       security:
         - BearerAuth: []
       requestBody:
@@ -356,28 +356,28 @@ paths:
                 file:
                   type: string
                   format: binary
-                  description: ͷ��ͼƬ�ļ�
+                  description: 头像图片文件
       responses:
         '200':
-          description: �ϴ��ɹ�
+          description: 上传成功
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/UploadResponse'
               examples:
                 success:
-                  summary: ͷ�����³ɹ�
+                  summary: 头像更新成功
                   value:
                     code: 2004
                     data:
                       avatarUrl: "/uploads/avatar/user_cy100002.jpg"
                 failure_upload:
-                  summary: ͷ������ʧ��
+                  summary: 头像更新失败
                   value:
                     code: 2109
                     data: null
                 failure_file_type:
-                  summary: ��֧�ֵ��ļ�����
+                  summary: 不支持的文件类型
                   value:
                     code: 2110
                     data: null
