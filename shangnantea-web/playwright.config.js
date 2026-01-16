@@ -12,9 +12,7 @@ module.exports = defineConfig({
   retries: 0,
   workers: 1,
   reporter: [
-    ['html', { outputFolder: 'e2e-report' }],
-    ['list'],
-    ['./e2e/error-reporter.js']
+    ['list']
   ],
   use: {
     baseURL: 'http://localhost:8083',

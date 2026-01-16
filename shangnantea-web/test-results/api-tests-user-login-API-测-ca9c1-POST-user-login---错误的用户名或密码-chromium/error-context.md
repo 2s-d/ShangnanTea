@@ -8,45 +8,51 @@
       - img "商南茶文化" [ref=e8]
       - generic [ref=e9]: 商南茶文化
     - menubar [ref=e10]:
-      - button "用户头像 用户" [ref=e13] [cursor=pointer]:
-        - img "用户头像" [ref=e14]
-        - generic [ref=e15]: 用户
-  - main [ref=e16]:
-    - generic [ref=e18]:
-      - heading "个人设置" [level=1] [ref=e19]
-      - generic [ref=e22]:
-        - menubar [ref=e24]:
-          - menuitem "个性修改" [ref=e25] [cursor=pointer]:
-            - img [ref=e27]
-            - generic [ref=e29]: 个性修改
-          - menuitem "密码修改" [active] [ref=e30] [cursor=pointer]:
-            - img [ref=e32]
-            - generic [ref=e35]: 密码修改
-          - menuitem "商家认证" [ref=e36] [cursor=pointer]:
-            - img [ref=e38]
-            - generic [ref=e40]: 商家认证
-        - generic [ref=e42]:
-          - generic [ref=e43]:
-            - heading "修改密码" [level=1] [ref=e44]
-            - paragraph [ref=e45]: 您可以在此更新您的账户密码
+      - menuitem "茶文化" [ref=e11] [cursor=pointer]
+      - menuitem "茶叶商城" [ref=e12] [cursor=pointer]
+      - menuitem "茶友论坛" [ref=e13] [cursor=pointer]
+      - menuitem "我的订单" [ref=e14] [cursor=pointer]
+      - menuitem "消息管理" [ref=e15] [cursor=pointer]
+      - menuitem "个人主页" [ref=e16] [cursor=pointer]
+      - menuitem "购物车" [ref=e17] [cursor=pointer]
+      - button "用户头像 testuser" [ref=e20] [cursor=pointer]:
+        - img "用户头像" [ref=e21]
+        - generic [ref=e22]: testuser
+  - main [ref=e23]:
+    - generic [ref=e24]:
+      - generic [ref=e26]:
+        - button "Carousel arrow left" [ref=e27] [cursor=pointer]:
+          - img [ref=e29]
+        - button "Carousel arrow right" [ref=e31] [cursor=pointer]:
+          - img [ref=e33]
+        - list
+      - generic [ref=e36]:
+        - heading "商南茶文化" [level=2] [ref=e37]
+        - generic [ref=e38]: 千年茶乡，一片叶子的传奇
+        - paragraph [ref=e39]: 商南茶文化源远流长，历史可追溯至唐代，以"秦山云雾茶叶"的独特风韵著称，让您通过一叶茶品尝到历史与文化的香醇。
+        - button "AR虚拟试饮（体验版）" [ref=e41] [cursor=pointer]:
+          - generic [ref=e42]:
+            - img [ref=e44]
+            - text: AR虚拟试饮（体验版）
+      - generic [ref=e46]:
+        - generic [ref=e47]:
           - generic [ref=e48]:
-            - generic [ref=e49]:
-              - generic [ref=e50]: "* 当前密码"
-              - textbox "* 当前密码" [ref=e54]:
-                - /placeholder: 请输入当前密码
-            - generic [ref=e55]:
-              - generic [ref=e56]: "* 新密码"
-              - textbox "* 新密码" [ref=e60]:
-                - /placeholder: 请输入新密码
-            - generic [ref=e61]:
-              - generic [ref=e62]: "* 确认密码"
-              - textbox "* 确认密码" [ref=e66]:
-                - /placeholder: 请再次输入新密码
-            - generic [ref=e68]:
-              - button "更新密码" [ref=e69] [cursor=pointer]:
-                - generic [ref=e70]: 更新密码
-              - button "重置" [ref=e71] [cursor=pointer]:
-                - generic [ref=e72]: 重置
+            - heading "茶叶历史" [level=3] [ref=e51]
+            - list
+          - generic [ref=e52]:
+            - heading "茶艺茶道" [level=3] [ref=e55]
+            - list
+          - generic [ref=e56]:
+            - heading "茶叶百科" [level=3] [ref=e59]
+            - list
+          - generic [ref=e60]:
+            - heading "茶文化传承" [level=3] [ref=e63]
+            - list
+        - button [ref=e65] [cursor=pointer]:
+          - img [ref=e68]
+      - generic [ref=e70]:
+        - heading "商南好茶推荐" [level=2] [ref=e71]
+        - generic [ref=e72]: 甄选商南优质茶品
   - contentinfo [ref=e73]:
     - generic [ref=e74]:
       - generic [ref=e75]:
@@ -118,17 +124,19 @@
         - heading "开发监控" [level=3] [ref=e131]
         - generic [ref=e132]:
           - button "错误" [ref=e133]
-          - button "API" [ref=e134]
-      - generic [ref=e135]:
-        - button "复制" [ref=e136]
-        - button "清空" [ref=e137]
-        - button "▼" [ref=e138]
-    - generic [ref=e142]:
-      - generic [ref=e143]:
-        - generic [ref=e144]: 13:19:06
-        - generic [ref=e145]: ElementPlus警告
-      - generic [ref=e146]: "[el-radio] [API] label act as value is about to be deprecated in version 3.0.0, please use value instead. For more detail, please visit: https://element-plus.org/en-US/component/radio.html"
-      - generic [ref=e147]: 📄 element-plus/es/utils/error.mjs:43:13
-      - group [ref=e149] [cursor=pointer]:
-        - generic "堆栈信息" [ref=e150]
+          - button "API 1" [ref=e134]:
+            - text: API
+            - generic [ref=e135]: "1"
+      - generic [ref=e136]:
+        - button "复制" [ref=e137]
+        - button "清空" [ref=e138]
+        - button "▼" [ref=e139]
+    - generic [ref=e143]:
+      - generic [ref=e144]:
+        - generic [ref=e145]: 14:17:42
+        - generic [ref=e146]: ElementPlus警告
+      - generic [ref=e147]: "[props] [API] type.text is about to be deprecated in version 3.0.0, please use link instead. For more detail, please visit: https://element-plus.org/en-US/component/button.html#button-attributes"
+      - generic [ref=e148]: 📄 element-plus/es/utils/error.mjs:43:13
+      - group [ref=e150] [cursor=pointer]:
+        - generic "堆栈信息" [ref=e151]
 ```
