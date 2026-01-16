@@ -151,8 +151,8 @@
                 取消收藏
               </el-button>
             </div>
-      </div>
-    </div>
+          </div>
+        </div>
       </el-tab-pane>
     </el-tabs>
   </div>
