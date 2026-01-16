@@ -65,16 +65,16 @@ const testResults = {
 
 // 模拟登录 - 设置 token
 // 注意：这些是有效的 JWT token，payload 部分是 base64 编码的 JSON
+// 过期时间设置为 2030-01-01，确保足够长的有效期
 const MOCK_TOKENS = {
-  // admin token: {"sub":"1","role":1,"username":"admin","exp":1767225600}
-  // 过期时间：2026-01-01 (足够长的有效期)
-  admin: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwicm9sZSI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImV4cCI6MTc2NzIyNTYwMH0.dGVzdF9zaWduYXR1cmVfZm9yX2FkbWlu',
+  // admin token: {"sub":"1","role":1,"username":"admin","exp":1893456000}
+  admin: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwicm9sZSI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImV4cCI6MTg5MzQ1NjAwMH0.dGVzdF9zaWduYXR1cmVfZm9yX2FkbWlu',
   
-  // user token: {"sub":"2","role":2,"username":"user","exp":1767225600}
-  user: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwicm9sZSI6MiwidXNlcm5hbWUiOiJ1c2VyIiwiZXhwIjoxNzY3MjI1NjAwfQ.dGVzdF9zaWduYXR1cmVfZm9yX3VzZXI',
+  // user token: {"sub":"2","role":2,"username":"user","exp":1893456000}
+  user: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwicm9sZSI6MiwidXNlcm5hbWUiOiJ1c2VyIiwiZXhwIjoxODkzNDU2MDAwfQ.dGVzdF9zaWduYXR1cmVfZm9yX3VzZXI',
   
-  // shop token: {"sub":"3","role":3,"username":"shop","exp":1767225600}
-  shop: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzIiwicm9sZSI6MywidXNlcm5hbWUiOiJzaG9wIiwiZXhwIjoxNzY3MjI1NjAwfQ.dGVzdF9zaWduYXR1cmVfZm9yX3Nob3A'
+  // shop token: {"sub":"3","role":3,"username":"shop","exp":1893456000}
+  shop: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzIiwicm9sZSI6MywidXNlcm5hbWUiOiJzaG9wIiwiZXhwIjoxODkzNDU2MDAwfQ.dGVzdF9zaWduYXR1cmVfZm9yX3Nob3A'
 };
 
 /**
