@@ -1,7 +1,7 @@
 <template>
   <div class="forum-detail-page">
     <!-- 页面标题 -->
-    <div class="page-header">
+    <div class="page-header" v-if="post">
       <div class="container">
         <div class="back-button" @click="goBack">
           <el-icon><Back /></el-icon> 返回列表
@@ -58,9 +58,9 @@
       </div>
       
       <!-- 回复区域 -->
-      <div class="reply-section" id="reply-section">
+      <div class="reply-section" id="reply-section" v-if="post">
         <div class="section-header">
-          <h2 class="section-title">全部回复 ({{ post.replyCount }})</h2>
+          <h2 class="section-title">全部回复 ({{ post.replyCount || 0 }})</h2>
           <div class="section-actions">
             <el-dropdown trigger="click" @command="handleSortChange">
               <span class="sort-dropdown">
@@ -636,6 +636,8 @@ export default {
       loading,
       liked,
       favorited,
+      likeLoading,
+      favoriteLoading,
       defaultAvatar,
       defaultCover,
       goBack,
@@ -659,6 +661,13 @@ export default {
       replyContent,
       currentReply,
       submitting,
+      replyTextareaRef,
+      showMentionList,
+      mentionUsers,
+      mentionSelectedIndex,
+      handleReplyInput,
+      handleReplyKeydown,
+      selectMentionUser,
       handleSortChange,
       handleSizeChange,
       handleCurrentChange,
