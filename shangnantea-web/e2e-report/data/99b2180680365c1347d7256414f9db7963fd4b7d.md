@@ -1,0 +1,118 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e5]:
+    - link "商南茶文化 商南茶文化" [ref=e7] [cursor=pointer]:
+      - /url: /tea-culture
+      - img "商南茶文化" [ref=e8]
+      - generic [ref=e9]: 商南茶文化
+    - menubar [ref=e10]:
+      - button "用户头像 用户" [ref=e13] [cursor=pointer]:
+        - img "用户头像" [ref=e14]
+        - generic [ref=e15]: 用户
+  - main [ref=e16]:
+    - generic [ref=e18]:
+      - generic [ref=e20]:
+        - generic [ref=e21]: 收货地址管理
+        - button "新增地址" [ref=e22] [cursor=pointer]:
+          - generic [ref=e23]:
+            - img [ref=e25]
+            - text: 新增地址
+      - generic [ref=e30]:
+        - generic [ref=e31]:
+          - generic [ref=e32]:
+            - generic [ref=e33]: 张三
+            - generic [ref=e34]: "13800138000"
+            - generic [ref=e36]: 默认
+          - generic [ref=e37]: 陕西省 商洛市 商南县 茶城路1号
+        - generic [ref=e38]:
+          - button "编辑" [ref=e39] [cursor=pointer]:
+            - generic [ref=e40]: 编辑
+          - button "删除" [ref=e41] [cursor=pointer]:
+            - generic [ref=e42]: 删除
+  - contentinfo [ref=e43]:
+    - generic [ref=e44]:
+      - generic [ref=e45]:
+        - generic [ref=e46]:
+          - heading "关于我们" [level=3] [ref=e47]
+          - paragraph [ref=e48]: 商南茶文化推广与销售平台致力于传播商南茶叶文化，推广优质茶叶产品，促进茶商发展。
+          - generic [ref=e49]:
+            - generic [ref=e50]: 陕西省商洛市商南县
+            - generic [ref=e51]: 400-888-7777
+            - generic [ref=e52]: contact@shangnantea.com
+        - generic [ref=e53]:
+          - heading "快速链接" [level=3] [ref=e54]
+          - generic [ref=e55]:
+            - heading "网站导航" [level=3] [ref=e56]
+            - list [ref=e57]:
+              - listitem [ref=e58]:
+                - link "首页" [ref=e59] [cursor=pointer]:
+                  - /url: /tea-culture
+              - listitem [ref=e60]:
+                - link "茶叶商城" [ref=e61] [cursor=pointer]:
+                  - /url: /tea/mall
+              - listitem [ref=e62]:
+                - link "茶友论坛" [ref=e63] [cursor=pointer]:
+                  - /url: /forum/list
+              - listitem [ref=e64]:
+                - link "茶商店铺" [ref=e65] [cursor=pointer]:
+                  - /url: /shop/list
+        - generic [ref=e66]:
+          - heading "帮助中心" [level=3] [ref=e67]
+          - list [ref=e68]:
+            - listitem [ref=e69]:
+              - link "常见问题" [ref=e70] [cursor=pointer]:
+                - /url: /faq
+            - listitem [ref=e71]:
+              - link "配送信息" [ref=e72] [cursor=pointer]:
+                - /url: /shipping
+            - listitem [ref=e73]:
+              - link "退换政策" [ref=e74] [cursor=pointer]:
+                - /url: /return
+            - listitem [ref=e75]:
+              - link "隐私政策" [ref=e76] [cursor=pointer]:
+                - /url: /privacy
+            - listitem [ref=e77]:
+              - link "用户协议" [ref=e78] [cursor=pointer]:
+                - /url: /terms
+        - generic [ref=e79]:
+          - heading "订阅资讯" [level=3] [ref=e80]
+          - paragraph [ref=e81]: 订阅我们的电子报，获取最新茶叶资讯和优惠信息
+          - generic [ref=e83]:
+            - textbox "请输入您的邮箱" [ref=e85]
+            - button "订阅" [ref=e87] [cursor=pointer]:
+              - generic [ref=e88]: 订阅
+          - generic [ref=e89]:
+            - link "微信" [ref=e90] [cursor=pointer]:
+              - /url: "#"
+            - link "微博" [ref=e91] [cursor=pointer]:
+              - /url: "#"
+            - link "抖音" [ref=e92] [cursor=pointer]:
+              - /url: "#"
+            - link "知乎" [ref=e93] [cursor=pointer]:
+              - /url: "#"
+      - generic [ref=e94]:
+        - paragraph [ref=e95]: © 2026 商南茶文化推广与销售平台 - 版权所有
+        - paragraph [ref=e96]: 陕ICP备XXXXXXXX号
+  - generic [ref=e97]:
+    - generic [ref=e98] [cursor=pointer]:
+      - generic [ref=e99]:
+        - generic [ref=e100]: ⋮⋮
+        - heading "开发监控" [level=3] [ref=e101]
+        - generic [ref=e102]:
+          - button "错误" [ref=e103]
+          - button "API" [ref=e104]
+      - generic [ref=e105]:
+        - button "复制" [ref=e106]
+        - button "清空" [ref=e107]
+        - button "▼" [ref=e108]
+    - generic [ref=e112]:
+      - generic [ref=e113]:
+        - generic [ref=e114]: 12:50:40
+        - generic [ref=e115]: ElementPlus警告
+      - generic [ref=e116]: "[props] [API] type.text is about to be deprecated in version 3.0.0, please use link instead. For more detail, please visit: https://element-plus.org/en-US/component/button.html#button-attributes"
+      - generic [ref=e117]: 📄 element-plus/es/utils/error.mjs:43:13
+      - group [ref=e119] [cursor=pointer]:
+        - generic "堆栈信息" [ref=e120]
+```

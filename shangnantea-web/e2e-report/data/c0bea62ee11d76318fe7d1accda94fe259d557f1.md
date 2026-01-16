@@ -1,0 +1,241 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e5]:
+    - link "商南茶文化 商南茶文化" [ref=e7] [cursor=pointer]:
+      - /url: /tea-culture
+      - img "商南茶文化" [ref=e8]
+      - generic [ref=e9]: 商南茶文化
+    - menubar [ref=e10]:
+      - button "用户头像 用户" [ref=e13] [cursor=pointer]:
+        - img "用户头像" [ref=e14]
+        - generic [ref=e15]: 用户
+  - main [ref=e16]:
+    - generic [ref=e17]:
+      - generic [ref=e19]:
+        - heading "用户管理" [level=1] [ref=e20]
+        - generic [ref=e21]: 管理平台注册用户，设置用户权限和状态
+      - generic [ref=e22]:
+        - generic [ref=e23]:
+          - generic [ref=e24]:
+            - generic [ref=e25]:
+              - generic [ref=e26]:
+                - img [ref=e29]
+                - textbox "搜索用户名/昵称/手机号" [ref=e31]
+              - button "搜索" [ref=e33] [cursor=pointer]:
+                - generic [ref=e34]: 搜索
+            - generic [ref=e36] [cursor=pointer]:
+              - generic:
+                - combobox [ref=e38]
+                - generic [ref=e39]: 用户角色
+              - img [ref=e42]
+            - generic [ref=e45] [cursor=pointer]:
+              - generic:
+                - combobox [ref=e47]
+                - generic [ref=e48]: 用户状态
+              - img [ref=e51]
+            - button "筛选" [ref=e53] [cursor=pointer]:
+              - generic [ref=e54]:
+                - img [ref=e56]
+                - text: 筛选
+            - button "重置" [ref=e58] [cursor=pointer]:
+              - generic [ref=e59]:
+                - img [ref=e61]
+                - text: 重置
+          - generic [ref=e63]:
+            - button "导出数据" [ref=e64] [cursor=pointer]:
+              - generic [ref=e65]:
+                - img [ref=e67]
+                - text: 导出数据
+            - button "商家认证请求" [ref=e69] [cursor=pointer]:
+              - generic [ref=e70]:
+                - img [ref=e72]
+                - text: 商家认证请求
+        - generic [ref=e75]:
+          - generic [ref=e76]:
+            - generic [ref=e77]: 用户列表
+            - button "添加管理员" [ref=e79] [cursor=pointer]:
+              - generic [ref=e80]:
+                - img [ref=e82]
+                - text: 添加管理员
+          - generic [ref=e85]:
+            - table [ref=e87]:
+              - rowgroup [ref=e99]:
+                - row "序号 用户名 昵称 手机号 邮箱 角色 状态 注册时间 最后登录 操作" [ref=e100]:
+                  - columnheader "序号" [ref=e101]:
+                    - generic [ref=e102]: 序号
+                  - columnheader "用户名" [ref=e103]:
+                    - generic [ref=e104]: 用户名
+                  - columnheader "昵称" [ref=e105]:
+                    - generic [ref=e106]: 昵称
+                  - columnheader "手机号" [ref=e107]:
+                    - generic [ref=e108]: 手机号
+                  - columnheader "邮箱" [ref=e109]:
+                    - generic [ref=e110]: 邮箱
+                  - columnheader "角色" [ref=e111]:
+                    - generic [ref=e112]: 角色
+                  - columnheader "状态" [ref=e113]:
+                    - generic [ref=e114]: 状态
+                  - columnheader "注册时间" [ref=e115]:
+                    - generic [ref=e116]: 注册时间
+                  - columnheader "最后登录" [ref=e117]:
+                    - generic [ref=e118]: 最后登录
+                  - columnheader "操作" [ref=e119]:
+                    - generic [ref=e120]: 操作
+            - table [ref=e125]:
+              - rowgroup [ref=e137]:
+                - row "1 admin admin 管理员 编辑 删除" [ref=e138]:
+                  - cell "1" [ref=e139]:
+                    - generic [ref=e141]: "1"
+                  - cell "admin admin" [ref=e142]:
+                    - generic [ref=e144]:
+                      - img "admin" [ref=e145]
+                      - generic [ref=e146]: admin
+                  - cell "管理员" [ref=e147]:
+                    - generic [ref=e148]: 管理员
+                  - cell [ref=e149]
+                  - cell [ref=e150]
+                  - cell [ref=e151]
+                  - cell [ref=e154]:
+                    - generic [ref=e156]:
+                      - switch [checked] [disabled]
+                  - cell [ref=e159]
+                  - cell [ref=e160]
+                  - cell "编辑 删除" [ref=e161]:
+                    - generic [ref=e162]:
+                      - button "编辑" [ref=e163] [cursor=pointer]:
+                        - generic [ref=e164]:
+                          - img [ref=e166]
+                          - text: 编辑
+                      - button "删除" [ref=e169] [cursor=pointer]:
+                        - generic [ref=e170]:
+                          - img [ref=e172]
+                          - text: 删除
+                - row "2 user user 普通用户 编辑 删除" [ref=e174]:
+                  - cell "2" [ref=e175]:
+                    - generic [ref=e177]: "2"
+                  - cell "user user" [ref=e178]:
+                    - generic [ref=e180]:
+                      - img "user" [ref=e181]
+                      - generic [ref=e182]: user
+                  - cell "普通用户" [ref=e183]:
+                    - generic [ref=e184]: 普通用户
+                  - cell [ref=e185]
+                  - cell [ref=e186]
+                  - cell [ref=e187]
+                  - cell [ref=e190]:
+                    - generic [ref=e192]:
+                      - switch [checked]
+                  - cell [ref=e195]
+                  - cell [ref=e196]
+                  - cell "编辑 删除" [ref=e197]:
+                    - generic [ref=e198]:
+                      - button "编辑" [ref=e199] [cursor=pointer]:
+                        - generic [ref=e200]:
+                          - img [ref=e202]
+                          - text: 编辑
+                      - button "删除" [ref=e205] [cursor=pointer]:
+                        - generic [ref=e206]:
+                          - img [ref=e208]
+                          - text: 删除
+          - generic [ref=e212]:
+            - generic [ref=e213]: Total 100
+            - generic [ref=e216] [cursor=pointer]:
+              - generic:
+                - combobox [ref=e218]
+                - generic [ref=e219]: 20/page
+              - img [ref=e222]
+            - button "Go to previous page" [disabled] [ref=e224]:
+              - generic:
+                - img
+            - list [ref=e225]:
+              - listitem "page 1" [ref=e226]: "1"
+              - listitem "page 2" [ref=e227] [cursor=pointer]: "2"
+              - listitem "page 3" [ref=e228] [cursor=pointer]: "3"
+              - listitem "page 4" [ref=e229] [cursor=pointer]: "4"
+              - listitem "page 5" [ref=e230] [cursor=pointer]: "5"
+            - button "Go to next page" [ref=e231] [cursor=pointer]:
+              - generic:
+                - img
+            - generic [ref=e232]:
+              - generic [ref=e233]: Go to
+              - spinbutton "Page" [ref=e236]: "1"
+  - contentinfo [ref=e237]:
+    - generic [ref=e238]:
+      - generic [ref=e239]:
+        - generic [ref=e240]:
+          - heading "关于我们" [level=3] [ref=e241]
+          - paragraph [ref=e242]: 商南茶文化推广与销售平台致力于传播商南茶叶文化，推广优质茶叶产品，促进茶商发展。
+          - generic [ref=e243]:
+            - generic [ref=e244]: 陕西省商洛市商南县
+            - generic [ref=e245]: 400-888-7777
+            - generic [ref=e246]: contact@shangnantea.com
+        - generic [ref=e247]:
+          - heading "快速链接" [level=3] [ref=e248]
+          - generic [ref=e249]:
+            - heading "网站导航" [level=3] [ref=e250]
+            - list [ref=e251]:
+              - listitem [ref=e252]:
+                - link "首页" [ref=e253] [cursor=pointer]:
+                  - /url: /tea-culture
+              - listitem [ref=e254]:
+                - link "茶叶商城" [ref=e255] [cursor=pointer]:
+                  - /url: /tea/mall
+              - listitem [ref=e256]:
+                - link "茶友论坛" [ref=e257] [cursor=pointer]:
+                  - /url: /forum/list
+              - listitem [ref=e258]:
+                - link "茶商店铺" [ref=e259] [cursor=pointer]:
+                  - /url: /shop/list
+        - generic [ref=e260]:
+          - heading "帮助中心" [level=3] [ref=e261]
+          - list [ref=e262]:
+            - listitem [ref=e263]:
+              - link "常见问题" [ref=e264] [cursor=pointer]:
+                - /url: /faq
+            - listitem [ref=e265]:
+              - link "配送信息" [ref=e266] [cursor=pointer]:
+                - /url: /shipping
+            - listitem [ref=e267]:
+              - link "退换政策" [ref=e268] [cursor=pointer]:
+                - /url: /return
+            - listitem [ref=e269]:
+              - link "隐私政策" [ref=e270] [cursor=pointer]:
+                - /url: /privacy
+            - listitem [ref=e271]:
+              - link "用户协议" [ref=e272] [cursor=pointer]:
+                - /url: /terms
+        - generic [ref=e273]:
+          - heading "订阅资讯" [level=3] [ref=e274]
+          - paragraph [ref=e275]: 订阅我们的电子报，获取最新茶叶资讯和优惠信息
+          - generic [ref=e277]:
+            - textbox "请输入您的邮箱" [ref=e279]
+            - button "订阅" [ref=e281] [cursor=pointer]:
+              - generic [ref=e282]: 订阅
+          - generic [ref=e283]:
+            - link "微信" [ref=e284] [cursor=pointer]:
+              - /url: "#"
+            - link "微博" [ref=e285] [cursor=pointer]:
+              - /url: "#"
+            - link "抖音" [ref=e286] [cursor=pointer]:
+              - /url: "#"
+            - link "知乎" [ref=e287] [cursor=pointer]:
+              - /url: "#"
+      - generic [ref=e288]:
+        - paragraph [ref=e289]: © 2026 商南茶文化推广与销售平台 - 版权所有
+        - paragraph [ref=e290]: 陕ICP备XXXXXXXX号
+  - generic [ref=e291]:
+    - generic [ref=e292] [cursor=pointer]:
+      - generic [ref=e293]:
+        - generic [ref=e294]: ⋮⋮
+        - heading "开发监控" [level=3] [ref=e295]
+        - generic [ref=e296]:
+          - button "错误" [ref=e297]
+          - button "API" [ref=e298]
+      - generic [ref=e299]:
+        - button "复制" [ref=e300]
+        - button "清空" [ref=e301]
+        - button "▼" [ref=e302]
+    - generic [ref=e305]: 暂无错误记录
+```

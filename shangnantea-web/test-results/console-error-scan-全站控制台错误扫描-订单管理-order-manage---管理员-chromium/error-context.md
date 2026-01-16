@@ -1,0 +1,242 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e5]:
+    - link "商南茶文化 商南茶文化" [ref=e7] [cursor=pointer]:
+      - /url: /tea-culture
+      - img "商南茶文化" [ref=e8]
+      - generic [ref=e9]: 商南茶文化
+    - menubar [ref=e10]:
+      - button "用户头像 用户" [ref=e13] [cursor=pointer]:
+        - img "用户头像" [ref=e14]
+        - generic [ref=e15]: 用户
+  - main [ref=e16]:
+    - generic [ref=e18]:
+      - generic [ref=e20]:
+        - heading "订单管理" [level=2] [ref=e21]
+        - generic [ref=e22]:
+          - button "导出订单" [ref=e23] [cursor=pointer]:
+            - generic [ref=e24]: 导出订单
+          - button "批量发货" [disabled] [ref=e25]:
+            - generic [ref=e26]: 批量发货
+          - button [ref=e27] [cursor=pointer]:
+            - img [ref=e30]
+      - generic [ref=e32]:
+        - generic [ref=e34]:
+          - generic [ref=e36]:
+            - generic [ref=e37]: 订单统计
+            - generic [ref=e38]:
+              - img [ref=e40]
+              - combobox "开始日期" [ref=e42]
+              - generic [ref=e43]: 至
+              - combobox "结束日期" [ref=e44]
+            - button "查询" [ref=e45] [cursor=pointer]:
+              - generic [ref=e46]: 查询
+          - generic [ref=e48]:
+            - generic [ref=e49]:
+              - generic [ref=e50]: 总订单数
+              - generic [ref=e51]: "0"
+            - generic [ref=e52]:
+              - generic [ref=e53]: 总金额
+              - generic [ref=e54]: ¥0.00
+            - generic [ref=e55]:
+              - generic [ref=e56]: 待付款
+              - generic [ref=e57]: "0"
+            - generic [ref=e58]:
+              - generic [ref=e59]: 待发货
+              - generic [ref=e60]: "0"
+            - generic [ref=e61]:
+              - generic [ref=e62]: 待收货
+              - generic [ref=e63]: "0"
+            - generic [ref=e64]:
+              - generic [ref=e65]: 已完成
+              - generic [ref=e66]: "0"
+            - generic [ref=e67]:
+              - generic [ref=e68]: 已取消
+              - generic [ref=e69]: "0"
+            - generic [ref=e70]:
+              - generic [ref=e71]: 已退款
+              - generic [ref=e72]: "0"
+        - generic [ref=e74]:
+          - generic [ref=e75]:
+            - generic [ref=e76]: 订单编号
+            - textbox "订单编号" [ref=e80]:
+              - /placeholder: 请输入订单编号
+          - generic [ref=e81]:
+            - generic [ref=e82]: 商品名称
+            - textbox "商品名称" [ref=e86]:
+              - /placeholder: 请输入商品名称
+          - generic [ref=e87]:
+            - generic [ref=e88]: 订单状态
+            - generic [ref=e91] [cursor=pointer]:
+              - generic:
+                - combobox "订单状态" [ref=e93]
+                - generic: 全部状态
+              - img [ref=e96]
+          - group "下单时间" [ref=e98]:
+            - generic [ref=e99]: 下单时间
+            - generic [ref=e101]:
+              - img [ref=e103]
+              - combobox "开始日期" [ref=e105]
+              - generic [ref=e106]: 至
+              - combobox "结束日期" [ref=e107]
+          - generic [ref=e108]:
+            - generic [ref=e109]: 排序
+            - generic [ref=e112] [cursor=pointer]:
+              - generic:
+                - combobox "排序" [ref=e114]
+                - generic: 默认排序
+              - img [ref=e117]
+          - generic [ref=e120]:
+            - button "搜索" [ref=e121] [cursor=pointer]:
+              - generic [ref=e122]: 搜索
+            - button "重置" [ref=e123] [cursor=pointer]:
+              - generic [ref=e124]: 重置
+        - generic [ref=e125]:
+          - generic [ref=e127]:
+            - table [ref=e129]:
+              - rowgroup [ref=e141]:
+                - row "订单编号 商品名称 规格 单价 数量 总金额 订单状态 下单时间 操作" [ref=e142]:
+                  - columnheader [ref=e143]:
+                    - generic [ref=e146] [cursor=pointer]:
+                      - checkbox
+                  - columnheader "订单编号" [ref=e148]:
+                    - generic [ref=e149]: 订单编号
+                  - columnheader "商品名称" [ref=e150]:
+                    - generic [ref=e151]: 商品名称
+                  - columnheader "规格" [ref=e152]:
+                    - generic [ref=e153]: 规格
+                  - columnheader "单价" [ref=e154]:
+                    - generic [ref=e155]: 单价
+                  - columnheader "数量" [ref=e156]:
+                    - generic [ref=e157]: 数量
+                  - columnheader "总金额" [ref=e158]:
+                    - generic [ref=e159]: 总金额
+                  - columnheader "订单状态" [ref=e160]:
+                    - generic [ref=e161]: 订单状态
+                  - columnheader "下单时间" [ref=e162]:
+                    - generic [ref=e163]: 下单时间
+                  - columnheader "操作" [ref=e164]:
+                    - generic [ref=e165]: 操作
+            - table [ref=e170]:
+              - rowgroup [ref=e182]:
+                - row "order001 ¥0.00 ¥0.00 待发货 发货 查看详情" [ref=e183]:
+                  - cell [ref=e184]:
+                    - generic [ref=e187] [cursor=pointer]:
+                      - checkbox
+                  - cell "order001" [ref=e189]:
+                    - generic [ref=e192] [cursor=pointer]: order001
+                  - cell [ref=e193]
+                  - cell [ref=e194]
+                  - cell "¥0.00" [ref=e195]:
+                    - generic [ref=e196]: ¥0.00
+                  - cell [ref=e197]
+                  - cell "¥0.00" [ref=e198]:
+                    - generic [ref=e199]: ¥0.00
+                  - cell "待发货" [ref=e200]:
+                    - generic [ref=e203]: 待发货
+                  - cell [ref=e204]
+                  - cell "发货 查看详情" [ref=e205]:
+                    - generic [ref=e206]:
+                      - button "发货" [ref=e208] [cursor=pointer]:
+                        - generic [ref=e209]: 发货
+                      - button "查看详情" [ref=e210] [cursor=pointer]:
+                        - generic [ref=e211]: 查看详情
+          - generic [ref=e214]:
+            - generic [ref=e215]: Total 20
+            - generic [ref=e218] [cursor=pointer]:
+              - generic:
+                - combobox [ref=e220]
+                - generic [ref=e221]: 10/page
+              - img [ref=e224]
+            - button "Go to previous page" [disabled] [ref=e226]:
+              - generic:
+                - img
+            - list [ref=e227]:
+              - listitem "page 1" [ref=e228]: "1"
+              - listitem "page 2" [ref=e229] [cursor=pointer]: "2"
+            - button "Go to next page" [ref=e230] [cursor=pointer]:
+              - generic:
+                - img
+            - generic [ref=e231]:
+              - generic [ref=e232]: Go to
+              - spinbutton "Page" [ref=e235]: "1"
+  - contentinfo [ref=e236]:
+    - generic [ref=e237]:
+      - generic [ref=e238]:
+        - generic [ref=e239]:
+          - heading "关于我们" [level=3] [ref=e240]
+          - paragraph [ref=e241]: 商南茶文化推广与销售平台致力于传播商南茶叶文化，推广优质茶叶产品，促进茶商发展。
+          - generic [ref=e242]:
+            - generic [ref=e243]: 陕西省商洛市商南县
+            - generic [ref=e244]: 400-888-7777
+            - generic [ref=e245]: contact@shangnantea.com
+        - generic [ref=e246]:
+          - heading "快速链接" [level=3] [ref=e247]
+          - generic [ref=e248]:
+            - heading "网站导航" [level=3] [ref=e249]
+            - list [ref=e250]:
+              - listitem [ref=e251]:
+                - link "首页" [ref=e252] [cursor=pointer]:
+                  - /url: /tea-culture
+              - listitem [ref=e253]:
+                - link "茶叶商城" [ref=e254] [cursor=pointer]:
+                  - /url: /tea/mall
+              - listitem [ref=e255]:
+                - link "茶友论坛" [ref=e256] [cursor=pointer]:
+                  - /url: /forum/list
+              - listitem [ref=e257]:
+                - link "茶商店铺" [ref=e258] [cursor=pointer]:
+                  - /url: /shop/list
+        - generic [ref=e259]:
+          - heading "帮助中心" [level=3] [ref=e260]
+          - list [ref=e261]:
+            - listitem [ref=e262]:
+              - link "常见问题" [ref=e263] [cursor=pointer]:
+                - /url: /faq
+            - listitem [ref=e264]:
+              - link "配送信息" [ref=e265] [cursor=pointer]:
+                - /url: /shipping
+            - listitem [ref=e266]:
+              - link "退换政策" [ref=e267] [cursor=pointer]:
+                - /url: /return
+            - listitem [ref=e268]:
+              - link "隐私政策" [ref=e269] [cursor=pointer]:
+                - /url: /privacy
+            - listitem [ref=e270]:
+              - link "用户协议" [ref=e271] [cursor=pointer]:
+                - /url: /terms
+        - generic [ref=e272]:
+          - heading "订阅资讯" [level=3] [ref=e273]
+          - paragraph [ref=e274]: 订阅我们的电子报，获取最新茶叶资讯和优惠信息
+          - generic [ref=e276]:
+            - textbox "请输入您的邮箱" [ref=e278]
+            - button "订阅" [ref=e280] [cursor=pointer]:
+              - generic [ref=e281]: 订阅
+          - generic [ref=e282]:
+            - link "微信" [ref=e283] [cursor=pointer]:
+              - /url: "#"
+            - link "微博" [ref=e284] [cursor=pointer]:
+              - /url: "#"
+            - link "抖音" [ref=e285] [cursor=pointer]:
+              - /url: "#"
+            - link "知乎" [ref=e286] [cursor=pointer]:
+              - /url: "#"
+      - generic [ref=e287]:
+        - paragraph [ref=e288]: © 2026 商南茶文化推广与销售平台 - 版权所有
+        - paragraph [ref=e289]: 陕ICP备XXXXXXXX号
+  - generic [ref=e290]:
+    - generic [ref=e291] [cursor=pointer]:
+      - generic [ref=e292]:
+        - generic [ref=e293]: ⋮⋮
+        - heading "开发监控" [level=3] [ref=e294]
+        - generic [ref=e295]:
+          - button "错误" [ref=e296]
+          - button "API" [ref=e297]
+      - generic [ref=e298]:
+        - button "复制" [ref=e299]
+        - button "清空" [ref=e300]
+        - button "▼" [ref=e301]
+    - generic [ref=e304]: 暂无错误记录
+```

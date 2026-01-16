@@ -1,0 +1,149 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e5]:
+    - link "商南茶文化 商南茶文化" [ref=e7] [cursor=pointer]:
+      - /url: /tea-culture
+      - img "商南茶文化" [ref=e8]
+      - generic [ref=e9]: 商南茶文化
+    - menubar [ref=e10]:
+      - button "用户头像 用户" [ref=e13] [cursor=pointer]:
+        - img "用户头像" [ref=e14]
+        - generic [ref=e15]: 用户
+  - main [ref=e16]:
+    - generic [ref=e17]:
+      - generic [ref=e19]:
+        - heading "论坛内容管理" [level=1] [ref=e20]
+        - button "茶文化内容管理" [ref=e22] [cursor=pointer]:
+          - generic [ref=e23]:
+            - img [ref=e25]
+            - text: 茶文化内容管理
+      - generic [ref=e29]:
+        - tabpanel "内容审核" [ref=e31]:
+          - generic [ref=e32]:
+            - generic [ref=e33]:
+              - heading "内容审核" [level=2] [ref=e34]
+              - generic [ref=e37]: "待审核: 0"
+            - generic [ref=e39]:
+              - table [ref=e41]:
+                - rowgroup [ref=e50]:
+                  - row "ID 标题 作者 版块 优先级 提交时间 操作" [ref=e51]:
+                    - columnheader "ID" [ref=e52]:
+                      - generic [ref=e53]: ID
+                    - columnheader "标题" [ref=e54]:
+                      - generic [ref=e55]: 标题
+                    - columnheader "作者" [ref=e56]:
+                      - generic [ref=e57]: 作者
+                    - columnheader "版块" [ref=e58]:
+                      - generic [ref=e59]: 版块
+                    - columnheader "优先级" [ref=e60]:
+                      - generic [ref=e61]: 优先级
+                    - columnheader "提交时间" [ref=e62]:
+                      - generic [ref=e63]: 提交时间
+                    - columnheader "操作" [ref=e64]:
+                      - generic [ref=e65]: 操作
+              - generic [ref=e69]:
+                - table:
+                  - rowgroup
+                - generic [ref=e71]: No Data
+            - generic [ref=e74]:
+              - generic [ref=e75]: Total 0
+              - generic [ref=e78] [cursor=pointer]:
+                - generic:
+                  - combobox [ref=e80]
+                  - generic [ref=e81]: 10/page
+                - img [ref=e84]
+              - button "Go to previous page" [disabled] [ref=e86]:
+                - generic:
+                  - img
+              - list [ref=e87]:
+                - listitem "page 1" [ref=e88]: "1"
+              - button "Go to next page" [disabled] [ref=e89]:
+                - generic:
+                  - img
+              - generic [ref=e90]:
+                - generic [ref=e91]: Go to
+                - spinbutton "Page" [ref=e94]: "1"
+        - tablist [ref=e98]:
+          - tab "版块管理" [ref=e100]
+          - tab "内容审核" [selected] [ref=e101]
+          - tab "帖子管理" [ref=e102]
+  - contentinfo [ref=e103]:
+    - generic [ref=e104]:
+      - generic [ref=e105]:
+        - generic [ref=e106]:
+          - heading "关于我们" [level=3] [ref=e107]
+          - paragraph [ref=e108]: 商南茶文化推广与销售平台致力于传播商南茶叶文化，推广优质茶叶产品，促进茶商发展。
+          - generic [ref=e109]:
+            - generic [ref=e110]: 陕西省商洛市商南县
+            - generic [ref=e111]: 400-888-7777
+            - generic [ref=e112]: contact@shangnantea.com
+        - generic [ref=e113]:
+          - heading "快速链接" [level=3] [ref=e114]
+          - generic [ref=e115]:
+            - heading "网站导航" [level=3] [ref=e116]
+            - list [ref=e117]:
+              - listitem [ref=e118]:
+                - link "首页" [ref=e119] [cursor=pointer]:
+                  - /url: /tea-culture
+              - listitem [ref=e120]:
+                - link "茶叶商城" [ref=e121] [cursor=pointer]:
+                  - /url: /tea/mall
+              - listitem [ref=e122]:
+                - link "茶友论坛" [ref=e123] [cursor=pointer]:
+                  - /url: /forum/list
+              - listitem [ref=e124]:
+                - link "茶商店铺" [ref=e125] [cursor=pointer]:
+                  - /url: /shop/list
+        - generic [ref=e126]:
+          - heading "帮助中心" [level=3] [ref=e127]
+          - list [ref=e128]:
+            - listitem [ref=e129]:
+              - link "常见问题" [ref=e130] [cursor=pointer]:
+                - /url: /faq
+            - listitem [ref=e131]:
+              - link "配送信息" [ref=e132] [cursor=pointer]:
+                - /url: /shipping
+            - listitem [ref=e133]:
+              - link "退换政策" [ref=e134] [cursor=pointer]:
+                - /url: /return
+            - listitem [ref=e135]:
+              - link "隐私政策" [ref=e136] [cursor=pointer]:
+                - /url: /privacy
+            - listitem [ref=e137]:
+              - link "用户协议" [ref=e138] [cursor=pointer]:
+                - /url: /terms
+        - generic [ref=e139]:
+          - heading "订阅资讯" [level=3] [ref=e140]
+          - paragraph [ref=e141]: 订阅我们的电子报，获取最新茶叶资讯和优惠信息
+          - generic [ref=e143]:
+            - textbox "请输入您的邮箱" [ref=e145]
+            - button "订阅" [ref=e147] [cursor=pointer]:
+              - generic [ref=e148]: 订阅
+          - generic [ref=e149]:
+            - link "微信" [ref=e150] [cursor=pointer]:
+              - /url: "#"
+            - link "微博" [ref=e151] [cursor=pointer]:
+              - /url: "#"
+            - link "抖音" [ref=e152] [cursor=pointer]:
+              - /url: "#"
+            - link "知乎" [ref=e153] [cursor=pointer]:
+              - /url: "#"
+      - generic [ref=e154]:
+        - paragraph [ref=e155]: © 2026 商南茶文化推广与销售平台 - 版权所有
+        - paragraph [ref=e156]: 陕ICP备XXXXXXXX号
+  - generic [ref=e157]:
+    - generic [ref=e158] [cursor=pointer]:
+      - generic [ref=e159]:
+        - generic [ref=e160]: ⋮⋮
+        - heading "开发监控" [level=3] [ref=e161]
+        - generic [ref=e162]:
+          - button "错误" [ref=e163]
+          - button "API" [ref=e164]
+      - generic [ref=e165]:
+        - button "复制" [ref=e166]
+        - button "清空" [ref=e167]
+        - button "▼" [ref=e168]
+    - generic [ref=e171]: 暂无错误记录
+```

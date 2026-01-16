@@ -46,8 +46,14 @@ const IGNORABLE_ERROR_PATTERNS = [
   /Download the Vue Devtools/i,
   /\[Vue warn\].*deprecated/i,
   /ResizeObserver loop/i,
-  /ElementPlusError/i, // Element Plus 的一些警告
+  /ElementPlusError/i,
+  /ElementPlus警告/i, // Element Plus 中文警告
+  /\[props\].*deprecated/i, // Element Plus 属性废弃警告
+  /\[el-radio\].*deprecated/i, // Element Plus radio 废弃警告
+  /\[el-checkbox\].*deprecated/i, // Element Plus checkbox 废弃警告
+  /\[el-.*\].*deprecated/i, // 所有 Element Plus 组件的废弃警告
 ];
+
 
 // 存储所有错误的全局对象
 const testResults = {

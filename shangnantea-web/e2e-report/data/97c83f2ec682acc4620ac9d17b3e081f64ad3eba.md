@@ -1,0 +1,277 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e5]:
+    - link "商南茶文化 商南茶文化" [ref=e7] [cursor=pointer]:
+      - /url: /tea-culture
+      - img "商南茶文化" [ref=e8]
+      - generic [ref=e9]: 商南茶文化
+    - menubar [ref=e10]:
+      - button "用户头像 用户" [ref=e13] [cursor=pointer]:
+        - img "用户头像" [ref=e14]
+        - generic [ref=e15]: 用户
+  - main [ref=e16]:
+    - generic [ref=e18]:
+      - generic [ref=e20]:
+        - heading "店铺管理" [level=1] [ref=e21]
+        - paragraph [ref=e22]: 管理您的店铺信息和商品
+      - generic [ref=e23]:
+        - generic [ref=e24]:
+          - generic [ref=e26]:
+            - generic [ref=e27]: 店铺信息
+            - button "店铺设置" [ref=e28] [cursor=pointer]:
+              - generic [ref=e29]:
+                - img [ref=e31]
+                - text: 店铺设置
+          - generic [ref=e34]:
+            - generic [ref=e36]:
+              - img "商南茶庄" [ref=e39] [cursor=pointer]
+              - generic [ref=e40]: 点击上传Logo
+            - generic [ref=e41]:
+              - heading "商南茶庄" [level=3] [ref=e42]
+              - generic [ref=e43]:
+                - generic [ref=e44]:
+                  - generic [ref=e45]: "1000"
+                  - generic [ref=e46]: 销量
+                - generic [ref=e47]:
+                  - generic [ref=e48]: "4.8"
+                  - generic [ref=e49]: 评分
+                - generic [ref=e50]:
+                  - generic [ref=e51]: "0"
+                  - generic [ref=e52]: 关注数
+              - generic [ref=e53]: 简介：专营商南高山绿茶
+        - generic [ref=e54]:
+          - generic [ref=e56]:
+            - generic [ref=e57]: 店铺统计
+            - generic [ref=e58]:
+              - img [ref=e60]
+              - combobox "开始日期" [ref=e62]
+              - generic [ref=e63]: 至
+              - combobox "结束日期" [ref=e64]
+          - generic [ref=e67]:
+            - generic [ref=e68]:
+              - generic [ref=e69]: 总销售额
+              - generic [ref=e70]: ¥0.00
+            - generic [ref=e71]:
+              - generic [ref=e72]: 订单数
+              - generic [ref=e73]: "0"
+            - generic [ref=e74]:
+              - generic [ref=e75]: 商品数
+              - generic [ref=e76]: "0"
+            - generic [ref=e77]:
+              - generic [ref=e78]: 访问量
+              - generic [ref=e79]: "0"
+        - generic [ref=e80]:
+          - generic [ref=e82]:
+            - generic [ref=e83]: 茶叶管理
+            - button "添加茶叶" [ref=e84] [cursor=pointer]:
+              - generic [ref=e85]:
+                - img [ref=e87]
+                - text: 添加茶叶
+          - generic [ref=e90]:
+            - generic [ref=e91]:
+              - generic [ref=e93]:
+                - generic [ref=e94]:
+                  - img [ref=e97]
+                  - textbox "搜索茶叶名称" [ref=e99]
+                - button "搜索" [ref=e101] [cursor=pointer]:
+                  - generic [ref=e102]: 搜索
+              - generic [ref=e103]:
+                - generic [ref=e105] [cursor=pointer]:
+                  - generic:
+                    - combobox [ref=e107]
+                    - generic [ref=e108]: 状态筛选
+                  - img [ref=e111]
+                - generic [ref=e114] [cursor=pointer]:
+                  - generic:
+                    - combobox [ref=e116]
+                    - generic [ref=e117]: 分类筛选
+                  - img [ref=e120]
+            - generic [ref=e122]:
+              - generic [ref=e124]:
+                - table [ref=e126]:
+                  - rowgroup [ref=e137]:
+                    - row "图片 茶叶ID 茶叶名称 价格 分类 库存 销量 状态 操作" [ref=e138]:
+                      - columnheader "图片" [ref=e139]:
+                        - generic [ref=e140]: 图片
+                      - columnheader "茶叶ID" [ref=e141]:
+                        - generic [ref=e142]: 茶叶ID
+                      - columnheader "茶叶名称" [ref=e143]:
+                        - generic [ref=e144]: 茶叶名称
+                      - columnheader "价格" [ref=e145]:
+                        - generic [ref=e146]: 价格
+                      - columnheader "分类" [ref=e147]:
+                        - generic [ref=e148]: 分类
+                      - columnheader "库存" [ref=e149] [cursor=pointer]:
+                        - generic [ref=e150]: 库存
+                      - columnheader "销量" [ref=e154] [cursor=pointer]:
+                        - generic [ref=e155]: 销量
+                      - columnheader "状态" [ref=e159]:
+                        - generic [ref=e160]: 状态
+                      - columnheader "操作" [ref=e161]:
+                        - generic [ref=e162]: 操作
+                - table [ref=e167]:
+                  - rowgroup [ref=e178]:
+                    - row "商南绿茶 1 商南绿茶 ¥99 - 已上架 编辑 下架 删除" [ref=e179]:
+                      - cell "商南绿茶" [ref=e180]:
+                        - img "商南绿茶" [ref=e182]
+                      - cell "1" [ref=e183]:
+                        - generic [ref=e184]: "1"
+                      - cell "商南绿茶" [ref=e185]:
+                        - generic [ref=e186]: 商南绿茶
+                      - cell "¥99" [ref=e187]:
+                        - generic [ref=e189]: ¥99
+                      - cell "-" [ref=e190]:
+                        - generic [ref=e191]: "-"
+                      - cell [ref=e192]
+                      - cell [ref=e193]
+                      - cell "已上架" [ref=e194]:
+                        - generic [ref=e197]: 已上架
+                      - cell "编辑 下架 删除" [ref=e198]:
+                        - generic [ref=e199]:
+                          - button "编辑" [ref=e200] [cursor=pointer]:
+                            - generic [ref=e201]: 编辑
+                          - button "下架" [ref=e202] [cursor=pointer]:
+                            - generic [ref=e203]: 下架
+                          - button "删除" [ref=e204] [cursor=pointer]:
+                            - generic [ref=e205]: 删除
+              - generic [ref=e208]:
+                - generic [ref=e209]: Total 1
+                - generic [ref=e212] [cursor=pointer]:
+                  - generic:
+                    - combobox [ref=e214]
+                    - generic [ref=e215]: 10/page
+                  - img [ref=e218]
+                - button "Go to previous page" [disabled] [ref=e220]:
+                  - generic:
+                    - img
+                - list [ref=e221]:
+                  - listitem "page 1" [ref=e222]: "1"
+                - button "Go to next page" [disabled] [ref=e223]:
+                  - generic:
+                    - img
+                - generic [ref=e224]:
+                  - generic [ref=e225]: Go to
+                  - spinbutton "Page" [ref=e228]: "1"
+        - generic [ref=e229]:
+          - generic [ref=e231]:
+            - generic [ref=e232]: Banner管理
+            - button "添加Banner" [ref=e233] [cursor=pointer]:
+              - generic [ref=e234]:
+                - img [ref=e236]
+                - text: 添加Banner
+          - generic [ref=e241]:
+            - generic [ref=e242]:
+              - img "新品上市" [ref=e243]
+              - generic [ref=e244]:
+                - generic [ref=e245]: 新品上市
+                - generic [ref=e246]: 无链接
+                - generic [ref=e247]: 排序：1
+            - generic [ref=e248]:
+              - button "编辑" [ref=e249] [cursor=pointer]:
+                - generic [ref=e250]: 编辑
+              - button "删除" [ref=e251] [cursor=pointer]:
+                - generic [ref=e252]: 删除
+              - generic [ref=e253]:
+                - button "↑" [disabled] [ref=e254]:
+                  - generic [ref=e255]: ↑
+                - button "↓" [disabled] [ref=e256]:
+                  - generic [ref=e257]: ↓
+        - generic [ref=e258]:
+          - generic [ref=e260]:
+            - generic [ref=e261]: 公告管理
+            - button "添加公告" [ref=e262] [cursor=pointer]:
+              - generic [ref=e263]:
+                - img [ref=e265]
+                - text: 添加公告
+          - generic [ref=e270]:
+            - generic [ref=e271]:
+              - generic [ref=e273]: 春茶上市
+              - generic [ref=e274]: "-"
+            - generic [ref=e275]: 2025年春茶已上市
+            - generic [ref=e276]:
+              - button "编辑" [ref=e277] [cursor=pointer]:
+                - generic [ref=e278]: 编辑
+              - button "删除" [ref=e279] [cursor=pointer]:
+                - generic [ref=e280]: 删除
+  - contentinfo [ref=e281]:
+    - generic [ref=e282]:
+      - generic [ref=e283]:
+        - generic [ref=e284]:
+          - heading "关于我们" [level=3] [ref=e285]
+          - paragraph [ref=e286]: 商南茶文化推广与销售平台致力于传播商南茶叶文化，推广优质茶叶产品，促进茶商发展。
+          - generic [ref=e287]:
+            - generic [ref=e288]: 陕西省商洛市商南县
+            - generic [ref=e289]: 400-888-7777
+            - generic [ref=e290]: contact@shangnantea.com
+        - generic [ref=e291]:
+          - heading "快速链接" [level=3] [ref=e292]
+          - generic [ref=e293]:
+            - heading "网站导航" [level=3] [ref=e294]
+            - list [ref=e295]:
+              - listitem [ref=e296]:
+                - link "首页" [ref=e297] [cursor=pointer]:
+                  - /url: /tea-culture
+              - listitem [ref=e298]:
+                - link "茶叶商城" [ref=e299] [cursor=pointer]:
+                  - /url: /tea/mall
+              - listitem [ref=e300]:
+                - link "茶友论坛" [ref=e301] [cursor=pointer]:
+                  - /url: /forum/list
+              - listitem [ref=e302]:
+                - link "茶商店铺" [ref=e303] [cursor=pointer]:
+                  - /url: /shop/list
+        - generic [ref=e304]:
+          - heading "帮助中心" [level=3] [ref=e305]
+          - list [ref=e306]:
+            - listitem [ref=e307]:
+              - link "常见问题" [ref=e308] [cursor=pointer]:
+                - /url: /faq
+            - listitem [ref=e309]:
+              - link "配送信息" [ref=e310] [cursor=pointer]:
+                - /url: /shipping
+            - listitem [ref=e311]:
+              - link "退换政策" [ref=e312] [cursor=pointer]:
+                - /url: /return
+            - listitem [ref=e313]:
+              - link "隐私政策" [ref=e314] [cursor=pointer]:
+                - /url: /privacy
+            - listitem [ref=e315]:
+              - link "用户协议" [ref=e316] [cursor=pointer]:
+                - /url: /terms
+        - generic [ref=e317]:
+          - heading "订阅资讯" [level=3] [ref=e318]
+          - paragraph [ref=e319]: 订阅我们的电子报，获取最新茶叶资讯和优惠信息
+          - generic [ref=e321]:
+            - textbox "请输入您的邮箱" [ref=e323]
+            - button "订阅" [ref=e325] [cursor=pointer]:
+              - generic [ref=e326]: 订阅
+          - generic [ref=e327]:
+            - link "微信" [ref=e328] [cursor=pointer]:
+              - /url: "#"
+            - link "微博" [ref=e329] [cursor=pointer]:
+              - /url: "#"
+            - link "抖音" [ref=e330] [cursor=pointer]:
+              - /url: "#"
+            - link "知乎" [ref=e331] [cursor=pointer]:
+              - /url: "#"
+      - generic [ref=e332]:
+        - paragraph [ref=e333]: © 2026 商南茶文化推广与销售平台 - 版权所有
+        - paragraph [ref=e334]: 陕ICP备XXXXXXXX号
+  - generic [ref=e335]:
+    - generic [ref=e336] [cursor=pointer]:
+      - generic [ref=e337]:
+        - generic [ref=e338]: ⋮⋮
+        - heading "开发监控" [level=3] [ref=e339]
+        - generic [ref=e340]:
+          - button "错误" [ref=e341]
+          - button "API 1" [ref=e342]:
+            - text: API
+            - generic [ref=e343]: "1"
+      - generic [ref=e344]:
+        - button "复制" [ref=e345]
+        - button "清空" [ref=e346]
+        - button "▼" [ref=e347]
+    - generic [ref=e350]: 暂无错误记录
+```
