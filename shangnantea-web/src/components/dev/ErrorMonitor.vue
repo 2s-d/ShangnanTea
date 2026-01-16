@@ -1,7 +1,14 @@
 <template>
-  <div class="error-monitor" v-if="visible" :class="{ collapsed: isCollapsed }">
+  <div 
+    class="error-monitor" 
+    v-if="visible" 
+    :class="{ collapsed: isCollapsed }"
+    :style="monitorStyle"
+    @mousedown="startDrag"
+  >
     <div class="monitor-header" @click="toggleCollapse">
       <div class="header-left">
+        <span class="drag-handle" @mousedown.stop="startDrag">⋮⋮</span>
         <h3>开发监控</h3>
         <div class="tab-buttons" v-if="!isCollapsed" @click.stop>
           <button :class="{ active: activeTab === 'errors' }" @click="activeTab = 'errors'">
@@ -29,8 +36,14 @@
               <span class="item-time">{{ msg.time }}</span>
               <span class="item-tag">{{ msg.typeLabel }}</span>
             </div>
-            <div class="item-source">📍 {{ msg.source }}</div>
             <div class="item-content">{{ msg.content }}</div>
+            <div v-if="msg.file" class="item-file">📄 {{ msg.file }}</div>
+            <div v-if="msg.stack" class="item-stack">
+              <details>
+                <summary>堆栈信息</summary>
+                <pre>{{ msg.stack }}</pre>
+              </details>
+            </div>
             <div v-if="msg.componentChain" class="item-chain">🔗 {{ msg.componentChain }}</div>
           </div>
         </div>
@@ -87,18 +100,51 @@ export default {
     const backendStatus = ref('checking') // checking, connected, disconnected
     const backendStatusText = ref('检测中...')
     
+    // 拖动相关状态
+    const position = reactive({ x: 20, y: window.innerHeight - 400 }) // 默认左下角
+    const isDragging = ref(false)
+    const dragStart = reactive({ x: 0, y: 0 })
+    
+    const monitorStyle = computed(() => ({
+      left: `${position.x}px`,
+      top: `${position.y}px`,
+      maxWidth: '800px',
+      maxHeight: '60vh'
+    }))
+    
     const errorCount = computed(() => messages.filter(m => m.type !== 'warn').length)
     const apiFailCount = computed(() => apiRequests.filter(r => r.status === 'error').length)
 
     const toggleCollapse = () => { isCollapsed.value = !isCollapsed.value }
     
+    // 拖动功能
+    const startDrag = (e) => {
+      isDragging.value = true
+      dragStart.x = e.clientX - position.x
+      dragStart.y = e.clientY - position.y
+      
+      const onMouseMove = (e) => {
+        if (!isDragging.value) return
+        position.x = Math.max(0, Math.min(window.innerWidth - 300, e.clientX - dragStart.x))
+        position.y = Math.max(0, Math.min(window.innerHeight - 100, e.clientY - dragStart.y))
+      }
+      
+      const onMouseUp = () => {
+        isDragging.value = false
+        document.removeEventListener('mousemove', onMouseMove)
+        document.removeEventListener('mouseup', onMouseUp)
+      }
+      
+      document.addEventListener('mousemove', onMouseMove)
+      document.addEventListener('mouseup', onMouseUp)
+    }
+    
     const clearCurrentTab = () => {
       if (activeTab.value === 'errors') {
         messages.splice(0, messages.length)
-        recentMessages.clear() // 清空去重记录
       } else {
         apiRequests.splice(0, apiRequests.length)
-        recentRequests.clear() // 清空去重记录
+        seenRequests.clear() // 清空去重集合
       }
     }
     
@@ -231,39 +277,70 @@ export default {
       }
     }
 
-    const addMessage = (content, type, typeLabel, source, componentChain = '') => {
-      const now = new Date()
-      const time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`
+    // ========== 错误监控部分 ==========
+    
+    // 提取详细的文件信息和堆栈
+    const extractDetailedError = (error, stack) => {
+      let file = ''
+      let line = ''
+      let fullStack = ''
       
-      // 改进去重：使用时间窗口去重，而不是永久去重
-      const key = `${type}|${source}|${content.substring(0, 100)}`
-      const lastTime = recentMessages.get(key)
-      const currentTime = Date.now()
-      
-      // 如果在去重窗口内（1秒），则跳过
-      if (lastTime && (currentTime - lastTime) < DEDUPE_WINDOW) {
-        return
-      }
-      
-      // 更新去重记录
-      recentMessages.set(key, currentTime)
-      
-      // 清理过期的去重记录（超过10秒的）
-      if (recentMessages.size > 100) {
-        for (const [k, t] of recentMessages.entries()) {
-          if (currentTime - t > 10000) {
-            recentMessages.delete(k)
+      if (stack) {
+        fullStack = stack
+        // 从堆栈中提取第一个有用的文件位置（跳过 node_modules 和内部文件）
+        const lines = stack.split('\n')
+        for (const stackLine of lines) {
+          // 跳过无用的行
+          if (/node_modules|webpack|ErrorMonitor/.test(stackLine)) continue
+          
+          // 匹配文件路径和行号
+          const match = stackLine.match(/(?:at\s+)?(?:.*?\s+)?\(?([^)]+):(\d+):(\d+)\)?/)
+          if (match) {
+            const fullPath = match[1]
+            const lineNum = match[2]
+            const colNum = match[3]
+            
+            // 简化路径，只保留有用部分
+            const simplePath = fullPath.replace(/^.*?\/src\//, 'src/')
+                                       .replace(/^.*?\/node_modules\//, 'node_modules/')
+                                       .replace(/^webpack-internal:\/\/\//, '')
+            
+            file = `${simplePath}:${lineNum}:${colNum}`
+            break
           }
         }
       }
       
-      messages.unshift({ content, type, typeLabel, source, componentChain, time })
-      if (messages.length > 100) messages.pop() // 增加到100条
+      return { file, stack: fullStack }
+    }
+    
+    const addMessage = (content, type, typeLabel, rawStack = '', componentChain = '') => {
+      const now = new Date()
+      const time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`
+      
+      // 提取详细错误信息
+      const { file, stack } = extractDetailedError(content, rawStack)
+      
+      // 去重检查
+      const key = `${file}|${content.substring(0, 100)}`
+      if (messages.some(m => `${m.file}|${m.content.substring(0, 100)}` === key)) return
+      
+      messages.unshift({ 
+        content, 
+        type, 
+        typeLabel, 
+        file: file || 'unknown',
+        stack: stack || '',
+        componentChain, 
+        time 
+      })
+      if (messages.length > 50) messages.pop()
     }
 
     const interceptConsole = () => {
       originalConsoleError = console.error
       originalConsoleWarn = console.warn
+      originalConsoleLog = console.log
 
       console.error = function(...args) {
         let content = args.map(a => {
@@ -272,11 +349,10 @@ export default {
           return String(a)
         }).join(' ')
         
-        const stack = args.find(a => a instanceof Error)?.stack || new Error().stack
-        const source = extractSource(content, stack)
-        content = simplifyContent(content)
+        const errorObj = args.find(a => a instanceof Error)
+        const stack = errorObj?.stack || new Error().stack
         
-        addMessage(content, 'error', '错误', source)
+        addMessage(content, 'error', '错误', stack)
         originalConsoleError.apply(console, args)
       }
 
@@ -286,42 +362,56 @@ export default {
           return String(a)
         }).join(' ')
         
+        const stack = new Error().stack
+        
         if (content.includes('[Vue warn]')) {
-          const { content: cleanContent, componentChain, source } = cleanVueWarn(content)
-          addMessage(cleanContent, 'warn', 'Vue警告', source, componentChain)
+          const { content: cleanContent, componentChain } = cleanVueWarn(content)
+          addMessage(cleanContent, 'warn', 'Vue警告', stack, componentChain)
         } else {
-          const source = extractSource(content, new Error().stack)
-          addMessage(simplifyContent(content), 'warn', '警告', source)
+          addMessage(content, 'warn', '警告', stack)
         }
         
         originalConsoleWarn.apply(console, args)
+      }
+      
+      // 新增：捕获 console.log 中的错误对象
+      console.log = function(...args) {
+        // 检查是否有 Error 对象
+        const errorObj = args.find(a => a instanceof Error)
+        if (errorObj) {
+          const content = `${errorObj.name}: ${errorObj.message}`
+          addMessage(content, 'log', '日志错误', errorObj.stack)
+        }
+        
+        originalConsoleLog.apply(console, args)
       }
     }
 
     const restoreConsole = () => {
       if (originalConsoleError) console.error = originalConsoleError
       if (originalConsoleWarn) console.warn = originalConsoleWarn
+      if (originalConsoleLog) console.log = originalConsoleLog
     }
 
     const handleGlobalError = event => {
-      const { message, filename, lineno, colno } = event
-      const file = filename ? filename.split('/').pop() : 'unknown'
-      const source = `${file}:${lineno}:${colno}`
-      addMessage(message, 'runtime', '运行时错误', source)
+      const { message, filename, lineno, colno, error } = event
+      const file = filename ? `${filename.split('/').pop()}:${lineno}:${colno}` : 'unknown'
+      const stack = error?.stack || ''
+      addMessage(message, 'runtime', '运行时错误', stack)
     }
 
     const handleUnhandledRejection = event => {
       const reason = event.reason
-      let content = '', source = 'Promise'
+      let content = '', stack = ''
       
       if (reason instanceof Error) {
         content = `${reason.name}: ${reason.message}`
-        source = extractSource(content, reason.stack)
+        stack = reason.stack || ''
       } else {
         content = typeof reason === 'object' ? safeStringify(reason) : String(reason)
       }
       
-      addMessage(simplifyContent(content), 'promise', 'Promise错误', source)
+      addMessage(content, 'promise', 'Promise错误', stack)
     }
 
     // ========== API 请求监控部分 ==========
@@ -511,23 +601,19 @@ export default {
         return
       }
       
-      const grouped = {}
-      messages.forEach(m => {
-        if (!grouped[m.source]) grouped[m.source] = []
-        const exists = grouped[m.source].some(e => e.content === m.content)
-        if (!exists) {
-          grouped[m.source].push({ type: m.typeLabel, content: m.content, chain: m.componentChain })
+      let text = '=== 错误日志 ===\n\n'
+      messages.forEach((m, index) => {
+        text += `[${index + 1}] ${m.typeLabel} - ${m.time}\n`
+        text += `文件: ${m.file}\n`
+        text += `内容: ${m.content}\n`
+        if (m.componentChain) {
+          text += `组件链: ${m.componentChain}\n`
         }
+        if (m.stack) {
+          text += `堆栈:\n${m.stack}\n`
+        }
+        text += '\n---\n\n'
       })
-      
-      let text = '=== 错误日志 ===\n'
-      for (const [source, items] of Object.entries(grouped)) {
-        text += `\n【${source}】\n`
-        items.forEach(item => {
-          text += `[${item.type}] ${item.content}\n`
-          if (item.chain) text += `  组件链: ${item.chain}\n`
-        })
-      }
       
       navigator.clipboard.writeText(text).then(() => {
         ElMessage.success(`已复制 ${messages.length} 条错误日志`)
@@ -579,6 +665,7 @@ export default {
     return {
       visible, isCollapsed, activeTab, messages, apiRequests,
       errorCount, apiFailCount, backendStatus, backendStatusText,
+      monitorStyle, startDrag,
       toggleCollapse, clearCurrentTab, copyCurrentTab, checkBackendStatus
     }
   }
@@ -588,22 +675,24 @@ export default {
 <style scoped>
 .error-monitor {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
   background: #1e1e1e;
   color: #d4d4d4;
   font-family: 'Consolas', 'Monaco', monospace;
   font-size: 12px;
   z-index: 9999;
-  max-height: 40vh;
   display: flex;
   flex-direction: column;
-  border-top: 2px solid #007acc;
+  border: 2px solid #007acc;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  min-width: 400px;
+  resize: both;
+  overflow: hidden;
 }
 
 .error-monitor.collapsed {
   max-height: auto;
+  resize: none;
 }
 
 .monitor-header {
@@ -614,12 +703,24 @@ export default {
   background: #252526;
   cursor: pointer;
   user-select: none;
+  border-bottom: 1px solid #007acc;
 }
 
 .header-left {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
+}
+
+.drag-handle {
+  cursor: move;
+  color: #666;
+  font-size: 16px;
+  padding: 0 4px;
+}
+
+.drag-handle:hover {
+  color: #007acc;
 }
 
 .monitor-header h3 {
@@ -691,6 +792,7 @@ export default {
   flex: 1;
   overflow-y: auto;
   padding: 8px;
+  max-height: calc(60vh - 40px);
 }
 
 .tab-content {
@@ -720,6 +822,7 @@ export default {
 .message-item.warn { border-left-color: #ff9800; }
 .message-item.runtime { border-left-color: #e91e63; }
 .message-item.promise { border-left-color: #9c27b0; }
+.message-item.log { border-left-color: #2196f3; }
 
 .api-item.success { border-left-color: #4caf50; }
 .api-item.error { border-left-color: #f44336; }
@@ -751,10 +854,11 @@ export default {
   color: #4fc3f7;
 }
 
-.item-source {
+.item-file {
   color: #4fc3f7;
   font-size: 11px;
   margin-bottom: 4px;
+  font-family: monospace;
 }
 
 .item-url {
@@ -767,6 +871,37 @@ export default {
   color: #e0e0e0;
   word-break: break-word;
   line-height: 1.4;
+  margin-bottom: 4px;
+}
+
+.item-stack {
+  margin-top: 6px;
+}
+
+.item-stack details {
+  cursor: pointer;
+}
+
+.item-stack summary {
+  color: #ce93d8;
+  font-size: 11px;
+  padding: 2px 0;
+}
+
+.item-stack summary:hover {
+  color: #e1bee7;
+}
+
+.item-stack pre {
+  margin: 4px 0 0 0;
+  padding: 6px;
+  background: #1a1a1a;
+  border-radius: 3px;
+  font-size: 10px;
+  color: #aaa;
+  overflow-x: auto;
+  max-height: 200px;
+  line-height: 1.3;
 }
 
 .item-chain {
