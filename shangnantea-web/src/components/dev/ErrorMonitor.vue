@@ -69,7 +69,10 @@ import { ElMessage } from 'element-plus'
 
 const messages = reactive([])
 const apiRequests = reactive([])
-const seenRequests = new Set() // 用于去重
+// 移除全局去重，改为按时间窗口去重（同一错误在1秒内只记录一次）
+const recentMessages = new Map() // key -> timestamp
+const recentRequests = new Map() // key -> timestamp
+const DEDUPE_WINDOW = 1000 // 1秒去重窗口
 let originalConsoleError = null
 let originalConsoleWarn = null
 let originalFetch = null
@@ -94,9 +97,10 @@ export default {
     const clearCurrentTab = () => {
       if (activeTab.value === 'errors') {
         messages.splice(0, messages.length)
+        recentMessages.clear() // 清空去重记录
       } else {
         apiRequests.splice(0, apiRequests.length)
-        seenRequests.clear() // 清空去重集合
+        recentRequests.clear() // 清空去重记录
       }
     }
     
@@ -233,11 +237,30 @@ export default {
       const now = new Date()
       const time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`
       
-      const key = `${source}|${content.substring(0, 100)}`
-      if (messages.some(m => `${m.source}|${m.content.substring(0, 100)}` === key)) return
+      // 改进去重：使用时间窗口去重，而不是永久去重
+      const key = `${type}|${source}|${content.substring(0, 100)}`
+      const lastTime = recentMessages.get(key)
+      const currentTime = Date.now()
+      
+      // 如果在去重窗口内（1秒），则跳过
+      if (lastTime && (currentTime - lastTime) < DEDUPE_WINDOW) {
+        return
+      }
+      
+      // 更新去重记录
+      recentMessages.set(key, currentTime)
+      
+      // 清理过期的去重记录（超过10秒的）
+      if (recentMessages.size > 100) {
+        for (const [k, t] of recentMessages.entries()) {
+          if (currentTime - t > 10000) {
+            recentMessages.delete(k)
+          }
+        }
+      }
       
       messages.unshift({ content, type, typeLabel, source, componentChain, time })
-      if (messages.length > 50) messages.pop()
+      if (messages.length > 100) messages.pop() // 增加到100条
     }
 
     const interceptConsole = () => {
