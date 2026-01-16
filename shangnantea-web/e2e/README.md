@@ -27,9 +27,26 @@ npm run dev
 
 # 运行测试
 cd e2e
-run-api-test.bat user/login      # 运行单个测试
-run-api-test.bat user            # 运行用户模块
-run-api-test.bat                 # 运行所有测试
+run-api-test.bat                 # 交互式选择测试
+run-api-test.bat user/login      # 直接运行指定测试
+```
+
+### 交互式选择
+
+运行 `run-api-test.bat` 后会显示菜单：
+
+```
+请选择要测试的接口：
+
+[用户模块]
+  1. POST /user/login - 用户登录
+  2. POST /user/register - 用户注册
+
+[其他选项]
+  0. 运行所有测试
+  q. 退出
+
+请输入序号:
 ```
 
 ## 测试进度
@@ -37,20 +54,55 @@ run-api-test.bat                 # 运行所有测试
 **总 API 数量**: 166  
 **已完成**: 2 (1.2%)
 
-### 用户模块 (2/35+)
-- ✅ POST /user/login - 用户登录
-- ✅ POST /user/register - 用户注册
-- ⏳ POST /user/logout
-- ⏳ GET /user/me
-- ⏳ PUT /user
-- ⏳ ... (其余 30+ 个)
+### 测试脚本列表
 
-### 其他模块
-- ⏳ 茶叶模块 (约 40 个)
-- ⏳ 订单模块 (约 30 个)
-- ⏳ 论坛模块 (约 30 个)
-- ⏳ 店铺模块 (约 20 个)
-- ⏳ 消息模块 (约 15 个)
+#### 用户模块 (2/35+)
+| 编号 | API | 状态 | 文件 |
+|------|-----|------|------|
+| 1 | POST /user/login | ✅ | user/login.spec.js |
+| 2 | POST /user/register | ✅ | user/register.spec.js |
+| 3 | POST /user/logout | ⏳ | user/logout.spec.js |
+| 4 | GET /user/me | ⏳ | user/me.spec.js |
+| 5 | PUT /user | ⏳ | user/update.spec.js |
+| 6 | POST /user/avatar | ⏳ | user/avatar.spec.js |
+| 7 | PUT /user/password | ⏳ | user/password.spec.js |
+| 8 | POST /user/password/reset | ⏳ | user/reset-password.spec.js |
+| 9 | GET /user/addresses | ⏳ | user/addresses-list.spec.js |
+| 10 | POST /user/addresses | ⏳ | user/addresses-add.spec.js |
+| ... | ... | ⏳ | ... |
+
+#### 茶叶模块 (0/40+)
+| 编号 | API | 状态 | 文件 |
+|------|-----|------|------|
+| 50 | GET /tea/list | ⏳ | tea/list.spec.js |
+| 51 | POST /tea/list | ⏳ | tea/add.spec.js |
+| 52 | GET /tea/{id} | ⏳ | tea/detail.spec.js |
+| ... | ... | ⏳ | ... |
+
+#### 订单模块 (0/30+)
+| 编号 | API | 状态 | 文件 |
+|------|-----|------|------|
+| 100 | GET /order/list | ⏳ | order/list.spec.js |
+| 101 | POST /order | ⏳ | order/create.spec.js |
+| ... | ... | ⏳ | ... |
+
+#### 论坛模块 (0/30+)
+| 编号 | API | 状态 | 文件 |
+|------|-----|------|------|
+| 130 | GET /forum/list | ⏳ | forum/list.spec.js |
+| ... | ... | ⏳ | ... |
+
+#### 店铺模块 (0/20+)
+| 编号 | API | 状态 | 文件 |
+|------|-----|------|------|
+| 150 | GET /shop/list | ⏳ | shop/list.spec.js |
+| ... | ... | ⏳ | ... |
+
+#### 消息模块 (0/15+)
+| 编号 | API | 状态 | 文件 |
+|------|-----|------|------|
+| 160 | GET /message/center | ⏳ | message/center.spec.js |
+| ... | ... | ⏳ | ... |
 
 ## 测试标准
 
