@@ -1797,6 +1797,7 @@ paths:
                   summary: 更新分类失败
                   value:
                     code: 3108
+                    data: null
     delete:
       operationId: deleteTeaCategory
       tags:
@@ -1828,6 +1829,7 @@ paths:
                   summary: 删除分类失败
                   value:
                     code: 3109
+                    data: null
 
   /tea/{teaId}/reviews:
     get:
@@ -1879,6 +1881,7 @@ paths:
                   summary: 获取评价列表失败
                   value:
                     code: 3110
+                    data: null
 
   /tea/{teaId}/reviews/stats:
     get:
@@ -1918,6 +1921,7 @@ paths:
                   summary: 获取评价统计失败
                   value:
                     code: 3111
+                    data: null
 
   /tea/reviews:
     post:
@@ -1957,6 +1961,7 @@ paths:
                   summary: 提交评价失败
                   value:
                     code: 3112
+                    data: null
 
   /tea/reviews/{reviewId}/reply:
     post:
@@ -2001,6 +2006,7 @@ paths:
                   summary: 回复评价失败
                   value:
                     code: 3113
+                    data: null
 
   /tea/reviews/{reviewId}/like:
     post:
@@ -2034,6 +2040,7 @@ paths:
                   summary: 点赞评价失败
                   value:
                     code: 3114
+                    data: null
 
   /tea/{teaId}/specifications:
     get:
