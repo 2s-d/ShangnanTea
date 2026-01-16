@@ -246,28 +246,9 @@ export default {
   flex-shrink: 0; /* 防止工具栏收缩 */
 }
 
-.role-select,
 .cart-link,
 .user-dropdown {
   margin-left: 15px;
-}
-
-.role-select {
-  background-color: transparent;
-  opacity: 0;
-}
-
-.role-select .el-dropdown-link {
-  background-color: transparent;
-}
-
-.role-select .el-button--text {
-  background-color: transparent;
-  color: #409EFF;
-}
-
-.role-select:hover {
-  opacity: 0;
 }
 
 .cart-link {
