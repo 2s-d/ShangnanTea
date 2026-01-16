@@ -103,100 +103,24 @@ e2e/
 
 ---
 
-## 工具函数详解
+## 工具函数简介
 
-### 1. error-collector.js（错误收集器）
-
-**职责**：统一收集和管理测试过程中的所有错误
-
-**核心功能**：
-- 监听控制台错误（console.error）
-- 监听运行时错误（pageerror）
-- 监听网络错误（404、500 等）
+### error-collector.js（错误收集器）
+- 自动收集控制台错误、运行时错误、网络错误
 - 错误去重和过滤
 - 生成测试报告
 
-**使用方式**：
-```javascript
-const { setupErrorListeners, createErrorCollector } = require('../../helpers/error-collector');
+### auth-helper.js（认证辅助）
+- 处理登录认证
+- Mock 登录支持
 
-// 创建错误收集器
-const errorCollector = createErrorCollector('模块名称');
+### api-helper.js（API 辅助）
+- 监控 API 调用
+- 验证响应数据
 
-test('测试名称', async ({ page }) => {
-  const testContext = errorCollector.startTest('测试名称');
-  
-  // 设置错误监听
-  setupErrorListeners(page, '测试名称', testContext.errors);
-  
-  // ... 执行测试 ...
-  
-  // 检查错误
-  const errors = testContext.endTest();
-  expect(errors.length).toBe(0); // 断言无错误
-});
-```
-
-**错误类型**：
-- `console` - 控制台错误
-- `runtime` - 运行时错误
-- `network` - 网络请求错误（包含 URL、状态码、资源类型）
-
-**可忽略的错误**：
-- Vue Devtools 相关
-- ElementPlus 警告
-- hot-update 相关
-
-### 2. auth-helper.js（认证辅助）
-
-**职责**：处理登录认证相关操作
-
-**核心功能**：
-- Mock 登录（开发环境）
-- 真实登录（生产环境）
-- Token 管理
-
-**使用方式**：
-```javascript
-const { mockLogin } = require('../../helpers/auth-helper');
-
-// Mock 登录
-await mockLogin(page);
-```
-
-### 3. api-helper.js（API 辅助）
-
-**职责**：监控和验证 API 调用
-
-**核心功能**：
-- 等待特定 API 响应
-- 验证响应状态码
-- 验证响应数据格式
-
-**使用方式**：
-```javascript
-const { waitForApiResponse } = require('../../helpers/api-helper');
-
-// 等待 API 响应
-const response = await waitForApiResponse(page, '/user/login', 'POST');
-```
-
-### 4. test-data.json（测试数据）
-
-**职责**：统一管理测试数据
-
-**数据结构**：
-```json
-{
-  "users": {
-    "admin": { "username": "admin", "password": "admin123" },
-    "user": { "username": "testuser", "password": "test123" }
-  },
-  "tea": {
-    "sample": { "name": "测试茶叶", "price": 100 }
-  }
-}
-```
+### test-data.json（测试数据）
+- 统一管理测试用的用户、茶叶等数据
+- 避免硬编码
 
 ---
 
