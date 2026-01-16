@@ -204,52 +204,7 @@ export default {
     }
 
     // ========== 错误监控部分 ==========
-    const cleanVueWarn = content => {
-      const warnMatch = content.match(/\[Vue warn\]:\s*([^.]+)/)
-      const coreMessage = warnMatch ? warnMatch[1].trim() : ''
-      
-      const componentChain = []
-      const atMatches = content.matchAll(/at\s+<([A-Z][a-zA-Z]+)/g)
-      for (const match of atMatches) {
-        if (!componentChain.includes(match[1])) componentChain.push(match[1])
-      }
-      
-      const fileMatch = content.match(/"__file":"([^"]+)"/)
-      const sourceFile = fileMatch ? fileMatch[1].split('/').pop() : null
-      
-      return {
-        content: coreMessage || content.substring(0, 200),
-        componentChain: componentChain.length > 0 ? componentChain.join(' → ') : '',
-        source: sourceFile || (componentChain[0] ? componentChain[0] + '.vue' : 'Vue')
-      }
-    }
-
-    const extractSource = (content, stack) => {
-      const webpackMatch = content.match(/_([a-zA-Z]+)__WEBPACK_IMPORTED_MODULE/)
-      if (webpackMatch) return webpackMatch[1] + '.js'
-      
-      if (stack) {
-        const lines = stack.split('\n')
-        for (const line of lines) {
-          if (/chunk-vendors|webpack|node_modules|ErrorMonitor/.test(line)) continue
-          const match = line.match(/([a-zA-Z0-9_-]+\.(vue|js|ts)):(\d+)/)
-          if (match) return `${match[1]}:${match[3]}`
-        }
-      }
-      
-      const fileMatch = content.match(/([A-Z][a-zA-Z]+(?:Page|View|Component)?\.vue)/)
-      if (fileMatch) return fileMatch[1]
-      
-      return 'unknown'
-    }
-
-    const simplifyContent = content => {
-      let simplified = content.replace(/_[a-zA-Z]+__WEBPACK_IMPORTED_MODULE_\d+__\./g, '')
-      simplified = simplified.replace(/\.default\./g, '.')
-      if (simplified.length > 300) simplified = simplified.substring(0, 300) + '...'
-      return simplified
-    }
-
+    
     // 安全的 JSON 序列化，处理循环引用
     const safeStringify = obj => {
       if (obj === null || obj === undefined) return String(obj)
@@ -282,28 +237,35 @@ export default {
     // 提取详细的文件信息和堆栈
     const extractDetailedError = (error, stack) => {
       let file = ''
-      let line = ''
       let fullStack = ''
       
       if (stack) {
         fullStack = stack
-        // 从堆栈中提取第一个有用的文件位置（跳过 node_modules 和内部文件）
+        // 从堆栈中提取第一个有用的文件位置
         const lines = stack.split('\n')
         for (const stackLine of lines) {
-          // 跳过无用的行
-          if (/node_modules|webpack|ErrorMonitor/.test(stackLine)) continue
+          // 优先匹配项目源码（src/）
+          let match = stackLine.match(/\(([^)]*src\/[^)]+):(\d+):(\d+)\)/)
+          if (!match) {
+            // 匹配其他格式
+            match = stackLine.match(/at\s+(?:.*?\s+)?\(?([^)]+):(\d+):(\d+)\)?/)
+          }
           
-          // 匹配文件路径和行号
-          const match = stackLine.match(/(?:at\s+)?(?:.*?\s+)?\(?([^)]+):(\d+):(\d+)\)?/)
           if (match) {
             const fullPath = match[1]
             const lineNum = match[2]
             const colNum = match[3]
             
-            // 简化路径，只保留有用部分
-            const simplePath = fullPath.replace(/^.*?\/src\//, 'src/')
-                                       .replace(/^.*?\/node_modules\//, 'node_modules/')
-                                       .replace(/^webpack-internal:\/\/\//, '')
+            // 跳过 node_modules、webpack 内部文件和监控组件自身
+            if (/node_modules|webpack-internal|ErrorMonitor/.test(fullPath)) {
+              continue
+            }
+            
+            // 简化路径
+            let simplePath = fullPath
+            if (fullPath.includes('src/')) {
+              simplePath = fullPath.substring(fullPath.indexOf('src/'))
+            }
             
             file = `${simplePath}:${lineNum}:${colNum}`
             break
@@ -312,6 +274,25 @@ export default {
       }
       
       return { file, stack: fullStack }
+    }
+    
+    // 改进 Vue 警告清理，保留更多有用信息
+    const cleanVueWarn = content => {
+      // 提取主要错误信息（不截断）
+      const warnMatch = content.match(/\[Vue warn\]:\s*(.+?)(?=\s+at\s+<|$)/s)
+      const coreMessage = warnMatch ? warnMatch[1].trim() : content
+      
+      // 提取组件链
+      const componentChain = []
+      const atMatches = content.matchAll(/at\s+<([A-Z][a-zA-Z]+)/g)
+      for (const match of atMatches) {
+        if (!componentChain.includes(match[1])) componentChain.push(match[1])
+      }
+      
+      return {
+        content: coreMessage,
+        componentChain: componentChain.length > 0 ? componentChain.join(' → ') : ''
+      }
     }
     
     const addMessage = (content, type, typeLabel, rawStack = '', componentChain = '') => {
@@ -367,6 +348,14 @@ export default {
         if (content.includes('[Vue warn]')) {
           const { content: cleanContent, componentChain } = cleanVueWarn(content)
           addMessage(cleanContent, 'warn', 'Vue警告', stack, componentChain)
+        } else if (content.includes('ElementPlusError')) {
+          // 特殊处理 ElementPlus 错误，尝试提取更多信息
+          const fullContent = args.map(a => {
+            if (typeof a === 'object' && a.message) return a.message
+            if (typeof a === 'object') return safeStringify(a)
+            return String(a)
+          }).join(' ')
+          addMessage(fullContent, 'warn', 'ElementPlus警告', stack)
         } else {
           addMessage(content, 'warn', '警告', stack)
         }
@@ -601,22 +590,27 @@ export default {
         return
       }
       
-      let text = '=== 错误日志 ===\n\n'
+      let text = '=== 错误日志（用于 AI 分析）===\n\n'
+      text += `总计 ${messages.length} 个错误\n`
+      text += `时间: ${new Date().toLocaleString()}\n\n`
+      text += '---\n\n'
+      
       messages.forEach((m, index) => {
-        text += `[${index + 1}] ${m.typeLabel} - ${m.time}\n`
-        text += `文件: ${m.file}\n`
-        text += `内容: ${m.content}\n`
+        text += `## 错误 ${index + 1}: ${m.typeLabel}\n\n`
+        text += `**时间**: ${m.time}\n`
+        text += `**文件**: ${m.file}\n`
         if (m.componentChain) {
-          text += `组件链: ${m.componentChain}\n`
+          text += `**组件链**: ${m.componentChain}\n`
         }
+        text += `**错误内容**:\n${m.content}\n\n`
         if (m.stack) {
-          text += `堆栈:\n${m.stack}\n`
+          text += `**完整堆栈**:\n\`\`\`\n${m.stack}\n\`\`\`\n\n`
         }
-        text += '\n---\n\n'
+        text += '---\n\n'
       })
       
       navigator.clipboard.writeText(text).then(() => {
-        ElMessage.success(`已复制 ${messages.length} 条错误日志`)
+        ElMessage.success(`已复制 ${messages.length} 条错误日志（Markdown 格式）`)
       }).catch(() => ElMessage.error('复制失败'))
     }
 
