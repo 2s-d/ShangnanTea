@@ -16,6 +16,8 @@ import { checkAndMigrateData } from './utils/versionManager'
 import './assets/styles/global.scss'
 import { message } from '@/components/common'
 import messageManager from '@/utils/messageManager'
+// 导入认证 composable
+import { useAuth } from '@/composables/useAuth'
 
 // 在应用初始化前检查并迁移本地存储数据
 checkAndMigrateData();
@@ -26,8 +28,9 @@ messageManager.clearAllMessageStates()
 // 初始化用户认证状态
 const initAuthState = async () => {
   try {
-    // 初始化认证状态，加载用户信息
-    await store.dispatch('user/initAuth')
+    // 使用 useAuth composable 初始化认证状态
+    const { initAuth } = useAuth()
+    await initAuth()
     console.log('用户认证状态初始化完成')
   } catch (error) {
     console.error('初始化用户认证状态失败:', error)

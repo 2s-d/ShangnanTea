@@ -278,16 +278,12 @@ export function useAuth() {
     if (user) {
       // 更新Vuex中的用户信息
       store.commit('user/SET_USER_INFO', user)
-      // 可以选择更新详细用户信息
-      try {
-        await store.dispatch('user/validateSession')
-      } catch (error) {
-        console.error('验证会话失败:', error)
-      }
+      store.commit('user/SET_LOGGED_IN', true)
       return user
     } else {
       // 确保清除无效状态
-      await store.dispatch('user/logout', false)
+      removeToken()
+      store.commit('user/CLEAR_USER')
       return null
     }
   }
