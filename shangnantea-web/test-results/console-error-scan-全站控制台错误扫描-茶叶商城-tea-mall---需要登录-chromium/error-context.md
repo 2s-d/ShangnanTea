@@ -3,88 +3,252 @@
 ```yaml
 - generic [ref=e3]:
   - generic [ref=e5]:
-    - text: 商南茶文化
-    - generic [ref=e7]:
-      - generic [ref=e8]:
-        - heading "用户登录" [level=2] [ref=e9]
-        - paragraph [ref=e10]: 欢迎回到商南茶文化平台
-      - generic [ref=e11]:
-        - generic [ref=e12]:
-          - generic [ref=e13]: "*用户名"
-          - textbox "*用户名" [ref=e18]:
-            - /placeholder: 请输入用户名
-        - generic [ref=e19]:
-          - generic [ref=e20]: "*密码"
-          - textbox "*密码" [ref=e25]:
-            - /placeholder: 请输入密码
-        - generic [ref=e26]:
-          - generic [ref=e27]: "*角色"
-          - radiogroup "*角色" [ref=e29]:
-            - generic [ref=e30] [cursor=pointer]:
-              - radio "普通用户" [checked] [ref=e32]
-              - generic [ref=e34]: 普通用户
-            - generic [ref=e35] [cursor=pointer]:
-              - radio "商家" [ref=e37]
-              - generic [ref=e39]: 商家
-            - generic [ref=e40] [cursor=pointer]:
-              - radio "管理员" [ref=e42]
-              - generic [ref=e44]: 管理员
-        - generic [ref=e45]:
-          - generic [ref=e46] [cursor=pointer]:
-            - generic [ref=e47]:
-              - checkbox "记住我"
-            - generic [ref=e49]: 记住我
-          - button "忘记密码？" [ref=e50] [cursor=pointer]:
-            - generic [ref=e51]: 忘记密码？
-        - button "登录" [ref=e54] [cursor=pointer]:
-          - generic [ref=e55]: 登录
-      - paragraph [ref=e57]:
-        - text: 还没有账号？
-        - link "立即注册" [ref=e58] [cursor=pointer]:
-          - /url: /register
-      - generic [ref=e59]:
-        - separator [ref=e60]:
-          - generic [ref=e61]: 开发者选项
-        - generic [ref=e62]:
-          - button "重置本地存储" [ref=e63] [cursor=pointer]:
-            - generic [ref=e64]: 重置本地存储
-          - button "触发数据迁移" [ref=e65] [cursor=pointer]:
-            - generic [ref=e66]: 触发数据迁移
-  - generic [ref=e67]:
-    - generic [ref=e68] [cursor=pointer]:
-      - generic [ref=e69]:
-        - generic [ref=e70]: ⋮⋮
-        - heading "开发监控" [level=3] [ref=e71]
-        - generic [ref=e72]:
-          - button "错误" [ref=e73]
-          - button "API" [ref=e74]
-      - generic [ref=e75]:
-        - button "复制" [ref=e76]
-        - button "清空" [ref=e77]
-        - button "▼" [ref=e78]
-    - generic [ref=e81]:
-      - generic [ref=e82]:
-        - generic [ref=e83]:
-          - generic [ref=e84]: 12:46:04
-          - generic [ref=e85]: ElementPlus警告
-        - generic [ref=e86]: "[props] [API] type.text is about to be deprecated in version 3.0.0, please use link instead. For more detail, please visit: https://element-plus.org/en-US/component/button.html#button-attributes"
-        - generic [ref=e87]: 📄 element-plus/es/utils/error.mjs:43:13
-        - group [ref=e89] [cursor=pointer]:
-          - generic "堆栈信息" [ref=e90]
-      - generic [ref=e91]:
-        - generic [ref=e92]:
-          - generic [ref=e93]: 12:46:04
-          - generic [ref=e94]: ElementPlus警告
-        - generic [ref=e95]: "[el-radio] [API] label act as value is about to be deprecated in version 3.0.0, please use value instead. For more detail, please visit: https://element-plus.org/en-US/component/radio.html"
-        - generic [ref=e96]: 📄 element-plus/es/utils/error.mjs:43:13
-        - group [ref=e98] [cursor=pointer]:
-          - generic "堆栈信息" [ref=e99]
-      - generic [ref=e100]:
-        - generic [ref=e101]:
-          - generic [ref=e102]: 12:46:04
-          - generic [ref=e103]: 警告
-        - generic [ref=e104]: Token已过期
-        - generic [ref=e105]: 📄 src/composables/useStorage.js:531:17
-        - group [ref=e107] [cursor=pointer]:
-          - generic "堆栈信息" [ref=e108]
+    - link "商南茶文化 商南茶文化" [ref=e7] [cursor=pointer]:
+      - /url: /tea-culture
+      - img "商南茶文化" [ref=e8]
+      - generic [ref=e9]: 商南茶文化
+    - menubar [ref=e10]:
+      - button "用户头像 用户" [ref=e13] [cursor=pointer]:
+        - img "用户头像" [ref=e14]
+        - generic [ref=e15]: 用户
+  - main [ref=e16]:
+    - generic [ref=e17]:
+      - generic [ref=e20]:
+        - heading "茶叶商城" [level=1] [ref=e21]
+        - paragraph [ref=e22]: 精选商南特色茶品，邀您共享醇香茶韵
+        - generic [ref=e23]:
+          - generic [ref=e24]:
+            - generic [ref=e27]:
+              - generic [ref=e28]:
+                - img [ref=e31]
+                - textbox "搜索茶叶名称" [ref=e33]
+              - button "搜索" [ref=e35] [cursor=pointer]:
+                - generic [ref=e36]: 搜索
+            - button "商铺列表" [ref=e37] [cursor=pointer]:
+              - generic [ref=e38]:
+                - img [ref=e40]
+                - text: 商铺列表
+          - generic [ref=e42]:
+            - radiogroup "radio-group" [ref=e43]:
+              - generic [ref=e44]:
+                - radio "综合排序" [checked] [ref=e45]
+                - generic [ref=e46] [cursor=pointer]: 综合排序
+              - generic [ref=e47]:
+                - radio "销量优先" [ref=e48]
+                - generic [ref=e49] [cursor=pointer]: 销量优先
+              - generic [ref=e50]:
+                - radio "价格从低到高" [ref=e51]
+                - generic [ref=e52] [cursor=pointer]: 价格从低到高
+              - generic [ref=e53]:
+                - radio "价格从高到低" [ref=e54]
+                - generic [ref=e55] [cursor=pointer]: 价格从高到低
+              - generic [ref=e56]:
+                - radio "最新上架" [ref=e57]
+                - generic [ref=e58] [cursor=pointer]: 最新上架
+            - generic [ref=e60]:
+              - switch [checked]
+              - generic [ref=e62] [cursor=pointer]: 列表
+              - generic [ref=e66] [cursor=pointer]: 网格
+      - generic [ref=e67]:
+        - generic [ref=e68]:
+          - generic [ref=e69]:
+            - generic [ref=e70]:
+              - heading "茶叶分类" [level=3] [ref=e71]
+              - group "checkbox-group" [ref=e72]:
+                - generic [ref=e73] [cursor=pointer]:
+                  - generic [ref=e74]:
+                    - checkbox "绿茶"
+                  - generic [ref=e76]: 绿茶
+                - generic [ref=e77] [cursor=pointer]:
+                  - generic [ref=e78]:
+                    - checkbox "红茶"
+                  - generic [ref=e80]: 红茶
+            - generic [ref=e81]:
+              - heading "价格区间" [level=3] [ref=e82]
+              - generic [ref=e83]:
+                - group "slider between 0 and 1000" [ref=e84]:
+                  - generic [ref=e85] [cursor=pointer]:
+                    - slider "pick start value" [ref=e87]
+                    - slider "pick end value" [ref=e89]
+                - generic [ref=e91]:
+                  - generic [ref=e92]:
+                    - button "decrease number" [ref=e93]:
+                      - img [ref=e95]
+                    - button "increase number" [ref=e97] [cursor=pointer]:
+                      - img [ref=e99]
+                    - spinbutton [ref=e103]: "0"
+                  - generic [ref=e104]: "-"
+                  - generic [ref=e105]:
+                    - button "decrease number" [ref=e106] [cursor=pointer]:
+                      - img [ref=e108]
+                    - button "increase number" [ref=e110]:
+                      - img [ref=e112]
+                    - spinbutton [ref=e116]: "1000"
+            - generic [ref=e117]:
+              - heading "商品来源" [level=3] [ref=e118]
+              - radiogroup "radio-group" [ref=e119]:
+                - generic [ref=e120] [cursor=pointer]:
+                  - radio "全部" [checked] [ref=e122]
+                  - generic [ref=e124]: 全部
+                - generic [ref=e125] [cursor=pointer]:
+                  - radio "平台直售" [ref=e127]
+                  - generic [ref=e129]: 平台直售
+                - generic [ref=e130] [cursor=pointer]:
+                  - radio "商家店铺" [ref=e132]
+                  - generic [ref=e134]: 商家店铺
+            - generic [ref=e135]:
+              - heading "评分筛选" [level=3] [ref=e136]
+              - radiogroup "radio-group" [ref=e137]:
+                - generic [ref=e138] [cursor=pointer]:
+                  - radio "全部" [checked] [ref=e140]
+                  - generic [ref=e142]: 全部
+                - generic [ref=e143] [cursor=pointer]:
+                  - radio "4.5分以上" [ref=e145]
+                  - generic [ref=e147]: 4.5分以上
+                - generic [ref=e148] [cursor=pointer]:
+                  - radio "4.0分以上" [ref=e150]
+                  - generic [ref=e152]: 4.0分以上
+                - generic [ref=e153] [cursor=pointer]:
+                  - radio "3.5分以上" [ref=e155]
+                  - generic [ref=e157]: 3.5分以上
+            - button "重置筛选" [ref=e159] [cursor=pointer]:
+              - generic [ref=e160]: 重置筛选
+          - generic [ref=e161]:
+            - generic [ref=e164] [cursor=pointer]:
+              - img "商南绿茶" [ref=e166]
+              - generic [ref=e167]:
+                - heading "商南绿茶" [level=3] [ref=e168]
+                - generic [ref=e170]:
+                  - generic [ref=e171]: ¥99
+                  - generic [ref=e172]: "销量: 50"
+                - button "加入购物车" [ref=e174]:
+                  - generic [ref=e175]:
+                    - img [ref=e177]
+                    - text: 加入购物车
+            - generic [ref=e180]:
+              - button "Go to previous page" [disabled] [ref=e181]:
+                - generic:
+                  - img
+              - list [ref=e182]:
+                - listitem "page 1" [ref=e183]: "1"
+                - listitem "page 2" [ref=e184] [cursor=pointer]: "2"
+                - listitem "page 3" [ref=e185] [cursor=pointer]: "3"
+                - listitem "page 4" [ref=e186] [cursor=pointer]: "4"
+                - listitem "page 5" [ref=e187] [cursor=pointer]: "5"
+                - listitem "page 6" [ref=e188] [cursor=pointer]: "6"
+                - listitem "Next 5 pages" [ref=e189] [cursor=pointer]:
+                  - img
+                - listitem "page 10" [ref=e190] [cursor=pointer]: "10"
+              - button "Go to next page" [ref=e191] [cursor=pointer]:
+                - generic:
+                  - img
+              - generic [ref=e192]:
+                - generic [ref=e193]: Go to
+                - spinbutton "Page" [ref=e196]: "1"
+        - generic [ref=e197]:
+          - heading "热门推荐" [level=2] [ref=e198]
+          - generic [ref=e200] [cursor=pointer]:
+            - img "商南绿茶" [ref=e202]
+            - generic [ref=e203]:
+              - heading "商南绿茶" [level=3] [ref=e204]
+              - generic [ref=e206]:
+                - generic [ref=e207]: ¥99
+                - generic [ref=e208]: "销量:"
+              - button "加入购物车" [ref=e210]:
+                - generic [ref=e211]:
+                  - img [ref=e213]
+                  - text: 加入购物车
+  - contentinfo [ref=e215]:
+    - generic [ref=e216]:
+      - generic [ref=e217]:
+        - generic [ref=e218]:
+          - heading "关于我们" [level=3] [ref=e219]
+          - paragraph [ref=e220]: 商南茶文化推广与销售平台致力于传播商南茶叶文化，推广优质茶叶产品，促进茶商发展。
+          - generic [ref=e221]:
+            - generic [ref=e222]: 陕西省商洛市商南县
+            - generic [ref=e223]: 400-888-7777
+            - generic [ref=e224]: contact@shangnantea.com
+        - generic [ref=e225]:
+          - heading "快速链接" [level=3] [ref=e226]
+          - generic [ref=e227]:
+            - heading "网站导航" [level=3] [ref=e228]
+            - list [ref=e229]:
+              - listitem [ref=e230]:
+                - link "首页" [ref=e231] [cursor=pointer]:
+                  - /url: /tea-culture
+              - listitem [ref=e232]:
+                - link "茶叶商城" [ref=e233] [cursor=pointer]:
+                  - /url: /tea/mall
+              - listitem [ref=e234]:
+                - link "茶友论坛" [ref=e235] [cursor=pointer]:
+                  - /url: /forum/list
+              - listitem [ref=e236]:
+                - link "茶商店铺" [ref=e237] [cursor=pointer]:
+                  - /url: /shop/list
+        - generic [ref=e238]:
+          - heading "帮助中心" [level=3] [ref=e239]
+          - list [ref=e240]:
+            - listitem [ref=e241]:
+              - link "常见问题" [ref=e242] [cursor=pointer]:
+                - /url: /faq
+            - listitem [ref=e243]:
+              - link "配送信息" [ref=e244] [cursor=pointer]:
+                - /url: /shipping
+            - listitem [ref=e245]:
+              - link "退换政策" [ref=e246] [cursor=pointer]:
+                - /url: /return
+            - listitem [ref=e247]:
+              - link "隐私政策" [ref=e248] [cursor=pointer]:
+                - /url: /privacy
+            - listitem [ref=e249]:
+              - link "用户协议" [ref=e250] [cursor=pointer]:
+                - /url: /terms
+        - generic [ref=e251]:
+          - heading "订阅资讯" [level=3] [ref=e252]
+          - paragraph [ref=e253]: 订阅我们的电子报，获取最新茶叶资讯和优惠信息
+          - generic [ref=e255]:
+            - textbox "请输入您的邮箱" [ref=e257]
+            - button "订阅" [ref=e259] [cursor=pointer]:
+              - generic [ref=e260]: 订阅
+          - generic [ref=e261]:
+            - link "微信" [ref=e262] [cursor=pointer]:
+              - /url: "#"
+            - link "微博" [ref=e263] [cursor=pointer]:
+              - /url: "#"
+            - link "抖音" [ref=e264] [cursor=pointer]:
+              - /url: "#"
+            - link "知乎" [ref=e265] [cursor=pointer]:
+              - /url: "#"
+      - generic [ref=e266]:
+        - paragraph [ref=e267]: © 2026 商南茶文化推广与销售平台 - 版权所有
+        - paragraph [ref=e268]: 陕ICP备XXXXXXXX号
+  - generic [ref=e269]:
+    - generic [ref=e270] [cursor=pointer]:
+      - generic [ref=e271]:
+        - generic [ref=e272]: ⋮⋮
+        - heading "开发监控" [level=3] [ref=e273]
+        - generic [ref=e274]:
+          - button "错误" [ref=e275]
+          - button "API" [ref=e276]
+      - generic [ref=e277]:
+        - button "复制" [ref=e278]
+        - button "清空" [ref=e279]
+        - button "▼" [ref=e280]
+    - generic [ref=e283]:
+      - generic [ref=e284]:
+        - generic [ref=e285]:
+          - generic [ref=e286]: 12:50:08
+          - generic [ref=e287]: ElementPlus警告
+        - generic [ref=e288]: "[el-checkbox] [API] label act as value is about to be deprecated in version 3.0.0, please use value instead. For more detail, please visit: https://element-plus.org/en-US/component/checkbox.html"
+        - generic [ref=e289]: 📄 element-plus/es/utils/error.mjs:43:13
+        - group [ref=e291] [cursor=pointer]:
+          - generic "堆栈信息" [ref=e292]
+      - generic [ref=e293]:
+        - generic [ref=e294]:
+          - generic [ref=e295]: 12:50:08
+          - generic [ref=e296]: ElementPlus警告
+        - generic [ref=e297]: "[el-radio] [API] label act as value is about to be deprecated in version 3.0.0, please use value instead. For more detail, please visit: https://element-plus.org/en-US/component/radio.html"
+        - generic [ref=e298]: 📄 element-plus/es/utils/error.mjs:43:13
+        - group [ref=e300] [cursor=pointer]:
+          - generic "堆栈信息" [ref=e301]
 ```

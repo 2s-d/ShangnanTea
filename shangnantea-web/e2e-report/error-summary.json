@@ -1,0 +1,25 @@
+{
+  "totalPages": 1,
+  "pagesWithErrors": 1,
+  "totalErrors": 2,
+  "errorsByPage": {
+    "购物车": [
+      {
+        "type": "console",
+        "message": "[vuex] unknown action type: user/initAuth",
+        "timestamp": "2026-01-16T04:50:21.681Z"
+      },
+      {
+        "type": "console",
+        "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "timestamp": "2026-01-16T04:50:21.801Z"
+      }
+    ]
+  },
+  "errorsByType": {
+    "console": 2,
+    "network": 0,
+    "resource": 0,
+    "runtime": 0
+  }
+}

@@ -3,88 +3,137 @@
 ```yaml
 - generic [ref=e3]:
   - generic [ref=e5]:
-    - text: 商南茶文化
-    - generic [ref=e7]:
-      - generic [ref=e8]:
-        - heading "用户登录" [level=2] [ref=e9]
-        - paragraph [ref=e10]: 欢迎回到商南茶文化平台
-      - generic [ref=e11]:
-        - generic [ref=e12]:
-          - generic [ref=e13]: "*用户名"
-          - textbox "*用户名" [ref=e18]:
-            - /placeholder: 请输入用户名
-        - generic [ref=e19]:
-          - generic [ref=e20]: "*密码"
-          - textbox "*密码" [ref=e25]:
-            - /placeholder: 请输入密码
-        - generic [ref=e26]:
-          - generic [ref=e27]: "*角色"
-          - radiogroup "*角色" [ref=e29]:
-            - generic [ref=e30] [cursor=pointer]:
-              - radio "普通用户" [checked] [ref=e32]
-              - generic [ref=e34]: 普通用户
+    - link "商南茶文化 商南茶文化" [ref=e7] [cursor=pointer]:
+      - /url: /tea-culture
+      - img "商南茶文化" [ref=e8]
+      - generic [ref=e9]: 商南茶文化
+    - menubar [ref=e10]:
+      - button "用户头像 用户" [ref=e13] [cursor=pointer]:
+        - img "用户头像" [ref=e14]
+        - generic [ref=e15]: 用户
+  - main [ref=e16]:
+    - generic [ref=e17]:
+      - generic [ref=e19]:
+        - heading "茶友论坛" [level=1] [ref=e20]
+        - paragraph [ref=e21]: 茶友交流的专业平台，分享茶文化与品茶心得
+      - generic [ref=e23]:
+        - generic [ref=e25]:
+          - heading "版块导航" [level=3] [ref=e27]
+          - generic [ref=e28]:
+            - generic [ref=e29] [cursor=pointer]:
+              - img [ref=e31]
+              - generic [ref=e33]: 全部帖子
+              - generic [ref=e34]: "0"
             - generic [ref=e35] [cursor=pointer]:
-              - radio "商家" [ref=e37]
-              - generic [ref=e39]: 商家
-            - generic [ref=e40] [cursor=pointer]:
-              - radio "管理员" [ref=e42]
-              - generic [ref=e44]: 管理员
-        - generic [ref=e45]:
-          - generic [ref=e46] [cursor=pointer]:
-            - generic [ref=e47]:
-              - checkbox "记住我"
-            - generic [ref=e49]: 记住我
-          - button "忘记密码？" [ref=e50] [cursor=pointer]:
-            - generic [ref=e51]: 忘记密码？
-        - button "登录" [ref=e54] [cursor=pointer]:
-          - generic [ref=e55]: 登录
-      - paragraph [ref=e57]:
-        - text: 还没有账号？
-        - link "立即注册" [ref=e58] [cursor=pointer]:
-          - /url: /register
-      - generic [ref=e59]:
-        - separator [ref=e60]:
-          - generic [ref=e61]: 开发者选项
-        - generic [ref=e62]:
-          - button "重置本地存储" [ref=e63] [cursor=pointer]:
-            - generic [ref=e64]: 重置本地存储
-          - button "触发数据迁移" [ref=e65] [cursor=pointer]:
-            - generic [ref=e66]: 触发数据迁移
-  - generic [ref=e67]:
-    - generic [ref=e68] [cursor=pointer]:
-      - generic [ref=e69]:
-        - generic [ref=e70]: ⋮⋮
-        - heading "开发监控" [level=3] [ref=e71]
-        - generic [ref=e72]:
-          - button "错误" [ref=e73]
-          - button "API" [ref=e74]
-      - generic [ref=e75]:
-        - button "复制" [ref=e76]
-        - button "清空" [ref=e77]
-        - button "▼" [ref=e78]
-    - generic [ref=e81]:
-      - generic [ref=e82]:
-        - generic [ref=e83]:
-          - generic [ref=e84]: 12:46:10
-          - generic [ref=e85]: ElementPlus警告
-        - generic [ref=e86]: "[props] [API] type.text is about to be deprecated in version 3.0.0, please use link instead. For more detail, please visit: https://element-plus.org/en-US/component/button.html#button-attributes"
-        - generic [ref=e87]: 📄 element-plus/es/utils/error.mjs:43:13
-        - group [ref=e89] [cursor=pointer]:
-          - generic "堆栈信息" [ref=e90]
-      - generic [ref=e91]:
-        - generic [ref=e92]:
-          - generic [ref=e93]: 12:46:10
-          - generic [ref=e94]: ElementPlus警告
-        - generic [ref=e95]: "[el-radio] [API] label act as value is about to be deprecated in version 3.0.0, please use value instead. For more detail, please visit: https://element-plus.org/en-US/component/radio.html"
-        - generic [ref=e96]: 📄 element-plus/es/utils/error.mjs:43:13
-        - group [ref=e98] [cursor=pointer]:
-          - generic "堆栈信息" [ref=e99]
-      - generic [ref=e100]:
-        - generic [ref=e101]:
-          - generic [ref=e102]: 12:46:10
-          - generic [ref=e103]: 警告
-        - generic [ref=e104]: Token已过期
-        - generic [ref=e105]: 📄 src/composables/useStorage.js:531:17
-        - group [ref=e107] [cursor=pointer]:
-          - generic "堆栈信息" [ref=e108]
+              - img "茶文化" [ref=e36]
+              - generic [ref=e37]: 茶文化
+        - generic [ref=e39]:
+          - generic [ref=e41]:
+            - button "最新发布" [ref=e43] [cursor=pointer]:
+              - text: 最新发布
+              - img [ref=e45]
+            - button "刷新" [ref=e47] [cursor=pointer]:
+              - generic [ref=e48]:
+                - img [ref=e50]
+                - text: 刷新
+          - generic [ref=e53]:
+            - img [ref=e55]
+            - paragraph [ref=e72]: 暂无帖子数据
+        - generic [ref=e74]:
+          - generic [ref=e75]:
+            - generic [ref=e76]:
+              - img "茶韵悠长" [ref=e78]
+              - generic [ref=e79]:
+                - generic [ref=e80]:
+                  - text: 茶韵悠长
+                  - img [ref=e82]
+                - generic [ref=e86]: 社区等级 Lv3
+            - button "发表新帖" [ref=e87] [cursor=pointer]:
+              - generic [ref=e88]:
+                - img [ref=e90]
+                - text: 发表新帖
+          - generic [ref=e92]:
+            - heading "我的帖子" [level=3] [ref=e94]
+            - generic [ref=e95]:
+              - img [ref=e97]
+              - paragraph [ref=e114]: 您还没有发表过帖子
+  - contentinfo [ref=e115]:
+    - generic [ref=e116]:
+      - generic [ref=e117]:
+        - generic [ref=e118]:
+          - heading "关于我们" [level=3] [ref=e119]
+          - paragraph [ref=e120]: 商南茶文化推广与销售平台致力于传播商南茶叶文化，推广优质茶叶产品，促进茶商发展。
+          - generic [ref=e121]:
+            - generic [ref=e122]: 陕西省商洛市商南县
+            - generic [ref=e123]: 400-888-7777
+            - generic [ref=e124]: contact@shangnantea.com
+        - generic [ref=e125]:
+          - heading "快速链接" [level=3] [ref=e126]
+          - generic [ref=e127]:
+            - heading "网站导航" [level=3] [ref=e128]
+            - list [ref=e129]:
+              - listitem [ref=e130]:
+                - link "首页" [ref=e131] [cursor=pointer]:
+                  - /url: /tea-culture
+              - listitem [ref=e132]:
+                - link "茶叶商城" [ref=e133] [cursor=pointer]:
+                  - /url: /tea/mall
+              - listitem [ref=e134]:
+                - link "茶友论坛" [ref=e135] [cursor=pointer]:
+                  - /url: /forum/list
+              - listitem [ref=e136]:
+                - link "茶商店铺" [ref=e137] [cursor=pointer]:
+                  - /url: /shop/list
+        - generic [ref=e138]:
+          - heading "帮助中心" [level=3] [ref=e139]
+          - list [ref=e140]:
+            - listitem [ref=e141]:
+              - link "常见问题" [ref=e142] [cursor=pointer]:
+                - /url: /faq
+            - listitem [ref=e143]:
+              - link "配送信息" [ref=e144] [cursor=pointer]:
+                - /url: /shipping
+            - listitem [ref=e145]:
+              - link "退换政策" [ref=e146] [cursor=pointer]:
+                - /url: /return
+            - listitem [ref=e147]:
+              - link "隐私政策" [ref=e148] [cursor=pointer]:
+                - /url: /privacy
+            - listitem [ref=e149]:
+              - link "用户协议" [ref=e150] [cursor=pointer]:
+                - /url: /terms
+        - generic [ref=e151]:
+          - heading "订阅资讯" [level=3] [ref=e152]
+          - paragraph [ref=e153]: 订阅我们的电子报，获取最新茶叶资讯和优惠信息
+          - generic [ref=e155]:
+            - textbox "请输入您的邮箱" [ref=e157]
+            - button "订阅" [ref=e159] [cursor=pointer]:
+              - generic [ref=e160]: 订阅
+          - generic [ref=e161]:
+            - link "微信" [ref=e162] [cursor=pointer]:
+              - /url: "#"
+            - link "微博" [ref=e163] [cursor=pointer]:
+              - /url: "#"
+            - link "抖音" [ref=e164] [cursor=pointer]:
+              - /url: "#"
+            - link "知乎" [ref=e165] [cursor=pointer]:
+              - /url: "#"
+      - generic [ref=e166]:
+        - paragraph [ref=e167]: © 2026 商南茶文化推广与销售平台 - 版权所有
+        - paragraph [ref=e168]: 陕ICP备XXXXXXXX号
+  - generic [ref=e169]:
+    - generic [ref=e170] [cursor=pointer]:
+      - generic [ref=e171]:
+        - generic [ref=e172]: ⋮⋮
+        - heading "开发监控" [level=3] [ref=e173]
+        - generic [ref=e174]:
+          - button "错误" [ref=e175]
+          - button "API 1" [ref=e176]:
+            - text: API
+            - generic [ref=e177]: "1"
+      - generic [ref=e178]:
+        - button "复制" [ref=e179]
+        - button "清空" [ref=e180]
+        - button "▼" [ref=e181]
+    - generic [ref=e184]: 暂无错误记录
 ```
