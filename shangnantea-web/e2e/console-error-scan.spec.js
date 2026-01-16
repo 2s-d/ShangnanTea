@@ -1,12 +1,16 @@
 /**
- * E2E 测试 - 全站控制台错误扫描
+ * E2E 测试 - 全站控制台错误扫描（改进版）
  * 
  * 功能：
  * 1. 自动遍历所有路由
- * 2. 收集每个页面的控制台错误
- * 3. 生成测试报告
+ * 2. 收集控制台错误、网络错误、资源加载失败
+ * 3. 错误分类和去重
+ * 4. 生成详细测试报告
+ * 5. 自动截图保存错误现场
  */
 const { test, expect } = require('@playwright/test');
+const fs = require('fs');
+const path = require('path');
 
 // 所有需要测试的路由（从 router/index.js 提取）
 const routes = [
@@ -37,11 +41,29 @@ const routes = [
   { path: '/shop/manage', name: '商家店铺', requireAuth: true, role: 'shop' },
 ];
 
-// 存储所有错误
-const allErrors = [];
+// 可忽略的错误模式（开发环境警告、已知的第三方库问题等）
+const IGNORABLE_ERROR_PATTERNS = [
+  /Download the Vue Devtools/i,
+  /\[Vue warn\].*deprecated/i,
+  /ResizeObserver loop/i,
+  /ElementPlusError/i, // Element Plus 的一些警告
+];
+
+// 存储所有错误的全局对象
+const testResults = {
+  totalPages: 0,
+  pagesWithErrors: 0,
+  totalErrors: 0,
+  errorsByPage: {},
+  errorsByType: {
+    console: 0,
+    network: 0,
+    resource: 0,
+    runtime: 0
+  }
+};
 
 // 模拟登录 - 设置 token
-// 直接使用 Apifox mock 数据中的 token，确保格式完全一致
 const MOCK_TOKENS = {
   // admin token: {"sub":"1","role":1,"username":"admin","exp":1767225600}
   admin: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwicm9sZSI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImV4cCI6MTc2NzIyNTYwMH0.mock',
@@ -51,155 +73,279 @@ const MOCK_TOKENS = {
   shop: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzIiwicm9sZSI6MywidXNlcm5hbWUiOiJzaG9wIiwiZXhwIjoxNzY3MjI1NjAwfQ.mock'
 };
 
+/**
+ * 模拟登录
+ */
 async function mockLogin(page, role = 'user') {
   const mockToken = MOCK_TOKENS[role] || MOCK_TOKENS.user;
-  
-  // 设置 localStorage - 注意：
-  // 1. useStorage 使用 'shangnantea_' 前缀
-  // 2. useStorage 使用 JSON.stringify/JSON.parse 序列化，所以需要 JSON.stringify 包装
   await page.evaluate((token) => {
     localStorage.setItem('shangnantea_token', JSON.stringify(token));
   }, mockToken);
 }
 
-test.describe('全站控制台错误扫描', () => {
-  
-  test.beforeEach(async ({ page }) => {
-    // 监听控制台错误
-    page.on('console', msg => {
-      if (msg.type() === 'error') {
-        allErrors.push({
-          page: page.url(),
-          message: msg.text(),
-          time: new Date().toISOString()
+/**
+ * 检查错误是否应该被忽略
+ */
+function shouldIgnoreError(errorMessage) {
+  return IGNORABLE_ERROR_PATTERNS.some(pattern => pattern.test(errorMessage));
+}
+
+/**
+ * 错误去重（基于错误消息的前100个字符）
+ */
+function deduplicateErrors(errors) {
+  const seen = new Set();
+  return errors.filter(error => {
+    const key = error.message.substring(0, 100);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+/**
+ * 设置页面错误监听器
+ */
+async function setupErrorListeners(page, pageErrors) {
+  // 1. 监听控制台错误
+  page.on('console', msg => {
+    if (msg.type() === 'error') {
+      const message = msg.text();
+      if (!shouldIgnoreError(message)) {
+        pageErrors.push({
+          type: 'console',
+          message,
+          timestamp: new Date().toISOString()
         });
       }
-    });
-    
-    // 监听页面错误
-    page.on('pageerror', error => {
-      allErrors.push({
-        page: page.url(),
-        message: `[PageError] ${error.message}`,
-        time: new Date().toISOString()
-      });
-    });
+    }
   });
+  
+  // 2. 监听页面运行时错误
+  page.on('pageerror', error => {
+    const message = error.message;
+    if (!shouldIgnoreError(message)) {
+      pageErrors.push({
+        type: 'runtime',
+        message: `[Runtime Error] ${message}`,
+        stack: error.stack,
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+  
+  // 3. 监听网络请求失败
+  page.on('response', async response => {
+    const url = response.url();
+    const status = response.status();
+    
+    // 只记录 API 请求失败（4xx, 5xx）
+    if (status >= 400 && !url.includes('hot-update')) {
+      // 判断是否是 API 请求
+      const isApiRequest = url.includes('/api/') || 
+                          (!url.match(/\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/i));
+      
+      if (isApiRequest) {
+        pageErrors.push({
+          type: 'network',
+          message: `[${status}] ${response.request().method()} ${url}`,
+          timestamp: new Date().toISOString()
+        });
+      } else {
+        // 资源加载失败
+        pageErrors.push({
+          type: 'resource',
+          message: `[${status}] Resource failed: ${url}`,
+          timestamp: new Date().toISOString()
+        });
+      }
+    }
+  });
+}
 
+/**
+ * 测试单个页面
+ */
+async function testPage(page, route, role = null) {
+  const pageErrors = [];
+  
+  // 设置错误监听
+  await setupErrorListeners(page, pageErrors);
+  
+  // 如果需要登录，先设置 token
+  if (route.requireAuth) {
+    await page.goto('/login');
+    await mockLogin(page, role || 'user');
+  }
+  
+  // 访问目标页面
+  try {
+    await page.goto(route.path, { waitUntil: 'networkidle', timeout: 10000 });
+  } catch (error) {
+    // 页面加载超时或失败
+    pageErrors.push({
+      type: 'runtime',
+      message: `[Page Load Error] ${error.message}`,
+      timestamp: new Date().toISOString()
+    });
+  }
+  
+  // 等待页面稳定
+  await page.waitForTimeout(2000);
+  
+  // 错误去重
+  const uniqueErrors = deduplicateErrors(pageErrors);
+  
+  // 更新统计
+  testResults.totalPages++;
+  if (uniqueErrors.length > 0) {
+    testResults.pagesWithErrors++;
+    testResults.totalErrors += uniqueErrors.length;
+    testResults.errorsByPage[route.name] = uniqueErrors;
+    
+    // 按类型统计
+    uniqueErrors.forEach(err => {
+      testResults.errorsByType[err.type]++;
+    });
+  }
+  
+  return uniqueErrors;
+}
+
+
+test.describe('全站控制台错误扫描', () => {
+  
   // 测试无需登录的页面
   for (const route of routes.filter(r => !r.requireAuth)) {
     test(`${route.name} (${route.path}) - 无需登录`, async ({ page }) => {
-      const pageErrors = [];
+      const errors = await testPage(page, route);
       
-      page.on('console', msg => {
-        if (msg.type() === 'error') {
-          pageErrors.push(msg.text());
-        }
-      });
-      
-      await page.goto(route.path);
-      await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(2000); // 等待异步操作完成
-      
-      // 输出该页面的错误
-      if (pageErrors.length > 0) {
-        console.log(`\n❌ ${route.name} 发现 ${pageErrors.length} 个错误:`);
-        pageErrors.forEach((err, i) => console.log(`  ${i + 1}. ${err}`));
+      // 输出结果
+      if (errors.length > 0) {
+        console.log(`\n❌ ${route.name} 发现 ${errors.length} 个错误:`);
+        errors.forEach((err, i) => {
+          console.log(`  ${i + 1}. [${err.type}] ${err.message}`);
+        });
+        
+        // 截图保存错误现场
+        await page.screenshot({ 
+          path: `e2e-screenshots/${route.name.replace(/\//g, '-')}-error.png`,
+          fullPage: true 
+        });
       } else {
-        console.log(`\n✅ ${route.name} 无控制台错误`);
+        console.log(`\n✅ ${route.name} 无错误`);
       }
       
-      // 断言：期望没有错误（如果有错误测试会失败但会继续执行其他测试）
-      expect(pageErrors.length, `${route.name} 存在控制台错误`).toBe(0);
+      // 断言：期望没有错误
+      expect(errors.length, `${route.name} 存在 ${errors.length} 个错误`).toBe(0);
     });
   }
 
   // 测试需要登录的页面
   for (const route of routes.filter(r => r.requireAuth && !r.role)) {
     test(`${route.name} (${route.path}) - 需要登录`, async ({ page }) => {
-      const pageErrors = [];
+      const errors = await testPage(page, route, 'user');
       
-      page.on('console', msg => {
-        if (msg.type() === 'error') {
-          pageErrors.push(msg.text());
-        }
-      });
-      
-      // 先访问登录页设置 token
-      await page.goto('/login');
-      await mockLogin(page, 'user');
-      
-      // 访问目标页面
-      await page.goto(route.path);
-      await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(2000);
-      
-      if (pageErrors.length > 0) {
-        console.log(`\n❌ ${route.name} 发现 ${pageErrors.length} 个错误:`);
-        pageErrors.forEach((err, i) => console.log(`  ${i + 1}. ${err}`));
+      if (errors.length > 0) {
+        console.log(`\n❌ ${route.name} 发现 ${errors.length} 个错误:`);
+        errors.forEach((err, i) => {
+          console.log(`  ${i + 1}. [${err.type}] ${err.message}`);
+        });
+        
+        await page.screenshot({ 
+          path: `e2e-screenshots/${route.name.replace(/\//g, '-')}-error.png`,
+          fullPage: true 
+        });
       } else {
-        console.log(`\n✅ ${route.name} 无控制台错误`);
+        console.log(`\n✅ ${route.name} 无错误`);
       }
       
-      expect(pageErrors.length, `${route.name} 存在控制台错误`).toBe(0);
+      expect(errors.length, `${route.name} 存在 ${errors.length} 个错误`).toBe(0);
     });
   }
 
   // 测试管理员页面
   for (const route of routes.filter(r => r.role === 'admin')) {
     test(`${route.name} (${route.path}) - 管理员`, async ({ page }) => {
-      const pageErrors = [];
+      const errors = await testPage(page, route, 'admin');
       
-      page.on('console', msg => {
-        if (msg.type() === 'error') {
-          pageErrors.push(msg.text());
-        }
-      });
-      
-      await page.goto('/login');
-      await mockLogin(page, 'admin');
-      
-      await page.goto(route.path);
-      await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(2000);
-      
-      if (pageErrors.length > 0) {
-        console.log(`\n❌ ${route.name} 发现 ${pageErrors.length} 个错误:`);
-        pageErrors.forEach((err, i) => console.log(`  ${i + 1}. ${err}`));
+      if (errors.length > 0) {
+        console.log(`\n❌ ${route.name} 发现 ${errors.length} 个错误:`);
+        errors.forEach((err, i) => {
+          console.log(`  ${i + 1}. [${err.type}] ${err.message}`);
+        });
+        
+        await page.screenshot({ 
+          path: `e2e-screenshots/${route.name.replace(/\//g, '-')}-error.png`,
+          fullPage: true 
+        });
       } else {
-        console.log(`\n✅ ${route.name} 无控制台错误`);
+        console.log(`\n✅ ${route.name} 无错误`);
       }
       
-      expect(pageErrors.length, `${route.name} 存在控制台错误`).toBe(0);
+      expect(errors.length, `${route.name} 存在 ${errors.length} 个错误`).toBe(0);
     });
   }
 
   // 测试商家页面
   for (const route of routes.filter(r => r.role === 'shop')) {
     test(`${route.name} (${route.path}) - 商家`, async ({ page }) => {
-      const pageErrors = [];
+      const errors = await testPage(page, route, 'shop');
       
-      page.on('console', msg => {
-        if (msg.type() === 'error') {
-          pageErrors.push(msg.text());
-        }
-      });
-      
-      await page.goto('/login');
-      await mockLogin(page, 'shop');
-      
-      await page.goto(route.path);
-      await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(2000);
-      
-      if (pageErrors.length > 0) {
-        console.log(`\n❌ ${route.name} 发现 ${pageErrors.length} 个错误:`);
-        pageErrors.forEach((err, i) => console.log(`  ${i + 1}. ${err}`));
+      if (errors.length > 0) {
+        console.log(`\n❌ ${route.name} 发现 ${errors.length} 个错误:`);
+        errors.forEach((err, i) => {
+          console.log(`  ${i + 1}. [${err.type}] ${err.message}`);
+        });
+        
+        await page.screenshot({ 
+          path: `e2e-screenshots/${route.name.replace(/\//g, '-')}-error.png`,
+          fullPage: true 
+        });
       } else {
-        console.log(`\n✅ ${route.name} 无控制台错误`);
+        console.log(`\n✅ ${route.name} 无错误`);
       }
       
-      expect(pageErrors.length, `${route.name} 存在控制台错误`).toBe(0);
+      expect(errors.length, `${route.name} 存在 ${errors.length} 个错误`).toBe(0);
     });
   }
+  
+  // 所有测试完成后，生成汇总报告
+  test.afterAll(async () => {
+    console.log('\n' + '='.repeat(80));
+    console.log('📊 测试汇总报告');
+    console.log('='.repeat(80));
+    console.log(`总测试页面数: ${testResults.totalPages}`);
+    console.log(`有错误的页面: ${testResults.pagesWithErrors}`);
+    console.log(`总错误数: ${testResults.totalErrors}`);
+    console.log('\n错误类型分布:');
+    console.log(`  - 控制台错误: ${testResults.errorsByType.console}`);
+    console.log(`  - 网络请求错误: ${testResults.errorsByType.network}`);
+    console.log(`  - 资源加载错误: ${testResults.errorsByType.resource}`);
+    console.log(`  - 运行时错误: ${testResults.errorsByType.runtime}`);
+    
+    if (testResults.pagesWithErrors > 0) {
+      console.log('\n❌ 有错误的页面详情:');
+      Object.entries(testResults.errorsByPage).forEach(([pageName, errors]) => {
+        console.log(`\n  ${pageName}:`);
+        errors.forEach((err, i) => {
+          console.log(`    ${i + 1}. [${err.type}] ${err.message}`);
+        });
+      });
+    }
+    
+    // 保存 JSON 格式的详细报告
+    const reportDir = 'e2e-report';
+    if (!fs.existsSync(reportDir)) {
+      fs.mkdirSync(reportDir, { recursive: true });
+    }
+    
+    fs.writeFileSync(
+      path.join(reportDir, 'error-summary.json'),
+      JSON.stringify(testResults, null, 2)
+    );
+    
+    console.log(`\n📄 详细报告已保存到: ${reportDir}/error-summary.json`);
+    console.log('='.repeat(80) + '\n');
+  });
 });
