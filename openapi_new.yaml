@@ -1530,6 +1530,7 @@ paths:
                   summary: 获取茶叶列表失败
                   value:
                     code: 3100
+                    data: null
     post:
       operationId: addTea
       tags:
@@ -3248,6 +3249,7 @@ paths:
                   summary: 更新Banner失败
                   value:
                     code: 4120
+                    data: null
     delete:
       operationId: deleteShopBanner
       tags:
