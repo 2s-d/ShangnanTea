@@ -87,8 +87,13 @@ function setupErrorListeners(page, testName, errorArray) {
     const url = response.url();
     const status = response.status();
     
+    // 过滤掉 favicon.ico 和热更新请求
+    if (url.includes('favicon.ico') || url.includes('hot-update')) {
+      return;
+    }
+    
     // 记录所有失败的请求（4xx, 5xx），包括静态资源
-    if (status >= 400 && !url.includes('hot-update')) {
+    if (status >= 400) {
       const method = response.request().method();
       const resourceType = response.request().resourceType();
       
