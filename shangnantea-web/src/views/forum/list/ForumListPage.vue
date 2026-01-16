@@ -164,11 +164,66 @@
         title="发布新帖"
         v-model="dialogVisible.post"
         width="650px"
+        :close-on-click-modal="false"
       >
-        <p class="dialog-message">论坛功能正在完善中，即将推出发帖功能，敬请期待！</p>
+        <el-form :model="postForm" :rules="postRules" ref="postFormRef" label-width="80px">
+          <el-form-item label="标题" prop="title">
+            <el-input 
+              v-model="postForm.title" 
+              placeholder="请输入帖子标题（5-100字）"
+              maxlength="100"
+              show-word-limit
+            />
+          </el-form-item>
+          
+          <el-form-item label="分类" prop="categoryId">
+            <el-select v-model="postForm.categoryId" placeholder="请选择分类" style="width: 100%">
+              <el-option 
+                v-for="topic in topicList" 
+                :key="topic.id" 
+                :label="topic.name" 
+                :value="topic.id"
+              />
+            </el-select>
+          </el-form-item>
+          
+          <el-form-item label="内容" prop="content">
+            <el-input 
+              v-model="postForm.content" 
+              type="textarea" 
+              :rows="8"
+              placeholder="请输入帖子内容（至少10字）"
+              maxlength="5000"
+              show-word-limit
+            />
+          </el-form-item>
+          
+          <el-form-item label="图片">
+            <el-upload
+              v-model:file-list="postForm.images"
+              action="#"
+              list-type="picture-card"
+              :auto-upload="false"
+              :limit="6"
+              accept="image/*"
+              :on-exceed="handleImageExceed"
+              :on-change="handleImageChange"
+              :on-remove="handleImageRemove"
+            >
+              <el-icon><Plus /></el-icon>
+              <template #tip>
+                <div class="el-upload__tip">
+                  最多上传6张图片，单张不超过5MB
+                </div>
+              </template>
+            </el-upload>
+          </el-form-item>
+        </el-form>
+        
         <template #footer>
           <span class="dialog-footer">
-            <el-button @click="dialogVisible.post = false">关闭</el-button>
+            <el-button @click="cancelPost">取消</el-button>
+            <el-button type="primary" @click="submitPost" :loading="localLoading.submit">发布</el-button>
           </span>
         </template>
       </el-dialog>
@@ -197,16 +252,17 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 
-import { Refresh, ArrowDown, Grid, EditPen, Delete, Male, Female } from '@element-plus/icons-vue'
+import { Refresh, ArrowDown, Grid, EditPen, Delete, Male, Female, Plus } from '@element-plus/icons-vue'
 import PostCard from '@/components/forum/PostCard.vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 import { showByCode } from '@/utils/apiMessages'
+import { promptMessage } from '@/utils/messageManager'
 
 export default {
   name: 'ForumListPage',
   components: {
     PostCard,
-    Refresh, ArrowDown, Grid, EditPen, Delete, Male, Female,
+    Refresh, ArrowDown, Grid, EditPen, Delete, Male, Female, Plus,
     SafeImage
   },
   setup() {
@@ -235,7 +291,8 @@ export default {
     
     // 本地加载状态
     const localLoading = reactive({
-      delete: false
+      delete: false,
+      submit: false
     })
     
     // 对话框状态
@@ -243,6 +300,30 @@ export default {
       post: false,
       delete: false
     })
+    
+    // 发帖表单
+    const postFormRef = ref(null)
+    const postForm = reactive({
+      title: '',
+      categoryId: '',
+      content: '',
+      images: []
+    })
+    
+    // 发帖表单验证规则
+    const postRules = {
+      title: [
+        { required: true, message: '请输入帖子标题', trigger: 'blur' },
+        { min: 5, max: 100, message: '标题长度在 5 到 100 个字符', trigger: 'blur' }
+      ],
+      categoryId: [
+        { required: true, message: '请选择分类', trigger: 'change' }
+      ],
+      content: [
+        { required: true, message: '请输入帖子内容', trigger: 'blur' },
+        { min: 10, message: '内容至少10个字符', trigger: 'blur' }
+      ]
+    }
     
     // 排序选项
     const currentSort = ref('latest')
@@ -722,7 +803,97 @@ export default {
     
     // 显示发帖对话框
     const showPostDialog = () => {
+      // 重置表单
+      postForm.title = ''
+      postForm.categoryId = currentTopicId.value !== 'all' ? currentTopicId.value : ''
+      postForm.content = ''
+      postForm.images = []
+      
       dialogVisible.post = true
+    }
+    
+    // 处理图片超出限制
+    const handleImageExceed = () => {
+      promptMessage.show('最多只能上传6张图片')
+    }
+    
+    // 处理图片变化
+    const handleImageChange = (file, fileList) => {
+      // 验证文件大小
+      if (file.size > 5 * 1024 * 1024) {
+        promptMessage.show('图片大小不能超过5MB')
+        // 移除超大文件
+        const index = fileList.indexOf(file)
+        if (index > -1) {
+          fileList.splice(index, 1)
+        }
+        return false
+      }
+      
+      // 验证文件类型
+      const isImage = file.raw.type.startsWith('image/')
+      if (!isImage) {
+        promptMessage.show('只能上传图片文件')
+        const index = fileList.indexOf(file)
+        if (index > -1) {
+          fileList.splice(index, 1)
+        }
+        return false
+      }
+    }
+    
+    // 处理图片移除
+    const handleImageRemove = (file, fileList) => {
+      postForm.images = fileList
+    }
+    
+    // 取消发帖
+    const cancelPost = () => {
+      dialogVisible.post = false
+      // 重置表单
+      if (postFormRef.value) {
+        postFormRef.value.resetFields()
+      }
+    }
+    
+    // 提交发帖
+    const submitPost = async () => {
+      if (!postFormRef.value) return
+      
+      // 验证表单
+      const valid = await postFormRef.value.validate().catch(() => false)
+      if (!valid) return
+      
+      localLoading.submit = true
+      
+      try {
+        // 准备提交数据
+        const submitData = {
+          title: postForm.title,
+          categoryId: postForm.categoryId,
+          content: postForm.content,
+          images: postForm.images.map(file => file.url || file.response?.url || '').filter(url => url)
+        }
+        
+        // 调用API
+        const res = await store.dispatch('forum/createPost', submitData)
+        showByCode(res.code)
+        
+        // 发布成功
+        if (res.code === 6000) {
+          dialogVisible.post = false
+          // 重置表单
+          postFormRef.value.resetFields()
+          postForm.images = []
+          
+          // 刷新帖子列表
+          await fetchPosts()
+        }
+      } catch (error) {
+        console.error('发布帖子失败:', error)
+      } finally {
+        localLoading.submit = false
+      }
     }
     
     // 帖子回复
@@ -845,6 +1016,9 @@ export default {
       defaultAvatar,
       defaultCover,
       defaultIcon,
+      postFormRef,
+      postForm,
+      postRules,
       getTopicName,
       getCurrentTopicName,
       getCurrentTopicDesc,
@@ -857,6 +1031,11 @@ export default {
       viewTopic,
       viewPost,
       showPostDialog,
+      handleImageExceed,
+      handleImageChange,
+      handleImageRemove,
+      cancelPost,
+      submitPost,
       handleReply,
       handleLike,
       handleFavorite,
@@ -873,6 +1052,7 @@ export default {
       Delete,
       Male,
       Female,
+      Plus,
       SafeImage
     }
   }
@@ -1190,5 +1370,29 @@ export default {
       margin-bottom: 15px;
     }
   }
+}
+
+// 对话框样式
+.dialog-message {
+  text-align: center;
+  color: var(--el-text-color-secondary);
+  font-size: 14px;
+  padding: 20px 0;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+:deep(.el-upload__tip) {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+  margin-top: 5px;
+}
+
+:deep(.el-upload-list__item) {
+  transition: all 0.3s;
 }
 </style> 
