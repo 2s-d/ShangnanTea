@@ -69,12 +69,10 @@ import { ElMessage } from 'element-plus'
 
 const messages = reactive([])
 const apiRequests = reactive([])
-// 移除全局去重，改为按时间窗口去重（同一错误在1秒内只记录一次）
-const recentMessages = new Map() // key -> timestamp
-const recentRequests = new Map() // key -> timestamp
-const DEDUPE_WINDOW = 1000 // 1秒去重窗口
+const seenRequests = new Set() // 用于去重
 let originalConsoleError = null
 let originalConsoleWarn = null
+let originalConsoleLog = null // 新增：捕获 console.log
 let originalFetch = null
 let originalXhrOpen = null
 let originalXhrSend = null
