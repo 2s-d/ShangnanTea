@@ -1,6 +1,10 @@
 # E2E Test Runner with Smart Port Detection
 # Checks if port 8083 is already in use before starting a new server
 
+param(
+    [string]$TestFile = ""
+)
+
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "  E2E Test Automation Script" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
@@ -51,7 +55,13 @@ Write-Host "  Running E2E Tests" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
-& npx playwright test
+if ($TestFile) {
+    Write-Host "Running specific test: $TestFile" -ForegroundColor Yellow
+    & npx playwright test "e2e/$TestFile"
+} else {
+    Write-Host "Running all tests..." -ForegroundColor Yellow
+    & npx playwright test
+}
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
