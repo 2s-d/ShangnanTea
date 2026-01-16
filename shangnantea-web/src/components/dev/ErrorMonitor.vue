@@ -321,9 +321,9 @@ export default {
       // 提取详细错误信息
       const { file, stack } = extractDetailedError(content, rawStack)
       
-      // 去重检查
-      const key = `${file}|${content.substring(0, 100)}`
-      if (messages.some(m => `${m.file}|${m.content.substring(0, 100)}` === key)) return
+      // 去重检查：使用 type + content 的前100个字符作为key（保持原有逻辑）
+      const key = `${type}|${content.substring(0, 100)}`
+      if (messages.some(m => `${m.type}|${m.content.substring(0, 100)}` === key)) return
       
       messages.unshift({ 
         content, 
