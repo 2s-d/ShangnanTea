@@ -1,6 +1,6 @@
 # E2E 测试运行指南
 
-## 方法 1：手动运行（推荐）
+## 方法 1：手动运行（推荐用于调试）
 
 ### 步骤 1：打开第一个终端，启动开发服务器
 ```bash
@@ -29,11 +29,7 @@ npx playwright show-report e2e-report
 
 ## 方法 2：使用脚本（一键运行）
 
-### Windows PowerShell
-```powershell
-cd C:\wendang\bishe\tea1\shangnantea\shangnantea-web
-powershell -ExecutionPolicy Bypass -File run-e2e.ps1
-```
+双击 `shangnantea-web/e2e/run-test.bat` 即可。
 
 ---
 
