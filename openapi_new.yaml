@@ -2751,6 +2751,7 @@ paths:
                   summary: 更新店铺信息失败
                   value:
                     code: 4104
+                    data: null
 
   /shop/my:
     get:
@@ -2785,6 +2786,7 @@ paths:
                   summary: 获取我的店铺失败
                   value:
                     code: 4105
+                    data: null
 
   /shop/{shopId}/teas:
     get:
@@ -2832,6 +2834,7 @@ paths:
                   summary: 获取店铺茶叶失败
                   value:
                     code: 4107
+                    data: null
     post:
       operationId: addShopTea
       tags:
@@ -2869,6 +2872,7 @@ paths:
                   summary: 添加店铺茶叶失败
                   value:
                     code: 4108
+                    data: null
 
   /shop/teas/{teaId}:
     put:
