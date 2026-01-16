@@ -510,46 +510,46 @@ const actions = {
   },
   
   // 初始化用户信息
-  // async initAuth({ commit, state }) {
-  //   // 如果已经有用户信息，不再重复初始化
-  //   if (state.userInfo) {
-  //     return state.userInfo
-  //   }
-  //   
-  //   // 获取token
-  //   const token = tokenStorage.getToken()
-  //   
-  //   // 没有token，则未登录
-  //   if (!token) {
-  //     return null
-  //   }
-  //   
-  //   // 检查token有效性
-  //   if (!tokenStorage.verifyToken()) {
-  //     tokenStorage.removeToken()
-  //     return null
-  //   }
-  //   
-  //   try {
-  //     commit('SET_LOADING', true)
-  //     
-  //     // 从服务器获取最新用户信息
-  //     const userInfo = await getCurrentUser()
-  //     
-  //     // 更新状态
-  //     commit('SET_USER_INFO', userInfo)
-  //     commit('SET_LOGGED_IN', true)
-  //     
-  //     return userInfo
-  //   } catch (error) {
-  //     console.error('初始化用户信息失败', error)
-  //     tokenStorage.removeToken()
-  //     commit('CLEAR_USER')
-  //     return null
-  //   } finally {
-  //     commit('SET_LOADING', false)
-  //   }
-  // },
+  async initAuth({ commit, state }) {
+    // 如果已经有用户信息，不再重复初始化
+    if (state.userInfo) {
+      return state.userInfo
+    }
+    
+    // 获取token
+    const token = tokenStorage.getToken()
+    
+    // 没有token，则未登录
+    if (!token) {
+      return null
+    }
+    
+    // 检查token有效性
+    if (!tokenStorage.verifyToken()) {
+      tokenStorage.removeToken()
+      return null
+    }
+    
+    try {
+      commit('SET_LOADING', true)
+      
+      // 从服务器获取最新用户信息
+      const userInfo = await getCurrentUser()
+      
+      // 更新状态
+      commit('SET_USER_INFO', userInfo)
+      commit('SET_LOGGED_IN', true)
+      
+      return userInfo
+    } catch (error) {
+      console.error('初始化用户信息失败', error)
+      tokenStorage.removeToken()
+      commit('CLEAR_USER')
+      return null
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
   
   // 获取用户信息
   // 任务A-2：使用真实API获取用户信息

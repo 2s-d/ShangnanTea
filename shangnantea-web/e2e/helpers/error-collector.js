@@ -47,12 +47,23 @@ function setupErrorListeners(page, testName, errorArray) {
     if (msg.type() === 'error') {
       const message = msg.text();
       if (!shouldIgnoreError(message)) {
-        errorArray.push({
+        // 尝试从控制台消息中提取更多信息
+        const location = msg.location();
+        const errorDetail = {
           test: testName,
           type: 'console',
           message,
           timestamp: new Date().toISOString()
-        });
+        };
+        
+        // 如果有位置信息，添加到错误详情中
+        if (location && location.url) {
+          errorDetail.url = location.url;
+          errorDetail.line = location.lineNumber;
+          errorDetail.column = location.columnNumber;
+        }
+        
+        errorArray.push(errorDetail);
       }
     }
   });
@@ -71,24 +82,23 @@ function setupErrorListeners(page, testName, errorArray) {
     }
   });
   
-  // 3. 监听网络请求失败
+  // 3. 监听网络请求失败（包括 404）
   page.on('response', async response => {
     const url = response.url();
     const status = response.status();
     
-    // 只记录 API 请求失败（4xx, 5xx）
+    // 记录所有失败的请求（4xx, 5xx），包括静态资源
     if (status >= 400 && !url.includes('hot-update')) {
-      const isApiRequest = url.includes('/api/') || 
-                          (!url.match(/\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/i));
+      const method = response.request().method();
+      const resourceType = response.request().resourceType();
       
-      if (isApiRequest) {
-        errorArray.push({
-          test: testName,
-          type: 'network',
-          message: `[${status}] ${response.request().method()} ${url}`,
-          timestamp: new Date().toISOString()
-        });
-      }
+      errorArray.push({
+        test: testName,
+        type: 'network',
+        message: `[${status}] ${method} ${url}`,
+        resourceType,
+        timestamp: new Date().toISOString()
+      });
     }
   });
 }
