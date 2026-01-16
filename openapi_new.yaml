@@ -1328,6 +1328,7 @@ paths:
                   summary: 切换用户状态失败
                   value:
                     code: 2140
+                    data: null
                 forbidden:
                   summary: 权限不足
                   value:
@@ -1384,6 +1385,7 @@ paths:
                   summary: 获取认证列表失败
                   value:
                     code: 2142
+                    data: null
                 forbidden:
                   summary: 权限不足
                   value:
@@ -1437,6 +1439,7 @@ paths:
                   summary: 审核认证失败
                   value:
                     code: 2144
+                    data: null
                 forbidden:
                   summary: 权限不足
                   value:
@@ -1611,6 +1614,7 @@ paths:
                   summary: 获取茶叶详情失败
                   value:
                     code: 3102
+                    data: null
     put:
       operationId: updateTea
       tags:
@@ -1648,6 +1652,7 @@ paths:
                   summary: 更新茶叶失败
                   value:
                     code: 3103
+                    data: null
     delete:
       operationId: deleteTea
       tags:
@@ -1679,6 +1684,7 @@ paths:
                   summary: 删除茶叶失败
                   value:
                     code: 3104
+                    data: null
 
   /tea/categories:
     get:
@@ -1714,6 +1720,7 @@ paths:
                   summary: 获取分类列表失败
                   value:
                     code: 3106
+                    data: null
     post:
       operationId: createTeaCategory
       tags:
@@ -1750,6 +1757,7 @@ paths:
                   summary: 创建分类失败
                   value:
                     code: 3107
+                    data: null
 
   /tea/categories/{id}:
     put:
