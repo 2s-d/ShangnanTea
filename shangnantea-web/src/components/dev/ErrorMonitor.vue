@@ -333,7 +333,13 @@ export default {
         const errorObj = args.find(a => a instanceof Error)
         const stack = errorObj?.stack || new Error().stack
         
-        addMessage(content, 'error', '错误', stack)
+        // 特殊处理 Vuex 错误
+        if (content.includes('[vuex]')) {
+          addMessage(content, 'error', 'Vuex错误', stack)
+        } else {
+          addMessage(content, 'error', '错误', stack)
+        }
+        
         originalConsoleError.apply(console, args)
       }
 
@@ -585,17 +591,20 @@ export default {
     }
 
     const copyErrors = () => {
-      if (messages.length === 0) {
-        ElMessage.info('没有错误日志')
+      // 只复制错误，不复制警告
+      const errors = messages.filter(m => m.type !== 'warn')
+      
+      if (errors.length === 0) {
+        ElMessage.info('没有错误日志（警告已过滤）')
         return
       }
       
       let text = '=== 错误日志（用于 AI 分析）===\n\n'
-      text += `总计 ${messages.length} 个错误\n`
+      text += `总计 ${errors.length} 个错误（已过滤 ${messages.length - errors.length} 个警告）\n`
       text += `时间: ${new Date().toLocaleString()}\n\n`
       text += '---\n\n'
       
-      messages.forEach((m, index) => {
+      errors.forEach((m, index) => {
         text += `## 错误 ${index + 1}: ${m.typeLabel}\n\n`
         text += `**时间**: ${m.time}\n`
         text += `**文件**: ${m.file}\n`
@@ -610,7 +619,7 @@ export default {
       })
       
       navigator.clipboard.writeText(text).then(() => {
-        ElMessage.success(`已复制 ${messages.length} 条错误日志（Markdown 格式）`)
+        ElMessage.success(`已复制 ${errors.length} 条错误日志（Markdown 格式，已过滤警告）`)
       }).catch(() => ElMessage.error('复制失败'))
     }
 
