@@ -1,0 +1,8 @@
+# 测试报告
+e2e-report/
+e2e-screenshots/
+
+# Playwright 缓存
+.playwright/
+playwright-report/
+test-results/

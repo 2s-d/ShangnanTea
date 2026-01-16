@@ -104,11 +104,43 @@ run-api-test.bat user/login      # 直接运行指定测试
 | 160 | GET /message/center | ⏳ | message/center.spec.js |
 | ... | ... | ⏳ | ... |
 
-## 测试标准
+## 测试报告
 
-每个测试验证：
-1. API 调用成功（返回正确的业务状态码）
-2. 无控制台错误
+测试完成后，报告保存在以下位置：
+
+### 报告结构
+
+```
+e2e-report/
+├── api-tests/              # API 测试报告（JSON 格式）
+│   ├── user-login.json     # 编号 1: 用户登录
+│   ├── user-register.json  # 编号 2: 用户注册
+│   └── ...
+└── screenshots/            # 错误截图（仅在有错误时）
+    ├── api-user-login-error.png
+    └── ...
+```
+
+### 报告内容
+
+每个 JSON 报告包含：
+- `moduleName`: 测试模块名称
+- `totalTests`: 总测试数
+- `passedTests`: 通过数
+- `failedTests`: 失败数
+- `totalErrors`: 总错误数
+- `errors`: 错误详情数组
+- `timestamp`: 测试时间
+
+### 查看报告
+
+```bash
+# 查看 JSON 报告
+cat e2e-report/api-tests/user-login.json
+
+# 查看错误截图
+start e2e-report/screenshots/
+```
 
 ## 辅助工具
 

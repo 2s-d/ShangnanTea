@@ -73,7 +73,7 @@ test.describe('API 测试 - 用户登录', () => {
         
         // 截图保存错误现场
         await page.screenshot({ 
-          path: path.join(__dirname, '../../e2e-screenshots/api-user-login-error.png'),
+          path: path.join(__dirname, '../../e2e-report/screenshots/api-user-login-error.png'),
           fullPage: true 
         });
       } else {
