@@ -1,0 +1,44 @@
+{
+  "users": {
+    "admin": {
+      "username": "admin",
+      "password": "admin123",
+      "role": 1
+    },
+    "user": {
+      "username": "testuser",
+      "password": "password123",
+      "role": 2
+    },
+    "shop": {
+      "username": "testshop",
+      "password": "shop123",
+      "role": 3
+    }
+  },
+  "tea": {
+    "sample": {
+      "name": "测试茶叶",
+      "category": "绿茶",
+      "price": 99.99,
+      "description": "这是一个测试茶叶"
+    }
+  },
+  "address": {
+    "sample": {
+      "receiverName": "张三",
+      "receiverPhone": "13800138000",
+      "province": "陕西省",
+      "city": "商洛市",
+      "district": "商南县",
+      "detailAddress": "某某街道123号"
+    }
+  },
+  "order": {
+    "sample": {
+      "teaId": 1,
+      "quantity": 2,
+      "addressId": 1
+    }
+  }
+}
