@@ -2912,6 +2912,7 @@ paths:
                   summary: 更新店铺茶叶失败
                   value:
                     code: 4109
+                    data: null
     delete:
       operationId: deleteShopTea
       tags:
@@ -2943,6 +2944,7 @@ paths:
                   summary: 删除店铺茶叶失败
                   value:
                     code: 4110
+                    data: null
 
   /shop/teas/{teaId}/status:
     put:
@@ -2992,10 +2994,12 @@ paths:
                   summary: 茶叶上架失败
                   value:
                     code: 4111
+                    data: null
                 failure_offline:
                   summary: 茶叶下架失败
                   value:
                     code: 4112
+                    data: null
 
   /shop/{shopId}/statistics:
     get:
@@ -3045,6 +3049,7 @@ paths:
                   summary: 获取店铺统计失败
                   value:
                     code: 4106
+                    data: null
 
   /shop/{shopId}/logo:
     post:
@@ -3090,14 +3095,17 @@ paths:
                   summary: 上传Logo失败
                   value:
                     code: 4113
+                    data: null
                 file_type_error:
                   summary: 文件类型错误
                   value:
                     code: 4114
+                    data: null
                 file_size_error:
                   summary: 文件过大
                   value:
                     code: 4115
+                    data: null
 
   /shop/{shopId}/banners:
     get:
@@ -3134,6 +3142,7 @@ paths:
                   summary: 获取Banner列表失败
                   value:
                     code: 4116
+                    data: null
     post:
       operationId: uploadShopBanner
       tags:
@@ -3182,14 +3191,17 @@ paths:
                   summary: 上传Banner失败
                   value:
                     code: 4117
+                    data: null
                 file_type_error:
                   summary: 文件类型错误
                   value:
                     code: 4118
+                    data: null
                 file_size_error:
                   summary: 文件过大
                   value:
                     code: 4119
+                    data: null
 
   /shop/banners/{bannerId}:
     put:
