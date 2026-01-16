@@ -25,18 +25,6 @@ checkAndMigrateData();
 // 应用启动时清除所有消息状态
 messageManager.clearAllMessageStates()
 
-// 初始化用户认证状态
-const initAuthState = async () => {
-  try {
-    // 使用 useAuth composable 初始化认证状态
-    const { initAuth } = useAuth()
-    await initAuth()
-    console.log('用户认证状态初始化完成')
-  } catch (error) {
-    console.error('初始化用户认证状态失败:', error)
-  }
-}
-
 const app = createApp(App)
 
 // 注册所有Element Plus图标组件
@@ -63,7 +51,20 @@ app.use(router)
    .use(CommonComponents)  // 注册公共组件
    .use(Directives)  // 注册自定义指令
 
-// 初始化认证状态后挂载应用
-initAuthState().then(() => {
-  app.mount('#app')
-}) 
+// 挂载应用
+app.mount('#app')
+
+// 初始化用户认证状态（在应用挂载后）
+const initAuthState = async () => {
+  try {
+    // 使用 useAuth composable 初始化认证状态
+    const { initAuth } = useAuth()
+    await initAuth()
+    console.log('用户认证状态初始化完成')
+  } catch (error) {
+    console.error('初始化用户认证状态失败:', error)
+  }
+}
+
+// 应用挂载后初始化认证状态
+initAuthState() 
