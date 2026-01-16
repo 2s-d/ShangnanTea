@@ -247,8 +247,12 @@ export default {
           // 优先匹配项目源码（src/）
           let match = stackLine.match(/\(([^)]*src\/[^)]+):(\d+):(\d+)\)/)
           if (!match) {
-            // 匹配其他格式
+            // 匹配其他格式（包括 webpack-internal 格式）
             match = stackLine.match(/at\s+(?:.*?\s+)?\(?([^)]+):(\d+):(\d+)\)?/)
+          }
+          if (!match) {
+            // 匹配 element-plus 等库的格式
+            match = stackLine.match(/\(([^)]*\/(?:element-plus|node_modules)\/[^)]+):(\d+):(\d+)\)/)
           }
           
           if (match) {
@@ -256,19 +260,28 @@ export default {
             const lineNum = match[2]
             const colNum = match[3]
             
-            // 跳过 node_modules、webpack 内部文件和监控组件自身
-            if (/node_modules|webpack-internal|ErrorMonitor/.test(fullPath)) {
+            // 跳过监控组件自身
+            if (/ErrorMonitor/.test(fullPath)) {
               continue
             }
             
-            // 简化路径
-            let simplePath = fullPath
+            // 优先显示项目源码，如果没有则显示库文件
             if (fullPath.includes('src/')) {
-              simplePath = fullPath.substring(fullPath.indexOf('src/'))
+              // 简化项目路径
+              let simplePath = fullPath.substring(fullPath.indexOf('src/'))
+              file = `${simplePath}:${lineNum}:${colNum}`
+              break
+            } else if (!file && /element-plus|node_modules/.test(fullPath)) {
+              // 如果没有找到项目文件，至少记录库文件位置
+              const libMatch = fullPath.match(/(element-plus\/[^/]+\/[^/]+\/[^/]+\.m?js)/)
+              if (libMatch) {
+                file = `${libMatch[1]}:${lineNum}:${colNum}`
+              } else {
+                // 提取最后的文件名
+                const fileName = fullPath.split('/').pop()
+                file = `${fileName}:${lineNum}:${colNum}`
+              }
             }
-            
-            file = `${simplePath}:${lineNum}:${colNum}`
-            break
           }
         }
       }
