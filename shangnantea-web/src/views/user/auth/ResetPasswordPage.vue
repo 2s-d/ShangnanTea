@@ -15,9 +15,9 @@
         >
           <el-form-item label="找回方式" prop="method">
             <el-radio-group v-model="resetForm.method">
-              <el-radio label="username">用户名</el-radio>
-              <el-radio label="phone">手机号</el-radio>
-              <el-radio label="email">邮箱</el-radio>
+              <el-radio value="username">用户名</el-radio>
+              <el-radio value="phone">手机号</el-radio>
+              <el-radio value="email">邮箱</el-radio>
             </el-radio-group>
           </el-form-item>
           

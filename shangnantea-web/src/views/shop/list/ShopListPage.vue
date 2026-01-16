@@ -27,9 +27,9 @@
             <!-- 排序选项 -->
             <div class="sorting-options">
               <el-radio-group v-model="sortOption" size="small" @change="handleSortChange">
-                <el-radio-button label="default">综合排序</el-radio-button>
-                <el-radio-button label="sales">销量优先</el-radio-button>
-                <el-radio-button label="rating">评分优先</el-radio-button>
+                <el-radio-button value="default">综合排序</el-radio-button>
+                <el-radio-button value="sales">销量优先</el-radio-button>
+                <el-radio-button value="rating">评分优先</el-radio-button>
               </el-radio-group>
             </div>
           </div>

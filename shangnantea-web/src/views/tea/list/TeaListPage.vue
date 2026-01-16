@@ -27,11 +27,11 @@
             <!-- 排序工具栏移到这里 -->
             <div class="sorting-options">
               <el-radio-group v-model="sortOption" size="small" @change="handleSortChange">
-                <el-radio-button label="default">综合排序</el-radio-button>
-                <el-radio-button label="sales">销量优先</el-radio-button>
-                <el-radio-button label="price_asc">价格从低到高</el-radio-button>
-                <el-radio-button label="price_desc">价格从高到低</el-radio-button>
-                <el-radio-button label="newest">最新上架</el-radio-button>
+                <el-radio-button value="default">综合排序</el-radio-button>
+                <el-radio-button value="sales">销量优先</el-radio-button>
+                <el-radio-button value="price_asc">价格从低到高</el-radio-button>
+                <el-radio-button value="price_desc">价格从高到低</el-radio-button>
+                <el-radio-button value="newest">最新上架</el-radio-button>
               </el-radio-group>
               
               <div class="view-toggle">
@@ -98,19 +98,19 @@
           <div class="filter-card">
             <h3 class="filter-title">商品来源</h3>
             <el-radio-group v-model="filters.source" @change="applyFilters">
-              <el-radio label="all">全部</el-radio>
-              <el-radio label="platform">平台直售</el-radio>
-              <el-radio label="shop">商家店铺</el-radio>
+              <el-radio value="all">全部</el-radio>
+              <el-radio value="platform">平台直售</el-radio>
+              <el-radio value="shop">商家店铺</el-radio>
             </el-radio-group>
           </div>
           
           <div class="filter-card">
             <h3 class="filter-title">评分筛选</h3>
             <el-radio-group v-model="filters.rating" @change="applyFilters">
-              <el-radio :label="null">全部</el-radio>
-              <el-radio :label="4.5">4.5分以上</el-radio>
-              <el-radio :label="4.0">4.0分以上</el-radio>
-              <el-radio :label="3.5">3.5分以上</el-radio>
+              <el-radio :value="null">全部</el-radio>
+              <el-radio :value="4.5">4.5分以上</el-radio>
+              <el-radio :value="4.0">4.0分以上</el-radio>
+              <el-radio :value="3.5">3.5分以上</el-radio>
             </el-radio-group>
           </div>
           

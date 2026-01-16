@@ -389,8 +389,8 @@
         </el-form-item>
         <el-form-item label="导出格式" required>
           <el-radio-group v-model="exportForm.format">
-            <el-radio label="csv">CSV格式</el-radio>
-            <el-radio label="excel">Excel格式</el-radio>
+            <el-radio value="csv">CSV格式</el-radio>
+            <el-radio value="excel">Excel格式</el-radio>
           </el-radio-group>
         </el-form-item>
       </el-form>

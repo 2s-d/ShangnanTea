@@ -4,9 +4,9 @@
     <div class="filter-bar">
       <div class="filter-tabs">
         <el-radio-group v-model="filterType" @change="handleFilterChange">
-          <el-radio-button label="all">全部 ({{ totalCount }})</el-radio-button>
-          <el-radio-button label="user">用户 ({{ followedUsers.length }})</el-radio-button>
-          <el-radio-button label="shop">店铺 ({{ followedShops.length }})</el-radio-button>
+          <el-radio-button value="all">全部 ({{ totalCount }})</el-radio-button>
+          <el-radio-button value="user">用户 ({{ followedUsers.length }})</el-radio-button>
+          <el-radio-button value="shop">店铺 ({{ followedShops.length }})</el-radio-button>
         </el-radio-group>
       </div>
       <div class="filter-actions">

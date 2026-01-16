@@ -241,8 +241,8 @@
           <el-col :span="8">
             <el-form-item label="发布状态" prop="status">
               <el-radio-group v-model="articleForm.status">
-                <el-radio :label="1">发布</el-radio>
-                <el-radio :label="0">草稿</el-radio>
+                <el-radio :value="1">发布</el-radio>
+                <el-radio :value="0">草稿</el-radio>
               </el-radio-group>
             </el-form-item>
           </el-col>

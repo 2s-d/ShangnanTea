@@ -13,13 +13,13 @@
         <!-- 主题模式选择 -->
         <el-form-item label="主题模式">
           <el-radio-group v-model="preferences.theme">
-            <el-radio-button label="light">
+            <el-radio-button value="light">
               <el-icon><Sunny /></el-icon> 浅色
             </el-radio-button>
-            <el-radio-button label="dark">
+            <el-radio-button value="dark">
               <el-icon><Moon /></el-icon> 深色
             </el-radio-button>
-            <el-radio-button label="auto">
+            <el-radio-button value="auto">
               <el-icon><MagicStick /></el-icon> 自动
             </el-radio-button>
           </el-radio-group>
@@ -86,10 +86,10 @@
         <!-- 列表展示模式 -->
         <el-form-item label="展示模式">
           <el-radio-group v-model="preferences.listMode">
-            <el-radio-button label="grid">
+            <el-radio-button value="grid">
               <el-icon><Grid /></el-icon> 网格
             </el-radio-button>
-            <el-radio-button label="list">
+            <el-radio-button value="list">
               <el-icon><List /></el-icon> 列表
             </el-radio-button>
           </el-radio-group>

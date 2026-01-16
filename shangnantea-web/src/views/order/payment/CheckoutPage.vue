@@ -23,7 +23,7 @@
           <div class="address-list" v-if="addresses.length > 0">
             <el-radio-group v-model="selectedAddressId" class="address-radio-group">
               <div v-for="address in addresses" :key="address.id" class="address-item">
-                <el-radio :label="address.id" class="address-radio">
+                <el-radio :value="address.id" class="address-radio">
                   <div class="address-content">
                     <div class="address-header">
                       <span class="name">{{ address.name }}</span>
@@ -91,15 +91,15 @@
           
           <div class="payment-methods">
             <el-radio-group v-model="paymentMethod">
-              <el-radio label="alipay">
+              <el-radio value="alipay">
                 <SafeImage src="/images/payments/alipay.jpg" type="banner" alt="支付宝" class="payment-logo" style="width:24px;height:24px;object-fit:contain;" />
                 支付宝
               </el-radio>
-              <el-radio label="wechat">
+              <el-radio value="wechat">
                 <SafeImage src="/images/payments/wechat.jpg" type="banner" alt="微信支付" class="payment-logo" style="width:24px;height:24px;object-fit:contain;" />
                 微信支付
               </el-radio>
-              <el-radio label="unionpay">
+              <el-radio value="unionpay">
                 <SafeImage src="/images/payments/unionpay.jpg" type="banner" alt="银联支付" class="payment-logo" style="width:24px;height:24px;object-fit:contain;" />
                 银联支付
               </el-radio>

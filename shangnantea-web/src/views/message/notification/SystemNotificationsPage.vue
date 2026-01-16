@@ -4,9 +4,9 @@
     <div class="notifications-header">
       <div class="filter-actions">
         <el-radio-group v-model="readStatus" size="small">
-          <el-radio-button label="all">全部</el-radio-button>
-          <el-radio-button label="unread">未读</el-radio-button>
-          <el-radio-button label="read">已读</el-radio-button>
+          <el-radio-button value="all">全部</el-radio-button>
+          <el-radio-button value="unread">未读</el-radio-button>
+          <el-radio-button value="read">已读</el-radio-button>
         </el-radio-group>
         
         <el-select v-model="typeFilter" placeholder="消息类型" clearable size="small">
