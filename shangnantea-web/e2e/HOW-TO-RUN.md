@@ -39,6 +39,18 @@ npx playwright show-report e2e-report
 - **JSON 报告**: `e2e-report/error-summary.json`
 - **截图**: `e2e-screenshots/`
 
+### 查看错误汇总
+
+运行以下命令查看友好格式的错误汇总：
+```bash
+node e2e/show-errors.js
+```
+
+这会显示：
+- 总测试页面数和错误统计
+- 错误类型分布（控制台、网络、资源、运行时）
+- 每个页面的详细错误信息和堆栈跟踪
+
 ---
 
 ## 常见问题

@@ -219,7 +219,31 @@ async function testPage(page, route, role = null) {
     });
   }
   
+  // 立即保存当前状态到文件（防止 afterAll 不执行）
+  saveErrorSummary();
+  
   return uniqueErrors;
+}
+
+/**
+ * 保存错误汇总到文件
+ */
+function saveErrorSummary() {
+  const reportDir = path.join(__dirname, '..', 'e2e-report');
+  if (!fs.existsSync(reportDir)) {
+    fs.mkdirSync(reportDir, { recursive: true });
+  }
+  
+  const reportPath = path.join(reportDir, 'error-summary.json');
+  try {
+    fs.writeFileSync(
+      reportPath,
+      JSON.stringify(testResults, null, 2),
+      'utf-8'
+    );
+  } catch (error) {
+    console.error(`保存错误汇总失败: ${error.message}`);
+  }
 }
 
 
