@@ -1,4 +1,6 @@
-import { useAuth } from '@/composables/useAuth'
+import { useStore } from 'vuex'
+import { ROLES } from '@/composables/useAuth'
+import { useTokenStorage } from '@/composables/useStorage'
 
 /**
  * 权限指令 - 根据用户权限控制元素的显示
@@ -20,12 +22,41 @@ import { useAuth } from '@/composables/useAuth'
 const permissionDirective = {
   mounted(el, binding) {
     const { value } = binding
+    const options = value || { requireLogin: true }
     
-    // 创建auth实例
-    const auth = useAuth()
+    // 直接使用 store 和 tokenStorage，避免在指令中调用 useAuth()
+    const store = useStore()
+    const tokenStorage = useTokenStorage()
+    
+    // 检查登录状态
+    const isLoggedIn = tokenStorage.isTokenValid()
     
     // 检查权限
-    const hasPermission = auth.canAccess(value || { requireLogin: true })
+    let hasPermission = true
+    
+    // 检查登录要求
+    if (options.requireLogin && !isLoggedIn) {
+      hasPermission = false
+    }
+    
+    // 检查角色要求
+    if (hasPermission && options.roles) {
+      const currentUser = tokenStorage.verifyToken()
+      const currentRole = currentUser?.role
+      
+      if (!currentRole) {
+        hasPermission = false
+      } else if (Array.isArray(options.roles)) {
+        hasPermission = options.roles.includes(currentRole)
+      } else {
+        hasPermission = currentRole === options.roles
+      }
+    }
+    
+    // 自定义验证
+    if (hasPermission && options.custom && typeof options.custom === 'function') {
+      hasPermission = options.custom()
+    }
     
     if (!hasPermission) {
       // 无权限时移除元素
