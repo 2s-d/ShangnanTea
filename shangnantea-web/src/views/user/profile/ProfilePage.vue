@@ -109,7 +109,6 @@ import { useStore } from 'vuex'
 import { useRoute, useRouter } from 'vue-router'
 
 import messageManager from '@/utils/messageManager'
-import { uploadImage } from '@/api/upload'
 
 import { useFormValidation } from '@/composables/useFormValidation'
 import SafeImage from '@/components/common/form/SafeImage.vue'
