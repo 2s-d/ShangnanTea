@@ -58,8 +58,6 @@ tags:
     description: 论坛帖子相关接口
   - name: 消息模块
     description: 消息通知相关接口
-  - name: 公共模块
-    description: 文件上传等公共接口
 
 paths:
   # ==================== 用户模块 ====================
@@ -4766,6 +4764,57 @@ paths:
                   summary: 获取失败
                   value:
                     code: 5142
+                    data: null
+
+  /order/review/image:
+    post:
+      operationId: uploadReviewImage
+      tags:
+        - 订单模块
+      summary: 上传订单评价图片
+      description: 上传订单评价图片
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: 图片文件
+      responses:
+        '200':
+          description: 上传成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 图片上传成功
+                  value:
+                    code: 5016
+                    data:
+                      url: "/files/images/review/review_1234567890.jpg"
+                failure:
+                  summary: 图片上传失败
+                  value:
+                    code: 5144
+                    data: null
+                file_type_error:
+                  summary: 不支持的文件类型
+                  value:
+                    code: 5145
+                    data: null
+                file_size_error:
+                  summary: 文件大小超限
+                  value:
+                    code: 5146
                     data: null
 
   # ==================== 论坛模块 ====================
