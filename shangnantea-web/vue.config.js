@@ -15,10 +15,6 @@ module.exports = defineConfig({
             pathRewrite: {
               '^/api': '/api'
             }
-          },
-          '/images': {
-            target: 'http://localhost:8080',
-            changeOrigin: true
           }
         },
     setupMiddlewares: (middlewares, devServer) => {

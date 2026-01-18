@@ -19,12 +19,12 @@ const props = defineProps({
   defaultSrc: String
 })
 
-// 内置多种默认图片（使用 /static 前缀，访问前端静态资源，不会被代理到后端）
+// 内置多种默认图片（已放在 public/images/ 目录下）
 const defaultMap = {
-  avatar: '/static/images/avatars/default.jpg',
-  tea: '/static/images/teas/default.jpg',
-  banner: '/static/images/banners/default.jpg',
-  post: '/static/images/posts/default.jpg'
+  avatar: '/images/avatars/default.jpg',
+  tea: '/images/teas/default.jpg',
+  banner: '/images/banners/default.jpg',
+  post: '/images/posts/default.jpg'
 }
 
 // 计算最终兜底图片
