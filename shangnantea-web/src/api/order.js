@@ -266,3 +266,21 @@ export function exportOrders(params = {}) {
     responseType: 'blob' // 重要：设置为blob以接收文件流
   })
 }
+
+/**
+ * 上传订单评价图片
+ * @param {File} file 图片文件
+ * @returns {Promise} 上传结果，包含图片URL
+ */
+export function uploadReviewImage(file) {
+  const formData = new FormData()
+  formData.append('file', file)
+  return request({
+    url: API.ORDER.REVIEW_IMAGE,
+    method: 'post',
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}

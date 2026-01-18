@@ -22,6 +22,7 @@ export const API = {
     LIKES: '/user/likes',
     // 商家认证相关
     SHOP_CERTIFICATION: '/user/shop-certification',
+    CERTIFICATION_IMAGE: '/user/merchant/certification/image', // 上传商家认证图片
     // 用户偏好设置（主题/展示等）
     PREFERENCES: '/user/preferences',
     // 管理员用户管理相关
@@ -79,6 +80,7 @@ export const API = {
     CANCEL: '/order/cancel',
     CONFIRM: '/order/confirm',
     REVIEW: '/order/review',
+    REVIEW_IMAGE: '/order/review/image', // 上传订单评价图片
     // 退款相关
     REFUND: '/order/refund', // 兼容旧路径
     // 发货相关

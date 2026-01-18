@@ -448,3 +448,23 @@ export function updateUserPreferences(preferences) {
     data: preferences
   })
 }
+
+/**
+ * 上传商家认证图片
+ * @param {File} file 图片文件
+ * @param {String} type 图片类型 (id_front, id_back, business_license)
+ * @returns {Promise} 上传结果，包含图片URL
+ */
+export function uploadCertificationImage(file, type) {
+  const formData = new FormData()
+  formData.append('file', file)
+  formData.append('type', type)
+  return request({
+    url: API.USER.CERTIFICATION_IMAGE,
+    method: 'post',
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
