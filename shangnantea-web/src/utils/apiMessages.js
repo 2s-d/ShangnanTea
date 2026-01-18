@@ -175,12 +175,36 @@ export const CODE_MAP = {
   // 接口29: createAdmin - /user/admin/users
   2019: '管理员已添加',
   2134: '提交失败',
+  2135: '您没有权限执行此操作',
   
   // 接口30: uploadCertificationImage - /user/merchant/certification/image
   2020: '图片上传成功',
-  2135: '图片上传失败',
   2136: '不支持的文件类型',
   2137: '文件大小超限',
+  
+  // 接口31: updateUser - /user/admin/users/{userId}
+  2021: '用户已更新',
+  2138: '提交失败',
+  2139: '您没有权限执行此操作',
+  
+  // 接口32: deleteUser - /user/admin/users/{userId}
+  2022: '用户已删除',
+  2140: '删除用户失败',
+  2141: '您没有权限执行此操作',
+  
+  // 接口33: toggleUserStatus - /user/admin/users/{userId}/status
+  2023: '用户状态已修改',
+  2142: '修改用户状态失败',
+  2143: '您没有权限执行此操作',
+  
+  // 接口34: getCertificationList - /user/admin/certifications
+  2144: '加载失败',
+  2145: '您没有权限执行此操作',
+  
+  // 接口35: processCertification - /user/admin/certifications/{id}
+  2024: '操作成功',
+  2146: '操作失败',
+  2147: '您没有权限执行此操作',
   2135: '您没有权限执行此操作',
   
   // 接口30: updateUser - /user/admin/users/{userId}

@@ -16,10 +16,10 @@ import java.util.Map;
 /**
  * 店铺控制器
  * 参考：前端 shop.js 和 code-message-mapping.md
- * 接口数量：28个（26个店铺接口 + 2个公共上传接口，与前端shop.js + upload.js一一对应）
+ * 接口数量：26个店铺接口
  */
 @RestController
-@RequestMapping({"/shop", "/api/shop", "/upload", "/api/upload"})
+@RequestMapping({"/shop", "/api/shop"})
 @Validated
 public class ShopController {
 
@@ -437,41 +437,5 @@ public class ShopController {
     public Result<Object> getShopDetail(@PathVariable String id) {
         logger.info("获取店铺详情请求: {}", id);
         return shopService.getShopDetail(id);
-    }
-
-    // ==================== 公共上传接口（临时放在店铺模块） ====================
-
-    /**
-     * 上传文件（公共接口）
-     * 路径: POST /upload
-     * 成功码: 1001, 失败码: 1101, 1103, 1104
-     *
-     * @param file 文件
-     * @param type 文件类型（avatar, product, shop, common等）
-     * @return 上传结果，包含文件URL
-     */
-    @PostMapping("/upload")
-    @RequiresLogin
-    public Result<Map<String, Object>> uploadFile(@RequestParam("file") MultipartFile file,
-                                                   @RequestParam(value = "type", defaultValue = "common") String type) {
-        logger.info("上传文件请求, type: {}, 文件名: {}", type, file.getOriginalFilename());
-        return shopService.uploadFile(file, type);
-    }
-
-    /**
-     * 上传图片（公共接口）
-     * 路径: POST /upload/image
-     * 成功码: 1001, 失败码: 1101, 1103, 1104
-     *
-     * @param file 图片文件
-     * @param type 图片类型
-     * @return 上传结果，包含文件URL
-     */
-    @PostMapping("/upload/image")
-    @RequiresLogin
-    public Result<Map<String, Object>> uploadImage(@RequestParam("file") MultipartFile file,
-                                                    @RequestParam(value = "type", defaultValue = "common") String type) {
-        logger.info("上传图片请求, type: {}, 文件名: {}", type, file.getOriginalFilename());
-        return shopService.uploadImage(file, type);
     }
 }
