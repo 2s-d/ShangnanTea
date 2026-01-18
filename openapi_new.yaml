@@ -1480,23 +1480,23 @@ paths:
                 success:
                   summary: 图片上传成功
                   value:
-                    code: 2020
+                    code: 2024
                     data:
                       url: "/files/images/certification/id_front_1234567890.jpg"
                 failure:
                   summary: 图片上传失败
                   value:
-                    code: 2135
+                    code: 2146
                     data: null
                 file_type_error:
                   summary: 不支持的文件类型
                   value:
-                    code: 2136
+                    code: 2147
                     data: null
                 file_size_error:
                   summary: 文件大小超限
                   value:
-                    code: 2137
+                    code: 2148
                     data: null
 
   # ==================== 茶叶模块 ====================
