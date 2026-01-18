@@ -571,4 +571,22 @@ public class UserController {
         logger.info("审核认证申请请求(管理员): {}, status: {}", id, auditData.get("status"));
         return userService.processCertification(id, auditData);
     }
+
+    /**
+     * 上传商家认证图片
+     * 路径: POST /user/merchant/certification/image
+     * 成功码: 2024, 失败码: 2146, 2147, 2148
+     *
+     * @param file 图片文件
+     * @param type 图片类型(id_front, id_back, business_license)
+     * @return 上传结果
+     */
+    @PostMapping("/merchant/certification/image")
+    @RequiresLogin
+    public Result<Map<String, Object>> uploadCertificationImage(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("type") String type) {
+        logger.info("上传商家认证图片请求, type: {}, 文件名: {}", type, file.getOriginalFilename());
+        return userService.uploadCertificationImage(file, type);
+    }
 }

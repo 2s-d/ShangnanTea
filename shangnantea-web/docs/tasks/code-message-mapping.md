@@ -1382,7 +1382,7 @@
 | 26 | getUserPreferences | GET | /user/preferences | 200 | 2130 | 获取用户偏好设置 |
 | 27 | updateUserPreferences | PUT | /user/preferences | 2018 | 2131 | 更新用户偏好设置 |
 
-### 1.7 管理员用户管理 (7个)
+### 1.7 管理员用户管理 (8个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
@@ -1393,6 +1393,7 @@
 | 32 | toggleUserStatus | PUT | /user/admin/users/{userId}/status | 2022 | 2140, 2141 | 切换用户状态 |
 | 33 | getCertificationList | GET | /user/admin/certifications | 200 | 2142, 2143 | 获取认证列表 |
 | 34 | processCertification | PUT | /user/admin/certifications/{id} | 2023 | 2144, 2145 | 审核认证 |
+| 35 | uploadCertificationImage | POST | /user/merchant/certification/image | 2024 | 2146, 2147, 2148 | 上传商家认证图片 |
 
 
 ## 二、茶叶模块接口 (tea.js) - 共26个接口

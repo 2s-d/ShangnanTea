@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
 
@@ -333,5 +334,20 @@ public class OrderController {
     public Result<Object> getOrderDetail(@PathVariable String id) {
         logger.info("获取订单详情请求: {}", id);
         return orderService.getOrderDetail(id);
+    }
+
+    /**
+     * 上传订单评价图片
+     * 路径: POST /order/review/image
+     * 成功码: 5016, 失败码: 5144, 5145, 5146
+     *
+     * @param file 图片文件
+     * @return 上传结果
+     */
+    @PostMapping("/review/image")
+    @RequiresLogin
+    public Result<Map<String, Object>> uploadReviewImage(@RequestParam("file") MultipartFile file) {
+        logger.info("上传订单评价图片请求, 文件名: {}", file.getOriginalFilename());
+        return orderService.uploadReviewImage(file);
     }
 }
