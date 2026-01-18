@@ -124,7 +124,6 @@
 <script>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useStore } from 'vuex'
-import { uploadImage } from '@/api/upload'
 import { Plus } from '@element-plus/icons-vue'
 
 import { regionData, getStaticRegionData } from '@/utils/region'
@@ -271,7 +270,7 @@ export default {
     // 上传身份证正面
     const uploadIdCardFront = async ({ file }) => {
       try {
-        const result = await uploadImage(file)
+        const result = await store.dispatch('user/uploadCertificationImage', { file, type: 'id_front' })
         // 显示API响应消息（成功或失败都通过状态码映射显示）
         showByCode(result.code)
         
@@ -290,7 +289,7 @@ export default {
     // 上传身份证背面
     const uploadIdCardBack = async ({ file }) => {
       try {
-        const result = await uploadImage(file)
+        const result = await store.dispatch('user/uploadCertificationImage', { file, type: 'id_back' })
         // 显示API响应消息（成功或失败都通过状态码映射显示）
         showByCode(result.code)
         
@@ -309,7 +308,7 @@ export default {
     // 上传营业执照
     const uploadBusinessLicense = async ({ file }) => {
       try {
-        const result = await uploadImage(file)
+        const result = await store.dispatch('user/uploadCertificationImage', { file, type: 'business_license' })
         // 显示API响应消息（成功或失败都通过状态码映射显示）
         showByCode(result.code)
         

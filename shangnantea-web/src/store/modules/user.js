@@ -6,6 +6,7 @@ import {
   getUserInfo as getUserInfoApi,
   updateUserInfo, 
   uploadAvatar as uploadAvatarApi,
+  uploadCertificationImage as uploadCertificationImageApi,
   changePassword,
   refreshToken as refreshTokenApi,
   resetPassword as resetPasswordApi,
@@ -1220,6 +1221,25 @@ const actions = {
       return true
     } catch (error) {
       console.error('删除用户失败:', error)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
+  },
+  
+  /**
+   * 上传商家认证图片
+   * @param {Object} context Vuex context
+   * @param {Object} payload { file, type }
+   * @returns {Promise} 上传结果
+   */
+  async uploadCertificationImage({ commit }, { file, type }) {
+    commit('SET_LOADING', true)
+    try {
+      const res = await uploadCertificationImageApi(file, type)
+      return res // 返回 {code, data}
+    } catch (error) {
+      console.error('上传认证图片失败:', error)
       throw error
     } finally {
       commit('SET_LOADING', false)

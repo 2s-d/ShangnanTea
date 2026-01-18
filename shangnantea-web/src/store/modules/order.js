@@ -8,6 +8,7 @@ import {
   confirmOrder,
   refundOrder,
   reviewOrder,
+  uploadReviewImage as uploadReviewImageApi,
   processRefund,
   getRefundDetail,
   shipOrder,
@@ -439,6 +440,20 @@ const actions = {
       currentPage: page
     })
     return dispatch('fetchOrders', extraParams)
+  },
+  
+  // 上传订单评价图片
+  async uploadReviewImage({ commit }, file) {
+    try {
+      commit('SET_LOADING', true)
+      const res = await uploadReviewImageApi(file)
+      return res // 返回 {code, data}
+    } catch (error) {
+      console.error('上传评价图片失败:', error)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
   }
 }
 
