@@ -9,23 +9,23 @@ module.exports = defineConfig({
     proxy: process.env.VUE_APP_API_BASE_URL && process.env.VUE_APP_API_BASE_URL.startsWith('http') 
       ? {} // 使用云端 Mock 时，不配置代理
       : {
-          '/api': {
-            target: 'http://localhost:8080',
-            changeOrigin: true,
-            pathRewrite: {
-              '^/api': '/api'
-            }
-          },
-          '/files': {
-            target: 'http://localhost:8080',
-            changeOrigin: true,
-            pathRewrite: {
-              '^/files': '/files'
-            }
+        '/api': {
+          target: 'http://localhost:8080',
+          changeOrigin: true,
+          pathRewrite: {
+            '^/api': '/api'
           }
         },
+        '/files': {
+          target: 'http://localhost:8080',
+          changeOrigin: true,
+          pathRewrite: {
+            '^/files': '/files'
+          }
+        }
+      },
     setupMiddlewares: (middlewares, devServer) => {
-      return middlewares;
+      return middlewares
     }
   },
   css: {

@@ -145,7 +145,7 @@ export default {
     }
     
     // 格式化日期
-    const formatDate = (dateString) => {
+    const formatDate = dateString => {
       if (!dateString) return ''
       const date = new Date(dateString)
       const now = new Date()

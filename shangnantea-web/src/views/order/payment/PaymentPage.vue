@@ -188,7 +188,7 @@ export default {
     const countdown = ref(1800)
     let countdownTimer = null
 
-    const formatTime = (seconds) => {
+    const formatTime = seconds => {
       const m = Math.floor(seconds / 60)
       const s = seconds % 60
       return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`

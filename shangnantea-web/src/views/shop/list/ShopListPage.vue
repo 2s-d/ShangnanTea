@@ -120,7 +120,7 @@ import { showByCode, isSuccess } from '@/utils/apiMessages'
 import shopMessages from '@/utils/promptMessages'
 
 export default {
-  name: "ShopListPage",
+  name: 'ShopListPage',
   components: {
     Mug,
     ShopCard,
@@ -148,14 +148,14 @@ export default {
     const filters = computed(() => store.state.shop.filters || {})
     
     // 同步Vuex分页到本地
-    watch(currentPageFromStore, (newPage) => {
+    watch(currentPageFromStore, newPage => {
       if (newPage !== currentPage.value) {
         currentPage.value = newPage
       }
     })
     
     // 任务组A：同步Vuex filters到本地
-    watch(filters, (newFilters) => {
+    watch(filters, newFilters => {
       if (newFilters.keyword !== searchQuery.value) {
         searchQuery.value = newFilters.keyword || ''
       }
@@ -179,7 +179,7 @@ export default {
     }, { immediate: true })
     
     // 获取指定店铺的茶叶
-    const getShopTeas = (shopId) => {
+    const getShopTeas = shopId => {
       // 生产结构下：列表页不再本地造"店铺下的茶叶预览数据"
       // 后续对接后端后，可在此处实现"按店铺加载预览茶叶"的逻辑（通过 Vuex action）
       return []
@@ -199,7 +199,7 @@ export default {
     // 监听路由参数变化
     watch(
       () => route.query,
-      (query) => {
+      query => {
         // 从URL参数更新筛选条件
         if (query.search) {
           searchQuery.value = query.search
@@ -305,7 +305,7 @@ export default {
     }
     
     // 页面变化
-    const handlePageChange = (page) => {
+    const handlePageChange = page => {
       currentPage.value = page
       store.dispatch('shop/setPage', { page, extraParams: { search: searchQuery.value, sort: sortOption.value } })
       updateQueryParams()

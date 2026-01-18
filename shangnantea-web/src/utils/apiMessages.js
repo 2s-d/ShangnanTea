@@ -197,7 +197,6 @@ export const CODE_MAP = {
   2143: '您没有权限执行此操作',
   
   // 接口34: processCertification - /user/admin/certifications/{id}
-  2023: '操作成功',
   2144: '操作失败',
   2145: '您没有权限执行此操作',
   
@@ -206,31 +205,6 @@ export const CODE_MAP = {
   2146: '图片上传失败',
   2147: '不支持的文件类型',
   2148: '文件大小超限',
-  2135: '您没有权限执行此操作',
-  
-  // 接口30: updateUser - /user/admin/users/{userId}
-  2020: '用户已更新',
-  2136: '提交失败',
-  2137: '您没有权限执行此操作',
-  
-  // 接口31: deleteUser - /user/admin/users/{userId}
-  2021: '用户已删除',
-  2138: '删除用户失败',
-  2139: '您没有权限执行此操作',
-  
-  // 接口32: toggleUserStatus - /user/admin/users/{userId}/status
-  2022: '用户状态已修改',
-  2140: '修改用户状态失败',
-  2141: '您没有权限执行此操作',
-  
-  // 接口33: getCertificationList - /user/admin/certifications
-  2142: '加载失败',
-  2143: '您没有权限执行此操作',
-  
-  // 接口34: processCertification - /user/admin/certifications/{id}
-  2023: '操作成功',
-  2144: '操作失败',
-  2145: '您没有权限执行此操作',
   
   // ========== 茶叶模块 (3xxx) ==========
   // 接口1: getTeas - /tea/list
@@ -766,7 +740,7 @@ export const CODE_MAP = {
   7123: '加载失败',
   
   // 接口22: getUserReviews - /message/user/reviews
-  7124: '加载失败',
+  7124: '加载失败'
   
 }
 

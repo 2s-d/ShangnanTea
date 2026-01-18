@@ -248,7 +248,7 @@ export default {
     }
     
     // 验证图片上传
-    const beforeImageUpload = (file) => {
+    const beforeImageUpload = file => {
       // 检查文件类型
       const isImage = file.type === 'image/jpeg' || file.type === 'image/png'
       // 检查文件大小（小于2MB）
@@ -326,7 +326,7 @@ export default {
     
     // 提交申请
     const submitApplication = () => {
-      applicationFormRef.value.validate(async (valid) => {
+      applicationFormRef.value.validate(async valid => {
         if (!valid) {
           shopMessages.prompt.showCertificationIncomplete()
           return

@@ -20,7 +20,7 @@ import messageManager from '@/utils/messageManager'
 import { useTokenStorage } from '@/composables/useStorage'
 
 // 在应用初始化前检查并迁移本地存储数据
-checkAndMigrateData();
+checkAndMigrateData()
 
 // 应用启动时清除所有消息状态
 messageManager.clearAllMessageStates()
@@ -46,10 +46,10 @@ const elementPlusOptions = {
 }
 
 app.use(router)
-   .use(store)
-   .use(ElementPlus, elementPlusOptions)
-   .use(CommonComponents)  // 注册公共组件
-   .use(Directives)  // 注册自定义指令
+  .use(store)
+  .use(ElementPlus, elementPlusOptions)
+  .use(CommonComponents)  // 注册公共组件
+  .use(Directives)  // 注册自定义指令
 
 // 挂载应用
 app.mount('#app')

@@ -118,12 +118,12 @@ export default {
     const toggleCollapse = () => { isCollapsed.value = !isCollapsed.value }
     
     // 拖动功能
-    const startDrag = (e) => {
+    const startDrag = e => {
       isDragging.value = true
       dragStart.x = e.clientX - position.x
       dragStart.y = e.clientY - position.y
       
-      const onMouseMove = (e) => {
+      const onMouseMove = e => {
         if (!isDragging.value) return
         position.x = Math.max(0, Math.min(window.innerWidth - 300, e.clientX - dragStart.x))
         position.y = Math.max(0, Math.min(window.innerHeight - 100, e.clientY - dragStart.y))

@@ -216,7 +216,7 @@ export default {
   name: 'OrderDetailPage',
   components: {
     SafeImage
-},
+  },
   setup() {
     const router = useRouter()
     const route = useRoute()
@@ -255,7 +255,7 @@ export default {
     })
     
     // 获取订单状态文本
-    const getStatusText = (status) => {
+    const getStatusText = status => {
       const statusMap = {
         0: '待付款',
         1: '待发货',
@@ -268,7 +268,7 @@ export default {
     }
     
     // 获取状态对应的类名
-    const getStatusClass = (status) => {
+    const getStatusClass = status => {
       const classMap = {
         0: 'status-unpaid',
         1: 'status-unshipped',
@@ -281,7 +281,7 @@ export default {
     }
     
     // 获取支付方式文本
-    const getPaymentMethodText = (method) => {
+    const getPaymentMethodText = method => {
       const methodMap = {
         'alipay': '支付宝',
         'wechat': '微信支付',
@@ -298,7 +298,7 @@ export default {
     }
     
     // 格式化时间
-    const formatTime = (timeStr) => {
+    const formatTime = timeStr => {
       if (!timeStr) return '--'
       
       const date = new Date(timeStr)
@@ -306,7 +306,7 @@ export default {
     }
     
     // 数字补零
-    const padZero = (num) => {
+    const padZero = num => {
       return num < 10 ? `0${num}` : num
     }
     
@@ -316,7 +316,7 @@ export default {
     }
     
     // 查看茶叶详情
-    const viewTeaDetail = (teaId) => {
+    const viewTeaDetail = teaId => {
       router.push(`/tea/${teaId}`)
     }
     
@@ -333,14 +333,14 @@ export default {
         type: 'warning'
       }).then(() => {
         store.dispatch('order/cancelOrder', orderId)
-          .then((res) => {
+          .then(res => {
             // res = {code, data}
             if (res && res.code !== 200) {
               showByCode(res.code)
             }
             loadOrderDetail()
           })
-          .catch((error) => {
+          .catch(error => {
             apiMessage.error(error?.message || '取消订单失败')
           })
       }).catch(() => {
@@ -356,14 +356,14 @@ export default {
         type: 'info'
       }).then(() => {
         store.dispatch('order/confirmReceipt', orderId)
-          .then((res) => {
+          .then(res => {
             // res = {code, data}
             if (res && res.code !== 200) {
               showByCode(res.code)
             }
             loadOrderDetail()
           })
-          .catch((error) => {
+          .catch(error => {
             apiMessage.error(error?.message || '确认收货失败')
           })
       }).catch(() => {
@@ -485,7 +485,7 @@ export default {
     // 加载订单详情
     const loadOrderDetail = () => {
       store.dispatch('order/fetchOrderDetail', orderId)
-        .then((res) => {
+        .then(res => {
           // res = {code, data}
           const data = res?.data || res
           orderDetail.value = data
@@ -508,7 +508,7 @@ export default {
           }
           // 拉取退款详情（如果有）
           store.dispatch('order/fetchRefundDetail', orderId)
-            .then((detailRes) => {
+            .then(detailRes => {
               const detail = detailRes?.data || detailRes
               if (detail) {
                 refundInfo.value = {
@@ -519,7 +519,7 @@ export default {
               }
             })
         })
-        .catch((error) => {
+        .catch(error => {
           apiMessage.error(error?.message || '获取订单详情失败')
           orderDetail.value = null
         })
@@ -538,7 +538,7 @@ export default {
       
       loadOrderDetail()
     })
-return {
+    return {
       loading,
       orderDetail,
       address,
@@ -567,7 +567,7 @@ return {
       refundReason,
       openRefundDialog,
       submitRefund
-}
+    }
   }
 }
 </script>

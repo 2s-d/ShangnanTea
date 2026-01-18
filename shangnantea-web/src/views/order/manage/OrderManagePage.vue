@@ -557,7 +557,7 @@ export default {
     }
     
     // 多选变更
-    const handleSelectionChange = (rows) => {
+    const handleSelectionChange = rows => {
       const ids = rows
         .filter(row => row.status === 1 && row.refund_status !== 1)
         .map(row => row.id)
@@ -613,20 +613,20 @@ export default {
     }
     
     // 处理分页大小变化
-    const handleSizeChange = (size) => {
+    const handleSizeChange = size => {
       pageSize.value = size
       fetchOrders()
     }
     
     // 处理当前页变化
-    const handleCurrentChange = (page) => {
+    const handleCurrentChange = page => {
       currentPage.value = page
       syncQueryToRoute()
       fetchOrders()
     }
     
     // 获取订单状态文本
-    const getStatusText = (status) => {
+    const getStatusText = status => {
       const statusMap = {
         0: '待付款',
         1: '待发货',
@@ -639,7 +639,7 @@ export default {
     }
     
     // 获取状态对应的类型(用于标签颜色)
-    const getStatusType = (status) => {
+    const getStatusType = status => {
       const statusMap = {
         0: 'warning',  // 待付款：黄色警告
         1: 'primary',  // 待发货：蓝色主色
@@ -652,12 +652,12 @@ export default {
     }
     
     // 查看订单详情
-    const viewOrderDetail = (orderId) => {
+    const viewOrderDetail = orderId => {
       router.push(`/order/detail/${orderId}`)
     }
     
     // 跳转发货对话框
-    const shipOrder = (order) => {
+    const shipOrder = order => {
       currentOrder.value = order
       shipForm.company = ''
       shipForm.trackingNumber = ''
@@ -665,7 +665,7 @@ export default {
     }
     
     // 打开退款详情对话框（从后端获取退款详情）
-    const openRefundDetail = async (order) => {
+    const openRefundDetail = async order => {
       currentRefundOrder.value = order
       refundDetail.value = null
       refundDialogVisible.value = true

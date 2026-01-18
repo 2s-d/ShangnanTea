@@ -217,7 +217,7 @@ export default {
           // 只有成功时才处理数据
           if (isSuccess(res.code)) {
             const items = res.data || []
-            cartItems.value = items.map((i) => ({
+            cartItems.value = items.map(i => ({
               ...i,
               selected: typeof i.selected === 'boolean' ? i.selected : true
             }))
@@ -232,7 +232,7 @@ export default {
     }
     
     // 判断是否为平台直售商品
-    const isPlatformProduct = (shopId) => {
+    const isPlatformProduct = shopId => {
       return shopId === 'PLATFORM'
     }
     
@@ -274,7 +274,7 @@ export default {
     }
     
     // 处理全选变化
-    const handleSelectAllChange = (val) => {
+    const handleSelectAllChange = val => {
       cartItems.value.forEach(item => {
         item.selected = val
       })
@@ -286,7 +286,7 @@ export default {
     }
     
     // 处理数量变化
-    const handleQuantityChange = async (item) => {
+    const handleQuantityChange = async item => {
       // 检查库存
       if (item.stock !== undefined && item.quantity > item.stock) {
         orderPromptMessages.showStockInsufficient(item.stock)
@@ -311,7 +311,7 @@ export default {
     }
     
     // 选择规格
-    const selectSpecification = async (item) => {
+    const selectSpecification = async item => {
       currentCartItemId.value = item.id
       currentSpecTea.value = item
       tempSelectedSpecId.value = item.spec_id || null
@@ -372,20 +372,20 @@ export default {
     }
     
     // 移除商品
-    const removeItem = (id) => {
+    const removeItem = id => {
       ElMessageBox.confirm('确定要从购物车中移除该商品吗？', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        store.dispatch('order/removeFromCart', id).then(async (res) => {
+        store.dispatch('order/removeFromCart', id).then(async res => {
           // res = {code, data}
           if (res && res.code !== 200) {
             showByCode(res.code)
           }
           // 刷新本地列表
           await initCartData()
-        }).catch((error) => {
+        }).catch(error => {
           apiMessage.error(error?.message || '移除商品失败')
         })
       }).catch(() => {
@@ -406,17 +406,17 @@ export default {
         type: 'warning'
       }).then(() => {
         const selectedIds = cartItems.value
-          .filter((item) => item.selected)
-          .map((item) => item.id)
+          .filter(item => item.selected)
+          .map(item => item.id)
 
-        Promise.all(selectedIds.map((id) => store.dispatch('order/removeFromCart', id))).then(async (results) => {
+        Promise.all(selectedIds.map(id => store.dispatch('order/removeFromCart', id))).then(async results => {
           // 检查是否有失败的
           const failedRes = results.find(res => res && res.code !== 200 && res.code !== 4013)
           if (failedRes) {
             showByCode(failedRes.code)
           }
           await initCartData()
-        }).catch((error) => {
+        }).catch(error => {
           apiMessage.error(error?.message || '删除商品失败')
         })
       }).catch(() => {
@@ -432,12 +432,12 @@ export default {
       }
 
       // TODO-SCRIPT: 结算页需要支持从购物车选择的项（建议通过 query 传 selectedIds，或在 Vuex 中存储临时选择）
-      const selectedIds = cartItems.value.filter((item) => item.selected).map((item) => item.id)
+      const selectedIds = cartItems.value.filter(item => item.selected).map(item => item.id)
       router.push({ path: '/order/checkout', query: { selectedIds: selectedIds.join(',') } })
     }
     
     // 跳转到茶叶详情页
-    const goToTeaDetail = (teaId) => {
+    const goToTeaDetail = teaId => {
       router.push(`/tea/${teaId}`)
     }
     
@@ -447,7 +447,7 @@ export default {
     }
     
     // 更新购物车数量方法
-    const updateCartCountBadge = (count) => {
+    const updateCartCountBadge = count => {
       // 更新localStorage中的购物车数量
       localStorage.setItem('cartCount', count.toString())
       
@@ -483,7 +483,7 @@ export default {
     })
     
     // 当cartItems改变时更新购物车数量
-    watch(cartItems, (newItems) => {
+    watch(cartItems, newItems => {
       // 购物车项的数量（不同商品的数量，而不是总数量）
       const itemCount = newItems.length
       

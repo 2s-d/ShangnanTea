@@ -380,7 +380,7 @@ export default {
     const saveAddress = async () => {
       if (!addressFormRef.value) return
       
-      await addressFormRef.value.validate(async (valid) => {
+      await addressFormRef.value.validate(async valid => {
         if (!valid) return
         
         try {

@@ -277,7 +277,7 @@ import { showByCode, isSuccess } from '@/utils/apiMessages'
 import shopMessages from '@/utils/promptMessages'
 
 export default {
-  name: "ShopDetailPage",
+  name: 'ShopDetailPage',
   components: {
     Back,
     Check,
@@ -314,7 +314,7 @@ export default {
     })
     const reviewSubmitting = ref(false)
     
-    const loadShopDetail = async (shopId) => {
+    const loadShopDetail = async shopId => {
       if (!shopId) return
 
       if (shopId === 'PLATFORM' || shopId === '0') {
@@ -347,7 +347,7 @@ export default {
     }
     
     // 任务组B：Banner点击处理
-    const handleBannerClick = (banner) => {
+    const handleBannerClick = banner => {
       if (banner.link_url) {
         router.push(banner.link_url)
       }
@@ -356,7 +356,7 @@ export default {
     // 监听路由参数变化
     watch(
       () => route.params.id,
-      (shopId) => {
+      shopId => {
         if (shopId) {
           loadShopDetail(shopId)
         }
@@ -393,7 +393,7 @@ export default {
     }
 
     // 格式化时间
-    const formatTime = (timeString) => {
+    const formatTime = timeString => {
       if (!timeString) return '未知'
       const date = new Date(timeString)
       return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
@@ -405,7 +405,7 @@ export default {
     }
     
     // 评价分页切换
-    const handleReviewPageChange = async (page) => {
+    const handleReviewPageChange = async page => {
       const shopId = route.params.id
       if (!shopId) return
       try {
@@ -470,7 +470,7 @@ export default {
     }
     
     // 图片预览
-    const handleImagePreview = (img) => {
+    const handleImagePreview = img => {
       // 可以添加图片预览功能
       console.log('预览图片:', img)
     }
@@ -491,7 +491,7 @@ export default {
 
     watch(
       () => route.params.id,
-      (shopId) => {
+      shopId => {
         loadShopDetail(shopId)
       }
     )

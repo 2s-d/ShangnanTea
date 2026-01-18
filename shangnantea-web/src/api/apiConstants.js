@@ -50,7 +50,7 @@ export const API = {
     IMAGE_ORDER: '/tea/images/order', // 更新图片顺序
     // 状态管理
     STATUS_UPDATE: '/tea/{teaId}/status', // 更新茶叶状态
-    BATCH_STATUS_UPDATE: '/tea/batch-status', // 批量更新状态
+    BATCH_STATUS_UPDATE: '/tea/batch-status' // 批量更新状态
   },
 
   // === 店铺模块API ===
@@ -138,7 +138,7 @@ export const API = {
   SYSTEM: {
     UPLOAD: '/upload',
     UPLOAD_IMAGE: '/upload/image'
-  },
+  }
 
 
 } 

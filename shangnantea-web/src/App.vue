@@ -50,10 +50,10 @@ export default {
     // 应用初始化时执行版本检查和数据迁移（静默模式）
     onMounted(() => {
       // 静默模式执行数据版本检查和迁移，避免产生错误提示
-      checkAndMigrateData(true);
+      checkAndMigrateData(true)
       
       // 清除所有消息状态，防止旧消息被显示
-      clearAllMessageStates();
+      clearAllMessageStates()
     })
     
     return {

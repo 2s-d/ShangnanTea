@@ -307,14 +307,14 @@ export default {
     })
     
     // 处理筛选类型变化
-    const handleFilterChange = (value) => {
+    const handleFilterChange = value => {
       filterType.value = value
       // 清空搜索关键词
       searchKeyword.value = ''
     }
     
     // 格式化日期
-    const formatDate = (dateString) => {
+    const formatDate = dateString => {
       if (!dateString) return ''
       
       const date = new Date(dateString)
@@ -322,18 +322,18 @@ export default {
     }
     
     // 跳转到用户主页
-    const goToUserProfile = (userId) => {
+    const goToUserProfile = userId => {
       router.push(`/profile/${userId}`)
     }
     
     // 发送私信
-    const sendMessage = (userId) => {
+    const sendMessage = userId => {
       // 跳转到消息中心的私信聊天页面，传递用户ID
       router.push(`/message/center/chat?userId=${userId}`)
     }
     
     // 取消关注用户
-    const unfollowUser = async (userId) => {
+    const unfollowUser = async userId => {
       // 找到对应的关注记录
       const followItem = followList.value.find(item => 
         item.targetType === 'user' && item.targetId === userId
@@ -352,18 +352,18 @@ export default {
     }
     
     // 跳转到店铺详情
-    const goToShopDetail = (shopId) => {
+    const goToShopDetail = shopId => {
       router.push(`/shop/${shopId}`)
     }
     
     // 联系店铺客服
-    const contactShop = (shopId) => {
+    const contactShop = shopId => {
       // 跳转到消息中心的私信聊天页面，传递店铺ID
       router.push(`/message/center/chat?shopId=${shopId}`)
     }
     
     // 取消关注店铺
-    const unfollowShop = async (shopId) => {
+    const unfollowShop = async shopId => {
       // 找到对应的关注记录
       const followItem = followList.value.find(item => 
         item.targetType === 'shop' && item.targetId === shopId

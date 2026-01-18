@@ -701,7 +701,7 @@ export default {
     */
     
     // 获取版块名称
-    const getTopicName = (topicId) => {
+    const getTopicName = topicId => {
       const topic = topicList.value.find(item => item.id === topicId)
       return topic ? topic.name : '未知版块'
     }
@@ -751,7 +751,7 @@ export default {
     }
     
     // 切换版块
-    const switchTopic = (topicId) => {
+    const switchTopic = topicId => {
       currentTopicId.value = topicId
       pagination.currentPage = 1
       fetchPosts()
@@ -768,31 +768,31 @@ export default {
     }
     
     // 处理排序变更
-    const handleSortChange = (sort) => {
+    const handleSortChange = sort => {
       currentSort.value = sort
       pagination.currentPage = 1
       fetchPosts()
     }
     
     // 处理分页大小变更
-    const handleSizeChange = (size) => {
+    const handleSizeChange = size => {
       pagination.pageSize = size
       fetchPosts()
     }
     
     // 处理页码变更
-    const handleCurrentChange = (page) => {
+    const handleCurrentChange = page => {
       pagination.currentPage = page
       fetchPosts()
     }
     
     // 查看版块
-    const viewTopic = (topicId) => {
+    const viewTopic = topicId => {
       router.push(`/forum/topic/${topicId}`)
     }
     
     // 查看帖子详情
-    const viewPost = (postId) => {
+    const viewPost = postId => {
       router.push(`/forum/${postId}`)
     }
     
@@ -897,12 +897,12 @@ export default {
     }
     
     // 帖子回复
-    const handleReply = (post) => {
+    const handleReply = post => {
       router.push(`/forum/${post.id}#reply-section`)
     }
     
     // 帖子点赞
-    const handleLike = async (post) => {
+    const handleLike = async post => {
       try {
         let res
         if (post.isLiked) {
@@ -917,7 +917,7 @@ export default {
     }
     
     // 帖子收藏
-    const handleFavorite = async (post) => {
+    const handleFavorite = async post => {
       try {
         let res
         if (post.isFavorited) {
@@ -932,7 +932,7 @@ export default {
     }
     
     // 确认删除帖子
-    const confirmDeletePost = (post) => {
+    const confirmDeletePost = post => {
       postToDelete.value = post
       dialogVisible.delete = true
     }
@@ -962,7 +962,7 @@ export default {
     }
     
     // 格式化日期
-    const formatDate = (dateString) => {
+    const formatDate = dateString => {
       const date = new Date(dateString)
       const now = new Date()
       const diff = now - date

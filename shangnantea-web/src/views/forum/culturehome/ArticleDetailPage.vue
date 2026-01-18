@@ -174,7 +174,7 @@ export default {
     const defaultImage = ''
 
     // 格式化日期
-    const formatDate = (date) => {
+    const formatDate = date => {
       if (!date) return ''
       const d = new Date(date)
       return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
@@ -265,7 +265,7 @@ export default {
     }
     
     // 查看其他文章
-    const viewArticle = (id) => {
+    const viewArticle = id => {
       router.push(`/article/${id}`)
     }
 
@@ -273,7 +273,7 @@ export default {
       loadArticleDetail()
       
       // 全局捕获ResizeObserver错误
-      window.addEventListener('error', (event) => {
+      window.addEventListener('error', event => {
         if (event && event.message && event.message.includes('ResizeObserver loop limit exceeded')) {
           event.stopImmediatePropagation()
         }

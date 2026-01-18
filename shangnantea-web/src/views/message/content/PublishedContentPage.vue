@@ -184,14 +184,14 @@ export default {
       const postsCopy = [...posts.value]
       
       switch(sortOption.value) {
-        case 'newest':
-          return postsCopy.sort((a, b) => new Date(b.createTime) - new Date(a.createTime))
-        case 'mostViewed':
-          return postsCopy.sort((a, b) => b.viewCount - a.viewCount)
-        case 'mostReplied':
-          return postsCopy.sort((a, b) => b.replyCount - a.replyCount)
-        default:
-          return postsCopy
+      case 'newest':
+        return postsCopy.sort((a, b) => new Date(b.createTime) - new Date(a.createTime))
+      case 'mostViewed':
+        return postsCopy.sort((a, b) => b.viewCount - a.viewCount)
+      case 'mostReplied':
+        return postsCopy.sort((a, b) => b.replyCount - a.replyCount)
+      default:
+        return postsCopy
       }
     })
     
@@ -202,7 +202,7 @@ export default {
     })
     
     // 格式化日期显示
-    const formatDate = (dateString) => {
+    const formatDate = dateString => {
       if (!dateString) return ''
       
       const date = new Date(dateString)
@@ -223,18 +223,18 @@ export default {
     }
     
     // 查看帖子详情
-    const viewPostDetail = (id) => {
+    const viewPostDetail = id => {
       router.push(`/forum/${id}`)
     }
     
     // 编辑帖子
-    const editPost = (id) => {
+    const editPost = id => {
       // 实际项目中跳转到编辑页面
       commonPromptMessages.showProcessing()
     }
     
     // 删除帖子
-    const deletePost = (id) => {
+    const deletePost = id => {
       ElMessageBox.confirm(
         '确定要删除该帖子吗？删除后将无法恢复。',
         '删除确认',
@@ -258,12 +258,12 @@ export default {
     }
     
     // 查看茶叶详情
-    const viewTeaDetail = (teaId) => {
+    const viewTeaDetail = teaId => {
       router.push(`/tea/${teaId}`)
     }
     
     // 删除评价
-    const deleteReview = (id) => {
+    const deleteReview = id => {
       ElMessageBox.confirm(
         '确定要删除该评价吗？删除后将无法恢复。',
         '删除确认',
@@ -307,7 +307,7 @@ export default {
     }
     
     // 监听标签页切换
-    const handleTabChange = (tab) => {
+    const handleTabChange = tab => {
       activeTab.value = tab
       loadData()
     }

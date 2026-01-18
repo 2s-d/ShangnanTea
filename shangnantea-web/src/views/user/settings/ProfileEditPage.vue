@@ -149,7 +149,7 @@ export default {
     })
     
     // 应用主题设置
-    const applyThemeSettings = (theme) => {
+    const applyThemeSettings = theme => {
       // 获取html根元素
       const htmlEl = document.documentElement
       
@@ -184,7 +184,7 @@ export default {
     // 保存设置
     const savePreferences = async () => {
       try {
-      submitting.value = true
+        submitting.value = true
         const payload = { ...preferences }
         const response = await store.dispatch('user/saveUserPreferences', payload)
         
@@ -232,7 +232,7 @@ export default {
         // - 确保 submitting 状态被重置（在 finally 中）
         // - 开发环境记录意外错误用于调试
         
-          console.error('[开发调试] 保存偏好设置时发生意外错误：', e)
+        console.error('[开发调试] 保存偏好设置时发生意外错误：', e)
         
       } finally {
         submitting.value = false

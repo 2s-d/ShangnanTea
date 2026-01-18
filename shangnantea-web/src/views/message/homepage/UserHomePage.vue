@@ -243,7 +243,7 @@ export default {
     const componentMap = {
       published: markRaw(PublishedContentPage),
       follows: markRaw(FollowsPage),
-      favorites: markRaw(FavoritesPage),
+      favorites: markRaw(FavoritesPage)
     }
     
     // 活动菜单
@@ -270,7 +270,7 @@ export default {
     })
     
     // 监听路由参数变化
-    watch(() => route.params.tab, (newTab) => {
+    watch(() => route.params.tab, newTab => {
       if (newTab && (componentMap[newTab] || newTab === 'dynamic')) {
         activeMenu.value = newTab
         if (componentMap[newTab]) {
@@ -285,7 +285,7 @@ export default {
     })
     
     // 菜单选择处理
-    const handleMenuSelect = (key) => {
+    const handleMenuSelect = key => {
       activeMenu.value = key
       
       // 如果存在对应组件就设置，否则显示动态或开发中
@@ -352,7 +352,7 @@ export default {
     }
     
     // 格式化日期
-    const formatDate = (date) => {
+    const formatDate = date => {
       if (!date) return ''
       const d = new Date(date)
       return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`
