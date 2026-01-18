@@ -108,7 +108,6 @@ import { Plus } from '@element-plus/icons-vue'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { orderPromptMessages } from '@/utils/promptMessages'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-import { uploadImage } from '@/api/upload'
 
 export default {
   name: 'OrderReviewPage',
@@ -187,9 +186,9 @@ export default {
       for (const file of imageList.value) {
         if (file.raw) {
           try {
-            const res = await uploadImage(file.raw, 'review')
-            if (res && res.url) {
-              uploadedUrls.push(res.url)
+            const res = await store.dispatch('order/uploadReviewImage', file.raw)
+            if (res && res.data && res.data.url) {
+              uploadedUrls.push(res.data.url)
             }
           } catch (error) {
             console.error('图片上传失败:', error)

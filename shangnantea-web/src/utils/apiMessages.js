@@ -175,6 +175,12 @@ export const CODE_MAP = {
   // 接口29: createAdmin - /user/admin/users
   2019: '管理员已添加',
   2134: '提交失败',
+  
+  // 接口30: uploadCertificationImage - /user/merchant/certification/image
+  2020: '图片上传成功',
+  2135: '图片上传失败',
+  2136: '不支持的文件类型',
+  2137: '文件大小超限',
   2135: '您没有权限执行此操作',
   
   // 接口30: updateUser - /user/admin/users/{userId}
@@ -510,6 +516,12 @@ export const CODE_MAP = {
   // 接口20: exportOrders - /order/export
   5143: '操作失败',
   
+  // 接口21: uploadReviewImage - /order/review/image
+  5016: '图片上传成功',
+  5144: '图片上传失败',
+  5145: '不支持的文件类型',
+  5146: '文件大小超限',
+  
   // ========== 论坛模块 (6xxx) ==========
   // 接口1: getHomeData - /forum/home
   6100: '获取首页数据失败',
@@ -730,19 +742,6 @@ export const CODE_MAP = {
   
   // 接口22: getUserReviews - /message/user/reviews
   7124: '加载失败',
-  
-  // ========== 系统通用模块 (1xxx) ==========
-  // 接口1: uploadFile - /upload
-  1000: '上传成功',
-  1100: '上传失败',
-  1101: '不支持的文件类型',
-  1102: '文件大小超限',
-  
-  // 接口2: uploadImage - /upload/image
-  1001: '上传成功',
-  1103: '上传失败',
-  1104: '不支持的文件类型',
-  1105: '文件大小超限',
   
 }
 
