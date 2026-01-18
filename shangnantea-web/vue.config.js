@@ -15,6 +15,13 @@ module.exports = defineConfig({
             pathRewrite: {
               '^/api': '/api'
             }
+          },
+          '/files': {
+            target: 'http://localhost:8080',
+            changeOrigin: true,
+            pathRewrite: {
+              '^/files': '/files'
+            }
           }
         },
     setupMiddlewares: (middlewares, devServer) => {
