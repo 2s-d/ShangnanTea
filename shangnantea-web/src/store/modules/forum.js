@@ -662,6 +662,18 @@ const actions = {
     }
   },
 
+  // 接口#37(新增): 上传帖子图片 - 成功码6028, 失败码6140, 6141, 6142
+  async uploadPostImage({ commit }, file) {
+    try {
+      const res = await uploadPostImage(file)
+      return res // 返回 {code, data: {url, path}}
+    } catch (error) {
+      commit('SET_ERROR', error.message || '上传图片失败')
+      console.error('上传帖子图片失败:', error)
+      throw error
+    }
+  },
+
   // 接口#128: 更新帖子 - 成功码6001, 失败码6101
   async updatePost({ commit }, { id, data }) {
     commit('SET_LOADING', true)
