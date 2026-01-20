@@ -45,3 +45,5 @@
 
 | 序号 | 接口名称 | 路径 | Type分类 | 数据库表 | 存储字段 | 业务场景 |
 |------|----------|------|----------|----------|----------|----------|
+| 1 | uploadAvatar | /user/avatar | avatars | users | avatar | 用户头像上传 |
+| 2 | uploadCertificationImage | /user/merchant/certification/image | certifications | shop_certifications | - | 商家认证图片 |
