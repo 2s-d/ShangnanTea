@@ -156,57 +156,43 @@ public class FileUploadUtils {
     }
     
     /**
-     * 生成文件名(UUID + 标准化扩展名)
+     * 生成文件名(时间戳 + UUID + 扩展名)
+     * 格式: 20240118120530_abc123def456.jpg
      */
     private static String generateFilename(MultipartFile file) {
-        String originalFilename = file.getOriginalFilename();
-        String extension = getFileExtension(originalFilename);
+        // 获取时间戳
+        String timestamp = DateUtils.format(new Date(), "yyyyMMddHHmmss");
         
-        // 标准化扩展名:转小写,移除特殊字符
-        extension = normalizeExtension(extension);
+        // 获取UUID
+        String uuid = StringUtils.generateUUID();
         
-        return StringUtils.generateUUID() + extension;
+        // 根据MIME类型确定扩展名
+        String extension = getExtensionByMimeType(file.getContentType());
+        
+        return timestamp + "_" + uuid + extension;
     }
     
     /**
-     * 获取文件扩展名
+     * 根据MIME类型获取扩展名
      */
-    private static String getFileExtension(String filename) {
-        if (filename == null || !filename.contains(".")) {
-            return "";
-        }
-        return filename.substring(filename.lastIndexOf("."));
-    }
-    
-    /**
-     * 标准化扩展名
-     * 1. 转小写
-     * 2. 移除特殊字符
-     * 3. 确保以点开头
-     */
-    private static String normalizeExtension(String extension) {
-        if (StringUtils.isEmpty(extension)) {
-            return ".jpg"; // 默认扩展名
+    private static String getExtensionByMimeType(String mimeType) {
+        if (mimeType == null) {
+            return ".jpg";
         }
         
-        // 转小写
-        extension = extension.toLowerCase().trim();
-        
-        // 确保以点开头
-        if (!extension.startsWith(".")) {
-            extension = "." + extension;
+        switch (mimeType.toLowerCase()) {
+            case "image/jpeg":
+            case "image/jpg":
+                return ".jpg";
+            case "image/png":
+                return ".png";
+            case "image/gif":
+                return ".gif";
+            case "image/webp":
+                return ".webp";
+            default:
+                return ".jpg";
         }
-        
-        // 只保留字母和点
-        extension = extension.replaceAll("[^a-z.]", "");
-        
-        // 验证是否为允许的扩展名
-        if (!ALLOWED_IMAGE_EXTENSIONS.contains(extension)) {
-            // 根据MIME类型推断扩展名
-            return ".jpg"; // 默认
-        }
-        
-        return extension;
     }
     
     /**
