@@ -258,6 +258,25 @@ export function createPost(data) {
 }
 
 /**
+ * 上传帖子图片
+ * @param {File} file 图片文件
+ * @returns {Promise} 上传结果
+ */
+export function uploadPostImage(file) {
+  const formData = new FormData()
+  formData.append('file', file)
+  
+  return request({
+    url: API.FORUM.POST_IMAGE,
+    method: 'post',
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+
+/**
  * 更新帖子
  * @param {number} id 帖子ID
  * @param {Object} data 帖子数据
@@ -487,6 +506,7 @@ export default {
   getForumPosts,
   getPostDetail,
   createPost,
+  uploadPostImage,
   updatePost,
   deletePost,
   getPostReplies,

@@ -98,6 +98,7 @@ export const API = {
     // 帖子相关
     POSTS: '/forum/posts', // 列表/创建
     POST_DETAIL: '/forum/posts/', // /forum/posts/{id} - 详情/更新/删除/like/favorite/approve/reject/sticky/essence, /forum/posts/{id}/replies
+    POST_IMAGE: '/forum/posts/image', // 上传帖子图片
     POSTS_PENDING: '/forum/posts/pending', // 获取待审核帖子列表
     // 回复相关
     REPLIES: '/forum/replies', // /forum/replies/{id} - 删除, /forum/replies/{id}/like - 点赞

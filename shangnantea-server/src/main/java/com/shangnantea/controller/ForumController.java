@@ -335,6 +335,21 @@ public class ForumController {
     }
 
     /**
+     * 上传帖子图片
+     * 路径: POST /forum/posts/image
+     * 成功码: 6028, 失败码: 6140, 6141, 6142
+     *
+     * @param file 图片文件
+     * @return 上传结果
+     */
+    @PostMapping("/posts/image")
+    @RequiresLogin
+    public Result<Map<String, Object>> uploadPostImage(@RequestParam("file") MultipartFile file) {
+        logger.info("上传帖子图片请求, 文件名: {}", file.getOriginalFilename());
+        return forumService.uploadPostImage(file);
+    }
+
+    /**
      * 获取帖子回复列表
      * 路径: GET /forum/posts/{id}/replies
      * 成功码: 200, 失败码: 6123

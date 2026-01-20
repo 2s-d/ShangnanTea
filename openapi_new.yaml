@@ -5404,6 +5404,71 @@ paths:
                     code: 6120
                     data: null
 
+  /forum/posts/image:
+    post:
+      operationId: uploadPostImage
+      tags:
+        - 论坛模块
+      summary: 上传帖子图片
+      description: 用户发帖时上传图片（封面图或内容图）
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: 图片文件
+      responses:
+        '200':
+          description: 上传成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  data:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        description: 图片访问URL
+                      path:
+                        type: string
+                        description: 图片存储路径
+              examples:
+                success:
+                  summary: 图片上传成功
+                  value:
+                    code: 6028
+                    data:
+                      url: "http://localhost:8080/files/images/posts/2024/01/18/20240118120530_abc123.jpg"
+                      path: "files/images/posts/2024/01/18/20240118120530_abc123.jpg"
+                failure1:
+                  summary: 图片上传失败
+                  value:
+                    code: 6140
+                    data: null
+                failure2:
+                  summary: 不支持的文件类型
+                  value:
+                    code: 6141
+                    data: null
+                failure3:
+                  summary: 文件大小超限
+                  value:
+                    code: 6142
+                    data: null
+
   /forum/posts/pending:
     get:
       operationId: getPendingPosts
