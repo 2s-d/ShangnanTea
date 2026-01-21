@@ -43,17 +43,17 @@
 
 **项目共有 9 个图片上传接口**，采用统一的技术方案：
 
-| 序号 | 接口名称 | 路径 | Type分类 | 数据库表 | 存储字段 | 业务场景 |
-|------|----------|------|----------|----------|----------|----------|
-| 1 | uploadAvatar | /user/avatar | avatars | users | avatar | 用户头像上传 |
-| 2 | uploadCertificationImage | /user/merchant/certification/image | certifications | shop_certifications | - | 商家认证图片 |
-| 3 | uploadTeaImages | /tea/{teaId}/images | teas | tea_images | image_url | 茶叶图片上传 |
-| 4 | uploadShopLogo | /shop/{shopId}/logo | logos | shops | logo | 店铺Logo上传 |
-| 5 | uploadShopBanner | /shop/{shopId}/banners | shop-banners | shop_banners | image_url | 店铺轮播图 |
-| 6 | uploadReviewImage | /order/review/image | reviews | tea_reviews | images | 订单评价图片 |
-| 7 | uploadBanner | /forum/banners | forum-banners | home_contents | content | 论坛首页轮播图 |
-| 8 | sendImageMessage | /message/messages/image | messages | chat_messages | content | 聊天图片消息 |
-| 9 | uploadPostImage | /forum/posts/image | posts | forum_posts | images | 论坛帖子图片 |
+| 序号 | 接口名称 | API路径 | Type分类 | 数据库表 | 存储字段 | 业务场景 |
+|------|----------|---------|----------|----------|----------|----------|
+| 1 | uploadAvatar | POST /user/avatar | avatars | users | avatar | 用户头像上传 |
+| 2 | uploadCertificationImage | POST /user/merchant/certification/image | certifications | shop_certifications | - | 商家认证图片 |
+| 3 | uploadTeaImages | POST /tea/{teaId}/images | teas | tea_images | image_url | 茶叶图片上传 |
+| 4 | uploadShopLogo | POST /shop/{shopId}/logo | logos | shops | logo | 店铺Logo上传 |
+| 5 | uploadShopBanner | POST /shop/{shopId}/banners | shop-banners | shop_banners | image_url | 店铺轮播图 |
+| 6 | uploadReviewImage | POST /order/review/image | reviews | tea_reviews | images | 订单评价图片 |
+| 7 | uploadBanner | POST /forum/banners | forum-banners | home_contents | content | 论坛首页轮播图 |
+| 8 | sendImageMessage | POST /message/messages/image | messages | chat_messages | content | 聊天图片消息 |
+| 9 | uploadPostImage | POST /forum/posts/image | posts | forum_posts | images | 论坛帖子图片 |
 
 ### 状态码统计
 
