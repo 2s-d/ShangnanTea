@@ -39,7 +39,7 @@ public class UserController {
     /**
      * 用户登录
      * 路径: POST /user/login
-     * 成功码: 2000, 失败码: 2100, 2105
+     * 成功码: 2000, 失败码: 2100, 2101
      *
      * @param loginDTO 登录信息
      * @return 登录结果
@@ -53,7 +53,7 @@ public class UserController {
     /**
      * 用户注册
      * 路径: POST /user/register
-     * 成功码: 2001, 失败码: 2101
+     * 成功码: 2001, 失败码: 2102
      *
      * @param registerDTO 注册信息
      * @return 注册结果

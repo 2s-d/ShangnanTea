@@ -68,14 +68,14 @@ public class UserServiceImpl implements UserService {
         // 检查用户状态
         if (user.getStatus() != null && user.getStatus() == 0) {
             logger.warn("登录失败: 用户已被禁用, username: {}", loginDTO.getUsername());
-            return Result.failure(2100); // 登录失败
+            return Result.failure(2100); // 登录失败，请检查用户名和密码
         }
         
         // 生成JWT token
         String token = jwtUtil.generateToken(user);
         if (token == null) {
             logger.error("登录失败: Token生成失败, username: {}", loginDTO.getUsername());
-            return Result.failure(2105); // 登录失败，服务器返回的Token无效
+            return Result.failure(2101); // 登录失败，服务器Token生成失败
         }
         
         // 构建TokenVO
@@ -89,7 +89,7 @@ public class UserServiceImpl implements UserService {
     
     /**
      * 用户注册
-     * 成功码：2001，失败码：2101
+     * 成功码：2001，失败码：2102
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -99,13 +99,13 @@ public class UserServiceImpl implements UserService {
         // 检查用户名是否已存在
         if (isUserExist(registerDTO.getUsername())) {
             logger.warn("注册失败: 用户名已存在, username: {}", registerDTO.getUsername());
-            return Result.failure(2101); // 注册失败
+            return Result.failure(2102); // 注册失败，用户名已存在或数据格式错误
         }
         
         // 验证密码和确认密码是否一致
         if (!registerDTO.getPassword().equals(registerDTO.getConfirmPassword())) {
             logger.warn("注册失败: 两次输入的密码不一致, username: {}", registerDTO.getUsername());
-            return Result.failure(2101); // 注册失败
+            return Result.failure(2102); // 注册失败，用户名已存在或数据格式错误
         }
         
         // 将RegisterDTO转换为User实体
@@ -133,14 +133,14 @@ public class UserServiceImpl implements UserService {
         int result = userMapper.insert(user);
         if (result <= 0) {
             logger.error("注册失败: 数据库插入失败, username: {}", registerDTO.getUsername());
-            return Result.failure(2101); // 注册失败
+            return Result.failure(2102); // 注册失败，用户名已存在或数据格式错误
         }
         
         // 查询刚注册的用户（获取完整信息）
         User savedUser = getUserEntityById(userId);
         if (savedUser == null) {
             logger.error("注册失败: 无法获取注册后的用户信息, userId: {}", userId);
-            return Result.failure(2101); // 注册失败
+            return Result.failure(2102); // 注册失败，用户名已存在或数据格式错误
         }
         
         logger.info("用户注册成功: username: {}, userId: {}", registerDTO.getUsername(), userId);

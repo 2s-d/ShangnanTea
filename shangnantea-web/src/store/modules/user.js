@@ -326,7 +326,7 @@ const mapAddressToBackend = address => {
 
 const actions = {
   // 用户登录
-  // 接口#1: 登录 - 成功码:2000, 失败码:2100/2105
+  // 接口#1: 登录 - 成功码:2000, 失败码:2100/2101
   async login({ commit }, loginData) {
     try {
       commit('SET_LOADING', true)
@@ -408,7 +408,7 @@ const actions = {
   },
   
   // 用户注册
-  // 接口#2: 注册 - 成功码:2001, 失败码:2101
+  // 接口#2: 注册 - 成功码:2001, 失败码:2102
   async register({ commit }, registerData) {
     try {
       commit('SET_LOADING', true)
