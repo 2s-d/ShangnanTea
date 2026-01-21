@@ -8,31 +8,42 @@ inclusion: manual
 
 你是用户模块的专职工人，专门负责用户模块后端接口的实现和维护。
 
+## ⚠️ 重要：工作目录限制
+
+**专属工作目录**：`shangnantea-user/`
+- 你只能在用户模块的专属Git Worktree目录中工作
+- 这是通过Git Worktree创建的独立工作空间，对应用户模块分支
+- **严禁修改其他模块目录**：不得修改 `shangnantea-tea/`、`shangnantea-order/`、`shangnantea-shop/`、`shangnantea-forum/`、`shangnantea-message/` 目录
+- **严禁修改主分支目录**：不得修改 `shangnantea/` 主项目目录
+- 所有文件读取、修改、创建操作都必须在 `shangnantea-user/` 目录下进行
+
 ## 职责范围
 
 ### 负责的后端文件目录
-- `src/main/java/com/shangnantea/controller/UserController.java` - 用户控制器
-- `src/main/java/com/shangnantea/service/UserService.java` - 用户服务接口
-- `src/main/java/com/shangnantea/service/impl/UserServiceImpl.java` - 用户服务实现
-- `src/main/java/com/shangnantea/mapper/UserMapper.java` - 用户数据访问接口
-- `src/main/resources/mapper/UserMapper.xml` - 用户SQL映射文件
-- `src/main/java/com/shangnantea/model/dto/user/` - 用户DTO类
-- `src/main/java/com/shangnantea/model/vo/user/` - 用户VO类
-- `src/main/java/com/shangnantea/model/entity/User.java` - 用户实体类
+- `shangnantea-user/shangnantea-server/src/main/java/com/shangnantea/controller/UserController.java` - 用户控制器
+- `shangnantea-user/shangnantea-server/src/main/java/com/shangnantea/service/UserService.java` - 用户服务接口
+- `shangnantea-user/shangnantea-server/src/main/java/com/shangnantea/service/impl/UserServiceImpl.java` - 用户服务实现
+- `shangnantea-user/shangnantea-server/src/main/java/com/shangnantea/mapper/UserMapper.java` - 用户数据访问接口
+- `shangnantea-user/shangnantea-server/src/main/resources/mapper/UserMapper.xml` - 用户SQL映射文件
+- `shangnantea-user/shangnantea-server/src/main/java/com/shangnantea/model/dto/user/` - 用户DTO类
+- `shangnantea-user/shangnantea-server/src/main/java/com/shangnantea/model/vo/user/` - 用户VO类
+- `shangnantea-user/shangnantea-server/src/main/java/com/shangnantea/model/entity/User.java` - 用户实体类
 
 ### 负责的前端文件目录（如需要）
-- `shangnantea-web/src/api/user.js` - 用户API函数
-- `shangnantea-web/src/store/modules/user.js` - 用户状态管理
-- `shangnantea-web/src/views/user/` - 用户相关页面
-- `shangnantea-web/src/components/user/` - 用户相关组件
+- `shangnantea-user/shangnantea-web/src/api/user.js` - 用户API函数
+- `shangnantea-user/shangnantea-web/src/store/modules/user.js` - 用户状态管理
+- `shangnantea-user/shangnantea-web/src/views/user/` - 用户相关页面
+- `shangnantea-user/shangnantea-web/src/components/user/` - 用户相关组件
 
 ## 禁止操作
 
+- ❌ **不要修改其他模块目录**：严禁修改 `shangnantea-tea/`、`shangnantea-order/`、`shangnantea-shop/`、`shangnantea-forum/`、`shangnantea-message/` 目录
+- ❌ **不要修改主分支目录**：严禁修改 `shangnantea/` 主项目目录
+- ❌ **不要跨目录操作**：所有操作必须在 `shangnantea-user/` 目录内进行
 - ❌ 不要修改其他模块的后端文件（tea、order、shop、forum、message模块）
 - ❌ 不要修改通用工具类（除非任务明确要求）
 - ❌ 不要修改数据库表结构（除非任务明确要求）
 - ❌ 不要删除文件，除非任务明确要求
-- ❌ 不要修改其他模块的Controller、Service、Mapper
 
 ## 工作流程
 
@@ -49,32 +60,32 @@ inclusion: manual
    - 理解业务逻辑和功能背景
 
 2. **创建/修改DTO类**
-   - 位置：`src/main/java/com/shangnantea/model/dto/user/`
+   - 位置：`shangnantea-user/shangnantea-server/src/main/java/com/shangnantea/model/dto/user/`
    - 包含参数验证注解（`@NotBlank`, `@Size` 等）
    - 类名以 `DTO` 结尾
 
 3. **创建/修改VO类**
-   - 位置：`src/main/java/com/shangnantea/model/vo/user/`
+   - 位置：`shangnantea-user/shangnantea-server/src/main/java/com/shangnantea/model/vo/user/`
    - 不包含敏感信息（如密码）
    - 类名以 `VO` 结尾
 
 4. **在Service接口中定义方法**
-   - 位置：`src/main/java/com/shangnantea/service/UserService.java`
+   - 位置：`shangnantea-user/shangnantea-server/src/main/java/com/shangnantea/service/UserService.java`
    - 方法返回类型为 `Result<T>`
    - 添加JavaDoc注释
 
 5. **实现Service方法**
-   - 位置：`src/main/java/com/shangnantea/service/impl/UserServiceImpl.java`
+   - 位置：`shangnantea-user/shangnantea-server/src/main/java/com/shangnantea/service/impl/UserServiceImpl.java`
    - 包含业务逻辑处理、数据转换、错误处理
    - 使用 `Result.success(code, data)` 和 `Result.failure(code)`
 
 6. **在Controller中添加接口**
-   - 位置：`src/main/java/com/shangnantea/controller/UserController.java`
+   - 位置：`shangnantea-user/shangnantea-server/src/main/java/com/shangnantea/controller/UserController.java`
    - 直接返回Service的 `Result<T>`
    - 添加适当的注解（`@PostMapping`, `@GetMapping` 等）
 
 7. **更新参考文档（可选）**
-   - 位置：`shangnantea-server/docs/接口开发流程指南.md`
+   - 位置：`shangnantea-user/shangnantea-server/docs/接口开发流程指南.md`
    - **执行条件**：仅在本次接口开发中遇到从未遇到的问题或有用的经验时执行
    - **更新内容**：将新发现的问题解决方案、开发经验、最佳实践补充到流程指南中
    - **目的**：方便后续接口更流畅的开发，避免重复踩坑

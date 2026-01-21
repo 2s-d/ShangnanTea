@@ -8,31 +8,42 @@ inclusion: manual
 
 你是茶叶模块的专职工人，专门负责茶叶模块后端接口的实现和维护。
 
+## ⚠️ 重要：工作目录限制
+
+**专属工作目录**：`shangnantea-tea/`
+- 你只能在茶叶模块的专属Git Worktree目录中工作
+- 这是通过Git Worktree创建的独立工作空间，对应茶叶模块分支
+- **严禁修改其他模块目录**：不得修改 `shangnantea-user/`、`shangnantea-order/`、`shangnantea-shop/`、`shangnantea-forum/`、`shangnantea-message/` 目录
+- **严禁修改主分支目录**：不得修改 `shangnantea/` 主项目目录
+- 所有文件读取、修改、创建操作都必须在 `shangnantea-tea/` 目录下进行
+
 ## 职责范围
 
 ### 负责的后端文件目录
-- `src/main/java/com/shangnantea/controller/TeaController.java` - 茶叶控制器
-- `src/main/java/com/shangnantea/service/TeaService.java` - 茶叶服务接口
-- `src/main/java/com/shangnantea/service/impl/TeaServiceImpl.java` - 茶叶服务实现
-- `src/main/java/com/shangnantea/mapper/TeaMapper.java` - 茶叶数据访问接口
-- `src/main/resources/mapper/TeaMapper.xml` - 茶叶SQL映射文件
-- `src/main/java/com/shangnantea/model/dto/tea/` - 茶叶DTO类
-- `src/main/java/com/shangnantea/model/vo/tea/` - 茶叶VO类
-- `src/main/java/com/shangnantea/model/entity/Tea.java` - 茶叶实体类
+- `shangnantea-tea/shangnantea-server/src/main/java/com/shangnantea/controller/TeaController.java` - 茶叶控制器
+- `shangnantea-tea/shangnantea-server/src/main/java/com/shangnantea/service/TeaService.java` - 茶叶服务接口
+- `shangnantea-tea/shangnantea-server/src/main/java/com/shangnantea/service/impl/TeaServiceImpl.java` - 茶叶服务实现
+- `shangnantea-tea/shangnantea-server/src/main/java/com/shangnantea/mapper/TeaMapper.java` - 茶叶数据访问接口
+- `shangnantea-tea/shangnantea-server/src/main/resources/mapper/TeaMapper.xml` - 茶叶SQL映射文件
+- `shangnantea-tea/shangnantea-server/src/main/java/com/shangnantea/model/dto/tea/` - 茶叶DTO类
+- `shangnantea-tea/shangnantea-server/src/main/java/com/shangnantea/model/vo/tea/` - 茶叶VO类
+- `shangnantea-tea/shangnantea-server/src/main/java/com/shangnantea/model/entity/Tea.java` - 茶叶实体类
 
 ### 负责的前端文件目录（如需要）
-- `shangnantea-web/src/api/tea.js` - 茶叶API函数
-- `shangnantea-web/src/store/modules/tea.js` - 茶叶状态管理
-- `shangnantea-web/src/views/tea/` - 茶叶相关页面
-- `shangnantea-web/src/components/tea/` - 茶叶相关组件
+- `shangnantea-tea/shangnantea-web/src/api/tea.js` - 茶叶API函数
+- `shangnantea-tea/shangnantea-web/src/store/modules/tea.js` - 茶叶状态管理
+- `shangnantea-tea/shangnantea-web/src/views/tea/` - 茶叶相关页面
+- `shangnantea-tea/shangnantea-web/src/components/tea/` - 茶叶相关组件
 
 ## 禁止操作
 
+- ❌ **不要修改其他模块目录**：严禁修改 `shangnantea-user/`、`shangnantea-order/`、`shangnantea-shop/`、`shangnantea-forum/`、`shangnantea-message/` 目录
+- ❌ **不要修改主分支目录**：严禁修改 `shangnantea/` 主项目目录
+- ❌ **不要跨目录操作**：所有操作必须在 `shangnantea-tea/` 目录内进行
 - ❌ 不要修改其他模块的后端文件（user、order、shop、forum、message模块）
 - ❌ 不要修改通用工具类（除非任务明确要求）
 - ❌ 不要修改数据库表结构（除非任务明确要求）
 - ❌ 不要删除文件，除非任务明确要求
-- ❌ 不要修改其他模块的Controller、Service、Mapper
 
 ## 工作流程
 
