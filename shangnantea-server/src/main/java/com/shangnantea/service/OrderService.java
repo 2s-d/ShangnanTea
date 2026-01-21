@@ -2,10 +2,13 @@ package com.shangnantea.service;
 
 import com.shangnantea.common.api.PageParam;
 import com.shangnantea.common.api.PageResult;
+import com.shangnantea.common.api.Result;
 import com.shangnantea.model.entity.order.Order;
 import com.shangnantea.model.entity.order.ShoppingCart;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 订单服务接口
@@ -132,4 +135,12 @@ public interface OrderService {
      * @return 是否成功
      */
     boolean clearUserCart(String userId);
+    
+    /**
+     * 上传评价图片
+     *
+     * @param image 图片文件
+     * @return 上传结果
+     */
+    Result<Map<String, Object>> uploadReviewImage(MultipartFile image);
 } 

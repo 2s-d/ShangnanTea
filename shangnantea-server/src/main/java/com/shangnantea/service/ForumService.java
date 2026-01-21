@@ -2,13 +2,16 @@ package com.shangnantea.service;
 
 import com.shangnantea.common.api.PageParam;
 import com.shangnantea.common.api.PageResult;
+import com.shangnantea.common.api.Result;
 import com.shangnantea.model.entity.forum.ForumPost;
 import com.shangnantea.model.entity.forum.ForumReply;
 import com.shangnantea.model.entity.forum.ForumTopic;
 import com.shangnantea.model.entity.forum.HomeContent;
 import com.shangnantea.model.entity.forum.TeaArticle;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 论坛服务接口
@@ -209,4 +212,12 @@ public interface ForumService {
      * @return 是否成功
      */
     boolean deleteHomeContent(Integer id);
+    
+    /**
+     * 上传帖子图片
+     *
+     * @param image 图片文件
+     * @return 上传结果
+     */
+    Result<Map<String, Object>> uploadPostImage(MultipartFile image);
 } 

@@ -2,6 +2,7 @@ package com.shangnantea.service.impl;
 
 import com.shangnantea.common.api.PageParam;
 import com.shangnantea.common.api.PageResult;
+import com.shangnantea.common.api.Result;
 import com.shangnantea.mapper.ForumPostMapper;
 import com.shangnantea.mapper.ForumReplyMapper;
 import com.shangnantea.mapper.ForumTopicMapper;
@@ -13,18 +14,27 @@ import com.shangnantea.model.entity.forum.ForumTopic;
 import com.shangnantea.model.entity.forum.HomeContent;
 import com.shangnantea.model.entity.forum.TeaArticle;
 import com.shangnantea.service.ForumService;
+import com.shangnantea.utils.FileUploadUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 论坛服务实现类
  */
 @Service
 public class ForumServiceImpl implements ForumService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ForumServiceImpl.class);
 
     @Autowired
     private ForumTopicMapper topicMapper;
@@ -40,6 +50,9 @@ public class ForumServiceImpl implements ForumService {
     
     @Autowired
     private HomeContentMapper homeContentMapper;
+    
+    @Value("${app.base-url:http://localhost:8080}")
+    private String baseUrl;
     
     @Override
     public List<ForumTopic> listTopics() {
@@ -294,5 +307,30 @@ public class ForumServiceImpl implements ForumService {
     public boolean deleteHomeContent(Integer id) {
         // TODO: 实现删除首页内容的逻辑
         return homeContentMapper.deleteById(id) > 0;
+    }
+    
+    @Override
+    public Result<Map<String, Object>> uploadPostImage(MultipartFile image) {
+        try {
+            logger.info("上传帖子图片请求, 文件名: {}", image.getOriginalFilename());
+            
+            // 1. 调用工具类上传（硬编码type为"posts"）
+            String relativePath = FileUploadUtils.uploadImage(image, "posts");
+            
+            // 2. 生成访问URL
+            String accessUrl = FileUploadUtils.generateAccessUrl(relativePath, baseUrl);
+            
+            // 3. 直接返回，不存数据库（场景2：先返回URL，稍后存储）
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("url", accessUrl);
+            responseData.put("path", relativePath);
+            
+            logger.info("帖子图片上传成功: path: {}", relativePath);
+            return Result.success(6028, responseData); // 帖子图片上传成功
+            
+        } catch (Exception e) {
+            logger.error("帖子图片上传失败: 系统异常", e);
+            return Result.failure(6140); // 帖子图片上传失败
+        }
     }
 } 

@@ -2,17 +2,25 @@ package com.shangnantea.service.impl;
 
 import com.shangnantea.common.api.PageParam;
 import com.shangnantea.common.api.PageResult;
+import com.shangnantea.common.api.Result;
 import com.shangnantea.mapper.OrderMapper;
 import com.shangnantea.mapper.ShoppingCartMapper;
 import com.shangnantea.model.entity.order.Order;
 import com.shangnantea.model.entity.order.ShoppingCart;
 import com.shangnantea.service.OrderService;
+import com.shangnantea.utils.FileUploadUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -21,11 +29,16 @@ import java.util.UUID;
 @Service
 public class OrderServiceImpl implements OrderService {
 
+    private static final Logger logger = LoggerFactory.getLogger(OrderServiceImpl.class);
+
     @Autowired
     private OrderMapper orderMapper;
     
     @Autowired
     private ShoppingCartMapper cartMapper;
+    
+    @Value("${app.base-url:http://localhost:8080}")
+    private String baseUrl;
     
     @Override
     public Order getOrderById(String id) {
@@ -167,5 +180,30 @@ public class OrderServiceImpl implements OrderService {
     public boolean clearUserCart(String userId) {
         // TODO: 实现清空用户购物车的逻辑
         return false; // 待实现
+    }
+    
+    @Override
+    public Result<Map<String, Object>> uploadReviewImage(MultipartFile image) {
+        try {
+            logger.info("上传评价图片请求, 文件名: {}", image.getOriginalFilename());
+            
+            // 1. 调用工具类上传（硬编码type为"reviews"）
+            String relativePath = FileUploadUtils.uploadImage(image, "reviews");
+            
+            // 2. 生成访问URL
+            String accessUrl = FileUploadUtils.generateAccessUrl(relativePath, baseUrl);
+            
+            // 3. 直接返回，不存数据库（场景2：先返回URL，稍后存储）
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("url", accessUrl);
+            responseData.put("path", relativePath);
+            
+            logger.info("评价图片上传成功: path: {}", relativePath);
+            return Result.success(5016, responseData); // 评价图片上传成功
+            
+        } catch (Exception e) {
+            logger.error("评价图片上传失败: 系统异常", e);
+            return Result.failure(5144); // 评价图片上传失败
+        }
     }
 } 
