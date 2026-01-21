@@ -96,7 +96,7 @@ inclusion: manual
 
 #### 基础用户功能（10个接口）
 1. ✅ **login** - `/user/login` - 用户登录（已完成）
-2. **register** - `/user/register` - 用户注册  
+2. ✅ **register** - `/user/register` - 用户注册（已完成）
 3. **logout** - `/user/logout` - 用户登出
 4. **getCurrentUser** - `/user/me` - 获取当前用户信息
 5. **refreshToken** - `/user/refresh` - 刷新令牌
@@ -142,9 +142,9 @@ inclusion: manual
 35. **processCertification** - `/user/admin/certifications/{id}` - 审核认证
 
 ### 接口开发进度
-- **已完成**：1/35（login）
-- **待开发**：34/35
-- **完成率**：2.9%
+- **已完成**：2/35（login, register）
+- **待开发**：33/35
+- **完成率**：5.7%
 
 ### 状态码范围
 - **成功码**：2000-2024（25个成功状态码）

@@ -7374,8 +7374,8 @@ components:
       properties:
         code:
           type: integer
-          enum: [2001, 2101]
-          description: 2001=注册成功, 2101=注册失败
+          enum: [2001, 2102]
+          description: 2001=注册成功, 2102=注册失败
         data:
           type: object
           nullable: true
