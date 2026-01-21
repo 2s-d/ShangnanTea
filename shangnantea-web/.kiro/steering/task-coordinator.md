@@ -23,12 +23,15 @@ inclusion: manual
 - 任务分解要足够细，确保子代理能独立完成
 - 使用 `invokeSubAgent` 实现真正的并行执行，提高效率
 
-## 当前项目：消息系统重构
+## 当前项目：后端接口实现
 
-### 重构三步走
-- Step 1: promptMessages.js（纯前端提示消息）
-- Step 2: 状态码映射文档
-- Step 3: apiMessages.js + 拦截器改造 + 清理旧文件
+### 开发重点
+- Controller层：接口定义和参数验证
+- Service层：业务逻辑实现
+- Mapper层：数据访问层实现
+- DTO/VO：数据传输对象设计
+- 工具类：可复用组件开发
+- 语法检查：代码质量保证
 
 ### 可调度的工人身份（作为子代理参考）
 - worker-user: 用户模块
@@ -37,50 +40,68 @@ inclusion: manual
 - worker-shop: 店铺模块
 - worker-forum: 论坛模块
 - worker-message: 消息模块
-- worker-common: 通用组件
+- worker-syntax: 语法检查模块
 
 ## 子代理调度方式
 
-使用 `invokeSubAgent` 工具并行执行任务：
+### 方式1：提供专业提示词
+为特定模块工人提供详细的任务提示词，包含：
+- 明确的目标和范围
+- 具体的实现步骤
+- 禁止操作清单
+- 验收标准
 
-```javascript
-// 示例：并行调度6个子代理处理不同模块
-invokeSubAgent({
-  name: "general-task-execution",
-  prompt: `
-你是用户模块专员，参考 .kiro/steering/worker-user.md 中的职责范围。
+### 方式2：修改工人文档
+根据项目需要更新各模块工人的职责范围和工作规范
 
-## 任务：[任务名称]
+### 方式3：直接指导
+对于简单任务，直接提供实现指导和代码模板
+
+**示例提示词模板**：
+```
+你是[模块]专员，参考 .kiro/steering/worker-[模块].md 中的职责范围。
+
+## 任务：[具体任务名称]
 
 ### 目标
-[一句话描述要做什么]
+[一句话描述要实现什么功能]
 
 ### 涉及文件
-- [文件路径1]
-- [文件路径2]
+- Controller: [Controller文件路径]
+- Service: [Service文件路径]  
+- Mapper: [Mapper文件路径]
+- DTO/VO: [数据模型文件路径]
 
 ### 具体操作
-1. [步骤1]
-2. [步骤2]
+1. [步骤1：如检查Controller接口定义]
+2. [步骤2：如实现Service业务逻辑]
+3. [步骤3：如编写Mapper SQL]
+4. [步骤4：如创建DTO/VO类]
+
+### 参考文档
+- 接口开发流程指南：shangnantea-server/docs/接口开发流程指南.md
+- 文件上传系统指南：shangnantea-server/docs/FILE-UPLOAD-SYSTEM-GUIDE.md
+- 状态码映射：shangnantea-web/docs/tasks/code-message-mapping.md
 
 ### 禁止操作
 - 不要修改其他模块的文件
-- 不要删除文件
+- 不要删除现有功能
+- 不要偏离接口文档定义
 
 ### 验收标准
-- [ ] [检查项1]
-- [ ] [检查项2]
-`,
-  explanation: "调度用户模块子代理执行任务"
-})
+- [ ] [检查项1：如接口编译通过]
+- [ ] [检查项2：如业务逻辑正确]
+- [ ] [检查项3：如数据库操作成功]
 ```
 
 **优势**：
-- 多个子代理可以真正并行执行
-- 结果自动汇总回主代理
-- 无需用户手动开多个窗口
+- 灵活适应不同开发环境
+- 提供清晰的任务指导
+- 便于质量控制和进度跟踪
 
 ## 常用命令
 
-- 查看任务进度：读取 `.kiro/specs/message-system-refactor/tasks.md`
-- 验证模块迁移：检查对应 Vue 文件的 import 和调用
+- 查看接口文档：读取 `openapi_new.yaml` 了解接口定义
+- 检查开发进度：查看各模块Controller、Service、Mapper实现状态
+- 验证代码质量：调用语法检查模块进行代码审查
+- 更新文档：同步实际开发经验到指导文档中
