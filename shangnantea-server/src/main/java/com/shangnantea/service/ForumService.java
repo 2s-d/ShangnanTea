@@ -220,4 +220,12 @@ public interface ForumService {
      * @return 上传结果
      */
     Result<Map<String, Object>> uploadPostImage(MultipartFile image);
+    
+    /**
+     * 上传论坛轮播图
+     *
+     * @param image 图片文件
+     * @return 上传结果
+     */
+    Result<Map<String, Object>> uploadBanner(MultipartFile image);
 } 

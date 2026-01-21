@@ -2,12 +2,15 @@ package com.shangnantea.service;
 
 import com.shangnantea.common.api.PageParam;
 import com.shangnantea.common.api.PageResult;
+import com.shangnantea.common.api.Result;
 import com.shangnantea.model.entity.tea.Tea;
 import com.shangnantea.model.entity.tea.TeaCategory;
 import com.shangnantea.model.entity.tea.TeaImage;
 import com.shangnantea.model.entity.tea.TeaSpecification;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 茶叶服务接口
@@ -94,4 +97,12 @@ public interface TeaService {
      * @return 分页结果
      */
     PageResult<Tea> searchTeas(String keyword, PageParam pageParam);
+    
+    /**
+     * 上传茶叶图片
+     *
+     * @param image 图片文件
+     * @return 上传结果
+     */
+    Result<Map<String, Object>> uploadTeaImages(MultipartFile image);
 } 

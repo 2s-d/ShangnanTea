@@ -116,4 +116,28 @@ public interface ShopService {
      * @return 是否成功
      */
     boolean confirmNotification(Integer certificationId);
+    
+    /**
+     * 上传商家认证图片
+     *
+     * @param image 图片文件
+     * @return 上传结果
+     */
+    Result<Map<String, Object>> uploadCertificationImage(MultipartFile image);
+    
+    /**
+     * 上传店铺Logo
+     *
+     * @param image 图片文件
+     * @return 上传结果
+     */
+    Result<Map<String, Object>> uploadShopLogo(MultipartFile image);
+    
+    /**
+     * 上传店铺轮播图
+     *
+     * @param image 图片文件
+     * @return 上传结果
+     */
+    Result<Map<String, Object>> uploadShopBanner(MultipartFile image);
 } 

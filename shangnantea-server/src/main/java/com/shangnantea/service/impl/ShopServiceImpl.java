@@ -2,18 +2,27 @@ package com.shangnantea.service.impl;
 
 import com.shangnantea.common.api.PageParam;
 import com.shangnantea.common.api.PageResult;
+import com.shangnantea.common.api.Result;
 import com.shangnantea.mapper.ShopCertificationMapper;
 import com.shangnantea.mapper.ShopMapper;
 import com.shangnantea.mapper.TeaMapper;
 import com.shangnantea.model.entity.shop.Shop;
 import com.shangnantea.model.entity.shop.ShopCertification;
 import com.shangnantea.model.entity.tea.Tea;
+import com.shangnantea.security.context.UserContext;
 import com.shangnantea.service.ShopService;
+import com.shangnantea.utils.FileUploadUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -21,6 +30,8 @@ import java.util.UUID;
  */
 @Service
 public class ShopServiceImpl implements ShopService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ShopServiceImpl.class);
 
     @Autowired
     private ShopMapper shopMapper;
@@ -30,6 +41,9 @@ public class ShopServiceImpl implements ShopService {
     
     @Autowired
     private TeaMapper teaMapper;
+    
+    @Value("${app.base-url:http://localhost:8080}")
+    private String baseUrl;
     
     @Override
     public Shop getShopById(String id) {
