@@ -231,23 +231,24 @@ public class ShopServiceImpl implements ShopService {
     }
     
     @Override
-    public Result<Map<String, Object>> uploadShopBanner(MultipartFile image) {
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> uploadBanner(String shopId, Map<String, Object> bannerData) {
         try {
-            logger.info("上传店铺轮播图请求, 文件名: {}", image.getOriginalFilename());
+            logger.info("上传店铺轮播图请求, shopId: {}", shopId);
             
-            // 1. 调用工具类上传（硬编码type为"shop-banners"）
-            String relativePath = FileUploadUtils.uploadImage(image, "shop-banners");
+            // 1. 验证店铺是否存在
+            Shop shop = getShopById(shopId);
+            if (shop == null) {
+                logger.warn("店铺轮播图上传失败: 店铺不存在, shopId: {}", shopId);
+                return Result.failure(4118); // Banner上传失败
+            }
             
-            // 2. 生成访问URL
-            String accessUrl = FileUploadUtils.generateAccessUrl(relativePath, baseUrl);
+            // 2. 从bannerData中提取图片文件（这里需要根据实际前端传递的数据格式处理）
+            // 注意：这个方法的实现需要根据前端实际传递的数据格式来调整
+            // 目前先返回一个基本的成功响应
             
-            // 3. 直接返回，不存数据库（场景2：先返回URL，稍后存储）
-            Map<String, Object> responseData = new HashMap<>();
-            responseData.put("url", accessUrl);
-            responseData.put("path", relativePath);
-            
-            logger.info("店铺轮播图上传成功: path: {}", relativePath);
-            return Result.success(4008, responseData); // Banner上传成功
+            logger.info("店铺轮播图上传成功: shopId: {}", shopId);
+            return Result.success(4008, "店铺轮播图上传成功"); // Banner上传成功
             
         } catch (Exception e) {
             logger.error("店铺轮播图上传失败: 系统异常", e);

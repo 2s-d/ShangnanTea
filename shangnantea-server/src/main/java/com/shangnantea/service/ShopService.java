@@ -137,8 +137,9 @@ public interface ShopService {
     /**
      * 上传店铺轮播图
      *
-     * @param image 图片文件
+     * @param shopId 店铺ID
+     * @param bannerData Banner数据
      * @return 上传结果
      */
-    Result<Map<String, Object>> uploadShopBanner(MultipartFile image);
+    Result<Object> uploadBanner(String shopId, Map<String, Object> bannerData);
 } 

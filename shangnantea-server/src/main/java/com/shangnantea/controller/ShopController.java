@@ -197,6 +197,21 @@ public class ShopController {
         return shopService.uploadShopLogo(shopId, file);
     }
 
+    /**
+     * 上传商家认证图片
+     * 路径: POST /shop/certification/image
+     * 成功码: 2024, 失败码: 2146, 2147, 2148
+     *
+     * @param file 认证图片文件
+     * @return 上传结果
+     */
+    @PostMapping("/certification/image")
+    @RequiresLogin
+    public Result<Map<String, Object>> uploadCertificationImage(@RequestParam("file") MultipartFile file) {
+        logger.info("上传商家认证图片请求, 文件名: {}", file.getOriginalFilename());
+        return shopService.uploadCertificationImage(file);
+    }
+
     // ==================== 店铺茶叶管理（商家） ====================
 
     /**
