@@ -99,7 +99,7 @@ public class UserController {
     /**
      * 获取当前用户信息
      * 路径: GET /user/me
-     * 成功码: 200, 失败码: 2103
+     * 成功码: 200, 失败码: 2104
      *
      * @return 用户信息
      */

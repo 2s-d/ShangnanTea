@@ -188,19 +188,35 @@ public class UserServiceImpl implements UserService {
     
     // ==================== 用户信息管理 ====================
     
+    /**
+     * 获取当前用户信息
+     * 成功码：200，失败码：2104
+     */
     @Override
     public Result<UserVO> getCurrentUser() {
-        String userId = UserContext.getCurrentUserId();
-        if (userId == null) {
-            return Result.failure(2103); // 用户未登录
+        try {
+            // 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("获取当前用户信息失败: 用户未登录");
+                return Result.failure(2104); // 获取当前用户信息失败
+            }
+            
+            // 查询用户信息
+            User user = getUserEntityById(userId);
+            if (user == null) {
+                logger.warn("获取当前用户信息失败: 用户不存在, userId: {}", userId);
+                return Result.failure(2104); // 获取当前用户信息失败
+            }
+            
+            // 转换为VO并返回
+            logger.info("获取当前用户信息成功: userId: {}, username: {}", userId, user.getUsername());
+            return Result.success(200, convertToUserVO(user)); // 操作成功（静默）
+            
+        } catch (Exception e) {
+            logger.error("获取当前用户信息失败: 系统异常", e);
+            return Result.failure(2104); // 获取当前用户信息失败
         }
-        
-        User user = getUserEntityById(userId);
-        if (user == null) {
-            return Result.failure(2103); // 用户不存在
-        }
-        
-        return Result.success(200, convertToUserVO(user));
     }
     
     @Override
