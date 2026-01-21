@@ -147,10 +147,37 @@ public class UserServiceImpl implements UserService {
         return Result.success(2001, convertToUserVO(savedUser)); // 注册成功，请登录
     }
     
+    /**
+     * 用户登出
+     * 成功码：2002，失败码：2103
+     */
     @Override
     public Result<Void> logout(HttpServletRequest request) {
-        // TODO: 实现登出逻辑
-        return Result.success(2002);
+        try {
+            // 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            String username = UserContext.getCurrentUsername();
+            
+            if (userId == null) {
+                logger.warn("登出失败: 用户未登录");
+                return Result.failure(2103); // 退出登录失败
+            }
+            
+            // 记录登出日志
+            logger.info("用户登出: userId: {}, username: {}", userId, username);
+            
+            // 清除用户上下文（虽然拦截器会自动清除，但显式清除更安全）
+            UserContext.clear();
+            
+            logger.info("用户登出成功: userId: {}, username: {}", userId, username);
+            return Result.success(2002); // 已安全退出系统
+            
+        } catch (Exception e) {
+            logger.error("登出失败: 系统异常", e);
+            // 即使发生异常，也清除用户上下文
+            UserContext.clear();
+            return Result.failure(2103); // 退出登录失败
+        }
     }
     
     @Override
