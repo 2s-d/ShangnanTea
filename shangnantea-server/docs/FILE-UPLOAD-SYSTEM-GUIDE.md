@@ -145,6 +145,7 @@ Service层处理
   - 需要同时处理文件上传和业务逻辑
   - 通常需要事务控制确保数据一致性
   - 返回的是业务操作结果，不仅仅是文件信息
+  - **重要经验**：数据类型匹配问题 - 确保实体类ID类型与Mapper接口泛型一致（如ChatSession使用String ID，Mapper应为BaseMapper<ChatSession, String>）
 
 ---
 
@@ -438,6 +439,69 @@ public Result<Map<String, Object>> upload[业务]Image(MultipartFile file) {
 }
 ```
 
+**场景3：上传+业务操作**
+```java
+@Override
+@Transactional(rollbackFor = Exception.class)  // 重要：事务控制
+public Result<Object> send[业务]Message(String sessionId, String receiverId, MultipartFile file) {
+    try {
+        // 1. 获取当前用户ID
+        String senderId = UserContext.getCurrentUserId();
+        if (senderId == null) {
+            logger.warn("[业务]消息发送失败: 用户未登录");
+            return Result.failure([失败码1]);
+        }
+        
+        // 2. 验证业务对象是否存在（如会话）
+        [业务对象] object = [mapper].selectById(sessionId);
+        if (object == null) {
+            logger.warn("[业务]消息发送失败: 对象不存在, id: {}", sessionId);
+            return Result.failure([失败码2]);
+        }
+        
+        // 3. 调用工具类上传（硬编码type）
+        String relativePath = FileUploadUtils.uploadImage(file, "[type]");
+        
+        // 4. 生成访问URL
+        String accessUrl = FileUploadUtils.generateAccessUrl(relativePath, baseUrl);
+        
+        // 5. 创建业务记录
+        [业务记录] record = new [业务记录]();
+        record.setContent(accessUrl); // 存储完整URL
+        record.setContentType("image"); // 标识类型
+        record.setSenderId(senderId);
+        record.setReceiverId(receiverId);
+        record.setCreateTime(new Date());
+        
+        // 6. 保存到数据库
+        int result = [mapper].insert(record);
+        if (result <= 0) {
+            logger.error("[业务]消息发送失败: 数据库插入失败");
+            return Result.failure([失败码3]);
+        }
+        
+        // 7. 更新相关业务对象（如会话最后消息）
+        object.setLastMessage("[图片]");
+        object.setLastMessageTime(new Date());
+        [mapper].updateById(object);
+        
+        // 8. 构造业务返回数据
+        Map<String, Object> responseData = new HashMap<>();
+        responseData.put("messageId", record.getId());
+        responseData.put("content", accessUrl);
+        responseData.put("contentType", "image");
+        responseData.put("createTime", record.getCreateTime());
+        
+        logger.info("[业务]消息发送成功: id: {}, path: {}", record.getId(), relativePath);
+        return Result.success([成功码], responseData);
+        
+    } catch (Exception e) {
+        logger.error("[业务]消息发送失败: 系统异常", e);
+        return Result.failure([失败码3]);
+    }
+}
+```
+
 ### Mapper层模板
 
 **接口定义**：
@@ -591,6 +655,12 @@ const handleUpload = async (options) => {
 - 检查JWT token是否有效
 - 验证UserContext.getCurrentUserId()是否返回正确值
 
+**Q7：实体类ID类型与Mapper泛型不匹配**
+- 确保实体类的ID类型与Mapper接口的泛型参数一致
+- 例如：ChatSession使用String ID，则ChatSessionMapper应为BaseMapper<ChatSession, String>
+- 同时检查XML文件中的parameterType是否匹配
+- 这是场景3实现中容易遇到的问题
+
 ### 实际开发经验
 
 **文件存储最佳实践**：
@@ -691,4 +761,4 @@ const handleUpload = async (options) => {
 
 **最后更新**：2026-01-21  
 **维护者**：项目团队  
-**基于实现**：用户头像上传功能完整开发经验
+**基于实现**：用户头像上传、图片消息发送功能完整开发经验
