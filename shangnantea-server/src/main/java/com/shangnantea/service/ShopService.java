@@ -2,11 +2,14 @@ package com.shangnantea.service;
 
 import com.shangnantea.common.api.PageParam;
 import com.shangnantea.common.api.PageResult;
+import com.shangnantea.common.api.Result;
 import com.shangnantea.model.entity.shop.Shop;
 import com.shangnantea.model.entity.shop.ShopCertification;
 import com.shangnantea.model.entity.tea.Tea;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 店铺服务接口
