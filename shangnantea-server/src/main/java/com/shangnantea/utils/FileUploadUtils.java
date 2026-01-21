@@ -12,8 +12,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * 文件上传工具类
@@ -133,7 +136,7 @@ public class FileUploadUtils {
         
         // 检查文件大小
         if (file.getSize() > maxSize) {
-            String maxSizeStr = StringUtils.formatFileSize(maxSize);
+            String maxSizeStr = formatFileSize(maxSize);
             throw new BusinessException("文件大小不能超过 " + maxSizeStr);
         }
         
@@ -161,10 +164,10 @@ public class FileUploadUtils {
      */
     private static String generateFilename(MultipartFile file) {
         // 获取时间戳
-        String timestamp = DateUtils.format(new Date(), "yyyyMMddHHmmss");
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         
         // 获取UUID
-        String uuid = StringUtils.generateUUID();
+        String uuid = UUID.randomUUID().toString().replace("-", "");
         
         // 根据MIME类型确定扩展名
         String extension = getExtensionByMimeType(file.getContentType());
@@ -221,7 +224,7 @@ public class FileUploadUtils {
      * 只保留字母、数字、下划线、连字符
      */
     private static String normalizePathSegment(String segment) {
-        if (StringUtils.isEmpty(segment)) {
+        if (segment == null || segment.trim().isEmpty()) {
             return "default";
         }
         
@@ -309,7 +312,7 @@ public class FileUploadUtils {
      * @return 是否删除成功
      */
     public static boolean deleteFile(String relativePath) {
-        if (StringUtils.isEmpty(relativePath)) {
+        if (relativePath == null || relativePath.trim().isEmpty()) {
             return false;
         }
         
@@ -335,7 +338,7 @@ public class FileUploadUtils {
      * 防止路径遍历攻击(如: ../../../etc/passwd)
      */
     private static boolean isValidPath(String path) {
-        if (StringUtils.isEmpty(path)) {
+        if (path == null || path.trim().isEmpty()) {
             return false;
         }
         
@@ -365,7 +368,7 @@ public class FileUploadUtils {
      * @return 完整访问URL
      */
     public static String generateAccessUrl(String relativePath, String baseUrl) {
-        if (StringUtils.isEmpty(relativePath)) {
+        if (relativePath == null || relativePath.trim().isEmpty()) {
             return null;
         }
         
@@ -380,5 +383,36 @@ public class FileUploadUtils {
         }
         
         return baseUrl + relativePath;
+    }
+    
+    /**
+     * 获取文件扩展名
+     */
+    private static String getFileExtension(String filename) {
+        if (filename == null || filename.trim().isEmpty()) {
+            return "";
+        }
+        
+        int lastDotIndex = filename.lastIndexOf('.');
+        if (lastDotIndex == -1 || lastDotIndex == filename.length() - 1) {
+            return "";
+        }
+        
+        return filename.substring(lastDotIndex);
+    }
+    
+    /**
+     * 格式化文件大小
+     */
+    private static String formatFileSize(long size) {
+        if (size < 1024) {
+            return size + " B";
+        } else if (size < 1024 * 1024) {
+            return String.format("%.1f KB", size / 1024.0);
+        } else if (size < 1024 * 1024 * 1024) {
+            return String.format("%.1f MB", size / (1024.0 * 1024.0));
+        } else {
+            return String.format("%.1f GB", size / (1024.0 * 1024.0 * 1024.0));
+        }
     }
 }

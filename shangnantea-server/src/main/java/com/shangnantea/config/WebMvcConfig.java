@@ -4,6 +4,7 @@ import com.shangnantea.security.interceptor.JwtInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
@@ -31,7 +32,15 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/swagger-ui.html",
                         "/v2/api-docs",
                         "/webjars/**",
-                        "/static/**"
+                        "/static/**",
+                        "/files/**"  // 添加文件访问路径
                 );
+    }
+    
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // 配置静态资源映射，用于访问上传的文件
+        registry.addResourceHandler("/files/**")
+                .addResourceLocations("file:" + System.getProperty("user.dir") + "/files/");
     }
 } 

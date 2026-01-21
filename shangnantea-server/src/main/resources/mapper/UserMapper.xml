@@ -96,6 +96,14 @@
         WHERE id = #{id,jdbcType=VARCHAR}
     </update>
     
+    <!-- 更新头像 -->
+    <update id="updateAvatar">
+        UPDATE users
+        SET avatar = #{avatar,jdbcType=VARCHAR},
+        update_time = now()
+        WHERE id = #{id,jdbcType=VARCHAR}
+    </update>
+    
     <!-- 删除用户 -->
     <delete id="delete" parameterType="java.lang.String">
         UPDATE users

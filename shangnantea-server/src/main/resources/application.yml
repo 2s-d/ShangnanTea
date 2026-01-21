@@ -29,3 +29,7 @@ logging:
 jwt:
   secret: shangnantea-secure-jwt-secret-key-2025
   expiration: 86400000 
+
+# 应用配置
+app:
+  base-url: http://localhost:8080 
