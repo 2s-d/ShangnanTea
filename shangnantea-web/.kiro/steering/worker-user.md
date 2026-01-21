@@ -95,7 +95,7 @@ inclusion: manual
 ### 用户模块接口列表（共35个接口）
 
 #### 基础用户功能（10个接口）
-1. **login** - `/user/login` - 用户登录
+1. ✅ **login** - `/user/login` - 用户登录（已完成）
 2. **register** - `/user/register` - 用户注册  
 3. **logout** - `/user/logout` - 用户登出
 4. **getCurrentUser** - `/user/me` - 获取当前用户信息
@@ -140,6 +140,11 @@ inclusion: manual
 33. **toggleUserStatus** - `/user/admin/users/{userId}/status` - 切换用户状态
 34. **getCertificationList** - `/user/admin/certifications` - 获取认证列表
 35. **processCertification** - `/user/admin/certifications/{id}` - 审核认证
+
+### 接口开发进度
+- **已完成**：1/35（login）
+- **待开发**：34/35
+- **完成率**：2.9%
 
 ### 状态码范围
 - **成功码**：2000-2024（25个成功状态码）

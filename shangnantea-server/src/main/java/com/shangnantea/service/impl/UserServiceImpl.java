@@ -52,7 +52,7 @@ public class UserServiceImpl implements UserService {
     
     /**
      * 用户登录
-     * 成功码：2000，失败码：2100, 2105
+     * 成功码：2000，失败码：2100, 2101
      */
     @Override
     public Result<TokenVO> login(LoginDTO loginDTO) {
