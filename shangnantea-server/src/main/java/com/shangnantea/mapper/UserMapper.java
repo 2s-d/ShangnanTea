@@ -52,6 +52,15 @@ public interface UserMapper extends BaseMapper<User, String> {
     int updatePassword(@Param("id") String id, @Param("password") String password);
     
     /**
+     * 更新头像
+     *
+     * @param id     用户ID
+     * @param avatar 头像路径
+     * @return 影响行数
+     */
+    int updateAvatar(@Param("id") String id, @Param("avatar") String avatar);
+    
+    /**
      * 删除用户
      *
      * @param id 用户ID
