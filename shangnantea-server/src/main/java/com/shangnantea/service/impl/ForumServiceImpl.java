@@ -333,4 +333,53 @@ public class ForumServiceImpl implements ForumService {
             return Result.failure(6140); // 帖子图片上传失败
         }
     }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> uploadBanner(MultipartFile file, String title, String subtitle, String linkUrl) {
+        try {
+            logger.info("上传论坛轮播图请求, title: {}, 文件名: {}", title, file.getOriginalFilename());
+            
+            // 1. 调用工具类上传（硬编码type为"forum-banners"）
+            String relativePath = FileUploadUtils.uploadImage(file, "forum-banners");
+            
+            // 2. 生成访问URL
+            String accessUrl = FileUploadUtils.generateAccessUrl(relativePath, baseUrl);
+            
+            // 3. 创建首页内容记录（存储到home_contents表）
+            HomeContent content = new HomeContent();
+            content.setSection("banner"); // 轮播图板块
+            content.setTitle(title);
+            content.setSubtitle(subtitle);
+            content.setContent(relativePath); // 存储相对路径
+            content.setLinkUrl(linkUrl);
+            content.setType("image");
+            content.setStatus(1); // 启用状态
+            content.setCreateTime(new Date());
+            content.setUpdateTime(new Date());
+            
+            // 4. 保存到数据库
+            int result = homeContentMapper.insert(content);
+            if (result <= 0) {
+                logger.error("论坛轮播图上传失败: 数据库插入失败");
+                return Result.failure(6104); // Banner上传失败
+            }
+            
+            // 5. 构造返回数据
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("id", content.getId());
+            responseData.put("url", accessUrl);
+            responseData.put("path", relativePath);
+            responseData.put("title", title);
+            responseData.put("subtitle", subtitle);
+            responseData.put("linkUrl", linkUrl);
+            
+            logger.info("论坛轮播图上传成功: id: {}, path: {}", content.getId(), relativePath);
+            return Result.success(6001, responseData); // Banner上传成功
+            
+        } catch (Exception e) {
+            logger.error("论坛轮播图上传失败: 系统异常", e);
+            return Result.failure(6103); // Banner上传失败
+        }
+    }
 } 

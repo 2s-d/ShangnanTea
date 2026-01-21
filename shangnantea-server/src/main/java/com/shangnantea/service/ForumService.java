@@ -224,8 +224,11 @@ public interface ForumService {
     /**
      * 上传论坛轮播图
      *
-     * @param image 图片文件
+     * @param file 图片文件
+     * @param title 标题
+     * @param subtitle 副标题
+     * @param linkUrl 链接地址
      * @return 上传结果
      */
-    Result<Map<String, Object>> uploadBanner(MultipartFile image);
+    Result<Object> uploadBanner(MultipartFile file, String title, String subtitle, String linkUrl);
 } 

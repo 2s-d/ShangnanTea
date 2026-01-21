@@ -149,4 +149,109 @@ public class ShopServiceImpl implements ShopService {
         
         return certificationMapper.updateById(certification) > 0;
     }
+    
+    @Override
+    public Result<Map<String, Object>> uploadCertificationImage(MultipartFile image) {
+        try {
+            logger.info("上传商家认证图片请求, 文件名: {}", image.getOriginalFilename());
+            
+            // 1. 调用工具类上传（硬编码type为"certifications"）
+            String relativePath = FileUploadUtils.uploadImage(image, "certifications");
+            
+            // 2. 生成访问URL
+            String accessUrl = FileUploadUtils.generateAccessUrl(relativePath, baseUrl);
+            
+            // 3. 直接返回，不存数据库（场景2：先返回URL，稍后存储）
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("url", accessUrl);
+            responseData.put("path", relativePath);
+            
+            logger.info("商家认证图片上传成功: path: {}", relativePath);
+            return Result.success(2024, responseData); // 认证图片上传成功
+            
+        } catch (Exception e) {
+            logger.error("商家认证图片上传失败: 系统异常", e);
+            return Result.failure(2146); // 认证图片上传失败
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Map<String, Object>> uploadShopLogo(String shopId, MultipartFile image) {
+        try {
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("店铺Logo上传失败: 用户未登录");
+                return Result.failure(4113); // Logo上传失败
+            }
+            
+            // 2. 获取店铺信息并验证权限
+            Shop shop = getShopById(shopId);
+            if (shop == null) {
+                logger.warn("店铺Logo上传失败: 店铺不存在, shopId: {}", shopId);
+                return Result.failure(4114); // Logo上传失败
+            }
+            
+            // 验证用户是否为店铺所有者
+            if (!userId.equals(shop.getUserId())) {
+                logger.warn("店铺Logo上传失败: 无权限操作, userId: {}, shopId: {}", userId, shopId);
+                return Result.failure(4114); // Logo上传失败
+            }
+            
+            logger.info("上传店铺Logo请求, 文件名: {}, shopId: {}", image.getOriginalFilename(), shopId);
+            
+            // 3. 调用工具类上传（硬编码type为"logos"）
+            String relativePath = FileUploadUtils.uploadImage(image, "logos");
+            
+            // 4. 生成访问URL
+            String accessUrl = FileUploadUtils.generateAccessUrl(relativePath, baseUrl);
+            
+            // 5. 更新店铺Logo字段
+            shop.setLogo(relativePath);
+            shop.setUpdateTime(new Date());
+            int result = shopMapper.updateById(shop);
+            if (result <= 0) {
+                logger.error("店铺Logo上传失败: 数据库更新失败, shopId: {}", shopId);
+                return Result.failure(4115); // Logo上传失败
+            }
+            
+            // 6. 返回结果
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("url", accessUrl);
+            responseData.put("path", relativePath);
+            
+            logger.info("店铺Logo上传成功: shopId: {}, path: {}", shopId, relativePath);
+            return Result.success(4007, responseData); // Logo上传成功
+            
+        } catch (Exception e) {
+            logger.error("店铺Logo上传失败: 系统异常", e);
+            return Result.failure(4115); // Logo上传失败
+        }
+    }
+    
+    @Override
+    public Result<Map<String, Object>> uploadShopBanner(MultipartFile image) {
+        try {
+            logger.info("上传店铺轮播图请求, 文件名: {}", image.getOriginalFilename());
+            
+            // 1. 调用工具类上传（硬编码type为"shop-banners"）
+            String relativePath = FileUploadUtils.uploadImage(image, "shop-banners");
+            
+            // 2. 生成访问URL
+            String accessUrl = FileUploadUtils.generateAccessUrl(relativePath, baseUrl);
+            
+            // 3. 直接返回，不存数据库（场景2：先返回URL，稍后存储）
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("url", accessUrl);
+            responseData.put("path", relativePath);
+            
+            logger.info("店铺轮播图上传成功: path: {}", relativePath);
+            return Result.success(4008, responseData); // Banner上传成功
+            
+        } catch (Exception e) {
+            logger.error("店铺轮播图上传失败: 系统异常", e);
+            return Result.failure(4117); // Banner上传失败
+        }
+    }
 } 

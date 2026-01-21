@@ -128,10 +128,11 @@ public interface ShopService {
     /**
      * 上传店铺Logo
      *
+     * @param shopId 店铺ID
      * @param image 图片文件
      * @return 上传结果
      */
-    Result<Map<String, Object>> uploadShopLogo(MultipartFile image);
+    Result<Map<String, Object>> uploadShopLogo(String shopId, MultipartFile image);
     
     /**
      * 上传店铺轮播图

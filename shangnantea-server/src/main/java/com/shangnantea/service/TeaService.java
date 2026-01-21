@@ -101,8 +101,9 @@ public interface TeaService {
     /**
      * 上传茶叶图片
      *
-     * @param image 图片文件
+     * @param teaId 茶叶ID
+     * @param files 图片文件数组
      * @return 上传结果
      */
-    Result<Map<String, Object>> uploadTeaImages(MultipartFile image);
+    Result<Object> uploadTeaImages(String teaId, MultipartFile[] files);
 } 
