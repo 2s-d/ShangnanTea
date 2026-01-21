@@ -11,7 +11,6 @@ import * as forumApi from './forum'
 import * as messageApi from './message'
 
 // 导入通用API
-import * as uploadApi from './upload'
 
 // 导出所有API模块
 export {
@@ -21,7 +20,6 @@ export {
   orderApi,
   forumApi,
   messageApi,
-  uploadApi
 }
 
 export default {
@@ -30,9 +28,7 @@ export default {
   shop: shopApi,
   order: orderApi,
   forum: forumApi,
-  message: messageApi,
-  upload: uploadApi
-} 
+  message: messageApi,} 
 
 // 如果需要分别单独引入各 API 模块也可用按需导出：
 // export { userApi, teaApi, shopApi, orderApi, forumApi, messageApi, uploadApi }
