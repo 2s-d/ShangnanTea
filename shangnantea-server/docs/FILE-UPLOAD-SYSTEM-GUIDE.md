@@ -47,3 +47,461 @@
 |------|----------|------|----------|----------|----------|----------|
 | 1 | uploadAvatar | /user/avatar | avatars | users | avatar | 用户头像上传 |
 | 2 | uploadCertificationImage | /user/merchant/certification/image | certifications | shop_certifications | - | 商家认证图片 |
+| 3 | uploadTeaImages | /tea/{teaId}/images | teas | tea_images | image_url | 茶叶图片上传 |
+| 4 | uploadShopLogo | /shop/{shopId}/logo | logos | shops | logo | 店铺Logo上传 |
+| 5 | uploadShopBanner | /shop/{shopId}/banners | shop-banners | shop_banners | image_url | 店铺轮播图 |
+| 6 | uploadReviewImage | /order/review/image | reviews | tea_reviews | images | 订单评价图片 |
+| 7 | uploadBanner | /forum/banners | forum-banners | home_contents | content | 论坛首页轮播图 |
+| 8 | sendImageMessage | /message/messages/image | messages | chat_messages | content | 聊天图片消息 |
+| 9 | uploadPostImage | /forum/posts/image | posts | forum_posts | images | 论坛帖子图片 |
+
+### 状态码统计
+
+每个接口都有对应的成功和失败状态码：
+
+| 接口 | 成功码 | 失败码 | 说明 |
+|------|--------|--------|------|
+| uploadAvatar | 2004 | 2109, 2110, 2111 | 头像更新成功/失败 |
+| uploadCertificationImage | 2024 | 2146, 2147, 2148 | 认证图片上传成功/失败 |
+| uploadTeaImages | 3014 | 3120, 3121, 3122 | 茶叶图片上传成功/失败 |
+| uploadShopLogo | 4007 | 4113, 4114, 4115 | Logo上传成功/失败 |
+| uploadShopBanner | 4008 | 4117, 4118, 4119 | Banner上传成功/失败 |
+| uploadReviewImage | 5016 | 5144, 5145, 5146 | 评价图片上传成功/失败 |
+| uploadBanner | 6001 | 6103, 6104, 6105 | 论坛Banner上传成功/失败 |
+| sendImageMessage | 7009 | 7116, 7117, 7118 | 图片消息发送成功/失败 |
+| uploadPostImage | 6028 | 6140, 6141, 6142 | 帖子图片上传成功/失败 |
+
+### 技术方案统一性
+
+**所有接口采用相同的技术方案**：
+- **前端**：使用FormData + multipart/form-data上传
+- **后端**：Controller接收 → Service处理 → 调用FileUploadUtils工具类
+- **存储**：统一的文件命名和目录结构
+- **返回**：统一的响应格式 {url, path}
+
+---
+
+## 🔴 文件上传全流程
+
+### 流程概览
+
+```
+前端上传文件
+    ↓
+Controller接收 (@RequestParam("file") MultipartFile file)
+    ↓
+Service层处理
+    ├─ 硬编码type（如 "avatars", "posts", "messages"）
+    ├─ 调用工具类：FileUploadUtils.uploadImage(file, type)
+    │   └─ 工具类处理：
+    │       ├─ 验证文件（类型、大小）
+    │       ├─ 生成文件名（时间戳+UUID）
+    │       ├─ 构建路径（files/images/{type}/{year}/{month}/{day}/{filename}）
+    │       ├─ 保存文件（压缩、存储）
+    │       └─ 返回相对路径
+    ├─ 生成访问URL
+    └─ 业务逻辑决策：
+        ├─ 场景1：直接存数据库（如头像）
+        ├─ 场景2：只返回URL（如帖子图片，等发帖时再存）
+        └─ 场景3：上传+业务操作（如聊天图片，上传并创建消息）
+    ↓
+返回Result给前端
+```
+
+### 三种业务场景
+
+**场景1：直接存数据库（如头像上传）**
+- 上传文件 → 调用工具类 → 更新数据库 → 返回结果
+- 适用接口：uploadAvatar, uploadShopLogo
+
+**场景2：先返回URL，稍后存储（如帖子图片）**
+- 上传文件 → 调用工具类 → 返回URL → 用户发帖时再存数据库
+- 适用接口：uploadPostImage, uploadReviewImage
+
+**场景3：上传+业务操作（如聊天图片）**
+- 上传文件 → 调用工具类 → 创建消息记录 → 返回结果
+- 适用接口：sendImageMessage
+
+---
+
+## 🔴 工具类使用指南
+
+### FileUploadUtils核心方法
+
+**主要上传方法**：
+```java
+// 基础上传（默认5MB限制）
+String relativePath = FileUploadUtils.uploadImage(file, "avatars");
+
+// 指定大小限制
+String relativePath = FileUploadUtils.uploadImage(file, "posts", 10 * 1024 * 1024);
+```
+
+**辅助方法**：
+```java
+// 生成访问URL
+String accessUrl = FileUploadUtils.generateAccessUrl(relativePath, baseUrl);
+
+// 删除文件
+boolean success = FileUploadUtils.deleteFile(relativePath);
+```
+
+### 文件命名规则
+
+**格式**：`时间戳_UUID.扩展名`
+**示例**：`20240118120530_abc123def456.jpg`
+
+**优点**：
+- 避免文件名冲突
+- 包含时间信息，便于管理
+- 不依赖原文件名，安全性高
+
+### 目录结构规则
+
+**路径格式**：`files/images/{type}/{year}/{month}/{day}/{filename}`
+
+**示例**：
+```
+files/
+  images/
+    avatars/2024/01/18/20240118120530_abc123.jpg
+    posts/2024/01/18/20240118120530_def456.jpg
+    messages/2024/01/18/20240118120530_ghi789.jpg
+```
+
+**优点**：
+- 按业务类型分类存储
+- 按日期分层，便于管理和清理
+- 支持大量文件存储
+
+### 文件验证规则
+
+**支持的图片类型**：
+- MIME类型：image/jpeg, image/jpg, image/png, image/gif, image/webp
+- 扩展名：.jpg, .jpeg, .png, .gif, .webp
+
+**文件大小限制**：
+- 默认：5MB
+- 可自定义：通过参数指定
+
+**图片压缩**：
+- 触发条件：文件大小 > 1MB
+- 压缩规则：宽度压缩到1200px，保持比例
+- 压缩质量：85%
+
+---
+
+## 🟡 数据库存储方案
+
+### 存储字段类型
+
+**单个图片字段**：
+```sql
+-- 用户头像
+users.avatar VARCHAR(255) -- 存储相对路径
+
+-- 店铺Logo
+shops.logo VARCHAR(255) -- 存储相对路径
+
+-- 茶叶主图
+teas.main_image VARCHAR(255) -- 存储相对路径
+```
+
+**多图片JSON字段**：
+```sql
+-- 论坛帖子图片
+forum_posts.images TEXT -- JSON数组格式
+
+-- 茶叶评价图片  
+tea_reviews.images TEXT -- JSON数组格式
+
+-- 茶文化文章图片
+tea_articles.images TEXT -- JSON数组格式
+```
+
+**专用图片表**：
+```sql
+-- 茶叶图片表
+tea_images.image_url VARCHAR(255) -- 存储相对路径
+
+-- 店铺Banner表
+shop_banners.image_url VARCHAR(255) -- 存储相对路径
+```
+
+**特殊存储方式**：
+```sql
+-- 聊天消息（图片URL存在content字段）
+chat_messages.content TEXT -- 存储完整访问URL
+chat_messages.content_type VARCHAR(20) -- 'image'标识
+
+-- 首页内容（轮播图等）
+home_contents.content TEXT -- 存储图片相关数据
+```
+
+### 存储路径规则
+
+**数据库存储**：相对路径（如：`files/images/avatars/2024/01/18/xxx.jpg`）
+**前端访问**：完整URL（如：`http://localhost:8080/files/images/avatars/2024/01/18/xxx.jpg`）
+
+**优点**：
+- 数据库存储空间小
+- 域名变更时无需修改数据库
+- 便于文件迁移
+
+---
+
+## 🟡 文件存储策略
+
+### 存储位置
+
+**开发环境**：项目根目录下的 `files/` 文件夹
+**生产环境**：可配置到独立的文件服务器或CDN
+
+### 清理策略
+
+**定时清理任务**（FileCleanupTask）：
+- **执行时间**：每天凌晨3点
+- **清理规则**：删除7天前的孤儿文件
+- **安全模式**：当前只记录日志，不自动删除
+
+**手动删除**：
+- 业务删除时调用 `FileUploadUtils.deleteFile()`
+- 立即删除对应的物理文件
+
+### 访问配置
+
+**静态资源映射**（WebMvcConfig）：
+```java
+@Override
+public void addResourceHandlers(ResourceHandlerRegistry registry) {
+    registry.addResourceHandler("/files/**")
+            .addResourceLocations("file:" + System.getProperty("user.dir") + "/files/");
+}
+```
+
+**访问URL格式**：`http://域名/files/images/{type}/{year}/{month}/{day}/{filename}`
+
+---
+
+## 🟢 接口实现模板
+
+### Controller层模板
+
+```java
+/**
+ * 上传[业务]图片
+ * 路径: POST /[模块]/[功能]/image
+ * 成功码: [xxxx], 失败码: [xxxx, xxxx, xxxx]
+ */
+@PostMapping("/[功能]/image")
+@RequiresLogin
+public Result<Map<String, Object>> upload[业务]Image(@RequestParam("file") MultipartFile file) {
+    logger.info("上传[业务]图片请求, 文件名: {}", file.getOriginalFilename());
+    return [模块]Service.upload[业务]Image(file);
+}
+```
+
+### Service层模板
+
+**场景1：直接存数据库**
+```java
+@Override
+public Result<Map<String, Object>> upload[业务]Image(MultipartFile file) {
+    try {
+        // 1. 调用工具类上传（硬编码type）
+        String relativePath = FileUploadUtils.uploadImage(file, "[type]");
+        
+        // 2. 生成访问URL
+        String baseUrl = "http://localhost:8080"; // 从配置读取
+        String accessUrl = FileUploadUtils.generateAccessUrl(relativePath, baseUrl);
+        
+        // 3. 更新数据库
+        // ... 业务逻辑
+        
+        // 4. 返回结果
+        Map<String, Object> result = new HashMap<>();
+        result.put("url", accessUrl);
+        result.put("path", relativePath);
+        
+        return Result.success([成功码], result);
+        
+    } catch (BusinessException e) {
+        return Result.failed([失败码]);
+    }
+}
+```
+
+**场景2：只返回URL**
+```java
+@Override
+public Result<Map<String, Object>> upload[业务]Image(MultipartFile file) {
+    try {
+        // 1. 调用工具类上传
+        String relativePath = FileUploadUtils.uploadImage(file, "[type]");
+        
+        // 2. 生成访问URL
+        String baseUrl = "http://localhost:8080";
+        String accessUrl = FileUploadUtils.generateAccessUrl(relativePath, baseUrl);
+        
+        // 3. 直接返回，不存数据库
+        Map<String, Object> result = new HashMap<>();
+        result.put("url", accessUrl);
+        result.put("path", relativePath);
+        
+        return Result.success([成功码], result);
+        
+    } catch (BusinessException e) {
+        return Result.failed([失败码]);
+    }
+}
+```
+
+### 前端调用模板
+
+**API层**：
+```javascript
+export function upload[业务]Image(file) {
+  const formData = new FormData()
+  formData.append('file', file)
+  
+  return request({
+    url: API.[模块].[接口常量],
+    method: 'post',
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+```
+
+**Store层**：
+```javascript
+async upload[业务]Image({ commit }, file) {
+  try {
+    const res = await upload[业务]Image(file)
+    return res // 返回 {code, data: {url, path}}
+  } catch (error) {
+    commit('SET_ERROR', error.message || '上传图片失败')
+    throw error
+  }
+}
+```
+
+**组件层**：
+```javascript
+const handleUpload = async (file) => {
+  try {
+    const res = await store.dispatch('[模块]/upload[业务]Image', file)
+    if (res.code === [成功码]) {
+      // 上传成功，使用 res.data.url 显示图片
+      imageUrl.value = res.data.url
+    }
+  } catch (error) {
+    console.error('上传失败:', error)
+  }
+}
+```
+
+---
+
+## 🟢 常见问题与优化
+
+### 常见问题
+
+**Q1：文件上传失败，提示"不支持的文件类型"**
+- 检查文件MIME类型是否在允许列表中
+- 检查文件扩展名是否正确
+
+**Q2：文件过大无法上传**
+- 默认限制5MB，可通过参数调整
+- 检查服务器上传大小限制
+
+**Q3：图片显示不出来**
+- 检查静态资源映射配置
+- 确认文件路径是否正确
+- 检查文件是否真实存在
+
+**Q4：数据库路径字段长度不够**
+- 建议VARCHAR(255)，足够存储完整路径
+
+### 性能优化
+
+**已实现的优化**：
+- 自动图片压缩（>1MB触发）
+- 按日期分层存储
+- 定时清理孤儿文件
+
+**可考虑的优化**：
+- CDN加速
+- 图片缩略图生成
+- 异步上传处理
+- 文件去重
+
+### 安全考虑
+
+**已实现的安全措施**：
+- 文件类型验证
+- 文件大小限制
+- 路径遍历攻击防护
+- UUID文件名避免冲突
+
+**建议的安全措施**：
+- 图片内容检测
+- 病毒扫描
+- 访问权限控制
+- 防盗链设置
+
+---
+
+## 注意事项
+
+### 关键原则
+
+1. **type在Service层硬编码**：每个接口的type是固定的，不由前端传递
+2. **统一使用FileUploadUtils**：所有图片上传都通过工具类处理
+3. **相对路径存数据库**：便于域名变更和文件迁移
+4. **完整URL返回前端**：便于前端直接使用
+
+### 开发规范
+
+1. **新增接口时**：
+   - 确定type分类
+   - 确定数据库存储方案
+   - 按照模板实现代码
+   - 更新本文档
+
+2. **修改工具类时**：
+   - 考虑向后兼容性
+   - 更新相关文档
+   - 测试所有接口
+
+3. **数据库设计时**：
+   - 图片字段使用VARCHAR(255)
+   - 多图片使用TEXT存JSON
+   - 考虑是否需要专用图片表
+
+### 给 AI 的提示
+
+如果你是 AI 模型，在处理文件上传相关任务时：
+
+1. **理解业务场景**：区分三种不同的业务场景
+2. **遵循统一方案**：所有接口都使用相同的技术方案
+3. **硬编码type**：在Service层硬编码，不由前端传递
+4. **使用工具类**：必须通过FileUploadUtils处理文件
+5. **更新文档**：修改代码后及时更新本文档
+
+---
+
+## 参考资料
+
+- **工具类实现**：`src/main/java/com/shangnantea/utils/FileUploadUtils.java`
+- **定时任务**：`src/main/java/com/shangnantea/task/FileCleanupTask.java`
+- **数据库表结构**：`teasystem.sql`
+- **API接口定义**：`../../../openapi_new.yaml`
+- **状态码映射**：`../../../shangnantea-web/docs/tasks/code-message-mapping.md`
+
+---
+
+**最后更新**：2026-01-21  
+**维护者**：项目团队
