@@ -46,8 +46,8 @@
 | 序号 | 接口名称 | Type分类 | 数据库表 | 存储字段 | 业务场景 |
 |------|----------|----------|----------|----------|----------|
 | 1 | uploadAvatar | avatars | users | avatar | 用户头像上传 |
-| 2 | uploadCertificationImage | certifications | shop_certifications | - | 商家认证图片 |
-| 3 | uploadTeaImages | teas | tea_images | image_url | 茶叶图片上传 |
+| 2 | uploadCertificationImage | certifications | shop_certifications | id_card_front, id_card_back, business_license | 商家认证图片 |
+| 3 | uploadTeaImages | teas | tea_images | url | 茶叶图片上传 |
 | 4 | uploadShopLogo | logos | shops | logo | 店铺Logo上传 |
 | 5 | uploadShopBanner | shop-banners | shop_banners | image_url | 店铺轮播图 |
 | 6 | uploadReviewImage | reviews | tea_reviews | images | 订单评价图片 |
