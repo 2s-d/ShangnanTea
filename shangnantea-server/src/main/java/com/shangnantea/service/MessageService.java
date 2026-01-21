@@ -29,7 +29,7 @@ public interface MessageService {
      * @param id 会话ID
      * @return 会话信息
      */
-    ChatSession getSessionById(Long id);
+    ChatSession getSessionById(String id);
     
     /**
      * 创建聊天会话

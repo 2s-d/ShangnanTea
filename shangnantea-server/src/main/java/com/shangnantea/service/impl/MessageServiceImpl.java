@@ -53,7 +53,7 @@ public class MessageServiceImpl implements MessageService {
     }
     
     @Override
-    public ChatSession getSessionById(Long id) {
+    public ChatSession getSessionById(String id) {
         // TODO: 实现获取会话详情的逻辑
         return sessionMapper.selectById(id);
     }
@@ -106,7 +106,7 @@ public class MessageServiceImpl implements MessageService {
         messageMapper.insert(message);
         
         // 更新会话的最后活动时间和最后消息
-        ChatSession session = sessionMapper.selectById(Long.valueOf(message.getSessionId()));
+        ChatSession session = sessionMapper.selectById(message.getSessionId());
         if (session != null) {
             session.setLastMessage(message.getContent()); // 使用lastMessage代替lastMessageId
             session.setLastMessageTime(now); // 使用lastMessageTime代替lastActiveTime
@@ -201,7 +201,7 @@ public class MessageServiceImpl implements MessageService {
             }
             
             // 2. 验证会话是否存在
-            ChatSession session = sessionMapper.selectById(Long.valueOf(sessionId));
+            ChatSession session = sessionMapper.selectById(sessionId);
             if (session == null) {
                 logger.warn("图片消息发送失败: 会话不存在, sessionId: {}", sessionId);
                 return Result.failure(7117); // 图片消息发送失败

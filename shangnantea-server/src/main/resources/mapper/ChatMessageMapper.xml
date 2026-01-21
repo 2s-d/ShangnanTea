@@ -6,23 +6,25 @@
         <id column="id" property="id"/>
         <result column="session_id" property="sessionId"/>
         <result column="sender_id" property="senderId"/>
+        <result column="receiver_id" property="receiverId"/>
         <result column="content" property="content"/>
+        <result column="content_type" property="contentType"/>
         <result column="is_read" property="isRead"/>
+        <result column="read_time" property="readTime"/>
         <result column="create_time" property="createTime"/>
-        <result column="update_time" property="updateTime"/>
     </resultMap>
 
     <!-- 所有列 -->
     <sql id="Base_Column_List">
-        id, session_id, sender_id, content, is_read, create_time, update_time
+        id, session_id, sender_id, receiver_id, content, content_type, is_read, read_time, create_time
     </sql>
 
     <!-- 插入记录 -->
-    <insert id="insert" parameterType="com.shangnantea.model.entity.message.ChatMessage">
+    <insert id="insert" parameterType="com.shangnantea.model.entity.message.ChatMessage" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO chat_messages (
-            id, session_id, sender_id, content, is_read, create_time, update_time
+            session_id, sender_id, receiver_id, content, content_type, is_read, create_time
         ) VALUES (
-            #{id}, #{sessionId}, #{senderId}, #{content}, #{isRead}, #{createTime}, #{updateTime}
+            #{sessionId}, #{senderId}, #{receiverId}, #{content}, #{contentType}, #{isRead}, #{createTime}
         )
     </insert>
 
@@ -45,9 +47,11 @@
         <set>
             <if test="sessionId != null">session_id = #{sessionId},</if>
             <if test="senderId != null">sender_id = #{senderId},</if>
+            <if test="receiverId != null">receiver_id = #{receiverId},</if>
             <if test="content != null">content = #{content},</if>
+            <if test="contentType != null">content_type = #{contentType},</if>
             <if test="isRead != null">is_read = #{isRead},</if>
-            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="readTime != null">read_time = #{readTime},</if>
         </set>
         WHERE id = #{id}
     </update>

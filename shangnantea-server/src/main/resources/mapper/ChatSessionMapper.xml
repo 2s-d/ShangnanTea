@@ -4,12 +4,13 @@
     <!-- 结果映射 -->
     <resultMap id="BaseResultMap" type="com.shangnantea.model.entity.message.ChatSession">
         <id column="id" property="id"/>
-        <result column="name" property="name"/>
-        <result column="type" property="type"/>
-        <result column="user_id" property="userId"/>
-        <result column="target_id" property="targetId"/>
-        <result column="last_message_id" property="lastMessageId"/>
-        <result column="last_active_time" property="lastActiveTime"/>
+        <result column="initiator_id" property="initiatorId"/>
+        <result column="receiver_id" property="receiverId"/>
+        <result column="last_message" property="lastMessage"/>
+        <result column="last_message_time" property="lastMessageTime"/>
+        <result column="initiator_unread" property="initiatorUnread"/>
+        <result column="receiver_unread" property="receiverUnread"/>
+        <result column="session_type" property="sessionType"/>
         <result column="status" property="status"/>
         <result column="create_time" property="createTime"/>
         <result column="update_time" property="updateTime"/>
@@ -17,21 +18,20 @@
 
     <!-- 所有列 -->
     <sql id="Base_Column_List">
-        id, name, type, user_id, target_id, last_message_id, last_active_time, status, create_time, update_time
+        id, initiator_id, receiver_id, last_message, last_message_time, initiator_unread, receiver_unread, session_type, status, create_time, update_time
     </sql>
 
     <!-- 插入记录 -->
     <insert id="insert" parameterType="com.shangnantea.model.entity.message.ChatSession">
         INSERT INTO chat_sessions (
-            id, name, type, user_id, target_id, last_message_id, last_active_time, status, create_time, update_time
+            id, initiator_id, receiver_id, last_message, last_message_time, initiator_unread, receiver_unread, session_type, status, create_time, update_time
         ) VALUES (
-            #{id}, #{name}, #{type}, #{userId}, #{targetId}, #{lastMessageId}, #{lastActiveTime}, 
-            #{status}, #{createTime}, #{updateTime}
+            #{id}, #{initiatorId}, #{receiverId}, #{lastMessage}, #{lastMessageTime}, #{initiatorUnread}, #{receiverUnread}, #{sessionType}, #{status}, #{createTime}, #{updateTime}
         )
     </insert>
 
     <!-- 根据主键删除记录 -->
-    <delete id="deleteById" parameterType="java.lang.Long">
+    <delete id="deleteById" parameterType="java.lang.String">
         DELETE FROM chat_sessions WHERE id = #{id}
     </delete>
 
@@ -47,12 +47,13 @@
     <update id="updateById" parameterType="com.shangnantea.model.entity.message.ChatSession">
         UPDATE chat_sessions
         <set>
-            <if test="name != null">name = #{name},</if>
-            <if test="type != null">type = #{type},</if>
-            <if test="userId != null">user_id = #{userId},</if>
-            <if test="targetId != null">target_id = #{targetId},</if>
-            <if test="lastMessageId != null">last_message_id = #{lastMessageId},</if>
-            <if test="lastActiveTime != null">last_active_time = #{lastActiveTime},</if>
+            <if test="initiatorId != null">initiator_id = #{initiatorId},</if>
+            <if test="receiverId != null">receiver_id = #{receiverId},</if>
+            <if test="lastMessage != null">last_message = #{lastMessage},</if>
+            <if test="lastMessageTime != null">last_message_time = #{lastMessageTime},</if>
+            <if test="initiatorUnread != null">initiator_unread = #{initiatorUnread},</if>
+            <if test="receiverUnread != null">receiver_unread = #{receiverUnread},</if>
+            <if test="sessionType != null">session_type = #{sessionType},</if>
             <if test="status != null">status = #{status},</if>
             <if test="updateTime != null">update_time = #{updateTime},</if>
         </set>
@@ -60,7 +61,7 @@
     </update>
 
     <!-- 根据主键查询记录 -->
-    <select id="selectById" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
         SELECT <include refid="Base_Column_List"/>
         FROM chat_sessions
         WHERE id = #{id}
