@@ -89,23 +89,34 @@
 前端上传文件
     ↓
 Controller接收 (@RequestParam("file") MultipartFile file)
+    ├─ @RequiresLogin 权限验证
+    ├─ 日志记录：logger.info("上传[业务]图片请求, 文件名: {}", file.getOriginalFilename())
+    └─ 调用Service层方法
     ↓
 Service层处理
+    ├─ 获取当前用户ID：UserContext.getCurrentUserId()
+    ├─ 用户身份验证：getUserEntityById(userId)
     ├─ 硬编码type（如 "avatars", "posts", "messages"）
     ├─ 调用工具类：FileUploadUtils.uploadImage(file, type)
     │   └─ 工具类处理：
-    │       ├─ 验证文件（类型、大小）
-    │       ├─ 生成文件名（时间戳+UUID）
+    │       ├─ 验证文件（类型、大小、扩展名）
+    │       ├─ 生成文件名（时间戳_UUID.扩展名）
     │       ├─ 构建路径（files/images/{type}/{year}/{month}/{day}/{filename}）
-    │       ├─ 保存文件（压缩、存储）
+    │       ├─ 确保目录存在
+    │       ├─ 保存文件（>1MB自动压缩到1200px宽度）
     │       └─ 返回相对路径
-    ├─ 生成访问URL
+    ├─ 生成访问URL：FileUploadUtils.generateAccessUrl(relativePath, baseUrl)
     └─ 业务逻辑决策：
         ├─ 场景1：直接存数据库（如头像）
+        │   ├─ 更新数据库：mapper.updateAvatar(userId, relativePath)
+        │   └─ 返回 {url, path}
         ├─ 场景2：只返回URL（如帖子图片，等发帖时再存）
+        │   └─ 直接返回 {url, path}
         └─ 场景3：上传+业务操作（如聊天图片，上传并创建消息）
+            ├─ 创建业务记录
+            └─ 返回业务结果
     ↓
-返回Result给前端
+返回Result给前端（统一格式：Result.success(状态码, {url, path})）
 ```
 
 ### 三种业务场景
@@ -113,14 +124,27 @@ Service层处理
 **场景1：直接存数据库（如头像上传）**
 - 上传文件 → 调用工具类 → 更新数据库 → 返回结果
 - 适用接口：uploadAvatar, uploadShopLogo
+- **实际实现要点**：
+  - 需要在Mapper中定义专门的更新方法（如updateAvatar）
+  - 需要在XML中编写对应的SQL语句
+  - 数据库存储相对路径，前端使用完整URL
+  - 成功后需要返回 {url, path} 格式的数据
 
 **场景2：先返回URL，稍后存储（如帖子图片）**
 - 上传文件 → 调用工具类 → 返回URL → 用户发帖时再存数据库
 - 适用接口：uploadPostImage, uploadReviewImage
+- **实际实现要点**：
+  - 不需要立即操作数据库
+  - 直接返回文件URL供前端预览
+  - 在后续业务操作中将路径存入相关表
 
 **场景3：上传+业务操作（如聊天图片）**
 - 上传文件 → 调用工具类 → 创建消息记录 → 返回结果
 - 适用接口：sendImageMessage
+- **实际实现要点**：
+  - 需要同时处理文件上传和业务逻辑
+  - 通常需要事务控制确保数据一致性
+  - 返回的是业务操作结果，不仅仅是文件信息
 
 ---
 
@@ -139,11 +163,36 @@ String relativePath = FileUploadUtils.uploadImage(file, "posts", 10 * 1024 * 102
 
 **辅助方法**：
 ```java
-// 生成访问URL
+// 生成访问URL（必须配置baseUrl）
 String accessUrl = FileUploadUtils.generateAccessUrl(relativePath, baseUrl);
 
 // 删除文件
 boolean success = FileUploadUtils.deleteFile(relativePath);
+```
+
+### 重要配置要求
+
+**application.yml配置**：
+```yaml
+# 应用配置
+app:
+  base-url: http://localhost:8080  # 必须配置，用于生成访问URL
+```
+
+**WebMvcConfig静态资源映射**：
+```java
+@Override
+public void addResourceHandlers(ResourceHandlerRegistry registry) {
+    // 配置静态资源映射，用于访问上传的文件
+    registry.addResourceHandler("/files/**")
+            .addResourceLocations("file:" + System.getProperty("user.dir") + "/files/");
+}
+
+@Override
+public void addInterceptors(InterceptorRegistry registry) {
+    registry.addInterceptor(jwtInterceptor)
+            .excludePathPatterns("/files/**");  // 排除文件访问路径
+}
 ```
 
 ### 文件命名规则
@@ -188,6 +237,12 @@ files/
 - 触发条件：文件大小 > 1MB
 - 压缩规则：宽度压缩到1200px，保持比例
 - 压缩质量：85%
+- **注意**：压缩只针对过大图片，小图片直接保存
+
+**安全验证**：
+- 文件类型双重验证（MIME类型 + 扩展名）
+- 路径遍历攻击防护（不允许包含..和\）
+- 文件名安全化（使用UUID避免冲突）
 
 ---
 
@@ -303,30 +358,53 @@ public Result<Map<String, Object>> upload[业务]Image(@RequestParam("file") Mul
 
 ### Service层模板
 
-**场景1：直接存数据库**
+**场景1：直接存数据库（如头像上传）**
 ```java
 @Override
+@Transactional(rollbackFor = Exception.class)  // 重要：添加事务注解
 public Result<Map<String, Object>> upload[业务]Image(MultipartFile file) {
     try {
-        // 1. 调用工具类上传（硬编码type）
+        // 1. 获取当前用户ID
+        String userId = UserContext.getCurrentUserId();
+        if (userId == null) {
+            logger.warn("[业务]图片上传失败: 用户未登录");
+            return Result.failure([失败码1]); // 用户未登录
+        }
+        
+        // 2. 验证用户是否存在（根据业务需要）
+        User user = getUserEntityById(userId);
+        if (user == null) {
+            logger.warn("[业务]图片上传失败: 用户不存在, userId: {}", userId);
+            return Result.failure([失败码1]); // 用户不存在
+        }
+        
+        // 3. 调用工具类上传（硬编码type）
         String relativePath = FileUploadUtils.uploadImage(file, "[type]");
         
-        // 2. 生成访问URL
-        String baseUrl = "http://localhost:8080"; // 从配置读取
+        // 4. 生成访问URL
         String accessUrl = FileUploadUtils.generateAccessUrl(relativePath, baseUrl);
         
-        // 3. 更新数据库
-        // ... 业务逻辑
+        // 5. 更新数据库
+        int result = [mapper].update[字段](userId, relativePath);
+        if (result <= 0) {
+            logger.error("[业务]图片上传失败: 数据库更新失败, userId: {}", userId);
+            return Result.failure([失败码2]); // 数据库更新失败
+        }
         
-        // 4. 返回结果
-        Map<String, Object> result = new HashMap<>();
-        result.put("url", accessUrl);
-        result.put("path", relativePath);
+        // 6. 返回结果
+        Map<String, Object> responseData = new HashMap<>();
+        responseData.put("url", accessUrl);
+        responseData.put("path", relativePath);
         
-        return Result.success([成功码], result);
+        logger.info("[业务]图片上传成功: userId: {}, path: {}", userId, relativePath);
+        return Result.success([成功码], responseData);
         
     } catch (BusinessException e) {
-        return Result.failed([失败码]);
+        logger.error("[业务]图片上传失败: 业务异常", e);
+        return Result.failure([失败码3]); // 业务异常
+    } catch (Exception e) {
+        logger.error("[业务]图片上传失败: 系统异常", e);
+        return Result.failure([失败码3]); // 系统异常
     }
 }
 ```
@@ -340,20 +418,49 @@ public Result<Map<String, Object>> upload[业务]Image(MultipartFile file) {
         String relativePath = FileUploadUtils.uploadImage(file, "[type]");
         
         // 2. 生成访问URL
-        String baseUrl = "http://localhost:8080";
         String accessUrl = FileUploadUtils.generateAccessUrl(relativePath, baseUrl);
         
         // 3. 直接返回，不存数据库
-        Map<String, Object> result = new HashMap<>();
-        result.put("url", accessUrl);
-        result.put("path", relativePath);
+        Map<String, Object> responseData = new HashMap<>();
+        responseData.put("url", accessUrl);
+        responseData.put("path", relativePath);
         
-        return Result.success([成功码], result);
+        logger.info("[业务]图片上传成功: path: {}", relativePath);
+        return Result.success([成功码], responseData);
         
     } catch (BusinessException e) {
-        return Result.failed([失败码]);
+        logger.error("[业务]图片上传失败: 业务异常", e);
+        return Result.failure([失败码]);
+    } catch (Exception e) {
+        logger.error("[业务]图片上传失败: 系统异常", e);
+        return Result.failure([失败码]);
     }
 }
+```
+
+### Mapper层模板
+
+**接口定义**：
+```java
+/**
+ * 更新[业务]图片
+ *
+ * @param id     记录ID
+ * @param [字段] 图片路径
+ * @return 影响行数
+ */
+int update[字段](@Param("id") String id, @Param("[字段]") String [字段]);
+```
+
+**XML实现**：
+```xml
+<!-- 更新[业务]图片 -->
+<update id="update[字段]">
+    UPDATE [表名]
+    SET [字段] = #{[字段],jdbcType=VARCHAR},
+    update_time = now()
+    WHERE id = #{id,jdbcType=VARCHAR}
+</update>
 ```
 
 ### 前端调用模板
@@ -380,6 +487,19 @@ export function upload[业务]Image(file) {
 async upload[业务]Image({ commit }, file) {
   try {
     const res = await upload[业务]Image(file)
+    
+    // 根据业务场景处理返回结果
+    if (res.code === [成功码]) {
+      // 场景1：更新本地状态（如头像）
+      if (res.data && res.data.url) {
+        const updatedInfo = {
+          ...state.userInfo,
+          [字段]: res.data.url
+        }
+        commit('SET_USER_INFO', updatedInfo)
+      }
+    }
+    
     return res // 返回 {code, data: {url, path}}
   } catch (error) {
     commit('SET_ERROR', error.message || '上传图片失败')
@@ -390,15 +510,47 @@ async upload[业务]Image({ commit }, file) {
 
 **组件层**：
 ```javascript
-const handleUpload = async (file) => {
+// 上传前验证
+const beforeUpload = (file) => {
+  const isImage = file.type.startsWith('image/')
+  const isLt2M = file.size / 1024 / 1024 < 2
+  
+  if (!isImage) {
+    // 使用统一的状态码消息系统
+    showByCode([失败码1]) // 文件类型错误
+    return false
+  }
+  if (!isLt2M) {
+    showByCode([失败码2]) // 文件大小超限
+    return false
+  }
+  return true
+}
+
+// 上传处理
+const handleUpload = async (options) => {
+  const file = options.file
+  if (!file) return
+  
   try {
+    loading.value = true
+    
     const res = await store.dispatch('[模块]/upload[业务]Image', file)
-    if (res.code === [成功码]) {
+    
+    // 使用统一的状态码消息系统
+    showByCode(res.code)
+    
+    if (isSuccess(res.code)) {
       // 上传成功，使用 res.data.url 显示图片
       imageUrl.value = res.data.url
+      
+      // 根据业务需要刷新相关数据
+      await store.dispatch('[模块]/getUserInfo')
     }
   } catch (error) {
     console.error('上传失败:', error)
+  } finally {
+    loading.value = false
   }
 }
 ```
@@ -412,18 +564,52 @@ const handleUpload = async (file) => {
 **Q1：文件上传失败，提示"不支持的文件类型"**
 - 检查文件MIME类型是否在允许列表中
 - 检查文件扩展名是否正确
+- 确认FileUploadUtils中的类型验证逻辑
 
 **Q2：文件过大无法上传**
 - 默认限制5MB，可通过参数调整
 - 检查服务器上传大小限制
+- 确认Spring Boot的文件上传配置
 
 **Q3：图片显示不出来**
-- 检查静态资源映射配置
+- 检查静态资源映射配置（WebMvcConfig）
 - 确认文件路径是否正确
 - 检查文件是否真实存在
+- 验证JWT拦截器是否排除了/files/**路径
 
 **Q4：数据库路径字段长度不够**
 - 建议VARCHAR(255)，足够存储完整路径
+- 检查字段定义和实际存储内容
+
+**Q5：baseUrl配置问题**
+- 确保application.yml中配置了app.base-url
+- 检查Service层是否正确注入@Value("${app.base-url}")
+- 开发环境通常使用http://localhost:8080
+
+**Q6：权限验证失败**
+- 确认Controller方法添加了@RequiresLogin注解
+- 检查JWT token是否有效
+- 验证UserContext.getCurrentUserId()是否返回正确值
+
+### 实际开发经验
+
+**文件存储最佳实践**：
+- 数据库存储相对路径，便于域名变更
+- 前端使用完整URL进行访问
+- 文件名使用时间戳+UUID避免冲突
+- 按日期分层存储，便于管理
+
+**错误处理最佳实践**：
+- 使用统一的Result返回格式
+- 记录详细的日志信息
+- 区分业务异常和系统异常
+- 前端使用统一的状态码消息系统
+
+**性能优化经验**：
+- 大图片自动压缩，提升用户体验
+- 使用事务确保数据一致性
+- 合理的文件大小限制
+- 考虑CDN集成提升访问速度
 
 ### 性能优化
 
