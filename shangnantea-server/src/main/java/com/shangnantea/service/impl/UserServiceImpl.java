@@ -2,21 +2,29 @@ package com.shangnantea.service.impl;
 
 import com.shangnantea.common.api.Result;
 import com.shangnantea.mapper.UserMapper;
+import com.shangnantea.model.dto.ChangePasswordDTO;
 import com.shangnantea.model.dto.LoginDTO;
 import com.shangnantea.model.dto.RegisterDTO;
 import com.shangnantea.model.entity.user.User;
 import com.shangnantea.model.vo.user.TokenVO;
 import com.shangnantea.model.vo.user.UserVO;
+import com.shangnantea.security.context.UserContext;
 import com.shangnantea.security.util.JwtUtil;
 import com.shangnantea.security.util.PasswordEncoder;
 import com.shangnantea.service.UserService;
+import com.shangnantea.utils.FileUploadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -36,6 +44,11 @@ public class UserServiceImpl implements UserService {
     
     @Autowired
     private JwtUtil jwtUtil;
+    
+    @Value("${app.base-url:http://localhost:8080}")
+    private String baseUrl;
+    
+    // ==================== 认证相关 ====================
     
     /**
      * 用户登录
@@ -124,7 +137,7 @@ public class UserServiceImpl implements UserService {
         }
         
         // 查询刚注册的用户（获取完整信息）
-        User savedUser = getUserById(userId);
+        User savedUser = getUserEntityById(userId);
         if (savedUser == null) {
             logger.error("注册失败: 无法获取注册后的用户信息, userId: {}", userId);
             return Result.failure(2101); // 注册失败
@@ -133,6 +146,276 @@ public class UserServiceImpl implements UserService {
         logger.info("用户注册成功: username: {}, userId: {}", registerDTO.getUsername(), userId);
         return Result.success(2001, convertToUserVO(savedUser)); // 注册成功，请登录
     }
+    
+    @Override
+    public Result<Void> logout(HttpServletRequest request) {
+        // TODO: 实现登出逻辑
+        return Result.success(2002);
+    }
+    
+    @Override
+    public Result<TokenVO> refreshToken(HttpServletRequest request) {
+        // TODO: 实现刷新令牌逻辑
+        return Result.success(200);
+    }
+    
+    // ==================== 用户信息管理 ====================
+    
+    @Override
+    public Result<UserVO> getCurrentUser() {
+        String userId = UserContext.getCurrentUserId();
+        if (userId == null) {
+            return Result.failure(2103); // 用户未登录
+        }
+        
+        User user = getUserEntityById(userId);
+        if (user == null) {
+            return Result.failure(2103); // 用户不存在
+        }
+        
+        return Result.success(200, convertToUserVO(user));
+    }
+    
+    @Override
+    public Result<UserVO> getUserById(String userId) {
+        User user = getUserEntityById(userId);
+        if (user == null) {
+            return Result.failure(2120); // 用户不存在
+        }
+        
+        return Result.success(200, convertToUserVO(user));
+    }
+    
+    @Override
+    public Result<UserVO> updateUserInfo(Map<String, Object> userData) {
+        // TODO: 实现更新用户信息逻辑
+        return Result.success(2010);
+    }
+    
+    /**
+     * 上传头像
+     * 成功码：2004，失败码：2109, 2110, 2111
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Map<String, Object>> uploadAvatar(MultipartFile file) {
+        try {
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("头像上传失败: 用户未登录");
+                return Result.failure(2109); // 头像更新失败
+            }
+            
+            // 2. 验证用户是否存在
+            User user = getUserEntityById(userId);
+            if (user == null) {
+                logger.warn("头像上传失败: 用户不存在, userId: {}", userId);
+                return Result.failure(2109); // 头像更新失败
+            }
+            
+            // 3. 调用工具类上传文件（硬编码type为"avatars"）
+            String relativePath = FileUploadUtils.uploadImage(file, "avatars");
+            
+            // 4. 生成访问URL
+            String accessUrl = FileUploadUtils.generateAccessUrl(relativePath, baseUrl);
+            
+            // 5. 更新数据库中的头像字段
+            int result = userMapper.updateAvatar(userId, relativePath);
+            if (result <= 0) {
+                logger.error("头像上传失败: 数据库更新失败, userId: {}", userId);
+                return Result.failure(2110); // 头像更新失败
+            }
+            
+            // 6. 构造返回数据
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("url", accessUrl);
+            responseData.put("path", relativePath);
+            
+            logger.info("头像上传成功: userId: {}, path: {}", userId, relativePath);
+            return Result.success(2004, responseData); // 头像更新成功
+            
+        } catch (Exception e) {
+            logger.error("头像上传失败: 系统异常", e);
+            return Result.failure(2111); // 头像更新失败
+        }
+    }
+    
+    // ==================== 密码管理 ====================
+    
+    @Override
+    public Result<String> changePassword(ChangePasswordDTO changePasswordDTO) {
+        // TODO: 实现修改密码逻辑
+        return Result.success(2011);
+    }
+    
+    @Override
+    public Result<String> resetPassword(Map<String, Object> resetData) {
+        // TODO: 实现密码重置逻辑
+        return Result.success(2004);
+    }
+    
+    // ==================== 收货地址管理 ====================
+    
+    @Override
+    public Result<Object> getAddressList() {
+        // TODO: 实现获取地址列表逻辑
+        return Result.success(200);
+    }
+    
+    @Override
+    public Result<Object> addAddress(Map<String, Object> addressData) {
+        // TODO: 实现添加地址逻辑
+        return Result.success(4060);
+    }
+    
+    @Override
+    public Result<Boolean> updateAddress(String id, Map<String, Object> addressData) {
+        // TODO: 实现更新地址逻辑
+        return Result.success(1004, true);
+    }
+    
+    @Override
+    public Result<Boolean> deleteAddress(String id) {
+        // TODO: 实现删除地址逻辑
+        return Result.success(1003, true);
+    }
+    
+    @Override
+    public Result<Boolean> setDefaultAddress(String id) {
+        // TODO: 实现设置默认地址逻辑
+        return Result.success(1004, true);
+    }
+    
+    // ==================== 商家认证 ====================
+    
+    @Override
+    public Result<Object> getShopCertificationStatus() {
+        // TODO: 实现获取认证状态逻辑
+        return Result.success(200);
+    }
+    
+    @Override
+    public Result<Boolean> submitShopCertification(Map<String, Object> certificationData) {
+        // TODO: 实现提交认证申请逻辑
+        return Result.success(1000, true);
+    }
+    
+    @Override
+    public Result<Map<String, Object>> uploadCertificationImage(MultipartFile file, String type) {
+        // TODO: 实现上传认证图片逻辑
+        return Result.success(2024);
+    }
+    
+    // ==================== 用户互动功能 ====================
+    
+    @Override
+    public Result<Object> getFollowList(String type) {
+        // TODO: 实现获取关注列表逻辑
+        return Result.success(200);
+    }
+    
+    @Override
+    public Result<Boolean> addFollow(Map<String, Object> followData) {
+        // TODO: 实现添加关注逻辑
+        return Result.success(5000, true);
+    }
+    
+    @Override
+    public Result<Boolean> removeFollow(String id) {
+        // TODO: 实现取消关注逻辑
+        return Result.success(5001, true);
+    }
+    
+    @Override
+    public Result<Object> getFavoriteList(String type) {
+        // TODO: 实现获取收藏列表逻辑
+        return Result.success(200);
+    }
+    
+    @Override
+    public Result<Boolean> addFavorite(Map<String, Object> favoriteData) {
+        // TODO: 实现添加收藏逻辑
+        return Result.success(3010, true);
+    }
+    
+    @Override
+    public Result<Boolean> removeFavorite(String id) {
+        // TODO: 实现取消收藏逻辑
+        return Result.success(3011, true);
+    }
+    
+    @Override
+    public Result<Boolean> addLike(Map<String, Object> likeData) {
+        // TODO: 实现点赞逻辑
+        return Result.success(6010, true);
+    }
+    
+    @Override
+    public Result<Boolean> removeLike(String id) {
+        // TODO: 实现取消点赞逻辑
+        return Result.success(6011, true);
+    }
+    
+    // ==================== 用户偏好设置 ====================
+    
+    @Override
+    public Result<Object> getUserPreferences() {
+        // TODO: 实现获取偏好设置逻辑
+        return Result.success(200);
+    }
+    
+    @Override
+    public Result<Object> updateUserPreferences(Map<String, Object> preferences) {
+        // TODO: 实现更新偏好设置逻辑
+        return Result.success(2013);
+    }
+    
+    // ==================== 管理员功能 ====================
+    
+    @Override
+    public Result<Object> getAdminUserList(String keyword, Integer role, Integer status, Integer page, Integer pageSize) {
+        // TODO: 实现获取用户列表逻辑
+        return Result.success(200);
+    }
+    
+    @Override
+    public Result<Boolean> createAdmin(Map<String, Object> adminData) {
+        // TODO: 实现创建管理员逻辑
+        return Result.success(2023, true);
+    }
+    
+    @Override
+    public Result<Boolean> updateUser(String userId, Map<String, Object> userData) {
+        // TODO: 实现更新用户逻辑
+        return Result.success(2022, true);
+    }
+    
+    @Override
+    public Result<Boolean> deleteUser(String userId) {
+        // TODO: 实现删除用户逻辑
+        return Result.success(2020, true);
+    }
+    
+    @Override
+    public Result<Boolean> toggleUserStatus(String userId, Map<String, Object> statusData) {
+        // TODO: 实现切换用户状态逻辑
+        return Result.success(2021, true);
+    }
+    
+    @Override
+    public Result<Object> getCertificationList(Integer status, Integer page, Integer pageSize) {
+        // TODO: 实现获取认证列表逻辑
+        return Result.success(200);
+    }
+    
+    @Override
+    public Result<Boolean> processCertification(Integer id, Map<String, Object> auditData) {
+        // TODO: 实现审核认证逻辑
+        return Result.success(1000, true);
+    }
+    
+    // ==================== 基础方法（内部使用） ====================
     
     /**
      * 将User实体转换为UserVO
@@ -156,7 +439,7 @@ public class UserServiceImpl implements UserService {
     }
     
     @Override
-    public User getUserById(String id) {
+    public User getUserEntityById(String id) {
         return userMapper.selectById(id);
     }
     
@@ -193,7 +476,7 @@ public class UserServiceImpl implements UserService {
         
         String userId = sb.toString();
         // 检查ID是否已存在，存在则重新生成
-        if (getUserById(userId) != null) {
+        if (getUserEntityById(userId) != null) {
             return generateUserId(); // 递归调用直到生成唯一ID
         }
         
@@ -201,12 +484,12 @@ public class UserServiceImpl implements UserService {
     }
     
     @Override
-    public boolean updateUser(User user) {
+    public boolean updateUserEntity(User user) {
         if (user.getId() == null) {
             return false;
         }
         
-        User existingUser = getUserById(user.getId());
+        User existingUser = getUserEntityById(user.getId());
         if (existingUser == null) {
             return false;
         }
@@ -227,8 +510,8 @@ public class UserServiceImpl implements UserService {
     }
     
     @Override
-    public boolean changePassword(String userId, String oldPassword, String newPassword) {
-        User user = getUserById(userId);
+    public boolean changeUserPassword(String userId, String oldPassword, String newPassword) {
+        User user = getUserEntityById(userId);
         if (user == null) {
             return false;
         }
@@ -247,8 +530,8 @@ public class UserServiceImpl implements UserService {
     }
     
     @Override
-    public boolean deleteUser(String id) {
-        User user = getUserById(id);
+    public boolean deleteUserEntity(String id) {
+        User user = getUserEntityById(id);
         if (user == null) {
             return false;
         }
