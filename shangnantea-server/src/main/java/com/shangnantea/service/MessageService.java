@@ -2,9 +2,11 @@ package com.shangnantea.service;
 
 import com.shangnantea.common.api.PageParam;
 import com.shangnantea.common.api.PageResult;
+import com.shangnantea.common.api.Result;
 import com.shangnantea.model.entity.message.ChatMessage;
 import com.shangnantea.model.entity.message.ChatSession;
 import com.shangnantea.model.entity.message.UserNotification;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -133,4 +135,14 @@ public interface MessageService {
      * @return 未读数量
      */
     int countUnreadNotifications(String userId);
+    
+    /**
+     * 发送图片消息
+     *
+     * @param sessionId 会话ID
+     * @param receiverId 接收者ID
+     * @param image 图片文件
+     * @return 发送结果
+     */
+    Result<Object> sendImageMessage(String sessionId, String receiverId, MultipartFile image);
 } 

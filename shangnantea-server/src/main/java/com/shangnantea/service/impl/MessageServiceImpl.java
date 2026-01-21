@@ -2,19 +2,28 @@ package com.shangnantea.service.impl;
 
 import com.shangnantea.common.api.PageParam;
 import com.shangnantea.common.api.PageResult;
+import com.shangnantea.common.api.Result;
 import com.shangnantea.mapper.ChatMessageMapper;
 import com.shangnantea.mapper.ChatSessionMapper;
 import com.shangnantea.mapper.UserNotificationMapper;
 import com.shangnantea.model.entity.message.ChatMessage;
 import com.shangnantea.model.entity.message.ChatSession;
 import com.shangnantea.model.entity.message.UserNotification;
+import com.shangnantea.security.context.UserContext;
 import com.shangnantea.service.MessageService;
+import com.shangnantea.utils.FileUploadUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -22,6 +31,8 @@ import java.util.UUID;
  */
 @Service
 public class MessageServiceImpl implements MessageService {
+
+    private static final Logger logger = LoggerFactory.getLogger(MessageServiceImpl.class);
 
     @Autowired
     private ChatSessionMapper sessionMapper;
@@ -31,6 +42,9 @@ public class MessageServiceImpl implements MessageService {
     
     @Autowired
     private UserNotificationMapper notificationMapper;
+    
+    @Value("${app.base-url:http://localhost:8080}")
+    private String baseUrl;
     
     @Override
     public List<ChatSession> listSessions(String userId) {
@@ -173,5 +187,70 @@ public class MessageServiceImpl implements MessageService {
     public int countUnreadNotifications(String userId) {
         // TODO: 实现获取未读通知数量的逻辑
         return 0; // 待实现
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> sendImageMessage(String sessionId, String receiverId, MultipartFile image) {
+        try {
+            // 1. 获取当前用户ID
+            String senderId = UserContext.getCurrentUserId();
+            if (senderId == null) {
+                logger.warn("图片消息发送失败: 用户未登录");
+                return Result.failure(7116); // 图片消息发送失败
+            }
+            
+            // 2. 验证会话是否存在
+            ChatSession session = sessionMapper.selectById(Long.valueOf(sessionId));
+            if (session == null) {
+                logger.warn("图片消息发送失败: 会话不存在, sessionId: {}", sessionId);
+                return Result.failure(7117); // 图片消息发送失败
+            }
+            
+            // 3. 调用工具类上传图片（硬编码type为"messages"）
+            String relativePath = FileUploadUtils.uploadImage(image, "messages");
+            
+            // 4. 生成访问URL
+            String accessUrl = FileUploadUtils.generateAccessUrl(relativePath, baseUrl);
+            
+            // 5. 创建聊天消息记录
+            ChatMessage message = new ChatMessage();
+            // message.setId() - 让数据库自动生成ID
+            message.setSessionId(sessionId);
+            message.setSenderId(senderId);
+            message.setReceiverId(receiverId);
+            message.setContent(accessUrl); // 存储完整的访问URL
+            message.setContentType("image"); // 标识为图片消息
+            message.setIsRead(0); // 未读
+            message.setCreateTime(new Date());
+            
+            // 6. 保存消息到数据库
+            int result = messageMapper.insert(message);
+            if (result <= 0) {
+                logger.error("图片消息发送失败: 数据库插入失败, sessionId: {}", sessionId);
+                return Result.failure(7118); // 图片消息发送失败
+            }
+            
+            // 7. 更新会话的最后消息信息
+            session.setLastMessage("[图片]"); // 显示为[图片]
+            session.setLastMessageTime(new Date());
+            session.setUpdateTime(new Date());
+            sessionMapper.updateById(session);
+            
+            // 8. 构造返回数据
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("messageId", message.getId());
+            responseData.put("content", accessUrl);
+            responseData.put("contentType", "image");
+            responseData.put("createTime", message.getCreateTime());
+            
+            logger.info("图片消息发送成功: sessionId: {}, messageId: {}, path: {}", 
+                    sessionId, message.getId(), relativePath);
+            return Result.success(7009, responseData); // 图片消息发送成功
+            
+        } catch (Exception e) {
+            logger.error("图片消息发送失败: 系统异常", e);
+            return Result.failure(7118); // 图片消息发送失败
+        }
     }
 } 
