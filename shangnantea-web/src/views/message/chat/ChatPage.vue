@@ -497,6 +497,26 @@ export default {
       })
     }
     
+    // 置顶/取消置顶会话
+    const togglePinSession = async sessionId => {
+      try {
+        const response = await store.dispatch('message/pinChatSession', sessionId)
+        
+        // 显示API响应消息（成功或失败都通过状态码映射显示）
+        showByCode(response.code)
+        
+        // 成功时刷新会话列表
+        if (isSuccess(response.code)) {
+          await fetchSessions()
+        }
+      } catch (error) {
+        // 捕获意外的运行时错误（非API业务错误）
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[开发调试] 置顶会话时发生意外错误：', error)
+        }
+      }
+    }
+    
     // 清空聊天记录
     const clearMessages = () => {
       if (!currentSessionId.value) return
@@ -915,6 +935,7 @@ export default {
       loadMoreMessages,
       selectSession,
       deleteSession,
+      togglePinSession,
       clearMessages,
       reportUser,
       sendMessage,
@@ -1002,6 +1023,14 @@ export default {
               font-weight: 500;
               color: var(--text-primary);
               margin-bottom: 4px;
+              display: flex;
+              align-items: center;
+              gap: 6px;
+              
+              .pin-icon {
+                color: #f59e0b;
+                font-size: 14px;
+              }
             }
             
             .session-preview {
