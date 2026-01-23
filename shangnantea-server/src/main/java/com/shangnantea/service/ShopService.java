@@ -169,4 +169,14 @@ public interface ShopService {
      * @return 店铺详情
      */
     Result<Object> getShopDetail(String id);
+    
+    /**
+     * 更新店铺信息（商家）
+     * 验证店铺所有权，更新店铺信息
+     *
+     * @param id 店铺ID
+     * @param shopData 店铺数据
+     * @return 更新结果
+     */
+    Result<Boolean> updateShop(String id, Map<String, Object> shopData);
 } 

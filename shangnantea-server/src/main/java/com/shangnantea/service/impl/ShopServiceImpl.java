@@ -506,5 +506,88 @@ public class ShopServiceImpl implements ShopService {
         
         return shopDetailVO;
     }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Boolean> updateShop(String id, Map<String, Object> shopData) {
+        try {
+            logger.info("更新店铺信息请求: id={}, shopData={}", id, shopData);
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("更新店铺信息失败: 用户未登录");
+                return Result.failure(4104);
+            }
+            
+            // 2. 验证店铺ID不为空
+            if (id == null || id.trim().isEmpty()) {
+                logger.warn("更新店铺信息失败: 店铺ID为空");
+                return Result.failure(4104);
+            }
+            
+            // 3. 查询店铺信息
+            Shop shop = getShopById(id);
+            if (shop == null) {
+                logger.warn("更新店铺信息失败: 店铺不存在, id={}", id);
+                return Result.failure(4104);
+            }
+            
+            // 4. 验证用户是否为店铺所有者
+            if (!userId.equals(shop.getOwnerId())) {
+                logger.warn("更新店铺信息失败: 无权限操作, userId={}, shopId={}, ownerId={}", 
+                        userId, id, shop.getOwnerId());
+                return Result.failure(4104);
+            }
+            
+            // 5. 更新店铺信息
+            boolean updated = false;
+            
+            if (shopData.get("name") != null) {
+                String newName = shopData.get("name").toString();
+                if (!newName.equals(shop.getShopName())) {
+                    // 验证新店铺名称是否重复
+                    Shop existingShop = shopMapper.selectByShopName(newName);
+                    if (existingShop != null && !existingShop.getId().equals(id)) {
+                        logger.warn("更新店铺信息失败: 店铺名称已存在, newName={}", newName);
+                        return Result.failure(4104);
+                    }
+                    shop.setShopName(newName);
+                    updated = true;
+                }
+            }
+            
+            if (shopData.get("logo") != null) {
+                shop.setLogo(shopData.get("logo").toString());
+                updated = true;
+            }
+            
+            if (shopData.get("description") != null) {
+                shop.setDescription(shopData.get("description").toString());
+                updated = true;
+            }
+            
+            // 6. 如果有更新，则保存到数据库
+            if (updated) {
+                shop.setUpdateTime(new Date());
+                int result = shopMapper.updateById(shop);
+                if (result <= 0) {
+                    logger.error("更新店铺信息失败: 数据库更新失败, id={}", id);
+                    return Result.failure(4104);
+                }
+                
+                logger.info("更新店铺信息成功: id={}, shopName={}", id, shop.getShopName());
+            } else {
+                logger.info("更新店铺信息: 无需更新, id={}", id);
+            }
+            
+            // 7. 返回成功（根据code-message-mapping.md，成功码是4001）
+            return Result.success(4001, true);
+            
+        } catch (Exception e) {
+            logger.error("更新店铺信息失败: 系统异常, id={}", id, e);
+            return Result.failure(4104);
+        }
+    }
 }
 } 
