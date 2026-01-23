@@ -112,7 +112,7 @@ inclusion: manual
 3. ✅ **logout** - `/user/logout` - 用户登出（已完成）
 4. ✅ **getCurrentUser** - `/user/me` - 获取当前用户信息（已完成）
 5. ✅ **refreshToken** - `/user/refresh` - 刷新令牌（已完成）
-6. **getUserInfo** - `/user/{userId}` - 获取用户信息
+6. ✅ **getUserInfo** - `/user/{userId}` - 获取用户信息（已完成）
 7. **updateUserInfo** - `/user` - 更新用户信息
 8. **uploadAvatar** - `/user/avatar` - 上传头像
 9. **changePassword** - `/user/password` - 修改密码
@@ -154,9 +154,9 @@ inclusion: manual
 35. **processCertification** - `/user/admin/certifications/{id}` - 审核认证
 
 ### 接口开发进度
-- **已完成**：5/35（login, register, logout, getCurrentUser, refreshToken）
-- **待开发**：30/35
-- **完成率**：14.3%
+- **已完成**：6/35（login, register, logout, getCurrentUser, refreshToken, getUserInfo）
+- **待开发**：29/35
+- **完成率**：17.1%
 
 ### 状态码范围
 - **成功码**：2000-2024（25个成功状态码）
