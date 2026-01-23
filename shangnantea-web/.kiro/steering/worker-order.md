@@ -112,10 +112,10 @@ inclusion: manual
 2. **addToCart** - `/order/cart/add` - 加入购物车 ✅ 已完成
 3. **updateCartItem** - `/order/cart/update` - 更新购物车商品 ✅ 已完成
 4. **removeFromCart** - `/order/cart/remove` - 移除购物车商品 ✅ 已完成
-5. **clearCart** - `/order/cart/clear` - 清空购物车
+5. **clearCart** - `/order/cart/clear` - 清空购物车 ✅ 已完成
 
 #### 订单基础功能（3个接口）
-6. **createOrder** - `/order/create` - 创建订单
+6. **createOrder** - `/order/create` - 创建订单 ✅ 已完成
 7. **getOrders** - `/order/list` - 获取订单列表
 8. **getOrderDetail** - `/order/{id}` - 获取订单详情
 
