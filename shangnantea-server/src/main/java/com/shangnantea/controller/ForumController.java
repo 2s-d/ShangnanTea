@@ -1,7 +1,9 @@
 package com.shangnantea.controller;
 
 import com.shangnantea.common.api.Result;
+import com.shangnantea.model.dto.forum.CreatePostDTO;
 import com.shangnantea.model.dto.forum.CreateTopicDTO;
+import com.shangnantea.model.dto.forum.UpdatePostDTO;
 import com.shangnantea.model.dto.forum.UpdateTopicDTO;
 import com.shangnantea.security.annotation.RequiresLogin;
 import com.shangnantea.security.annotation.RequiresRoles;
@@ -327,14 +329,14 @@ public class ForumController {
      * 路径: POST /forum/posts
      * 成功码: 6011, 失败码: 6120
      *
-     * @param data 帖子数据
+     * @param dto 帖子数据
      * @return 创建结果
      */
     @PostMapping("/posts")
     @RequiresLogin
-    public Result<Object> createPost(@RequestBody Map<String, Object> data) {
+    public Result<Object> createPost(@Valid @RequestBody CreatePostDTO dto) {
         logger.info("创建帖子请求");
-        return forumService.createPost(data);
+        return forumService.createPost(dto);
     }
 
     /**
@@ -525,23 +527,23 @@ public class ForumController {
     /**
      * 更新帖子
      * 路径: PUT /forum/posts/{id}
-     * 成功码: 6001, 失败码: 6101
+     * 成功码: 6012, 失败码: 6123
      *
      * @param id 帖子ID
-     * @param data 帖子数据
+     * @param dto 帖子数据
      * @return 更新结果
      */
     @PutMapping("/posts/{id}")
     @RequiresLogin
-    public Result<Object> updatePost(@PathVariable String id, @RequestBody Map<String, Object> data) {
+    public Result<Object> updatePost(@PathVariable String id, @Valid @RequestBody UpdatePostDTO dto) {
         logger.info("更新帖子请求: {}", id);
-        return forumService.updatePost(id, data);
+        return forumService.updatePost(id, dto);
     }
 
     /**
      * 删除帖子
      * 路径: DELETE /forum/posts/{id}
-     * 成功码: 6002, 失败码: 6102
+     * 成功码: 6013, 失败码: 6124
      *
      * @param id 帖子ID
      * @return 删除结果

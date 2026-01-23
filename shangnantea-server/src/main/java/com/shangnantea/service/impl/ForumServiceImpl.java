@@ -8,7 +8,9 @@ import com.shangnantea.mapper.ForumReplyMapper;
 import com.shangnantea.mapper.ForumTopicMapper;
 import com.shangnantea.mapper.HomeContentMapper;
 import com.shangnantea.mapper.TeaArticleMapper;
+import com.shangnantea.model.dto.forum.CreatePostDTO;
 import com.shangnantea.model.dto.forum.CreateTopicDTO;
+import com.shangnantea.model.dto.forum.UpdatePostDTO;
 import com.shangnantea.model.dto.forum.UpdateTopicDTO;
 import com.shangnantea.model.entity.forum.ForumPost;
 import com.shangnantea.model.entity.forum.ForumReply;
@@ -18,6 +20,8 @@ import com.shangnantea.model.entity.forum.TeaArticle;
 import com.shangnantea.model.vo.forum.ArticleDetailVO;
 import com.shangnantea.model.vo.forum.ArticleVO;
 import com.shangnantea.model.vo.forum.ForumHomeVO;
+import com.shangnantea.model.vo.forum.PostDetailVO;
+import com.shangnantea.model.vo.forum.PostVO;
 import com.shangnantea.model.vo.forum.TopicDetailVO;
 import com.shangnantea.model.vo.forum.TopicVO;
 import com.shangnantea.service.ForumService;
@@ -1293,6 +1297,384 @@ public class ForumServiceImpl implements ForumService {
         } catch (Exception e) {
             logger.error("删除版块失败: 系统异常, id: {}", id, e);
             return Result.failure(6118); // 删除版块失败
+        }
+    }
+    
+    @Override
+    public Result<Object> getForumPosts(Map<String, Object> params) {
+        try {
+            logger.info("获取帖子列表请求: {}", params);
+            
+            // 1. 解析查询参数
+            Integer topicId = params.get("topicId") != null ? 
+                    Integer.parseInt(params.get("topicId").toString()) : null;
+            String keyword = (String) params.get("keyword");
+            Integer page = params.get("page") != null ? 
+                    Integer.parseInt(params.get("page").toString()) : 1;
+            Integer pageSize = params.get("pageSize") != null ? 
+                    Integer.parseInt(params.get("pageSize").toString()) : 10;
+            
+            // 2. 查询所有正常状态的帖子（status=1）
+            List<ForumPost> allPosts = postMapper.selectAll();
+            List<PostVO> postVOList = allPosts.stream()
+                    .filter(post -> post.getStatus() != null && post.getStatus() == 1)
+                    .filter(post -> {
+                        // 版块筛选
+                        if (topicId != null) {
+                            return topicId.equals(post.getTopicId());
+                        }
+                        return true;
+                    })
+                    .filter(post -> {
+                        // 关键词筛选（标题或内容包含关键词）
+                        if (keyword != null && !keyword.isEmpty()) {
+                            String title = post.getTitle() != null ? post.getTitle() : "";
+                            String content = post.getContent() != null ? post.getContent() : "";
+                            return title.contains(keyword) || content.contains(keyword);
+                        }
+                        return true;
+                    })
+                    .sorted((a, b) -> {
+                        // 置顶帖子优先，然后按创建时间降序
+                        if (!a.getIsSticky().equals(b.getIsSticky())) {
+                            return b.getIsSticky().compareTo(a.getIsSticky());
+                        }
+                        if (a.getCreateTime() == null && b.getCreateTime() == null) {
+                            return 0;
+                        }
+                        if (a.getCreateTime() == null) {
+                            return 1;
+                        }
+                        if (b.getCreateTime() == null) {
+                            return -1;
+                        }
+                        return b.getCreateTime().compareTo(a.getCreateTime());
+                    })
+                    .skip((long) (page - 1) * pageSize)
+                    .limit(pageSize)
+                    .map(post -> {
+                        PostVO vo = new PostVO();
+                        vo.setId(post.getId());
+                        vo.setUserId(post.getUserId());
+                        vo.setUserName("用户" + post.getUserId()); // TODO: 从用户表查询用户名
+                        vo.setTopicId(post.getTopicId());
+                        // TODO: 从版块表查询版块名称
+                        ForumTopic topic = topicMapper.selectById(post.getTopicId());
+                        vo.setTopicName(topic != null ? topic.getName() : "");
+                        vo.setTitle(post.getTitle());
+                        vo.setSummary(post.getSummary());
+                        vo.setCoverImage(post.getCoverImage());
+                        vo.setViewCount(post.getViewCount());
+                        vo.setReplyCount(post.getReplyCount());
+                        vo.setLikeCount(post.getLikeCount());
+                        vo.setFavoriteCount(post.getFavoriteCount());
+                        vo.setIsSticky(post.getIsSticky());
+                        vo.setIsEssence(post.getIsEssence());
+                        vo.setStatus(post.getStatus());
+                        vo.setLastReplyTime(post.getLastReplyTime());
+                        vo.setCreateTime(post.getCreateTime());
+                        return vo;
+                    })
+                    .collect(Collectors.toList());
+            
+            logger.info("获取帖子列表成功，共{}条", postVOList.size());
+            return Result.success(200, postVOList); // 成功码200
+            
+        } catch (Exception e) {
+            logger.error("获取帖子列表失败: 系统异常", e);
+            return Result.failure(6119); // 获取帖子列表失败
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> createPost(CreatePostDTO dto) {
+        try {
+            logger.info("创建帖子请求: {}", dto);
+            
+            // 1. 获取当前用户ID（TODO: 从UserContext获取）
+            String userId = "1"; // 临时硬编码，实际应从UserContext.getCurrentUserId()获取
+            
+            // 2. 验证版块是否存在
+            ForumTopic topic = topicMapper.selectById(dto.getTopicId());
+            if (topic == null) {
+                logger.warn("创建帖子失败: 版块不存在, topicId: {}", dto.getTopicId());
+                return Result.failure(6120); // 帖子发布失败
+            }
+            
+            // 3. 创建帖子实体
+            ForumPost post = new ForumPost();
+            post.setUserId(userId);
+            post.setTopicId(dto.getTopicId());
+            post.setTitle(dto.getTitle());
+            post.setContent(dto.getContent());
+            post.setSummary(dto.getSummary());
+            post.setCoverImage(dto.getCoverImage());
+            post.setImages(dto.getImages());
+            post.setViewCount(0);
+            post.setReplyCount(0);
+            post.setLikeCount(0);
+            post.setFavoriteCount(0);
+            post.setIsSticky(0);
+            post.setIsEssence(0);
+            post.setStatus(1); // 1=正常（直接发布，不需要审核）
+            post.setLastReplyTime(new Date());
+            post.setCreateTime(new Date());
+            post.setUpdateTime(new Date());
+            
+            // 4. 保存到数据库
+            int result = postMapper.insert(post);
+            if (result <= 0) {
+                logger.error("创建帖子失败: 数据库插入失败");
+                return Result.failure(6120); // 帖子发布失败
+            }
+            
+            // 5. 更新版块的帖子数
+            topic.setPostCount((topic.getPostCount() != null ? topic.getPostCount() : 0) + 1);
+            topic.setUpdateTime(new Date());
+            topicMapper.updateById(topic);
+            
+            logger.info("创建帖子成功: id={}", post.getId());
+            return Result.success(6011, null); // 帖子发布成功
+            
+        } catch (Exception e) {
+            logger.error("创建帖子失败: 系统异常", e);
+            return Result.failure(6120); // 帖子发布失败
+        }
+    }
+    
+    @Override
+    public Result<Object> getPendingPosts(Map<String, Object> params) {
+        try {
+            logger.info("获取待审核帖子列表请求: {}", params);
+            
+            // 1. 解析查询参数
+            Integer page = params.get("page") != null ? 
+                    Integer.parseInt(params.get("page").toString()) : 1;
+            Integer pageSize = params.get("pageSize") != null ? 
+                    Integer.parseInt(params.get("pageSize").toString()) : 10;
+            
+            // 2. 查询待审核的帖子（status=0）
+            List<ForumPost> allPosts = postMapper.selectAll();
+            List<PostVO> postVOList = allPosts.stream()
+                    .filter(post -> post.getStatus() != null && post.getStatus() == 0)
+                    .sorted((a, b) -> {
+                        // 按创建时间降序
+                        if (a.getCreateTime() == null && b.getCreateTime() == null) {
+                            return 0;
+                        }
+                        if (a.getCreateTime() == null) {
+                            return 1;
+                        }
+                        if (b.getCreateTime() == null) {
+                            return -1;
+                        }
+                        return b.getCreateTime().compareTo(a.getCreateTime());
+                    })
+                    .skip((long) (page - 1) * pageSize)
+                    .limit(pageSize)
+                    .map(post -> {
+                        PostVO vo = new PostVO();
+                        vo.setId(post.getId());
+                        vo.setUserId(post.getUserId());
+                        vo.setUserName("用户" + post.getUserId()); // TODO: 从用户表查询用户名
+                        vo.setTopicId(post.getTopicId());
+                        ForumTopic topic = topicMapper.selectById(post.getTopicId());
+                        vo.setTopicName(topic != null ? topic.getName() : "");
+                        vo.setTitle(post.getTitle());
+                        vo.setSummary(post.getSummary());
+                        vo.setCoverImage(post.getCoverImage());
+                        vo.setViewCount(post.getViewCount());
+                        vo.setReplyCount(post.getReplyCount());
+                        vo.setLikeCount(post.getLikeCount());
+                        vo.setFavoriteCount(post.getFavoriteCount());
+                        vo.setIsSticky(post.getIsSticky());
+                        vo.setIsEssence(post.getIsEssence());
+                        vo.setStatus(post.getStatus());
+                        vo.setLastReplyTime(post.getLastReplyTime());
+                        vo.setCreateTime(post.getCreateTime());
+                        return vo;
+                    })
+                    .collect(Collectors.toList());
+            
+            logger.info("获取待审核帖子列表成功，共{}条", postVOList.size());
+            return Result.success(200, postVOList); // 成功码200
+            
+        } catch (Exception e) {
+            logger.error("获取待审核帖子列表失败: 系统异常", e);
+            return Result.failure(6121); // 获取待审核帖子列表失败
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> getPostDetail(String id) {
+        try {
+            logger.info("获取帖子详情请求: id={}", id);
+            
+            // 1. 查询帖子
+            Long postId = Long.parseLong(id);
+            ForumPost post = postMapper.selectById(postId);
+            
+            if (post == null) {
+                logger.warn("获取帖子详情失败: 帖子不存在, id: {}", id);
+                return Result.failure(6122); // 获取帖子详情失败
+            }
+            
+            // 2. 增加浏览量
+            post.setViewCount((post.getViewCount() != null ? post.getViewCount() : 0) + 1);
+            postMapper.updateById(post);
+            
+            // 3. 构造返回VO
+            PostDetailVO vo = new PostDetailVO();
+            vo.setId(post.getId());
+            vo.setUserId(post.getUserId());
+            vo.setUserName("用户" + post.getUserId()); // TODO: 从用户表查询用户名
+            vo.setTopicId(post.getTopicId());
+            ForumTopic topic = topicMapper.selectById(post.getTopicId());
+            vo.setTopicName(topic != null ? topic.getName() : "");
+            vo.setTitle(post.getTitle());
+            vo.setContent(post.getContent());
+            vo.setSummary(post.getSummary());
+            vo.setCoverImage(post.getCoverImage());
+            vo.setImages(post.getImages());
+            vo.setViewCount(post.getViewCount());
+            vo.setReplyCount(post.getReplyCount());
+            vo.setLikeCount(post.getLikeCount());
+            vo.setFavoriteCount(post.getFavoriteCount());
+            vo.setIsSticky(post.getIsSticky());
+            vo.setIsEssence(post.getIsEssence());
+            vo.setStatus(post.getStatus());
+            vo.setLastReplyTime(post.getLastReplyTime());
+            vo.setCreateTime(post.getCreateTime());
+            vo.setUpdateTime(post.getUpdateTime());
+            
+            logger.info("获取帖子详情成功: id={}", id);
+            return Result.success(200, vo); // 成功码200
+            
+        } catch (NumberFormatException e) {
+            logger.error("获取帖子详情失败: ID格式错误, id: {}", id, e);
+            return Result.failure(6122); // 获取帖子详情失败
+        } catch (Exception e) {
+            logger.error("获取帖子详情失败: 系统异常, id: {}", id, e);
+            return Result.failure(6122); // 获取帖子详情失败
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> updatePost(String id, UpdatePostDTO dto) {
+        try {
+            logger.info("更新帖子请求: id={}, dto={}", id, dto);
+            
+            // 1. 获取当前用户ID（TODO: 从UserContext获取）
+            String userId = "1"; // 临时硬编码，实际应从UserContext.getCurrentUserId()获取
+            
+            // 2. 查询帖子是否存在
+            Long postId = Long.parseLong(id);
+            ForumPost post = postMapper.selectById(postId);
+            
+            if (post == null) {
+                logger.warn("更新帖子失败: 帖子不存在, id: {}", id);
+                return Result.failure(6123); // 帖子更新失败
+            }
+            
+            // 3. 验证用户是否有权限修改（作者本人或管理员）
+            // TODO: 添加管理员权限检查
+            if (!userId.equals(post.getUserId())) {
+                logger.warn("更新帖子失败: 无权限修改, userId: {}, postUserId: {}", userId, post.getUserId());
+                return Result.failure(6123); // 帖子更新失败
+            }
+            
+            // 4. 更新帖子信息
+            if (dto.getTitle() != null && !dto.getTitle().isEmpty()) {
+                post.setTitle(dto.getTitle());
+            }
+            if (dto.getContent() != null) {
+                post.setContent(dto.getContent());
+            }
+            if (dto.getSummary() != null) {
+                post.setSummary(dto.getSummary());
+            }
+            if (dto.getCoverImage() != null) {
+                post.setCoverImage(dto.getCoverImage());
+            }
+            if (dto.getImages() != null) {
+                post.setImages(dto.getImages());
+            }
+            post.setUpdateTime(new Date());
+            
+            // 5. 保存到数据库
+            int result = postMapper.updateById(post);
+            if (result <= 0) {
+                logger.error("更新帖子失败: 数据库更新失败, id: {}", id);
+                return Result.failure(6123); // 帖子更新失败
+            }
+            
+            logger.info("更新帖子成功: id={}", id);
+            return Result.success(6012, null); // 帖子更新成功
+            
+        } catch (NumberFormatException e) {
+            logger.error("更新帖子失败: ID格式错误, id: {}", id, e);
+            return Result.failure(6123); // 帖子更新失败
+        } catch (Exception e) {
+            logger.error("更新帖子失败: 系统异常, id: {}", id, e);
+            return Result.failure(6123); // 帖子更新失败
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Boolean> deletePost(String id) {
+        try {
+            logger.info("删除帖子请求: id={}", id);
+            
+            // 1. 获取当前用户ID（TODO: 从UserContext获取）
+            String userId = "1"; // 临时硬编码，实际应从UserContext.getCurrentUserId()获取
+            
+            // 2. 查询帖子是否存在
+            Long postId = Long.parseLong(id);
+            ForumPost post = postMapper.selectById(postId);
+            
+            if (post == null) {
+                logger.warn("删除帖子失败: 帖子不存在, id: {}", id);
+                return Result.failure(6124); // 帖子删除失败
+            }
+            
+            // 3. 验证用户是否有权限删除（作者本人或管理员）
+            // TODO: 添加管理员权限检查
+            if (!userId.equals(post.getUserId())) {
+                logger.warn("删除帖子失败: 无权限删除, userId: {}, postUserId: {}", userId, post.getUserId());
+                return Result.failure(6124); // 帖子删除失败
+            }
+            
+            // 4. 软删除：更新状态为已删除
+            post.setStatus(2); // 2=已删除
+            post.setUpdateTime(new Date());
+            int result = postMapper.updateById(post);
+            
+            if (result <= 0) {
+                logger.error("删除帖子失败: 数据库更新失败, id: {}", id);
+                return Result.failure(6124); // 帖子删除失败
+            }
+            
+            // 5. 更新版块的帖子数
+            ForumTopic topic = topicMapper.selectById(post.getTopicId());
+            if (topic != null) {
+                topic.setPostCount(Math.max(0, (topic.getPostCount() != null ? topic.getPostCount() : 0) - 1));
+                topic.setUpdateTime(new Date());
+                topicMapper.updateById(topic);
+            }
+            
+            logger.info("删除帖子成功: id={}", id);
+            return Result.success(6013, true); // 帖子删除成功
+            
+        } catch (NumberFormatException e) {
+            logger.error("删除帖子失败: ID格式错误, id: {}", id, e);
+            return Result.failure(6124); // 帖子删除失败
+        } catch (Exception e) {
+            logger.error("删除帖子失败: 系统异常, id: {}", id, e);
+            return Result.failure(6124); // 帖子删除失败
         }
     }
 } 
