@@ -107,7 +107,7 @@ inclusion: manual
 
 #### 首页数据管理（2个接口）
 1. **getHomeData** - `/forum/home` - 获取首页数据 ✅ 已完成
-2. **updateHomeData** - `/forum/home` - 更新首页数据
+2. **updateHomeData** - `/forum/home` - 更新首页数据 ✅ 已完成
 
 #### Banner管理功能（5个接口）
 3. **getBanners** - `/forum/banners` - 获取Banner列表
