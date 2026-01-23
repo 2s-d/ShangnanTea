@@ -6,13 +6,16 @@ import com.shangnantea.common.api.Result;
 import com.shangnantea.mapper.ShopCertificationMapper;
 import com.shangnantea.mapper.ShopMapper;
 import com.shangnantea.mapper.ShopBannerMapper;
+import com.shangnantea.mapper.ShopAnnouncementMapper;
 import com.shangnantea.mapper.TeaMapper;
 import com.shangnantea.model.dto.shop.ShopQueryDTO;
 import com.shangnantea.model.entity.shop.Shop;
 import com.shangnantea.model.entity.shop.ShopBanner;
+import com.shangnantea.model.entity.shop.ShopAnnouncement;
 import com.shangnantea.model.entity.shop.ShopCertification;
 import com.shangnantea.model.entity.tea.Tea;
 import com.shangnantea.model.vo.shop.BannerVO;
+import com.shangnantea.model.vo.shop.AnnouncementVO;
 import com.shangnantea.model.vo.shop.ShopVO;
 import com.shangnantea.model.vo.shop.ShopDetailVO;
 import com.shangnantea.model.vo.shop.ShopStatisticsVO;
@@ -53,6 +56,9 @@ public class ShopServiceImpl implements ShopService {
     
     @Autowired
     private ShopBannerMapper shopBannerMapper;
+    
+    @Autowired
+    private ShopAnnouncementMapper shopAnnouncementMapper;
     
     @Autowired
     private TeaMapper teaMapper;
