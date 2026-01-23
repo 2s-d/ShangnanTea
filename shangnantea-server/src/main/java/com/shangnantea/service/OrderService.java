@@ -100,10 +100,12 @@ public interface OrderService {
     /**
      * 添加购物车
      *
-     * @param cart 购物车信息
-     * @return 购物车信息
+     * @param teaId 茶叶ID
+     * @param quantity 数量
+     * @param specificationId 规格ID
+     * @return 添加结果
      */
-    ShoppingCart addToCart(ShoppingCart cart);
+    Result<CartItemVO> addToCart(String teaId, Integer quantity, String specificationId);
     
     /**
      * 更新购物车

@@ -160,13 +160,131 @@ public class OrderServiceImpl implements OrderService {
     
     @Override
     @Transactional
-    public ShoppingCart addToCart(ShoppingCart cart) {
-        // TODO: 实现添加购物车的逻辑
-        Date now = new Date();
-        cart.setCreateTime(now);
-        cart.setUpdateTime(now);
-        cartMapper.insert(cart);
-        return cart;
+    public Result<CartItemVO> addToCart(String teaId, Integer quantity, String specificationId) {
+        logger.info("添加购物车请求: teaId={}, quantity={}, specificationId={}", teaId, quantity, specificationId);
+        
+        try {
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("添加购物车失败: 用户未登录");
+                return Result.failure(5101);
+            }
+            
+            // 2. 验证商品是否存在
+            Tea tea = null;
+            try {
+                tea = teaMapper.selectById(Long.parseLong(teaId));
+            } catch (NumberFormatException e) {
+                logger.warn("添加购物车失败: 茶叶ID格式错误: {}", teaId);
+                return Result.failure(5104); // 商品已下架或不可用
+            }
+            
+            if (tea == null) {
+                logger.warn("添加购物车失败: 商品不存在: teaId={}", teaId);
+                return Result.failure(5104); // 商品已下架或不可用
+            }
+            
+            // 3. 验证规格和库存
+            Integer specId = null;
+            BigDecimal price = null;
+            String specName = null;
+            Integer stock = 0;
+            
+            if (specificationId != null && !specificationId.isEmpty()) {
+                try {
+                    specId = Integer.parseInt(specificationId);
+                    TeaSpecification spec = teaSpecificationMapper.selectById(specId.longValue());
+                    
+                    if (spec == null) {
+                        logger.warn("添加购物车失败: 规格不存在: specId={}", specId);
+                        return Result.failure(5104); // 商品已下架或不可用
+                    }
+                    
+                    price = spec.getPrice();
+                    specName = spec.getSpecName();
+                    stock = spec.getStock() != null ? spec.getStock() : 0;
+                    
+                } catch (NumberFormatException e) {
+                    logger.warn("添加购物车失败: 规格ID格式错误: {}", specificationId);
+                    return Result.failure(5104);
+                }
+            } else {
+                // 没有规格，使用商品默认价格和库存
+                price = tea.getPrice();
+                stock = tea.getStock() != null ? tea.getStock() : 0;
+            }
+            
+            // 4. 验证库存是否充足
+            if (stock < quantity) {
+                logger.warn("添加购物车失败: 库存不足: stock={}, quantity={}", stock, quantity);
+                return Result.failure(5102); // 商品库存不足
+            }
+            
+            // 5. 检查购物车中是否已有相同商品
+            ShoppingCart existingCart = cartMapper.selectByUserIdAndTeaIdAndSpecId(userId, teaId, specId);
+            
+            if (existingCart != null) {
+                // 已存在，更新数量
+                int newQuantity = existingCart.getQuantity() + quantity;
+                
+                // 再次验证库存
+                if (stock < newQuantity) {
+                    logger.warn("添加购物车失败: 更新后库存不足: stock={}, newQuantity={}", stock, newQuantity);
+                    return Result.failure(5102);
+                }
+                
+                existingCart.setQuantity(newQuantity);
+                existingCart.setUpdateTime(new Date());
+                cartMapper.updateById(existingCart);
+                
+                logger.info("购物车商品数量已更新: cartId={}, newQuantity={}", existingCart.getId(), newQuantity);
+                
+                // 构建返回VO
+                CartItemVO itemVO = buildCartItemVO(existingCart, tea, specName, price);
+                return Result.success(5000, itemVO);
+                
+            } else {
+                // 不存在，新增
+                ShoppingCart cart = new ShoppingCart();
+                cart.setUserId(userId);
+                cart.setTeaId(teaId);
+                cart.setSpecId(specId);
+                cart.setQuantity(quantity);
+                cart.setSelected(1); // 默认选中
+                cart.setCreateTime(new Date());
+                cart.setUpdateTime(new Date());
+                
+                cartMapper.insert(cart);
+                
+                logger.info("商品已加入购物车: cartId={}, teaId={}, quantity={}", cart.getId(), teaId, quantity);
+                
+                // 构建返回VO
+                CartItemVO itemVO = buildCartItemVO(cart, tea, specName, price);
+                return Result.success(5000, itemVO);
+            }
+            
+        } catch (Exception e) {
+            logger.error("添加购物车失败: 系统异常", e);
+            return Result.failure(5101);
+        }
+    }
+    
+    /**
+     * 构建购物车项VO
+     */
+    private CartItemVO buildCartItemVO(ShoppingCart cart, Tea tea, String specName, BigDecimal price) {
+        CartItemVO itemVO = new CartItemVO();
+        itemVO.setId(String.valueOf(cart.getId()));
+        itemVO.setTeaId(cart.getTeaId());
+        itemVO.setTeaName(tea.getName());
+        itemVO.setTeaImage(tea.getMainImage());
+        itemVO.setSpecId(cart.getSpecId() != null ? String.valueOf(cart.getSpecId()) : null);
+        itemVO.setSpecName(specName);
+        itemVO.setPrice(price);
+        itemVO.setQuantity(cart.getQuantity());
+        itemVO.setSelected(cart.getSelected() != null && cart.getSelected() == 1);
+        return itemVO;
     }
     
     @Override

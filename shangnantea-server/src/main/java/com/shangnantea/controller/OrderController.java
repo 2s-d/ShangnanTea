@@ -1,6 +1,8 @@
 package com.shangnantea.controller;
 
 import com.shangnantea.common.api.Result;
+import com.shangnantea.model.dto.order.AddToCartDTO;
+import com.shangnantea.model.vo.order.CartItemVO;
 import com.shangnantea.security.annotation.RequiresLogin;
 import com.shangnantea.service.OrderService;
 import org.slf4j.Logger;
@@ -45,16 +47,17 @@ public class OrderController {
     /**
      * 添加商品到购物车
      * 路径: POST /order/cart/add
-     * 成功码: 4010, 失败码: 4111, 4116, 4117, 4118
+     * 成功码: 5000, 失败码: 5101, 5102, 5103, 5104
      *
      * @param data 购物车商品数据 {teaId, quantity, specificationId}
      * @return 添加结果
      */
     @PostMapping("/cart/add")
     @RequiresLogin
-    public Result<Object> addToCart(@RequestBody Map<String, Object> data) {
-        logger.info("添加商品到购物车请求");
-        return orderService.addToCart(data);
+    public Result<CartItemVO> addToCart(@RequestBody @Validated AddToCartDTO data) {
+        logger.info("添加商品到购物车请求: teaId={}, quantity={}, specificationId={}", 
+                    data.getTeaId(), data.getQuantity(), data.getSpecificationId());
+        return orderService.addToCart(data.getTeaId(), data.getQuantity(), data.getSpecificationId());
     }
 
     /**

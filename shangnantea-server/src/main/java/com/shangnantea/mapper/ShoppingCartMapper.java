@@ -16,4 +16,14 @@ public interface ShoppingCartMapper extends BaseMapper<ShoppingCart, Integer> {
      * @return 购物车列表
      */
     List<ShoppingCart> selectByUserId(String userId);
+    
+    /**
+     * 根据用户ID、茶叶ID和规格ID查询购物车项
+     *
+     * @param userId 用户ID
+     * @param teaId 茶叶ID
+     * @param specId 规格ID
+     * @return 购物车项
+     */
+    ShoppingCart selectByUserIdAndTeaIdAndSpecId(String userId, String teaId, Integer specId);
 } 

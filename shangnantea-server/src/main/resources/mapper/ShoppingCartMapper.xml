@@ -89,4 +89,21 @@
         WHERE user_id = #{userId}
         ORDER BY create_time DESC
     </select>
+    
+    <!-- 根据用户ID、茶叶ID和规格ID查询购物车项 -->
+    <select id="selectByUserIdAndTeaIdAndSpecId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM shopping_carts
+        WHERE user_id = #{userId}
+        AND tea_id = #{teaId}
+        <choose>
+            <when test="specId != null">
+                AND spec_id = #{specId}
+            </when>
+            <otherwise>
+                AND spec_id IS NULL
+            </otherwise>
+        </choose>
+        LIMIT 1
+    </select>
 </mapper> 
