@@ -151,4 +151,13 @@ public interface ShopService {
      * @return 店铺列表分页结果
      */
     Result<Object> getShops(Map<String, Object> params);
+    
+    /**
+     * 创建店铺（商家）
+     * 验证商家认证状态，验证店铺名称唯一性
+     *
+     * @param shopData 店铺数据
+     * @return 创建结果
+     */
+    Result<Object> createShop(Map<String, Object> shopData);
 } 

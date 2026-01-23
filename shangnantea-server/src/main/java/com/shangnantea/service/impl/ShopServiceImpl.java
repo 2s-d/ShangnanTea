@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -63,8 +64,7 @@ public class ShopServiceImpl implements ShopService {
     
     @Override
     public Shop getShopByUserId(String userId) {
-        // TODO: 实现获取商家店铺的逻辑
-        return null; // 待实现
+        return shopMapper.selectByUserId(userId);
     }
     
     @Override
@@ -112,8 +112,7 @@ public class ShopServiceImpl implements ShopService {
     
     @Override
     public ShopCertification getCertificationByUserId(String userId) {
-        // TODO: 实现获取用户认证申请的逻辑
-        return null; // 待实现
+        return certificationMapper.selectByUserId(userId);
     }
     
     @Override
@@ -339,6 +338,91 @@ public class ShopServiceImpl implements ShopService {
         } catch (Exception e) {
             logger.error("获取店铺列表失败: 系统异常", e);
             return Result.failure(4100);
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> createShop(Map<String, Object> shopData) {
+        try {
+            logger.info("创建店铺请求, shopData: {}", shopData);
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("创建店铺失败: 用户未登录");
+                return Result.failure(4101);
+            }
+            
+            // 2. 验证用户是否有商家认证
+            ShopCertification certification = getCertificationByUserId(userId);
+            if (certification == null || certification.getStatus() != 1) {
+                logger.warn("创建店铺失败: 用户未通过商家认证, userId: {}", userId);
+                return Result.failure(4101);
+            }
+            
+            // 3. 验证用户是否已有店铺
+            Shop existingShop = getShopByUserId(userId);
+            if (existingShop != null) {
+                logger.warn("创建店铺失败: 用户已有店铺, userId: {}, shopId: {}", userId, existingShop.getId());
+                return Result.failure(4101);
+            }
+            
+            // 4. 提取并验证店铺名称
+            String shopName = shopData.get("name") != null ? shopData.get("name").toString() : null;
+            if (shopName == null || shopName.trim().isEmpty()) {
+                logger.warn("创建店铺失败: 店铺名称为空");
+                return Result.failure(4101);
+            }
+            
+            // 5. 验证店铺名称是否重复
+            Shop shopByName = shopMapper.selectByShopName(shopName);
+            if (shopByName != null) {
+                logger.warn("创建店铺失败: 店铺名称已存在, shopName: {}", shopName);
+                return Result.failure(4101);
+            }
+            
+            // 6. 构建店铺实体
+            Shop shop = new Shop();
+            shop.setId(UUID.randomUUID().toString().replace("-", ""));
+            shop.setOwnerId(userId);
+            shop.setShopName(shopName);
+            
+            // 设置可选字段
+            if (shopData.get("logo") != null) {
+                shop.setLogo(shopData.get("logo").toString());
+            }
+            if (shopData.get("description") != null) {
+                shop.setDescription(shopData.get("description").toString());
+            }
+            
+            // 设置默认值
+            shop.setStatus(1); // 正常状态
+            shop.setRating(new BigDecimal("5.0")); // 默认评分
+            shop.setRatingCount(0);
+            shop.setSalesCount(0);
+            shop.setFollowCount(0);
+            
+            Date now = new Date();
+            shop.setCreateTime(now);
+            shop.setUpdateTime(now);
+            
+            // 7. 插入数据库
+            int result = shopMapper.insert(shop);
+            if (result <= 0) {
+                logger.error("创建店铺失败: 数据库插入失败, userId: {}", userId);
+                return Result.failure(4101);
+            }
+            
+            logger.info("创建店铺成功: shopId: {}, shopName: {}, userId: {}", 
+                    shop.getId(), shop.getShopName(), userId);
+            
+            // 8. 返回成功（根据code-message-mapping.md，成功码是4000）
+            return Result.success(4000, null);
+            
+        } catch (Exception e) {
+            logger.error("创建店铺失败: 系统异常", e);
+            return Result.failure(4101);
         }
     }
     

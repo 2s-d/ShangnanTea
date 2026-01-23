@@ -38,4 +38,20 @@ public interface ShopMapper extends BaseMapper<Shop, String> {
      */
     Long countShopList(@Param("keyword") String keyword,
                        @Param("rating") Double rating);
+    
+    /**
+     * 根据店铺名称查询店铺
+     *
+     * @param shopName 店铺名称
+     * @return 店铺信息
+     */
+    Shop selectByShopName(@Param("shopName") String shopName);
+    
+    /**
+     * 根据用户ID查询店铺
+     *
+     * @param userId 用户ID
+     * @return 店铺信息
+     */
+    Shop selectByUserId(@Param("userId") String userId);
 } 

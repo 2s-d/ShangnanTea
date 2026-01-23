@@ -37,11 +37,11 @@
         INSERT INTO shops (
             id, owner_id, shop_name, logo, banner, description, announcement, contact_phone, 
             province, city, district, address, business_license, status, rating, rating_count, 
-            sales_count, create_time, update_time
+            sales_count, follow_count, create_time, update_time
         ) VALUES (
             #{id}, #{ownerId}, #{shopName}, #{logo}, #{banner}, #{description}, #{announcement}, #{contactPhone},
             #{province}, #{city}, #{district}, #{address}, #{businessLicense}, #{status}, #{rating}, #{ratingCount},
-            #{salesCount}, #{createTime}, #{updateTime}
+            #{salesCount}, #{followCount}, #{createTime}, #{updateTime}
         )
     </insert>
 
@@ -165,5 +165,21 @@
         <if test="rating != null">
             AND rating >= #{rating}
         </if>
+    </select>
+
+    <!-- 根据店铺名称查询店铺 -->
+    <select id="selectByShopName" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM shops
+        WHERE shop_name = #{shopName}
+        LIMIT 1
+    </select>
+
+    <!-- 根据用户ID查询店铺 -->
+    <select id="selectByUserId" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM shops
+        WHERE owner_id = #{userId}
+        LIMIT 1
     </select>
 </mapper> 
