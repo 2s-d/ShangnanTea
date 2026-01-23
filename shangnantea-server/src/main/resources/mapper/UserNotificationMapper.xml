@@ -88,4 +88,26 @@
     <select id="count" resultType="java.lang.Long">
         SELECT COUNT(*) FROM user_notifications
     </select>
+
+    <!-- 根据用户ID和类型查询通知列表（支持分页） -->
+    <select id="selectByUserIdAndType" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM user_notifications
+        WHERE user_id = #{userId}
+        <if test="type != null and type != ''">
+            AND type = #{type}
+        </if>
+        ORDER BY create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 统计用户的通知数量 -->
+    <select id="countByUserIdAndType" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM user_notifications
+        WHERE user_id = #{userId}
+        <if test="type != null and type != ''">
+            AND type = #{type}
+        </if>
+    </select>
 </mapper> 

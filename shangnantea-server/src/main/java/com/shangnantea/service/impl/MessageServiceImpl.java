@@ -9,6 +9,7 @@ import com.shangnantea.mapper.UserNotificationMapper;
 import com.shangnantea.model.entity.message.ChatMessage;
 import com.shangnantea.model.entity.message.ChatSession;
 import com.shangnantea.model.entity.message.UserNotification;
+import com.shangnantea.model.vo.message.MessageVO;
 import com.shangnantea.security.context.UserContext;
 import com.shangnantea.service.MessageService;
 import com.shangnantea.utils.FileUploadUtils;
@@ -20,11 +21,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * 消息服务实现类

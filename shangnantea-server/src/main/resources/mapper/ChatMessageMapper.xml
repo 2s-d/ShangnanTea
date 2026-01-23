@@ -83,4 +83,20 @@
     <select id="count" resultType="java.lang.Long">
         SELECT COUNT(*) FROM chat_messages
     </select>
+
+    <!-- 根据用户ID查询聊天消息列表（支持分页） -->
+    <select id="selectByUserId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM chat_messages
+        WHERE sender_id = #{userId} OR receiver_id = #{userId}
+        ORDER BY create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 统计用户的聊天消息数量 -->
+    <select id="countByUserId" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM chat_messages
+        WHERE sender_id = #{userId} OR receiver_id = #{userId}
+    </select>
 </mapper> 
