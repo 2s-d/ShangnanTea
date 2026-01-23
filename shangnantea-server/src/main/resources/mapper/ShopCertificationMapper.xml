@@ -113,4 +113,13 @@
     <select id="count" resultType="java.lang.Long">
         SELECT COUNT(*) FROM shop_certifications
     </select>
+    
+    <!-- 根据用户ID查询认证信息 -->
+    <select id="selectByUserId" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM shop_certifications
+        WHERE user_id = #{userId}
+        ORDER BY create_time DESC
+        LIMIT 1
+    </select>
 </mapper> 

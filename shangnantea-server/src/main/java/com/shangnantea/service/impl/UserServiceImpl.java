@@ -954,16 +954,100 @@ public class UserServiceImpl implements UserService {
     
     // ==================== 用户互动功能 ====================
     
+    /**
+     * 获取关注列表
+     * 成功码：200，失败码：2122
+     */
     @Override
     public Result<Object> getFollowList(String type) {
-        // TODO: 实现获取关注列表逻辑
-        return Result.success(200);
+        try {
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("获取关注列表失败: 用户未登录");
+                return Result.failure(2122); // 加载失败
+            }
+            
+            // 2. 查询关注列表
+            List<UserFollow> followList = userFollowMapper.selectByUserId(userId, type);
+            
+            // 3. 转换为VO列表
+            List<FollowVO> followVOList = convertToFollowVOList(followList);
+            
+            logger.info("获取关注列表成功: userId: {}, type: {}, count: {}", userId, type, followVOList.size());
+            return Result.success(200, followVOList); // 操作成功（静默）
+            
+        } catch (Exception e) {
+            logger.error("获取关注列表失败: 系统异常", e);
+            return Result.failure(2122); // 加载失败
+        }
     }
     
+    /**
+     * 添加关注
+     * 成功码：2012，失败码：2123
+     */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Result<Boolean> addFollow(Map<String, Object> followData) {
-        // TODO: 实现添加关注逻辑
-        return Result.success(5000, true);
+        try {
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("添加关注失败: 用户未登录");
+                return Result.failure(2123); // 操作失败
+            }
+            
+            // 2. 获取参数
+            String targetId = (String) followData.get("targetId");
+            String targetType = (String) followData.get("targetType");
+            
+            if (targetId == null || targetId.trim().isEmpty()) {
+                logger.warn("添加关注失败: 目标ID为空, userId: {}", userId);
+                return Result.failure(2123); // 操作失败
+            }
+            
+            if (targetType == null || targetType.trim().isEmpty()) {
+                targetType = "shop"; // 默认为店铺
+            }
+            
+            // 3. 检查是否已关注
+            UserFollow existingFollow = userFollowMapper.selectByUserIdAndFollowId(userId, targetId, targetType);
+            if (existingFollow != null) {
+                logger.warn("添加关注失败: 已关注该对象, userId: {}, targetId: {}", userId, targetId);
+                return Result.failure(2123); // 操作失败
+            }
+            
+            // 4. 构建关注实体
+            UserFollow follow = new UserFollow();
+            follow.setUserId(userId);
+            follow.setFollowId(targetId);
+            follow.setFollowType(targetType);
+            
+            // 可选字段
+            if (followData.containsKey("targetName")) {
+                follow.setTargetName((String) followData.get("targetName"));
+            }
+            if (followData.containsKey("targetAvatar")) {
+                follow.setTargetAvatar((String) followData.get("targetAvatar"));
+            }
+            
+            follow.setCreateTime(new Date());
+            
+            // 5. 插入数据库
+            int result = userFollowMapper.insert(follow);
+            if (result <= 0) {
+                logger.error("添加关注失败: 数据库插入失败, userId: {}", userId);
+                return Result.failure(2123); // 操作失败
+            }
+            
+            logger.info("添加关注成功: userId: {}, targetId: {}, targetType: {}", userId, targetId, targetType);
+            return Result.success(2012, true); // 已关注店铺
+            
+        } catch (Exception e) {
+            logger.error("添加关注失败: 系统异常", e);
+            return Result.failure(2123); // 操作失败
+        }
     }
     
     @Override
@@ -1118,6 +1202,52 @@ public class UserServiceImpl implements UserService {
         addressVO.setIsDefault(address.getIsDefault());
         
         return addressVO;
+    }
+    
+    /**
+     * 将ShopCertification实体转换为CertificationStatusVO
+     */
+    private CertificationStatusVO convertToCertificationStatusVO(ShopCertification certification) {
+        if (certification == null) {
+            return null;
+        }
+        
+        CertificationStatusVO certificationVO = new CertificationStatusVO();
+        certificationVO.setId(certification.getId());
+        certificationVO.setUserId(certification.getUserId());
+        certificationVO.setShopName(certification.getShopName());
+        certificationVO.setBusinessLicense(certification.getBusinessLicense());
+        certificationVO.setIdCardFront(certification.getIdCardFront());
+        certificationVO.setIdCardBack(certification.getIdCardBack());
+        certificationVO.setStatus(certification.getStatus());
+        certificationVO.setRejectReason(certification.getRejectReason());
+        certificationVO.setCreateTime(certification.getCreateTime());
+        certificationVO.setUpdateTime(certification.getUpdateTime());
+        
+        return certificationVO;
+    }
+    
+    /**
+     * 将UserFollow实体列表转换为FollowVO列表
+     */
+    private List<FollowVO> convertToFollowVOList(List<UserFollow> followList) {
+        List<FollowVO> followVOList = new ArrayList<>();
+        if (followList == null || followList.isEmpty()) {
+            return followVOList;
+        }
+        
+        for (UserFollow follow : followList) {
+            FollowVO followVO = new FollowVO();
+            followVO.setId(follow.getId());
+            followVO.setTargetId(follow.getFollowId());
+            followVO.setTargetType(follow.getFollowType());
+            followVO.setTargetName(follow.getTargetName());
+            followVO.setTargetAvatar(follow.getTargetAvatar());
+            followVO.setCreateTime(follow.getCreateTime());
+            followVOList.add(followVO);
+        }
+        
+        return followVOList;
     }
     
     @Override
