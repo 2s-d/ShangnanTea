@@ -121,9 +121,9 @@ public interface OrderService {
      * 删除购物车
      *
      * @param id 购物车ID
-     * @return 是否成功
+     * @return 删除结果
      */
-    boolean removeFromCart(Integer id);
+    Result<Boolean> removeFromCart(Integer id);
     
     /**
      * 获取购物车列表

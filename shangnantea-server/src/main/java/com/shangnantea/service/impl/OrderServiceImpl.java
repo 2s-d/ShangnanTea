@@ -471,9 +471,45 @@ public class OrderServiceImpl implements OrderService {
     
     @Override
     @Transactional
-    public boolean removeFromCart(Integer id) {
-        // TODO: 实现删除购物车的逻辑
-        return cartMapper.deleteById(id) > 0;
+    public Result<Boolean> removeFromCart(Integer id) {
+        logger.info("移除购物车商品请求: id={}", id);
+        
+        try {
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("移除购物车失败: 用户未登录");
+                return Result.failure(5108);
+            }
+            
+            // 2. 查询购物车项是否存在
+            ShoppingCart cart = cartMapper.selectById(id);
+            if (cart == null) {
+                logger.warn("移除购物车失败: 购物车项不存在: id={}", id);
+                return Result.failure(5108);
+            }
+            
+            // 3. 验证购物车项是否属于当前用户
+            if (!userId.equals(cart.getUserId())) {
+                logger.warn("移除购物车失败: 购物车项不属于当前用户: cartId={}, userId={}, cartUserId={}", 
+                           id, userId, cart.getUserId());
+                return Result.failure(5108);
+            }
+            
+            // 4. 删除购物车项
+            int rows = cartMapper.deleteById(id);
+            if (rows > 0) {
+                logger.info("购物车商品已移除: cartId={}, userId={}", id, userId);
+                return Result.success(5003, true);
+            } else {
+                logger.warn("移除购物车失败: 删除操作未影响任何行: id={}", id);
+                return Result.failure(5108);
+            }
+            
+        } catch (Exception e) {
+            logger.error("移除购物车失败: 系统异常", e);
+            return Result.failure(5108);
+        }
     }
     
     @Override
