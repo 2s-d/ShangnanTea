@@ -106,7 +106,7 @@ inclusion: manual
 ### 消息模块接口列表（共22个接口）
 
 #### 基础消息功能（5个接口）
-1. **getMessages** - `/message/list` - 获取消息列表
+1. **getMessages** - `/message/list` - 获取消息列表 ✅ 已完成
 2. **getMessageDetail** - `/message/{id}` - 获取消息详情
 3. **sendMessage** - `/message/send` - 发送消息
 4. **markAsRead** - `/message/read` - 标记已读
