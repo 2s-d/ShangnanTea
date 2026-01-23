@@ -5,9 +5,11 @@ import com.shangnantea.model.dto.AddFavoriteDTO;
 import com.shangnantea.model.dto.AddFollowDTO;
 import com.shangnantea.model.dto.AddLikeDTO;
 import com.shangnantea.model.dto.ChangePasswordDTO;
+import com.shangnantea.model.dto.CreateAdminDTO;
 import com.shangnantea.model.dto.LoginDTO;
 import com.shangnantea.model.dto.RegisterDTO;
 import com.shangnantea.model.dto.SubmitShopCertificationDTO;
+import com.shangnantea.model.dto.UpdateUserPreferencesDTO;
 import com.shangnantea.model.vo.user.TokenVO;
 import com.shangnantea.model.vo.user.UserVO;
 import com.shangnantea.security.annotation.RequiresLogin;
@@ -426,14 +428,14 @@ public class UserController {
      * 路径: PUT /user/preferences
      * 成功码: 2018, 失败码: 2131
      *
-     * @param preferences 偏好设置
+     * @param preferencesDTO 偏好设置
      * @return 更新结果
      */
     @PutMapping("/preferences")
     @RequiresLogin
-    public Result<Object> updateUserPreferences(@RequestBody Map<String, Object> preferences) {
+    public Result<Object> updateUserPreferences(@Valid @RequestBody UpdateUserPreferencesDTO preferencesDTO) {
         logger.info("更新用户偏好设置请求");
-        return userService.updateUserPreferences(preferences);
+        return userService.updateUserPreferences(preferencesDTO);
     }
 
     /**
@@ -483,14 +485,14 @@ public class UserController {
      * 路径: POST /user/admin/users
      * 成功码: 2019, 失败码: 2134, 2135
      *
-     * @param adminData 管理员数据
+     * @param adminDTO 管理员数据
      * @return 创建结果
      */
     @PostMapping("/admin/users")
     @RequiresRoles({1}) // 管理员角色
-    public Result<Boolean> createAdmin(@RequestBody Map<String, Object> adminData) {
+    public Result<Boolean> createAdmin(@Valid @RequestBody CreateAdminDTO adminDTO) {
         logger.info("创建管理员账号请求");
-        return userService.createAdmin(adminData);
+        return userService.createAdmin(adminDTO);
     }
 
     /**

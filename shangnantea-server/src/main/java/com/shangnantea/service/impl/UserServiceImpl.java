@@ -1422,14 +1422,92 @@ public class UserServiceImpl implements UserService {
     
     @Override
     public Result<Object> getAdminUserList(String keyword, Integer role, Integer status, Integer page, Integer pageSize) {
-        // TODO: 实现获取用户列表逻辑
-        return Result.success(200);
+        try {
+            // 1. 参数验证
+            if (page == null || page < 1) {
+                page = 1;
+            }
+            if (pageSize == null || pageSize < 1) {
+                pageSize = 10;
+            }
+            
+            // 2. 计算偏移量
+            int offset = (page - 1) * pageSize;
+            
+            // 3. 查询用户列表
+            List<User> userList = userMapper.selectByPage(keyword, role, status, offset, pageSize);
+            
+            // 4. 查询总数
+            int total = userMapper.countByCondition(keyword, role, status);
+            
+            // 5. 转换为VO列表
+            List<UserVO> userVOList = new ArrayList<>();
+            for (User user : userList) {
+                userVOList.add(convertToUserVO(user));
+            }
+            
+            // 6. 构建分页结果
+            Map<String, Object> result = new HashMap<>();
+            result.put("list", userVOList);
+            result.put("total", total);
+            result.put("page", page);
+            result.put("pageSize", pageSize);
+            result.put("totalPages", (int) Math.ceil((double) total / pageSize));
+            
+            logger.info("获取用户列表成功(管理员): keyword: {}, role: {}, status: {}, page: {}, total: {}", 
+                keyword, role, status, page, total);
+            return Result.success(200, result); // 操作成功（静默）
+            
+        } catch (Exception e) {
+            logger.error("获取用户列表失败(管理员): 系统异常", e);
+            return Result.failure(2132); // 加载失败
+        }
     }
     
     @Override
-    public Result<Boolean> createAdmin(Map<String, Object> adminData) {
-        // TODO: 实现创建管理员逻辑
-        return Result.success(2023, true);
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Boolean> createAdmin(CreateAdminDTO adminDTO) {
+        try {
+            // 1. 检查用户名是否已存在
+            if (isUserExist(adminDTO.getUsername())) {
+                logger.warn("创建管理员失败: 用户名已存在, username: {}", adminDTO.getUsername());
+                return Result.failure(2134); // 操作失败，用户名已存在
+            }
+            
+            // 2. 创建User实体
+            User user = new User();
+            user.setUsername(adminDTO.getUsername());
+            user.setPassword(passwordEncoder.encode(adminDTO.getPassword()));
+            user.setNickname(adminDTO.getNickname());
+            user.setPhone(adminDTO.getPhone());
+            user.setEmail(adminDTO.getEmail());
+            
+            // 3. 生成用户ID
+            String userId = generateUserId();
+            user.setId(userId);
+            
+            // 4. 设置角色为管理员
+            user.setRole(adminDTO.getRole() != null ? adminDTO.getRole() : 1);
+            user.setStatus(1); // 默认为正常状态
+            user.setIsDeleted(0); // 默认为未删除
+            user.setCreateTime(new Date());
+            user.setUpdateTime(new Date());
+            
+            // 5. 保存到数据库
+            int result = userMapper.insert(user);
+            if (result <= 0) {
+                logger.error("创建管理员失败: 数据库插入失败, username: {}", adminDTO.getUsername());
+                return Result.failure(2135); // 操作失败
+            }
+            
+            logger.info("创建管理员成功: username: {}, userId: {}, role: {}", 
+                adminDTO.getUsername(), userId, user.getRole());
+            return Result.success(2019, true); // 管理员账号创建成功
+            
+        } catch (Exception e) {
+            logger.error("创建管理员失败: 系统异常", e);
+            return Result.failure(2135); // 操作失败
+        }
     }
     
     @Override
@@ -1717,3 +1795,96 @@ public class UserServiceImpl implements UserService {
         
         return likeVOList;
     }
+
+    /**
+     * 将UserSetting列表转换为UserPreferencesVO
+     */
+    private UserPreferencesVO convertToUserPreferencesVO(List<UserSetting> settings) {
+        UserPreferencesVO preferencesVO = new UserPreferencesVO();
+        
+        if (settings == null || settings.isEmpty()) {
+            // 返回默认值
+            preferencesVO.setLanguage("zh-CN");
+            preferencesVO.setTheme("light");
+            preferencesVO.setSystemNotification(true);
+            preferencesVO.setOrderNotification(true);
+            preferencesVO.setCommentNotification(true);
+            preferencesVO.setLikeNotification(true);
+            return preferencesVO;
+        }
+        
+        // 从设置列表中提取各项配置
+        for (UserSetting setting : settings) {
+            String key = setting.getSettingKey();
+            String value = setting.getSettingValue();
+            
+            switch (key) {
+                case "language":
+                    preferencesVO.setLanguage(value);
+                    break;
+                case "theme":
+                    preferencesVO.setTheme(value);
+                    break;
+                case "systemNotification":
+                    preferencesVO.setSystemNotification(Boolean.parseBoolean(value));
+                    break;
+                case "orderNotification":
+                    preferencesVO.setOrderNotification(Boolean.parseBoolean(value));
+                    break;
+                case "commentNotification":
+                    preferencesVO.setCommentNotification(Boolean.parseBoolean(value));
+                    break;
+                case "likeNotification":
+                    preferencesVO.setLikeNotification(Boolean.parseBoolean(value));
+                    break;
+            }
+        }
+        
+        // 设置默认值（如果某些配置不存在）
+        if (preferencesVO.getLanguage() == null) {
+            preferencesVO.setLanguage("zh-CN");
+        }
+        if (preferencesVO.getTheme() == null) {
+            preferencesVO.setTheme("light");
+        }
+        if (preferencesVO.getSystemNotification() == null) {
+            preferencesVO.setSystemNotification(true);
+        }
+        if (preferencesVO.getOrderNotification() == null) {
+            preferencesVO.setOrderNotification(true);
+        }
+        if (preferencesVO.getCommentNotification() == null) {
+            preferencesVO.setCommentNotification(true);
+        }
+        if (preferencesVO.getLikeNotification() == null) {
+            preferencesVO.setLikeNotification(true);
+        }
+        
+        return preferencesVO;
+    }
+    
+    /**
+     * 插入或更新用户设置
+     */
+    private void upsertSetting(String userId, String key, String value, String type, Date now) {
+        // 查询是否已存在该设置
+        UserSetting existingSetting = userSettingMapper.selectByUserIdAndKey(userId, key);
+        
+        if (existingSetting != null) {
+            // 更新现有设置
+            existingSetting.setSettingValue(value);
+            existingSetting.setUpdateTime(now);
+            userSettingMapper.update(existingSetting);
+        } else {
+            // 插入新设置
+            UserSetting newSetting = new UserSetting();
+            newSetting.setUserId(userId);
+            newSetting.setSettingKey(key);
+            newSetting.setSettingValue(value);
+            newSetting.setSettingType(type);
+            newSetting.setCreateTime(now);
+            newSetting.setUpdateTime(now);
+            userSettingMapper.insert(newSetting);
+        }
+    }
+}
