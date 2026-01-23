@@ -113,31 +113,29 @@ inclusion: manual
 5. **deleteMessages** - `/message/delete` - 删除消息 ✅ 已完成
 
 #### 未读消息功能（1个接口）
-6. **getUnreadCount** - `/message/unread` - 获取未读消息数量 ✅ 已完成
+6. **getUnreadCount** - `/message/unread-count` - 获取未读消息数量 ✅ 已完成
+
+#### 通知管理功能（5个接口）
+7. **getNotifications** - `/message/notifications` - 获取通知列表 ✅ 已完成
+8. **getNotificationDetail** - `/message/notifications/{id}` - 获取通知详情 ✅ 已完成
+9. **deleteNotification** - `/message/notifications/{id}` - 删除通知 ✅ 已完成
+10. **batchMarkAsRead** - `/message/notifications/batch-read` - 批量标记已读
+11. **batchDeleteNotifications** - `/message/notifications/batch` - 批量删除通知
 
 #### 聊天会话功能（6个接口）
-7. **getChatSessions** - `/message/chat/sessions` - 获取聊天会话列表
-8. **createChatSession** - `/message/chat/sessions` - 创建聊天会话
-9. **getChatMessages** - `/message/chat/{sessionId}/messages` - 获取聊天消息
-10. **sendChatMessage** - `/message/chat/{sessionId}/send` - 发送聊天消息
-11. **sendImageMessage** - `/message/chat/{sessionId}/image` - 发送图片消息
-12. **deleteChatSession** - `/message/chat/sessions/{sessionId}` - 删除聊天会话
+12. **getChatSessions** - `/message/list/sessions` - 获取聊天会话列表
+13. **getChatHistory** - `/message/list/history` - 获取聊天记录
+14. **createChatSession** - `/message/sessions` - 创建聊天会话
+15. **pinChatSession** - `/message/sessions/{sessionId}/pin` - 置顶聊天会话
+16. **deleteChatSession** - `/message/sessions/{sessionId}` - 删除聊天会话
+17. **sendImageMessage** - `/message/messages/image` - 发送图片消息
 
-#### 系统通知功能（4个接口）
-13. **getNotifications** - `/message/notifications` - 获取系统通知
-14. **markNotificationRead** - `/message/notifications/{id}/read` - 标记通知已读
-15. **deleteNotification** - `/message/notifications/{id}` - 删除通知
-16. **getNotificationSettings** - `/message/notifications/settings` - 获取通知设置
-
-#### 通知设置功能（2个接口）
-17. **updateNotificationSettings** - `/message/notifications/settings` - 更新通知设置
-18. **testNotification** - `/message/notifications/test` - 测试通知
-
-#### 管理员功能（4个接口）
-19. **getAdminMessages** - `/message/admin/list` - 获取管理员消息列表
-20. **sendSystemNotification** - `/message/admin/system` - 发送系统通知
-21. **broadcastMessage** - `/message/admin/broadcast` - 广播消息
-22. **getMessageStatistics** - `/message/admin/statistics` - 获取消息统计
+#### 用户主页功能（5个接口）
+18. **getUserProfile** - `/message/user/{userId}` - 获取用户主页信息
+19. **getUserDynamic** - `/message/user/{userId}/dynamic` - 获取用户动态
+20. **getUserStatistics** - `/message/user/{userId}/statistics` - 获取用户统计数据
+21. **getUserPosts** - `/message/user/posts` - 获取用户发布的帖子列表
+22. **getUserReviews** - `/message/user/reviews` - 获取用户评价记录
 
 ### 状态码范围
 - **成功码**：7000-7021（22个成功状态码）
