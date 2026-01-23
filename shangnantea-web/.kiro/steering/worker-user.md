@@ -120,9 +120,9 @@ inclusion: manual
 
 #### 地址管理功能（5个接口）
 11. ✅ **getAddressList** - `/user/addresses` - 获取地址列表（已完成）
-12. **addAddress** - `/user/addresses` - 添加地址
-13. **updateAddress** - `/user/addresses/{id}` - 更新地址
-14. **deleteAddress** - `/user/addresses/{id}` - 删除地址
+12. ✅ **addAddress** - `/user/addresses` - 添加地址（已完成）
+13. ✅ **updateAddress** - `/user/addresses/{id}` - 更新地址（已完成）
+14. ✅ **deleteAddress** - `/user/addresses/{id}` - 删除地址（已完成）
 15. **setDefaultAddress** - `/user/addresses/{id}/default` - 设置默认地址
 
 #### 商家认证功能（3个接口）
