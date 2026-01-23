@@ -281,4 +281,34 @@ public interface ForumService {
      * @return 删除结果
      */
     Result<Boolean> deleteBanner(String id);
+    
+    /**
+     * 更新Banner顺序（管理员）
+     * 路径: PUT /forum/banners/order
+     * 成功码: 6004, 失败码: 6108
+     *
+     * @param data 包含bannerIds数组的数据
+     * @return 更新结果
+     */
+    Result<Object> updateBannerOrder(Map<String, Object> data);
+    
+    /**
+     * 获取文章列表
+     * 路径: GET /forum/articles
+     * 成功码: 200, 失败码: 6109
+     *
+     * @param params 查询参数（categoryId, keyword, page, pageSize）
+     * @return 文章列表
+     */
+    Result<Object> getArticles(Map<String, Object> params);
+    
+    /**
+     * 获取文章详情
+     * 路径: GET /forum/articles/{id}
+     * 成功码: 200, 失败码: 6110
+     *
+     * @param id 文章ID
+     * @return 文章详情
+     */
+    Result<Object> getArticleDetail(String id);
 } 

@@ -13,6 +13,8 @@ import com.shangnantea.model.entity.forum.ForumReply;
 import com.shangnantea.model.entity.forum.ForumTopic;
 import com.shangnantea.model.entity.forum.HomeContent;
 import com.shangnantea.model.entity.forum.TeaArticle;
+import com.shangnantea.model.vo.forum.ArticleDetailVO;
+import com.shangnantea.model.vo.forum.ArticleVO;
 import com.shangnantea.model.vo.forum.ForumHomeVO;
 import com.shangnantea.service.ForumService;
 import com.shangnantea.utils.FileUploadUtils;
@@ -24,10 +26,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 论坛服务实现类
@@ -671,6 +675,193 @@ public class ForumServiceImpl implements ForumService {
         } catch (Exception e) {
             logger.error("删除Banner失败: 系统异常, id: {}", id, e);
             return Result.failure(6107); // 删除失败
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> updateBannerOrder(Map<String, Object> data) {
+        try {
+            logger.info("更新Banner顺序请求");
+            
+            // 1. 解析bannerIds数组
+            @SuppressWarnings("unchecked")
+            List<Integer> bannerIds = (List<Integer>) data.get("bannerIds");
+            
+            if (bannerIds == null || bannerIds.isEmpty()) {
+                logger.warn("更新Banner顺序失败: bannerIds为空");
+                return Result.failure(6108); // 排序更新失败
+            }
+            
+            // 2. 批量更新sortOrder（按数组顺序，从1开始）
+            for (int i = 0; i < bannerIds.size(); i++) {
+                Integer bannerId = bannerIds.get(i);
+                HomeContent content = homeContentMapper.selectById(bannerId);
+                
+                if (content != null && "banner".equals(content.getSection())) {
+                    content.setSortOrder(i + 1); // 从1开始排序
+                    content.setUpdateTime(new Date());
+                    homeContentMapper.updateById(content);
+                }
+            }
+            
+            logger.info("更新Banner顺序成功，共更新{}个Banner", bannerIds.size());
+            return Result.success(6004, null); // 排序更新成功
+            
+        } catch (Exception e) {
+            logger.error("更新Banner顺序失败: 系统异常", e);
+            return Result.failure(6108); // 排序更新失败
+        }
+    }
+    
+    @Override
+    public Result<Object> getArticles(Map<String, Object> params) {
+        try {
+            logger.info("获取文章列表请求: {}", params);
+            
+            // 1. 解析查询参数
+            String categoryId = (String) params.get("categoryId");
+            String keyword = (String) params.get("keyword");
+            Integer page = params.get("page") != null ? 
+                    Integer.parseInt(params.get("page").toString()) : 1;
+            Integer pageSize = params.get("pageSize") != null ? 
+                    Integer.parseInt(params.get("pageSize").toString()) : 10;
+            
+            // 2. 查询所有文章（status=1已发布）
+            List<TeaArticle> allArticles = articleMapper.selectAll();
+            List<TeaArticle> filteredArticles = allArticles.stream()
+                    .filter(article -> article.getStatus() != null && article.getStatus() == 1)
+                    .filter(article -> {
+                        // 分类过滤
+                        if (categoryId != null && !categoryId.isEmpty()) {
+                            return categoryId.equals(article.getCategory());
+                        }
+                        return true;
+                    })
+                    .filter(article -> {
+                        // 关键词过滤（标题或摘要包含关键词）
+                        if (keyword != null && !keyword.isEmpty()) {
+                            String title = article.getTitle() != null ? article.getTitle() : "";
+                            String summary = article.getSummary() != null ? article.getSummary() : "";
+                            return title.contains(keyword) || summary.contains(keyword);
+                        }
+                        return true;
+                    })
+                    .sorted((a, b) -> {
+                        // 按创建时间降序排序
+                        if (a.getCreateTime() == null && b.getCreateTime() == null) {
+                            return 0;
+                        }
+                        if (a.getCreateTime() == null) {
+                            return 1;
+                        }
+                        if (b.getCreateTime() == null) {
+                            return -1;
+                        }
+                        return b.getCreateTime().compareTo(a.getCreateTime());
+                    })
+                    .collect(Collectors.toList());
+            
+            // 3. 分页处理
+            int total = filteredArticles.size();
+            int startIndex = (page - 1) * pageSize;
+            int endIndex = Math.min(startIndex + pageSize, total);
+            
+            List<ArticleVO> articleVOList = new ArrayList<>();
+            if (startIndex < total) {
+                articleVOList = filteredArticles.subList(startIndex, endIndex).stream()
+                        .map(article -> {
+                            ArticleVO vo = new ArticleVO();
+                            vo.setId(article.getId());
+                            vo.setTitle(article.getTitle());
+                            vo.setSummary(article.getSummary());
+                            // 生成封面图片访问URL
+                            String coverImage = article.getCoverImage();
+                            if (coverImage != null && !coverImage.isEmpty()) {
+                                coverImage = FileUploadUtils.generateAccessUrl(coverImage, baseUrl);
+                            }
+                            vo.setCoverImage(coverImage);
+                            vo.setAuthorName(article.getAuthor());
+                            vo.setCategory(article.getCategory());
+                            vo.setViewCount(article.getViewCount() != null ? article.getViewCount() : 0);
+                            vo.setLikeCount(article.getLikeCount() != null ? article.getLikeCount() : 0);
+                            vo.setIsTop(article.getIsTop());
+                            vo.setIsRecommend(article.getIsRecommend());
+                            vo.setPublishTime(article.getPublishTime());
+                            vo.setCreateTime(article.getCreateTime());
+                            return vo;
+                        })
+                        .collect(Collectors.toList());
+            }
+            
+            // 4. 构造返回数据
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("list", articleVOList);
+            responseData.put("total", total);
+            
+            logger.info("获取文章列表成功，共{}条，返回{}条", total, articleVOList.size());
+            return Result.success(200, responseData); // 成功码200
+            
+        } catch (Exception e) {
+            logger.error("获取文章列表失败: 系统异常", e);
+            return Result.failure(6109); // 获取文章列表失败
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> getArticleDetail(String id) {
+        try {
+            logger.info("获取文章详情请求: id={}", id);
+            
+            // 1. 查询文章
+            Long articleId = Long.parseLong(id);
+            TeaArticle article = articleMapper.selectById(articleId);
+            
+            if (article == null || article.getStatus() == null || article.getStatus() != 1) {
+                logger.warn("获取文章详情失败: 文章不存在或未发布, id: {}", id);
+                return Result.failure(6110); // 获取文章详情失败
+            }
+            
+            // 2. 增加阅读量
+            article.setViewCount((article.getViewCount() != null ? article.getViewCount() : 0) + 1);
+            article.setUpdateTime(new Date());
+            articleMapper.updateById(article);
+            
+            // 3. 构造返回VO
+            ArticleDetailVO vo = new ArticleDetailVO();
+            vo.setId(article.getId());
+            vo.setTitle(article.getTitle());
+            vo.setSubtitle(article.getSubtitle());
+            vo.setContent(article.getContent());
+            vo.setSummary(article.getSummary());
+            // 生成封面图片访问URL
+            String coverImage = article.getCoverImage();
+            if (coverImage != null && !coverImage.isEmpty()) {
+                coverImage = FileUploadUtils.generateAccessUrl(coverImage, baseUrl);
+            }
+            vo.setCoverImage(coverImage);
+            vo.setAuthor(article.getAuthor());
+            vo.setCategory(article.getCategory());
+            vo.setTags(article.getTags());
+            vo.setSource(article.getSource());
+            vo.setViewCount(article.getViewCount());
+            vo.setLikeCount(article.getLikeCount() != null ? article.getLikeCount() : 0);
+            vo.setFavoriteCount(article.getFavoriteCount() != null ? article.getFavoriteCount() : 0);
+            vo.setIsTop(article.getIsTop());
+            vo.setIsRecommend(article.getIsRecommend());
+            vo.setPublishTime(article.getPublishTime());
+            vo.setCreateTime(article.getCreateTime());
+            
+            logger.info("获取文章详情成功: id={}", id);
+            return Result.success(200, vo); // 成功码200
+            
+        } catch (NumberFormatException e) {
+            logger.error("获取文章详情失败: ID格式错误, id: {}", id, e);
+            return Result.failure(6110); // 获取文章详情失败
+        } catch (Exception e) {
+            logger.error("获取文章详情失败: 系统异常, id: {}", id, e);
+            return Result.failure(6110); // 获取文章详情失败
         }
     }
 } 
