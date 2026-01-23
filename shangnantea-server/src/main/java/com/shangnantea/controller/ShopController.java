@@ -264,7 +264,7 @@ public class ShopController {
     /**
      * 茶叶上下架
      * 路径: PUT /shop/teas/{teaId}/status
-     * 成功码: 3020(上架), 3021(下架), 失败码: 3120, 3121
+     * 成功码: 4005(上架), 4006(下架), 失败码: 4111, 4112
      *
      * @param teaId 茶叶ID
      * @param statusData 状态数据 {status}
@@ -282,7 +282,7 @@ public class ShopController {
     /**
      * 上传/创建店铺Banner
      * 路径: POST /shop/{shopId}/banners
-     * 成功码: 5010, 失败码: 5111
+     * 成功码: 4008, 失败码: 4117, 4118, 4119
      *
      * @param shopId 店铺ID
      * @param bannerData Banner数据（包含image、link_url、title等，FormData格式）
@@ -299,7 +299,7 @@ public class ShopController {
     /**
      * 更新店铺Banner
      * 路径: PUT /shop/banners/{bannerId}
-     * 成功码: 5011, 失败码: 5111
+     * 成功码: 4009, 失败码: 4120
      *
      * @param bannerId Banner ID
      * @param bannerData Banner数据
@@ -315,7 +315,7 @@ public class ShopController {
     /**
      * 删除店铺Banner
      * 路径: DELETE /shop/banners/{bannerId}
-     * 成功码: 5012, 失败码: 5112
+     * 成功码: 4010, 失败码: 4121
      *
      * @param bannerId Banner ID
      * @return 删除结果
@@ -330,7 +330,7 @@ public class ShopController {
     /**
      * 更新Banner顺序
      * 路径: PUT /shop/banners/order
-     * 成功码: 5013, 失败码: 5113
+     * 成功码: 4011, 失败码: 4122
      *
      * @param orderData 排序数据 {orders: [{id, order}, ...]}
      * @return 更新结果
@@ -347,7 +347,7 @@ public class ShopController {
     /**
      * 创建店铺公告
      * 路径: POST /shop/{shopId}/announcements
-     * 成功码: 5020, 失败码: 5121
+     * 成功码: 4012, 失败码: 4124
      *
      * @param shopId 店铺ID
      * @param announcementData 公告数据（title、content、is_top等）
@@ -363,7 +363,7 @@ public class ShopController {
     /**
      * 更新店铺公告
      * 路径: PUT /shop/announcements/{announcementId}
-     * 成功码: 5021, 失败码: 5121
+     * 成功码: 4013, 失败码: 4125
      *
      * @param announcementId 公告ID
      * @param announcementData 公告数据
@@ -379,7 +379,7 @@ public class ShopController {
     /**
      * 删除店铺公告
      * 路径: DELETE /shop/announcements/{announcementId}
-     * 成功码: 5022, 失败码: 5122
+     * 成功码: 4014, 失败码: 4126
      *
      * @param announcementId 公告ID
      * @return 删除结果
@@ -396,7 +396,7 @@ public class ShopController {
     /**
      * 关注店铺
      * 路径: POST /shop/{shopId}/follow
-     * 成功码: 5000, 失败码: 5102
+     * 成功码: 4015, 失败码: 4127
      *
      * @param shopId 店铺ID
      * @return 关注结果
@@ -411,7 +411,7 @@ public class ShopController {
     /**
      * 取消关注店铺
      * 路径: DELETE /shop/{shopId}/follow
-     * 成功码: 5001, 失败码: 5102
+     * 成功码: 4016, 失败码: 4128
      *
      * @param shopId 店铺ID
      * @return 取消结果
@@ -426,7 +426,7 @@ public class ShopController {
     /**
      * 提交店铺评价
      * 路径: POST /shop/{shopId}/reviews
-     * 成功码: 5002, 失败码: 5104
+     * 成功码: 4017, 失败码: 4131
      *
      * @param shopId 店铺ID
      * @param reviewData 评价数据 {rating, content, images}
@@ -442,7 +442,7 @@ public class ShopController {
     /**
      * 获取店铺详情
      * 路径: GET /shop/{id}
-     * 成功码: 200, 失败码: 5100, 5105
+     * 成功码: 200, 失败码: 4102, 4103
      * 注意：此路径应放在最后，避免与更具体的路径冲突
      *
      * @param id 店铺ID

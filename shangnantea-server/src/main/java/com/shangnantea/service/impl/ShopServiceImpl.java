@@ -193,13 +193,13 @@ public class ShopServiceImpl implements ShopService {
             Shop shop = getShopById(shopId);
             if (shop == null) {
                 logger.warn("店铺Logo上传失败: 店铺不存在, shopId: {}", shopId);
-                return Result.failure(4114); // Logo上传失败
+                return Result.failure(4113); // Logo上传失败
             }
             
             // 验证用户是否为店铺所有者
             if (!userId.equals(shop.getOwnerId())) {
                 logger.warn("店铺Logo上传失败: 无权限操作, userId: {}, shopId: {}", userId, shopId);
-                return Result.failure(4114); // Logo上传失败
+                return Result.failure(4113); // Logo上传失败
             }
             
             logger.info("上传店铺Logo请求, 文件名: {}, shopId: {}", image.getOriginalFilename(), shopId);
@@ -216,7 +216,7 @@ public class ShopServiceImpl implements ShopService {
             int result = shopMapper.updateById(shop);
             if (result <= 0) {
                 logger.error("店铺Logo上传失败: 数据库更新失败, shopId: {}", shopId);
-                return Result.failure(4115); // Logo上传失败
+                return Result.failure(4113); // Logo上传失败
             }
             
             // 6. 返回结果
@@ -229,7 +229,7 @@ public class ShopServiceImpl implements ShopService {
             
         } catch (Exception e) {
             logger.error("店铺Logo上传失败: 系统异常", e);
-            return Result.failure(4115); // Logo上传失败
+            return Result.failure(4113); // Logo上传失败
         }
     }
     
@@ -243,7 +243,7 @@ public class ShopServiceImpl implements ShopService {
             Shop shop = getShopById(shopId);
             if (shop == null) {
                 logger.warn("店铺轮播图上传失败: 店铺不存在, shopId: {}", shopId);
-                return Result.failure(4118); // Banner上传失败
+                return Result.failure(4117); // Banner上传失败
             }
             
             // 2. 从bannerData中提取图片文件（这里需要根据实际前端传递的数据格式处理）
