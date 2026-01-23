@@ -256,4 +256,107 @@ public class MessageServiceImpl implements MessageService {
             return Result.failure(7118); // 图片消息发送失败
         }
     }
+    
+    @Override
+    public Result<Object> getMessages(Map<String, Object> params) {
+        try {
+            logger.info("获取消息列表请求, params: {}", params);
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("获取消息列表失败：用户未登录");
+                return Result.failure(7100);
+            }
+            
+            // 2. 解析查询参数
+            Integer page = params.get("page") != null ? 
+                Integer.parseInt(params.get("page").toString()) : 1;
+            Integer pageSize = params.get("pageSize") != null ? 
+                Integer.parseInt(params.get("pageSize").toString()) : 10;
+            String type = params.get("type") != null ? 
+                params.get("type").toString() : null;
+            
+            // 3. 参数验证和修正
+            if (page < 1) {
+                page = 1;
+            }
+            if (pageSize < 1) {
+                pageSize = 10;
+            }
+            if (pageSize > 100) {
+                pageSize = 100; // 限制最大页大小
+            }
+            
+            Integer offset = (page - 1) * pageSize;
+            
+            // 4. 根据type查询不同类型的消息
+            List<MessageVO> messageList = new ArrayList<>();
+            long total = 0;
+            
+            if (type == null || "system".equals(type) || "notification".equals(type)) {
+                // 查询通知消息（system和notification都从UserNotification表查询）
+                String notificationType = "system".equals(type) ? "system" : type;
+                List<UserNotification> notifications = notificationMapper.selectByUserIdAndType(
+                    userId, notificationType, offset, pageSize);
+                total = notificationMapper.countByUserIdAndType(userId, notificationType);
+                
+                // 转换为MessageVO
+                messageList = notifications.stream().map(this::convertNotificationToVO)
+                    .collect(Collectors.toList());
+            } else if ("chat".equals(type)) {
+                // 查询聊天消息
+                List<ChatMessage> chatMessages = messageMapper.selectByUserId(userId, offset, pageSize);
+                total = messageMapper.countByUserId(userId);
+                
+                // 转换为MessageVO
+                messageList = chatMessages.stream().map(this::convertChatMessageToVO)
+                    .collect(Collectors.toList());
+            } else {
+                // 无效的type参数
+                logger.warn("获取消息列表失败：无效的消息类型, type: {}", type);
+                return Result.failure(7100);
+            }
+            
+            // 5. 构造返回数据
+            Map<String, Object> resultData = new HashMap<>();
+            resultData.put("list", messageList);
+            resultData.put("total", total);
+            
+            logger.info("获取消息列表成功, userId: {}, type: {}, total: {}", userId, type, total);
+            return Result.success(200, resultData);
+            
+        } catch (Exception e) {
+            logger.error("获取消息列表失败，系统异常", e);
+            return Result.failure(7100);
+        }
+    }
+    
+    /**
+     * 将UserNotification转换为MessageVO
+     */
+    private MessageVO convertNotificationToVO(UserNotification notification) {
+        MessageVO vo = new MessageVO();
+        vo.setId(notification.getId());
+        vo.setType(notification.getType() != null ? notification.getType() : "notification");
+        vo.setTitle(notification.getTitle());
+        vo.setContent(notification.getContent());
+        vo.setIsRead(notification.getIsRead() != null && notification.getIsRead() == 1);
+        vo.setCreateTime(notification.getCreateTime());
+        return vo;
+    }
+    
+    /**
+     * 将ChatMessage转换为MessageVO
+     */
+    private MessageVO convertChatMessageToVO(ChatMessage message) {
+        MessageVO vo = new MessageVO();
+        vo.setId(message.getId());
+        vo.setType("chat");
+        vo.setTitle(null); // 聊天消息没有标题
+        vo.setContent(message.getContent());
+        vo.setIsRead(message.getIsRead() != null && message.getIsRead() == 1);
+        vo.setCreateTime(message.getCreateTime());
+        return vo;
+    }
 } 
