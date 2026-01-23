@@ -87,4 +87,23 @@
     <select id="count" resultType="java.lang.Long">
         SELECT COUNT(*) FROM chat_sessions
     </select>
+
+    <!-- 根据用户ID查询会话列表 -->
+    <select id="selectByUserId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM chat_sessions
+        WHERE (initiator_id = #{userId} OR receiver_id = #{userId})
+        AND status = 1
+        ORDER BY last_message_time DESC
+    </select>
+
+    <!-- 根据两个用户ID查询会话 -->
+    <select id="selectByUserIds" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM chat_sessions
+        WHERE ((initiator_id = #{userId1} AND receiver_id = #{userId2})
+           OR (initiator_id = #{userId2} AND receiver_id = #{userId1}))
+        AND status = 1
+        LIMIT 1
+    </select>
 </mapper> 

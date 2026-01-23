@@ -119,13 +119,13 @@ inclusion: manual
 7. **getNotifications** - `/message/notifications` - 获取通知列表 ✅ 已完成
 8. **getNotificationDetail** - `/message/notifications/{id}` - 获取通知详情 ✅ 已完成
 9. **deleteNotification** - `/message/notifications/{id}` - 删除通知 ✅ 已完成
-10. **batchMarkAsRead** - `/message/notifications/batch-read` - 批量标记已读
-11. **batchDeleteNotifications** - `/message/notifications/batch` - 批量删除通知
+10. **batchMarkAsRead** - `/message/notifications/batch-read` - 批量标记已读 ✅ 已完成
+11. **batchDeleteNotifications** - `/message/notifications/batch` - 批量删除通知 ✅ 已完成
 
 #### 聊天会话功能（6个接口）
-12. **getChatSessions** - `/message/list/sessions` - 获取聊天会话列表
-13. **getChatHistory** - `/message/list/history` - 获取聊天记录
-14. **createChatSession** - `/message/sessions` - 创建聊天会话
+12. **getChatSessions** - `/message/list/sessions` - 获取聊天会话列表 ✅ 已完成
+13. **getChatHistory** - `/message/list/history` - 获取聊天记录 ✅ 已完成
+14. **createChatSession** - `/message/sessions` - 创建聊天会话 ✅ 已完成
 15. **pinChatSession** - `/message/sessions/{sessionId}/pin` - 置顶聊天会话
 16. **deleteChatSession** - `/message/sessions/{sessionId}` - 删除聊天会话
 17. **sendImageMessage** - `/message/messages/image` - 发送图片消息

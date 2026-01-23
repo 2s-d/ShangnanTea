@@ -106,4 +106,20 @@
         FROM chat_messages
         WHERE receiver_id = #{userId} AND (is_read IS NULL OR is_read = 0)
     </select>
+
+    <!-- 根据会话ID查询聊天消息列表（支持分页） -->
+    <select id="selectBySessionId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM chat_messages
+        WHERE session_id = #{sessionId}
+        ORDER BY create_time ASC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 统计会话的消息数量 -->
+    <select id="countBySessionId" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM chat_messages
+        WHERE session_id = #{sessionId}
+    </select>
 </mapper> 
