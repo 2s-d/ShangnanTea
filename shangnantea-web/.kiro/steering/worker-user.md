@@ -125,33 +125,33 @@ inclusion: manual
 14. ✅ **deleteAddress** - `/user/addresses/{id}` - 删除地址（已完成）
 15. **setDefaultAddress** - `/user/addresses/{id}/default` - 设置默认地址
 
-#### 商家认证功能（3个接口）
+#### 商家认证功能（2个接口）
 16. **submitShopCertification** - `/user/shop-certification` - 提交商家认证
 17. **getShopCertificationStatus** - `/user/shop-certification` - 获取认证状态
-18. **uploadCertificationImage** - `/user/merchant/certification/image` - 上传认证图片
 
-#### 社交功能（7个接口）
-19. **getFollowList** - `/user/follows` - 获取关注列表
-20. **addFollow** - `/user/follows` - 添加关注
-21. **removeFollow** - `/user/follows/{id}` - 取消关注
-22. **getFavoriteList** - `/user/favorites` - 获取收藏列表
-23. **addFavorite** - `/user/favorites` - 添加收藏
-24. **removeFavorite** - `/user/favorites/{id}` - 取消收藏
-25. **addLike** - `/user/likes` - 点赞
-26. **removeLike** - `/user/likes/{id}` - 取消点赞
+#### 社交功能（8个接口）
+18. **getFollowList** - `/user/follows` - 获取关注列表
+19. **addFollow** - `/user/follows` - 添加关注
+20. **removeFollow** - `/user/follows/{id}` - 取消关注
+21. **getFavoriteList** - `/user/favorites` - 获取收藏列表
+22. **addFavorite** - `/user/favorites` - 添加收藏
+23. **removeFavorite** - `/user/favorites/{id}` - 取消收藏
+24. **addLike** - `/user/likes` - 点赞
+25. **removeLike** - `/user/likes/{id}` - 取消点赞
 
 #### 用户偏好设置（2个接口）
-27. **getUserPreferences** - `/user/preferences` - 获取用户偏好设置
-28. **updateUserPreferences** - `/user/preferences` - 更新用户偏好设置
+26. **getUserPreferences** - `/user/preferences` - 获取用户偏好设置
+27. **updateUserPreferences** - `/user/preferences` - 更新用户偏好设置
 
-#### 管理员功能（7个接口）
-29. **getAdminUserList** - `/user/admin/users` - 获取用户列表
-30. **createAdmin** - `/user/admin/users` - 创建管理员
-31. **updateUser** - `/user/admin/users/{userId}` - 更新用户
-32. **deleteUser** - `/user/admin/users/{userId}` - 删除用户
-33. **toggleUserStatus** - `/user/admin/users/{userId}/status` - 切换用户状态
-34. **getCertificationList** - `/user/admin/certifications` - 获取认证列表
-35. **processCertification** - `/user/admin/certifications/{id}` - 审核认证
+#### 管理员功能（8个接口）
+28. **getAdminUserList** - `/user/admin/users` - 获取用户列表
+29. **createAdmin** - `/user/admin/users` - 创建管理员
+30. **updateUser** - `/user/admin/users/{userId}` - 更新用户
+31. **deleteUser** - `/user/admin/users/{userId}` - 删除用户
+32. **toggleUserStatus** - `/user/admin/users/{userId}/status` - 切换用户状态
+33. **getCertificationList** - `/user/admin/certifications` - 获取认证列表
+34. **processCertification** - `/user/admin/certifications/{id}` - 审核认证
+35. **uploadCertificationImage** - `/user/merchant/certification/image` - 上传认证图片
 
 ### 接口开发进度
 - **已完成**：14/35（login, register, logout, getCurrentUser, refreshToken, getUserInfo, updateUserInfo, uploadAvatar, changePassword, resetPassword, getAddressList, addAddress, updateAddress, deleteAddress）
