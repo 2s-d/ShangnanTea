@@ -233,14 +233,14 @@ public class ForumController {
      * 路径: POST /forum/topics
      * 成功码: 6008, 失败码: 6116
      *
-     * @param data 版块数据
+     * @param dto 版块数据
      * @return 创建结果
      */
     @PostMapping("/topics")
     @RequiresRoles({1})
-    public Result<Object> createTopic(@RequestBody Map<String, Object> data) {
+    public Result<Object> createTopic(@Valid @RequestBody CreateTopicDTO dto) {
         logger.info("创建版块请求");
-        return forumService.createTopic(data);
+        return forumService.createTopic(dto);
     }
 
     /**
@@ -263,14 +263,14 @@ public class ForumController {
      * 成功码: 6009, 失败码: 6117
      *
      * @param id 版块ID
-     * @param data 版块数据
+     * @param dto 版块数据
      * @return 更新结果
      */
     @PutMapping("/topics/{id}")
     @RequiresRoles({1})
-    public Result<Object> updateTopic(@PathVariable String id, @RequestBody Map<String, Object> data) {
+    public Result<Object> updateTopic(@PathVariable String id, @Valid @RequestBody UpdateTopicDTO dto) {
         logger.info("更新版块请求: {}", id);
-        return forumService.updateTopic(id, data);
+        return forumService.updateTopic(id, dto);
     }
 
     /**

@@ -8,6 +8,8 @@ import com.shangnantea.mapper.ForumReplyMapper;
 import com.shangnantea.mapper.ForumTopicMapper;
 import com.shangnantea.mapper.HomeContentMapper;
 import com.shangnantea.mapper.TeaArticleMapper;
+import com.shangnantea.model.dto.forum.CreateTopicDTO;
+import com.shangnantea.model.dto.forum.UpdateTopicDTO;
 import com.shangnantea.model.entity.forum.ForumPost;
 import com.shangnantea.model.entity.forum.ForumReply;
 import com.shangnantea.model.entity.forum.ForumTopic;
@@ -1146,48 +1148,40 @@ public class ForumServiceImpl implements ForumService {
     
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Result<Object> createTopic(Map<String, Object> data) {
+    public Result<Object> createTopic(CreateTopicDTO dto) {
         try {
-            logger.info("创建版块请求: {}", data);
+            logger.info("创建版块请求: {}", dto);
             
-            // 1. 解析请求数据
-            String name = (String) data.get("name");
-            String description = (String) data.get("description");
-            String icon = (String) data.get("icon");
-            String cover = (String) data.get("cover");
-            Integer sortOrder = data.get("sortOrder") != null ? 
-                    Integer.parseInt(data.get("sortOrder").toString()) : 0;
-            
-            // 2. 验证版块名称是否重复
+            // 1. 验证版块名称是否重复
             List<ForumTopic> allTopics = topicMapper.selectAll();
             boolean nameExists = allTopics.stream()
-                    .anyMatch(topic -> name != null && name.equals(topic.getName()));
+                    .anyMatch(topic -> dto.getName() != null && dto.getName().equals(topic.getName()));
             
             if (nameExists) {
-                logger.warn("创建版块失败: 版块名称已存在, name: {}", name);
+                logger.warn("创建版块失败: 版块名称已存在, name: {}", dto.getName());
                 return Result.failure(6116); // 添加版块失败
             }
             
-            // 3. 创建版块实体
+            // 2. 创建版块实体
             ForumTopic topic = new ForumTopic();
-            topic.setName(name);
-            topic.setDescription(description);
-            topic.setIcon(icon);
-            topic.setCover(cover);
-            topic.setSortOrder(sortOrder);
+            topic.setName(dto.getName());
+            topic.setDescription(dto.getDescription());
+            topic.setIcon(dto.getIcon());
+            topic.setCover(dto.getCover());
+            topic.setSortOrder(dto.getSortOrder() != null ? dto.getSortOrder() : 0);
             topic.setPostCount(0); // 初始帖子数为0
             topic.setStatus(1); // 1=启用
             topic.setCreateTime(new Date());
             topic.setUpdateTime(new Date());
             
-            // 4. 保存到数据库
+            // 3. 保存到数据库
             int result = topicMapper.insert(topic);
             if (result <= 0) {
                 logger.error("创建版块失败: 数据库插入失败");
                 return Result.failure(6116); // 添加版块失败
             }
             
-            logger.info("创建版块成功: id={}, name={}", topic.getId(), name);
+            logger.info("创建版块成功: id={}, name={}", topic.getId(), dto.getName());
             return Result.success(6008, null); // 添加版块成功
             
         } catch (Exception e) {
@@ -1198,9 +1192,9 @@ public class ForumServiceImpl implements ForumService {
     
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Result<Object> updateTopic(String id, Map<String, Object> data) {
+    public Result<Object> updateTopic(String id, UpdateTopicDTO dto) {
         try {
-            logger.info("更新版块请求: id={}, data={}", id, data);
+            logger.info("更新版块请求: id={}, dto={}", id, dto);
             
             // 1. 查询版块是否存在
             Integer topicId = Integer.parseInt(id);
@@ -1212,41 +1206,34 @@ public class ForumServiceImpl implements ForumService {
             }
             
             // 2. 如果要更新名称，验证名称是否与其他版块重复
-            if (data.containsKey("name")) {
-                String newName = (String) data.get("name");
+            if (dto.getName() != null && !dto.getName().isEmpty()) {
                 List<ForumTopic> allTopics = topicMapper.selectAll();
                 boolean nameExists = allTopics.stream()
                         .anyMatch(t -> !t.getId().equals(topicId) && 
-                                newName != null && newName.equals(t.getName()));
+                                dto.getName().equals(t.getName()));
                 
                 if (nameExists) {
-                    logger.warn("更新版块失败: 版块名称已存在, name: {}", newName);
+                    logger.warn("更新版块失败: 版块名称已存在, name: {}", dto.getName());
                     return Result.failure(6117); // 更新版块失败
                 }
-                topic.setName(newName);
+                topic.setName(dto.getName());
             }
             
             // 3. 更新版块信息
-            if (data.containsKey("description")) {
-                topic.setDescription((String) data.get("description"));
+            if (dto.getDescription() != null) {
+                topic.setDescription(dto.getDescription());
             }
-            if (data.containsKey("icon")) {
-                topic.setIcon((String) data.get("icon"));
+            if (dto.getIcon() != null) {
+                topic.setIcon(dto.getIcon());
             }
-            if (data.containsKey("cover")) {
-                topic.setCover((String) data.get("cover"));
+            if (dto.getCover() != null) {
+                topic.setCover(dto.getCover());
             }
-            if (data.containsKey("sortOrder")) {
-                Object sortOrderObj = data.get("sortOrder");
-                if (sortOrderObj != null) {
-                    topic.setSortOrder(Integer.parseInt(sortOrderObj.toString()));
-                }
+            if (dto.getSortOrder() != null) {
+                topic.setSortOrder(dto.getSortOrder());
             }
-            if (data.containsKey("status")) {
-                Object statusObj = data.get("status");
-                if (statusObj != null) {
-                    topic.setStatus(Integer.parseInt(statusObj.toString()));
-                }
+            if (dto.getStatus() != null) {
+                topic.setStatus(dto.getStatus());
             }
             topic.setUpdateTime(new Date());
             

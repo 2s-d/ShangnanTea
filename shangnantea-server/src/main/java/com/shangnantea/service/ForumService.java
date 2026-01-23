@@ -3,6 +3,8 @@ package com.shangnantea.service;
 import com.shangnantea.common.api.PageParam;
 import com.shangnantea.common.api.PageResult;
 import com.shangnantea.common.api.Result;
+import com.shangnantea.model.dto.forum.CreateTopicDTO;
+import com.shangnantea.model.dto.forum.UpdateTopicDTO;
 import com.shangnantea.model.entity.forum.ForumPost;
 import com.shangnantea.model.entity.forum.ForumReply;
 import com.shangnantea.model.entity.forum.ForumTopic;
@@ -367,10 +369,10 @@ public interface ForumService {
      * 路径: POST /forum/topics
      * 成功码: 6008, 失败码: 6116
      *
-     * @param data 版块数据
+     * @param dto 版块数据
      * @return 创建结果
      */
-    Result<Object> createTopic(Map<String, Object> data);
+    Result<Object> createTopic(CreateTopicDTO dto);
     
     /**
      * 更新版块（管理员）
@@ -378,10 +380,10 @@ public interface ForumService {
      * 成功码: 6009, 失败码: 6117
      *
      * @param id 版块ID
-     * @param data 版块数据
+     * @param dto 版块数据
      * @return 更新结果
      */
-    Result<Object> updateTopic(String id, Map<String, Object> data);
+    Result<Object> updateTopic(String id, UpdateTopicDTO dto);
     
     /**
      * 删除版块（管理员）
