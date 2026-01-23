@@ -160,4 +160,13 @@ public interface ShopService {
      * @return 创建结果
      */
     Result<Object> createShop(Map<String, Object> shopData);
+    
+    /**
+     * 获取店铺详情
+     * 根据店铺ID获取店铺详细信息
+     *
+     * @param id 店铺ID
+     * @return 店铺详情
+     */
+    Result<Object> getShopDetail(String id);
 } 

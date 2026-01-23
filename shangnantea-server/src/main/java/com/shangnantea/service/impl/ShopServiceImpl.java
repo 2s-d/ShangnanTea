@@ -11,6 +11,7 @@ import com.shangnantea.model.entity.shop.Shop;
 import com.shangnantea.model.entity.shop.ShopCertification;
 import com.shangnantea.model.entity.tea.Tea;
 import com.shangnantea.model.vo.shop.ShopVO;
+import com.shangnantea.model.vo.shop.ShopDetailVO;
 import com.shangnantea.security.context.UserContext;
 import com.shangnantea.service.ShopService;
 import com.shangnantea.utils.FileUploadUtils;
@@ -449,4 +450,61 @@ public class ShopServiceImpl implements ShopService {
         
         return shopVO;
     }
+    
+    @Override
+    public Result<Object> getShopDetail(String id) {
+        try {
+            logger.info("获取店铺详情请求: id={}", id);
+            
+            // 1. 验证店铺ID不为空
+            if (id == null || id.trim().isEmpty()) {
+                logger.warn("获取店铺详情失败: 店铺ID为空");
+                return Result.failure(4102);
+            }
+            
+            // 2. 查询店铺信息
+            Shop shop = getShopById(id);
+            if (shop == null) {
+                logger.warn("获取店铺详情失败: 店铺不存在, id={}", id);
+                return Result.failure(4103);
+            }
+            
+            // 3. 转换为ShopDetailVO
+            ShopDetailVO shopDetailVO = convertToShopDetailVO(shop);
+            
+            logger.info("获取店铺详情成功: id={}, name={}", id, shop.getShopName());
+            
+            // 4. 返回成功（根据code-message-mapping.md，成功码是200）
+            return Result.success(200, shopDetailVO);
+            
+        } catch (Exception e) {
+            logger.error("获取店铺详情失败: 系统异常, id={}", id, e);
+            return Result.failure(4102);
+        }
+    }
+    
+    /**
+     * 将Shop实体转换为ShopDetailVO
+     *
+     * @param shop 店铺实体
+     * @return 店铺详情VO
+     */
+    private ShopDetailVO convertToShopDetailVO(Shop shop) {
+        if (shop == null) {
+            return null;
+        }
+        
+        ShopDetailVO shopDetailVO = new ShopDetailVO();
+        shopDetailVO.setId(shop.getId());
+        shopDetailVO.setName(shop.getShopName()); // shopName -> name
+        shopDetailVO.setLogo(shop.getLogo());
+        shopDetailVO.setDescription(shop.getDescription());
+        shopDetailVO.setRating(shop.getRating());
+        shopDetailVO.setSalesCount(shop.getSalesCount());
+        shopDetailVO.setFollowCount(shop.getFollowCount());
+        shopDetailVO.setOwnerId(shop.getOwnerId());
+        
+        return shopDetailVO;
+    }
+}
 } 
