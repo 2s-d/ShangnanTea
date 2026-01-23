@@ -60,7 +60,7 @@ public class ForumController {
     /**
      * 获取Banner列表
      * 路径: GET /forum/banners
-     * 成功码: 200, 失败码: 6161
+     * 成功码: 200, 失败码: 6102
      *
      * @return Banner列表
      */
@@ -73,7 +73,7 @@ public class ForumController {
     /**
      * 上传Banner（管理员）
      * 路径: POST /forum/banners
-     * 成功码: 5010, 失败码: 5111, 1103, 1104
+     * 成功码: 6001, 失败码: 6103, 6104, 6105
      *
      * @param file Banner图片文件
      * @param title Banner标题
@@ -94,7 +94,7 @@ public class ForumController {
     /**
      * 更新Banner顺序（管理员）
      * 路径: PUT /forum/banners/order
-     * 成功码: 5013, 失败码: 5113
+     * 成功码: 6004, 失败码: 6108
      *
      * @param data Banner顺序数据 {bannerIds}
      * @return 更新结果
@@ -109,7 +109,7 @@ public class ForumController {
     /**
      * 更新Banner（管理员）
      * 路径: PUT /forum/banners/{id}
-     * 成功码: 5011, 失败码: 5111
+     * 成功码: 6002, 失败码: 6106
      *
      * @param id Banner ID
      * @param data Banner数据
@@ -125,7 +125,7 @@ public class ForumController {
     /**
      * 删除Banner（管理员）
      * 路径: DELETE /forum/banners/{id}
-     * 成功码: 5012, 失败码: 5112
+     * 成功码: 6003, 失败码: 6107
      *
      * @param id Banner ID
      * @return 删除结果
@@ -142,7 +142,7 @@ public class ForumController {
     /**
      * 获取文章列表
      * 路径: GET /forum/articles
-     * 成功码: 200, 失败码: 6153
+     * 成功码: 200, 失败码: 6109
      *
      * @param params 查询参数 {page, size, category}
      * @return 文章列表
@@ -156,7 +156,7 @@ public class ForumController {
     /**
      * 创建文章（管理员）
      * 路径: POST /forum/articles
-     * 成功码: 6050, 失败码: 6150
+     * 成功码: 6005, 失败码: 6111
      *
      * @param data 文章数据
      * @return 创建结果
@@ -171,7 +171,7 @@ public class ForumController {
     /**
      * 获取文章详情
      * 路径: GET /forum/articles/{id}
-     * 成功码: 200, 失败码: 6153
+     * 成功码: 200, 失败码: 6110
      *
      * @param id 文章ID
      * @return 文章详情
@@ -185,7 +185,7 @@ public class ForumController {
     /**
      * 更新文章（管理员）
      * 路径: PUT /forum/articles/{id}
-     * 成功码: 6051, 失败码: 6151
+     * 成功码: 6006, 失败码: 6112
      *
      * @param id 文章ID
      * @param data 文章数据
@@ -201,7 +201,7 @@ public class ForumController {
     /**
      * 删除文章（管理员）
      * 路径: DELETE /forum/articles/{id}
-     * 成功码: 6052, 失败码: 6152
+     * 成功码: 6007, 失败码: 6113
      *
      * @param id 文章ID
      * @return 删除结果
@@ -218,7 +218,7 @@ public class ForumController {
     /**
      * 获取版块列表
      * 路径: GET /forum/topics
-     * 成功码: 200, 失败码: 6143
+     * 成功码: 200, 失败码: 6114
      *
      * @return 版块列表
      */
@@ -231,7 +231,7 @@ public class ForumController {
     /**
      * 创建版块（管理员）
      * 路径: POST /forum/topics
-     * 成功码: 6040, 失败码: 6140
+     * 成功码: 6008, 失败码: 6116
      *
      * @param data 版块数据
      * @return 创建结果
@@ -246,7 +246,7 @@ public class ForumController {
     /**
      * 获取版块详情
      * 路径: GET /forum/topics/{id}
-     * 成功码: 200, 失败码: 6143
+     * 成功码: 200, 失败码: 6115
      *
      * @param id 版块ID
      * @return 版块详情
@@ -260,7 +260,7 @@ public class ForumController {
     /**
      * 更新版块（管理员）
      * 路径: PUT /forum/topics/{id}
-     * 成功码: 6041, 失败码: 6141
+     * 成功码: 6009, 失败码: 6117
      *
      * @param id 版块ID
      * @param data 版块数据
@@ -276,7 +276,7 @@ public class ForumController {
     /**
      * 删除版块（管理员）
      * 路径: DELETE /forum/topics/{id}
-     * 成功码: 6042, 失败码: 6142
+     * 成功码: 6010, 失败码: 6118
      *
      * @param id 版块ID
      * @return 删除结果
@@ -293,7 +293,7 @@ public class ForumController {
     /**
      * 获取帖子列表
      * 路径: GET /forum/posts
-     * 成功码: 200, 失败码: 6103
+     * 成功码: 200, 失败码: 6119
      *
      * @param params 查询参数 {topicId, keyword, sortBy, page, size}
      * @return 帖子列表
@@ -307,7 +307,7 @@ public class ForumController {
     /**
      * 获取待审核帖子列表（管理员）
      * 路径: GET /forum/posts/pending
-     * 成功码: 200, 失败码: 6136
+     * 成功码: 200, 失败码: 6121
      *
      * @param params 查询参数 {page, size}
      * @return 待审核帖子列表
@@ -322,7 +322,7 @@ public class ForumController {
     /**
      * 创建帖子
      * 路径: POST /forum/posts
-     * 成功码: 6000, 失败码: 6100
+     * 成功码: 6011, 失败码: 6120
      *
      * @param data 帖子数据
      * @return 创建结果
@@ -555,7 +555,7 @@ public class ForumController {
     /**
      * 点赞回复
      * 路径: POST /forum/replies/{id}/like
-     * 成功码: 6010, 失败码: 6110
+     * 成功码: 6020, 失败码: 6132
      *
      * @param id 回复ID
      * @return 点赞结果
@@ -570,7 +570,7 @@ public class ForumController {
     /**
      * 取消点赞回复
      * 路径: DELETE /forum/replies/{id}/like
-     * 成功码: 6011, 失败码: 6111
+     * 成功码: 6021, 失败码: 6133
      *
      * @param id 回复ID
      * @return 取消点赞结果
@@ -585,7 +585,7 @@ public class ForumController {
     /**
      * 删除回复
      * 路径: DELETE /forum/replies/{id}
-     * 成功码: 6021, 失败码: 6121
+     * 成功码: 6019, 失败码: 6131
      *
      * @param id 回复ID
      * @return 删除结果
