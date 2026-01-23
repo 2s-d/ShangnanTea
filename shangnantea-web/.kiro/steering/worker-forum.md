@@ -110,7 +110,7 @@ inclusion: manual
 2. **updateHomeData** - `/forum/home` - 更新首页数据 ✅ 已完成
 
 #### Banner管理功能（5个接口）
-3. **getBanners** - `/forum/banners` - 获取Banner列表
+3. **getBanners** - `/forum/banners` - 获取Banner列表 ✅ 已完成
 4. **uploadBanner** - `/forum/banners` - 上传Banner
 5. **updateBanner** - `/forum/banners/{id}` - 更新Banner
 6. **deleteBanner** - `/forum/banners/{id}` - 删除Banner
