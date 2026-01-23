@@ -1,9 +1,12 @@
 package com.shangnantea.controller;
 
 import com.shangnantea.common.api.Result;
+import com.shangnantea.model.dto.forum.CreateTopicDTO;
+import com.shangnantea.model.dto.forum.UpdateTopicDTO;
 import com.shangnantea.security.annotation.RequiresLogin;
 import com.shangnantea.security.annotation.RequiresRoles;
 import com.shangnantea.service.ForumService;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
