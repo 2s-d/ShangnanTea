@@ -71,10 +71,10 @@ public interface UserService {
     /**
      * 更新用户信息
      *
-     * @param updateUserDTO 用户数据
+     * @param userData 用户数据
      * @return 更新结果
      */
-    Result<Void> updateUserInfo(com.shangnantea.model.dto.UpdateUserDTO updateUserDTO);
+    Result<UserVO> updateUserInfo(Map<String, Object> userData);
     
     /**
      * 上传头像
