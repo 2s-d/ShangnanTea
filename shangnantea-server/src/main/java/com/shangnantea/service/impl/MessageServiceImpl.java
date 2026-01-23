@@ -437,4 +437,94 @@ public class MessageServiceImpl implements MessageService {
             return Result.failure(7101);
         }
     }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> sendMessage(Map<String, Object> data) {
+        try {
+            logger.info("发送消息请求, data: {}", data);
+            
+            // 1. 获取当前用户ID（发送者）
+            String senderId = UserContext.getCurrentUserId();
+            if (senderId == null) {
+                logger.warn("发送消息失败：用户未登录");
+                return Result.failure(7102);
+            }
+            
+            // 2. 提取并验证参数
+            String receiverId = data.get("receiverId") != null ? data.get("receiverId").toString() : null;
+            String content = data.get("content") != null ? data.get("content").toString() : null;
+            String type = data.get("type") != null ? data.get("type").toString() : "text";
+            
+            // 3. 参数验证
+            if (receiverId == null || receiverId.trim().isEmpty()) {
+                logger.warn("发送消息失败：接收者ID为空");
+                return Result.failure(7102);
+            }
+            
+            if (content == null || content.trim().isEmpty()) {
+                logger.warn("发送消息失败：消息内容为空");
+                return Result.failure(7102);
+            }
+            
+            if (content.length() > 1000) {
+                logger.warn("发送消息失败：消息内容超过1000字符, length: {}", content.length());
+                return Result.failure(7102);
+            }
+            
+            // 4. 验证不能给自己发消息
+            if (senderId.equals(receiverId)) {
+                logger.warn("发送消息失败：不能给自己发消息, userId: {}", senderId);
+                return Result.failure(7102);
+            }
+            
+            // 5. 创建或获取会话
+            // 注意：这里简化处理，假设会话类型为1（用户对用户）
+            ChatSession session = createOrGetSession(senderId, receiverId, 1);
+            if (session == null) {
+                logger.error("发送消息失败：创建会话失败, senderId: {}, receiverId: {}", senderId, receiverId);
+                return Result.failure(7102);
+            }
+            
+            // 6. 创建消息记录
+            ChatMessage message = new ChatMessage();
+            message.setSessionId(session.getId());
+            message.setSenderId(senderId);
+            message.setReceiverId(receiverId);
+            message.setContent(content);
+            message.setContentType(type);
+            message.setIsRead(0); // 未读
+            message.setCreateTime(new Date());
+            
+            // 7. 保存消息到数据库
+            int result = messageMapper.insert(message);
+            if (result <= 0) {
+                logger.error("发送消息失败：数据库插入失败, senderId: {}, receiverId: {}", senderId, receiverId);
+                return Result.failure(7102);
+            }
+            
+            // 8. 更新会话的最后消息信息
+            session.setLastMessage(type.equals("image") ? "[图片]" : content);
+            session.setLastMessageTime(new Date());
+            session.setUpdateTime(new Date());
+            sessionMapper.updateById(session);
+            
+            // 9. 构造返回数据（转换为MessageVO）
+            MessageVO vo = new MessageVO();
+            vo.setId(message.getId());
+            vo.setType(type);
+            vo.setTitle(null);
+            vo.setContent(content);
+            vo.setIsRead(false);
+            vo.setCreateTime(message.getCreateTime());
+            
+            logger.info("发送消息成功, senderId: {}, receiverId: {}, messageId: {}", 
+                    senderId, receiverId, message.getId());
+            return Result.success(7000, vo);
+            
+        } catch (Exception e) {
+            logger.error("发送消息失败，系统异常", e);
+            return Result.failure(7102);
+        }
+    }
 } 

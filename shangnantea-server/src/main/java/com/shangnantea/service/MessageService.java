@@ -166,4 +166,14 @@ public interface MessageService {
      * @return 消息详情
      */
     Result<Object> getMessageDetail(String id);
+    
+    /**
+     * 发送消息
+     * 路径: POST /message/send
+     * 成功码: 7000, 失败码: 7102
+     *
+     * @param data 消息数据 {receiverId, content, type}
+     * @return 发送结果
+     */
+    Result<Object> sendMessage(Map<String, Object> data);
 } 
