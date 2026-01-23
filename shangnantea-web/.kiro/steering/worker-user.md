@@ -132,12 +132,12 @@ inclusion: manual
 #### 社交功能（8个接口）
 18. ✅ **getFollowList** - `/user/follows` - 获取关注列表（已完成）
 19. ✅ **addFollow** - `/user/follows` - 添加关注（已完成）
-20. **removeFollow** - `/user/follows/{id}` - 取消关注
-21. **getFavoriteList** - `/user/favorites` - 获取收藏列表
-22. **addFavorite** - `/user/favorites` - 添加收藏
-23. **removeFavorite** - `/user/favorites/{id}` - 取消收藏
-24. **addLike** - `/user/likes` - 点赞
-25. **removeLike** - `/user/likes/{id}` - 取消点赞
+20. ✅ **removeFollow** - `/user/follows/{id}` - 取消关注（已完成）
+21. ✅ **getFavoriteList** - `/user/favorites` - 获取收藏列表（已完成）
+22. ✅ **addFavorite** - `/user/favorites` - 添加收藏（已完成）
+23. ✅ **removeFavorite** - `/user/favorites/{id}` - 取消收藏（已完成）
+24. ✅ **addLike** - `/user/likes` - 点赞（已完成）
+25. ✅ **removeLike** - `/user/likes/{id}` - 取消点赞（已完成）
 
 #### 用户偏好设置（2个接口）
 26. **getUserPreferences** - `/user/preferences` - 获取用户偏好设置
@@ -154,9 +154,9 @@ inclusion: manual
 35. **uploadCertificationImage** - `/user/merchant/certification/image` - 上传认证图片
 
 ### 接口开发进度
-- **已完成**：19/35（login, register, logout, getCurrentUser, refreshToken, getUserInfo, updateUserInfo, uploadAvatar, changePassword, resetPassword, getAddressList, addAddress, updateAddress, deleteAddress, setDefaultAddress, submitShopCertification, getShopCertificationStatus, getFollowList, addFollow）
-- **待开发**：16/35
-- **完成率**：54.3%
+- **已完成**：25/35（login, register, logout, getCurrentUser, refreshToken, getUserInfo, updateUserInfo, uploadAvatar, changePassword, resetPassword, getAddressList, addAddress, updateAddress, deleteAddress, setDefaultAddress, submitShopCertification, getShopCertificationStatus, getFollowList, addFollow, removeFollow, getFavoriteList, addFavorite, removeFavorite, addLike, removeLike）
+- **待开发**：10/35
+- **完成率**：71.4%
 
 ### 状态码范围
 - **成功码**：2000-2024（25个成功状态码）
