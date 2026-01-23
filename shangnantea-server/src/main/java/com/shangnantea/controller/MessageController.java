@@ -63,7 +63,7 @@ public class MessageController {
     /**
      * 发送图片消息
      * 路径: POST /message/messages/image
-     * 成功码: 7003, 失败码: 7103, 1103, 1104
+     * 成功码: 7009, 失败码: 7116, 7117, 7118
      *
      * @param sessionId 会话ID
      * @param receiverId 接收者ID
@@ -84,7 +84,7 @@ public class MessageController {
     /**
      * 发送消息
      * 路径: POST /message/send
-     * 成功码: 7000, 失败码: 7100
+     * 成功码: 7000, 失败码: 7102
      *
      * @param data 消息数据 {receiverId, content, type}
      * @return 发送结果
@@ -99,7 +99,7 @@ public class MessageController {
     /**
      * 标记消息为已读
      * 路径: POST /message/read
-     * 成功码: 7010, 失败码: 7110
+     * 成功码: 7001, 失败码: 7103
      *
      * @param data 消息ID数据 {messageIds}
      * @return 标记结果
@@ -114,7 +114,7 @@ public class MessageController {
     /**
      * 删除消息
      * 路径: POST /message/delete
-     * 成功码: 7012, 失败码: 1100
+     * 成功码: 7002, 失败码: 7104
      *
      * @param data 消息ID数据 {messageIds}
      * @return 删除结果
@@ -129,7 +129,7 @@ public class MessageController {
     /**
      * 获取未读消息数量
      * 路径: GET /message/unread-count
-     * 成功码: 200, 失败码: 7101
+     * 成功码: 200, 失败码: 7105
      *
      * @return 未读消息数量
      */
@@ -145,7 +145,7 @@ public class MessageController {
     /**
      * 获取通知列表
      * 路径: GET /message/notifications
-     * 成功码: 200, 失败码: 7101
+     * 成功码: 200, 失败码: 7106
      *
      * @param params 查询参数 {page, size, type}
      * @return 通知列表
@@ -160,7 +160,7 @@ public class MessageController {
     /**
      * 批量标记通知为已读
      * 路径: PUT /message/notifications/batch-read
-     * 成功码: 7011, 失败码: 7110
+     * 成功码: 7004, 失败码: 7109
      *
      * @param ids 通知ID列表
      * @return 标记结果
@@ -175,7 +175,7 @@ public class MessageController {
     /**
      * 批量删除通知
      * 路径: DELETE /message/notifications/batch
-     * 成功码: 7013, 失败码: 1100
+     * 成功码: 7005, 失败码: 7110
      *
      * @param ids 通知ID列表
      * @return 删除结果
@@ -190,7 +190,7 @@ public class MessageController {
     /**
      * 获取通知详情
      * 路径: GET /message/notifications/{id}
-     * 成功码: 200, 失败码: 7101
+     * 成功码: 200, 失败码: 7107
      *
      * @param id 通知ID
      * @return 通知详情
@@ -205,7 +205,7 @@ public class MessageController {
     /**
      * 删除通知
      * 路径: DELETE /message/notifications/{id}
-     * 成功码: 7012, 失败码: 1100
+     * 成功码: 7003, 失败码: 7108
      *
      * @param id 通知ID
      * @return 删除结果
@@ -222,7 +222,7 @@ public class MessageController {
     /**
      * 获取聊天会话列表
      * 路径: GET /message/list/sessions
-     * 成功码: 200, 失败码: 7101
+     * 成功码: 200, 失败码: 7111
      *
      * @return 会话列表
      */
@@ -236,7 +236,7 @@ public class MessageController {
     /**
      * 获取聊天记录
      * 路径: GET /message/list/history
-     * 成功码: 200, 失败码: 7101
+     * 成功码: 200, 失败码: 7112
      *
      * @param params 查询参数 {userId, page, size}
      * @return 聊天记录
@@ -251,7 +251,7 @@ public class MessageController {
     /**
      * 创建聊天会话
      * 路径: POST /message/sessions
-     * 成功码: 1000, 失败码: 1100
+     * 成功码: 7006, 失败码: 7113
      *
      * @param targetId 目标用户/商家ID
      * @param targetType 目标类型
@@ -267,7 +267,7 @@ public class MessageController {
     /**
      * 置顶聊天会话
      * 路径: PUT /message/sessions/{sessionId}/pin
-     * 成功码: 7014, 失败码: 1100
+     * 成功码: 7007, 失败码: 7114
      *
      * @param sessionId 会话ID
      * @return 置顶结果
@@ -282,7 +282,7 @@ public class MessageController {
     /**
      * 删除聊天会话
      * 路径: DELETE /message/sessions/{sessionId}
-     * 成功码: 7001, 失败码: 1100
+     * 成功码: 7008, 失败码: 7115
      *
      * @param sessionId 会话ID
      * @return 删除结果
@@ -299,7 +299,7 @@ public class MessageController {
     /**
      * 获取用户发布的帖子列表
      * 路径: GET /message/user/posts
-     * 成功码: 200, 失败码: 1102
+     * 成功码: 200, 失败码: 7123
      *
      * @param params 查询参数 {page, size, sortBy}
      * @return 帖子列表
@@ -314,7 +314,7 @@ public class MessageController {
     /**
      * 获取用户评价记录
      * 路径: GET /message/user/reviews
-     * 成功码: 200, 失败码: 1102
+     * 成功码: 200, 失败码: 7124
      *
      * @param params 查询参数 {page, size}
      * @return 评价记录列表
@@ -329,7 +329,7 @@ public class MessageController {
     /**
      * 获取用户动态
      * 路径: GET /message/user/{userId}/dynamic
-     * 成功码: 200, 失败码: 7120
+     * 成功码: 200, 失败码: 7121
      *
      * @param userId 用户ID
      * @return 用户动态
@@ -343,7 +343,7 @@ public class MessageController {
     /**
      * 获取用户统计数据
      * 路径: GET /message/user/{userId}/statistics
-     * 成功码: 200, 失败码: 7120
+     * 成功码: 200, 失败码: 7122
      *
      * @param userId 用户ID
      * @return 用户统计数据
@@ -357,7 +357,7 @@ public class MessageController {
     /**
      * 获取用户主页信息
      * 路径: GET /message/user/{userId}
-     * 成功码: 200, 失败码: 7120, 7121
+     * 成功码: 200, 失败码: 7119, 7120
      * 注意：此路径应放在最后，避免与更具体的路径冲突
      *
      * @param userId 用户ID
