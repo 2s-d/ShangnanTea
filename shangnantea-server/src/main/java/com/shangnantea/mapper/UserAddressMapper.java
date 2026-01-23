@@ -17,4 +17,20 @@ public interface UserAddressMapper extends BaseMapper<UserAddress, Integer> {
      * @return 地址列表
      */
     List<UserAddress> selectByUserId(@Param("userId") String userId);
+    
+    /**
+     * 将用户的所有地址设为非默认
+     *
+     * @param userId 用户ID
+     * @return 影响行数
+     */
+    int resetDefaultByUserId(@Param("userId") String userId);
+    
+    /**
+     * 根据ID更新地址
+     *
+     * @param address 地址实体
+     * @return 影响行数
+     */
+    int updateById(UserAddress address);
 } 
