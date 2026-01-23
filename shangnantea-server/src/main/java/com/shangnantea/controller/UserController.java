@@ -113,7 +113,7 @@ public class UserController {
     /**
      * 更新用户信息
      * 路径: PUT /user
-     * 成功码: 2010, 失败码: 2110
+     * 成功码: 2003, 失败码: 2108
      *
      * @param userData 用户信息
      * @return 修改结果

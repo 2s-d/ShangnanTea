@@ -291,10 +291,69 @@ public class UserServiceImpl implements UserService {
         }
     }
     
+    /**
+     * 更新用户信息
+     * 成功码：2003，失败码：2108
+     */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Result<UserVO> updateUserInfo(Map<String, Object> userData) {
-        // TODO: 实现更新用户信息逻辑
-        return Result.success(2010);
+        try {
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("更新用户信息失败: 用户未登录");
+                return Result.failure(2108); // 个人资料更新失败
+            }
+            
+            // 2. 查询用户信息
+            User user = getUserEntityById(userId);
+            if (user == null) {
+                logger.warn("更新用户信息失败: 用户不存在, userId: {}", userId);
+                return Result.failure(2108); // 个人资料更新失败
+            }
+            
+            // 3. 更新允许修改的字段
+            boolean hasUpdate = false;
+            
+            if (userData.containsKey("nickname")) {
+                user.setNickname((String) userData.get("nickname"));
+                hasUpdate = true;
+            }
+            
+            if (userData.containsKey("email")) {
+                user.setEmail((String) userData.get("email"));
+                hasUpdate = true;
+            }
+            
+            if (userData.containsKey("phone")) {
+                user.setPhone((String) userData.get("phone"));
+                hasUpdate = true;
+            }
+            
+            // 4. 如果没有任何更新，直接返回成功
+            if (!hasUpdate) {
+                logger.info("更新用户信息: 无需更新, userId: {}", userId);
+                return Result.success(2003, convertToUserVO(user)); // 个人资料更新成功
+            }
+            
+            // 5. 执行更新
+            int rows = userMapper.update(user);
+            if (rows <= 0) {
+                logger.error("更新用户信息失败: 数据库更新失败, userId: {}", userId);
+                return Result.failure(2108); // 个人资料更新失败
+            }
+            
+            // 6. 查询更新后的用户信息
+            User updatedUser = getUserEntityById(userId);
+            
+            logger.info("更新用户信息成功: userId: {}, username: {}", userId, user.getUsername());
+            return Result.success(2003, convertToUserVO(updatedUser)); // 个人资料更新成功
+            
+        } catch (Exception e) {
+            logger.error("更新用户信息失败: 系统异常", e);
+            return Result.failure(2108); // 个人资料更新失败
+        }
     }
     
     /**
