@@ -1,14 +1,20 @@
 package com.shangnantea.service.impl;
 
 import com.shangnantea.common.api.Result;
+import com.shangnantea.mapper.ShopCertificationMapper;
 import com.shangnantea.mapper.UserAddressMapper;
+import com.shangnantea.mapper.UserFollowMapper;
 import com.shangnantea.mapper.UserMapper;
 import com.shangnantea.model.dto.ChangePasswordDTO;
 import com.shangnantea.model.dto.LoginDTO;
 import com.shangnantea.model.dto.RegisterDTO;
+import com.shangnantea.model.entity.shop.ShopCertification;
 import com.shangnantea.model.entity.user.User;
 import com.shangnantea.model.entity.user.UserAddress;
+import com.shangnantea.model.entity.user.UserFollow;
 import com.shangnantea.model.vo.user.AddressVO;
+import com.shangnantea.model.vo.user.CertificationStatusVO;
+import com.shangnantea.model.vo.user.FollowVO;
 import com.shangnantea.model.vo.user.TokenVO;
 import com.shangnantea.model.vo.user.UserVO;
 import com.shangnantea.security.context.UserContext;
@@ -46,6 +52,12 @@ public class UserServiceImpl implements UserService {
     
     @Autowired
     private UserAddressMapper userAddressMapper;
+    
+    @Autowired
+    private ShopCertificationMapper shopCertificationMapper;
+    
+    @Autowired
+    private UserFollowMapper userFollowMapper;
     
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -748,24 +760,190 @@ public class UserServiceImpl implements UserService {
         }
     }
     
+    /**
+     * 设置默认地址
+     * 成功码：2010，失败码：2119
+     */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Result<Boolean> setDefaultAddress(String id) {
-        // TODO: 实现设置默认地址逻辑
-        return Result.success(1004, true);
+        try {
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("设置默认地址失败: 用户未登录");
+                return Result.failure(2119); // 操作失败
+            }
+            
+            // 2. 验证地址ID
+            Integer addressId;
+            try {
+                addressId = Integer.parseInt(id);
+            } catch (NumberFormatException e) {
+                logger.warn("设置默认地址失败: 地址ID格式错误, id: {}", id);
+                return Result.failure(2119); // 操作失败
+            }
+            
+            // 3. 查询地址是否存在
+            UserAddress existingAddress = userAddressMapper.selectById(addressId);
+            if (existingAddress == null) {
+                logger.warn("设置默认地址失败: 地址不存在, addressId: {}", addressId);
+                return Result.failure(2119); // 操作失败
+            }
+            
+            // 4. 验证用户是否有权限操作该地址
+            if (!userId.equals(existingAddress.getUserId())) {
+                logger.warn("设置默认地址失败: 无权限操作该地址, userId: {}, addressUserId: {}", 
+                    userId, existingAddress.getUserId());
+                return Result.failure(2119); // 操作失败
+            }
+            
+            // 5. 如果该地址已经是默认地址，直接返回成功
+            if (existingAddress.getIsDefault() != null && existingAddress.getIsDefault() == 1) {
+                logger.info("地址已是默认地址: userId: {}, addressId: {}", userId, addressId);
+                return Result.success(2010, true); // 更新成功
+            }
+            
+            // 6. 先将该用户的所有地址设为非默认
+            userAddressMapper.resetDefaultByUserId(userId);
+            
+            // 7. 设置当前地址为默认
+            existingAddress.setIsDefault(1);
+            existingAddress.setUpdateTime(new Date());
+            int result = userAddressMapper.updateById(existingAddress);
+            
+            if (result <= 0) {
+                logger.error("设置默认地址失败: 数据库更新失败, addressId: {}", addressId);
+                return Result.failure(2119); // 操作失败
+            }
+            
+            logger.info("设置默认地址成功: userId: {}, addressId: {}", userId, addressId);
+            return Result.success(2010, true); // 更新成功
+            
+        } catch (Exception e) {
+            logger.error("设置默认地址失败: 系统异常", e);
+            return Result.failure(2119); // 操作失败
+        }
     }
     
     // ==================== 商家认证 ====================
     
+    /**
+     * 获取商家认证状态
+     * 成功码：200，失败码：2121
+     */
     @Override
     public Result<Object> getShopCertificationStatus() {
-        // TODO: 实现获取认证状态逻辑
-        return Result.success(200);
+        try {
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("获取认证状态失败: 用户未登录");
+                return Result.failure(2121); // 加载失败
+            }
+            
+            // 2. 查询用户的认证信息
+            ShopCertification certification = shopCertificationMapper.selectByUserId(userId);
+            
+            // 3. 如果没有认证记录，返回null
+            if (certification == null) {
+                logger.info("用户暂无认证记录: userId: {}", userId);
+                return Result.success(200, null); // 操作成功（静默）
+            }
+            
+            // 4. 转换为VO并返回
+            CertificationStatusVO certificationVO = convertToCertificationStatusVO(certification);
+            
+            logger.info("获取认证状态成功: userId: {}, status: {}", userId, certification.getStatus());
+            return Result.success(200, certificationVO); // 操作成功（静默）
+            
+        } catch (Exception e) {
+            logger.error("获取认证状态失败: 系统异常", e);
+            return Result.failure(2121); // 加载失败
+        }
     }
     
+    /**
+     * 提交商家认证申请
+     * 成功码：2011，失败码：2120
+     */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Result<Boolean> submitShopCertification(Map<String, Object> certificationData) {
-        // TODO: 实现提交认证申请逻辑
-        return Result.success(1000, true);
+        try {
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("提交认证失败: 用户未登录");
+                return Result.failure(2120); // 操作失败
+            }
+            
+            // 2. 检查是否已有待审核或已通过的认证
+            ShopCertification existingCert = shopCertificationMapper.selectByUserId(userId);
+            if (existingCert != null) {
+                if (existingCert.getStatus() == 0) {
+                    logger.warn("提交认证失败: 已有待审核的认证申请, userId: {}", userId);
+                    return Result.failure(2120); // 操作失败
+                }
+                if (existingCert.getStatus() == 1) {
+                    logger.warn("提交认证失败: 已通过认证, userId: {}", userId);
+                    return Result.failure(2120); // 操作失败
+                }
+            }
+            
+            // 3. 构建认证实体
+            ShopCertification certification = new ShopCertification();
+            certification.setUserId(userId);
+            certification.setShopName((String) certificationData.get("shopName"));
+            certification.setBusinessLicense((String) certificationData.get("businessLicense"));
+            certification.setIdCardFront((String) certificationData.get("idCardFront"));
+            certification.setIdCardBack((String) certificationData.get("idCardBack"));
+            
+            // 可选字段
+            if (certificationData.containsKey("realName")) {
+                certification.setRealName((String) certificationData.get("realName"));
+            }
+            if (certificationData.containsKey("idCard")) {
+                certification.setIdCard((String) certificationData.get("idCard"));
+            }
+            if (certificationData.containsKey("contactPhone")) {
+                certification.setContactPhone((String) certificationData.get("contactPhone"));
+            }
+            if (certificationData.containsKey("province")) {
+                certification.setProvince((String) certificationData.get("province"));
+            }
+            if (certificationData.containsKey("city")) {
+                certification.setCity((String) certificationData.get("city"));
+            }
+            if (certificationData.containsKey("district")) {
+                certification.setDistrict((String) certificationData.get("district"));
+            }
+            if (certificationData.containsKey("address")) {
+                certification.setAddress((String) certificationData.get("address"));
+            }
+            if (certificationData.containsKey("applyReason")) {
+                certification.setApplyReason((String) certificationData.get("applyReason"));
+            }
+            
+            // 4. 设置状态为待审核
+            certification.setStatus(0);
+            certification.setCreateTime(new Date());
+            certification.setUpdateTime(new Date());
+            
+            // 5. 插入数据库
+            int result = shopCertificationMapper.insert(certification);
+            if (result <= 0) {
+                logger.error("提交认证失败: 数据库插入失败, userId: {}", userId);
+                return Result.failure(2120); // 操作失败
+            }
+            
+            logger.info("提交认证成功: userId: {}, certificationId: {}", userId, certification.getId());
+            return Result.success(2011, true); // 操作成功
+            
+        } catch (Exception e) {
+            logger.error("提交认证失败: 系统异常", e);
+            return Result.failure(2120); // 操作失败
+        }
     }
     
     @Override
