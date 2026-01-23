@@ -407,10 +407,46 @@ public class UserServiceImpl implements UserService {
     
     // ==================== 密码管理 ====================
     
+    /**
+     * 修改密码
+     * 成功码：2005，失败码：2112, 2113
+     */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Result<String> changePassword(ChangePasswordDTO changePasswordDTO) {
-        // TODO: 实现修改密码逻辑
-        return Result.success(2011);
+        try {
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("修改密码失败: 用户未登录");
+                return Result.failure(2112); // 密码修改失败，请检查原密码是否正确
+            }
+            
+            // 2. 验证新密码和确认密码是否一致
+            if (!changePasswordDTO.getNewPassword().equals(changePasswordDTO.getConfirmNewPassword())) {
+                logger.warn("修改密码失败: 两次输入的密码不一致, userId: {}", userId);
+                return Result.failure(2113); // 两次输入的密码不一致
+            }
+            
+            // 3. 调用changeUserPassword方法修改密码
+            boolean success = changeUserPassword(
+                userId, 
+                changePasswordDTO.getOldPassword(), 
+                changePasswordDTO.getNewPassword()
+            );
+            
+            if (!success) {
+                logger.warn("修改密码失败: 旧密码错误, userId: {}", userId);
+                return Result.failure(2112); // 密码修改失败，请检查原密码是否正确
+            }
+            
+            logger.info("修改密码成功: userId: {}", userId);
+            return Result.success(2005, "密码修改成功，请使用新密码登录"); // 密码修改成功，请使用新密码登录
+            
+        } catch (Exception e) {
+            logger.error("修改密码失败: 系统异常", e);
+            return Result.failure(2112); // 密码修改失败，请检查原密码是否正确
+        }
     }
     
     @Override
