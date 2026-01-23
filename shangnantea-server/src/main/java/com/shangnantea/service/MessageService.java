@@ -305,4 +305,54 @@ public interface MessageService {
      * @return 删除结果
      */
     Result<Boolean> deleteChatSession(String sessionId);
+    
+    /**
+     * 获取用户主页信息
+     * 路径: GET /message/user/{userId}
+     * 成功码: 200, 失败码: 7119, 7120
+     *
+     * @param userId 用户ID
+     * @return 用户主页信息
+     */
+    Result<Object> getUserProfile(String userId);
+    
+    /**
+     * 获取用户动态
+     * 路径: GET /message/user/{userId}/dynamic
+     * 成功码: 200, 失败码: 7121
+     *
+     * @param userId 用户ID
+     * @return 用户动态列表
+     */
+    Result<Object> getUserDynamic(String userId);
+    
+    /**
+     * 获取用户统计数据
+     * 路径: GET /message/user/{userId}/statistics
+     * 成功码: 200, 失败码: 7122
+     *
+     * @param userId 用户ID
+     * @return 用户统计数据
+     */
+    Result<Object> getUserStatistics(String userId);
+    
+    /**
+     * 获取用户发布的帖子列表
+     * 路径: GET /message/user/posts
+     * 成功码: 200, 失败码: 7123
+     *
+     * @param params 查询参数 {page, size, sortBy}
+     * @return 帖子列表
+     */
+    Result<Object> getUserPosts(Map<String, Object> params);
+    
+    /**
+     * 获取用户评价记录
+     * 路径: GET /message/user/reviews
+     * 成功码: 200, 失败码: 7124
+     *
+     * @param params 查询参数 {page, size}
+     * @return 评价记录列表
+     */
+    Result<Object> getUserReviews(Map<String, Object> params);
 } 

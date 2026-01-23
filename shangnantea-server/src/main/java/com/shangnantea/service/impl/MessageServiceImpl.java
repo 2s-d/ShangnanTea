@@ -1395,4 +1395,176 @@ public class MessageServiceImpl implements MessageService {
             return Result.failure(7115);
         }
     }
+    
+    @Override
+    public Result<Object> getUserProfile(String userId) {
+        try {
+            logger.info("获取用户主页信息请求, userId: {}", userId);
+            
+            // 1. 验证参数
+            if (userId == null || userId.trim().isEmpty()) {
+                logger.warn("获取用户主页信息失败：用户ID为空");
+                return Result.failure(7119);
+            }
+            
+            // 2. TODO: 调用用户模块获取用户信息
+            // 这里需要调用用户模块的Service获取用户基本信息
+            // 暂时返回模拟数据
+            Map<String, Object> userProfile = new HashMap<>();
+            
+            // 用户基本信息
+            Map<String, Object> userInfo = new HashMap<>();
+            userInfo.put("id", userId);
+            userInfo.put("username", "用户" + userId);
+            userInfo.put("nickname", "用户昵称" + userId);
+            userInfo.put("avatar", "/images/avatar.png");
+            userInfo.put("role", 2);
+            userProfile.put("user", userInfo);
+            
+            // 是否已关注（需要从用户模块获取）
+            userProfile.put("isFollowed", false);
+            
+            // 统计数据（需要从各个模块聚合）
+            Map<String, Object> statistics = new HashMap<>();
+            statistics.put("postCount", 0);
+            statistics.put("followingCount", 0);
+            statistics.put("followerCount", 0);
+            userProfile.put("statistics", statistics);
+            
+            logger.info("获取用户主页信息成功, userId: {}", userId);
+            return Result.success(200, userProfile);
+            
+        } catch (Exception e) {
+            logger.error("获取用户主页信息失败，系统异常", e);
+            return Result.failure(7119);
+        }
+    }
+    
+    @Override
+    public Result<Object> getUserDynamic(String userId) {
+        try {
+            logger.info("获取用户动态请求, userId: {}", userId);
+            
+            // 1. 验证参数
+            if (userId == null || userId.trim().isEmpty()) {
+                logger.warn("获取用户动态失败：用户ID为空");
+                return Result.failure(7121);
+            }
+            
+            // 2. TODO: 从各个模块聚合用户动态
+            // 需要从论坛模块、订单模块等获取用户的动态信息
+            // 暂时返回空列表
+            Map<String, Object> result = new HashMap<>();
+            result.put("list", new ArrayList<>());
+            result.put("total", 0);
+            
+            logger.info("获取用户动态成功, userId: {}", userId);
+            return Result.success(200, result);
+            
+        } catch (Exception e) {
+            logger.error("获取用户动态失败，系统异常", e);
+            return Result.failure(7121);
+        }
+    }
+    
+    @Override
+    public Result<Object> getUserStatistics(String userId) {
+        try {
+            logger.info("获取用户统计数据请求, userId: {}", userId);
+            
+            // 1. 验证参数
+            if (userId == null || userId.trim().isEmpty()) {
+                logger.warn("获取用户统计数据失败：用户ID为空");
+                return Result.failure(7122);
+            }
+            
+            // 2. TODO: 从各个模块聚合统计数据
+            // 需要从论坛模块、用户模块等获取统计信息
+            // 暂时返回模拟数据
+            Map<String, Object> statistics = new HashMap<>();
+            statistics.put("postCount", 0);
+            statistics.put("followingCount", 0);
+            statistics.put("followerCount", 0);
+            statistics.put("favoriteCount", 0);
+            
+            logger.info("获取用户统计数据成功, userId: {}", userId);
+            return Result.success(200, statistics);
+            
+        } catch (Exception e) {
+            logger.error("获取用户统计数据失败，系统异常", e);
+            return Result.failure(7122);
+        }
+    }
+    
+    @Override
+    public Result<Object> getUserPosts(Map<String, Object> params) {
+        try {
+            logger.info("获取用户帖子列表请求, params: {}", params);
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("获取用户帖子列表失败：用户未登录");
+                return Result.failure(7123);
+            }
+            
+            // 2. 解析分页参数
+            Integer page = params.get("page") != null ? 
+                Integer.parseInt(params.get("page").toString()) : 1;
+            Integer size = params.get("size") != null ? 
+                Integer.parseInt(params.get("size").toString()) : 10;
+            String sortBy = params.get("sortBy") != null ? 
+                params.get("sortBy").toString() : "latest";
+            
+            // 3. TODO: 调用论坛模块获取用户帖子列表
+            // 需要调用论坛模块的Service获取当前用户发布的帖子
+            // 暂时返回空列表
+            Map<String, Object> result = new HashMap<>();
+            result.put("list", new ArrayList<>());
+            result.put("total", 0);
+            
+            logger.info("获取用户帖子列表成功, userId: {}, page: {}, size: {}, sortBy: {}", 
+                    userId, page, size, sortBy);
+            return Result.success(200, result);
+            
+        } catch (Exception e) {
+            logger.error("获取用户帖子列表失败，系统异常", e);
+            return Result.failure(7123);
+        }
+    }
+    
+    @Override
+    public Result<Object> getUserReviews(Map<String, Object> params) {
+        try {
+            logger.info("获取用户评价记录请求, params: {}", params);
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("获取用户评价记录失败：用户未登录");
+                return Result.failure(7124);
+            }
+            
+            // 2. 解析分页参数
+            Integer page = params.get("page") != null ? 
+                Integer.parseInt(params.get("page").toString()) : 1;
+            Integer size = params.get("size") != null ? 
+                Integer.parseInt(params.get("size").toString()) : 10;
+            
+            // 3. TODO: 调用订单模块获取用户评价记录
+            // 需要调用订单模块的Service获取当前用户的评价记录
+            // 暂时返回空列表
+            Map<String, Object> result = new HashMap<>();
+            result.put("list", new ArrayList<>());
+            result.put("total", 0);
+            
+            logger.info("获取用户评价记录成功, userId: {}, page: {}, size: {}", 
+                    userId, page, size);
+            return Result.success(200, result);
+            
+        } catch (Exception e) {
+            logger.error("获取用户评价记录失败，系统异常", e);
+            return Result.failure(7124);
+        }
+    }
 } 
