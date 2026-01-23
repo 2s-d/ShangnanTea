@@ -154,9 +154,9 @@ inclusion: manual
 35. **processCertification** - `/user/admin/certifications/{id}` - 审核认证
 
 ### 接口开发进度
-- **已完成**：11/35（login, register, logout, getCurrentUser, refreshToken, getUserInfo, updateUserInfo, uploadAvatar, changePassword, resetPassword, getAddressList）
-- **待开发**：24/35
-- **完成率**：31.4%
+- **已完成**：14/35（login, register, logout, getCurrentUser, refreshToken, getUserInfo, updateUserInfo, uploadAvatar, changePassword, resetPassword, getAddressList, addAddress, updateAddress, deleteAddress）
+- **待开发**：21/35
+- **完成率**：40.0%
 
 ### 状态码范围
 - **成功码**：2000-2024（25个成功状态码）
