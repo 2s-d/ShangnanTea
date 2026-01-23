@@ -559,7 +559,7 @@ public class UserController {
     /**
      * 审核认证申请（管理员）
      * 路径: PUT /user/admin/certifications/{id}
-     * 成功码: 1000, 失败码: 1100, 2124
+     * 成功码: 2023, 失败码: 2144, 2145
      *
      * @param id 认证ID
      * @param auditData 审核数据 {status, message}
