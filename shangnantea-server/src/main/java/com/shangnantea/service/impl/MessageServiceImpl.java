@@ -1110,6 +1110,9 @@ public class MessageServiceImpl implements MessageService {
                     session.getInitiatorUnread() : session.getReceiverUnread();
                 sessionVO.put("unreadCount", unreadCount != null ? unreadCount : 0);
                 
+                // 添加置顶状态
+                sessionVO.put("isPinned", session.getIsPinned() != null && session.getIsPinned() == 1);
+                
                 sessionVO.put("lastMessage", session.getLastMessage());
                 sessionVO.put("lastMessageTime", session.getLastMessageTime());
                 sessionVO.put("sessionType", session.getSessionType());
@@ -1118,15 +1121,7 @@ public class MessageServiceImpl implements MessageService {
                 sessionList.add(sessionVO);
             }
             
-            // 4. 按最后消息时间倒序排列
-            sessionList.sort((a, b) -> {
-                Date timeA = (Date) a.get("lastMessageTime");
-                Date timeB = (Date) b.get("lastMessageTime");
-                if (timeA == null && timeB == null) return 0;
-                if (timeA == null) return 1;
-                if (timeB == null) return -1;
-                return timeB.compareTo(timeA);
-            });
+            // 4. 数据库已按置顶状态和时间排序，无需再次排序
             
             logger.info("获取聊天会话列表成功, userId: {}, count: {}", userId, sessionList.size());
             return Result.success(200, sessionList);
@@ -1267,6 +1262,7 @@ public class MessageServiceImpl implements MessageService {
             session.setLastMessageTime(new Date());
             session.setInitiatorUnread(0);
             session.setReceiverUnread(0);
+            session.setIsPinned(0); // 默认不置顶
             session.setStatus(1);
             session.setCreateTime(new Date());
             session.setUpdateTime(new Date());
@@ -1328,11 +1324,20 @@ public class MessageServiceImpl implements MessageService {
                 return Result.failure(7114);
             }
             
-            // 5. 切换置顶状态（这里简化处理，实际可能需要在ChatSession实体中添加isPinned字段）
-            // 由于当前ChatSession实体没有isPinned字段，这里只返回成功
-            // TODO: 如果需要真正的置顶功能，需要在数据库表中添加is_pinned字段
+            // 5. 切换置顶状态
+            Integer currentPinned = session.getIsPinned();
+            Integer newPinned = (currentPinned != null && currentPinned == 1) ? 0 : 1;
             
-            logger.info("置顶聊天会话成功, userId: {}, sessionId: {}", userId, sessionId);
+            session.setIsPinned(newPinned);
+            session.setUpdateTime(new Date());
+            
+            int result = sessionMapper.updateById(session);
+            if (result <= 0) {
+                logger.error("置顶聊天会话失败：数据库更新失败, sessionId: {}", sessionId);
+                return Result.failure(7114);
+            }
+            
+            logger.info("置顶聊天会话成功, userId: {}, sessionId: {}, isPinned: {}", userId, sessionId, newPinned);
             return Result.success(7007, true);
             
         } catch (Exception e) {

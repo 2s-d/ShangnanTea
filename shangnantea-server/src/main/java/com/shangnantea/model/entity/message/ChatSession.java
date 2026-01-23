@@ -45,6 +45,11 @@ public class ChatSession {
     private Integer receiverUnread;
     
     /**
+     * 是否置顶(0否,1是)
+     */
+    private Integer isPinned;
+    
+    /**
      * 会话类型(private私聊,customer客服)
      */
     private String sessionType;
