@@ -2,6 +2,7 @@ package com.shangnantea.controller;
 
 import com.shangnantea.common.api.Result;
 import com.shangnantea.model.dto.order.AddToCartDTO;
+import com.shangnantea.model.dto.order.UpdateCartItemDTO;
 import com.shangnantea.model.vo.order.CartItemVO;
 import com.shangnantea.security.annotation.RequiresLogin;
 import com.shangnantea.service.OrderService;
@@ -70,9 +71,10 @@ public class OrderController {
      */
     @PutMapping("/cart/update")
     @RequiresLogin
-    public Result<Boolean> updateCartItem(@RequestBody Map<String, Object> data) {
-        logger.info("更新购物车商品请求");
-        return orderService.updateCartItem(data);
+    public Result<CartItemVO> updateCartItem(@RequestBody @Validated UpdateCartItemDTO data) {
+        logger.info("更新购物车商品请求: id={}, quantity={}, specificationId={}", 
+                    data.getId(), data.getQuantity(), data.getSpecificationId());
+        return orderService.updateCart(data.getId(), data.getQuantity(), data.getSpecificationId());
     }
 
     /**

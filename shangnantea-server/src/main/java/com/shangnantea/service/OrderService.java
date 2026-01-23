@@ -110,10 +110,12 @@ public interface OrderService {
     /**
      * 更新购物车
      *
-     * @param cart 购物车信息
-     * @return 是否成功
+     * @param id 购物车项ID
+     * @param quantity 数量（可选）
+     * @param specificationId 规格ID（可选）
+     * @return 更新结果
      */
-    boolean updateCart(ShoppingCart cart);
+    Result<CartItemVO> updateCart(Integer id, Integer quantity, String specificationId);
     
     /**
      * 删除购物车

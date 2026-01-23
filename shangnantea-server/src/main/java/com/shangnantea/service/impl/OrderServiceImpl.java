@@ -307,10 +307,166 @@ public class OrderServiceImpl implements OrderService {
     
     @Override
     @Transactional
-    public boolean updateCart(ShoppingCart cart) {
-        // TODO: 实现更新购物车的逻辑
-        cart.setUpdateTime(new Date());
-        return cartMapper.updateById(cart) > 0;
+    public Result<CartItemVO> updateCart(Integer id, Integer quantity, String specificationId) {
+        logger.info("更新购物车请求: id={}, quantity={}, specificationId={}", id, quantity, specificationId);
+        
+        try {
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("更新购物车失败: 用户未登录");
+                return Result.failure(5105);
+            }
+            
+            // 2. 查询购物车项是否存在
+            ShoppingCart cart = cartMapper.selectById(id);
+            if (cart == null) {
+                logger.warn("更新购物车失败: 购物车项不存在: id={}", id);
+                return Result.failure(5105);
+            }
+            
+            // 3. 验证购物车项是否属于当前用户
+            if (!userId.equals(cart.getUserId())) {
+                logger.warn("更新购物车失败: 购物车项不属于当前用户: cartId={}, userId={}, cartUserId={}", 
+                           id, userId, cart.getUserId());
+                return Result.failure(5105);
+            }
+            
+            // 4. 查询商品信息
+            Tea tea = null;
+            try {
+                tea = teaMapper.selectById(Long.parseLong(cart.getTeaId()));
+            } catch (NumberFormatException e) {
+                logger.warn("更新购物车失败: 茶叶ID格式错误: {}", cart.getTeaId());
+                return Result.failure(5105);
+            }
+            
+            if (tea == null) {
+                logger.warn("更新购物车失败: 商品不存在: teaId={}", cart.getTeaId());
+                return Result.failure(5105);
+            }
+            
+            // 5. 判断是更新数量还是更新规格
+            boolean isUpdateQuantity = (quantity != null);
+            boolean isUpdateSpec = (specificationId != null && !specificationId.isEmpty());
+            
+            if (!isUpdateQuantity && !isUpdateSpec) {
+                logger.warn("更新购物车失败: 未提供更新内容");
+                return Result.failure(5105);
+            }
+            
+            // 6. 处理更新规格
+            if (isUpdateSpec) {
+                Integer newSpecId = null;
+                BigDecimal newPrice = null;
+                String newSpecName = null;
+                Integer stock = 0;
+                
+                try {
+                    newSpecId = Integer.parseInt(specificationId);
+                    TeaSpecification spec = teaSpecificationMapper.selectById(newSpecId.longValue());
+                    
+                    if (spec == null) {
+                        logger.warn("更新购物车失败: 规格不存在: specId={}", newSpecId);
+                        return Result.failure(5105);
+                    }
+                    
+                    newPrice = spec.getPrice();
+                    newSpecName = spec.getSpecName();
+                    stock = spec.getStock() != null ? spec.getStock() : 0;
+                    
+                } catch (NumberFormatException e) {
+                    logger.warn("更新购物车失败: 规格ID格式错误: {}", specificationId);
+                    return Result.failure(5105);
+                }
+                
+                // 验证库存
+                int currentQuantity = cart.getQuantity();
+                if (stock < currentQuantity) {
+                    logger.warn("更新购物车失败: 新规格库存不足: stock={}, quantity={}", stock, currentQuantity);
+                    return Result.failure(5106);
+                }
+                
+                // 验证数量上限
+                int maxQuantity = (int) Math.floor(stock * 0.3);
+                if (maxQuantity < 1) {
+                    maxQuantity = 1;
+                }
+                if (currentQuantity > maxQuantity) {
+                    logger.warn("更新购物车失败: 新规格超过购买数量上限: quantity={}, maxQuantity={}, stock={}", 
+                               currentQuantity, maxQuantity, stock);
+                    return Result.failure(5107);
+                }
+                
+                // 更新规格
+                cart.setSpecId(newSpecId);
+                cart.setUpdateTime(new Date());
+                cartMapper.updateById(cart);
+                
+                logger.info("购物车规格已更新: cartId={}, newSpecId={}", id, newSpecId);
+                
+                // 构建返回VO
+                CartItemVO itemVO = buildCartItemVO(cart, tea, newSpecName, newPrice);
+                return Result.success(5002, itemVO); // 规格已更新
+            }
+            
+            // 7. 处理更新数量
+            if (isUpdateQuantity) {
+                // 获取当前规格的库存和价格
+                Integer specId = cart.getSpecId();
+                BigDecimal price = null;
+                String specName = null;
+                Integer stock = 0;
+                
+                if (specId != null) {
+                    TeaSpecification spec = teaSpecificationMapper.selectById(specId.longValue());
+                    if (spec != null) {
+                        price = spec.getPrice();
+                        specName = spec.getSpecName();
+                        stock = spec.getStock() != null ? spec.getStock() : 0;
+                    }
+                } else {
+                    // 没有规格，使用商品默认价格和库存
+                    price = tea.getPrice();
+                    stock = tea.getStock() != null ? tea.getStock() : 0;
+                }
+                
+                // 验证库存
+                if (stock < quantity) {
+                    logger.warn("更新购物车失败: 库存不足: stock={}, quantity={}", stock, quantity);
+                    return Result.failure(5106);
+                }
+                
+                // 验证数量上限
+                int maxQuantity = (int) Math.floor(stock * 0.3);
+                if (maxQuantity < 1) {
+                    maxQuantity = 1;
+                }
+                if (quantity > maxQuantity) {
+                    logger.warn("更新购物车失败: 超过购买数量上限: quantity={}, maxQuantity={}, stock={}", 
+                               quantity, maxQuantity, stock);
+                    return Result.failure(5107);
+                }
+                
+                // 更新数量
+                cart.setQuantity(quantity);
+                cart.setUpdateTime(new Date());
+                cartMapper.updateById(cart);
+                
+                logger.info("购物车数量已更新: cartId={}, newQuantity={}", id, quantity);
+                
+                // 构建返回VO
+                CartItemVO itemVO = buildCartItemVO(cart, tea, specName, price);
+                return Result.success(5001, itemVO); // 商品数量已更新
+            }
+            
+            // 不应该到达这里
+            return Result.failure(5105);
+            
+        } catch (Exception e) {
+            logger.error("更新购物车失败: 系统异常", e);
+            return Result.failure(5105);
+        }
     }
     
     @Override
