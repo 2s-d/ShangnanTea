@@ -574,4 +574,103 @@ public class ForumServiceImpl implements ForumService {
             return Result.failure(6103); // Banner上传失败
         }
     }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> updateBanner(String id, Map<String, Object> data) {
+        try {
+            logger.info("更新Banner请求: id={}", id);
+            
+            // 1. 验证Banner是否存在
+            Integer bannerId = Integer.parseInt(id);
+            HomeContent content = homeContentMapper.selectById(bannerId);
+            if (content == null || !"banner".equals(content.getSection())) {
+                logger.warn("更新Banner失败: Banner不存在, id: {}", id);
+                return Result.failure(6106); // 保存失败
+            }
+            
+            // 2. 更新Banner信息
+            if (data.containsKey("title")) {
+                content.setTitle((String) data.get("title"));
+            }
+            if (data.containsKey("linkUrl")) {
+                content.setLinkUrl((String) data.get("linkUrl"));
+            }
+            if (data.containsKey("sortOrder")) {
+                Object sortOrderObj = data.get("sortOrder");
+                if (sortOrderObj != null) {
+                    content.setSortOrder(Integer.parseInt(sortOrderObj.toString()));
+                }
+            }
+            content.setUpdateTime(new Date());
+            
+            // 3. 保存到数据库
+            int result = homeContentMapper.updateById(content);
+            if (result <= 0) {
+                logger.error("更新Banner失败: 数据库更新失败, id: {}", id);
+                return Result.failure(6106); // 保存失败
+            }
+            
+            // 4. 构造返回数据
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("id", content.getId());
+            responseData.put("title", content.getTitle());
+            responseData.put("linkUrl", content.getLinkUrl());
+            responseData.put("sortOrder", content.getSortOrder());
+            
+            logger.info("更新Banner成功: id={}", id);
+            return Result.success(6002, responseData); // Banner更新成功
+            
+        } catch (NumberFormatException e) {
+            logger.error("更新Banner失败: ID格式错误, id: {}", id, e);
+            return Result.failure(6106); // 保存失败
+        } catch (Exception e) {
+            logger.error("更新Banner失败: 系统异常, id: {}", id, e);
+            return Result.failure(6106); // 保存失败
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Boolean> deleteBanner(String id) {
+        try {
+            logger.info("删除Banner请求: id={}", id);
+            
+            // 1. 验证Banner是否存在
+            Integer bannerId = Integer.parseInt(id);
+            HomeContent content = homeContentMapper.selectById(bannerId);
+            if (content == null || !"banner".equals(content.getSection())) {
+                logger.warn("删除Banner失败: Banner不存在, id: {}", id);
+                return Result.failure(6107); // 删除失败
+            }
+            
+            // 2. 删除关联的图片文件
+            String relativePath = content.getContent();
+            if (relativePath != null && !relativePath.isEmpty()) {
+                boolean fileDeleted = FileUploadUtils.deleteFile(relativePath);
+                if (fileDeleted) {
+                    logger.info("Banner图片文件删除成功: path={}", relativePath);
+                } else {
+                    logger.warn("Banner图片文件删除失败或文件不存在: path={}", relativePath);
+                }
+            }
+            
+            // 3. 删除数据库记录
+            int result = homeContentMapper.deleteById(bannerId);
+            if (result <= 0) {
+                logger.error("删除Banner失败: 数据库删除失败, id: {}", id);
+                return Result.failure(6107); // 删除失败
+            }
+            
+            logger.info("删除Banner成功: id={}", id);
+            return Result.success(6003, true); // 删除成功
+            
+        } catch (NumberFormatException e) {
+            logger.error("删除Banner失败: ID格式错误, id: {}", id, e);
+            return Result.failure(6107); // 删除失败
+        } catch (Exception e) {
+            logger.error("删除Banner失败: 系统异常, id: {}", id, e);
+            return Result.failure(6107); // 删除失败
+        }
+    }
 } 

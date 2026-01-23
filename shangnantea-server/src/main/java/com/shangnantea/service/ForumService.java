@@ -260,4 +260,25 @@ public interface ForumService {
      * @return 上传结果
      */
     Result<Object> uploadBanner(MultipartFile file, String title, String subtitle, String linkUrl);
+    
+    /**
+     * 更新Banner信息（管理员）
+     * 路径: PUT /forum/banners/{id}
+     * 成功码: 6002, 失败码: 6106
+     *
+     * @param id Banner ID
+     * @param data Banner数据（title, linkUrl, sortOrder）
+     * @return 更新结果
+     */
+    Result<Object> updateBanner(String id, Map<String, Object> data);
+    
+    /**
+     * 删除Banner（管理员）
+     * 路径: DELETE /forum/banners/{id}
+     * 成功码: 6003, 失败码: 6107
+     *
+     * @param id Banner ID
+     * @return 删除结果
+     */
+    Result<Boolean> deleteBanner(String id);
 } 
