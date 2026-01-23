@@ -322,4 +322,51 @@ public interface ShopService {
      * @return 删除结果
      */
     Result<Boolean> deleteAnnouncement(String announcementId);
+    
+    /**
+     * 关注店铺
+     * 用户关注店铺
+     *
+     * @param shopId 店铺ID
+     * @return 关注结果
+     */
+    Result<Boolean> followShop(String shopId);
+    
+    /**
+     * 取消关注店铺
+     * 用户取消关注店铺
+     *
+     * @param shopId 店铺ID
+     * @return 取消结果
+     */
+    Result<Boolean> unfollowShop(String shopId);
+    
+    /**
+     * 检查关注状态
+     * 获取当前用户对店铺的关注状态
+     *
+     * @param shopId 店铺ID
+     * @return 关注状态
+     */
+    Result<Object> checkFollowStatus(String shopId);
+    
+    /**
+     * 获取店铺评价列表
+     * 获取店铺的用户评价列表
+     *
+     * @param shopId 店铺ID
+     * @param params 查询参数（page, pageSize等）
+     * @return 评价列表
+     */
+    Result<Object> getShopReviews(String shopId, Map<String, Object> params);
+    
+    /**
+     * 提交店铺评价
+     * 用户提交对店铺的评价
+     *
+     * @param shopId 店铺ID
+     * @param reviewData 评价数据
+     * @return 提交结果
+     */
+    Result<Boolean> submitShopReview(String shopId, Map<String, Object> reviewData);
 } 
