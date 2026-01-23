@@ -39,6 +39,15 @@ public interface ForumService {
     Result<Object> updateHomeData(Map<String, Object> data);
     
     /**
+     * 获取Banner列表
+     * 路径: GET /forum/banners
+     * 成功码: 200, 失败码: 6102
+     *
+     * @return Banner列表
+     */
+    Result<List<ForumHomeVO.BannerVO>> getBanners();
+    
+    /**
      * 获取论坛主题列表
      *
      * @return 主题列表

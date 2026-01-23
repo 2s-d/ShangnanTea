@@ -207,6 +207,46 @@ public class ForumServiceImpl implements ForumService {
     }
     
     @Override
+    public Result<List<ForumHomeVO.BannerVO>> getBanners() {
+        try {
+            logger.info("获取Banner列表请求");
+            
+            // 1. 从HomeContent表中查询section='banner'且status=1的记录
+            List<HomeContent> allContents = homeContentMapper.selectAll();
+            List<ForumHomeVO.BannerVO> banners = allContents.stream()
+                    .filter(content -> "banner".equals(content.getSection()) && 
+                            content.getStatus() != null && content.getStatus() == 1)
+                    .sorted((a, b) -> {
+                        Integer orderA = a.getSortOrder() != null ? a.getSortOrder() : 0;
+                        Integer orderB = b.getSortOrder() != null ? b.getSortOrder() : 0;
+                        return orderA.compareTo(orderB); // 升序排序
+                    })
+                    .map(content -> {
+                        ForumHomeVO.BannerVO bannerVO = new ForumHomeVO.BannerVO();
+                        bannerVO.setId(content.getId());
+                        // 生成图片访问URL
+                        String imageUrl = content.getContent();
+                        if (imageUrl != null && !imageUrl.isEmpty()) {
+                            imageUrl = FileUploadUtils.generateAccessUrl(imageUrl, baseUrl);
+                        }
+                        bannerVO.setImageUrl(imageUrl);
+                        bannerVO.setTitle(content.getTitle());
+                        bannerVO.setLinkUrl(content.getLinkUrl());
+                        bannerVO.setSortOrder(content.getSortOrder());
+                        return bannerVO;
+                    })
+                    .collect(java.util.stream.Collectors.toList());
+            
+            logger.info("获取Banner列表成功，共{}条", banners.size());
+            return Result.success(200, banners); // 成功码200
+            
+        } catch (Exception e) {
+            logger.error("获取Banner列表失败: 系统异常", e);
+            return Result.failure(6102); // 失败码6102
+        }
+    }
+    
+    @Override
     public List<ForumTopic> listTopics() {
         // TODO: 实现获取论坛主题列表的逻辑
         return topicMapper.selectAll();

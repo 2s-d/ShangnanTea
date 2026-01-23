@@ -54,6 +54,7 @@ public class ForumHomeVO {
         private String imageUrl;
         private String title;
         private String linkUrl;
+        private Integer sortOrder;
         
         public Integer getId() {
             return id;
@@ -85,6 +86,14 @@ public class ForumHomeVO {
         
         public void setLinkUrl(String linkUrl) {
             this.linkUrl = linkUrl;
+        }
+        
+        public Integer getSortOrder() {
+            return sortOrder;
+        }
+        
+        public void setSortOrder(Integer sortOrder) {
+            this.sortOrder = sortOrder;
         }
     }
     
