@@ -124,9 +124,9 @@ inclusion: manual
 12. **deleteChatSession** - `/message/chat/sessions/{sessionId}` - 删除聊天会话
 
 #### 系统通知功能（4个接口）
-13. **getNotifications** - `/message/notifications` - 获取系统通知 ✅ 已完成
-14. **markNotificationRead** - `/message/notifications/{id}/read` - 标记通知已读 ✅ 已完成
-15. **deleteNotification** - `/message/notifications/{id}` - 删除通知 ✅ 已完成
+13. **getNotifications** - `/message/notifications` - 获取系统通知
+14. **markNotificationRead** - `/message/notifications/{id}/read` - 标记通知已读
+15. **deleteNotification** - `/message/notifications/{id}` - 删除通知
 16. **getNotificationSettings** - `/message/notifications/settings` - 获取通知设置
 
 #### 通知设置功能（2个接口）
