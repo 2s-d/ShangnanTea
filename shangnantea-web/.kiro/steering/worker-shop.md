@@ -128,15 +128,15 @@ inclusion: manual
 
 #### Banner管理功能（4个接口）
 14. **uploadBanner** - `/shop/{shopId}/banners` - 上传Banner ✅ 已完成
-15. **updateBanner** - `/shop/banners/{bannerId}` - 更新Banner
-16. **deleteBanner** - `/shop/banners/{bannerId}` - 删除Banner
-17. **updateBannerOrder** - `/shop/banners/order` - 更新Banner排序
+15. **updateBanner** - `/shop/banners/{bannerId}` - 更新Banner ✅ 已完成
+16. **deleteBanner** - `/shop/banners/{bannerId}` - 删除Banner ✅ 已完成
+17. **updateBannerOrder** - `/shop/banners/order` - 更新Banner排序 ✅ 已完成
 
 #### 公告管理功能（4个接口）
-18. **getShopAnnouncements** - `/shop/{shopId}/announcements` - 获取公告列表
-19. **createAnnouncement** - `/shop/{shopId}/announcements` - 创建公告
-20. **updateAnnouncement** - `/shop/announcements/{announcementId}` - 更新公告
-21. **deleteAnnouncement** - `/shop/announcements/{announcementId}` - 删除公告
+18. **getShopAnnouncements** - `/shop/{shopId}/announcements` - 获取公告列表 ✅ 已完成
+19. **createAnnouncement** - `/shop/{shopId}/announcements` - 创建公告 ✅ 已完成
+20. **updateAnnouncement** - `/shop/announcements/{announcementId}` - 更新公告 ✅ 已完成
+21. **deleteAnnouncement** - `/shop/announcements/{announcementId}` - 删除公告 ✅ 已完成
 
 #### 关注功能（3个接口）
 22. **followShop** - `/shop/{shopId}/follow` - 关注店铺
