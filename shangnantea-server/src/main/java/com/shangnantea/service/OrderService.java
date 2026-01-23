@@ -27,10 +27,10 @@ public interface OrderService {
     /**
      * 创建订单
      *
-     * @param order 订单信息
-     * @return 订单信息
+     * @param data 订单数据
+     * @return 创建结果
      */
-    Order createOrder(Order order);
+    Result<Object> createOrder(Map<String, Object> data);
     
     /**
      * 更新订单状态
@@ -141,12 +141,11 @@ public interface OrderService {
     List<ShoppingCart> listUserCarts(String userId);
     
     /**
-     * 清空用户购物车
+     * 清空购物车
      *
-     * @param userId 用户ID
-     * @return 是否成功
+     * @return 清空结果
      */
-    boolean clearUserCart(String userId);
+    Result<Boolean> clearCart();
     
     /**
      * 上传评价图片

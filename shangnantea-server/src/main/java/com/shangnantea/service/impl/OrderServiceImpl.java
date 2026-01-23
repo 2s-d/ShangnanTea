@@ -63,15 +63,158 @@ public class OrderServiceImpl implements OrderService {
     
     @Override
     @Transactional
-    public Order createOrder(Order order) {
-        // TODO: 实现创建订单的逻辑
-        Date now = new Date();
-        order.setId(UUID.randomUUID().toString().replace("-", ""));
-        order.setCreateTime(now);
-        order.setUpdateTime(now);
-        order.setStatus(0); // 待支付
-        orderMapper.insert(order);
-        return order;
+    public Result<Object> createOrder(Map<String, Object> data) {
+        logger.info("创建订单请求: data={}", data);
+        
+        try {
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("创建订单失败: 用户未登录");
+                return Result.failure(5110);
+            }
+            
+            // 2. 解析请求参数
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> items = (List<Map<String, Object>>) data.get("items");
+            Object addressIdObj = data.get("addressId");
+            String remark = (String) data.get("remark");
+            
+            if (items == null || items.isEmpty()) {
+                logger.warn("创建订单失败: 订单商品列表为空");
+                return Result.failure(5110);
+            }
+            
+            if (addressIdObj == null) {
+                logger.warn("创建订单失败: 收货地址ID为空");
+                return Result.failure(5110);
+            }
+            
+            Integer addressId = null;
+            try {
+                addressId = Integer.parseInt(addressIdObj.toString());
+            } catch (NumberFormatException e) {
+                logger.warn("创建订单失败: 地址ID格式错误: {}", addressIdObj);
+                return Result.failure(5110);
+            }
+            
+            // 3. 验证每个商品并计算总价
+            BigDecimal totalPrice = BigDecimal.ZERO;
+            List<Order> orderList = new ArrayList<>();
+            
+            for (Map<String, Object> item : items) {
+                String teaId = (String) item.get("teaId");
+                Object specIdObj = item.get("specId");
+                Object quantityObj = item.get("quantity");
+                
+                if (teaId == null || quantityObj == null) {
+                    logger.warn("创建订单失败: 商品信息不完整");
+                    return Result.failure(5110);
+                }
+                
+                Integer quantity = null;
+                try {
+                    quantity = Integer.parseInt(quantityObj.toString());
+                } catch (NumberFormatException e) {
+                    logger.warn("创建订单失败: 数量格式错误: {}", quantityObj);
+                    return Result.failure(5110);
+                }
+                
+                // 验证商品是否存在
+                Tea tea = null;
+                try {
+                    tea = teaMapper.selectById(Long.parseLong(teaId));
+                } catch (NumberFormatException e) {
+                    logger.warn("创建订单失败: 茶叶ID格式错误: {}", teaId);
+                    return Result.failure(5112); // 商品已下架或不可用
+                }
+                
+                if (tea == null) {
+                    logger.warn("创建订单失败: 商品不存在: teaId={}", teaId);
+                    return Result.failure(5112); // 商品已下架或不可用
+                }
+                
+                // 验证规格和库存
+                Integer specId = null;
+                BigDecimal price = null;
+                String specName = null;
+                Integer stock = 0;
+                
+                if (specIdObj != null && !specIdObj.toString().isEmpty()) {
+                    try {
+                        specId = Integer.parseInt(specIdObj.toString());
+                        TeaSpecification spec = teaSpecificationMapper.selectById(specId.longValue());
+                        
+                        if (spec == null) {
+                            logger.warn("创建订单失败: 规格不存在: specId={}", specId);
+                            return Result.failure(5112); // 商品已下架或不可用
+                        }
+                        
+                        price = spec.getPrice();
+                        specName = spec.getSpecName();
+                        stock = spec.getStock() != null ? spec.getStock() : 0;
+                        
+                    } catch (NumberFormatException e) {
+                        logger.warn("创建订单失败: 规格ID格式错误: {}", specIdObj);
+                        return Result.failure(5112);
+                    }
+                } else {
+                    // 没有规格，使用商品默认价格和库存
+                    price = tea.getPrice();
+                    stock = tea.getStock() != null ? tea.getStock() : 0;
+                }
+                
+                // 验证库存是否充足
+                if (stock < quantity) {
+                    logger.warn("创建订单失败: 库存不足: teaId={}, stock={}, quantity={}", teaId, stock, quantity);
+                    return Result.failure(5111); // 商品库存不足
+                }
+                
+                // 创建订单对象
+                Order order = new Order();
+                order.setId(UUID.randomUUID().toString().replace("-", ""));
+                order.setUserId(userId);
+                order.setShopId(tea.getShopId());
+                order.setTeaId(teaId);
+                order.setTeaName(tea.getName());
+                order.setSpecId(specId);
+                order.setSpecName(specName);
+                order.setTeaImage(tea.getMainImage());
+                order.setQuantity(quantity);
+                order.setPrice(price);
+                order.setTotalAmount(price.multiply(new BigDecimal(quantity)));
+                order.setAddressId(addressId);
+                order.setStatus(Order.STATUS_PENDING_PAYMENT); // 待付款
+                order.setBuyerMessage(remark);
+                order.setBuyerRate(0); // 未评价
+                order.setRefundStatus(0); // 无退款申请
+                order.setCreateTime(new Date());
+                order.setUpdateTime(new Date());
+                
+                orderList.add(order);
+                totalPrice = totalPrice.add(order.getTotalAmount());
+            }
+            
+            // 4. 插入订单到数据库
+            for (Order order : orderList) {
+                orderMapper.insert(order);
+                logger.info("订单已创建: orderId={}, teaId={}, quantity={}, totalAmount={}", 
+                           order.getId(), order.getTeaId(), order.getQuantity(), order.getTotalAmount());
+            }
+            
+            // 5. 构建返回数据
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("orderId", orderList.get(0).getId()); // 返回第一个订单ID
+            responseData.put("totalPrice", totalPrice);
+            responseData.put("status", Order.STATUS_PENDING_PAYMENT);
+            
+            logger.info("创建订单成功: userId={}, orderCount={}, totalPrice={}", userId, orderList.size(), totalPrice);
+            return Result.success(5005, responseData);
+            
+        } catch (Exception e) {
+            logger.error("创建订单失败: 系统异常", e);
+            return Result.failure(5110);
+        }
     }
     
     @Override
@@ -604,9 +747,47 @@ public class OrderServiceImpl implements OrderService {
     
     @Override
     @Transactional
-    public boolean clearUserCart(String userId) {
-        // TODO: 实现清空用户购物车的逻辑
-        return false; // 待实现
+    public Result<Boolean> clearCart() {
+        logger.info("清空购物车请求");
+        
+        try {
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("清空购物车失败: 用户未登录");
+                return Result.failure(5109);
+            }
+            
+            // 2. 查询用户的所有购物车项
+            List<ShoppingCart> cartList = cartMapper.selectByUserId(userId);
+            
+            if (cartList == null || cartList.isEmpty()) {
+                // 购物车已经是空的，直接返回成功
+                logger.info("清空购物车成功: 购物车已为空, userId={}", userId);
+                return Result.success(5004, true);
+            }
+            
+            // 3. 提取所有购物车项ID
+            List<Integer> cartIds = new ArrayList<>();
+            for (ShoppingCart cart : cartList) {
+                cartIds.add(cart.getId());
+            }
+            
+            // 4. 批量删除购物车项
+            int deletedCount = cartMapper.deleteByIds(cartIds);
+            
+            if (deletedCount > 0) {
+                logger.info("清空购物车成功: userId={}, deletedCount={}", userId, deletedCount);
+                return Result.success(5004, true);
+            } else {
+                logger.warn("清空购物车失败: 删除操作未影响任何行, userId={}", userId);
+                return Result.failure(5109);
+            }
+            
+        } catch (Exception e) {
+            logger.error("清空购物车失败: 系统异常", e);
+            return Result.failure(5109);
+        }
     }
     
     @Override
