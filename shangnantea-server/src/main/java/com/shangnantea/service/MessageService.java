@@ -285,4 +285,24 @@ public interface MessageService {
      * @return 创建结果
      */
     Result<Object> createChatSession(String targetId, String targetType);
+    
+    /**
+     * 置顶聊天会话
+     * 路径: PUT /message/sessions/{sessionId}/pin
+     * 成功码: 7007, 失败码: 7114
+     *
+     * @param sessionId 会话ID
+     * @return 置顶结果
+     */
+    Result<Boolean> pinChatSession(String sessionId);
+    
+    /**
+     * 删除聊天会话
+     * 路径: DELETE /message/sessions/{sessionId}
+     * 成功码: 7008, 失败码: 7115
+     *
+     * @param sessionId 会话ID
+     * @return 删除结果
+     */
+    Result<Boolean> deleteChatSession(String sessionId);
 } 
