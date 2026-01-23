@@ -261,14 +261,34 @@ public class UserServiceImpl implements UserService {
         }
     }
     
+    /**
+     * 根据用户ID获取用户信息
+     * 成功码：200，失败码：2107
+     */
     @Override
     public Result<UserVO> getUserById(String userId) {
-        User user = getUserEntityById(userId);
-        if (user == null) {
-            return Result.failure(2120); // 用户不存在
+        try {
+            // 验证参数
+            if (userId == null || userId.trim().isEmpty()) {
+                logger.warn("获取用户信息失败: 用户ID为空");
+                return Result.failure(2107); // 获取用户信息失败
+            }
+            
+            // 查询用户信息
+            User user = getUserEntityById(userId);
+            if (user == null) {
+                logger.warn("获取用户信息失败: 用户不存在, userId: {}", userId);
+                return Result.failure(2107); // 获取用户信息失败
+            }
+            
+            // 转换为VO并返回（只返回公开信息，不包含敏感数据）
+            logger.info("获取用户信息成功: userId: {}, username: {}", userId, user.getUsername());
+            return Result.success(200, convertToUserVO(user)); // 操作成功（静默）
+            
+        } catch (Exception e) {
+            logger.error("获取用户信息失败: 系统异常, userId: {}", userId, e);
+            return Result.failure(2107); // 获取用户信息失败
         }
-        
-        return Result.success(200, convertToUserVO(user));
     }
     
     @Override

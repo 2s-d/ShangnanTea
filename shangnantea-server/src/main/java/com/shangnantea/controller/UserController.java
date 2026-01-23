@@ -435,7 +435,7 @@ public class UserController {
     /**
      * 获取指定用户信息
      * 路径: GET /user/{userId}
-     * 成功码: 200, 失败码: 2120
+     * 成功码: 200, 失败码: 2107
      * 注意：此路径应放在最后，避免与更具体的路径冲突
      *
      * @param userId 用户ID
