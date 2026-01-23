@@ -114,11 +114,11 @@ inclusion: manual
 
 #### 店铺统计功能（2个接口）
 6. **getShopStatistics** - `/shop/{shopId}/statistics` - 获取店铺统计 ✅ 已完成
-7. **getShopTeas** - `/shop/{shopId}/teas` - 获取店铺茶叶
+7. **getShopTeas** - `/shop/{shopId}/teas` - 获取店铺茶叶 ✅ 已完成
 
 #### 店铺茶叶管理（4个接口）
-8. **addShopTea** - `/shop/{shopId}/teas` - 添加店铺茶叶
-9. **updateShopTea** - `/shop/teas/{teaId}` - 更新店铺茶叶
+8. **addShopTea** - `/shop/{shopId}/teas` - 添加店铺茶叶 ✅ 已完成
+9. **updateShopTea** - `/shop/teas/{teaId}` - 更新店铺茶叶 ✅ 已完成
 10. **deleteShopTea** - `/shop/teas/{teaId}` - 删除店铺茶叶
 11. **toggleShopTeaStatus** - `/shop/teas/{teaId}/status` - 切换茶叶状态
 
