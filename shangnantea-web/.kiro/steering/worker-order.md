@@ -138,11 +138,11 @@ inclusion: manual
 18. **getOrderLogistics** - `/order/{id}/logistics` - 获取物流信息 ✅ 已完成
 
 #### 统计和导出功能（2个接口）
-19. **getOrderStatistics** - `/order/statistics` - 获取订单统计
-20. **exportOrders** - `/order/export` - 导出订单数据
+19. **getOrderStatistics** - `/order/statistics` - 获取订单统计 ✅ 已完成
+20. **exportOrders** - `/order/export` - 导出订单数据 ✅ 已完成
 
 #### 图片上传功能（1个接口）
-21. **uploadReviewImage** - `/order/review/image` - 上传订单评价图片
+21. **uploadReviewImage** - `/order/review/image` - 上传订单评价图片 ✅ 已完成
 
 ### 状态码范围
 - **成功码**：5000-5016（17个成功状态码）
