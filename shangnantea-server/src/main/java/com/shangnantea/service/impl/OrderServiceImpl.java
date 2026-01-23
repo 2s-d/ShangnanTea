@@ -1704,13 +1704,140 @@ public class OrderServiceImpl implements OrderService {
     
     @Override
     public Result<Object> getOrderStatistics(Map<String, Object> params) {
-        // TODO: 实现获取订单统计逻辑
-        return Result.failure(5142);
+        try {
+            // 获取当前用户ID
+            String currentUserId = UserContext.getCurrentUserId();
+            if (currentUserId == null) {
+                logger.warn("获取订单统计失败: 用户未登录");
+                return Result.failure(5142);
+            }
+            
+            // 获取参数
+            String startDate = (String) params.get("startDate");
+            String endDate = (String) params.get("endDate");
+            String shopId = (String) params.get("shopId");
+            
+            // 根据用户角色确定查询范围
+            String userId = null;
+            if (UserContext.isUser()) {
+                // 普通用户只能查看自己的订单统计
+                userId = currentUserId;
+            } else if (UserContext.isShop()) {
+                // 商家查看自己店铺的订单统计
+                // 这里需要根据userId查询对应的shopId
+                // 简化处理：如果传入了shopId参数，使用参数；否则需要查询用户对应的店铺
+                if (shopId == null || shopId.isEmpty()) {
+                    // TODO: 从shop表查询当前用户对应的店铺ID
+                    // 暂时使用userId作为shopId（假设userId和shopId关联）
+                    shopId = currentUserId;
+                }
+            } else if (UserContext.isAdmin()) {
+                // 管理员可以查看所有订单统计，或指定店铺的统计
+                // shopId参数由前端传入
+            }
+            
+            // 统计订单总数
+            Integer totalOrders = orderMapper.countOrders(userId, shopId, startDate, endDate);
+            
+            // 统计订单总金额
+            java.math.BigDecimal totalAmount = orderMapper.sumOrderAmount(userId, shopId, startDate, endDate);
+            
+            // 统计各状态订单数量
+            List<Map<String, Object>> statusList = orderMapper.countOrdersByStatus(userId, shopId, startDate, endDate);
+            Map<String, Integer> statusDistribution = new java.util.HashMap<>();
+            // 初始化所有状态为0
+            for (int i = 0; i <= 5; i++) {
+                statusDistribution.put(String.valueOf(i), 0);
+            }
+            // 填充实际数据
+            for (Map<String, Object> item : statusList) {
+                String status = (String) item.get("status");
+                Integer count = ((Number) item.get("count")).intValue();
+                statusDistribution.put(status, count);
+            }
+            
+            // 查询订单趋势数据
+            List<Map<String, Object>> trendDataList = orderMapper.selectOrderTrend(userId, shopId, startDate, endDate);
+            List<OrderStatisticsVO.TrendData> trend = new java.util.ArrayList<>();
+            for (Map<String, Object> item : trendDataList) {
+                OrderStatisticsVO.TrendData trendData = new OrderStatisticsVO.TrendData();
+                trendData.setDate(item.get("date").toString());
+                trendData.setOrders(((Number) item.get("orders")).intValue());
+                trendData.setAmount((java.math.BigDecimal) item.get("amount"));
+                trend.add(trendData);
+            }
+            
+            // 构建返回结果
+            OrderStatisticsVO vo = new OrderStatisticsVO();
+            vo.setTotalOrders(totalOrders);
+            vo.setTotalAmount(totalAmount);
+            vo.setStatusDistribution(statusDistribution);
+            vo.setTrend(trend);
+            
+            logger.info("获取订单统计成功: userId={}, shopId={}, totalOrders={}", userId, shopId, totalOrders);
+            return Result.success(vo);
+            
+        } catch (Exception e) {
+            logger.error("获取订单统计失败: 系统异常", e);
+            return Result.failure(5142);
+        }
     }
     
     @Override
     public Result<Object> exportOrders(Map<String, Object> params) {
-        // TODO: 实现导出订单数据逻辑
-        return Result.failure(5143);
+        try {
+            // 获取当前用户ID
+            String currentUserId = UserContext.getCurrentUserId();
+            if (currentUserId == null) {
+                logger.warn("导出订单失败: 用户未登录");
+                return Result.failure(5143);
+            }
+            
+            // 验证权限：只有管理员和商家可以导出订单
+            if (!UserContext.isAdmin() && !UserContext.isShop()) {
+                logger.warn("导出订单失败: 权限不足, userId={}", currentUserId);
+                return Result.failure(5143);
+            }
+            
+            // 获取参数
+            String startDate = (String) params.get("startDate");
+            String endDate = (String) params.get("endDate");
+            Integer status = params.get("status") != null ? Integer.parseInt(params.get("status").toString()) : null;
+            String shopId = (String) params.get("shopId");
+            String format = (String) params.get("format"); // excel 或 csv
+            
+            // 根据用户角色确定查询范围
+            String userId = null;
+            if (UserContext.isShop()) {
+                // 商家只能导出自己店铺的订单
+                if (shopId == null || shopId.isEmpty()) {
+                    // TODO: 从shop表查询当前用户对应的店铺ID
+                    // 暂时使用userId作为shopId（假设userId和shopId关联）
+                    shopId = currentUserId;
+                }
+            } else if (UserContext.isAdmin()) {
+                // 管理员可以导出所有订单，或指定店铺的订单
+                // shopId参数由前端传入
+            }
+            
+            // 查询订单列表
+            List<Order> orders = orderMapper.selectOrdersForExport(userId, shopId, status, startDate, endDate);
+            
+            if (orders == null || orders.isEmpty()) {
+                logger.info("导出订单: 没有符合条件的订单数据");
+                return Result.success(new java.util.ArrayList<>());
+            }
+            
+            // TODO: 实现Excel/CSV文件生成
+            // 当前版本返回订单数据的JSON格式
+            // 如需生成实际的Excel文件，需要添加Apache POI依赖
+            
+            logger.info("导出订单成功: 共{}条订单, userId={}, shopId={}", orders.size(), userId, shopId);
+            return Result.success(orders);
+            
+        } catch (Exception e) {
+            logger.error("导出订单失败: 系统异常", e);
+            return Result.failure(5143);
+        }
     }
 } 
