@@ -3,12 +3,15 @@ package com.shangnantea.service;
 import com.shangnantea.common.api.PageParam;
 import com.shangnantea.common.api.PageResult;
 import com.shangnantea.common.api.Result;
+import com.shangnantea.model.dto.message.MessageQueryDTO;
 import com.shangnantea.model.entity.message.ChatMessage;
 import com.shangnantea.model.entity.message.ChatSession;
 import com.shangnantea.model.entity.message.UserNotification;
+import com.shangnantea.model.vo.message.MessageVO;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 消息服务接口
@@ -145,4 +148,14 @@ public interface MessageService {
      * @return 发送结果
      */
     Result<Object> sendImageMessage(String sessionId, String receiverId, MultipartFile image);
+    
+    /**
+     * 获取消息列表
+     * 路径: GET /message/list
+     * 成功码: 200, 失败码: 7100
+     *
+     * @param params 查询参数（page, pageSize, type）
+     * @return 消息列表
+     */
+    Result<Object> getMessages(Map<String, Object> params);
 } 
