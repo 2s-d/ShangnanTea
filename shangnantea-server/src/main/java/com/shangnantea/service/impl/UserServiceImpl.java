@@ -548,22 +548,204 @@ public class UserServiceImpl implements UserService {
         }
     }
     
+    /**
+     * 添加收货地址
+     * 成功码：2007，失败码：2116
+     */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Result<Object> addAddress(Map<String, Object> addressData) {
-        // TODO: 实现添加地址逻辑
-        return Result.success(4060);
+        try {
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("添加地址失败: 用户未登录");
+                return Result.failure(2116); // 保存地址失败
+            }
+            
+            // 2. 构建UserAddress实体
+            UserAddress address = new UserAddress();
+            address.setUserId(userId);
+            address.setReceiverName((String) addressData.get("receiverName"));
+            address.setReceiverPhone((String) addressData.get("receiverPhone"));
+            address.setProvince((String) addressData.get("province"));
+            address.setCity((String) addressData.get("city"));
+            address.setDistrict((String) addressData.get("district"));
+            address.setDetailAddress((String) addressData.get("detailAddress"));
+            
+            // 3. 处理默认地址逻辑
+            Integer isDefault = addressData.get("isDefault") != null ? 
+                (Integer) addressData.get("isDefault") : 0;
+            
+            if (isDefault == 1) {
+                // 如果设置为默认地址，先将该用户的其他地址设为非默认
+                userAddressMapper.resetDefaultByUserId(userId);
+            }
+            address.setIsDefault(isDefault);
+            
+            // 4. 设置时间戳
+            Date now = new Date();
+            address.setCreateTime(now);
+            address.setUpdateTime(now);
+            
+            // 5. 插入数据库
+            int result = userAddressMapper.insert(address);
+            if (result <= 0) {
+                logger.error("添加地址失败: 数据库插入失败, userId: {}", userId);
+                return Result.failure(2116); // 保存地址失败
+            }
+            
+            // 6. 转换为VO并返回
+            AddressVO addressVO = convertToAddressVO(address);
+            
+            logger.info("添加地址成功: userId: {}, addressId: {}", userId, address.getId());
+            return Result.success(2007, addressVO); // 地址添加成功
+            
+        } catch (Exception e) {
+            logger.error("添加地址失败: 系统异常", e);
+            return Result.failure(2116); // 保存地址失败
+        }
     }
     
+    /**
+     * 更新收货地址
+     * 成功码：2008，失败码：2117
+     */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Result<Boolean> updateAddress(String id, Map<String, Object> addressData) {
-        // TODO: 实现更新地址逻辑
-        return Result.success(1004, true);
+        try {
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("更新地址失败: 用户未登录");
+                return Result.failure(2117); // 保存地址失败
+            }
+            
+            // 2. 验证地址ID
+            Integer addressId;
+            try {
+                addressId = Integer.parseInt(id);
+            } catch (NumberFormatException e) {
+                logger.warn("更新地址失败: 地址ID格式错误, id: {}", id);
+                return Result.failure(2117); // 保存地址失败
+            }
+            
+            // 3. 查询地址是否存在
+            UserAddress existingAddress = userAddressMapper.selectById(addressId);
+            if (existingAddress == null) {
+                logger.warn("更新地址失败: 地址不存在, addressId: {}", addressId);
+                return Result.failure(2117); // 保存地址失败
+            }
+            
+            // 4. 验证用户是否有权限修改该地址
+            if (!userId.equals(existingAddress.getUserId())) {
+                logger.warn("更新地址失败: 无权限修改该地址, userId: {}, addressUserId: {}", 
+                    userId, existingAddress.getUserId());
+                return Result.failure(2117); // 保存地址失败
+            }
+            
+            // 5. 更新地址信息
+            if (addressData.containsKey("receiverName")) {
+                existingAddress.setReceiverName((String) addressData.get("receiverName"));
+            }
+            if (addressData.containsKey("receiverPhone")) {
+                existingAddress.setReceiverPhone((String) addressData.get("receiverPhone"));
+            }
+            if (addressData.containsKey("province")) {
+                existingAddress.setProvince((String) addressData.get("province"));
+            }
+            if (addressData.containsKey("city")) {
+                existingAddress.setCity((String) addressData.get("city"));
+            }
+            if (addressData.containsKey("district")) {
+                existingAddress.setDistrict((String) addressData.get("district"));
+            }
+            if (addressData.containsKey("detailAddress")) {
+                existingAddress.setDetailAddress((String) addressData.get("detailAddress"));
+            }
+            
+            // 6. 处理默认地址逻辑
+            if (addressData.containsKey("isDefault")) {
+                Integer isDefault = (Integer) addressData.get("isDefault");
+                if (isDefault == 1 && existingAddress.getIsDefault() != 1) {
+                    // 如果要设置为默认地址，先将该用户的其他地址设为非默认
+                    userAddressMapper.resetDefaultByUserId(userId);
+                }
+                existingAddress.setIsDefault(isDefault);
+            }
+            
+            // 7. 更新时间戳
+            existingAddress.setUpdateTime(new Date());
+            
+            // 8. 执行更新
+            int result = userAddressMapper.updateById(existingAddress);
+            if (result <= 0) {
+                logger.error("更新地址失败: 数据库更新失败, addressId: {}", addressId);
+                return Result.failure(2117); // 保存地址失败
+            }
+            
+            logger.info("更新地址成功: userId: {}, addressId: {}", userId, addressId);
+            return Result.success(2008, true); // 更新成功
+            
+        } catch (Exception e) {
+            logger.error("更新地址失败: 系统异常", e);
+            return Result.failure(2117); // 保存地址失败
+        }
     }
     
+    /**
+     * 删除收货地址
+     * 成功码：2009，失败码：2118
+     */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Result<Boolean> deleteAddress(String id) {
-        // TODO: 实现删除地址逻辑
-        return Result.success(1003, true);
+        try {
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("删除地址失败: 用户未登录");
+                return Result.failure(2118); // 操作失败
+            }
+            
+            // 2. 验证地址ID
+            Integer addressId;
+            try {
+                addressId = Integer.parseInt(id);
+            } catch (NumberFormatException e) {
+                logger.warn("删除地址失败: 地址ID格式错误, id: {}", id);
+                return Result.failure(2118); // 操作失败
+            }
+            
+            // 3. 查询地址是否存在
+            UserAddress existingAddress = userAddressMapper.selectById(addressId);
+            if (existingAddress == null) {
+                logger.warn("删除地址失败: 地址不存在, addressId: {}", addressId);
+                return Result.failure(2118); // 操作失败
+            }
+            
+            // 4. 验证用户是否有权限删除该地址
+            if (!userId.equals(existingAddress.getUserId())) {
+                logger.warn("删除地址失败: 无权限删除该地址, userId: {}, addressUserId: {}", 
+                    userId, existingAddress.getUserId());
+                return Result.failure(2118); // 操作失败
+            }
+            
+            // 5. 执行删除
+            int result = userAddressMapper.deleteById(addressId);
+            if (result <= 0) {
+                logger.error("删除地址失败: 数据库删除失败, addressId: {}", addressId);
+                return Result.failure(2118); // 操作失败
+            }
+            
+            logger.info("删除地址成功: userId: {}, addressId: {}", userId, addressId);
+            return Result.success(2009, true); // 删除成功
+            
+        } catch (Exception e) {
+            logger.error("删除地址失败: 系统异常", e);
+            return Result.failure(2118); // 操作失败
+        }
     }
     
     @Override
@@ -733,19 +915,31 @@ public class UserServiceImpl implements UserService {
         }
         
         for (UserAddress address : addressList) {
-            AddressVO addressVO = new AddressVO();
-            addressVO.setId(address.getId());
-            addressVO.setReceiverName(address.getReceiverName());
-            addressVO.setReceiverPhone(address.getReceiverPhone());
-            addressVO.setProvince(address.getProvince());
-            addressVO.setCity(address.getCity());
-            addressVO.setDistrict(address.getDistrict());
-            addressVO.setDetailAddress(address.getDetailAddress());
-            addressVO.setIsDefault(address.getIsDefault());
-            addressVOList.add(addressVO);
+            addressVOList.add(convertToAddressVO(address));
         }
         
         return addressVOList;
+    }
+    
+    /**
+     * 将UserAddress实体转换为AddressVO
+     */
+    private AddressVO convertToAddressVO(UserAddress address) {
+        if (address == null) {
+            return null;
+        }
+        
+        AddressVO addressVO = new AddressVO();
+        addressVO.setId(address.getId());
+        addressVO.setReceiverName(address.getReceiverName());
+        addressVO.setReceiverPhone(address.getReceiverPhone());
+        addressVO.setProvince(address.getProvince());
+        addressVO.setCity(address.getCity());
+        addressVO.setDistrict(address.getDistrict());
+        addressVO.setDetailAddress(address.getDetailAddress());
+        addressVO.setIsDefault(address.getIsDefault());
+        
+        return addressVO;
     }
     
     @Override
