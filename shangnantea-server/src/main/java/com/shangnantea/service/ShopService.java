@@ -256,4 +256,70 @@ public interface ShopService {
      * @return Banner列表
      */
     Result<Object> getShopBanners(String shopId);
+    
+    /**
+     * 更新店铺Banner
+     * 商家更新Banner信息
+     *
+     * @param bannerId Banner ID
+     * @param bannerData Banner数据
+     * @return 更新结果
+     */
+    Result<Object> updateBanner(String bannerId, Map<String, Object> bannerData);
+    
+    /**
+     * 删除店铺Banner
+     * 商家删除Banner
+     *
+     * @param bannerId Banner ID
+     * @return 删除结果
+     */
+    Result<Boolean> deleteBanner(String bannerId);
+    
+    /**
+     * 更新Banner顺序
+     * 商家批量更新Banner的显示顺序
+     *
+     * @param orderData 排序数据
+     * @return 更新结果
+     */
+    Result<Boolean> updateBannerOrder(Map<String, Object> orderData);
+    
+    /**
+     * 获取店铺公告列表
+     * 获取指定店铺的公告列表
+     *
+     * @param shopId 店铺ID
+     * @return 公告列表
+     */
+    Result<Object> getShopAnnouncements(String shopId);
+    
+    /**
+     * 创建店铺公告
+     * 商家创建店铺公告
+     *
+     * @param shopId 店铺ID
+     * @param announcementData 公告数据
+     * @return 创建结果
+     */
+    Result<Object> createAnnouncement(String shopId, Map<String, Object> announcementData);
+    
+    /**
+     * 更新店铺公告
+     * 商家更新店铺公告
+     *
+     * @param announcementId 公告ID
+     * @param announcementData 公告数据
+     * @return 更新结果
+     */
+    Result<Object> updateAnnouncement(String announcementId, Map<String, Object> announcementData);
+    
+    /**
+     * 删除店铺公告
+     * 商家删除店铺公告
+     *
+     * @param announcementId 公告ID
+     * @return 删除结果
+     */
+    Result<Boolean> deleteAnnouncement(String announcementId);
 } 

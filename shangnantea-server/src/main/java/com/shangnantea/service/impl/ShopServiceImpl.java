@@ -1231,5 +1231,493 @@ public class ShopServiceImpl implements ShopService {
         
         return bannerVO;
     }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> updateBanner(String bannerId, Map<String, Object> bannerData) {
+        try {
+            logger.info("更新店铺Banner请求: bannerId={}, bannerData={}", bannerId, bannerData);
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("更新Banner失败: 用户未登录");
+                return Result.failure(4120);
+            }
+            
+            // 2. 验证Banner ID不为空
+            if (bannerId == null || bannerId.trim().isEmpty()) {
+                logger.warn("更新Banner失败: Banner ID为空");
+                return Result.failure(4120);
+            }
+            
+            // 3. 查询Banner信息
+            Integer bannerIdInt = Integer.parseInt(bannerId);
+            ShopBanner banner = shopBannerMapper.selectById(bannerIdInt);
+            if (banner == null) {
+                logger.warn("更新Banner失败: Banner不存在, bannerId={}", bannerId);
+                return Result.failure(4120);
+            }
+            
+            // 4. 查询店铺信息并验证权限
+            Shop shop = getShopById(banner.getShopId());
+            if (shop == null) {
+                logger.warn("更新Banner失败: 店铺不存在, shopId={}", banner.getShopId());
+                return Result.failure(4120);
+            }
+            
+            // 5. 验证用户是否为店铺所有者
+            if (!userId.equals(shop.getOwnerId())) {
+                logger.warn("更新Banner失败: 无权限操作, userId={}, bannerId={}, shopId={}, ownerId={}", 
+                        userId, bannerId, banner.getShopId(), shop.getOwnerId());
+                return Result.failure(4120);
+            }
+            
+            // 6. 更新Banner信息
+            boolean updated = false;
+            
+            if (bannerData.get("title") != null) {
+                banner.setTitle(bannerData.get("title").toString());
+                updated = true;
+            }
+            
+            if (bannerData.get("linkUrl") != null) {
+                banner.setLinkUrl(bannerData.get("linkUrl").toString());
+                updated = true;
+            }
+            
+            if (bannerData.get("sortOrder") != null) {
+                banner.setSortOrder(Integer.parseInt(bannerData.get("sortOrder").toString()));
+                updated = true;
+            }
+            
+            // 7. 如果有更新，则保存到数据库
+            if (updated) {
+                banner.setUpdateTime(new Date());
+                int result = shopBannerMapper.updateById(banner);
+                if (result <= 0) {
+                    logger.error("更新Banner失败: 数据库更新失败, bannerId={}", bannerId);
+                    return Result.failure(4120);
+                }
+                
+                logger.info("更新Banner成功: bannerId={}, title={}", bannerId, banner.getTitle());
+            } else {
+                logger.info("更新Banner: 无需更新, bannerId={}", bannerId);
+            }
+            
+            // 8. 返回成功（根据code-message-mapping.md，成功码是4009）
+            return Result.success(4009, null);
+            
+        } catch (Exception e) {
+            logger.error("更新Banner失败: 系统异常, bannerId={}", bannerId, e);
+            return Result.failure(4120);
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Boolean> deleteBanner(String bannerId) {
+        try {
+            logger.info("删除店铺Banner请求: bannerId={}", bannerId);
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("删除Banner失败: 用户未登录");
+                return Result.failure(4121);
+            }
+            
+            // 2. 验证Banner ID不为空
+            if (bannerId == null || bannerId.trim().isEmpty()) {
+                logger.warn("删除Banner失败: Banner ID为空");
+                return Result.failure(4121);
+            }
+            
+            // 3. 查询Banner信息
+            Integer bannerIdInt = Integer.parseInt(bannerId);
+            ShopBanner banner = shopBannerMapper.selectById(bannerIdInt);
+            if (banner == null) {
+                logger.warn("删除Banner失败: Banner不存在, bannerId={}", bannerId);
+                return Result.failure(4121);
+            }
+            
+            // 4. 查询店铺信息并验证权限
+            Shop shop = getShopById(banner.getShopId());
+            if (shop == null) {
+                logger.warn("删除Banner失败: 店铺不存在, shopId={}", banner.getShopId());
+                return Result.failure(4121);
+            }
+            
+            // 5. 验证用户是否为店铺所有者
+            if (!userId.equals(shop.getOwnerId())) {
+                logger.warn("删除Banner失败: 无权限操作, userId={}, bannerId={}, shopId={}, ownerId={}", 
+                        userId, bannerId, banner.getShopId(), shop.getOwnerId());
+                return Result.failure(4121);
+            }
+            
+            // 6. 删除Banner
+            int result = shopBannerMapper.deleteById(bannerIdInt);
+            if (result <= 0) {
+                logger.error("删除Banner失败: 数据库删除失败, bannerId={}", bannerId);
+                return Result.failure(4121);
+            }
+            
+            logger.info("删除Banner成功: bannerId={}, title={}", bannerId, banner.getTitle());
+            
+            // 7. 返回成功（根据code-message-mapping.md，成功码是4010）
+            return Result.success(4010, true);
+            
+        } catch (Exception e) {
+            logger.error("删除Banner失败: 系统异常, bannerId={}", bannerId, e);
+            return Result.failure(4121);
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Boolean> updateBannerOrder(Map<String, Object> orderData) {
+        try {
+            logger.info("更新Banner顺序请求: orderData={}", orderData);
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("更新Banner顺序失败: 用户未登录");
+                return Result.failure(4122);
+            }
+            
+            // 2. 提取orders数组
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> orders = (List<Map<String, Object>>) orderData.get("orders");
+            if (orders == null || orders.isEmpty()) {
+                logger.warn("更新Banner顺序失败: orders参数为空");
+                return Result.failure(4122);
+            }
+            
+            // 3. 批量更新Banner排序
+            for (Map<String, Object> order : orders) {
+                String bannerId = order.get("id") != null ? order.get("id").toString() : null;
+                Integer sortOrder = order.get("order") != null ? Integer.parseInt(order.get("order").toString()) : null;
+                
+                if (bannerId == null || sortOrder == null) {
+                    continue;
+                }
+                
+                // 查询Banner
+                Integer bannerIdInt = Integer.parseInt(bannerId);
+                ShopBanner banner = shopBannerMapper.selectById(bannerIdInt);
+                if (banner == null) {
+                    continue;
+                }
+                
+                // 验证权限
+                Shop shop = getShopById(banner.getShopId());
+                if (shop == null || !userId.equals(shop.getOwnerId())) {
+                    logger.warn("更新Banner顺序失败: 无权限操作, userId={}, bannerId={}", userId, bannerId);
+                    return Result.failure(4122);
+                }
+                
+                // 更新排序值
+                banner.setSortOrder(sortOrder);
+                banner.setUpdateTime(new Date());
+                shopBannerMapper.updateById(banner);
+            }
+            
+            logger.info("更新Banner顺序成功: 更新数量={}", orders.size());
+            
+            // 4. 返回成功（根据code-message-mapping.md，成功码是4011）
+            return Result.success(4011, true);
+            
+        } catch (Exception e) {
+            logger.error("更新Banner顺序失败: 系统异常", e);
+            return Result.failure(4122);
+        }
+    }
+    
+    @Override
+    public Result<Object> getShopAnnouncements(String shopId) {
+        try {
+            logger.info("获取店铺公告列表请求: shopId={}", shopId);
+            
+            // 1. 验证店铺ID不为空
+            if (shopId == null || shopId.trim().isEmpty()) {
+                logger.warn("获取店铺公告列表失败: 店铺ID为空");
+                return Result.failure(4123);
+            }
+            
+            // 2. 验证店铺是否存在
+            Shop shop = getShopById(shopId);
+            if (shop == null) {
+                logger.warn("获取店铺公告列表失败: 店铺不存在, shopId={}", shopId);
+                return Result.failure(4123);
+            }
+            
+            // 3. 查询公告列表（只返回status=1的）
+            List<ShopAnnouncement> announcementList = shopAnnouncementMapper.selectByShopId(shopId);
+            
+            // 4. 转换为VO
+            List<AnnouncementVO> announcementVOList = announcementList.stream()
+                    .map(this::convertToAnnouncementVO)
+                    .collect(Collectors.toList());
+            
+            logger.info("获取店铺公告列表成功: shopId={}, 数量={}", shopId, announcementVOList.size());
+            
+            // 5. 返回成功（根据code-message-mapping.md，成功码是200）
+            return Result.success(200, announcementVOList);
+            
+        } catch (Exception e) {
+            logger.error("获取店铺公告列表失败: 系统异常, shopId={}", shopId, e);
+            return Result.failure(4123);
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> createAnnouncement(String shopId, Map<String, Object> announcementData) {
+        try {
+            logger.info("创建店铺公告请求: shopId={}, announcementData={}", shopId, announcementData);
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("创建公告失败: 用户未登录");
+                return Result.failure(4124);
+            }
+            
+            // 2. 验证店铺ID不为空
+            if (shopId == null || shopId.trim().isEmpty()) {
+                logger.warn("创建公告失败: 店铺ID为空");
+                return Result.failure(4124);
+            }
+            
+            // 3. 查询店铺信息
+            Shop shop = getShopById(shopId);
+            if (shop == null) {
+                logger.warn("创建公告失败: 店铺不存在, shopId={}", shopId);
+                return Result.failure(4124);
+            }
+            
+            // 4. 验证用户是否为店铺所有者
+            if (!userId.equals(shop.getOwnerId())) {
+                logger.warn("创建公告失败: 无权限操作, userId={}, shopId={}, ownerId={}", 
+                        userId, shopId, shop.getOwnerId());
+                return Result.failure(4124);
+            }
+            
+            // 5. 提取并验证公告数据
+            String title = announcementData.get("title") != null ? announcementData.get("title").toString() : null;
+            if (title == null || title.trim().isEmpty()) {
+                logger.warn("创建公告失败: 公告标题为空");
+                return Result.failure(4124);
+            }
+            
+            String content = announcementData.get("content") != null ? announcementData.get("content").toString() : null;
+            if (content == null || content.trim().isEmpty()) {
+                logger.warn("创建公告失败: 公告内容为空");
+                return Result.failure(4124);
+            }
+            
+            // 6. 构建公告实体
+            ShopAnnouncement announcement = new ShopAnnouncement();
+            announcement.setShopId(shopId);
+            announcement.setTitle(title);
+            announcement.setContent(content);
+            
+            // 设置可选字段
+            if (announcementData.get("isTop") != null) {
+                Boolean isTop = Boolean.parseBoolean(announcementData.get("isTop").toString());
+                announcement.setIsTop(isTop ? 1 : 0);
+            } else {
+                announcement.setIsTop(0); // 默认不置顶
+            }
+            
+            // 设置默认值
+            announcement.setStatus(1); // 默认显示
+            
+            Date now = new Date();
+            announcement.setCreateTime(now);
+            announcement.setUpdateTime(now);
+            
+            // 7. 插入数据库
+            int result = shopAnnouncementMapper.insert(announcement);
+            if (result <= 0) {
+                logger.error("创建公告失败: 数据库插入失败, shopId={}", shopId);
+                return Result.failure(4124);
+            }
+            
+            logger.info("创建公告成功: announcementId={}, title={}, shopId={}", 
+                    announcement.getId(), announcement.getTitle(), shopId);
+            
+            // 8. 返回成功（根据code-message-mapping.md，成功码是4012）
+            return Result.success(4012, null);
+            
+        } catch (Exception e) {
+            logger.error("创建公告失败: 系统异常, shopId={}", shopId, e);
+            return Result.failure(4124);
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> updateAnnouncement(String announcementId, Map<String, Object> announcementData) {
+        try {
+            logger.info("更新店铺公告请求: announcementId={}, announcementData={}", announcementId, announcementData);
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("更新公告失败: 用户未登录");
+                return Result.failure(4125);
+            }
+            
+            // 2. 验证公告ID不为空
+            if (announcementId == null || announcementId.trim().isEmpty()) {
+                logger.warn("更新公告失败: 公告ID为空");
+                return Result.failure(4125);
+            }
+            
+            // 3. 查询公告信息
+            Integer announcementIdInt = Integer.parseInt(announcementId);
+            ShopAnnouncement announcement = shopAnnouncementMapper.selectById(announcementIdInt);
+            if (announcement == null) {
+                logger.warn("更新公告失败: 公告不存在, announcementId={}", announcementId);
+                return Result.failure(4125);
+            }
+            
+            // 4. 查询店铺信息并验证权限
+            Shop shop = getShopById(announcement.getShopId());
+            if (shop == null) {
+                logger.warn("更新公告失败: 店铺不存在, shopId={}", announcement.getShopId());
+                return Result.failure(4125);
+            }
+            
+            // 5. 验证用户是否为店铺所有者
+            if (!userId.equals(shop.getOwnerId())) {
+                logger.warn("更新公告失败: 无权限操作, userId={}, announcementId={}, shopId={}, ownerId={}", 
+                        userId, announcementId, announcement.getShopId(), shop.getOwnerId());
+                return Result.failure(4125);
+            }
+            
+            // 6. 更新公告信息
+            boolean updated = false;
+            
+            if (announcementData.get("title") != null) {
+                announcement.setTitle(announcementData.get("title").toString());
+                updated = true;
+            }
+            
+            if (announcementData.get("content") != null) {
+                announcement.setContent(announcementData.get("content").toString());
+                updated = true;
+            }
+            
+            if (announcementData.get("isTop") != null) {
+                Boolean isTop = Boolean.parseBoolean(announcementData.get("isTop").toString());
+                announcement.setIsTop(isTop ? 1 : 0);
+                updated = true;
+            }
+            
+            // 7. 如果有更新，则保存到数据库
+            if (updated) {
+                announcement.setUpdateTime(new Date());
+                int result = shopAnnouncementMapper.updateById(announcement);
+                if (result <= 0) {
+                    logger.error("更新公告失败: 数据库更新失败, announcementId={}", announcementId);
+                    return Result.failure(4125);
+                }
+                
+                logger.info("更新公告成功: announcementId={}, title={}", announcementId, announcement.getTitle());
+            } else {
+                logger.info("更新公告: 无需更新, announcementId={}", announcementId);
+            }
+            
+            // 8. 返回成功（根据code-message-mapping.md，成功码是4013）
+            return Result.success(4013, null);
+            
+        } catch (Exception e) {
+            logger.error("更新公告失败: 系统异常, announcementId={}", announcementId, e);
+            return Result.failure(4125);
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Boolean> deleteAnnouncement(String announcementId) {
+        try {
+            logger.info("删除店铺公告请求: announcementId={}", announcementId);
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("删除公告失败: 用户未登录");
+                return Result.failure(4126);
+            }
+            
+            // 2. 验证公告ID不为空
+            if (announcementId == null || announcementId.trim().isEmpty()) {
+                logger.warn("删除公告失败: 公告ID为空");
+                return Result.failure(4126);
+            }
+            
+            // 3. 查询公告信息
+            Integer announcementIdInt = Integer.parseInt(announcementId);
+            ShopAnnouncement announcement = shopAnnouncementMapper.selectById(announcementIdInt);
+            if (announcement == null) {
+                logger.warn("删除公告失败: 公告不存在, announcementId={}", announcementId);
+                return Result.failure(4126);
+            }
+            
+            // 4. 查询店铺信息并验证权限
+            Shop shop = getShopById(announcement.getShopId());
+            if (shop == null) {
+                logger.warn("删除公告失败: 店铺不存在, shopId={}", announcement.getShopId());
+                return Result.failure(4126);
+            }
+            
+            // 5. 验证用户是否为店铺所有者
+            if (!userId.equals(shop.getOwnerId())) {
+                logger.warn("删除公告失败: 无权限操作, userId={}, announcementId={}, shopId={}, ownerId={}", 
+                        userId, announcementId, announcement.getShopId(), shop.getOwnerId());
+                return Result.failure(4126);
+            }
+            
+            // 6. 删除公告
+            int result = shopAnnouncementMapper.deleteById(announcementIdInt);
+            if (result <= 0) {
+                logger.error("删除公告失败: 数据库删除失败, announcementId={}", announcementId);
+                return Result.failure(4126);
+            }
+            
+            logger.info("删除公告成功: announcementId={}, title={}", announcementId, announcement.getTitle());
+            
+            // 7. 返回成功（根据code-message-mapping.md，成功码是4014）
+            return Result.success(4014, true);
+            
+        } catch (Exception e) {
+            logger.error("删除公告失败: 系统异常, announcementId={}", announcementId, e);
+            return Result.failure(4126);
+        }
+    }
+    
+    /**
+     * 将ShopAnnouncement实体转换为AnnouncementVO
+     *
+     * @param announcement 公告实体
+     * @return AnnouncementVO
+     */
+    private AnnouncementVO convertToAnnouncementVO(ShopAnnouncement announcement) {
+        if (announcement == null) {
+            return null;
+        }
+        
+        AnnouncementVO announcementVO = new AnnouncementVO();
+        announcementVO.setId(announcement.getId());
+        announcementVO.setTitle(announcement.getTitle());
+        announcementVO.setContent(announcement.getContent());
+        announcementVO.setIsTop(announcement.getIsTop() == 1);
+        announcementVO.setCreateTime(announcement.getCreateTime());
+        
+        return announcementVO;
+    }
 }
 } 

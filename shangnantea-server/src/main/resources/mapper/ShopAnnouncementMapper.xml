@@ -34,4 +34,38 @@
         ORDER BY is_top DESC, create_time DESC
     </select>
     
+    <!-- 插入公告 -->
+    <insert id="insert" parameterType="com.shangnantea.model.entity.shop.ShopAnnouncement" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO shop_announcements (
+            shop_id, title, content, is_top, status, create_time, update_time
+        ) VALUES (
+            #{shopId,jdbcType=VARCHAR},
+            #{title,jdbcType=VARCHAR},
+            #{content,jdbcType=VARCHAR},
+            #{isTop,jdbcType=TINYINT},
+            #{status,jdbcType=TINYINT},
+            #{createTime,jdbcType=TIMESTAMP},
+            #{updateTime,jdbcType=TIMESTAMP}
+        )
+    </insert>
+    
+    <!-- 更新公告 -->
+    <update id="updateById" parameterType="com.shangnantea.model.entity.shop.ShopAnnouncement">
+        UPDATE shop_announcements
+        <set>
+            <if test="title != null">title = #{title,jdbcType=VARCHAR},</if>
+            <if test="content != null">content = #{content,jdbcType=VARCHAR},</if>
+            <if test="isTop != null">is_top = #{isTop,jdbcType=TINYINT},</if>
+            <if test="status != null">status = #{status,jdbcType=TINYINT},</if>
+            update_time = #{updateTime,jdbcType=TIMESTAMP}
+        </set>
+        WHERE id = #{id,jdbcType=INTEGER}
+    </update>
+    
+    <!-- 删除公告 -->
+    <delete id="deleteById" parameterType="java.lang.Integer">
+        DELETE FROM shop_announcements
+        WHERE id = #{id,jdbcType=INTEGER}
+    </delete>
+    
 </mapper>
