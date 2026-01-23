@@ -123,7 +123,7 @@ inclusion: manual
 11. **updateArticle** - `/forum/articles/{id}` - 更新文章
 12. **deleteArticle** - `/forum/articles/{id}` - 删除文章
 
-#### 版块管理功能（6个接口）
+#### 版块管理功能（5个接口）
 13. **getForumTopics** - `/forum/topics` - 获取版块列表
 14. **getTopicDetail** - `/forum/topics/{id}` - 获取版块详情
 15. **createTopic** - `/forum/topics` - 创建版块
