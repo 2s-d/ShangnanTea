@@ -45,7 +45,7 @@ public class ForumController {
     /**
      * 更新首页数据（管理员）
      * 路径: PUT /forum/home
-     * 成功码: 6060, 失败码: 6163
+     * 成功码: 6000, 失败码: 6101
      *
      * @param data 首页数据
      * @return 更新结果

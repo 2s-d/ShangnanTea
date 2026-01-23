@@ -29,6 +29,16 @@ public interface ForumService {
     Result<ForumHomeVO> getHomeData();
     
     /**
+     * 更新论坛首页数据（管理员）
+     * 路径: PUT /forum/home
+     * 成功码: 6000, 失败码: 6101
+     *
+     * @param data 首页数据配置
+     * @return 更新结果
+     */
+    Result<Object> updateHomeData(Map<String, Object> data);
+    
+    /**
      * 获取论坛主题列表
      *
      * @return 主题列表

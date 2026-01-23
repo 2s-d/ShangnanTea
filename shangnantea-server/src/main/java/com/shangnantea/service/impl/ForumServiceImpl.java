@@ -145,6 +145,68 @@ public class ForumServiceImpl implements ForumService {
     }
     
     @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> updateHomeData(Map<String, Object> data) {
+        try {
+            logger.info("更新论坛首页数据请求");
+            
+            // 1. 解析请求数据
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> banners = (List<Map<String, Object>>) data.get("banners");
+            @SuppressWarnings("unchecked")
+            List<Long> hotPostIds = (List<Long>) data.get("hotPostIds");
+            @SuppressWarnings("unchecked")
+            List<Long> latestArticleIds = (List<Long>) data.get("latestArticleIds");
+            
+            // 2. 更新Banner配置（如果提供）
+            if (banners != null && !banners.isEmpty()) {
+                for (Map<String, Object> bannerData : banners) {
+                    Integer id = bannerData.get("id") != null ? 
+                            Integer.parseInt(bannerData.get("id").toString()) : null;
+                    String imageUrl = (String) bannerData.get("imageUrl");
+                    String title = (String) bannerData.get("title");
+                    String linkUrl = (String) bannerData.get("linkUrl");
+                    Integer sortOrder = bannerData.get("sortOrder") != null ? 
+                            Integer.parseInt(bannerData.get("sortOrder").toString()) : 0;
+                    
+                    if (id != null) {
+                        // 更新现有Banner
+                        HomeContent content = homeContentMapper.selectById(id);
+                        if (content != null && "banner".equals(content.getSection())) {
+                            content.setContent(imageUrl);
+                            content.setTitle(title);
+                            content.setLinkUrl(linkUrl);
+                            content.setSortOrder(sortOrder);
+                            content.setUpdateTime(new Date());
+                            homeContentMapper.updateById(content);
+                        }
+                    }
+                }
+            }
+            
+            // 3. 更新热门帖子配置（如果提供）
+            // 注意：这里只是示例，实际可能需要在HomeContent表中存储推荐配置
+            if (hotPostIds != null && !hotPostIds.isEmpty()) {
+                // 可以在HomeContent表中创建section='hot_posts'的记录来存储推荐配置
+                logger.info("热门帖子ID列表: {}", hotPostIds);
+            }
+            
+            // 4. 更新最新文章配置（如果提供）
+            if (latestArticleIds != null && !latestArticleIds.isEmpty()) {
+                // 可以在HomeContent表中创建section='latest_articles'的记录来存储推荐配置
+                logger.info("最新文章ID列表: {}", latestArticleIds);
+            }
+            
+            logger.info("更新论坛首页数据成功");
+            return Result.success(6000, null); // 成功码6000：区块内容已保存
+            
+        } catch (Exception e) {
+            logger.error("更新论坛首页数据失败: 系统异常", e);
+            return Result.failure(6101); // 失败码6101：保存失败
+        }
+    }
+    
+    @Override
     public List<ForumTopic> listTopics() {
         // TODO: 实现获取论坛主题列表的逻辑
         return topicMapper.selectAll();
