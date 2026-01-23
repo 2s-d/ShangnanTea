@@ -123,7 +123,7 @@ inclusion: manual
 9. **payOrder** - `/order/pay` - 订单支付 ✅ 已完成
 
 #### 订单状态管理（3个接口）
-10. **cancelOrder** - `/order/cancel` - 取消订单
+10. **cancelOrder** - `/order/cancel` - 取消订单 ✅ 已完成
 11. **confirmOrder** - `/order/confirm` - 确认收货
 12. **reviewOrder** - `/order/review` - 评价订单
 

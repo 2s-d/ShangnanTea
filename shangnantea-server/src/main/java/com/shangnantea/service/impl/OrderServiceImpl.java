@@ -1070,9 +1070,69 @@ public class OrderServiceImpl implements OrderService {
     }
     
     @Override
+    @Transactional
     public Result<Boolean> cancelOrder(Map<String, Object> data) {
-        // TODO: 实现取消订单逻辑
-        return Result.failure(5121);
+        logger.info("取消订单请求: data={}", data);
+        
+        try {
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("取消订单失败: 用户未登录");
+                return Result.failure(5121);
+            }
+            
+            // 2. 解析请求参数
+            Object idObj = data.get("id");
+            if (idObj == null) {
+                logger.warn("取消订单失败: 订单ID为空");
+                return Result.failure(5121);
+            }
+            
+            String orderId = idObj.toString();
+            String cancelReason = (String) data.get("reason");
+            
+            // 3. 查询订单
+            Order order = orderMapper.selectById(orderId);
+            if (order == null) {
+                logger.warn("取消订单失败: 订单不存在: orderId={}", orderId);
+                return Result.failure(5122); // 订单不存在
+            }
+            
+            // 4. 验证订单是否属于当前用户
+            if (!userId.equals(order.getUserId())) {
+                logger.warn("取消订单失败: 无权限: orderId={}, userId={}, orderUserId={}", 
+                           orderId, userId, order.getUserId());
+                return Result.failure(5123); // 您没有权限操作此订单
+            }
+            
+            // 5. 验证订单状态是否可以取消（只有待付款和待发货状态可以取消）
+            if (order.getStatus() == null || 
+                (order.getStatus() != Order.STATUS_PENDING_PAYMENT && 
+                 order.getStatus() != Order.STATUS_PENDING_SHIPMENT)) {
+                logger.warn("取消订单失败: 订单状态不允许取消: orderId={}, status={}", orderId, order.getStatus());
+                return Result.failure(5121);
+            }
+            
+            // 6. 更新订单状态为已取消
+            order.setStatus(Order.STATUS_CANCELLED); // 已取消
+            order.setCancelReason(cancelReason);
+            order.setCancelTime(new Date());
+            order.setUpdateTime(new Date());
+            
+            int rows = orderMapper.updateById(order);
+            if (rows > 0) {
+                logger.info("取消订单成功: orderId={}, userId={}, reason={}", orderId, userId, cancelReason);
+                return Result.success(5008, true); // 订单已取消
+            } else {
+                logger.warn("取消订单失败: 更新订单失败: orderId={}", orderId);
+                return Result.failure(5121);
+            }
+            
+        } catch (Exception e) {
+            logger.error("取消订单失败: 系统异常", e);
+            return Result.failure(5121);
+        }
     }
     
     @Override
