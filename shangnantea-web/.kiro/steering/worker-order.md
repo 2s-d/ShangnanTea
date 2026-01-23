@@ -123,19 +123,19 @@ inclusion: manual
 9. **payOrder** - `/order/pay` - 订单支付 ✅ 已完成
 
 #### 订单状态管理（3个接口）
-10. **cancelOrder** - `/order/cancel` - 取消订单
-11. **confirmOrder** - `/order/confirm` - 确认收货
-12. **reviewOrder** - `/order/review` - 评价订单
+10. **cancelOrder** - `/order/cancel` - 取消订单 ✅ 已完成
+11. **confirmOrder** - `/order/confirm` - 确认收货 ✅ 已完成
+12. **reviewOrder** - `/order/review` - 评价订单 ✅ 已完成
 
 #### 退款管理功能（3个接口）
-13. **refundOrder** - `/order/refund` - 申请退款
-14. **processRefund** - `/order/{id}/refund/process` - 处理退款
-15. **getRefundDetail** - `/order/{id}/refund` - 获取退款详情
+13. **refundOrder** - `/order/refund` - 申请退款 ✅ 已完成
+14. **processRefund** - `/order/{id}/refund/process` - 处理退款 ✅ 已完成
+15. **getRefundDetail** - `/order/{id}/refund` - 获取退款详情 ✅ 已完成
 
 #### 发货管理功能（3个接口）
-16. **shipOrder** - `/order/{id}/ship` - 发货
-17. **batchShipOrders** - `/order/batch-ship` - 批量发货
-18. **getOrderLogistics** - `/order/{id}/logistics` - 获取物流信息
+16. **shipOrder** - `/order/{id}/ship` - 发货 ✅ 已完成
+17. **batchShipOrders** - `/order/batch-ship` - 批量发货 ✅ 已完成
+18. **getOrderLogistics** - `/order/{id}/logistics` - 获取物流信息 ✅ 已完成
 
 #### 统计和导出功能（2个接口）
 19. **getOrderStatistics** - `/order/statistics` - 获取订单统计
