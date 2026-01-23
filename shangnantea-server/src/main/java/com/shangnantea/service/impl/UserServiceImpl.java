@@ -1086,34 +1086,246 @@ public class UserServiceImpl implements UserService {
         }
     }
     
+    /**
+     * 获取收藏列表
+     * 成功码：200，失败码：2125
+     */
     @Override
     public Result<Object> getFavoriteList(String type) {
-        // TODO: 实现获取收藏列表逻辑
-        return Result.success(200);
+        try {
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("获取收藏列表失败: 用户未登录");
+                return Result.failure(2125); // 加载失败
+            }
+            
+            // 2. 查询收藏列表
+            List<UserFavorite> favoriteList;
+            if (type != null && !type.trim().isEmpty()) {
+                favoriteList = userFavoriteMapper.selectByUserIdAndType(userId, type);
+            } else {
+                favoriteList = userFavoriteMapper.selectByUserId(userId);
+            }
+            
+            // 3. 转换为VO列表
+            List<FavoriteVO> favoriteVOList = convertToFavoriteVOList(favoriteList);
+            
+            logger.info("获取收藏列表成功: userId: {}, type: {}, count: {}", userId, type, favoriteVOList.size());
+            return Result.success(200, favoriteVOList); // 操作成功（静默）
+            
+        } catch (Exception e) {
+            logger.error("获取收藏列表失败: 系统异常", e);
+            return Result.failure(2125); // 加载失败
+        }
     }
     
+    /**
+     * 添加收藏
+     * 成功码：2014，失败码：2126
+     */
     @Override
-    public Result<Boolean> addFavorite(Map<String, Object> favoriteData) {
-        // TODO: 实现添加收藏逻辑
-        return Result.success(3010, true);
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Boolean> addFavorite(AddFavoriteDTO favoriteDTO) {
+        try {
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("添加收藏失败: 用户未登录");
+                return Result.failure(2126); // 操作失败
+            }
+            
+            // 2. 获取参数
+            String itemType = favoriteDTO.getItemType();
+            String itemId = favoriteDTO.getItemId();
+            
+            // 3. 检查是否已收藏
+            UserFavorite existingFavorite = userFavoriteMapper.selectByUserIdAndItem(userId, itemType, itemId);
+            if (existingFavorite != null) {
+                logger.warn("添加收藏失败: 已收藏该项, userId: {}, itemId: {}", userId, itemId);
+                return Result.failure(2126); // 操作失败
+            }
+            
+            // 4. 构建收藏实体
+            UserFavorite favorite = new UserFavorite();
+            favorite.setUserId(userId);
+            favorite.setItemType(itemType);
+            favorite.setItemId(itemId);
+            favorite.setTargetName(favoriteDTO.getTargetName());
+            favorite.setTargetImage(favoriteDTO.getTargetImage());
+            favorite.setCreateTime(new Date());
+            
+            // 5. 插入数据库
+            int result = userFavoriteMapper.insert(favorite);
+            if (result <= 0) {
+                logger.error("添加收藏失败: 数据库插入失败, userId: {}", userId);
+                return Result.failure(2126); // 操作失败
+            }
+            
+            logger.info("添加收藏成功: userId: {}, itemId: {}, itemType: {}", userId, itemId, itemType);
+            return Result.success(2014, true); // 已收藏
+            
+        } catch (Exception e) {
+            logger.error("添加收藏失败: 系统异常", e);
+            return Result.failure(2126); // 操作失败
+        }
     }
     
+    /**
+     * 取消收藏
+     * 成功码：2015，失败码：2127
+     */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Result<Boolean> removeFavorite(String id) {
-        // TODO: 实现取消收藏逻辑
-        return Result.success(3011, true);
+        try {
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("取消收藏失败: 用户未登录");
+                return Result.failure(2127); // 操作失败
+            }
+            
+            // 2. 验证收藏ID
+            Integer favoriteId;
+            try {
+                favoriteId = Integer.parseInt(id);
+            } catch (NumberFormatException e) {
+                logger.warn("取消收藏失败: 收藏ID格式错误, id: {}", id);
+                return Result.failure(2127); // 操作失败
+            }
+            
+            // 3. 查询收藏记录是否存在
+            UserFavorite existingFavorite = userFavoriteMapper.selectById(favoriteId);
+            if (existingFavorite == null) {
+                logger.warn("取消收藏失败: 收藏记录不存在, favoriteId: {}", favoriteId);
+                return Result.failure(2127); // 操作失败
+            }
+            
+            // 4. 验证用户是否有权限删除该收藏
+            if (!userId.equals(existingFavorite.getUserId())) {
+                logger.warn("取消收藏失败: 无权限删除该收藏, userId: {}, favoriteUserId: {}", 
+                    userId, existingFavorite.getUserId());
+                return Result.failure(2127); // 操作失败
+            }
+            
+            // 5. 执行删除
+            int result = userFavoriteMapper.deleteById(favoriteId);
+            if (result <= 0) {
+                logger.error("取消收藏失败: 数据库删除失败, favoriteId: {}", favoriteId);
+                return Result.failure(2127); // 操作失败
+            }
+            
+            logger.info("取消收藏成功: userId: {}, favoriteId: {}", userId, favoriteId);
+            return Result.success(2015, true); // 已取消收藏
+            
+        } catch (Exception e) {
+            logger.error("取消收藏失败: 系统异常", e);
+            return Result.failure(2127); // 操作失败
+        }
     }
     
+    /**
+     * 点赞
+     * 成功码：2016，失败码：2128
+     */
     @Override
-    public Result<Boolean> addLike(Map<String, Object> likeData) {
-        // TODO: 实现点赞逻辑
-        return Result.success(6010, true);
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Boolean> addLike(AddLikeDTO likeDTO) {
+        try {
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("点赞失败: 用户未登录");
+                return Result.failure(2128); // 操作失败
+            }
+            
+            // 2. 获取参数
+            String targetType = likeDTO.getTargetType();
+            String targetId = likeDTO.getTargetId();
+            
+            // 3. 检查是否已点赞
+            UserLike existingLike = userLikeMapper.selectByUserIdAndTarget(userId, targetType, targetId);
+            if (existingLike != null) {
+                logger.warn("点赞失败: 已点赞该对象, userId: {}, targetId: {}", userId, targetId);
+                return Result.failure(2128); // 操作失败
+            }
+            
+            // 4. 构建点赞实体
+            UserLike like = new UserLike();
+            like.setUserId(userId);
+            like.setTargetType(targetType);
+            like.setTargetId(targetId);
+            like.setCreateTime(new Date());
+            
+            // 5. 插入数据库
+            int result = userLikeMapper.insert(like);
+            if (result <= 0) {
+                logger.error("点赞失败: 数据库插入失败, userId: {}", userId);
+                return Result.failure(2128); // 操作失败
+            }
+            
+            logger.info("点赞成功: userId: {}, targetId: {}, targetType: {}", userId, targetId, targetType);
+            return Result.success(2016, true); // 已点赞
+            
+        } catch (Exception e) {
+            logger.error("点赞失败: 系统异常", e);
+            return Result.failure(2128); // 操作失败
+        }
     }
     
+    /**
+     * 取消点赞
+     * 成功码：2017，失败码：2129
+     */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Result<Boolean> removeLike(String id) {
-        // TODO: 实现取消点赞逻辑
-        return Result.success(6011, true);
+        try {
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("取消点赞失败: 用户未登录");
+                return Result.failure(2129); // 操作失败
+            }
+            
+            // 2. 验证点赞ID
+            Integer likeId;
+            try {
+                likeId = Integer.parseInt(id);
+            } catch (NumberFormatException e) {
+                logger.warn("取消点赞失败: 点赞ID格式错误, id: {}", id);
+                return Result.failure(2129); // 操作失败
+            }
+            
+            // 3. 查询点赞记录是否存在
+            UserLike existingLike = userLikeMapper.selectById(likeId);
+            if (existingLike == null) {
+                logger.warn("取消点赞失败: 点赞记录不存在, likeId: {}", likeId);
+                return Result.failure(2129); // 操作失败
+            }
+            
+            // 4. 验证用户是否有权限删除该点赞
+            if (!userId.equals(existingLike.getUserId())) {
+                logger.warn("取消点赞失败: 无权限删除该点赞, userId: {}, likeUserId: {}", 
+                    userId, existingLike.getUserId());
+                return Result.failure(2129); // 操作失败
+            }
+            
+            // 5. 执行删除
+            int result = userLikeMapper.deleteById(likeId);
+            if (result <= 0) {
+                logger.error("取消点赞失败: 数据库删除失败, likeId: {}", likeId);
+                return Result.failure(2129); // 操作失败
+            }
+            
+            logger.info("取消点赞成功: userId: {}, likeId: {}", userId, likeId);
+            return Result.success(2017, true); // 已取消点赞
+            
+        } catch (Exception e) {
+            logger.error("取消点赞失败: 系统异常", e);
+            return Result.failure(2129); // 操作失败
+        }
     }
     
     // ==================== 用户偏好设置 ====================
@@ -1385,3 +1597,47 @@ public class UserServiceImpl implements UserService {
         return result > 0;
     }
 } 
+
+    /**
+     * 将UserFavorite实体列表转换为FavoriteVO列表
+     */
+    private List<FavoriteVO> convertToFavoriteVOList(List<UserFavorite> favoriteList) {
+        List<FavoriteVO> favoriteVOList = new ArrayList<>();
+        if (favoriteList == null || favoriteList.isEmpty()) {
+            return favoriteVOList;
+        }
+        
+        for (UserFavorite favorite : favoriteList) {
+            FavoriteVO favoriteVO = new FavoriteVO();
+            favoriteVO.setId(favorite.getId());
+            favoriteVO.setItemType(favorite.getItemType());
+            favoriteVO.setItemId(favorite.getItemId());
+            favoriteVO.setTargetName(favorite.getTargetName());
+            favoriteVO.setTargetImage(favorite.getTargetImage());
+            favoriteVO.setCreateTime(favorite.getCreateTime());
+            favoriteVOList.add(favoriteVO);
+        }
+        
+        return favoriteVOList;
+    }
+    
+    /**
+     * 将UserLike实体列表转换为LikeVO列表
+     */
+    private List<LikeVO> convertToLikeVOList(List<UserLike> likeList) {
+        List<LikeVO> likeVOList = new ArrayList<>();
+        if (likeList == null || likeList.isEmpty()) {
+            return likeVOList;
+        }
+        
+        for (UserLike like : likeList) {
+            LikeVO likeVO = new LikeVO();
+            likeVO.setId(like.getId());
+            likeVO.setTargetType(like.getTargetType());
+            likeVO.setTargetId(like.getTargetId());
+            likeVO.setCreateTime(like.getCreateTime());
+            likeVOList.add(likeVO);
+        }
+        
+        return likeVOList;
+    }

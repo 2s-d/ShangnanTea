@@ -1,7 +1,9 @@
 package com.shangnantea.controller;
 
 import com.shangnantea.common.api.Result;
+import com.shangnantea.model.dto.AddFavoriteDTO;
 import com.shangnantea.model.dto.AddFollowDTO;
+import com.shangnantea.model.dto.AddLikeDTO;
 import com.shangnantea.model.dto.ChangePasswordDTO;
 import com.shangnantea.model.dto.LoginDTO;
 import com.shangnantea.model.dto.RegisterDTO;
@@ -348,14 +350,14 @@ public class UserController {
      * 路径: POST /user/favorites
      * 成功码: 2014, 失败码: 2126
      *
-     * @param favoriteData 收藏信息 {targetId, targetType}
+     * @param favoriteDTO 收藏信息
      * @return 收藏结果
      */
     @PostMapping("/favorites")
     @RequiresLogin
-    public Result<Boolean> addFavorite(@RequestBody Map<String, Object> favoriteData) {
+    public Result<Boolean> addFavorite(@Valid @RequestBody AddFavoriteDTO favoriteDTO) {
         logger.info("添加收藏请求");
-        return userService.addFavorite(favoriteData);
+        return userService.addFavorite(favoriteDTO);
     }
 
     /**
@@ -378,14 +380,14 @@ public class UserController {
      * 路径: POST /user/likes
      * 成功码: 2016, 失败码: 2128
      *
-     * @param likeData 点赞信息 {targetId, targetType}
+     * @param likeDTO 点赞信息
      * @return 点赞结果
      */
     @PostMapping("/likes")
     @RequiresLogin
-    public Result<Boolean> addLike(@RequestBody Map<String, Object> likeData) {
+    public Result<Boolean> addLike(@Valid @RequestBody AddLikeDTO likeDTO) {
         logger.info("点赞请求");
-        return userService.addLike(likeData);
+        return userService.addLike(likeDTO);
     }
 
     /**
