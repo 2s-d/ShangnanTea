@@ -142,4 +142,13 @@ public interface ShopService {
      * @return 上传结果
      */
     Result<Object> uploadBanner(String shopId, Map<String, Object> bannerData);
+    
+    /**
+     * 获取店铺列表
+     * 支持分页、搜索、筛选和排序
+     *
+     * @param params 查询参数（page, size, keyword, rating, sortBy, sortOrder等）
+     * @return 店铺列表分页结果
+     */
+    Result<Object> getShops(Map<String, Object> params);
 } 

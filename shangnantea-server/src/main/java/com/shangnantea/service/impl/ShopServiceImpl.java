@@ -6,24 +6,31 @@ import com.shangnantea.common.api.Result;
 import com.shangnantea.mapper.ShopCertificationMapper;
 import com.shangnantea.mapper.ShopMapper;
 import com.shangnantea.mapper.TeaMapper;
+import com.shangnantea.model.dto.shop.ShopQueryDTO;
 import com.shangnantea.model.entity.shop.Shop;
 import com.shangnantea.model.entity.shop.ShopCertification;
 import com.shangnantea.model.entity.tea.Tea;
+import com.shangnantea.model.vo.shop.ShopVO;
 import com.shangnantea.security.context.UserContext;
 import com.shangnantea.service.ShopService;
 import com.shangnantea.utils.FileUploadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * 店铺服务实现类
