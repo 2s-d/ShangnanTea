@@ -8,25 +8,38 @@ inclusion: manual
 
 你是订单模块的专职工人，专门负责订单模块后端接口的实现和维护。
 
+## ⚠️ 重要：工作目录限制
+
+**专属工作目录**：`shangnantea-order/`
+- 你只能在订单模块的专属Git Worktree目录中工作
+- 这是通过Git Worktree创建的独立工作空间，对应订单模块分支
+- **严禁修改其他模块目录**：不得修改 `shangnantea-user/`、`shangnantea-tea/`、`shangnantea-shop/`、`shangnantea-forum/`、`shangnantea-message/` 目录
+- **严禁修改主分支目录**：不得修改 `shangnantea/` 主项目目录
+- 所有文件读取、修改、创建操作都必须在 `shangnantea-order/` 目录下进行
+
 ## 职责范围
 
 ### 负责的后端文件目录
-- `src/main/java/com/shangnantea/controller/OrderController.java` - 订单控制器
-- `src/main/java/com/shangnantea/service/OrderService.java` - 订单服务接口
-- `src/main/java/com/shangnantea/service/impl/OrderServiceImpl.java` - 订单服务实现
-- `src/main/java/com/shangnantea/mapper/OrderMapper.java` - 订单数据访问接口
-- `src/main/resources/mapper/OrderMapper.xml` - 订单SQL映射文件
-- `src/main/java/com/shangnantea/model/dto/order/` - 订单DTO类
-- `src/main/java/com/shangnantea/model/vo/order/` - 订单VO类
-- `src/main/java/com/shangnantea/model/entity/Order.java` - 订单实体类
+- `shangnantea-order/shangnantea-server/src/main/java/com/shangnantea/controller/OrderController.java` - 订单控制器
+- `shangnantea-order/shangnantea-server/src/main/java/com/shangnantea/service/OrderService.java` - 订单服务接口
+- `shangnantea-order/shangnantea-server/src/main/java/com/shangnantea/service/impl/OrderServiceImpl.java` - 订单服务实现
+- `shangnantea-order/shangnantea-server/src/main/java/com/shangnantea/mapper/OrderMapper.java` - 订单数据访问接口
+- `shangnantea-order/shangnantea-server/src/main/resources/mapper/OrderMapper.xml` - 订单SQL映射文件
+- `shangnantea-order/shangnantea-server/src/main/java/com/shangnantea/model/dto/order/` - 订单DTO类
+- `shangnantea-order/shangnantea-server/src/main/java/com/shangnantea/model/vo/order/` - 订单VO类
+- `shangnantea-order/shangnantea-server/src/main/java/com/shangnantea/model/entity/Order.java` - 订单实体类
 
 ### 负责的前端文件目录（如需要）
-- `shangnantea-web/src/api/order.js` - 订单API函数
-- `shangnantea-web/src/store/modules/order.js` - 订单状态管理
-- `shangnantea-web/src/views/order/` - 订单相关页面
-- `shangnantea-web/src/components/order/` - 订单相关组件
+- `shangnantea-order/shangnantea-web/src/api/order.js` - 订单API函数
+- `shangnantea-order/shangnantea-web/src/store/modules/order.js` - 订单状态管理
+- `shangnantea-order/shangnantea-web/src/views/order/` - 订单相关页面
+- `shangnantea-order/shangnantea-web/src/components/order/` - 订单相关组件
 
 ## 禁止操作
+
+- ❌ **不要修改其他模块目录**：严禁修改 `shangnantea-user/`、`shangnantea-tea/`、`shangnantea-shop/`、`shangnantea-forum/`、`shangnantea-message/` 目录
+- ❌ **不要修改主分支目录**：严禁修改 `shangnantea/` 主项目目录
+- ❌ **不要跨目录操作**：所有操作必须在 `shangnantea-order/` 目录内进行
 
 - ❌ 不要修改其他模块的后端文件（user、tea、shop、forum、message模块）
 - ❌ 不要修改通用工具类（除非任务明确要求）
