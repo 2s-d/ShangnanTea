@@ -32,7 +32,7 @@ public class ForumController {
     /**
      * 获取首页数据
      * 路径: GET /forum/home
-     * 成功码: 200, 失败码: 6160
+     * 成功码: 200, 失败码: 6100
      *
      * @return 首页数据
      */

@@ -13,6 +13,7 @@ import com.shangnantea.model.entity.forum.ForumReply;
 import com.shangnantea.model.entity.forum.ForumTopic;
 import com.shangnantea.model.entity.forum.HomeContent;
 import com.shangnantea.model.entity.forum.TeaArticle;
+import com.shangnantea.model.vo.forum.ForumHomeVO;
 import com.shangnantea.service.ForumService;
 import com.shangnantea.utils.FileUploadUtils;
 import org.slf4j.Logger;
@@ -53,6 +54,95 @@ public class ForumServiceImpl implements ForumService {
     
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
+    
+    @Override
+    public Result<ForumHomeVO> getHomeData() {
+        try {
+            logger.info("获取论坛首页数据请求");
+            
+            ForumHomeVO homeVO = new ForumHomeVO();
+            
+            // 1. 获取Banner列表（从HomeContent表中查询section='banner'的记录）
+            List<HomeContent> allContents = homeContentMapper.selectAll();
+            List<ForumHomeVO.BannerVO> banners = allContents.stream()
+                    .filter(content -> "banner".equals(content.getSection()) && 
+                            content.getStatus() != null && content.getStatus() == 1)
+                    .sorted((a, b) -> {
+                        Integer orderA = a.getSortOrder() != null ? a.getSortOrder() : 0;
+                        Integer orderB = b.getSortOrder() != null ? b.getSortOrder() : 0;
+                        return orderA.compareTo(orderB);
+                    })
+                    .map(content -> {
+                        ForumHomeVO.BannerVO bannerVO = new ForumHomeVO.BannerVO();
+                        bannerVO.setId(content.getId());
+                        // 生成图片访问URL
+                        String imageUrl = content.getContent();
+                        if (imageUrl != null && !imageUrl.isEmpty()) {
+                            imageUrl = FileUploadUtils.generateAccessUrl(imageUrl, baseUrl);
+                        }
+                        bannerVO.setImageUrl(imageUrl);
+                        bannerVO.setTitle(content.getTitle());
+                        bannerVO.setLinkUrl(content.getLinkUrl());
+                        return bannerVO;
+                    })
+                    .collect(java.util.stream.Collectors.toList());
+            homeVO.setBanners(banners);
+            
+            // 2. 获取热门帖子（按浏览量降序，取前10条）
+            List<ForumPost> allPosts = postMapper.selectAll();
+            List<ForumHomeVO.HotPostVO> hotPosts = allPosts.stream()
+                    .filter(post -> post.getStatus() != null && post.getStatus() == 1)
+                    .sorted((a, b) -> {
+                        Integer viewA = a.getViewCount() != null ? a.getViewCount() : 0;
+                        Integer viewB = b.getViewCount() != null ? b.getViewCount() : 0;
+                        return viewB.compareTo(viewA); // 降序
+                    })
+                    .limit(10)
+                    .map(post -> {
+                        ForumHomeVO.HotPostVO hotPostVO = new ForumHomeVO.HotPostVO();
+                        hotPostVO.setId(post.getId());
+                        hotPostVO.setTitle(post.getTitle());
+                        hotPostVO.setViewCount(post.getViewCount() != null ? post.getViewCount() : 0);
+                        return hotPostVO;
+                    })
+                    .collect(java.util.stream.Collectors.toList());
+            homeVO.setHotPosts(hotPosts);
+            
+            // 3. 获取最新文章（按创建时间降序，取前10条）
+            List<TeaArticle> allArticles = articleMapper.selectAll();
+            List<ForumHomeVO.LatestArticleVO> latestArticles = allArticles.stream()
+                    .filter(article -> article.getStatus() != null && article.getStatus() == 1)
+                    .sorted((a, b) -> {
+                        if (a.getCreateTime() == null && b.getCreateTime() == null) {
+                            return 0;
+                        }
+                        if (a.getCreateTime() == null) {
+                            return 1;
+                        }
+                        if (b.getCreateTime() == null) {
+                            return -1;
+                        }
+                        return b.getCreateTime().compareTo(a.getCreateTime()); // 降序
+                    })
+                    .limit(10)
+                    .map(article -> {
+                        ForumHomeVO.LatestArticleVO articleVO = new ForumHomeVO.LatestArticleVO();
+                        articleVO.setId(article.getId());
+                        articleVO.setTitle(article.getTitle());
+                        articleVO.setSummary(article.getSummary());
+                        return articleVO;
+                    })
+                    .collect(java.util.stream.Collectors.toList());
+            homeVO.setLatestArticles(latestArticles);
+            
+            logger.info("获取论坛首页数据成功");
+            return Result.success(200, homeVO); // 成功码200
+            
+        } catch (Exception e) {
+            logger.error("获取论坛首页数据失败: 系统异常", e);
+            return Result.failure(6100); // 失败码6100
+        }
+    }
     
     @Override
     public List<ForumTopic> listTopics() {
@@ -350,7 +440,7 @@ public class ForumServiceImpl implements ForumService {
             HomeContent content = new HomeContent();
             content.setSection("banner"); // 轮播图板块
             content.setTitle(title);
-            content.setSubtitle(subtitle);
+            content.setSubTitle(subtitle);
             content.setContent(relativePath); // 存储相对路径
             content.setLinkUrl(linkUrl);
             content.setType("image");

@@ -8,6 +8,7 @@ import com.shangnantea.model.entity.forum.ForumReply;
 import com.shangnantea.model.entity.forum.ForumTopic;
 import com.shangnantea.model.entity.forum.HomeContent;
 import com.shangnantea.model.entity.forum.TeaArticle;
+import com.shangnantea.model.vo.forum.ForumHomeVO;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -17,6 +18,15 @@ import java.util.Map;
  * 论坛服务接口
  */
 public interface ForumService {
+    
+    /**
+     * 获取论坛首页数据
+     * 路径: GET /forum/home
+     * 成功码: 200, 失败码: 6100
+     *
+     * @return 首页数据，包含Banner、热门帖子、最新文章
+     */
+    Result<ForumHomeVO> getHomeData();
     
     /**
      * 获取论坛主题列表

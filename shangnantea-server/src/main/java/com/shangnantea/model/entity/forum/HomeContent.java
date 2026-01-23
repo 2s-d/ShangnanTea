@@ -35,6 +35,16 @@ public class HomeContent {
     private String content;
     
     /**
+     * 链接地址
+     */
+    private String linkUrl;
+    
+    /**
+     * 内容类型(image,article等)
+     */
+    private String type;
+    
+    /**
      * 排序值
      */
     private Integer sortOrder;
