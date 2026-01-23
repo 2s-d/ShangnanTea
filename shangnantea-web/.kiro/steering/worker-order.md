@@ -116,11 +116,11 @@ inclusion: manual
 
 #### 订单基础功能（3个接口）
 6. **createOrder** - `/order/create` - 创建订单 ✅ 已完成
-7. **getOrders** - `/order/list` - 获取订单列表
-8. **getOrderDetail** - `/order/{id}` - 获取订单详情
+7. **getOrders** - `/order/list` - 获取订单列表 ✅ 已完成
+8. **getOrderDetail** - `/order/{id}` - 获取订单详情 ✅ 已完成
 
 #### 订单支付功能（1个接口）
-9. **payOrder** - `/order/pay` - 订单支付
+9. **payOrder** - `/order/pay` - 订单支付 ✅ 已完成
 
 #### 订单状态管理（3个接口）
 10. **cancelOrder** - `/order/cancel` - 取消订单

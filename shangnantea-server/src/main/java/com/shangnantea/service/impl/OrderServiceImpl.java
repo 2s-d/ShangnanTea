@@ -7,12 +7,16 @@ import com.shangnantea.mapper.OrderMapper;
 import com.shangnantea.mapper.ShoppingCartMapper;
 import com.shangnantea.mapper.TeaMapper;
 import com.shangnantea.mapper.TeaSpecificationMapper;
+import com.shangnantea.mapper.UserAddressMapper;
 import com.shangnantea.model.entity.order.Order;
 import com.shangnantea.model.entity.order.ShoppingCart;
 import com.shangnantea.model.entity.tea.Tea;
 import com.shangnantea.model.entity.tea.TeaSpecification;
+import com.shangnantea.model.entity.user.UserAddress;
 import com.shangnantea.model.vo.order.CartItemVO;
 import com.shangnantea.model.vo.order.CartResponseVO;
+import com.shangnantea.model.vo.order.OrderDetailVO;
+import com.shangnantea.model.vo.order.OrderVO;
 import com.shangnantea.security.context.UserContext;
 import com.shangnantea.service.OrderService;
 import com.shangnantea.utils.FileUploadUtils;
@@ -51,6 +55,9 @@ public class OrderServiceImpl implements OrderService {
     
     @Autowired
     private TeaSpecificationMapper teaSpecificationMapper;
+    
+    @Autowired
+    private UserAddressMapper userAddressMapper;
     
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
@@ -813,5 +820,318 @@ public class OrderServiceImpl implements OrderService {
             logger.error("评价图片上传失败: 系统异常", e);
             return Result.failure(5144); // 评价图片上传失败
         }
+    }
+    
+    @Override
+    public Result<Map<String, Object>> getOrders(Map<String, Object> params) {
+        logger.info("获取订单列表请求: params={}", params);
+        
+        try {
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("获取订单列表失败: 用户未登录");
+                return Result.failure(5113);
+            }
+            
+            // 2. 解析查询参数
+            Integer status = null;
+            if (params.get("status") != null) {
+                try {
+                    status = Integer.parseInt(params.get("status").toString());
+                } catch (NumberFormatException e) {
+                    logger.warn("状态参数格式错误: {}", params.get("status"));
+                }
+            }
+            
+            int page = 1;
+            int pageSize = 10;
+            if (params.get("page") != null) {
+                try {
+                    page = Integer.parseInt(params.get("page").toString());
+                } catch (NumberFormatException e) {
+                    logger.warn("页码参数格式错误: {}", params.get("page"));
+                }
+            }
+            if (params.get("pageSize") != null) {
+                try {
+                    pageSize = Integer.parseInt(params.get("pageSize").toString());
+                } catch (NumberFormatException e) {
+                    logger.warn("每页数量参数格式错误: {}", params.get("pageSize"));
+                }
+            }
+            
+            // 3. 查询订单列表
+            List<Order> orderList = orderMapper.selectByUserIdAndStatus(userId, status);
+            
+            if (orderList == null) {
+                orderList = new ArrayList<>();
+            }
+            
+            // 4. 计算总数
+            int total = orderList.size();
+            
+            // 5. 分页处理
+            int startIndex = (page - 1) * pageSize;
+            int endIndex = Math.min(startIndex + pageSize, total);
+            
+            List<Order> pagedOrders = new ArrayList<>();
+            if (startIndex < total) {
+                pagedOrders = orderList.subList(startIndex, endIndex);
+            }
+            
+            // 6. 转换为VO
+            List<OrderVO> orderVOList = new ArrayList<>();
+            for (Order order : pagedOrders) {
+                OrderVO vo = new OrderVO();
+                vo.setId(order.getId());
+                vo.setStatus(order.getStatus());
+                vo.setTotalPrice(order.getTotalAmount());
+                vo.setCreateTime(order.getCreateTime());
+                vo.setTeaId(order.getTeaId());
+                vo.setTeaName(order.getTeaName());
+                vo.setTeaImage(order.getTeaImage());
+                vo.setSpecName(order.getSpecName());
+                vo.setQuantity(order.getQuantity());
+                vo.setPrice(order.getPrice());
+                orderVOList.add(vo);
+            }
+            
+            // 7. 构建返回数据
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("list", orderVOList);
+            responseData.put("total", total);
+            
+            logger.info("获取订单列表成功: userId={}, status={}, total={}, page={}, pageSize={}", 
+                       userId, status, total, page, pageSize);
+            return Result.success(200, responseData);
+            
+        } catch (Exception e) {
+            logger.error("获取订单列表失败: 系统异常", e);
+            return Result.failure(5113);
+        }
+    }
+    
+    @Override
+    public Result<Object> getOrderDetail(String id) {
+        logger.info("获取订单详情请求: id={}", id);
+        
+        try {
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("获取订单详情失败: 用户未登录");
+                return Result.failure(5116);
+            }
+            
+            // 2. 查询订单
+            Order order = orderMapper.selectById(id);
+            if (order == null) {
+                logger.warn("获取订单详情失败: 订单不存在: id={}", id);
+                return Result.failure(5114); // 订单不存在
+            }
+            
+            // 3. 验证订单是否属于当前用户
+            if (!userId.equals(order.getUserId())) {
+                logger.warn("获取订单详情失败: 无权限: orderId={}, userId={}, orderUserId={}", 
+                           id, userId, order.getUserId());
+                return Result.failure(5115); // 您没有权限操作此订单
+            }
+            
+            // 4. 查询地址信息
+            Map<String, Object> addressInfo = new HashMap<>();
+            if (order.getAddressId() != null) {
+                UserAddress address = userAddressMapper.selectById(order.getAddressId());
+                if (address != null) {
+                    addressInfo.put("receiverName", address.getReceiverName());
+                    addressInfo.put("receiverPhone", address.getReceiverPhone());
+                    addressInfo.put("detailAddress", address.getDetailAddress());
+                }
+            }
+            
+            // 5. 转换为VO
+            OrderDetailVO vo = new OrderDetailVO();
+            vo.setId(order.getId());
+            vo.setUserId(order.getUserId());
+            vo.setStatus(order.getStatus());
+            vo.setTotalPrice(order.getTotalAmount());
+            vo.setTeaId(order.getTeaId());
+            vo.setTeaName(order.getTeaName());
+            vo.setTeaImage(order.getTeaImage());
+            vo.setSpecId(order.getSpecId());
+            vo.setSpecName(order.getSpecName());
+            vo.setQuantity(order.getQuantity());
+            vo.setPrice(order.getPrice());
+            vo.setAddress(addressInfo);
+            vo.setPaymentMethod(order.getPaymentMethod());
+            vo.setPaymentTime(order.getPaymentTime());
+            vo.setLogisticsCompany(order.getLogisticsCompany());
+            vo.setLogisticsNumber(order.getLogisticsNumber());
+            vo.setShippingTime(order.getShippingTime());
+            vo.setCompletionTime(order.getCompletionTime());
+            vo.setBuyerMessage(order.getBuyerMessage());
+            vo.setCreateTime(order.getCreateTime());
+            vo.setUpdateTime(order.getUpdateTime());
+            
+            logger.info("获取订单详情成功: orderId={}, userId={}", id, userId);
+            return Result.success(200, vo);
+            
+        } catch (Exception e) {
+            logger.error("获取订单详情失败: 系统异常", e);
+            return Result.failure(5116);
+        }
+    }
+    
+    @Override
+    @Transactional
+    public Result<Object> payOrder(Map<String, Object> data) {
+        logger.info("支付订单请求: data={}", data);
+        
+        try {
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("支付订单失败: 用户未登录");
+                return Result.failure(5117);
+            }
+            
+            // 2. 解析请求参数
+            String orderId = (String) data.get("orderId");
+            String paymentMethod = (String) data.get("paymentMethod");
+            
+            if (orderId == null || orderId.isEmpty()) {
+                logger.warn("支付订单失败: 订单ID为空");
+                return Result.failure(5117);
+            }
+            
+            if (paymentMethod == null || paymentMethod.isEmpty()) {
+                logger.warn("支付订单失败: 支付方式为空");
+                return Result.failure(5117);
+            }
+            
+            // 3. 查询订单
+            Order order = orderMapper.selectById(orderId);
+            if (order == null) {
+                logger.warn("支付订单失败: 订单不存在: orderId={}", orderId);
+                return Result.failure(5117);
+            }
+            
+            // 4. 验证订单是否属于当前用户
+            if (!userId.equals(order.getUserId())) {
+                logger.warn("支付订单失败: 无权限: orderId={}, userId={}, orderUserId={}", 
+                           orderId, userId, order.getUserId());
+                return Result.failure(5117);
+            }
+            
+            // 5. 验证订单状态是否为待付款
+            if (order.getStatus() == null || order.getStatus() != Order.STATUS_PENDING_PAYMENT) {
+                logger.warn("支付订单失败: 订单状态不是待付款: orderId={}, status={}", orderId, order.getStatus());
+                // 如果订单已经支付过了，返回5006
+                if (order.getStatus() != null && order.getStatus() > Order.STATUS_PENDING_PAYMENT) {
+                    return Result.success(5006, null); // 订单已支付
+                }
+                return Result.failure(5117);
+            }
+            
+            // 6. 如果支付方式是余额，验证余额是否充足（这里简化处理，实际需要查询用户余额）
+            if ("balance".equals(paymentMethod)) {
+                // TODO: 实际应该查询用户余额表
+                // 这里简化处理，假设余额不足
+                logger.warn("支付订单失败: 余额不足: orderId={}, userId={}", orderId, userId);
+                return Result.failure(5120); // 余额不足
+            }
+            
+            // 7. 更新订单状态为待发货
+            order.setStatus(Order.STATUS_PENDING_SHIPMENT); // 待发货
+            order.setPaymentMethod(paymentMethod);
+            order.setPaymentTime(new Date());
+            order.setUpdateTime(new Date());
+            
+            int rows = orderMapper.updateById(order);
+            if (rows > 0) {
+                logger.info("支付订单成功: orderId={}, userId={}, paymentMethod={}", orderId, userId, paymentMethod);
+                
+                // 8. 构建返回数据
+                Map<String, Object> responseData = new HashMap<>();
+                responseData.put("orderId", orderId);
+                responseData.put("status", order.getStatus());
+                responseData.put("paymentTime", order.getPaymentTime());
+                
+                return Result.success(5007, responseData); // 支付成功
+            } else {
+                logger.warn("支付订单失败: 更新订单失败: orderId={}", orderId);
+                return Result.failure(5117);
+            }
+            
+        } catch (Exception e) {
+            logger.error("支付订单失败: 系统异常", e);
+            return Result.failure(5117);
+        }
+    }
+    
+    @Override
+    public Result<Boolean> cancelOrder(Map<String, Object> data) {
+        // TODO: 实现取消订单逻辑
+        return Result.failure(5121);
+    }
+    
+    @Override
+    public Result<Boolean> confirmOrder(Map<String, Object> data) {
+        // TODO: 实现确认收货逻辑
+        return Result.failure(5124);
+    }
+    
+    @Override
+    public Result<Boolean> reviewOrder(Map<String, Object> data) {
+        // TODO: 实现评价订单逻辑
+        return Result.failure(5127);
+    }
+    
+    @Override
+    public Result<Boolean> refundOrder(Map<String, Object> data) {
+        // TODO: 实现申请退款逻辑
+        return Result.failure(5128);
+    }
+    
+    @Override
+    public Result<Boolean> processRefund(String id, Map<String, Object> data) {
+        // TODO: 实现审批退款逻辑
+        return Result.failure(5131);
+    }
+    
+    @Override
+    public Result<Object> getRefundDetail(String id) {
+        // TODO: 实现获取退款详情逻辑
+        return Result.failure(5133);
+    }
+    
+    @Override
+    public Result<Boolean> shipOrder(String id, String logisticsCompany, String logisticsNumber) {
+        // TODO: 实现发货逻辑
+        return Result.failure(5135);
+    }
+    
+    @Override
+    public Result<Boolean> batchShipOrders(Map<String, Object> data) {
+        // TODO: 实现批量发货逻辑
+        return Result.failure(5138);
+    }
+    
+    @Override
+    public Result<Object> getOrderLogistics(String id) {
+        // TODO: 实现获取物流信息逻辑
+        return Result.failure(5140);
+    }
+    
+    @Override
+    public Result<Object> getOrderStatistics(Map<String, Object> params) {
+        // TODO: 实现获取订单统计逻辑
+        return Result.failure(5142);
+    }
+    
+    @Override
+    public Result<Object> exportOrders(Map<String, Object> params) {
+        // TODO: 实现导出订单数据逻辑
+        return Result.failure(5143);
     }
 } 
