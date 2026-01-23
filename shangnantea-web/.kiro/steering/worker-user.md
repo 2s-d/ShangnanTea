@@ -116,10 +116,10 @@ inclusion: manual
 7. ✅ **updateUserInfo** - `/user` - 更新用户信息（已完成）
 8. ✅ **uploadAvatar** - `/user/avatar` - 上传头像（已完成）
 9. ✅ **changePassword** - `/user/password` - 修改密码（已完成）
-10. **resetPassword** - `/user/password/reset` - 重置密码
+10. ✅ **resetPassword** - `/user/password/reset` - 重置密码（已完成）
 
 #### 地址管理功能（5个接口）
-11. **getAddressList** - `/user/addresses` - 获取地址列表
+11. ✅ **getAddressList** - `/user/addresses` - 获取地址列表（已完成）
 12. **addAddress** - `/user/addresses` - 添加地址
 13. **updateAddress** - `/user/addresses/{id}` - 更新地址
 14. **deleteAddress** - `/user/addresses/{id}` - 删除地址
@@ -154,9 +154,9 @@ inclusion: manual
 35. **processCertification** - `/user/admin/certifications/{id}` - 审核认证
 
 ### 接口开发进度
-- **已完成**：9/35（login, register, logout, getCurrentUser, refreshToken, getUserInfo, updateUserInfo, uploadAvatar, changePassword）
-- **待开发**：26/35
-- **完成率**：25.7%
+- **已完成**：11/35（login, register, logout, getCurrentUser, refreshToken, getUserInfo, updateUserInfo, uploadAvatar, changePassword, resetPassword, getAddressList）
+- **待开发**：24/35
+- **完成率**：31.4%
 
 ### 状态码范围
 - **成功码**：2000-2024（25个成功状态码）
