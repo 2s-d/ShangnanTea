@@ -114,11 +114,11 @@ inclusion: manual
 4. **uploadBanner** - `/forum/banners` - 上传Banner ✅ 已完成
 5. **updateBanner** - `/forum/banners/{id}` - 更新Banner ✅ 已完成
 6. **deleteBanner** - `/forum/banners/{id}` - 删除Banner ✅ 已完成
-7. **updateBannerOrder** - `/forum/banners/order` - 更新Banner排序
+7. **updateBannerOrder** - `/forum/banners/order` - 更新Banner排序 ✅ 已完成
 
 #### 文章管理功能（6个接口）
-8. **getArticles** - `/forum/articles` - 获取文章列表
-9. **getArticleDetail** - `/forum/articles/{id}` - 获取文章详情
+8. **getArticles** - `/forum/articles` - 获取文章列表 ✅ 已完成
+9. **getArticleDetail** - `/forum/articles/{id}` - 获取文章详情 ✅ 已完成
 10. **createArticle** - `/forum/articles` - 创建文章
 11. **updateArticle** - `/forum/articles/{id}` - 更新文章
 12. **deleteArticle** - `/forum/articles/{id}` - 删除文章
