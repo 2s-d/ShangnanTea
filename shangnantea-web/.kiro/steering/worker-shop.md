@@ -109,7 +109,7 @@ inclusion: manual
 1. **getShops** - `/shop/list` - 获取店铺列表 ✅ 已完成
 2. **createShop** - `/shop/list` - 创建店铺 ✅ 已完成
 3. **getShopDetail** - `/shop/{id}` - 获取店铺详情 ✅ 已完成
-4. **updateShop** - `/shop/{id}` - 更新店铺信息
+4. **updateShop** - `/shop/{id}` - 更新店铺信息 ✅ 已完成
 5. **getMyShop** - `/shop/my` - 获取我的店铺
 
 #### 店铺统计功能（2个接口）
