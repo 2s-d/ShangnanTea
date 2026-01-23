@@ -16,15 +16,12 @@ import com.shangnantea.service.ShopService;
 import com.shangnantea.utils.FileUploadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -201,7 +198,7 @@ public class ShopServiceImpl implements ShopService {
             }
             
             // 验证用户是否为店铺所有者
-            if (!userId.equals(shop.getUserId())) {
+            if (!userId.equals(shop.getOwnerId())) {
                 logger.warn("店铺Logo上传失败: 无权限操作, userId: {}, shopId: {}", userId, shopId);
                 return Result.failure(4114); // Logo上传失败
             }
@@ -261,5 +258,111 @@ public class ShopServiceImpl implements ShopService {
             logger.error("店铺轮播图上传失败: 系统异常", e);
             return Result.failure(4117); // Banner上传失败
         }
+    }
+    
+    @Override
+    public Result<Object> getShops(Map<String, Object> params) {
+        try {
+            logger.info("获取店铺列表请求, params: {}", params);
+            
+            // 1. 解析查询参数
+            ShopQueryDTO queryDTO = new ShopQueryDTO();
+            if (params != null) {
+                if (params.get("page") != null) {
+                    queryDTO.setPage(Integer.parseInt(params.get("page").toString()));
+                }
+                if (params.get("size") != null) {
+                    queryDTO.setSize(Integer.parseInt(params.get("size").toString()));
+                }
+                if (params.get("keyword") != null) {
+                    queryDTO.setKeyword(params.get("keyword").toString());
+                }
+                if (params.get("rating") != null) {
+                    queryDTO.setRating(Double.parseDouble(params.get("rating").toString()));
+                }
+                if (params.get("sortBy") != null) {
+                    queryDTO.setSortBy(params.get("sortBy").toString());
+                }
+                if (params.get("sortOrder") != null) {
+                    queryDTO.setSortOrder(params.get("sortOrder").toString());
+                }
+            }
+            
+            // 2. 参数验证和默认值设置
+            if (queryDTO.getPage() == null || queryDTO.getPage() < 1) {
+                queryDTO.setPage(1);
+            }
+            if (queryDTO.getSize() == null || queryDTO.getSize() < 1) {
+                queryDTO.setSize(10);
+            }
+            if (queryDTO.getSortOrder() == null || queryDTO.getSortOrder().isEmpty()) {
+                queryDTO.setSortOrder("desc");
+            }
+            
+            // 3. 计算分页偏移量
+            int offset = (queryDTO.getPage() - 1) * queryDTO.getSize();
+            
+            // 4. 查询店铺列表
+            List<Shop> shopList = shopMapper.selectShopList(
+                    queryDTO.getKeyword(),
+                    queryDTO.getRating(),
+                    queryDTO.getSortBy(),
+                    queryDTO.getSortOrder(),
+                    offset,
+                    queryDTO.getSize()
+            );
+            
+            // 5. 查询总数
+            Long total = shopMapper.countShopList(
+                    queryDTO.getKeyword(),
+                    queryDTO.getRating()
+            );
+            
+            // 6. 转换为VO
+            List<ShopVO> shopVOList = shopList.stream()
+                    .map(this::convertToShopVO)
+                    .collect(Collectors.toList());
+            
+            // 7. 构建返回数据（符合前端期望的格式）
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("list", shopVOList);
+            responseData.put("total", total);
+            responseData.put("page", queryDTO.getPage());
+            responseData.put("pageSize", queryDTO.getSize());
+            
+            logger.info("获取店铺列表成功: 总记录数={}, 当前页={}, 每页={}", 
+                    total, queryDTO.getPage(), queryDTO.getSize());
+            
+            // 根据code-message-mapping.md，成功码是200（静默成功）
+            return Result.success(200, responseData);
+            
+        } catch (Exception e) {
+            logger.error("获取店铺列表失败: 系统异常", e);
+            return Result.failure(4100);
+        }
+    }
+    
+    /**
+     * 将Shop实体转换为ShopVO
+     *
+     * @param shop 店铺实体
+     * @return 店铺VO
+     */
+    private ShopVO convertToShopVO(Shop shop) {
+        if (shop == null) {
+            return null;
+        }
+        
+        ShopVO shopVO = new ShopVO();
+        shopVO.setId(shop.getId());
+        shopVO.setName(shop.getShopName()); // shopName -> name
+        shopVO.setLogo(shop.getLogo());
+        shopVO.setDescription(shop.getDescription());
+        shopVO.setRating(shop.getRating());
+        shopVO.setSalesCount(shop.getSalesCount());
+        shopVO.setFollowCount(shop.getFollowCount());
+        shopVO.setOwnerId(shop.getOwnerId());
+        
+        return shopVO;
     }
 } 

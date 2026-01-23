@@ -106,7 +106,7 @@ inclusion: manual
 ### 店铺模块接口列表（共26个接口）
 
 #### 基础店铺功能（5个接口）
-1. **getShops** - `/shop/list` - 获取店铺列表
+1. **getShops** - `/shop/list` - 获取店铺列表 ✅ 已完成
 2. **createShop** - `/shop/list` - 创建店铺
 3. **getShopDetail** - `/shop/{id}` - 获取店铺详情
 4. **updateShop** - `/shop/{id}` - 更新店铺信息

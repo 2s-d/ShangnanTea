@@ -33,9 +33,9 @@ public class ShopController {
     /**
      * 获取店铺列表
      * 路径: GET /shop/list
-     * 成功码: 200, 失败码: 5101
+     * 成功码: 200, 失败码: 4100
      *
-     * @param params 查询参数（page, size, keyword, rating, salesCount, region, sortBy, sortOrder等）
+     * @param params 查询参数（page, size, keyword, rating, sortBy, sortOrder等）
      * @return 店铺列表
      */
     @GetMapping("/list")
