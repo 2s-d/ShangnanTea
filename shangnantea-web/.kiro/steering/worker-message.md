@@ -110,10 +110,10 @@ inclusion: manual
 2. **getMessageDetail** - `/message/{id}` - 获取消息详情 ✅ 已完成
 3. **sendMessage** - `/message/send` - 发送消息 ✅ 已完成
 4. **markAsRead** - `/message/read` - 标记已读 ✅ 已完成
-5. **deleteMessages** - `/message/delete` - 删除消息
+5. **deleteMessages** - `/message/delete` - 删除消息 ✅ 已完成
 
 #### 未读消息功能（1个接口）
-6. **getUnreadCount** - `/message/unread` - 获取未读消息数量
+6. **getUnreadCount** - `/message/unread` - 获取未读消息数量 ✅ 已完成
 
 #### 聊天会话功能（6个接口）
 7. **getChatSessions** - `/message/chat/sessions` - 获取聊天会话列表
