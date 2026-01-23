@@ -58,7 +58,12 @@
             </div>
             
             <div class="session-info">
-              <div class="session-name">{{ session.name }}</div>
+              <div class="session-name">
+                {{ session.name }}
+                <el-icon v-if="session.isPinned" class="pin-icon" title="已置顶">
+                  <Top />
+                </el-icon>
+              </div>
               <div class="session-preview">{{ session.lastMessage }}</div>
             </div>
             
@@ -80,6 +85,11 @@
                     </el-button>
                   </template>
                   <div class="action-buttons">
+                    <el-button 
+                      size="small" 
+                      @click="togglePinSession(session.sessionId)">
+                      {{ session.isPinned ? '取消置顶' : '置顶会话' }}
+                    </el-button>
                     <el-button 
                       size="small" 
                       type="danger" 
@@ -285,7 +295,7 @@ import { message } from '@/components/common'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { 
   Check, CircleCheck, Warning, Picture, Smile, Loading, 
-  MoreFilled
+  MoreFilled, Top
 } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 import { timeFormat } from '@/utils/timeFormat'
@@ -300,6 +310,7 @@ export default {
     Smile,
     Loading,
     MoreFilled,
+    Top,
     SafeImage
   },
   setup() {
@@ -364,7 +375,8 @@ export default {
           avatar: `https://via.placeholder.com/50x50?text=${session.sessionType === 'customer' ? '店铺' : '用户'}`,
           lastMessage: session.lastMessage || '',
           lastTime: session.lastMessageTime,
-          unreadCount: session.initiatorUnread || 0
+          unreadCount: session.initiatorUnread || 0,
+          isPinned: session.isPinned || false // 添加置顶状态
         }))
 
         // 默认选中：优先未读，否则第一个
