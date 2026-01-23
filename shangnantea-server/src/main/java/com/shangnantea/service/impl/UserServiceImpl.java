@@ -1,11 +1,14 @@
 package com.shangnantea.service.impl;
 
 import com.shangnantea.common.api.Result;
+import com.shangnantea.mapper.UserAddressMapper;
 import com.shangnantea.mapper.UserMapper;
 import com.shangnantea.model.dto.ChangePasswordDTO;
 import com.shangnantea.model.dto.LoginDTO;
 import com.shangnantea.model.dto.RegisterDTO;
 import com.shangnantea.model.entity.user.User;
+import com.shangnantea.model.entity.user.UserAddress;
+import com.shangnantea.model.vo.user.AddressVO;
 import com.shangnantea.model.vo.user.TokenVO;
 import com.shangnantea.model.vo.user.UserVO;
 import com.shangnantea.security.context.UserContext;
@@ -22,8 +25,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -38,6 +43,9 @@ public class UserServiceImpl implements UserService {
     
     @Autowired
     private UserMapper userMapper;
+    
+    @Autowired
+    private UserAddressMapper userAddressMapper;
     
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -449,18 +457,95 @@ public class UserServiceImpl implements UserService {
         }
     }
     
+    /**
+     * 密码找回/重置
+     * 成功码：2006，失败码：2114
+     * 注意：简化实现，通过用户名+手机号验证身份（实际项目应使用验证码）
+     */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Result<String> resetPassword(Map<String, Object> resetData) {
-        // TODO: 实现密码重置逻辑
-        return Result.success(2004);
+        try {
+            // 1. 获取参数
+            String username = (String) resetData.get("username");
+            String phone = (String) resetData.get("phone");
+            String newPassword = (String) resetData.get("newPassword");
+            
+            // 2. 参数验证
+            if (username == null || username.trim().isEmpty()) {
+                logger.warn("密码重置失败: 用户名不能为空");
+                return Result.failure(2114); // 密码重置失败
+            }
+            
+            if (phone == null || phone.trim().isEmpty()) {
+                logger.warn("密码重置失败: 手机号不能为空");
+                return Result.failure(2114); // 密码重置失败
+            }
+            
+            if (newPassword == null || newPassword.trim().isEmpty()) {
+                logger.warn("密码重置失败: 新密码不能为空");
+                return Result.failure(2114); // 密码重置失败
+            }
+            
+            // 3. 验证用户名和手机号是否匹配
+            User user = getUserByUsername(username);
+            if (user == null) {
+                logger.warn("密码重置失败: 用户不存在, username: {}", username);
+                return Result.failure(2114); // 密码重置失败
+            }
+            
+            if (!phone.equals(user.getPhone())) {
+                logger.warn("密码重置失败: 手机号不匹配, username: {}", username);
+                return Result.failure(2114); // 密码重置失败
+            }
+            
+            // 4. 加密新密码并更新
+            String encodedPassword = passwordEncoder.encode(newPassword);
+            int result = userMapper.updatePassword(user.getId(), encodedPassword);
+            
+            if (result <= 0) {
+                logger.error("密码重置失败: 数据库更新失败, username: {}", username);
+                return Result.failure(2114); // 密码重置失败
+            }
+            
+            logger.info("密码重置成功: username: {}, userId: {}", username, user.getId());
+            return Result.success(2006, "密码重置成功"); // 密码重置成功
+            
+        } catch (Exception e) {
+            logger.error("密码重置失败: 系统异常", e);
+            return Result.failure(2114); // 密码重置失败
+        }
     }
     
     // ==================== 收货地址管理 ====================
     
+    /**
+     * 获取当前用户的地址列表
+     * 成功码：200，失败码：2115
+     */
     @Override
     public Result<Object> getAddressList() {
-        // TODO: 实现获取地址列表逻辑
-        return Result.success(200);
+        try {
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("获取地址列表失败: 用户未登录");
+                return Result.failure(2115); // 获取地址列表失败
+            }
+            
+            // 2. 查询用户的所有地址（已按默认地址排序）
+            List<UserAddress> addressList = userAddressMapper.selectByUserId(userId);
+            
+            // 3. 转换为AddressVO列表
+            List<AddressVO> addressVOList = convertToAddressVOList(addressList);
+            
+            logger.info("获取地址列表成功: userId: {}, count: {}", userId, addressVOList.size());
+            return Result.success(200, addressVOList); // 操作成功（静默）
+            
+        } catch (Exception e) {
+            logger.error("获取地址列表失败: 系统异常", e);
+            return Result.failure(2115); // 获取地址列表失败
+        }
     }
     
     @Override
@@ -636,6 +721,31 @@ public class UserServiceImpl implements UserService {
         userVO.setCreateTime(user.getCreateTime());
         userVO.setUpdateTime(user.getUpdateTime());
         return userVO;
+    }
+    
+    /**
+     * 将UserAddress实体列表转换为AddressVO列表
+     */
+    private List<AddressVO> convertToAddressVOList(List<UserAddress> addressList) {
+        List<AddressVO> addressVOList = new ArrayList<>();
+        if (addressList == null || addressList.isEmpty()) {
+            return addressVOList;
+        }
+        
+        for (UserAddress address : addressList) {
+            AddressVO addressVO = new AddressVO();
+            addressVO.setId(address.getId());
+            addressVO.setReceiverName(address.getReceiverName());
+            addressVO.setReceiverPhone(address.getReceiverPhone());
+            addressVO.setProvince(address.getProvince());
+            addressVO.setCity(address.getCity());
+            addressVO.setDistrict(address.getDistrict());
+            addressVO.setDetailAddress(address.getDetailAddress());
+            addressVO.setIsDefault(address.getIsDefault());
+            addressVOList.add(addressVO);
+        }
+        
+        return addressVOList;
     }
     
     @Override
