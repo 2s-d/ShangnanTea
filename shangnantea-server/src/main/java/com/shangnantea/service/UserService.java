@@ -5,9 +5,11 @@ import com.shangnantea.model.dto.AddFavoriteDTO;
 import com.shangnantea.model.dto.AddFollowDTO;
 import com.shangnantea.model.dto.AddLikeDTO;
 import com.shangnantea.model.dto.ChangePasswordDTO;
+import com.shangnantea.model.dto.CreateAdminDTO;
 import com.shangnantea.model.dto.LoginDTO;
 import com.shangnantea.model.dto.RegisterDTO;
 import com.shangnantea.model.dto.SubmitShopCertificationDTO;
+import com.shangnantea.model.dto.UpdateUserPreferencesDTO;
 import com.shangnantea.model.entity.user.User;
 import com.shangnantea.model.vo.user.TokenVO;
 import com.shangnantea.model.vo.user.UserVO;
@@ -252,10 +254,10 @@ public interface UserService {
     /**
      * 更新用户偏好设置
      *
-     * @param preferences 偏好设置
+     * @param preferencesDTO 偏好设置
      * @return 更新结果
      */
-    Result<Object> updateUserPreferences(Map<String, Object> preferences);
+    Result<Object> updateUserPreferences(UpdateUserPreferencesDTO preferencesDTO);
     
     // ==================== 管理员功能 ====================
     
@@ -274,10 +276,10 @@ public interface UserService {
     /**
      * 创建管理员账号（管理员）
      *
-     * @param adminData 管理员数据
+     * @param adminDTO 管理员数据
      * @return 创建结果
      */
-    Result<Boolean> createAdmin(Map<String, Object> adminData);
+    Result<Boolean> createAdmin(CreateAdminDTO adminDTO);
     
     /**
      * 更新用户信息（管理员）

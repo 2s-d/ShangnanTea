@@ -7,25 +7,30 @@ import com.shangnantea.mapper.UserFavoriteMapper;
 import com.shangnantea.mapper.UserFollowMapper;
 import com.shangnantea.mapper.UserLikeMapper;
 import com.shangnantea.mapper.UserMapper;
+import com.shangnantea.mapper.UserSettingMapper;
 import com.shangnantea.model.dto.AddFavoriteDTO;
 import com.shangnantea.model.dto.AddFollowDTO;
 import com.shangnantea.model.dto.AddLikeDTO;
 import com.shangnantea.model.dto.ChangePasswordDTO;
+import com.shangnantea.model.dto.CreateAdminDTO;
 import com.shangnantea.model.dto.LoginDTO;
 import com.shangnantea.model.dto.RegisterDTO;
 import com.shangnantea.model.dto.SubmitShopCertificationDTO;
+import com.shangnantea.model.dto.UpdateUserPreferencesDTO;
 import com.shangnantea.model.entity.shop.ShopCertification;
 import com.shangnantea.model.entity.user.User;
 import com.shangnantea.model.entity.user.UserAddress;
 import com.shangnantea.model.entity.user.UserFavorite;
 import com.shangnantea.model.entity.user.UserFollow;
 import com.shangnantea.model.entity.user.UserLike;
+import com.shangnantea.model.entity.user.UserSetting;
 import com.shangnantea.model.vo.user.AddressVO;
 import com.shangnantea.model.vo.user.CertificationStatusVO;
 import com.shangnantea.model.vo.user.FavoriteVO;
 import com.shangnantea.model.vo.user.FollowVO;
 import com.shangnantea.model.vo.user.LikeVO;
 import com.shangnantea.model.vo.user.TokenVO;
+import com.shangnantea.model.vo.user.UserPreferencesVO;
 import com.shangnantea.model.vo.user.UserVO;
 import com.shangnantea.security.context.UserContext;
 import com.shangnantea.security.util.JwtUtil;
@@ -74,6 +79,9 @@ public class UserServiceImpl implements UserService {
     
     @Autowired
     private UserLikeMapper userLikeMapper;
+    
+    @Autowired
+    private UserSettingMapper userSettingMapper;
     
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -1330,16 +1338,84 @@ public class UserServiceImpl implements UserService {
     
     // ==================== 用户偏好设置 ====================
     
+    /**
+     * 获取用户偏好设置
+     * 成功码：200，失败码：2130
+     */
     @Override
     public Result<Object> getUserPreferences() {
-        // TODO: 实现获取偏好设置逻辑
-        return Result.success(200);
+        try {
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("获取偏好设置失败: 用户未登录");
+                return Result.failure(2130); // 加载失败
+            }
+            
+            // 2. 查询用户所有设置
+            List<UserSetting> settings = userSettingMapper.selectByUserId(userId);
+            
+            // 3. 转换为VO
+            UserPreferencesVO preferencesVO = convertToUserPreferencesVO(settings);
+            
+            logger.info("获取偏好设置成功: userId: {}", userId);
+            return Result.success(200, preferencesVO); // 操作成功（静默）
+            
+        } catch (Exception e) {
+            logger.error("获取偏好设置失败: 系统异常", e);
+            return Result.failure(2130); // 加载失败
+        }
     }
     
+    /**
+     * 更新用户偏好设置
+     * 成功码：2018，失败码：2131
+     */
     @Override
-    public Result<Object> updateUserPreferences(Map<String, Object> preferences) {
-        // TODO: 实现更新偏好设置逻辑
-        return Result.success(2013);
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> updateUserPreferences(UpdateUserPreferencesDTO preferencesDTO) {
+        try {
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("更新偏好设置失败: 用户未登录");
+                return Result.failure(2131); // 操作失败
+            }
+            
+            // 2. 更新各项设置
+            Date now = new Date();
+            
+            if (preferencesDTO.getLanguage() != null) {
+                upsertSetting(userId, "language", preferencesDTO.getLanguage(), "string", now);
+            }
+            
+            if (preferencesDTO.getTheme() != null) {
+                upsertSetting(userId, "theme", preferencesDTO.getTheme(), "string", now);
+            }
+            
+            if (preferencesDTO.getSystemNotification() != null) {
+                upsertSetting(userId, "systemNotification", preferencesDTO.getSystemNotification().toString(), "boolean", now);
+            }
+            
+            if (preferencesDTO.getOrderNotification() != null) {
+                upsertSetting(userId, "orderNotification", preferencesDTO.getOrderNotification().toString(), "boolean", now);
+            }
+            
+            if (preferencesDTO.getCommentNotification() != null) {
+                upsertSetting(userId, "commentNotification", preferencesDTO.getCommentNotification().toString(), "boolean", now);
+            }
+            
+            if (preferencesDTO.getLikeNotification() != null) {
+                upsertSetting(userId, "likeNotification", preferencesDTO.getLikeNotification().toString(), "boolean", now);
+            }
+            
+            logger.info("更新偏好设置成功: userId: {}", userId);
+            return Result.success(2018); // 偏好设置已更新
+            
+        } catch (Exception e) {
+            logger.error("更新偏好设置失败: 系统异常", e);
+            return Result.failure(2131); // 操作失败
+        }
     }
     
     // ==================== 管理员功能 ====================
