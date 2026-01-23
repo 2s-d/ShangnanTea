@@ -126,9 +126,9 @@ inclusion: manual
 #### 版块管理功能（5个接口）
 13. **getForumTopics** - `/forum/topics` - 获取版块列表 ✅ 已完成
 14. **getTopicDetail** - `/forum/topics/{id}` - 获取版块详情 ✅ 已完成
-15. **createTopic** - `/forum/topics` - 创建版块
-16. **updateTopic** - `/forum/topics/{id}` - 更新版块
-17. **deleteTopic** - `/forum/topics/{id}` - 删除版块
+15. **createTopic** - `/forum/topics` - 创建版块 ✅ 已完成
+16. **updateTopic** - `/forum/topics/{id}` - 更新版块 ✅ 已完成
+17. **deleteTopic** - `/forum/topics/{id}` - 删除版块 ✅ 已完成
 
 #### 帖子管理功能（8个接口）
 18. **getForumPosts** - `/forum/posts` - 获取帖子列表
