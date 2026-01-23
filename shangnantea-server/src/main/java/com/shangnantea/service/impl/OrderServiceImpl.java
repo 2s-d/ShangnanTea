@@ -1530,8 +1530,11 @@ public class OrderServiceImpl implements OrderService {
             }
             
             // 4. 验证权限（需要是商家或管理员）
-            // TODO: 这里应该验证当前用户是否是该订单所属店铺的商家或管理员
-            // 暂时简化处理，只要登录就可以发货（实际应该检查shopId和用户关系）
+            if (!UserContext.isAdmin() && !UserContext.isShop()) {
+                logger.warn("发货失败: 用户不是商家或管理员: orderId={}, userId={}, role={}", 
+                           id, userId, UserContext.getCurrentUserRole());
+                return Result.failure(5137); // 您没有权限操作此订单
+            }
             
             // 5. 更新订单状态为待收货
             order.setStatus(Order.STATUS_PENDING_RECEIPT); // 待收货
@@ -1591,8 +1594,11 @@ public class OrderServiceImpl implements OrderService {
             }
             
             // 3. 验证权限（需要是商家或管理员）
-            // TODO: 这里应该验证当前用户是否是商家或管理员
-            // 暂时简化处理，只要登录就可以批量发货
+            if (!UserContext.isAdmin() && !UserContext.isShop()) {
+                logger.warn("批量发货失败: 用户不是商家或管理员: userId={}, role={}", 
+                           userId, UserContext.getCurrentUserRole());
+                return Result.failure(5139); // 您没有权限操作此订单
+            }
             
             // 4. 循环处理每个订单
             int successCount = 0;
