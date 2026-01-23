@@ -3,7 +3,9 @@ package com.shangnantea.service;
 import com.shangnantea.common.api.PageParam;
 import com.shangnantea.common.api.PageResult;
 import com.shangnantea.common.api.Result;
+import com.shangnantea.model.dto.forum.CreatePostDTO;
 import com.shangnantea.model.dto.forum.CreateTopicDTO;
+import com.shangnantea.model.dto.forum.UpdatePostDTO;
 import com.shangnantea.model.dto.forum.UpdateTopicDTO;
 import com.shangnantea.model.entity.forum.ForumPost;
 import com.shangnantea.model.entity.forum.ForumReply;
@@ -251,6 +253,67 @@ public interface ForumService {
      * @return 上传结果
      */
     Result<Map<String, Object>> uploadPostImage(MultipartFile image);
+    
+    /**
+     * 获取帖子列表
+     * 路径: GET /forum/posts
+     * 成功码: 200, 失败码: 6119
+     *
+     * @param params 查询参数（topicId, keyword, page, pageSize）
+     * @return 帖子列表
+     */
+    Result<Object> getForumPosts(Map<String, Object> params);
+    
+    /**
+     * 创建帖子
+     * 路径: POST /forum/posts
+     * 成功码: 6011, 失败码: 6120
+     *
+     * @param dto 帖子数据
+     * @return 创建结果
+     */
+    Result<Object> createPost(CreatePostDTO dto);
+    
+    /**
+     * 获取待审核帖子列表（管理员）
+     * 路径: GET /forum/posts/pending
+     * 成功码: 200, 失败码: 6121
+     *
+     * @param params 查询参数（page, pageSize）
+     * @return 待审核帖子列表
+     */
+    Result<Object> getPendingPosts(Map<String, Object> params);
+    
+    /**
+     * 获取帖子详情
+     * 路径: GET /forum/posts/{id}
+     * 成功码: 200, 失败码: 6122
+     *
+     * @param id 帖子ID
+     * @return 帖子详情
+     */
+    Result<Object> getPostDetail(String id);
+    
+    /**
+     * 更新帖子
+     * 路径: PUT /forum/posts/{id}
+     * 成功码: 6012, 失败码: 6123
+     *
+     * @param id 帖子ID
+     * @param dto 帖子数据
+     * @return 更新结果
+     */
+    Result<Object> updatePost(String id, UpdatePostDTO dto);
+    
+    /**
+     * 删除帖子
+     * 路径: DELETE /forum/posts/{id}
+     * 成功码: 6013, 失败码: 6124
+     *
+     * @param id 帖子ID
+     * @return 删除结果
+     */
+    Result<Boolean> deletePost(String id);
     
     /**
      * 上传论坛轮播图
