@@ -176,4 +176,14 @@ public interface MessageService {
      * @return 发送结果
      */
     Result<Object> sendMessage(Map<String, Object> data);
+    
+    /**
+     * 标记消息为已读
+     * 路径: POST /message/read
+     * 成功码: 7001, 失败码: 7103
+     *
+     * @param data 消息ID数据 {messageIds}
+     * @return 标记结果
+     */
+    Result<Object> markAsRead(Map<String, Object> data);
 } 

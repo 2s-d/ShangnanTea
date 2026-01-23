@@ -527,4 +527,117 @@ public class MessageServiceImpl implements MessageService {
             return Result.failure(7102);
         }
     }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> markAsRead(Map<String, Object> data) {
+        try {
+            logger.info("标记消息已读请求, data: {}", data);
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("标记消息已读失败：用户未登录");
+                return Result.failure(7103);
+            }
+            
+            // 2. 提取并验证参数
+            Object messageIdsObj = data.get("messageIds");
+            if (messageIdsObj == null) {
+                logger.warn("标记消息已读失败：消息ID列表为空");
+                return Result.failure(7103);
+            }
+            
+            // 3. 转换消息ID列表
+            List<Long> messageIds = new ArrayList<>();
+            if (messageIdsObj instanceof List) {
+                List<?> list = (List<?>) messageIdsObj;
+                if (list.isEmpty()) {
+                    logger.warn("标记消息已读失败：消息ID列表为空");
+                    return Result.failure(7103);
+                }
+                for (Object obj : list) {
+                    try {
+                        if (obj instanceof Number) {
+                            messageIds.add(((Number) obj).longValue());
+                        } else {
+                            messageIds.add(Long.parseLong(obj.toString()));
+                        }
+                    } catch (NumberFormatException e) {
+                        logger.warn("标记消息已读失败：无效的消息ID, id: {}", obj);
+                        return Result.failure(7103);
+                    }
+                }
+            } else {
+                logger.warn("标记消息已读失败：消息ID列表格式错误");
+                return Result.failure(7103);
+            }
+            
+            // 4. 批量标记消息为已读
+            int successCount = 0;
+            Date now = new Date();
+            
+            for (Long messageId : messageIds) {
+                // 先尝试从ChatMessage表查询
+                ChatMessage chatMessage = messageMapper.selectById(messageId);
+                if (chatMessage != null) {
+                    // 验证权限：用户必须是接收者
+                    if (!userId.equals(chatMessage.getReceiverId())) {
+                        logger.warn("标记消息已读失败：无权限标记该消息, userId: {}, messageId: {}", userId, messageId);
+                        continue; // 跳过无权限的消息
+                    }
+                    
+                    // 如果消息未读，标记为已读
+                    if (chatMessage.getIsRead() == null || chatMessage.getIsRead() == 0) {
+                        chatMessage.setIsRead(1);
+                        chatMessage.setReadTime(now);
+                        messageMapper.updateById(chatMessage);
+                        successCount++;
+                        logger.debug("聊天消息已标记为已读, messageId: {}", messageId);
+                    } else {
+                        successCount++; // 已经是已读状态，也算成功
+                    }
+                    continue;
+                }
+                
+                // 如果不是聊天消息，尝试从UserNotification表查询
+                UserNotification notification = notificationMapper.selectById(messageId);
+                if (notification != null) {
+                    // 验证权限：用户必须是接收者
+                    if (!userId.equals(notification.getUserId())) {
+                        logger.warn("标记消息已读失败：无权限标记该通知, userId: {}, messageId: {}", userId, messageId);
+                        continue; // 跳过无权限的通知
+                    }
+                    
+                    // 如果通知未读，标记为已读
+                    if (notification.getIsRead() == null || notification.getIsRead() == 0) {
+                        notification.setIsRead(1);
+                        notification.setReadTime(now);
+                        notificationMapper.updateById(notification);
+                        successCount++;
+                        logger.debug("通知已标记为已读, messageId: {}", messageId);
+                    } else {
+                        successCount++; // 已经是已读状态，也算成功
+                    }
+                    continue;
+                }
+                
+                // 消息不存在
+                logger.warn("标记消息已读失败：消息不存在, messageId: {}", messageId);
+            }
+            
+            // 5. 判断是否全部成功
+            if (successCount == 0) {
+                logger.warn("标记消息已读失败：没有成功标记任何消息, userId: {}", userId);
+                return Result.failure(7103);
+            }
+            
+            logger.info("标记消息已读成功, userId: {}, 成功数量: {}/{}", userId, successCount, messageIds.size());
+            return Result.success(7001, null);
+            
+        } catch (Exception e) {
+            logger.error("标记消息已读失败，系统异常", e);
+            return Result.failure(7103);
+        }
+    }
 } 
