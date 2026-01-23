@@ -63,7 +63,7 @@ public class OrderController {
     /**
      * 更新购物车商品
      * 路径: PUT /order/cart/update
-     * 成功码: 4011, 4012, 失败码: 4112, 4116, 4117
+     * 成功码: 5001, 5002, 失败码: 5105, 5106, 5107
      *
      * @param data 更新数据 {id, quantity, specificationId}
      * @return 更新结果
@@ -78,7 +78,7 @@ public class OrderController {
     /**
      * 移除购物车商品
      * 路径: DELETE /order/cart/remove
-     * 成功码: 4013, 失败码: 4113
+     * 成功码: 5003, 失败码: 5108
      *
      * @param id 购物车项ID
      * @return 移除结果
@@ -93,7 +93,7 @@ public class OrderController {
     /**
      * 清空购物车
      * 路径: DELETE /order/cart/clear
-     * 成功码: 4015, 失败码: 4115
+     * 成功码: 5004, 失败码: 5109
      *
      * @return 清空结果
      */
@@ -109,7 +109,7 @@ public class OrderController {
     /**
      * 创建订单
      * 路径: POST /order/create
-     * 成功码: 4000, 失败码: 4100, 4116, 4118
+     * 成功码: 5005, 失败码: 5110, 5111, 5112
      *
      * @param data 订单数据
      * @return 创建结果
@@ -124,7 +124,7 @@ public class OrderController {
     /**
      * 获取订单列表
      * 路径: GET /order/list
-     * 成功码: 200, 失败码: 1102
+     * 成功码: 200, 失败码: 5113
      *
      * @param params 查询参数 {status, page, pageSize}
      * @return 订单列表
@@ -139,7 +139,7 @@ public class OrderController {
     /**
      * 支付订单
      * 路径: POST /order/pay
-     * 成功码: 4005, 4020, 失败码: 4120, 4121, 4122, 4124
+     * 成功码: 5006, 5007, 失败码: 5117, 5118, 5119, 5120
      *
      * @param data 支付数据 {orderId, paymentMethod}
      * @return 支付结果
@@ -154,7 +154,7 @@ public class OrderController {
     /**
      * 取消订单
      * 路径: POST /order/cancel
-     * 成功码: 4002, 失败码: 4102, 4105, 4106
+     * 成功码: 5008, 失败码: 5121, 5122, 5123
      *
      * @param data 取消数据 {id}
      * @return 取消结果
@@ -169,7 +169,7 @@ public class OrderController {
     /**
      * 确认收货
      * 路径: POST /order/confirm
-     * 成功码: 4003, 失败码: 4103, 4105, 4106
+     * 成功码: 5009, 失败码: 5124, 5125, 5126
      *
      * @param data 确认数据 {id}
      * @return 确认结果
@@ -184,7 +184,7 @@ public class OrderController {
     /**
      * 评价订单
      * 路径: POST /order/review
-     * 成功码: 4050, 失败码: 4150
+     * 成功码: 5010, 失败码: 5127
      *
      * @param data 评价数据
      * @return 评价结果
@@ -199,7 +199,7 @@ public class OrderController {
     /**
      * 申请退款（兼容旧路径）
      * 路径: POST /order/refund
-     * 成功码: 4030, 失败码: 4130, 4105, 4106
+     * 成功码: 5011, 失败码: 5128, 5129, 5130
      *
      * @param data 退款数据 {orderId, reason}
      * @return 申请结果
@@ -214,7 +214,7 @@ public class OrderController {
     /**
      * 批量发货
      * 路径: POST /order/batch-ship
-     * 成功码: 4006, 失败码: 4108, 4106
+     * 成功码: 5015, 失败码: 5138, 5139
      *
      * @param data 批量发货数据 {orderIds, logisticsCompany, logisticsNumber}
      * @return 发货结果
@@ -229,7 +229,7 @@ public class OrderController {
     /**
      * 获取订单统计数据
      * 路径: GET /order/statistics
-     * 成功码: 200, 失败码: 1102
+     * 成功码: 200, 失败码: 5142
      *
      * @param params 查询参数 {startDate, endDate, shopId}
      * @return 订单统计数据
@@ -244,7 +244,7 @@ public class OrderController {
     /**
      * 导出订单数据
      * 路径: GET /order/export
-     * 成功码: 200, 失败码: 1100
+     * 成功码: 200, 失败码: 5143
      *
      * @param params 导出参数 {format, startDate, endDate, status, shopId}
      * @return 文件流
@@ -261,7 +261,7 @@ public class OrderController {
     /**
      * 获取退款详情
      * 路径: GET /order/{id}/refund
-     * 成功码: 200, 失败码: 4132, 4105
+     * 成功码: 200, 失败码: 5133, 5134
      *
      * @param id 订单ID
      * @return 退款详情
@@ -276,7 +276,7 @@ public class OrderController {
     /**
      * 审批退款
      * 路径: POST /order/{id}/refund/process
-     * 成功码: 4031, 4032, 失败码: 4131, 4106
+     * 成功码: 5012, 5013, 失败码: 5131, 5132
      *
      * @param id 订单ID
      * @param data 审批数据 {approve, reason}
@@ -292,7 +292,7 @@ public class OrderController {
     /**
      * 发货（单个订单）
      * 路径: POST /order/{id}/ship
-     * 成功码: 4004, 失败码: 4104, 4105, 4106
+     * 成功码: 5014, 失败码: 5135, 5136, 5137
      *
      * @param id 订单ID
      * @param logisticsCompany 物流公司
@@ -311,7 +311,7 @@ public class OrderController {
     /**
      * 获取订单物流信息
      * 路径: GET /order/{id}/logistics
-     * 成功码: 200, 失败码: 4140, 4105
+     * 成功码: 200, 失败码: 5140, 5141
      *
      * @param id 订单ID
      * @return 物流信息
@@ -326,7 +326,7 @@ public class OrderController {
     /**
      * 获取订单详情
      * 路径: GET /order/{id}
-     * 成功码: 200, 失败码: 4105, 4106, 4107
+     * 成功码: 200, 失败码: 5114, 5115, 5116
      * 注意：此路径应放在最后，避免与更具体的路径冲突
      *
      * @param id 订单ID
