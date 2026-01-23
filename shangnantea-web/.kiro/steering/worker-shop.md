@@ -110,10 +110,10 @@ inclusion: manual
 2. **createShop** - `/shop/list` - 创建店铺 ✅ 已完成
 3. **getShopDetail** - `/shop/{id}` - 获取店铺详情 ✅ 已完成
 4. **updateShop** - `/shop/{id}` - 更新店铺信息 ✅ 已完成
-5. **getMyShop** - `/shop/my` - 获取我的店铺
+5. **getMyShop** - `/shop/my` - 获取我的店铺 ✅ 已完成
 
 #### 店铺统计功能（2个接口）
-6. **getShopStatistics** - `/shop/{shopId}/statistics` - 获取店铺统计
+6. **getShopStatistics** - `/shop/{shopId}/statistics` - 获取店铺统计 ✅ 已完成
 7. **getShopTeas** - `/shop/{shopId}/teas` - 获取店铺茶叶
 
 #### 店铺茶叶管理（4个接口）

@@ -179,4 +179,22 @@ public interface ShopService {
      * @return 更新结果
      */
     Result<Boolean> updateShop(String id, Map<String, Object> shopData);
+    
+    /**
+     * 获取我的店铺信息
+     * 获取当前登录商家的店铺信息
+     *
+     * @return 店铺信息
+     */
+    Result<Object> getMyShop();
+    
+    /**
+     * 获取店铺统计数据
+     * 获取指定店铺的统计信息
+     *
+     * @param shopId 店铺ID
+     * @param params 查询参数
+     * @return 店铺统计数据
+     */
+    Result<Object> getShopStatistics(String shopId, Map<String, Object> params);
 } 

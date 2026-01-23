@@ -12,6 +12,7 @@ import com.shangnantea.model.entity.shop.ShopCertification;
 import com.shangnantea.model.entity.tea.Tea;
 import com.shangnantea.model.vo.shop.ShopVO;
 import com.shangnantea.model.vo.shop.ShopDetailVO;
+import com.shangnantea.model.vo.shop.ShopStatisticsVO;
 import com.shangnantea.security.context.UserContext;
 import com.shangnantea.service.ShopService;
 import com.shangnantea.utils.FileUploadUtils;
@@ -587,6 +588,99 @@ public class ShopServiceImpl implements ShopService {
         } catch (Exception e) {
             logger.error("更新店铺信息失败: 系统异常, id={}", id, e);
             return Result.failure(4104);
+        }
+    }
+    
+    @Override
+    public Result<Object> getMyShop() {
+        try {
+            logger.info("获取我的店铺信息请求");
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("获取我的店铺信息失败: 用户未登录");
+                return Result.failure(4105);
+            }
+            
+            // 2. 查询用户的店铺
+            Shop shop = getShopByUserId(userId);
+            if (shop == null) {
+                logger.info("获取我的店铺信息: 用户暂无店铺, userId={}", userId);
+                // 用户没有店铺，返回成功但data为null
+                return Result.success(200, null);
+            }
+            
+            // 3. 转换为ShopDetailVO
+            ShopDetailVO shopDetailVO = convertToShopDetailVO(shop);
+            
+            logger.info("获取我的店铺信息成功: userId={}, shopId={}, shopName={}", 
+                    userId, shop.getId(), shop.getShopName());
+            
+            // 4. 返回成功（根据code-message-mapping.md，成功码是200）
+            return Result.success(200, shopDetailVO);
+            
+        } catch (Exception e) {
+            logger.error("获取我的店铺信息失败: 系统异常", e);
+            return Result.failure(4105);
+        }
+    }
+    
+    @Override
+    public Result<Object> getShopStatistics(String shopId, Map<String, Object> params) {
+        try {
+            logger.info("获取店铺统计数据请求: shopId={}, params={}", shopId, params);
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("获取店铺统计数据失败: 用户未登录");
+                return Result.failure(4106);
+            }
+            
+            // 2. 验证店铺ID不为空
+            if (shopId == null || shopId.trim().isEmpty()) {
+                logger.warn("获取店铺统计数据失败: 店铺ID为空");
+                return Result.failure(4106);
+            }
+            
+            // 3. 查询店铺信息
+            Shop shop = getShopById(shopId);
+            if (shop == null) {
+                logger.warn("获取店铺统计数据失败: 店铺不存在, shopId={}", shopId);
+                return Result.failure(4106);
+            }
+            
+            // 4. 验证用户是否为店铺所有者
+            if (!userId.equals(shop.getOwnerId())) {
+                logger.warn("获取店铺统计数据失败: 无权限操作, userId={}, shopId={}, ownerId={}", 
+                        userId, shopId, shop.getOwnerId());
+                return Result.failure(4106);
+            }
+            
+            // 5. 构建统计数据
+            ShopStatisticsVO statisticsVO = new ShopStatisticsVO();
+            
+            // 从店铺基本信息中获取统计数据
+            statisticsVO.setFollowCount(shop.getFollowCount());
+            statisticsVO.setRatingCount(shop.getRatingCount());
+            statisticsVO.setRating(shop.getRating());
+            
+            // TODO: 从订单表和商品表查询更详细的统计数据
+            // 目前先设置默认值，后续可以扩展
+            statisticsVO.setTotalSales(BigDecimal.ZERO);
+            statisticsVO.setOrderCount(0);
+            statisticsVO.setProductCount(0);
+            
+            logger.info("获取店铺统计数据成功: shopId={}, followCount={}, ratingCount={}", 
+                    shopId, shop.getFollowCount(), shop.getRatingCount());
+            
+            // 6. 返回成功（根据code-message-mapping.md，成功码是200）
+            return Result.success(200, statisticsVO);
+            
+        } catch (Exception e) {
+            logger.error("获取店铺统计数据失败: 系统异常, shopId={}", shopId, e);
+            return Result.failure(4106);
         }
     }
 }
