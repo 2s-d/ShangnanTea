@@ -156,4 +156,14 @@ public interface MessageService {
      * @return 消息列表
      */
     Result<Object> getMessages(Map<String, Object> params);
+    
+    /**
+     * 获取消息详情
+     * 路径: GET /message/{id}
+     * 成功码: 200, 失败码: 7101
+     *
+     * @param id 消息ID
+     * @return 消息详情
+     */
+    Result<Object> getMessageDetail(String id);
 } 

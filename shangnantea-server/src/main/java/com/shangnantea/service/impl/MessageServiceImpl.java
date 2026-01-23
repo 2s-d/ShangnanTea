@@ -359,4 +359,82 @@ public class MessageServiceImpl implements MessageService {
         vo.setCreateTime(message.getCreateTime());
         return vo;
     }
+    
+    @Override
+    public Result<Object> getMessageDetail(String id) {
+        try {
+            logger.info("获取消息详情请求, id: {}", id);
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("获取消息详情失败：用户未登录");
+                return Result.failure(7101);
+            }
+            
+            // 2. 解析消息ID
+            Long messageId;
+            try {
+                messageId = Long.parseLong(id);
+            } catch (NumberFormatException e) {
+                logger.warn("获取消息详情失败：无效的消息ID, id: {}", id);
+                return Result.failure(7101);
+            }
+            
+            // 3. 先尝试从ChatMessage表查询
+            ChatMessage chatMessage = messageMapper.selectById(messageId);
+            if (chatMessage != null) {
+                // 验证权限：用户必须是发送者或接收者
+                if (!userId.equals(chatMessage.getSenderId()) && !userId.equals(chatMessage.getReceiverId())) {
+                    logger.warn("获取消息详情失败：无权限访问, userId: {}, messageId: {}", userId, messageId);
+                    return Result.failure(7101);
+                }
+                
+                // 如果是接收者且消息未读，标记为已读
+                if (userId.equals(chatMessage.getReceiverId()) && 
+                    (chatMessage.getIsRead() == null || chatMessage.getIsRead() == 0)) {
+                    chatMessage.setIsRead(1);
+                    chatMessage.setReadTime(new Date());
+                    messageMapper.updateById(chatMessage);
+                    logger.info("消息已标记为已读, messageId: {}", messageId);
+                }
+                
+                // 转换为VO并返回
+                MessageVO vo = convertChatMessageToVO(chatMessage);
+                logger.info("获取消息详情成功（聊天消息）, userId: {}, messageId: {}", userId, messageId);
+                return Result.success(200, vo);
+            }
+            
+            // 4. 如果不是聊天消息，尝试从UserNotification表查询
+            UserNotification notification = notificationMapper.selectById(messageId);
+            if (notification != null) {
+                // 验证权限：用户必须是接收者
+                if (!userId.equals(notification.getUserId())) {
+                    logger.warn("获取消息详情失败：无权限访问, userId: {}, messageId: {}", userId, messageId);
+                    return Result.failure(7101);
+                }
+                
+                // 如果通知未读，标记为已读
+                if (notification.getIsRead() == null || notification.getIsRead() == 0) {
+                    notification.setIsRead(1);
+                    notification.setReadTime(new Date());
+                    notificationMapper.updateById(notification);
+                    logger.info("通知已标记为已读, messageId: {}", messageId);
+                }
+                
+                // 转换为VO并返回
+                MessageVO vo = convertNotificationToVO(notification);
+                logger.info("获取消息详情成功（通知）, userId: {}, messageId: {}", userId, messageId);
+                return Result.success(200, vo);
+            }
+            
+            // 5. 消息不存在
+            logger.warn("获取消息详情失败：消息不存在, messageId: {}", messageId);
+            return Result.failure(7101);
+            
+        } catch (Exception e) {
+            logger.error("获取消息详情失败，系统异常", e);
+            return Result.failure(7101);
+        }
+    }
 } 

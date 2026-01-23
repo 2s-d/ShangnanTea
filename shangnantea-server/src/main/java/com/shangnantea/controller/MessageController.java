@@ -47,13 +47,13 @@ public class MessageController {
 
     /**
      * 获取消息详情
-     * 路径: GET /message/messages/{id}
+     * 路径: GET /message/{id}
      * 成功码: 200, 失败码: 7101
      *
      * @param id 消息ID
      * @return 消息详情
      */
-    @GetMapping("/messages/{id}")
+    @GetMapping("/{id}")
     @RequiresLogin
     public Result<Object> getMessageDetail(@PathVariable String id) {
         logger.info("获取消息详情请求: {}", id);
