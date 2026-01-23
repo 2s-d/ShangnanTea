@@ -181,18 +181,10 @@
     </update>
     
     <!-- 逻辑删除茶叶 -->
-    <update id="delete" parameterType="java.lang.String">
+    <update id="deleteById">
         UPDATE teas
         SET is_deleted = 1,
-        update_time = now()
-        WHERE id = #{id,jdbcType=VARCHAR}
-    </update>
-    
-    <!-- 上架/下架茶叶 -->
-    <update id="updateStatus">
-        UPDATE teas
-        SET status = #{status,jdbcType=INTEGER},
-        update_time = now()
-        WHERE id = #{id,jdbcType=VARCHAR}
+            update_time = now()
+        WHERE id = #{id,jdbcType=BIGINT}
     </update>
 </mapper> 

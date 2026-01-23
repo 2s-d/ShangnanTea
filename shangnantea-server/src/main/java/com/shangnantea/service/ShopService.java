@@ -227,4 +227,32 @@ public interface ShopService {
      * @return 更新结果
      */
     Result<Boolean> updateShopTea(String teaId, Map<String, Object> teaData);
+    
+    /**
+     * 删除店铺茶叶
+     * 商家删除店铺中的茶叶（逻辑删除）
+     *
+     * @param teaId 茶叶ID
+     * @return 删除结果
+     */
+    Result<Object> deleteShopTea(String teaId);
+    
+    /**
+     * 茶叶上下架
+     * 商家更新店铺茶叶的上下架状态
+     *
+     * @param teaId 茶叶ID
+     * @param status 状态（0=下架, 1=上架）
+     * @return 操作结果
+     */
+    Result<Object> toggleShopTeaStatus(String teaId, Integer status);
+    
+    /**
+     * 获取店铺Banner列表
+     * 获取指定店铺的轮播Banner列表
+     *
+     * @param shopId 店铺ID
+     * @return Banner列表
+     */
+    Result<Object> getShopBanners(String shopId);
 } 

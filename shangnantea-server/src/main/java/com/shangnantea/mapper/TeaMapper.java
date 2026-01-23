@@ -29,4 +29,12 @@ public interface TeaMapper extends BaseMapper<Tea, Long> {
      * @return 茶叶总数
      */
     Long countByShopId(@Param("shopId") String shopId);
+    
+    /**
+     * 逻辑删除茶叶（设置deleted=1）
+     *
+     * @param id 茶叶ID
+     * @return 影响行数
+     */
+    int deleteById(@Param("id") Long id);
 } 
