@@ -140,12 +140,12 @@ inclusion: manual
 25. ✅ **removeLike** - `/user/likes/{id}` - 取消点赞（已完成）
 
 #### 用户偏好设置（2个接口）
-26. **getUserPreferences** - `/user/preferences` - 获取用户偏好设置
-27. **updateUserPreferences** - `/user/preferences` - 更新用户偏好设置
+26. ✅ **getUserPreferences** - `/user/preferences` - 获取用户偏好设置（已完成）
+27. ✅ **updateUserPreferences** - `/user/preferences` - 更新用户偏好设置（已完成）
 
 #### 管理员功能（8个接口）
-28. **getAdminUserList** - `/user/admin/users` - 获取用户列表
-29. **createAdmin** - `/user/admin/users` - 创建管理员
+28. ✅ **getAdminUserList** - `/user/admin/users` - 获取用户列表（已完成）
+29. ✅ **createAdmin** - `/user/admin/users` - 创建管理员（已完成）
 30. **updateUser** - `/user/admin/users/{userId}` - 更新用户
 31. **deleteUser** - `/user/admin/users/{userId}` - 删除用户
 32. **toggleUserStatus** - `/user/admin/users/{userId}/status` - 切换用户状态
@@ -154,9 +154,9 @@ inclusion: manual
 35. **uploadCertificationImage** - `/user/merchant/certification/image` - 上传认证图片
 
 ### 接口开发进度
-- **已完成**：25/35（login, register, logout, getCurrentUser, refreshToken, getUserInfo, updateUserInfo, uploadAvatar, changePassword, resetPassword, getAddressList, addAddress, updateAddress, deleteAddress, setDefaultAddress, submitShopCertification, getShopCertificationStatus, getFollowList, addFollow, removeFollow, getFavoriteList, addFavorite, removeFavorite, addLike, removeLike）
-- **待开发**：10/35
-- **完成率**：71.4%
+- **已完成**：29/35（login, register, logout, getCurrentUser, refreshToken, getUserInfo, updateUserInfo, uploadAvatar, changePassword, resetPassword, getAddressList, addAddress, updateAddress, deleteAddress, setDefaultAddress, submitShopCertification, getShopCertificationStatus, getFollowList, addFollow, removeFollow, getFavoriteList, addFavorite, removeFavorite, addLike, removeLike, getUserPreferences, updateUserPreferences, getAdminUserList, createAdmin）
+- **待开发**：6/35
+- **完成率**：82.9%
 
 ### 状态码范围
 - **成功码**：2000-2024（25个成功状态码）
