@@ -15,8 +15,10 @@ import com.shangnantea.model.entity.tea.TeaSpecification;
 import com.shangnantea.model.entity.user.UserAddress;
 import com.shangnantea.model.vo.order.CartItemVO;
 import com.shangnantea.model.vo.order.CartResponseVO;
+import com.shangnantea.model.vo.order.LogisticsVO;
 import com.shangnantea.model.vo.order.OrderDetailVO;
 import com.shangnantea.model.vo.order.OrderVO;
+import com.shangnantea.model.vo.order.RefundDetailVO;
 import com.shangnantea.security.context.UserContext;
 import com.shangnantea.service.OrderService;
 import com.shangnantea.utils.FileUploadUtils;
@@ -1456,26 +1458,242 @@ public class OrderServiceImpl implements OrderService {
     
     @Override
     public Result<Object> getRefundDetail(String id) {
-        // TODO: 实现获取退款详情逻辑
-        return Result.failure(5133);
+        logger.info("获取退款详情请求: orderId={}", id);
+        
+        try {
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("获取退款详情失败: 用户未登录");
+                return Result.failure(5133);
+            }
+            
+            // 2. 查询订单
+            Order order = orderMapper.selectById(id);
+            if (order == null) {
+                logger.warn("获取退款详情失败: 订单不存在: orderId={}", id);
+                return Result.failure(5134); // 订单不存在
+            }
+            
+            // 3. 验证用户权限（订单所有者或商家/管理员可以查看）
+            // 简化处理：只验证是否是订单所有者
+            if (!userId.equals(order.getUserId())) {
+                logger.warn("获取退款详情失败: 无权限: orderId={}, userId={}, orderUserId={}", 
+                           id, userId, order.getUserId());
+                return Result.failure(5133);
+            }
+            
+            // 4. 构建退款详情VO
+            RefundDetailVO vo = new RefundDetailVO();
+            vo.setOrderId(order.getId());
+            vo.setRefundStatus(order.getRefundStatus());
+            vo.setRefundReason(order.getRefundReason());
+            vo.setRefundRejectReason(order.getRefundRejectReason());
+            vo.setRefundApplyTime(order.getRefundApplyTime());
+            vo.setRefundProcessTime(order.getRefundProcessTime());
+            vo.setTotalAmount(order.getTotalAmount());
+            vo.setOrderStatus(order.getStatus());
+            
+            logger.info("获取退款详情成功: orderId={}, userId={}, refundStatus={}", id, userId, order.getRefundStatus());
+            return Result.success(200, vo);
+            
+        } catch (Exception e) {
+            logger.error("获取退款详情失败: 系统异常", e);
+            return Result.failure(5133);
+        }
     }
     
     @Override
+    @Transactional
     public Result<Boolean> shipOrder(String id, String logisticsCompany, String logisticsNumber) {
-        // TODO: 实现发货逻辑
-        return Result.failure(5135);
+        logger.info("发货请求: orderId={}, logisticsCompany={}, logisticsNumber={}", id, logisticsCompany, logisticsNumber);
+        
+        try {
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("发货失败: 用户未登录");
+                return Result.failure(5135);
+            }
+            
+            // 2. 查询订单
+            Order order = orderMapper.selectById(id);
+            if (order == null) {
+                logger.warn("发货失败: 订单不存在: orderId={}", id);
+                return Result.failure(5136); // 订单不存在
+            }
+            
+            // 3. 验证订单状态（只有待发货状态可以发货）
+            if (order.getStatus() == null || order.getStatus() != Order.STATUS_PENDING_SHIPMENT) {
+                logger.warn("发货失败: 订单状态不是待发货: orderId={}, status={}", id, order.getStatus());
+                return Result.failure(5135);
+            }
+            
+            // 4. 验证权限（需要是商家或管理员）
+            // TODO: 这里应该验证当前用户是否是该订单所属店铺的商家或管理员
+            // 暂时简化处理，只要登录就可以发货（实际应该检查shopId和用户关系）
+            
+            // 5. 更新订单状态为待收货
+            order.setStatus(Order.STATUS_PENDING_RECEIPT); // 待收货
+            order.setLogisticsCompany(logisticsCompany);
+            order.setLogisticsNumber(logisticsNumber);
+            order.setShippingTime(new Date());
+            order.setUpdateTime(new Date());
+            
+            int rows = orderMapper.updateById(order);
+            if (rows > 0) {
+                logger.info("发货成功: orderId={}, userId={}, logisticsCompany={}, logisticsNumber={}", 
+                           id, userId, logisticsCompany, logisticsNumber);
+                return Result.success(5014, true); // 订单已发货
+            } else {
+                logger.warn("发货失败: 更新订单失败: orderId={}", id);
+                return Result.failure(5135);
+            }
+            
+        } catch (Exception e) {
+            logger.error("发货失败: 系统异常", e);
+            return Result.failure(5135);
+        }
     }
     
     @Override
+    @Transactional
     public Result<Boolean> batchShipOrders(Map<String, Object> data) {
-        // TODO: 实现批量发货逻辑
-        return Result.failure(5138);
+        logger.info("批量发货请求: data={}", data);
+        
+        try {
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("批量发货失败: 用户未登录");
+                return Result.failure(5138);
+            }
+            
+            // 2. 解析请求参数
+            @SuppressWarnings("unchecked")
+            List<String> orderIds = (List<String>) data.get("orderIds");
+            String logisticsCompany = (String) data.get("logisticsCompany");
+            String logisticsNumber = (String) data.get("logisticsNumber");
+            
+            if (orderIds == null || orderIds.isEmpty()) {
+                logger.warn("批量发货失败: 订单ID列表为空");
+                return Result.failure(5138);
+            }
+            
+            if (logisticsCompany == null || logisticsCompany.trim().isEmpty()) {
+                logger.warn("批量发货失败: 物流公司为空");
+                return Result.failure(5138);
+            }
+            
+            if (logisticsNumber == null || logisticsNumber.trim().isEmpty()) {
+                logger.warn("批量发货失败: 物流单号为空");
+                return Result.failure(5138);
+            }
+            
+            // 3. 验证权限（需要是商家或管理员）
+            // TODO: 这里应该验证当前用户是否是商家或管理员
+            // 暂时简化处理，只要登录就可以批量发货
+            
+            // 4. 循环处理每个订单
+            int successCount = 0;
+            int failCount = 0;
+            
+            for (String orderId : orderIds) {
+                try {
+                    // 查询订单
+                    Order order = orderMapper.selectById(orderId);
+                    if (order == null) {
+                        logger.warn("批量发货: 订单不存在: orderId={}", orderId);
+                        failCount++;
+                        continue;
+                    }
+                    
+                    // 验证订单状态
+                    if (order.getStatus() == null || order.getStatus() != Order.STATUS_PENDING_SHIPMENT) {
+                        logger.warn("批量发货: 订单状态不是待发货: orderId={}, status={}", orderId, order.getStatus());
+                        failCount++;
+                        continue;
+                    }
+                    
+                    // 更新订单
+                    order.setStatus(Order.STATUS_PENDING_RECEIPT); // 待收货
+                    order.setLogisticsCompany(logisticsCompany);
+                    order.setLogisticsNumber(logisticsNumber);
+                    order.setShippingTime(new Date());
+                    order.setUpdateTime(new Date());
+                    
+                    int rows = orderMapper.updateById(order);
+                    if (rows > 0) {
+                        successCount++;
+                        logger.info("批量发货成功: orderId={}", orderId);
+                    } else {
+                        failCount++;
+                        logger.warn("批量发货失败: 更新订单失败: orderId={}", orderId);
+                    }
+                    
+                } catch (Exception e) {
+                    failCount++;
+                    logger.error("批量发货失败: orderId={}, error={}", orderId, e.getMessage());
+                }
+            }
+            
+            logger.info("批量发货完成: userId={}, total={}, success={}, fail={}", 
+                       userId, orderIds.size(), successCount, failCount);
+            
+            if (successCount > 0) {
+                return Result.success(5015, true); // 批量发货操作已完成
+            } else {
+                return Result.failure(5138);
+            }
+            
+        } catch (Exception e) {
+            logger.error("批量发货失败: 系统异常", e);
+            return Result.failure(5138);
+        }
     }
     
     @Override
     public Result<Object> getOrderLogistics(String id) {
-        // TODO: 实现获取物流信息逻辑
-        return Result.failure(5140);
+        logger.info("获取物流信息请求: orderId={}", id);
+        
+        try {
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("获取物流信息失败: 用户未登录");
+                return Result.failure(5140);
+            }
+            
+            // 2. 查询订单
+            Order order = orderMapper.selectById(id);
+            if (order == null) {
+                logger.warn("获取物流信息失败: 订单不存在: orderId={}", id);
+                return Result.failure(5141); // 订单不存在
+            }
+            
+            // 3. 验证用户权限（订单所有者或商家/管理员可以查看）
+            // 简化处理：只验证是否是订单所有者
+            if (!userId.equals(order.getUserId())) {
+                logger.warn("获取物流信息失败: 无权限: orderId={}, userId={}, orderUserId={}", 
+                           id, userId, order.getUserId());
+                return Result.failure(5140);
+            }
+            
+            // 4. 构建物流信息VO
+            LogisticsVO vo = new LogisticsVO();
+            vo.setLogisticsCompany(order.getLogisticsCompany());
+            vo.setLogisticsNumber(order.getLogisticsNumber());
+            vo.setShippingTime(order.getShippingTime());
+            vo.setTraces(null); // 物流轨迹暂时返回null，后续可对接第三方物流API
+            
+            logger.info("获取物流信息成功: orderId={}, userId={}, logisticsCompany={}, logisticsNumber={}", 
+                       id, userId, order.getLogisticsCompany(), order.getLogisticsNumber());
+            return Result.success(200, vo);
+            
+        } catch (Exception e) {
+            logger.error("获取物流信息失败: 系统异常", e);
+            return Result.failure(5140);
+        }
     }
     
     @Override
