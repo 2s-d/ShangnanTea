@@ -205,4 +205,34 @@ public interface MessageService {
      * @return 未读消息数量
      */
     Result<Object> getUnreadCount();
+    
+    /**
+     * 获取通知列表
+     * 路径: GET /message/notifications
+     * 成功码: 200, 失败码: 7106
+     *
+     * @param params 查询参数 {page, pageSize, type}
+     * @return 通知列表
+     */
+    Result<Object> getNotifications(Map<String, Object> params);
+    
+    /**
+     * 获取通知详情
+     * 路径: GET /message/notifications/{id}
+     * 成功码: 200, 失败码: 7107
+     *
+     * @param id 通知ID
+     * @return 通知详情
+     */
+    Result<Object> getNotificationDetail(String id);
+    
+    /**
+     * 删除通知
+     * 路径: DELETE /message/notifications/{id}
+     * 成功码: 7003, 失败码: 7108
+     *
+     * @param id 通知ID
+     * @return 删除结果
+     */
+    Result<Boolean> deleteNotification(String id);
 } 

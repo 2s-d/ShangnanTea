@@ -10,6 +10,7 @@ import com.shangnantea.model.entity.message.ChatMessage;
 import com.shangnantea.model.entity.message.ChatSession;
 import com.shangnantea.model.entity.message.UserNotification;
 import com.shangnantea.model.vo.message.MessageVO;
+import com.shangnantea.model.vo.message.NotificationVO;
 import com.shangnantea.model.vo.message.UnreadCountVO;
 import com.shangnantea.security.context.UserContext;
 import com.shangnantea.service.MessageService;
@@ -782,5 +783,180 @@ public class MessageServiceImpl implements MessageService {
             logger.error("获取未读消息数量失败，系统异常", e);
             return Result.failure(7105);
         }
+    }
+    
+    @Override
+    public Result<Object> getNotifications(Map<String, Object> params) {
+        try {
+            logger.info("获取通知列表请求, params: {}", params);
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("获取通知列表失败：用户未登录");
+                return Result.failure(7106);
+            }
+            
+            // 2. 解析查询参数
+            Integer page = params.get("page") != null ? 
+                Integer.parseInt(params.get("page").toString()) : 1;
+            Integer pageSize = params.get("pageSize") != null ? 
+                Integer.parseInt(params.get("pageSize").toString()) : 10;
+            String type = params.get("type") != null ? 
+                params.get("type").toString() : null;
+            
+            // 3. 参数验证和修正
+            if (page < 1) {
+                page = 1;
+            }
+            if (pageSize < 1) {
+                pageSize = 10;
+            }
+            if (pageSize > 100) {
+                pageSize = 100; // 限制最大页大小
+            }
+            
+            Integer offset = (page - 1) * pageSize;
+            
+            // 4. 查询通知列表
+            List<UserNotification> notifications = notificationMapper.selectByUserIdAndType(
+                userId, type, offset, pageSize);
+            long total = notificationMapper.countByUserIdAndType(userId, type);
+            
+            // 5. 转换为VO
+            List<NotificationVO> notificationList = notifications.stream()
+                .map(this::convertNotificationToNotificationVO)
+                .collect(Collectors.toList());
+            
+            // 6. 构造返回数据
+            Map<String, Object> resultData = new HashMap<>();
+            resultData.put("list", notificationList);
+            resultData.put("total", total);
+            
+            logger.info("获取通知列表成功, userId: {}, type: {}, total: {}", userId, type, total);
+            return Result.success(200, resultData);
+            
+        } catch (Exception e) {
+            logger.error("获取通知列表失败，系统异常", e);
+            return Result.failure(7106);
+        }
+    }
+    
+    @Override
+    public Result<Object> getNotificationDetail(String id) {
+        try {
+            logger.info("获取通知详情请求, id: {}", id);
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("获取通知详情失败：用户未登录");
+                return Result.failure(7107);
+            }
+            
+            // 2. 解析通知ID
+            Long notificationId;
+            try {
+                notificationId = Long.parseLong(id);
+            } catch (NumberFormatException e) {
+                logger.warn("获取通知详情失败：无效的通知ID, id: {}", id);
+                return Result.failure(7107);
+            }
+            
+            // 3. 查询通知
+            UserNotification notification = notificationMapper.selectById(notificationId);
+            if (notification == null) {
+                logger.warn("获取通知详情失败：通知不存在, notificationId: {}", notificationId);
+                return Result.failure(7107);
+            }
+            
+            // 4. 验证权限：用户必须是接收者
+            if (!userId.equals(notification.getUserId())) {
+                logger.warn("获取通知详情失败：无权限访问, userId: {}, notificationId: {}", userId, notificationId);
+                return Result.failure(7107);
+            }
+            
+            // 5. 如果通知未读，标记为已读
+            if (notification.getIsRead() == null || notification.getIsRead() == 0) {
+                notification.setIsRead(1);
+                notification.setReadTime(new Date());
+                notificationMapper.updateById(notification);
+                logger.info("通知已标记为已读, notificationId: {}", notificationId);
+            }
+            
+            // 6. 转换为VO并返回
+            NotificationVO vo = convertNotificationToNotificationVO(notification);
+            logger.info("获取通知详情成功, userId: {}, notificationId: {}", userId, notificationId);
+            return Result.success(200, vo);
+            
+        } catch (Exception e) {
+            logger.error("获取通知详情失败，系统异常", e);
+            return Result.failure(7107);
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Boolean> deleteNotification(String id) {
+        try {
+            logger.info("删除通知请求, id: {}", id);
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("删除通知失败：用户未登录");
+                return Result.failure(7108);
+            }
+            
+            // 2. 解析通知ID
+            Long notificationId;
+            try {
+                notificationId = Long.parseLong(id);
+            } catch (NumberFormatException e) {
+                logger.warn("删除通知失败：无效的通知ID, id: {}", id);
+                return Result.failure(7108);
+            }
+            
+            // 3. 查询通知
+            UserNotification notification = notificationMapper.selectById(notificationId);
+            if (notification == null) {
+                logger.warn("删除通知失败：通知不存在, notificationId: {}", notificationId);
+                return Result.failure(7108);
+            }
+            
+            // 4. 验证权限：用户必须是接收者
+            if (!userId.equals(notification.getUserId())) {
+                logger.warn("删除通知失败：无权限删除, userId: {}, notificationId: {}", userId, notificationId);
+                return Result.failure(7108);
+            }
+            
+            // 5. 删除通知
+            int result = notificationMapper.deleteById(notificationId);
+            if (result <= 0) {
+                logger.error("删除通知失败：数据库删除失败, notificationId: {}", notificationId);
+                return Result.failure(7108);
+            }
+            
+            logger.info("删除通知成功, userId: {}, notificationId: {}", userId, notificationId);
+            return Result.success(7003, true);
+            
+        } catch (Exception e) {
+            logger.error("删除通知失败，系统异常", e);
+            return Result.failure(7108);
+        }
+    }
+    
+    /**
+     * 将UserNotification转换为NotificationVO
+     */
+    private NotificationVO convertNotificationToNotificationVO(UserNotification notification) {
+        NotificationVO vo = new NotificationVO();
+        vo.setId(notification.getId());
+        vo.setType(notification.getType());
+        vo.setTitle(notification.getTitle());
+        vo.setContent(notification.getContent());
+        vo.setIsRead(notification.getIsRead() != null && notification.getIsRead() == 1);
+        vo.setCreateTime(notification.getCreateTime());
+        return vo;
     }
 } 
