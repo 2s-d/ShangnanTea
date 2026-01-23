@@ -1736,5 +1736,361 @@ public class ShopServiceImpl implements ShopService {
         
         return announcementVO;
     }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Boolean> followShop(String shopId) {
+        try {
+            logger.info("关注店铺请求: shopId={}", shopId);
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("关注店铺失败: 用户未登录");
+                return Result.failure(4127);
+            }
+            
+            // 2. 验证店铺ID不为空
+            if (shopId == null || shopId.trim().isEmpty()) {
+                logger.warn("关注店铺失败: 店铺ID为空");
+                return Result.failure(4127);
+            }
+            
+            // 3. 验证店铺是否存在
+            Shop shop = getShopById(shopId);
+            if (shop == null) {
+                logger.warn("关注店铺失败: 店铺不存在, shopId={}", shopId);
+                return Result.failure(4127);
+            }
+            
+            // 4. 检查是否已关注
+            UserFollow existingFollow = userFollowMapper.selectByUserIdAndFollow(userId, "shop", shopId);
+            if (existingFollow != null) {
+                logger.warn("关注店铺失败: 已关注该店铺, userId={}, shopId={}", userId, shopId);
+                return Result.failure(4127);
+            }
+            
+            // 5. 创建关注记录
+            UserFollow follow = new UserFollow();
+            follow.setUserId(userId);
+            follow.setFollowType("shop");
+            follow.setFollowId(shopId);
+            follow.setCreateTime(new Date());
+            
+            int result = userFollowMapper.insert(follow);
+            if (result <= 0) {
+                logger.error("关注店铺失败: 数据库插入失败, userId={}, shopId={}", userId, shopId);
+                return Result.failure(4127);
+            }
+            
+            // 6. 更新店铺关注数
+            shop.setFollowCount(shop.getFollowCount() + 1);
+            shop.setUpdateTime(new Date());
+            shopMapper.updateById(shop);
+            
+            logger.info("关注店铺成功: userId={}, shopId={}", userId, shopId);
+            
+            // 7. 返回成功（根据code-message-mapping.md，成功码是4015）
+            return Result.success(4015, true);
+            
+        } catch (Exception e) {
+            logger.error("关注店铺失败: 系统异常, shopId={}", shopId, e);
+            return Result.failure(4127);
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Boolean> unfollowShop(String shopId) {
+        try {
+            logger.info("取消关注店铺请求: shopId={}", shopId);
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("取消关注店铺失败: 用户未登录");
+                return Result.failure(4128);
+            }
+            
+            // 2. 验证店铺ID不为空
+            if (shopId == null || shopId.trim().isEmpty()) {
+                logger.warn("取消关注店铺失败: 店铺ID为空");
+                return Result.failure(4128);
+            }
+            
+            // 3. 验证店铺是否存在
+            Shop shop = getShopById(shopId);
+            if (shop == null) {
+                logger.warn("取消关注店铺失败: 店铺不存在, shopId={}", shopId);
+                return Result.failure(4128);
+            }
+            
+            // 4. 检查是否已关注
+            UserFollow existingFollow = userFollowMapper.selectByUserIdAndFollow(userId, "shop", shopId);
+            if (existingFollow == null) {
+                logger.warn("取消关注店铺失败: 未关注该店铺, userId={}, shopId={}", userId, shopId);
+                return Result.failure(4128);
+            }
+            
+            // 5. 删除关注记录
+            int result = userFollowMapper.deleteByUserIdAndFollow(userId, "shop", shopId);
+            if (result <= 0) {
+                logger.error("取消关注店铺失败: 数据库删除失败, userId={}, shopId={}", userId, shopId);
+                return Result.failure(4128);
+            }
+            
+            // 6. 更新店铺关注数
+            if (shop.getFollowCount() > 0) {
+                shop.setFollowCount(shop.getFollowCount() - 1);
+                shop.setUpdateTime(new Date());
+                shopMapper.updateById(shop);
+            }
+            
+            logger.info("取消关注店铺成功: userId={}, shopId={}", userId, shopId);
+            
+            // 7. 返回成功（根据code-message-mapping.md，成功码是4016）
+            return Result.success(4016, true);
+            
+        } catch (Exception e) {
+            logger.error("取消关注店铺失败: 系统异常, shopId={}", shopId, e);
+            return Result.failure(4128);
+        }
+    }
+    
+    @Override
+    public Result<Object> checkFollowStatus(String shopId) {
+        try {
+            logger.info("检查店铺关注状态请求: shopId={}", shopId);
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("检查关注状态失败: 用户未登录");
+                return Result.failure(4129);
+            }
+            
+            // 2. 验证店铺ID不为空
+            if (shopId == null || shopId.trim().isEmpty()) {
+                logger.warn("检查关注状态失败: 店铺ID为空");
+                return Result.failure(4129);
+            }
+            
+            // 3. 查询关注记录
+            UserFollow follow = userFollowMapper.selectByUserIdAndFollow(userId, "shop", shopId);
+            boolean isFollowed = (follow != null);
+            
+            // 4. 构建返回数据
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("isFollowed", isFollowed);
+            
+            logger.info("检查关注状态成功: userId={}, shopId={}, isFollowed={}", userId, shopId, isFollowed);
+            
+            // 5. 返回成功（根据code-message-mapping.md，成功码是200）
+            return Result.success(200, responseData);
+            
+        } catch (Exception e) {
+            logger.error("检查关注状态失败: 系统异常, shopId={}", shopId, e);
+            return Result.failure(4129);
+        }
+    }
+    
+    @Override
+    public Result<Object> getShopReviews(String shopId, Map<String, Object> params) {
+        try {
+            logger.info("获取店铺评价列表请求: shopId={}, params={}", shopId, params);
+            
+            // 1. 验证店铺ID不为空
+            if (shopId == null || shopId.trim().isEmpty()) {
+                logger.warn("获取店铺评价列表失败: 店铺ID为空");
+                return Result.failure(4130);
+            }
+            
+            // 2. 验证店铺是否存在
+            Shop shop = getShopById(shopId);
+            if (shop == null) {
+                logger.warn("获取店铺评价列表失败: 店铺不存在, shopId={}", shopId);
+                return Result.failure(4130);
+            }
+            
+            // 3. 解析分页参数
+            int page = 1;
+            int pageSize = 10;
+            if (params != null) {
+                if (params.get("page") != null) {
+                    page = Integer.parseInt(params.get("page").toString());
+                }
+                if (params.get("pageSize") != null) {
+                    pageSize = Integer.parseInt(params.get("pageSize").toString());
+                }
+            }
+            
+            // 4. 参数验证和默认值设置
+            if (page < 1) {
+                page = 1;
+            }
+            if (pageSize < 1) {
+                pageSize = 10;
+            }
+            
+            // 5. 计算分页偏移量
+            int offset = (page - 1) * pageSize;
+            
+            // 6. 查询评价列表
+            List<ShopReview> reviewList = shopReviewMapper.selectByShopId(shopId, offset, pageSize);
+            
+            // 7. 查询总数
+            Long total = shopReviewMapper.countByShopId(shopId);
+            
+            // 8. 转换为VO（需要查询用户信息）
+            List<ShopReviewVO> reviewVOList = reviewList.stream()
+                    .map(this::convertToShopReviewVO)
+                    .collect(Collectors.toList());
+            
+            // 9. 构建返回数据
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("list", reviewVOList);
+            responseData.put("total", total);
+            
+            logger.info("获取店铺评价列表成功: shopId={}, 总记录数={}, 当前页={}, 每页={}", 
+                    shopId, total, page, pageSize);
+            
+            // 10. 返回成功（根据code-message-mapping.md，成功码是200）
+            return Result.success(200, responseData);
+            
+        } catch (Exception e) {
+            logger.error("获取店铺评价列表失败: 系统异常, shopId={}", shopId, e);
+            return Result.failure(4130);
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Boolean> submitShopReview(String shopId, Map<String, Object> reviewData) {
+        try {
+            logger.info("提交店铺评价请求: shopId={}, reviewData={}", shopId, reviewData);
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("提交评价失败: 用户未登录");
+                return Result.failure(4131);
+            }
+            
+            // 2. 验证店铺ID不为空
+            if (shopId == null || shopId.trim().isEmpty()) {
+                logger.warn("提交评价失败: 店铺ID为空");
+                return Result.failure(4131);
+            }
+            
+            // 3. 验证店铺是否存在
+            Shop shop = getShopById(shopId);
+            if (shop == null) {
+                logger.warn("提交评价失败: 店铺不存在, shopId={}", shopId);
+                return Result.failure(4131);
+            }
+            
+            // 4. 检查用户是否已评价过
+            ShopReview existingReview = shopReviewMapper.selectByUserIdAndShopId(userId, shopId);
+            if (existingReview != null) {
+                logger.warn("提交评价失败: 用户已评价过该店铺, userId={}, shopId={}", userId, shopId);
+                return Result.failure(4131);
+            }
+            
+            // 5. 提取并验证评价数据
+            Integer rating = reviewData.get("rating") != null ? Integer.parseInt(reviewData.get("rating").toString()) : null;
+            if (rating == null || rating < 1 || rating > 5) {
+                logger.warn("提交评价失败: 评分无效, rating={}", rating);
+                return Result.failure(4131);
+            }
+            
+            String content = reviewData.get("content") != null ? reviewData.get("content").toString() : null;
+            if (content == null || content.trim().isEmpty()) {
+                logger.warn("提交评价失败: 评价内容为空");
+                return Result.failure(4131);
+            }
+            
+            // 6. 构建评价实体
+            ShopReview review = new ShopReview();
+            review.setShopId(shopId);
+            review.setUserId(userId);
+            review.setRating(rating);
+            review.setContent(content);
+            
+            // 处理图片数组
+            if (reviewData.get("images") != null) {
+                @SuppressWarnings("unchecked")
+                List<String> imagesList = (List<String>) reviewData.get("images");
+                if (imagesList != null && !imagesList.isEmpty()) {
+                    // 将图片列表转换为JSON字符串存储
+                    review.setImages(String.join(",", imagesList));
+                }
+            }
+            
+            Date now = new Date();
+            review.setCreateTime(now);
+            review.setUpdateTime(now);
+            
+            // 7. 插入数据库
+            int result = shopReviewMapper.insert(review);
+            if (result <= 0) {
+                logger.error("提交评价失败: 数据库插入失败, userId={}, shopId={}", userId, shopId);
+                return Result.failure(4131);
+            }
+            
+            // 8. 更新店铺评分统计
+            shop.setRatingCount(shop.getRatingCount() + 1);
+            // 重新计算平均评分（简化计算，实际应该查询所有评价计算）
+            BigDecimal currentRating = shop.getRating();
+            int currentCount = shop.getRatingCount();
+            BigDecimal newRating = currentRating.multiply(new BigDecimal(currentCount - 1))
+                    .add(new BigDecimal(rating))
+                    .divide(new BigDecimal(currentCount), 2, BigDecimal.ROUND_HALF_UP);
+            shop.setRating(newRating);
+            shop.setUpdateTime(new Date());
+            shopMapper.updateById(shop);
+            
+            logger.info("提交评价成功: reviewId={}, userId={}, shopId={}, rating={}", 
+                    review.getId(), userId, shopId, rating);
+            
+            // 9. 返回成功（根据code-message-mapping.md，成功码是4017）
+            return Result.success(4017, true);
+            
+        } catch (Exception e) {
+            logger.error("提交评价失败: 系统异常, shopId={}", shopId, e);
+            return Result.failure(4131);
+        }
+    }
+    
+    /**
+     * 将ShopReview实体转换为ShopReviewVO
+     * 注意：这里需要查询用户信息，但为了简化，暂时只返回基本信息
+     *
+     * @param review 评价实体
+     * @return ShopReviewVO
+     */
+    private ShopReviewVO convertToShopReviewVO(ShopReview review) {
+        if (review == null) {
+            return null;
+        }
+        
+        ShopReviewVO reviewVO = new ShopReviewVO();
+        reviewVO.setId(review.getId());
+        reviewVO.setUserId(review.getUserId());
+        reviewVO.setRating(review.getRating());
+        reviewVO.setContent(review.getContent());
+        reviewVO.setCreateTime(review.getCreateTime());
+        
+        // 处理图片字符串转列表
+        if (review.getImages() != null && !review.getImages().isEmpty()) {
+            reviewVO.setImages(java.util.Arrays.asList(review.getImages().split(",")));
+        }
+        
+        // TODO: 查询用户信息填充username和avatar
+        // 这里暂时设置为默认值，后续可以通过UserMapper查询
+        reviewVO.setUsername("用户" + review.getUserId().substring(review.getUserId().length() - 4));
+        reviewVO.setAvatar(null);
+        
+        return reviewVO;
+    }
 }
 } 
