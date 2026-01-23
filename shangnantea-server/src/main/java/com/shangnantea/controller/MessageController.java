@@ -32,13 +32,13 @@ public class MessageController {
 
     /**
      * 获取消息列表
-     * 路径: GET /message/messages
-     * 成功码: 200, 失败码: 7101
+     * 路径: GET /message/list
+     * 成功码: 200, 失败码: 7100
      *
-     * @param params 查询参数
+     * @param params 查询参数（page, pageSize, type）
      * @return 消息列表
      */
-    @GetMapping("/messages")
+    @GetMapping("/list")
     @RequiresLogin
     public Result<Object> getMessages(@RequestParam Map<String, Object> params) {
         logger.info("获取消息列表请求, params: {}", params);
