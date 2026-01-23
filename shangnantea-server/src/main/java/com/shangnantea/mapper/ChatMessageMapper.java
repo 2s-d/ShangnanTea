@@ -37,4 +37,24 @@ public interface ChatMessageMapper extends BaseMapper<ChatMessage, Long> {
      * @return 未读数量
      */
     long countUnreadByUserId(@Param("userId") String userId);
+    
+    /**
+     * 根据会话ID查询聊天消息列表（支持分页）
+     *
+     * @param sessionId 会话ID
+     * @param offset 偏移量
+     * @param limit 限制数量
+     * @return 消息列表
+     */
+    List<ChatMessage> selectBySessionId(@Param("sessionId") String sessionId,
+                                        @Param("offset") Integer offset,
+                                        @Param("limit") Integer limit);
+    
+    /**
+     * 统计会话的消息数量
+     *
+     * @param sessionId 会话ID
+     * @return 数量
+     */
+    long countBySessionId(@Param("sessionId") String sessionId);
 } 

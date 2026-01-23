@@ -959,4 +959,340 @@ public class MessageServiceImpl implements MessageService {
         vo.setCreateTime(notification.getCreateTime());
         return vo;
     }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Boolean> batchMarkNotificationsAsRead(List<Long> ids) {
+        try {
+            logger.info("批量标记通知已读请求, ids: {}", ids);
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("批量标记通知已读失败：用户未登录");
+                return Result.failure(7109);
+            }
+            
+            // 2. 验证参数
+            if (ids == null || ids.isEmpty()) {
+                logger.warn("批量标记通知已读失败：通知ID列表为空");
+                return Result.failure(7109);
+            }
+            
+            // 3. 批量标记为已读
+            int successCount = 0;
+            Date now = new Date();
+            
+            for (Long id : ids) {
+                UserNotification notification = notificationMapper.selectById(id);
+                if (notification == null) {
+                    logger.warn("批量标记通知已读：通知不存在, id: {}", id);
+                    continue;
+                }
+                
+                // 验证权限：用户必须是接收者
+                if (!userId.equals(notification.getUserId())) {
+                    logger.warn("批量标记通知已读：无权限标记该通知, userId: {}, id: {}", userId, id);
+                    continue;
+                }
+                
+                // 如果通知未读，标记为已读
+                if (notification.getIsRead() == null || notification.getIsRead() == 0) {
+                    notification.setIsRead(1);
+                    notification.setReadTime(now);
+                    notificationMapper.updateById(notification);
+                    successCount++;
+                } else {
+                    successCount++; // 已经是已读状态，也算成功
+                }
+            }
+            
+            // 4. 判断是否全部失败
+            if (successCount == 0) {
+                logger.warn("批量标记通知已读失败：没有成功标记任何通知, userId: {}", userId);
+                return Result.failure(7109);
+            }
+            
+            logger.info("批量标记通知已读成功, userId: {}, 成功数量: {}/{}", userId, successCount, ids.size());
+            return Result.success(7004, true);
+            
+        } catch (Exception e) {
+            logger.error("批量标记通知已读失败，系统异常", e);
+            return Result.failure(7109);
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Boolean> batchDeleteNotifications(List<Long> ids) {
+        try {
+            logger.info("批量删除通知请求, ids: {}", ids);
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("批量删除通知失败：用户未登录");
+                return Result.failure(7110);
+            }
+            
+            // 2. 验证参数
+            if (ids == null || ids.isEmpty()) {
+                logger.warn("批量删除通知失败：通知ID列表为空");
+                return Result.failure(7110);
+            }
+            
+            // 3. 批量删除通知
+            int successCount = 0;
+            
+            for (Long id : ids) {
+                UserNotification notification = notificationMapper.selectById(id);
+                if (notification == null) {
+                    logger.warn("批量删除通知：通知不存在, id: {}", id);
+                    continue;
+                }
+                
+                // 验证权限：用户必须是接收者
+                if (!userId.equals(notification.getUserId())) {
+                    logger.warn("批量删除通知：无权限删除该通知, userId: {}, id: {}", userId, id);
+                    continue;
+                }
+                
+                // 删除通知
+                int result = notificationMapper.deleteById(id);
+                if (result > 0) {
+                    successCount++;
+                }
+            }
+            
+            // 4. 判断是否全部失败
+            if (successCount == 0) {
+                logger.warn("批量删除通知失败：没有成功删除任何通知, userId: {}", userId);
+                return Result.failure(7110);
+            }
+            
+            logger.info("批量删除通知成功, userId: {}, 成功数量: {}/{}", userId, successCount, ids.size());
+            return Result.success(7005, true);
+            
+        } catch (Exception e) {
+            logger.error("批量删除通知失败，系统异常", e);
+            return Result.failure(7110);
+        }
+    }
+    
+    @Override
+    public Result<Object> getChatSessions() {
+        try {
+            logger.info("获取聊天会话列表请求");
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("获取聊天会话列表失败：用户未登录");
+                return Result.failure(7111);
+            }
+            
+            // 2. 查询用户的所有会话（作为发起者或接收者）
+            List<ChatSession> sessions = sessionMapper.selectByUserId(userId);
+            
+            // 3. 转换为VO（这里简化处理，实际应该查询对方用户信息）
+            List<Map<String, Object>> sessionList = new ArrayList<>();
+            for (ChatSession session : sessions) {
+                Map<String, Object> sessionVO = new HashMap<>();
+                sessionVO.put("id", session.getId());
+                
+                // 确定对方用户ID
+                String targetUserId = userId.equals(session.getInitiatorId()) ? 
+                    session.getReceiverId() : session.getInitiatorId();
+                sessionVO.put("targetUserId", targetUserId);
+                
+                // 确定未读数
+                Integer unreadCount = userId.equals(session.getInitiatorId()) ? 
+                    session.getInitiatorUnread() : session.getReceiverUnread();
+                sessionVO.put("unreadCount", unreadCount != null ? unreadCount : 0);
+                
+                sessionVO.put("lastMessage", session.getLastMessage());
+                sessionVO.put("lastMessageTime", session.getLastMessageTime());
+                sessionVO.put("sessionType", session.getSessionType());
+                sessionVO.put("createTime", session.getCreateTime());
+                
+                sessionList.add(sessionVO);
+            }
+            
+            // 4. 按最后消息时间倒序排列
+            sessionList.sort((a, b) -> {
+                Date timeA = (Date) a.get("lastMessageTime");
+                Date timeB = (Date) b.get("lastMessageTime");
+                if (timeA == null && timeB == null) return 0;
+                if (timeA == null) return 1;
+                if (timeB == null) return -1;
+                return timeB.compareTo(timeA);
+            });
+            
+            logger.info("获取聊天会话列表成功, userId: {}, count: {}", userId, sessionList.size());
+            return Result.success(200, sessionList);
+            
+        } catch (Exception e) {
+            logger.error("获取聊天会话列表失败，系统异常", e);
+            return Result.failure(7111);
+        }
+    }
+    
+    @Override
+    public Result<Object> getChatHistory(Map<String, Object> params) {
+        try {
+            logger.info("获取聊天记录请求, params: {}", params);
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("获取聊天记录失败：用户未登录");
+                return Result.failure(7112);
+            }
+            
+            // 2. 解析参数
+            String sessionId = params.get("sessionId") != null ? 
+                params.get("sessionId").toString() : null;
+            Integer page = params.get("page") != null ? 
+                Integer.parseInt(params.get("page").toString()) : 1;
+            Integer pageSize = params.get("pageSize") != null ? 
+                Integer.parseInt(params.get("pageSize").toString()) : 20;
+            
+            // 3. 验证参数
+            if (sessionId == null || sessionId.trim().isEmpty()) {
+                logger.warn("获取聊天记录失败：会话ID为空");
+                return Result.failure(7112);
+            }
+            
+            // 参数修正
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 20;
+            if (pageSize > 100) pageSize = 100;
+            
+            // 4. 验证用户是否有权限查看该会话
+            ChatSession session = sessionMapper.selectById(sessionId);
+            if (session == null) {
+                logger.warn("获取聊天记录失败：会话不存在, sessionId: {}", sessionId);
+                return Result.failure(7112);
+            }
+            
+            if (!userId.equals(session.getInitiatorId()) && !userId.equals(session.getReceiverId())) {
+                logger.warn("获取聊天记录失败：无权限访问该会话, userId: {}, sessionId: {}", userId, sessionId);
+                return Result.failure(7112);
+            }
+            
+            // 5. 查询聊天记录
+            Integer offset = (page - 1) * pageSize;
+            List<ChatMessage> messages = messageMapper.selectBySessionId(sessionId, offset, pageSize);
+            long total = messageMapper.countBySessionId(sessionId);
+            
+            // 6. 转换为VO（简化处理）
+            List<Map<String, Object>> messageList = new ArrayList<>();
+            for (ChatMessage message : messages) {
+                Map<String, Object> messageVO = new HashMap<>();
+                messageVO.put("id", message.getId());
+                messageVO.put("sessionId", message.getSessionId());
+                messageVO.put("senderId", message.getSenderId());
+                messageVO.put("receiverId", message.getReceiverId());
+                messageVO.put("content", message.getContent());
+                messageVO.put("contentType", message.getContentType());
+                messageVO.put("isRead", message.getIsRead() != null && message.getIsRead() == 1);
+                messageVO.put("createTime", message.getCreateTime());
+                
+                messageList.add(messageVO);
+            }
+            
+            // 7. 构造返回数据
+            Map<String, Object> resultData = new HashMap<>();
+            resultData.put("list", messageList);
+            resultData.put("total", total);
+            
+            logger.info("获取聊天记录成功, userId: {}, sessionId: {}, total: {}", userId, sessionId, total);
+            return Result.success(200, resultData);
+            
+        } catch (Exception e) {
+            logger.error("获取聊天记录失败，系统异常", e);
+            return Result.failure(7112);
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> createChatSession(String targetId, String targetType) {
+        try {
+            logger.info("创建聊天会话请求, targetId: {}, targetType: {}", targetId, targetType);
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("创建聊天会话失败：用户未登录");
+                return Result.failure(7113);
+            }
+            
+            // 2. 验证参数
+            if (targetId == null || targetId.trim().isEmpty()) {
+                logger.warn("创建聊天会话失败：目标用户ID为空");
+                return Result.failure(7113);
+            }
+            
+            // 3. 验证不能和自己创建会话
+            if (userId.equals(targetId)) {
+                logger.warn("创建聊天会话失败：不能和自己创建会话, userId: {}", userId);
+                return Result.failure(7113);
+            }
+            
+            // 4. 检查是否已存在会话
+            ChatSession existingSession = sessionMapper.selectByUserIds(userId, targetId);
+            if (existingSession != null) {
+                logger.info("会话已存在，返回现有会话, sessionId: {}", existingSession.getId());
+                
+                // 构造返回数据
+                Map<String, Object> sessionVO = new HashMap<>();
+                sessionVO.put("id", existingSession.getId());
+                sessionVO.put("targetUserId", targetId);
+                sessionVO.put("lastMessage", existingSession.getLastMessage());
+                sessionVO.put("lastMessageTime", existingSession.getLastMessageTime());
+                sessionVO.put("sessionType", existingSession.getSessionType());
+                sessionVO.put("createTime", existingSession.getCreateTime());
+                
+                return Result.success(7006, sessionVO);
+            }
+            
+            // 5. 创建新会话
+            ChatSession session = new ChatSession();
+            session.setId(UUID.randomUUID().toString());
+            session.setInitiatorId(userId);
+            session.setReceiverId(targetId);
+            session.setSessionType(targetType != null ? targetType : "private");
+            session.setLastMessage("");
+            session.setLastMessageTime(new Date());
+            session.setInitiatorUnread(0);
+            session.setReceiverUnread(0);
+            session.setStatus(1);
+            session.setCreateTime(new Date());
+            session.setUpdateTime(new Date());
+            
+            int result = sessionMapper.insert(session);
+            if (result <= 0) {
+                logger.error("创建聊天会话失败：数据库插入失败, userId: {}, targetId: {}", userId, targetId);
+                return Result.failure(7113);
+            }
+            
+            // 6. 构造返回数据
+            Map<String, Object> sessionVO = new HashMap<>();
+            sessionVO.put("id", session.getId());
+            sessionVO.put("targetUserId", targetId);
+            sessionVO.put("lastMessage", session.getLastMessage());
+            sessionVO.put("lastMessageTime", session.getLastMessageTime());
+            sessionVO.put("sessionType", session.getSessionType());
+            sessionVO.put("createTime", session.getCreateTime());
+            
+            logger.info("创建聊天会话成功, userId: {}, targetId: {}, sessionId: {}", 
+                    userId, targetId, session.getId());
+            return Result.success(7006, sessionVO);
+            
+        } catch (Exception e) {
+            logger.error("创建聊天会话失败，系统异常", e);
+            return Result.failure(7113);
+        }
+    }
 } 

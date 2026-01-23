@@ -235,4 +235,54 @@ public interface MessageService {
      * @return 删除结果
      */
     Result<Boolean> deleteNotification(String id);
+    
+    /**
+     * 批量标记通知为已读
+     * 路径: PUT /message/notifications/batch-read
+     * 成功码: 7004, 失败码: 7109
+     *
+     * @param ids 通知ID列表
+     * @return 标记结果
+     */
+    Result<Boolean> batchMarkNotificationsAsRead(List<Long> ids);
+    
+    /**
+     * 批量删除通知
+     * 路径: DELETE /message/notifications/batch
+     * 成功码: 7005, 失败码: 7110
+     *
+     * @param ids 通知ID列表
+     * @return 删除结果
+     */
+    Result<Boolean> batchDeleteNotifications(List<Long> ids);
+    
+    /**
+     * 获取聊天会话列表
+     * 路径: GET /message/list/sessions
+     * 成功码: 200, 失败码: 7111
+     *
+     * @return 会话列表
+     */
+    Result<Object> getChatSessions();
+    
+    /**
+     * 获取聊天记录
+     * 路径: GET /message/list/history
+     * 成功码: 200, 失败码: 7112
+     *
+     * @param params 查询参数 {sessionId, page, pageSize}
+     * @return 聊天记录
+     */
+    Result<Object> getChatHistory(Map<String, Object> params);
+    
+    /**
+     * 创建聊天会话
+     * 路径: POST /message/sessions
+     * 成功码: 7006, 失败码: 7113
+     *
+     * @param targetId 目标用户ID
+     * @param targetType 目标类型
+     * @return 创建结果
+     */
+    Result<Object> createChatSession(String targetId, String targetType);
 } 
