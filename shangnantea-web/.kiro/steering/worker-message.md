@@ -107,7 +107,7 @@ inclusion: manual
 
 #### 基础消息功能（5个接口）
 1. **getMessages** - `/message/list` - 获取消息列表 ✅ 已完成
-2. **getMessageDetail** - `/message/{id}` - 获取消息详情
+2. **getMessageDetail** - `/message/{id}` - 获取消息详情 ✅ 已完成
 3. **sendMessage** - `/message/send` - 发送消息
 4. **markAsRead** - `/message/read` - 标记已读
 5. **deleteMessages** - `/message/delete` - 删除消息
