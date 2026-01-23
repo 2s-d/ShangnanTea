@@ -119,15 +119,15 @@ inclusion: manual
 #### 店铺茶叶管理（4个接口）
 8. **addShopTea** - `/shop/{shopId}/teas` - 添加店铺茶叶 ✅ 已完成
 9. **updateShopTea** - `/shop/teas/{teaId}` - 更新店铺茶叶 ✅ 已完成
-10. **deleteShopTea** - `/shop/teas/{teaId}` - 删除店铺茶叶
-11. **toggleShopTeaStatus** - `/shop/teas/{teaId}/status` - 切换茶叶状态
+10. **deleteShopTea** - `/shop/teas/{teaId}` - 删除店铺茶叶 ✅ 已完成
+11. **toggleShopTeaStatus** - `/shop/teas/{teaId}/status` - 切换茶叶状态 ✅ 已完成
 
 #### 店铺图片管理（2个接口）
-12. **uploadShopLogo** - `/shop/{shopId}/logo` - 上传店铺Logo
-13. **getShopBanners** - `/shop/{shopId}/banners` - 获取Banner列表
+12. **uploadShopLogo** - `/shop/{shopId}/logo` - 上传店铺Logo ✅ 已完成
+13. **getShopBanners** - `/shop/{shopId}/banners` - 获取Banner列表 ✅ 已完成
 
 #### Banner管理功能（4个接口）
-14. **uploadBanner** - `/shop/{shopId}/banners` - 上传Banner
+14. **uploadBanner** - `/shop/{shopId}/banners` - 上传Banner ✅ 已完成
 15. **updateBanner** - `/shop/banners/{bannerId}` - 更新Banner
 16. **deleteBanner** - `/shop/banners/{bannerId}` - 删除Banner
 17. **updateBannerOrder** - `/shop/banners/order` - 更新Banner排序
