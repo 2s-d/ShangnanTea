@@ -47,7 +47,7 @@ public class ShopController {
     /**
      * 获取当前商家的店铺信息
      * 路径: GET /shop/my
-     * 成功码: 200, 失败码: 5100
+     * 成功码: 200, 失败码: 4105
      *
      * @return 我的店铺信息
      */
@@ -61,7 +61,7 @@ public class ShopController {
     /**
      * 获取店铺茶叶列表
      * 路径: GET /shop/{shopId}/teas
-     * 成功码: 200, 失败码: 5101
+     * 成功码: 200, 失败码: 4107
      *
      * @param shopId 店铺ID
      * @param params 查询参数（page, size等）
@@ -76,7 +76,7 @@ public class ShopController {
     /**
      * 获取店铺统计数据
      * 路径: GET /shop/{shopId}/statistics
-     * 成功码: 200, 失败码: 1102
+     * 成功码: 200, 失败码: 4106
      *
      * @param shopId 店铺ID
      * @param params 查询参数（startDate, endDate）
@@ -92,7 +92,7 @@ public class ShopController {
     /**
      * 获取店铺Banner列表
      * 路径: GET /shop/{shopId}/banners
-     * 成功码: 200, 失败码: 1102
+     * 成功码: 200, 失败码: 4116
      *
      * @param shopId 店铺ID
      * @return Banner列表
@@ -106,7 +106,7 @@ public class ShopController {
     /**
      * 获取店铺公告列表
      * 路径: GET /shop/{shopId}/announcements
-     * 成功码: 200, 失败码: 1102
+     * 成功码: 200, 失败码: 4123
      *
      * @param shopId 店铺ID
      * @return 公告列表
@@ -120,7 +120,7 @@ public class ShopController {
     /**
      * 获取店铺关注状态
      * 路径: GET /shop/{shopId}/follow-status
-     * 成功码: 200, 失败码: 1102
+     * 成功码: 200, 失败码: 4129
      *
      * @param shopId 店铺ID
      * @return 关注状态
@@ -135,7 +135,7 @@ public class ShopController {
     /**
      * 获取店铺评价列表
      * 路径: GET /shop/{shopId}/reviews
-     * 成功码: 200, 失败码: 5103
+     * 成功码: 200, 失败码: 4130
      *
      * @param shopId 店铺ID
      * @param params 查询参数（page, size）
@@ -150,11 +150,11 @@ public class ShopController {
     // ==================== 店铺管理（商家） ====================
 
     /**
-     * 创建店铺（商家认证通过后自动创建）
+     * 创建店铺
      * 路径: POST /shop/list
-     * 成功码: 1000, 失败码: 1100
+     * 成功码: 4000, 失败码: 4101
      *
-     * @param shopData 店铺数据（可选）
+     * @param shopData 店铺数据
      * @return 创建结果
      */
     @PostMapping("/list")
@@ -165,9 +165,9 @@ public class ShopController {
     }
 
     /**
-     * 更新店铺信息（商家）
+     * 更新店铺信息
      * 路径: PUT /shop/{id}
-     * 成功码: 1004, 失败码: 1100
+     * 成功码: 4001, 失败码: 4104
      *
      * @param id 店铺ID
      * @param shopData 店铺数据
@@ -183,7 +183,7 @@ public class ShopController {
     /**
      * 上传店铺Logo
      * 路径: POST /shop/{shopId}/logo
-     * 成功码: 5030, 失败码: 5130, 1103, 1104
+     * 成功码: 4007, 失败码: 4113, 4114, 4115
      *
      * @param shopId 店铺ID
      * @param file Logo文件
@@ -217,7 +217,7 @@ public class ShopController {
     /**
      * 添加茶叶到店铺
      * 路径: POST /shop/{shopId}/teas
-     * 成功码: 3026, 失败码: 3125
+     * 成功码: 4002, 失败码: 4108
      *
      * @param shopId 店铺ID
      * @param teaData 茶叶数据
@@ -233,7 +233,7 @@ public class ShopController {
     /**
      * 更新店铺茶叶
      * 路径: PUT /shop/teas/{teaId}
-     * 成功码: 3025, 失败码: 3125
+     * 成功码: 4003, 失败码: 4109
      *
      * @param teaId 茶叶ID
      * @param teaData 茶叶数据
@@ -249,7 +249,7 @@ public class ShopController {
     /**
      * 删除店铺茶叶
      * 路径: DELETE /shop/teas/{teaId}
-     * 成功码: 3024, 失败码: 3124
+     * 成功码: 4004, 失败码: 4110
      *
      * @param teaId 茶叶ID
      * @return 删除结果
