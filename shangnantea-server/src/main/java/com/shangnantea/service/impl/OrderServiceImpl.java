@@ -6,11 +6,13 @@ import com.shangnantea.common.api.Result;
 import com.shangnantea.mapper.OrderMapper;
 import com.shangnantea.mapper.ShoppingCartMapper;
 import com.shangnantea.mapper.TeaMapper;
+import com.shangnantea.mapper.TeaReviewMapper;
 import com.shangnantea.mapper.TeaSpecificationMapper;
 import com.shangnantea.mapper.UserAddressMapper;
 import com.shangnantea.model.entity.order.Order;
 import com.shangnantea.model.entity.order.ShoppingCart;
 import com.shangnantea.model.entity.tea.Tea;
+import com.shangnantea.model.entity.tea.TeaReview;
 import com.shangnantea.model.entity.tea.TeaSpecification;
 import com.shangnantea.model.entity.user.UserAddress;
 import com.shangnantea.model.vo.order.CartItemVO;
@@ -60,6 +62,9 @@ public class OrderServiceImpl implements OrderService {
     
     @Autowired
     private UserAddressMapper userAddressMapper;
+    
+    @Autowired
+    private TeaReviewMapper teaReviewMapper;
     
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
@@ -1216,6 +1221,9 @@ public class OrderServiceImpl implements OrderService {
             String orderId = (String) data.get("orderId");
             Object ratingObj = data.get("rating");
             String content = (String) data.get("content");
+            @SuppressWarnings("unchecked")
+            List<String> images = (List<String>) data.get("images"); // 评价图片列表
+            Object isAnonymousObj = data.get("isAnonymous");
             
             if (orderId == null || orderId.isEmpty()) {
                 logger.warn("评价订单失败: 订单ID为空");
@@ -1239,6 +1247,16 @@ public class OrderServiceImpl implements OrderService {
             if (rating < 1 || rating > 5) {
                 logger.warn("评价订单失败: 评分超出范围: rating={}", rating);
                 return Result.failure(5127);
+            }
+            
+            // 解析是否匿名
+            Integer isAnonymous = 0; // 默认不匿名
+            if (isAnonymousObj != null) {
+                try {
+                    isAnonymous = Integer.parseInt(isAnonymousObj.toString());
+                } catch (NumberFormatException e) {
+                    logger.warn("是否匿名参数格式错误: {}, 使用默认值0", isAnonymousObj);
+                }
             }
             
             // 3. 查询订单
@@ -1267,14 +1285,40 @@ public class OrderServiceImpl implements OrderService {
                 return Result.failure(5127);
             }
             
-            // 7. 更新订单评价状态
+            // 7. 创建茶叶评价记录
+            TeaReview review = new TeaReview();
+            review.setTeaId(order.getTeaId());
+            review.setUserId(userId);
+            review.setOrderId(orderId);
+            review.setContent(content);
+            review.setRating(rating);
+            review.setIsAnonymous(isAnonymous);
+            review.setLikeCount(0);
+            
+            // 处理评价图片（将图片列表转为JSON字符串）
+            if (images != null && !images.isEmpty()) {
+                try {
+                    String imagesJson = com.alibaba.fastjson2.JSON.toJSONString(images);
+                    review.setImages(imagesJson);
+                } catch (Exception e) {
+                    logger.warn("评价图片JSON序列化失败: {}", e.getMessage());
+                }
+            }
+            
+            review.setCreateTime(new Date());
+            review.setUpdateTime(new Date());
+            
+            // 插入评价记录到tea_review表
+            teaReviewMapper.insert(review);
+            logger.info("茶叶评价已创建: reviewId={}, teaId={}, orderId={}, rating={}", 
+                       review.getId(), review.getTeaId(), orderId, rating);
+            
+            // 8. 更新订单评价状态
             order.setBuyerRate(1); // 已评价
             order.setUpdateTime(new Date());
             
             int rows = orderMapper.updateById(order);
             if (rows > 0) {
-                // TODO: 这里应该将评价信息保存到评价表中
-                // 由于当前没有评价表，暂时只更新订单的评价状态
                 logger.info("评价订单成功: orderId={}, userId={}, rating={}", orderId, userId, rating);
                 return Result.success(5010, true); // 评价提交成功，感谢您的反馈
             } else {
