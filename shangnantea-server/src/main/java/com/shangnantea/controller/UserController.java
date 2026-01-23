@@ -1,9 +1,11 @@
 package com.shangnantea.controller;
 
 import com.shangnantea.common.api.Result;
+import com.shangnantea.model.dto.AddFollowDTO;
 import com.shangnantea.model.dto.ChangePasswordDTO;
 import com.shangnantea.model.dto.LoginDTO;
 import com.shangnantea.model.dto.RegisterDTO;
+import com.shangnantea.model.dto.SubmitShopCertificationDTO;
 import com.shangnantea.model.vo.user.TokenVO;
 import com.shangnantea.model.vo.user.UserVO;
 import com.shangnantea.security.annotation.RequiresLogin;
@@ -269,14 +271,14 @@ public class UserController {
      * 路径: POST /user/shop-certification
      * 成功码: 2011, 失败码: 2120
      *
-     * @param certificationData 认证数据
+     * @param certificationDTO 认证数据
      * @return 提交结果
      */
     @PostMapping("/shop-certification")
     @RequiresLogin
-    public Result<Boolean> submitShopCertification(@RequestBody Map<String, Object> certificationData) {
+    public Result<Boolean> submitShopCertification(@Valid @RequestBody SubmitShopCertificationDTO certificationDTO) {
         logger.info("提交商家认证申请请求");
-        return userService.submitShopCertification(certificationData);
+        return userService.submitShopCertification(certificationDTO);
     }
 
     // ==================== 用户互动功能 ====================
@@ -301,14 +303,14 @@ public class UserController {
      * 路径: POST /user/follows
      * 成功码: 2012, 失败码: 2123
      *
-     * @param followData 关注信息 {targetId, targetType}
+     * @param followDTO 关注信息
      * @return 关注结果
      */
     @PostMapping("/follows")
     @RequiresLogin
-    public Result<Boolean> addFollow(@RequestBody Map<String, Object> followData) {
+    public Result<Boolean> addFollow(@Valid @RequestBody AddFollowDTO followDTO) {
         logger.info("添加关注请求");
-        return userService.addFollow(followData);
+        return userService.addFollow(followDTO);
     }
 
     /**

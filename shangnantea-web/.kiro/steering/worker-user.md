@@ -123,15 +123,15 @@ inclusion: manual
 12. ✅ **addAddress** - `/user/addresses` - 添加地址（已完成）
 13. ✅ **updateAddress** - `/user/addresses/{id}` - 更新地址（已完成）
 14. ✅ **deleteAddress** - `/user/addresses/{id}` - 删除地址（已完成）
-15. **setDefaultAddress** - `/user/addresses/{id}/default` - 设置默认地址
+15. ✅ **setDefaultAddress** - `/user/addresses/{id}/default` - 设置默认地址（已完成）
 
 #### 商家认证功能（2个接口）
-16. **submitShopCertification** - `/user/shop-certification` - 提交商家认证
-17. **getShopCertificationStatus** - `/user/shop-certification` - 获取认证状态
+16. ✅ **submitShopCertification** - `/user/shop-certification` - 提交商家认证（已完成）
+17. ✅ **getShopCertificationStatus** - `/user/shop-certification` - 获取认证状态（已完成）
 
 #### 社交功能（8个接口）
-18. **getFollowList** - `/user/follows` - 获取关注列表
-19. **addFollow** - `/user/follows` - 添加关注
+18. ✅ **getFollowList** - `/user/follows` - 获取关注列表（已完成）
+19. ✅ **addFollow** - `/user/follows` - 添加关注（已完成）
 20. **removeFollow** - `/user/follows/{id}` - 取消关注
 21. **getFavoriteList** - `/user/favorites` - 获取收藏列表
 22. **addFavorite** - `/user/favorites` - 添加收藏
@@ -154,9 +154,9 @@ inclusion: manual
 35. **uploadCertificationImage** - `/user/merchant/certification/image` - 上传认证图片
 
 ### 接口开发进度
-- **已完成**：14/35（login, register, logout, getCurrentUser, refreshToken, getUserInfo, updateUserInfo, uploadAvatar, changePassword, resetPassword, getAddressList, addAddress, updateAddress, deleteAddress）
-- **待开发**：21/35
-- **完成率**：40.0%
+- **已完成**：19/35（login, register, logout, getCurrentUser, refreshToken, getUserInfo, updateUserInfo, uploadAvatar, changePassword, resetPassword, getAddressList, addAddress, updateAddress, deleteAddress, setDefaultAddress, submitShopCertification, getShopCertificationStatus, getFollowList, addFollow）
+- **待开发**：16/35
+- **完成率**：54.3%
 
 ### 状态码范围
 - **成功码**：2000-2024（25个成功状态码）

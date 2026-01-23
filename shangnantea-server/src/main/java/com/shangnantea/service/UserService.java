@@ -1,9 +1,11 @@
 package com.shangnantea.service;
 
 import com.shangnantea.common.api.Result;
+import com.shangnantea.model.dto.AddFollowDTO;
 import com.shangnantea.model.dto.ChangePasswordDTO;
 import com.shangnantea.model.dto.LoginDTO;
 import com.shangnantea.model.dto.RegisterDTO;
+import com.shangnantea.model.dto.SubmitShopCertificationDTO;
 import com.shangnantea.model.entity.user.User;
 import com.shangnantea.model.vo.user.TokenVO;
 import com.shangnantea.model.vo.user.UserVO;

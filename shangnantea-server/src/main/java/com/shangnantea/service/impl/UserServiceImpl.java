@@ -5,9 +5,11 @@ import com.shangnantea.mapper.ShopCertificationMapper;
 import com.shangnantea.mapper.UserAddressMapper;
 import com.shangnantea.mapper.UserFollowMapper;
 import com.shangnantea.mapper.UserMapper;
+import com.shangnantea.model.dto.AddFollowDTO;
 import com.shangnantea.model.dto.ChangePasswordDTO;
 import com.shangnantea.model.dto.LoginDTO;
 import com.shangnantea.model.dto.RegisterDTO;
+import com.shangnantea.model.dto.SubmitShopCertificationDTO;
 import com.shangnantea.model.entity.shop.ShopCertification;
 import com.shangnantea.model.entity.user.User;
 import com.shangnantea.model.entity.user.UserAddress;
@@ -869,7 +871,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Result<Boolean> submitShopCertification(Map<String, Object> certificationData) {
+    public Result<Boolean> submitShopCertification(SubmitShopCertificationDTO certificationDTO) {
         try {
             // 1. 获取当前用户ID
             String userId = UserContext.getCurrentUserId();
@@ -894,36 +896,18 @@ public class UserServiceImpl implements UserService {
             // 3. 构建认证实体
             ShopCertification certification = new ShopCertification();
             certification.setUserId(userId);
-            certification.setShopName((String) certificationData.get("shopName"));
-            certification.setBusinessLicense((String) certificationData.get("businessLicense"));
-            certification.setIdCardFront((String) certificationData.get("idCardFront"));
-            certification.setIdCardBack((String) certificationData.get("idCardBack"));
-            
-            // 可选字段
-            if (certificationData.containsKey("realName")) {
-                certification.setRealName((String) certificationData.get("realName"));
-            }
-            if (certificationData.containsKey("idCard")) {
-                certification.setIdCard((String) certificationData.get("idCard"));
-            }
-            if (certificationData.containsKey("contactPhone")) {
-                certification.setContactPhone((String) certificationData.get("contactPhone"));
-            }
-            if (certificationData.containsKey("province")) {
-                certification.setProvince((String) certificationData.get("province"));
-            }
-            if (certificationData.containsKey("city")) {
-                certification.setCity((String) certificationData.get("city"));
-            }
-            if (certificationData.containsKey("district")) {
-                certification.setDistrict((String) certificationData.get("district"));
-            }
-            if (certificationData.containsKey("address")) {
-                certification.setAddress((String) certificationData.get("address"));
-            }
-            if (certificationData.containsKey("applyReason")) {
-                certification.setApplyReason((String) certificationData.get("applyReason"));
-            }
+            certification.setShopName(certificationDTO.getShopName());
+            certification.setBusinessLicense(certificationDTO.getBusinessLicense());
+            certification.setIdCardFront(certificationDTO.getIdCardFront());
+            certification.setIdCardBack(certificationDTO.getIdCardBack());
+            certification.setRealName(certificationDTO.getRealName());
+            certification.setIdCard(certificationDTO.getIdCard());
+            certification.setContactPhone(certificationDTO.getContactPhone());
+            certification.setProvince(certificationDTO.getProvince());
+            certification.setCity(certificationDTO.getCity());
+            certification.setDistrict(certificationDTO.getDistrict());
+            certification.setAddress(certificationDTO.getAddress());
+            certification.setApplyReason(certificationDTO.getApplyReason());
             
             // 4. 设置状态为待审核
             certification.setStatus(0);
@@ -989,7 +973,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Result<Boolean> addFollow(Map<String, Object> followData) {
+    public Result<Boolean> addFollow(AddFollowDTO followDTO) {
         try {
             // 1. 获取当前用户ID
             String userId = UserContext.getCurrentUserId();
@@ -999,17 +983,8 @@ public class UserServiceImpl implements UserService {
             }
             
             // 2. 获取参数
-            String targetId = (String) followData.get("targetId");
-            String targetType = (String) followData.get("targetType");
-            
-            if (targetId == null || targetId.trim().isEmpty()) {
-                logger.warn("添加关注失败: 目标ID为空, userId: {}", userId);
-                return Result.failure(2123); // 操作失败
-            }
-            
-            if (targetType == null || targetType.trim().isEmpty()) {
-                targetType = "shop"; // 默认为店铺
-            }
+            String targetId = followDTO.getTargetId();
+            String targetType = followDTO.getTargetType();
             
             // 3. 检查是否已关注
             UserFollow existingFollow = userFollowMapper.selectByUserIdAndFollowId(userId, targetId, targetType);
@@ -1023,15 +998,8 @@ public class UserServiceImpl implements UserService {
             follow.setUserId(userId);
             follow.setFollowId(targetId);
             follow.setFollowType(targetType);
-            
-            // 可选字段
-            if (followData.containsKey("targetName")) {
-                follow.setTargetName((String) followData.get("targetName"));
-            }
-            if (followData.containsKey("targetAvatar")) {
-                follow.setTargetAvatar((String) followData.get("targetAvatar"));
-            }
-            
+            follow.setTargetName(followDTO.getTargetName());
+            follow.setTargetAvatar(followDTO.getTargetAvatar());
             follow.setCreateTime(new Date());
             
             // 5. 插入数据库
