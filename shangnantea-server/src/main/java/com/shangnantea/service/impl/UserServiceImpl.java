@@ -3,9 +3,13 @@ package com.shangnantea.service.impl;
 import com.shangnantea.common.api.Result;
 import com.shangnantea.mapper.ShopCertificationMapper;
 import com.shangnantea.mapper.UserAddressMapper;
+import com.shangnantea.mapper.UserFavoriteMapper;
 import com.shangnantea.mapper.UserFollowMapper;
+import com.shangnantea.mapper.UserLikeMapper;
 import com.shangnantea.mapper.UserMapper;
+import com.shangnantea.model.dto.AddFavoriteDTO;
 import com.shangnantea.model.dto.AddFollowDTO;
+import com.shangnantea.model.dto.AddLikeDTO;
 import com.shangnantea.model.dto.ChangePasswordDTO;
 import com.shangnantea.model.dto.LoginDTO;
 import com.shangnantea.model.dto.RegisterDTO;
@@ -13,10 +17,14 @@ import com.shangnantea.model.dto.SubmitShopCertificationDTO;
 import com.shangnantea.model.entity.shop.ShopCertification;
 import com.shangnantea.model.entity.user.User;
 import com.shangnantea.model.entity.user.UserAddress;
+import com.shangnantea.model.entity.user.UserFavorite;
 import com.shangnantea.model.entity.user.UserFollow;
+import com.shangnantea.model.entity.user.UserLike;
 import com.shangnantea.model.vo.user.AddressVO;
 import com.shangnantea.model.vo.user.CertificationStatusVO;
+import com.shangnantea.model.vo.user.FavoriteVO;
 import com.shangnantea.model.vo.user.FollowVO;
+import com.shangnantea.model.vo.user.LikeVO;
 import com.shangnantea.model.vo.user.TokenVO;
 import com.shangnantea.model.vo.user.UserVO;
 import com.shangnantea.security.context.UserContext;
@@ -60,6 +68,12 @@ public class UserServiceImpl implements UserService {
     
     @Autowired
     private UserFollowMapper userFollowMapper;
+    
+    @Autowired
+    private UserFavoriteMapper userFavoriteMapper;
+    
+    @Autowired
+    private UserLikeMapper userLikeMapper;
     
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -1018,10 +1032,58 @@ public class UserServiceImpl implements UserService {
         }
     }
     
+    /**
+     * 取消关注
+     * 成功码：2013，失败码：2124
+     */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Result<Boolean> removeFollow(String id) {
-        // TODO: 实现取消关注逻辑
-        return Result.success(5001, true);
+        try {
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("取消关注失败: 用户未登录");
+                return Result.failure(2124); // 操作失败
+            }
+            
+            // 2. 验证关注ID
+            Integer followId;
+            try {
+                followId = Integer.parseInt(id);
+            } catch (NumberFormatException e) {
+                logger.warn("取消关注失败: 关注ID格式错误, id: {}", id);
+                return Result.failure(2124); // 操作失败
+            }
+            
+            // 3. 查询关注记录是否存在
+            UserFollow existingFollow = userFollowMapper.selectById(followId);
+            if (existingFollow == null) {
+                logger.warn("取消关注失败: 关注记录不存在, followId: {}", followId);
+                return Result.failure(2124); // 操作失败
+            }
+            
+            // 4. 验证用户是否有权限删除该关注
+            if (!userId.equals(existingFollow.getUserId())) {
+                logger.warn("取消关注失败: 无权限删除该关注, userId: {}, followUserId: {}", 
+                    userId, existingFollow.getUserId());
+                return Result.failure(2124); // 操作失败
+            }
+            
+            // 5. 执行删除
+            int result = userFollowMapper.deleteById(followId);
+            if (result <= 0) {
+                logger.error("取消关注失败: 数据库删除失败, followId: {}", followId);
+                return Result.failure(2124); // 操作失败
+            }
+            
+            logger.info("取消关注成功: userId: {}, followId: {}", userId, followId);
+            return Result.success(2013, true); // 已取消关注
+            
+        } catch (Exception e) {
+            logger.error("取消关注失败: 系统异常", e);
+            return Result.failure(2124); // 操作失败
+        }
     }
     
     @Override

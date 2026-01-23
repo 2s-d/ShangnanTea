@@ -1,7 +1,9 @@
 package com.shangnantea.service;
 
 import com.shangnantea.common.api.Result;
+import com.shangnantea.model.dto.AddFavoriteDTO;
 import com.shangnantea.model.dto.AddFollowDTO;
+import com.shangnantea.model.dto.AddLikeDTO;
 import com.shangnantea.model.dto.ChangePasswordDTO;
 import com.shangnantea.model.dto.LoginDTO;
 import com.shangnantea.model.dto.RegisterDTO;
@@ -209,10 +211,10 @@ public interface UserService {
     /**
      * 添加收藏
      *
-     * @param favoriteData 收藏信息
+     * @param favoriteDTO 收藏信息
      * @return 收藏结果
      */
-    Result<Boolean> addFavorite(Map<String, Object> favoriteData);
+    Result<Boolean> addFavorite(AddFavoriteDTO favoriteDTO);
     
     /**
      * 取消收藏
@@ -225,10 +227,10 @@ public interface UserService {
     /**
      * 点赞
      *
-     * @param likeData 点赞信息
+     * @param likeDTO 点赞信息
      * @return 点赞结果
      */
-    Result<Boolean> addLike(Map<String, Object> likeData);
+    Result<Boolean> addLike(AddLikeDTO likeDTO);
     
     /**
      * 取消点赞
