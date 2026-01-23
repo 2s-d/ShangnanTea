@@ -31,7 +31,7 @@ public class OrderController {
     /**
      * 获取购物车列表
      * 路径: GET /order/cart
-     * 成功码: 200, 失败码: 4110
+     * 成功码: 200, 失败码: 5100
      *
      * @return 购物车商品列表
      */

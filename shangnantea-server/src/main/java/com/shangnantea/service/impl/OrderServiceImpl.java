@@ -5,8 +5,15 @@ import com.shangnantea.common.api.PageResult;
 import com.shangnantea.common.api.Result;
 import com.shangnantea.mapper.OrderMapper;
 import com.shangnantea.mapper.ShoppingCartMapper;
+import com.shangnantea.mapper.TeaMapper;
+import com.shangnantea.mapper.TeaSpecificationMapper;
 import com.shangnantea.model.entity.order.Order;
 import com.shangnantea.model.entity.order.ShoppingCart;
+import com.shangnantea.model.entity.tea.Tea;
+import com.shangnantea.model.entity.tea.TeaSpecification;
+import com.shangnantea.model.vo.order.CartItemVO;
+import com.shangnantea.model.vo.order.CartResponseVO;
+import com.shangnantea.security.context.UserContext;
 import com.shangnantea.service.OrderService;
 import com.shangnantea.utils.FileUploadUtils;
 import org.slf4j.Logger;
@@ -17,6 +24,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -36,6 +45,12 @@ public class OrderServiceImpl implements OrderService {
     
     @Autowired
     private ShoppingCartMapper cartMapper;
+    
+    @Autowired
+    private TeaMapper teaMapper;
+    
+    @Autowired
+    private TeaSpecificationMapper teaSpecificationMapper;
     
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
@@ -167,6 +182,90 @@ public class OrderServiceImpl implements OrderService {
     public boolean removeFromCart(Integer id) {
         // TODO: 实现删除购物车的逻辑
         return cartMapper.deleteById(id) > 0;
+    }
+    
+    @Override
+    public Result<CartResponseVO> getCartItems() {
+        logger.info("获取购物车列表请求");
+        
+        try {
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("获取购物车失败: 用户未登录");
+                return Result.failure(5100);
+            }
+            
+            // 2. 查询购物车列表
+            List<ShoppingCart> cartList = cartMapper.selectByUserId(userId);
+            if (cartList == null || cartList.isEmpty()) {
+                // 购物车为空，返回空列表
+                CartResponseVO response = new CartResponseVO();
+                response.setItems(new ArrayList<>());
+                response.setTotalPrice(BigDecimal.ZERO);
+                logger.info("获取购物车成功: 购物车为空");
+                return Result.success(200, response);
+            }
+            
+            // 3. 转换为VO并关联商品信息
+            List<CartItemVO> itemList = new ArrayList<>();
+            BigDecimal totalPrice = BigDecimal.ZERO;
+            
+            for (ShoppingCart cart : cartList) {
+                CartItemVO itemVO = new CartItemVO();
+                itemVO.setId(String.valueOf(cart.getId()));
+                itemVO.setTeaId(cart.getTeaId());
+                itemVO.setSpecId(cart.getSpecId() != null ? String.valueOf(cart.getSpecId()) : null);
+                itemVO.setQuantity(cart.getQuantity());
+                itemVO.setSelected(cart.getSelected() != null && cart.getSelected() == 1);
+                
+                // 查询商品信息
+                if (cart.getTeaId() != null) {
+                    try {
+                        Tea tea = teaMapper.selectById(Long.parseLong(cart.getTeaId()));
+                        if (tea != null) {
+                            itemVO.setTeaName(tea.getName());
+                            itemVO.setTeaImage(tea.getMainImage());
+                        }
+                    } catch (NumberFormatException e) {
+                        logger.warn("商品ID格式错误: {}", cart.getTeaId());
+                    }
+                }
+                
+                // 查询规格信息
+                if (cart.getSpecId() != null) {
+                    try {
+                        TeaSpecification spec = teaSpecificationMapper.selectById(cart.getSpecId().longValue());
+                        if (spec != null) {
+                            itemVO.setSpecName(spec.getSpecName());
+                            itemVO.setPrice(spec.getPrice());
+                            
+                            // 计算总价
+                            if (spec.getPrice() != null && cart.getQuantity() != null) {
+                                BigDecimal itemTotal = spec.getPrice().multiply(new BigDecimal(cart.getQuantity()));
+                                totalPrice = totalPrice.add(itemTotal);
+                            }
+                        }
+                    } catch (Exception e) {
+                        logger.warn("查询规格信息失败: specId={}, error={}", cart.getSpecId(), e.getMessage());
+                    }
+                }
+                
+                itemList.add(itemVO);
+            }
+            
+            // 4. 构建响应
+            CartResponseVO response = new CartResponseVO();
+            response.setItems(itemList);
+            response.setTotalPrice(totalPrice);
+            
+            logger.info("获取购物车成功: userId={}, itemCount={}, totalPrice={}", userId, itemList.size(), totalPrice);
+            return Result.success(200, response);
+            
+        } catch (Exception e) {
+            logger.error("获取购物车失败: 系统异常", e);
+            return Result.failure(5100);
+        }
     }
     
     @Override

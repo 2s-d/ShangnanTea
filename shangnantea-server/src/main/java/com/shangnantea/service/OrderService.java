@@ -5,6 +5,7 @@ import com.shangnantea.common.api.PageResult;
 import com.shangnantea.common.api.Result;
 import com.shangnantea.model.entity.order.Order;
 import com.shangnantea.model.entity.order.ShoppingCart;
+import com.shangnantea.model.vo.order.CartResponseVO;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -119,6 +120,13 @@ public interface OrderService {
      * @return 是否成功
      */
     boolean removeFromCart(Integer id);
+    
+    /**
+     * 获取购物车列表
+     *
+     * @return 购物车响应，包含商品列表和总价
+     */
+    Result<CartResponseVO> getCartItems();
     
     /**
      * 查询用户购物车
