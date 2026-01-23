@@ -13,6 +13,7 @@ import com.shangnantea.model.entity.tea.Tea;
 import com.shangnantea.model.vo.shop.ShopVO;
 import com.shangnantea.model.vo.shop.ShopDetailVO;
 import com.shangnantea.model.vo.shop.ShopStatisticsVO;
+import com.shangnantea.model.vo.TeaVO;
 import com.shangnantea.security.context.UserContext;
 import com.shangnantea.service.ShopService;
 import com.shangnantea.utils.FileUploadUtils;
@@ -682,6 +683,107 @@ public class ShopServiceImpl implements ShopService {
             logger.error("获取店铺统计数据失败: 系统异常, shopId={}", shopId, e);
             return Result.failure(4106);
         }
+    }
+    
+    @Override
+    public Result<Object> getShopTeas(String shopId, Map<String, Object> params) {
+        try {
+            logger.info("获取店铺茶叶列表请求: shopId={}, params={}", shopId, params);
+            
+            // 1. 验证店铺ID不为空
+            if (shopId == null || shopId.trim().isEmpty()) {
+                logger.warn("获取店铺茶叶列表失败: 店铺ID为空");
+                return Result.failure(4107);
+            }
+            
+            // 2. 验证店铺是否存在
+            Shop shop = getShopById(shopId);
+            if (shop == null) {
+                logger.warn("获取店铺茶叶列表失败: 店铺不存在, shopId={}", shopId);
+                return Result.failure(4107);
+            }
+            
+            // 3. 解析分页参数
+            int page = 1;
+            int size = 10;
+            if (params != null) {
+                if (params.get("page") != null) {
+                    page = Integer.parseInt(params.get("page").toString());
+                }
+                if (params.get("size") != null) {
+                    size = Integer.parseInt(params.get("size").toString());
+                }
+            }
+            
+            // 4. 参数验证和默认值设置
+            if (page < 1) {
+                page = 1;
+            }
+            if (size < 1) {
+                size = 10;
+            }
+            
+            // 5. 计算分页偏移量
+            int offset = (page - 1) * size;
+            
+            // 6. 查询茶叶列表（只返回上架的茶叶）
+            List<Tea> teaList = teaMapper.selectByShopId(shopId, offset, size);
+            
+            // 7. 查询总数
+            Long total = teaMapper.countByShopId(shopId);
+            
+            // 8. 转换为VO
+            List<TeaVO> teaVOList = teaList.stream()
+                    .map(this::convertToTeaVO)
+                    .collect(Collectors.toList());
+            
+            // 9. 构建返回数据
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("list", teaVOList);
+            responseData.put("total", total);
+            responseData.put("page", page);
+            responseData.put("pageSize", size);
+            
+            logger.info("获取店铺茶叶列表成功: shopId={}, 总记录数={}, 当前页={}, 每页={}", 
+                    shopId, total, page, size);
+            
+            // 10. 返回成功（根据code-message-mapping.md，成功码是200）
+            return Result.success(200, responseData);
+            
+        } catch (Exception e) {
+            logger.error("获取店铺茶叶列表失败: 系统异常, shopId={}", shopId, e);
+            return Result.failure(4107);
+        }
+    }
+    
+    /**
+     * 将Tea实体转换为TeaVO
+     *
+     * @param tea 茶叶实体
+     * @return 茶叶VO
+     */
+    private TeaVO convertToTeaVO(Tea tea) {
+        if (tea == null) {
+            return null;
+        }
+        
+        TeaVO teaVO = new TeaVO();
+        teaVO.setId(tea.getId());
+        teaVO.setName(tea.getName());
+        teaVO.setShopId(tea.getShopId());
+        teaVO.setCategoryId(tea.getCategoryId());
+        teaVO.setPrice(tea.getPrice());
+        teaVO.setDescription(tea.getDescription());
+        teaVO.setDetail(tea.getDetail());
+        teaVO.setOrigin(tea.getOrigin());
+        teaVO.setStock(tea.getStock());
+        teaVO.setSales(tea.getSales());
+        teaVO.setMainImage(tea.getMainImage());
+        teaVO.setStatus(tea.getStatus());
+        teaVO.setCreateTime(tea.getCreateTime());
+        teaVO.setUpdateTime(tea.getUpdateTime());
+        
+        return teaVO;
     }
 }
 } 

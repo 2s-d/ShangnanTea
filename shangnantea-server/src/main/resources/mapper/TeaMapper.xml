@@ -36,12 +36,24 @@
     </select>
     
     <!-- 根据店铺ID查询茶叶列表 -->
-    <select id="selectByShopId" resultMap="BaseResultMap" parameterType="java.lang.String">
+    <select id="selectByShopId" resultMap="BaseResultMap">
         SELECT 
         <include refid="Base_Column_List"/>
         FROM teas
-        WHERE shop_id = #{shopId,jdbcType=VARCHAR} AND is_deleted = 0
+        WHERE shop_id = #{shopId,jdbcType=VARCHAR} 
+          AND is_deleted = 0 
+          AND status = 1
         ORDER BY create_time DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+    
+    <!-- 统计店铺茶叶总数 -->
+    <select id="countByShopId" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM teas
+        WHERE shop_id = #{shopId,jdbcType=VARCHAR} 
+          AND is_deleted = 0 
+          AND status = 1
     </select>
     
     <!-- 根据分类ID查询茶叶列表 -->

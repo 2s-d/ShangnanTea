@@ -197,4 +197,34 @@ public interface ShopService {
      * @return 店铺统计数据
      */
     Result<Object> getShopStatistics(String shopId, Map<String, Object> params);
+    
+    /**
+     * 获取店铺茶叶列表
+     * 获取指定店铺的茶叶商品列表（游客可见）
+     *
+     * @param shopId 店铺ID
+     * @param params 查询参数（page, size等）
+     * @return 茶叶列表
+     */
+    Result<Object> getShopTeas(String shopId, Map<String, Object> params);
+    
+    /**
+     * 添加店铺茶叶
+     * 商家为店铺添加新的茶叶商品
+     *
+     * @param shopId 店铺ID
+     * @param teaData 茶叶数据
+     * @return 添加结果
+     */
+    Result<Object> addShopTea(String shopId, Map<String, Object> teaData);
+    
+    /**
+     * 更新店铺茶叶
+     * 商家更新店铺中的茶叶信息
+     *
+     * @param teaId 茶叶ID
+     * @param teaData 茶叶数据
+     * @return 更新结果
+     */
+    Result<Boolean> updateShopTea(String teaId, Map<String, Object> teaData);
 } 
