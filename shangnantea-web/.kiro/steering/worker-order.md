@@ -108,7 +108,7 @@ inclusion: manual
 ### 订单模块接口列表（共21个接口）
 
 #### 购物车管理（5个接口）
-1. **getCartItems** - `/order/cart` - 获取购物车
+1. **getCartItems** - `/order/cart` - 获取购物车 ✅ 已完成
 2. **addToCart** - `/order/cart/add` - 加入购物车
 3. **updateCartItem** - `/order/cart/update` - 更新购物车商品
 4. **removeFromCart** - `/order/cart/remove` - 移除购物车商品

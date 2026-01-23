@@ -37,7 +37,7 @@ public class OrderController {
      */
     @GetMapping("/cart")
     @RequiresLogin
-    public Result<Object> getCartItems() {
+    public Result<?> getCartItems() {
         logger.info("获取购物车列表请求");
         return orderService.getCartItems();
     }
