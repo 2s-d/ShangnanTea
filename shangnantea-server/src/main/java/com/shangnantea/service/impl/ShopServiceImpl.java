@@ -785,5 +785,210 @@ public class ShopServiceImpl implements ShopService {
         
         return teaVO;
     }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> addShopTea(String shopId, Map<String, Object> teaData) {
+        try {
+            logger.info("添加店铺茶叶请求: shopId={}, teaData={}", shopId, teaData);
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("添加店铺茶叶失败: 用户未登录");
+                return Result.failure(4108);
+            }
+            
+            // 2. 验证店铺ID不为空
+            if (shopId == null || shopId.trim().isEmpty()) {
+                logger.warn("添加店铺茶叶失败: 店铺ID为空");
+                return Result.failure(4108);
+            }
+            
+            // 3. 查询店铺信息
+            Shop shop = getShopById(shopId);
+            if (shop == null) {
+                logger.warn("添加店铺茶叶失败: 店铺不存在, shopId={}", shopId);
+                return Result.failure(4108);
+            }
+            
+            // 4. 验证用户是否为店铺所有者
+            if (!userId.equals(shop.getOwnerId())) {
+                logger.warn("添加店铺茶叶失败: 无权限操作, userId={}, shopId={}, ownerId={}", 
+                        userId, shopId, shop.getOwnerId());
+                return Result.failure(4108);
+            }
+            
+            // 5. 提取并验证茶叶数据
+            String name = teaData.get("name") != null ? teaData.get("name").toString() : null;
+            if (name == null || name.trim().isEmpty()) {
+                logger.warn("添加店铺茶叶失败: 茶叶名称为空");
+                return Result.failure(4108);
+            }
+            
+            // 6. 构建茶叶实体
+            Tea tea = new Tea();
+            tea.setId(UUID.randomUUID().toString().replace("-", ""));
+            tea.setShopId(shopId);
+            tea.setName(name);
+            
+            // 设置可选字段
+            if (teaData.get("categoryId") != null) {
+                tea.setCategoryId(Integer.parseInt(teaData.get("categoryId").toString()));
+            }
+            if (teaData.get("price") != null) {
+                tea.setPrice(new BigDecimal(teaData.get("price").toString()));
+            }
+            if (teaData.get("description") != null) {
+                tea.setDescription(teaData.get("description").toString());
+            }
+            if (teaData.get("detail") != null) {
+                tea.setDetail(teaData.get("detail").toString());
+            }
+            if (teaData.get("origin") != null) {
+                tea.setOrigin(teaData.get("origin").toString());
+            }
+            if (teaData.get("stock") != null) {
+                tea.setStock(Integer.parseInt(teaData.get("stock").toString()));
+            } else {
+                tea.setStock(0); // 默认库存为0
+            }
+            if (teaData.get("mainImage") != null) {
+                tea.setMainImage(teaData.get("mainImage").toString());
+            }
+            
+            // 设置默认值
+            tea.setSales(0); // 默认销量为0
+            tea.setStatus(1); // 默认上架
+            tea.setIsDeleted(0); // 未删除
+            
+            Date now = new Date();
+            tea.setCreateTime(now);
+            tea.setUpdateTime(now);
+            
+            // 7. 插入数据库
+            int result = teaMapper.insert(tea);
+            if (result <= 0) {
+                logger.error("添加店铺茶叶失败: 数据库插入失败, shopId={}", shopId);
+                return Result.failure(4108);
+            }
+            
+            logger.info("添加店铺茶叶成功: teaId={}, teaName={}, shopId={}", 
+                    tea.getId(), tea.getName(), shopId);
+            
+            // 8. 返回成功（根据code-message-mapping.md，成功码是4002）
+            return Result.success(4002, null);
+            
+        } catch (Exception e) {
+            logger.error("添加店铺茶叶失败: 系统异常, shopId={}", shopId, e);
+            return Result.failure(4108);
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Boolean> updateShopTea(String teaId, Map<String, Object> teaData) {
+        try {
+            logger.info("更新店铺茶叶请求: teaId={}, teaData={}", teaId, teaData);
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("更新店铺茶叶失败: 用户未登录");
+                return Result.failure(4109);
+            }
+            
+            // 2. 验证茶叶ID不为空
+            if (teaId == null || teaId.trim().isEmpty()) {
+                logger.warn("更新店铺茶叶失败: 茶叶ID为空");
+                return Result.failure(4109);
+            }
+            
+            // 3. 查询茶叶信息
+            Tea tea = teaMapper.selectById(teaId);
+            if (tea == null) {
+                logger.warn("更新店铺茶叶失败: 茶叶不存在, teaId={}", teaId);
+                return Result.failure(4109);
+            }
+            
+            // 4. 查询店铺信息并验证权限
+            Shop shop = getShopById(tea.getShopId());
+            if (shop == null) {
+                logger.warn("更新店铺茶叶失败: 店铺不存在, shopId={}", tea.getShopId());
+                return Result.failure(4109);
+            }
+            
+            // 5. 验证用户是否为店铺所有者
+            if (!userId.equals(shop.getOwnerId())) {
+                logger.warn("更新店铺茶叶失败: 无权限操作, userId={}, teaId={}, shopId={}, ownerId={}", 
+                        userId, teaId, tea.getShopId(), shop.getOwnerId());
+                return Result.failure(4109);
+            }
+            
+            // 6. 更新茶叶信息
+            boolean updated = false;
+            
+            if (teaData.get("name") != null) {
+                tea.setName(teaData.get("name").toString());
+                updated = true;
+            }
+            
+            if (teaData.get("categoryId") != null) {
+                tea.setCategoryId(Integer.parseInt(teaData.get("categoryId").toString()));
+                updated = true;
+            }
+            
+            if (teaData.get("price") != null) {
+                tea.setPrice(new BigDecimal(teaData.get("price").toString()));
+                updated = true;
+            }
+            
+            if (teaData.get("description") != null) {
+                tea.setDescription(teaData.get("description").toString());
+                updated = true;
+            }
+            
+            if (teaData.get("detail") != null) {
+                tea.setDetail(teaData.get("detail").toString());
+                updated = true;
+            }
+            
+            if (teaData.get("origin") != null) {
+                tea.setOrigin(teaData.get("origin").toString());
+                updated = true;
+            }
+            
+            if (teaData.get("stock") != null) {
+                tea.setStock(Integer.parseInt(teaData.get("stock").toString()));
+                updated = true;
+            }
+            
+            if (teaData.get("mainImage") != null) {
+                tea.setMainImage(teaData.get("mainImage").toString());
+                updated = true;
+            }
+            
+            // 7. 如果有更新，则保存到数据库
+            if (updated) {
+                tea.setUpdateTime(new Date());
+                int result = teaMapper.update(tea);
+                if (result <= 0) {
+                    logger.error("更新店铺茶叶失败: 数据库更新失败, teaId={}", teaId);
+                    return Result.failure(4109);
+                }
+                
+                logger.info("更新店铺茶叶成功: teaId={}, teaName={}", teaId, tea.getName());
+            } else {
+                logger.info("更新店铺茶叶: 无需更新, teaId={}", teaId);
+            }
+            
+            // 8. 返回成功（根据code-message-mapping.md，成功码是4003）
+            return Result.success(4003, true);
+            
+        } catch (Exception e) {
+            logger.error("更新店铺茶叶失败: 系统异常, teaId={}", teaId, e);
+            return Result.failure(4109);
+        }
+    }
 }
 } 
