@@ -156,10 +156,10 @@ public interface UserService {
     /**
      * 提交商家认证申请
      *
-     * @param certificationData 认证数据
+     * @param certificationDTO 认证数据
      * @return 提交结果
      */
-    Result<Boolean> submitShopCertification(Map<String, Object> certificationData);
+    Result<Boolean> submitShopCertification(SubmitShopCertificationDTO certificationDTO);
     
     /**
      * 上传商家认证图片
@@ -183,10 +183,10 @@ public interface UserService {
     /**
      * 添加关注
      *
-     * @param followData 关注信息
+     * @param followDTO 关注信息
      * @return 关注结果
      */
-    Result<Boolean> addFollow(Map<String, Object> followData);
+    Result<Boolean> addFollow(AddFollowDTO followDTO);
     
     /**
      * 取消关注
