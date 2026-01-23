@@ -221,7 +221,18 @@ public class OrderServiceImpl implements OrderService {
                 return Result.failure(5102); // 商品库存不足
             }
             
-            // 5. 检查购物车中是否已有相同商品
+            // 5. 验证购买数量上限（不能超过库存的30%）
+            int maxQuantity = (int) Math.floor(stock * 0.3);
+            if (maxQuantity < 1) {
+                maxQuantity = 1; // 至少允许购买1件
+            }
+            if (quantity > maxQuantity) {
+                logger.warn("添加购物车失败: 超过购买数量上限: quantity={}, maxQuantity={}, stock={}", 
+                           quantity, maxQuantity, stock);
+                return Result.failure(5103); // 已达到购买数量上限
+            }
+            
+            // 6. 检查购物车中是否已有相同商品
             ShoppingCart existingCart = cartMapper.selectByUserIdAndTeaIdAndSpecId(userId, teaId, specId);
             
             if (existingCart != null) {
@@ -232,6 +243,13 @@ public class OrderServiceImpl implements OrderService {
                 if (stock < newQuantity) {
                     logger.warn("添加购物车失败: 更新后库存不足: stock={}, newQuantity={}", stock, newQuantity);
                     return Result.failure(5102);
+                }
+                
+                // 再次验证购买数量上限
+                if (newQuantity > maxQuantity) {
+                    logger.warn("添加购物车失败: 更新后超过购买数量上限: newQuantity={}, maxQuantity={}, stock={}", 
+                               newQuantity, maxQuantity, stock);
+                    return Result.failure(5103);
                 }
                 
                 existingCart.setQuantity(newQuantity);
