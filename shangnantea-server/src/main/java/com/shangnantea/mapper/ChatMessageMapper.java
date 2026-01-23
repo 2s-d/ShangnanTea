@@ -29,4 +29,12 @@ public interface ChatMessageMapper extends BaseMapper<ChatMessage, Long> {
      * @return 数量
      */
     long countByUserId(@Param("userId") String userId);
+    
+    /**
+     * 统计用户的未读聊天消息数量
+     *
+     * @param userId 用户ID
+     * @return 未读数量
+     */
+    long countUnreadByUserId(@Param("userId") String userId);
 } 

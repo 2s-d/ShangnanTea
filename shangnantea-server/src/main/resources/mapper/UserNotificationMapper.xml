@@ -110,4 +110,14 @@
             AND type = #{type}
         </if>
     </select>
+
+    <!-- 统计用户的未读通知数量 -->
+    <select id="countUnreadByUserIdAndType" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM user_notifications
+        WHERE user_id = #{userId} AND (is_read IS NULL OR is_read = 0)
+        <if test="type != null and type != ''">
+            AND type = #{type}
+        </if>
+    </select>
 </mapper> 

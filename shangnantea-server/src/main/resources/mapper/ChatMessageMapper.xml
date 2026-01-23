@@ -99,4 +99,11 @@
         FROM chat_messages
         WHERE sender_id = #{userId} OR receiver_id = #{userId}
     </select>
+
+    <!-- 统计用户的未读聊天消息数量 -->
+    <select id="countUnreadByUserId" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM chat_messages
+        WHERE receiver_id = #{userId} AND (is_read IS NULL OR is_read = 0)
+    </select>
 </mapper> 

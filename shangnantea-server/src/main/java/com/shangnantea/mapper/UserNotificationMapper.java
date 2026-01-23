@@ -31,4 +31,13 @@ public interface UserNotificationMapper extends BaseMapper<UserNotification, Lon
      * @return 数量
      */
     long countByUserIdAndType(@Param("userId") String userId, @Param("type") String type);
+    
+    /**
+     * 统计用户的未读通知数量
+     *
+     * @param userId 用户ID
+     * @param type 通知类型（可选）
+     * @return 未读数量
+     */
+    long countUnreadByUserIdAndType(@Param("userId") String userId, @Param("type") String type);
 } 

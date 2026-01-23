@@ -10,6 +10,7 @@ import com.shangnantea.model.entity.message.ChatMessage;
 import com.shangnantea.model.entity.message.ChatSession;
 import com.shangnantea.model.entity.message.UserNotification;
 import com.shangnantea.model.vo.message.MessageVO;
+import com.shangnantea.model.vo.message.UnreadCountVO;
 import com.shangnantea.security.context.UserContext;
 import com.shangnantea.service.MessageService;
 import com.shangnantea.utils.FileUploadUtils;
@@ -638,6 +639,148 @@ public class MessageServiceImpl implements MessageService {
         } catch (Exception e) {
             logger.error("标记消息已读失败，系统异常", e);
             return Result.failure(7103);
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> deleteMessages(Map<String, Object> data) {
+        try {
+            logger.info("删除消息请求, data: {}", data);
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("删除消息失败：用户未登录");
+                return Result.failure(7104);
+            }
+            
+            // 2. 提取并验证参数
+            Object messageIdsObj = data.get("messageIds");
+            if (messageIdsObj == null) {
+                logger.warn("删除消息失败：消息ID列表为空");
+                return Result.failure(7104);
+            }
+            
+            // 3. 转换消息ID列表
+            List<Long> messageIds = new ArrayList<>();
+            if (messageIdsObj instanceof List) {
+                List<?> list = (List<?>) messageIdsObj;
+                if (list.isEmpty()) {
+                    logger.warn("删除消息失败：消息ID列表为空");
+                    return Result.failure(7104);
+                }
+                for (Object obj : list) {
+                    try {
+                        if (obj instanceof Number) {
+                            messageIds.add(((Number) obj).longValue());
+                        } else {
+                            messageIds.add(Long.parseLong(obj.toString()));
+                        }
+                    } catch (NumberFormatException e) {
+                        logger.warn("删除消息失败：无效的消息ID, id: {}", obj);
+                        return Result.failure(7104);
+                    }
+                }
+            } else {
+                logger.warn("删除消息失败：消息ID列表格式错误");
+                return Result.failure(7104);
+            }
+            
+            // 4. 批量删除消息
+            int successCount = 0;
+            
+            for (Long messageId : messageIds) {
+                // 先尝试从ChatMessage表查询
+                ChatMessage chatMessage = messageMapper.selectById(messageId);
+                if (chatMessage != null) {
+                    // 验证权限：用户必须是发送者或接收者
+                    if (!userId.equals(chatMessage.getSenderId()) && !userId.equals(chatMessage.getReceiverId())) {
+                        logger.warn("删除消息失败：无权限删除该消息, userId: {}, messageId: {}", userId, messageId);
+                        continue; // 跳过无权限的消息
+                    }
+                    
+                    // 删除消息
+                    int result = messageMapper.deleteById(messageId);
+                    if (result > 0) {
+                        successCount++;
+                        logger.debug("聊天消息已删除, messageId: {}", messageId);
+                    }
+                    continue;
+                }
+                
+                // 如果不是聊天消息，尝试从UserNotification表查询
+                UserNotification notification = notificationMapper.selectById(messageId);
+                if (notification != null) {
+                    // 验证权限：用户必须是接收者
+                    if (!userId.equals(notification.getUserId())) {
+                        logger.warn("删除消息失败：无权限删除该通知, userId: {}, messageId: {}", userId, messageId);
+                        continue; // 跳过无权限的通知
+                    }
+                    
+                    // 删除通知
+                    int result = notificationMapper.deleteById(messageId);
+                    if (result > 0) {
+                        successCount++;
+                        logger.debug("通知已删除, messageId: {}", messageId);
+                    }
+                    continue;
+                }
+                
+                // 消息不存在
+                logger.warn("删除消息失败：消息不存在, messageId: {}", messageId);
+            }
+            
+            // 5. 判断是否全部失败
+            if (successCount == 0) {
+                logger.warn("删除消息失败：没有成功删除任何消息, userId: {}", userId);
+                return Result.failure(7104);
+            }
+            
+            logger.info("删除消息成功, userId: {}, 成功数量: {}/{}", userId, successCount, messageIds.size());
+            return Result.success(7002, null);
+            
+        } catch (Exception e) {
+            logger.error("删除消息失败，系统异常", e);
+            return Result.failure(7104);
+        }
+    }
+    
+    @Override
+    public Result<Object> getUnreadCount() {
+        try {
+            logger.info("获取未读消息数量请求");
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("获取未读消息数量失败：用户未登录");
+                return Result.failure(7105);
+            }
+            
+            // 2. 统计聊天消息未读数量
+            long chatUnreadCount = messageMapper.countUnreadByUserId(userId);
+            
+            // 3. 统计系统通知未读数量
+            long systemUnreadCount = notificationMapper.countUnreadByUserIdAndType(userId, null);
+            
+            // 4. 计算总数
+            long totalUnreadCount = chatUnreadCount + systemUnreadCount;
+            
+            // 5. 构造返回数据
+            UnreadCountVO vo = new UnreadCountVO(
+                (int) totalUnreadCount,
+                (int) systemUnreadCount,
+                (int) chatUnreadCount
+            );
+            
+            logger.info("获取未读消息数量成功, userId: {}, total: {}, system: {}, chat: {}", 
+                    userId, totalUnreadCount, systemUnreadCount, chatUnreadCount);
+            return Result.success(200, vo);
+            
+        } catch (Exception e) {
+            logger.error("获取未读消息数量失败，系统异常", e);
+            return Result.failure(7105);
         }
     }
 } 

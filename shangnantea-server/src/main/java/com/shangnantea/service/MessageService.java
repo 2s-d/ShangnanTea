@@ -186,4 +186,23 @@ public interface MessageService {
      * @return 标记结果
      */
     Result<Object> markAsRead(Map<String, Object> data);
+    
+    /**
+     * 删除消息
+     * 路径: POST /message/delete
+     * 成功码: 7002, 失败码: 7104
+     *
+     * @param data 消息ID数据 {messageIds}
+     * @return 删除结果
+     */
+    Result<Object> deleteMessages(Map<String, Object> data);
+    
+    /**
+     * 获取未读消息数量
+     * 路径: GET /message/unread-count
+     * 成功码: 200, 失败码: 7105
+     *
+     * @return 未读消息数量
+     */
+    Result<Object> getUnreadCount();
 } 
