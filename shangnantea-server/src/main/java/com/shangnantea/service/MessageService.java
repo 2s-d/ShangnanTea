@@ -3,11 +3,9 @@ package com.shangnantea.service;
 import com.shangnantea.common.api.PageParam;
 import com.shangnantea.common.api.PageResult;
 import com.shangnantea.common.api.Result;
-import com.shangnantea.model.dto.message.MessageQueryDTO;
 import com.shangnantea.model.entity.message.ChatMessage;
 import com.shangnantea.model.entity.message.ChatSession;
 import com.shangnantea.model.entity.message.UserNotification;
-import com.shangnantea.model.vo.message.MessageVO;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
