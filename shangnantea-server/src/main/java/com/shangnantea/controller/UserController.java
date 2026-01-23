@@ -82,7 +82,7 @@ public class UserController {
     /**
      * 刷新令牌
      * 路径: POST /user/refresh
-     * 成功码: 200, 失败码: 2102, 2103
+     * 成功码: 200, 失败码: 2105, 2106
      *
      * @param request HTTP请求
      * @return 刷新结果

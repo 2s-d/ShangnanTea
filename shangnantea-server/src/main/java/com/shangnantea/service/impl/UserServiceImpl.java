@@ -180,10 +180,52 @@ public class UserServiceImpl implements UserService {
         }
     }
     
+    /**
+     * 刷新令牌
+     * 成功码：200，失败码：2105, 2106
+     */
     @Override
     public Result<TokenVO> refreshToken(HttpServletRequest request) {
-        // TODO: 实现刷新令牌逻辑
-        return Result.success(200);
+        try {
+            // 从UserContext获取当前用户ID（@RequiresLogin注解已验证token）
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("刷新令牌失败: 用户未登录");
+                return Result.failure(2106); // 您的登录已过期，请重新登录
+            }
+            
+            // 查询用户信息
+            User user = getUserEntityById(userId);
+            if (user == null) {
+                logger.warn("刷新令牌失败: 用户不存在, userId: {}", userId);
+                return Result.failure(2105); // 刷新令牌失败
+            }
+            
+            // 检查用户状态
+            if (user.getStatus() != null && user.getStatus() == 0) {
+                logger.warn("刷新令牌失败: 用户已被禁用, userId: {}", userId);
+                return Result.failure(2105); // 刷新令牌失败
+            }
+            
+            // 生成新的JWT token
+            String newToken = jwtUtil.generateToken(user);
+            if (newToken == null) {
+                logger.error("刷新令牌失败: Token生成失败, userId: {}", userId);
+                return Result.failure(2105); // 刷新令牌失败
+            }
+            
+            // 构建TokenVO
+            TokenVO tokenVO = new TokenVO();
+            tokenVO.setToken(newToken);
+            tokenVO.setUserInfo(convertToUserVO(user));
+            
+            logger.info("刷新令牌成功: userId: {}, username: {}", userId, user.getUsername());
+            return Result.success(200, tokenVO); // 刷新成功（静默）
+            
+        } catch (Exception e) {
+            logger.error("刷新令牌失败: 系统异常", e);
+            return Result.failure(2105); // 刷新令牌失败
+        }
     }
     
     // ==================== 用户信息管理 ====================
