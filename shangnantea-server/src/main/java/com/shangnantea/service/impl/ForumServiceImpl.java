@@ -1143,4 +1143,169 @@ public class ForumServiceImpl implements ForumService {
             return Result.failure(6115); // 获取版块详情失败
         }
     }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> createTopic(Map<String, Object> data) {
+        try {
+            logger.info("创建版块请求: {}", data);
+            
+            // 1. 解析请求数据
+            String name = (String) data.get("name");
+            String description = (String) data.get("description");
+            String icon = (String) data.get("icon");
+            String cover = (String) data.get("cover");
+            Integer sortOrder = data.get("sortOrder") != null ? 
+                    Integer.parseInt(data.get("sortOrder").toString()) : 0;
+            
+            // 2. 验证版块名称是否重复
+            List<ForumTopic> allTopics = topicMapper.selectAll();
+            boolean nameExists = allTopics.stream()
+                    .anyMatch(topic -> name != null && name.equals(topic.getName()));
+            
+            if (nameExists) {
+                logger.warn("创建版块失败: 版块名称已存在, name: {}", name);
+                return Result.failure(6116); // 添加版块失败
+            }
+            
+            // 3. 创建版块实体
+            ForumTopic topic = new ForumTopic();
+            topic.setName(name);
+            topic.setDescription(description);
+            topic.setIcon(icon);
+            topic.setCover(cover);
+            topic.setSortOrder(sortOrder);
+            topic.setPostCount(0); // 初始帖子数为0
+            topic.setStatus(1); // 1=启用
+            topic.setCreateTime(new Date());
+            topic.setUpdateTime(new Date());
+            
+            // 4. 保存到数据库
+            int result = topicMapper.insert(topic);
+            if (result <= 0) {
+                logger.error("创建版块失败: 数据库插入失败");
+                return Result.failure(6116); // 添加版块失败
+            }
+            
+            logger.info("创建版块成功: id={}, name={}", topic.getId(), name);
+            return Result.success(6008, null); // 添加版块成功
+            
+        } catch (Exception e) {
+            logger.error("创建版块失败: 系统异常", e);
+            return Result.failure(6116); // 添加版块失败
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> updateTopic(String id, Map<String, Object> data) {
+        try {
+            logger.info("更新版块请求: id={}, data={}", id, data);
+            
+            // 1. 查询版块是否存在
+            Integer topicId = Integer.parseInt(id);
+            ForumTopic topic = topicMapper.selectById(topicId);
+            
+            if (topic == null) {
+                logger.warn("更新版块失败: 版块不存在, id: {}", id);
+                return Result.failure(6117); // 更新版块失败
+            }
+            
+            // 2. 如果要更新名称，验证名称是否与其他版块重复
+            if (data.containsKey("name")) {
+                String newName = (String) data.get("name");
+                List<ForumTopic> allTopics = topicMapper.selectAll();
+                boolean nameExists = allTopics.stream()
+                        .anyMatch(t -> !t.getId().equals(topicId) && 
+                                newName != null && newName.equals(t.getName()));
+                
+                if (nameExists) {
+                    logger.warn("更新版块失败: 版块名称已存在, name: {}", newName);
+                    return Result.failure(6117); // 更新版块失败
+                }
+                topic.setName(newName);
+            }
+            
+            // 3. 更新版块信息
+            if (data.containsKey("description")) {
+                topic.setDescription((String) data.get("description"));
+            }
+            if (data.containsKey("icon")) {
+                topic.setIcon((String) data.get("icon"));
+            }
+            if (data.containsKey("cover")) {
+                topic.setCover((String) data.get("cover"));
+            }
+            if (data.containsKey("sortOrder")) {
+                Object sortOrderObj = data.get("sortOrder");
+                if (sortOrderObj != null) {
+                    topic.setSortOrder(Integer.parseInt(sortOrderObj.toString()));
+                }
+            }
+            if (data.containsKey("status")) {
+                Object statusObj = data.get("status");
+                if (statusObj != null) {
+                    topic.setStatus(Integer.parseInt(statusObj.toString()));
+                }
+            }
+            topic.setUpdateTime(new Date());
+            
+            // 4. 保存到数据库
+            int result = topicMapper.updateById(topic);
+            if (result <= 0) {
+                logger.error("更新版块失败: 数据库更新失败, id: {}", id);
+                return Result.failure(6117); // 更新版块失败
+            }
+            
+            logger.info("更新版块成功: id={}", id);
+            return Result.success(6009, null); // 更新版块成功
+            
+        } catch (NumberFormatException e) {
+            logger.error("更新版块失败: ID格式错误, id: {}", id, e);
+            return Result.failure(6117); // 更新版块失败
+        } catch (Exception e) {
+            logger.error("更新版块失败: 系统异常, id: {}", id, e);
+            return Result.failure(6117); // 更新版块失败
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Boolean> deleteTopic(String id) {
+        try {
+            logger.info("删除版块请求: id={}", id);
+            
+            // 1. 查询版块是否存在
+            Integer topicId = Integer.parseInt(id);
+            ForumTopic topic = topicMapper.selectById(topicId);
+            
+            if (topic == null) {
+                logger.warn("删除版块失败: 版块不存在, id: {}", id);
+                return Result.failure(6118); // 删除版块失败
+            }
+            
+            // 2. 检查版块下是否还有帖子
+            if (topic.getPostCount() != null && topic.getPostCount() > 0) {
+                logger.warn("删除版块失败: 版块下还有{}个帖子, id: {}", topic.getPostCount(), id);
+                return Result.failure(6118); // 删除版块失败（版块下还有帖子）
+            }
+            
+            // 3. 删除版块
+            int result = topicMapper.deleteById(topicId);
+            if (result <= 0) {
+                logger.error("删除版块失败: 数据库删除失败, id: {}", id);
+                return Result.failure(6118); // 删除版块失败
+            }
+            
+            logger.info("删除版块成功: id={}", id);
+            return Result.success(6010, true); // 删除版块成功
+            
+        } catch (NumberFormatException e) {
+            logger.error("删除版块失败: ID格式错误, id: {}", id, e);
+            return Result.failure(6118); // 删除版块失败
+        } catch (Exception e) {
+            logger.error("删除版块失败: 系统异常, id: {}", id, e);
+            return Result.failure(6118); // 删除版块失败
+        }
+    }
 } 
