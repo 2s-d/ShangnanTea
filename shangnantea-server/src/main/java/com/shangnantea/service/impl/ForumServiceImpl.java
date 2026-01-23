@@ -16,6 +16,8 @@ import com.shangnantea.model.entity.forum.TeaArticle;
 import com.shangnantea.model.vo.forum.ArticleDetailVO;
 import com.shangnantea.model.vo.forum.ArticleVO;
 import com.shangnantea.model.vo.forum.ForumHomeVO;
+import com.shangnantea.model.vo.forum.TopicDetailVO;
+import com.shangnantea.model.vo.forum.TopicVO;
 import com.shangnantea.service.ForumService;
 import com.shangnantea.utils.FileUploadUtils;
 import org.slf4j.Logger;
@@ -862,6 +864,283 @@ public class ForumServiceImpl implements ForumService {
         } catch (Exception e) {
             logger.error("获取文章详情失败: 系统异常, id: {}", id, e);
             return Result.failure(6110); // 获取文章详情失败
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> createArticle(Map<String, Object> data) {
+        try {
+            logger.info("创建文章请求: {}", data);
+            
+            // 1. 解析请求数据
+            String title = (String) data.get("title");
+            String subtitle = (String) data.get("subtitle");
+            String content = (String) data.get("content");
+            String summary = (String) data.get("summary");
+            String coverImage = (String) data.get("coverImage");
+            String category = (String) data.get("category");
+            String tags = (String) data.get("tags");
+            String source = (String) data.get("source");
+            
+            // 2. 创建文章实体
+            TeaArticle article = new TeaArticle();
+            article.setTitle(title);
+            article.setSubtitle(subtitle);
+            article.setContent(content);
+            article.setSummary(summary);
+            article.setCoverImage(coverImage);
+            article.setCategory(category);
+            article.setTags(tags);
+            article.setSource(source);
+            article.setAuthor("管理员"); // 默认作者
+            article.setViewCount(0);
+            article.setLikeCount(0);
+            article.setFavoriteCount(0);
+            article.setIsTop(0);
+            article.setIsRecommend(0);
+            article.setStatus(1); // 1=已发布
+            article.setPublishTime(new Date());
+            article.setCreateTime(new Date());
+            article.setUpdateTime(new Date());
+            
+            // 3. 保存到数据库
+            articleMapper.insert(article);
+            
+            // 4. 构造返回VO
+            ArticleVO vo = new ArticleVO();
+            vo.setId(article.getId());
+            vo.setTitle(article.getTitle());
+            vo.setSummary(article.getSummary());
+            vo.setCoverImage(article.getCoverImage());
+            vo.setAuthorName(article.getAuthor());
+            vo.setCategory(article.getCategory());
+            vo.setViewCount(article.getViewCount());
+            vo.setLikeCount(article.getLikeCount());
+            vo.setIsTop(article.getIsTop());
+            vo.setIsRecommend(article.getIsRecommend());
+            vo.setPublishTime(article.getPublishTime());
+            vo.setCreateTime(article.getCreateTime());
+            
+            logger.info("创建文章成功: id={}", article.getId());
+            return Result.success(6005, vo); // 文章创建成功
+            
+        } catch (Exception e) {
+            logger.error("创建文章失败: 系统异常", e);
+            return Result.failure(6111); // 文章创建失败
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> updateArticle(String id, Map<String, Object> data) {
+        try {
+            logger.info("更新文章请求: id={}, data={}", id, data);
+            
+            // 1. 查询文章是否存在
+            Long articleId = Long.parseLong(id);
+            TeaArticle article = articleMapper.selectById(articleId);
+            
+            if (article == null) {
+                logger.warn("更新文章失败: 文章不存在, id: {}", id);
+                return Result.failure(6112); // 文章更新失败
+            }
+            
+            // 2. 更新文章信息
+            if (data.containsKey("title")) {
+                article.setTitle((String) data.get("title"));
+            }
+            if (data.containsKey("subtitle")) {
+                article.setSubtitle((String) data.get("subtitle"));
+            }
+            if (data.containsKey("content")) {
+                article.setContent((String) data.get("content"));
+            }
+            if (data.containsKey("summary")) {
+                article.setSummary((String) data.get("summary"));
+            }
+            if (data.containsKey("coverImage")) {
+                article.setCoverImage((String) data.get("coverImage"));
+            }
+            if (data.containsKey("category")) {
+                article.setCategory((String) data.get("category"));
+            }
+            if (data.containsKey("tags")) {
+                article.setTags((String) data.get("tags"));
+            }
+            if (data.containsKey("source")) {
+                article.setSource((String) data.get("source"));
+            }
+            article.setUpdateTime(new Date());
+            
+            // 3. 保存到数据库
+            int result = articleMapper.updateById(article);
+            if (result <= 0) {
+                logger.error("更新文章失败: 数据库更新失败, id: {}", id);
+                return Result.failure(6112); // 文章更新失败
+            }
+            
+            // 4. 构造返回VO
+            ArticleVO vo = new ArticleVO();
+            vo.setId(article.getId());
+            vo.setTitle(article.getTitle());
+            vo.setSummary(article.getSummary());
+            vo.setCoverImage(article.getCoverImage());
+            vo.setAuthorName(article.getAuthor());
+            vo.setCategory(article.getCategory());
+            vo.setViewCount(article.getViewCount());
+            vo.setLikeCount(article.getLikeCount());
+            vo.setIsTop(article.getIsTop());
+            vo.setIsRecommend(article.getIsRecommend());
+            vo.setPublishTime(article.getPublishTime());
+            vo.setCreateTime(article.getCreateTime());
+            
+            logger.info("更新文章成功: id={}", id);
+            return Result.success(6006, vo); // 文章更新成功
+            
+        } catch (NumberFormatException e) {
+            logger.error("更新文章失败: ID格式错误, id: {}", id, e);
+            return Result.failure(6112); // 文章更新失败
+        } catch (Exception e) {
+            logger.error("更新文章失败: 系统异常, id: {}", id, e);
+            return Result.failure(6112); // 文章更新失败
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Boolean> deleteArticle(String id) {
+        try {
+            logger.info("删除文章请求: id={}", id);
+            
+            // 1. 查询文章是否存在
+            Long articleId = Long.parseLong(id);
+            TeaArticle article = articleMapper.selectById(articleId);
+            
+            if (article == null) {
+                logger.warn("删除文章失败: 文章不存在, id: {}", id);
+                return Result.failure(6113); // 文章删除失败
+            }
+            
+            // 2. 软删除：更新状态为已删除
+            article.setStatus(2); // 2=已删除
+            article.setUpdateTime(new Date());
+            int result = articleMapper.updateById(article);
+            
+            if (result <= 0) {
+                logger.error("删除文章失败: 数据库更新失败, id: {}", id);
+                return Result.failure(6113); // 文章删除失败
+            }
+            
+            logger.info("删除文章成功: id={}", id);
+            return Result.success(6007, true); // 文章已删除
+            
+        } catch (NumberFormatException e) {
+            logger.error("删除文章失败: ID格式错误, id: {}", id, e);
+            return Result.failure(6113); // 文章删除失败
+        } catch (Exception e) {
+            logger.error("删除文章失败: 系统异常, id: {}", id, e);
+            return Result.failure(6113); // 文章删除失败
+        }
+    }
+    
+    @Override
+    public Result<Object> getForumTopics() {
+        try {
+            logger.info("获取版块列表请求");
+            
+            // 1. 查询所有启用的版块（status=1）
+            List<ForumTopic> allTopics = topicMapper.selectAll();
+            List<TopicVO> topicVOList = allTopics.stream()
+                    .filter(topic -> topic.getStatus() != null && topic.getStatus() == 1)
+                    .sorted((a, b) -> {
+                        // 按sortOrder升序排序
+                        Integer orderA = a.getSortOrder() != null ? a.getSortOrder() : 0;
+                        Integer orderB = b.getSortOrder() != null ? b.getSortOrder() : 0;
+                        return orderA.compareTo(orderB);
+                    })
+                    .map(topic -> {
+                        TopicVO vo = new TopicVO();
+                        vo.setId(topic.getId());
+                        vo.setName(topic.getName());
+                        vo.setDescription(topic.getDescription());
+                        // 生成图标访问URL
+                        String icon = topic.getIcon();
+                        if (icon != null && !icon.isEmpty()) {
+                            icon = FileUploadUtils.generateAccessUrl(icon, baseUrl);
+                        }
+                        vo.setIcon(icon);
+                        // 生成封面访问URL
+                        String cover = topic.getCover();
+                        if (cover != null && !cover.isEmpty()) {
+                            cover = FileUploadUtils.generateAccessUrl(cover, baseUrl);
+                        }
+                        vo.setCover(cover);
+                        vo.setSortOrder(topic.getSortOrder());
+                        vo.setPostCount(topic.getPostCount() != null ? topic.getPostCount() : 0);
+                        vo.setCreateTime(topic.getCreateTime());
+                        return vo;
+                    })
+                    .collect(Collectors.toList());
+            
+            logger.info("获取版块列表成功，共{}个版块", topicVOList.size());
+            return Result.success(200, topicVOList); // 成功码200
+            
+        } catch (Exception e) {
+            logger.error("获取版块列表失败: 系统异常", e);
+            return Result.failure(6114); // 获取版块列表失败
+        }
+    }
+    
+    @Override
+    public Result<Object> getTopicDetail(String id) {
+        try {
+            logger.info("获取版块详情请求: id={}", id);
+            
+            // 1. 查询版块
+            Integer topicId = Integer.parseInt(id);
+            ForumTopic topic = topicMapper.selectById(topicId);
+            
+            if (topic == null) {
+                logger.warn("获取版块详情失败: 版块不存在, id: {}", id);
+                return Result.failure(6115); // 获取版块详情失败
+            }
+            
+            // 2. 构造返回VO
+            TopicDetailVO vo = new TopicDetailVO();
+            vo.setId(topic.getId());
+            vo.setName(topic.getName());
+            vo.setDescription(topic.getDescription());
+            // 生成图标访问URL
+            String icon = topic.getIcon();
+            if (icon != null && !icon.isEmpty()) {
+                icon = FileUploadUtils.generateAccessUrl(icon, baseUrl);
+            }
+            vo.setIcon(icon);
+            // 生成封面访问URL
+            String cover = topic.getCover();
+            if (cover != null && !cover.isEmpty()) {
+                cover = FileUploadUtils.generateAccessUrl(cover, baseUrl);
+            }
+            vo.setCover(cover);
+            vo.setUserId(topic.getUserId());
+            vo.setModeratorName("版主"); // TODO: 从用户表查询版主名称
+            vo.setSortOrder(topic.getSortOrder());
+            vo.setPostCount(topic.getPostCount() != null ? topic.getPostCount() : 0);
+            vo.setTodayPostCount(0); // TODO: 统计今日帖子数
+            vo.setStatus(topic.getStatus());
+            vo.setCreateTime(topic.getCreateTime());
+            vo.setUpdateTime(topic.getUpdateTime());
+            
+            logger.info("获取版块详情成功: id={}", id);
+            return Result.success(200, vo); // 成功码200
+            
+        } catch (NumberFormatException e) {
+            logger.error("获取版块详情失败: ID格式错误, id: {}", id, e);
+            return Result.failure(6115); // 获取版块详情失败
+        } catch (Exception e) {
+            logger.error("获取版块详情失败: 系统异常, id: {}", id, e);
+            return Result.failure(6115); // 获取版块详情失败
         }
     }
 } 

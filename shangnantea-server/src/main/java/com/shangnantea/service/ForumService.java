@@ -311,4 +311,85 @@ public interface ForumService {
      * @return 文章详情
      */
     Result<Object> getArticleDetail(String id);
+    
+    /**
+     * 创建文章（管理员）
+     * 路径: POST /forum/articles
+     * 成功码: 6005, 失败码: 6111
+     *
+     * @param data 文章数据
+     * @return 创建结果
+     */
+    Result<Object> createArticle(Map<String, Object> data);
+    
+    /**
+     * 更新文章（管理员）
+     * 路径: PUT /forum/articles/{id}
+     * 成功码: 6006, 失败码: 6112
+     *
+     * @param id 文章ID
+     * @param data 文章数据
+     * @return 更新结果
+     */
+    Result<Object> updateArticle(String id, Map<String, Object> data);
+    
+    /**
+     * 删除文章（管理员）
+     * 路径: DELETE /forum/articles/{id}
+     * 成功码: 6007, 失败码: 6113
+     *
+     * @param id 文章ID
+     * @return 删除结果
+     */
+    Result<Boolean> deleteArticle(String id);
+    
+    /**
+     * 获取版块列表
+     * 路径: GET /forum/topics
+     * 成功码: 200, 失败码: 6114
+     *
+     * @return 版块列表
+     */
+    Result<Object> getForumTopics();
+    
+    /**
+     * 获取版块详情
+     * 路径: GET /forum/topics/{id}
+     * 成功码: 200, 失败码: 6115
+     *
+     * @param id 版块ID
+     * @return 版块详情
+     */
+    Result<Object> getTopicDetail(String id);
+    
+    /**
+     * 创建版块（管理员）
+     * 路径: POST /forum/topics
+     * 成功码: 6008, 失败码: 6116
+     *
+     * @param data 版块数据
+     * @return 创建结果
+     */
+    Result<Object> createTopic(Map<String, Object> data);
+    
+    /**
+     * 更新版块（管理员）
+     * 路径: PUT /forum/topics/{id}
+     * 成功码: 6009, 失败码: 6117
+     *
+     * @param id 版块ID
+     * @param data 版块数据
+     * @return 更新结果
+     */
+    Result<Object> updateTopic(String id, Map<String, Object> data);
+    
+    /**
+     * 删除版块（管理员）
+     * 路径: DELETE /forum/topics/{id}
+     * 成功码: 6010, 失败码: 6118
+     *
+     * @param id 版块ID
+     * @return 删除结果
+     */
+    Result<Boolean> deleteTopic(String id);
 } 
