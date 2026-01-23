@@ -35,4 +35,20 @@
         ORDER BY sort_order ASC, create_time DESC
     </select>
     
+    <!-- 插入Banner -->
+    <insert id="insert" parameterType="com.shangnantea.model.entity.shop.ShopBanner" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO shop_banners (
+            shop_id, image_url, link_url, title, sort_order, status, create_time, update_time
+        ) VALUES (
+            #{shopId,jdbcType=VARCHAR},
+            #{imageUrl,jdbcType=VARCHAR},
+            #{linkUrl,jdbcType=VARCHAR},
+            #{title,jdbcType=VARCHAR},
+            #{sortOrder,jdbcType=INTEGER},
+            #{status,jdbcType=TINYINT},
+            #{createTime,jdbcType=TIMESTAMP},
+            #{updateTime,jdbcType=TIMESTAMP}
+        )
+    </insert>
+    
 </mapper>

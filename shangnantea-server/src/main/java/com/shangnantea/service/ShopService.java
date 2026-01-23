@@ -135,16 +135,17 @@ public interface ShopService {
     Result<Map<String, Object>> uploadShopLogo(String shopId, MultipartFile image);
     
     /**
-     * 上传店铺轮播图
+     * 上传店铺Banner
+     * 商家上传店铺Banner图片
      *
      * @param shopId 店铺ID
-     * @param bannerData Banner数据
+     * @param file Banner图片文件
+     * @param title Banner标题
+     * @param linkUrl 跳转链接
      * @return 上传结果
      */
-    Result<Object> uploadBanner(String shopId, Map<String, Object> bannerData);
-    
-    /**
-     * 获取店铺列表
+    Result<Object> uploadBanner(String shopId, MultipartFile file, String title, String linkUrl);
+}
      * 支持分页、搜索、筛选和排序
      *
      * @param params 查询参数（page, size, keyword, rating, sortBy, sortOrder等）

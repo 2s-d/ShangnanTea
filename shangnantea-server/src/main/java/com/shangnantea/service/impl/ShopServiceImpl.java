@@ -5,17 +5,21 @@ import com.shangnantea.common.api.PageResult;
 import com.shangnantea.common.api.Result;
 import com.shangnantea.mapper.ShopCertificationMapper;
 import com.shangnantea.mapper.ShopMapper;
+import com.shangnantea.mapper.ShopBannerMapper;
 import com.shangnantea.mapper.TeaMapper;
 import com.shangnantea.model.dto.shop.ShopQueryDTO;
 import com.shangnantea.model.entity.shop.Shop;
+import com.shangnantea.model.entity.shop.ShopBanner;
 import com.shangnantea.model.entity.shop.ShopCertification;
 import com.shangnantea.model.entity.tea.Tea;
+import com.shangnantea.model.vo.shop.BannerVO;
 import com.shangnantea.model.vo.shop.ShopVO;
 import com.shangnantea.model.vo.shop.ShopDetailVO;
 import com.shangnantea.model.vo.shop.ShopStatisticsVO;
 import com.shangnantea.model.vo.TeaVO;
 import com.shangnantea.security.context.UserContext;
 import com.shangnantea.service.ShopService;
+import com.shangnantea.exception.BusinessException;
 import com.shangnantea.utils.FileUploadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +50,9 @@ public class ShopServiceImpl implements ShopService {
     
     @Autowired
     private ShopCertificationMapper certificationMapper;
+    
+    @Autowired
+    private ShopBannerMapper shopBannerMapper;
     
     @Autowired
     private TeaMapper teaMapper;
@@ -238,27 +245,78 @@ public class ShopServiceImpl implements ShopService {
     
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Result<Object> uploadBanner(String shopId, Map<String, Object> bannerData) {
+    public Result<Object> uploadBanner(String shopId, MultipartFile file, String title, String linkUrl) {
         try {
-            logger.info("上传店铺轮播图请求, shopId: {}", shopId);
+            logger.info("上传店铺Banner请求, shopId: {}, title: {}, 文件名: {}", shopId, title, file.getOriginalFilename());
             
-            // 1. 验证店铺是否存在
-            Shop shop = getShopById(shopId);
-            if (shop == null) {
-                logger.warn("店铺轮播图上传失败: 店铺不存在, shopId: {}", shopId);
-                return Result.failure(4117); // Banner上传失败
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("Banner上传失败: 用户未登录");
+                return Result.failure(4117);
             }
             
-            // 2. 从bannerData中提取图片文件（这里需要根据实际前端传递的数据格式处理）
-            // 注意：这个方法的实现需要根据前端实际传递的数据格式来调整
-            // 目前先返回一个基本的成功响应
+            // 2. 验证店铺是否存在
+            Shop shop = getShopById(shopId);
+            if (shop == null) {
+                logger.warn("Banner上传失败: 店铺不存在, shopId: {}", shopId);
+                return Result.failure(4117);
+            }
             
-            logger.info("店铺轮播图上传成功: shopId: {}", shopId);
-            return Result.success(4008, "店铺轮播图上传成功"); // Banner上传成功
+            // 3. 验证用户是否为店铺所有者
+            if (!userId.equals(shop.getOwnerId())) {
+                logger.warn("Banner上传失败: 无权限操作, userId={}, shopId={}, ownerId={}", 
+                        userId, shopId, shop.getOwnerId());
+                return Result.failure(4117);
+            }
             
+            // 4. 调用工具类上传图片（硬编码type为"shop-banners"）
+            String relativePath = FileUploadUtils.uploadImage(file, "shop-banners");
+            
+            // 5. 生成访问URL
+            String accessUrl = FileUploadUtils.generateAccessUrl(relativePath, baseUrl);
+            
+            // 6. 创建Banner记录
+            ShopBanner banner = new ShopBanner();
+            banner.setShopId(shopId);
+            banner.setImageUrl(relativePath);
+            banner.setTitle(title);
+            banner.setLinkUrl(linkUrl);
+            banner.setSortOrder(0); // 默认排序值
+            banner.setStatus(1); // 默认显示
+            banner.setCreateTime(new Date());
+            banner.setUpdateTime(new Date());
+            
+            // 7. 保存到数据库
+            int result = shopBannerMapper.insert(banner);
+            if (result <= 0) {
+                logger.error("Banner上传失败: 数据库插入失败, shopId: {}", shopId);
+                return Result.failure(4117);
+            }
+            
+            // 8. 构造返回数据
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("id", banner.getId());
+            responseData.put("url", accessUrl);
+            responseData.put("path", relativePath);
+            
+            logger.info("Banner上传成功: shopId: {}, bannerId: {}, path: {}", shopId, banner.getId(), relativePath);
+            
+            // 9. 返回成功（根据code-message-mapping.md，成功码是4008）
+            return Result.success(4008, responseData);
+            
+        } catch (BusinessException e) {
+            logger.error("Banner上传失败: 业务异常", e);
+            // 根据异常消息判断返回不同的错误码
+            if (e.getMessage() != null && e.getMessage().contains("文件类型")) {
+                return Result.failure(4118); // 文件类型错误
+            } else if (e.getMessage() != null && e.getMessage().contains("文件大小")) {
+                return Result.failure(4119); // 文件过大
+            }
+            return Result.failure(4117); // 通用失败
         } catch (Exception e) {
-            logger.error("店铺轮播图上传失败: 系统异常", e);
-            return Result.failure(4117); // Banner上传失败
+            logger.error("Banner上传失败: 系统异常", e);
+            return Result.failure(4117);
         }
     }
     
@@ -989,6 +1047,189 @@ public class ShopServiceImpl implements ShopService {
             logger.error("更新店铺茶叶失败: 系统异常, teaId={}", teaId, e);
             return Result.failure(4109);
         }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> deleteShopTea(String teaId) {
+        try {
+            logger.info("删除店铺茶叶请求: teaId={}", teaId);
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("删除店铺茶叶失败: 用户未登录");
+                return Result.failure(4110);
+            }
+            
+            // 2. 验证茶叶ID不为空
+            if (teaId == null || teaId.trim().isEmpty()) {
+                logger.warn("删除店铺茶叶失败: 茶叶ID为空");
+                return Result.failure(4110);
+            }
+            
+            // 3. 查询茶叶信息
+            Tea tea = teaMapper.selectById(teaId);
+            if (tea == null) {
+                logger.warn("删除店铺茶叶失败: 茶叶不存在, teaId={}", teaId);
+                return Result.failure(4110);
+            }
+            
+            // 4. 查询店铺信息并验证权限
+            Shop shop = getShopById(tea.getShopId());
+            if (shop == null) {
+                logger.warn("删除店铺茶叶失败: 店铺不存在, shopId={}", tea.getShopId());
+                return Result.failure(4110);
+            }
+            
+            // 5. 验证用户是否为店铺所有者
+            if (!userId.equals(shop.getOwnerId())) {
+                logger.warn("删除店铺茶叶失败: 无权限操作, userId={}, teaId={}, shopId={}, ownerId={}", 
+                        userId, teaId, tea.getShopId(), shop.getOwnerId());
+                return Result.failure(4110);
+            }
+            
+            // 6. 逻辑删除茶叶
+            Long teaIdLong = Long.parseLong(teaId);
+            int result = teaMapper.deleteById(teaIdLong);
+            if (result <= 0) {
+                logger.error("删除店铺茶叶失败: 数据库删除失败, teaId={}", teaId);
+                return Result.failure(4110);
+            }
+            
+            logger.info("删除店铺茶叶成功: teaId={}, teaName={}", teaId, tea.getName());
+            
+            // 7. 返回成功（根据code-message-mapping.md，成功码是4004）
+            return Result.success(4004, null);
+            
+        } catch (Exception e) {
+            logger.error("删除店铺茶叶失败: 系统异常, teaId={}", teaId, e);
+            return Result.failure(4110);
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> toggleShopTeaStatus(String teaId, Integer status) {
+        try {
+            logger.info("茶叶上下架请求: teaId={}, status={}", teaId, status);
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("茶叶上下架失败: 用户未登录");
+                // 根据status返回不同的失败码
+                return Result.failure(status == 1 ? 4111 : 4112);
+            }
+            
+            // 2. 验证参数
+            if (teaId == null || teaId.trim().isEmpty()) {
+                logger.warn("茶叶上下架失败: 茶叶ID为空");
+                return Result.failure(status == 1 ? 4111 : 4112);
+            }
+            
+            if (status == null || (status != 0 && status != 1)) {
+                logger.warn("茶叶上下架失败: 状态参数无效, status={}", status);
+                return Result.failure(status == 1 ? 4111 : 4112);
+            }
+            
+            // 3. 查询茶叶信息
+            Tea tea = teaMapper.selectById(teaId);
+            if (tea == null) {
+                logger.warn("茶叶上下架失败: 茶叶不存在, teaId={}", teaId);
+                return Result.failure(status == 1 ? 4111 : 4112);
+            }
+            
+            // 4. 查询店铺信息并验证权限
+            Shop shop = getShopById(tea.getShopId());
+            if (shop == null) {
+                logger.warn("茶叶上下架失败: 店铺不存在, shopId={}", tea.getShopId());
+                return Result.failure(status == 1 ? 4111 : 4112);
+            }
+            
+            // 5. 验证用户是否为店铺所有者
+            if (!userId.equals(shop.getOwnerId())) {
+                logger.warn("茶叶上下架失败: 无权限操作, userId={}, teaId={}, shopId={}, ownerId={}", 
+                        userId, teaId, tea.getShopId(), shop.getOwnerId());
+                return Result.failure(status == 1 ? 4111 : 4112);
+            }
+            
+            // 6. 更新茶叶状态
+            tea.setStatus(status);
+            tea.setUpdateTime(new Date());
+            int result = teaMapper.update(tea);
+            if (result <= 0) {
+                logger.error("茶叶上下架失败: 数据库更新失败, teaId={}", teaId);
+                return Result.failure(status == 1 ? 4111 : 4112);
+            }
+            
+            logger.info("茶叶上下架成功: teaId={}, teaName={}, status={}", teaId, tea.getName(), status);
+            
+            // 7. 返回成功（根据code-message-mapping.md，上架成功码是4005，下架成功码是4006）
+            return Result.success(status == 1 ? 4005 : 4006, null);
+            
+        } catch (Exception e) {
+            logger.error("茶叶上下架失败: 系统异常, teaId={}, status={}", teaId, status, e);
+            return Result.failure(status == 1 ? 4111 : 4112);
+        }
+    }
+    
+    @Override
+    public Result<Object> getShopBanners(String shopId) {
+        try {
+            logger.info("获取店铺Banner列表请求: shopId={}", shopId);
+            
+            // 1. 验证店铺ID不为空
+            if (shopId == null || shopId.trim().isEmpty()) {
+                logger.warn("获取店铺Banner列表失败: 店铺ID为空");
+                return Result.failure(4116);
+            }
+            
+            // 2. 验证店铺是否存在
+            Shop shop = getShopById(shopId);
+            if (shop == null) {
+                logger.warn("获取店铺Banner列表失败: 店铺不存在, shopId={}", shopId);
+                return Result.failure(4116);
+            }
+            
+            // 3. 查询Banner列表（只返回status=1的）
+            List<ShopBanner> bannerList = shopBannerMapper.selectByShopId(shopId);
+            
+            // 4. 转换为VO
+            List<BannerVO> bannerVOList = bannerList.stream()
+                    .map(this::convertToBannerVO)
+                    .collect(Collectors.toList());
+            
+            logger.info("获取店铺Banner列表成功: shopId={}, 数量={}", shopId, bannerVOList.size());
+            
+            // 5. 返回成功（根据code-message-mapping.md，成功码是200）
+            return Result.success(200, bannerVOList);
+            
+        } catch (Exception e) {
+            logger.error("获取店铺Banner列表失败: 系统异常, shopId={}", shopId, e);
+            return Result.failure(4116);
+        }
+    }
+    
+    /**
+     * 将ShopBanner实体转换为BannerVO
+     *
+     * @param banner Banner实体
+     * @return BannerVO
+     */
+    private BannerVO convertToBannerVO(ShopBanner banner) {
+        if (banner == null) {
+            return null;
+        }
+        
+        BannerVO bannerVO = new BannerVO();
+        bannerVO.setId(banner.getId());
+        bannerVO.setImageUrl(banner.getImageUrl());
+        bannerVO.setTitle(banner.getTitle());
+        bannerVO.setLinkUrl(banner.getLinkUrl());
+        bannerVO.setSortOrder(banner.getSortOrder());
+        
+        return bannerVO;
     }
 }
 } 

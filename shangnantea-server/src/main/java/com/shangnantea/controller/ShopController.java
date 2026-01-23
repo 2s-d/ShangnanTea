@@ -285,15 +285,19 @@ public class ShopController {
      * 成功码: 4008, 失败码: 4117, 4118, 4119
      *
      * @param shopId 店铺ID
-     * @param bannerData Banner数据（包含image、link_url、title等，FormData格式）
-     * @return 创建后的Banner
+     * @param file Banner图片文件
+     * @param title Banner标题
+     * @param linkUrl 跳转链接
+     * @return 上传结果
      */
     @PostMapping("/{shopId}/banners")
     @RequiresLogin
     public Result<Object> uploadBanner(@PathVariable String shopId, 
-                                      @RequestParam Map<String, Object> bannerData) {
-        logger.info("上传店铺Banner请求: {}", shopId);
-        return shopService.uploadBanner(shopId, bannerData);
+                                      @RequestParam("image") MultipartFile file,
+                                      @RequestParam(value = "title", required = false) String title,
+                                      @RequestParam(value = "linkUrl", required = false) String linkUrl) {
+        logger.info("上传店铺Banner请求: shopId={}, 文件名: {}", shopId, file.getOriginalFilename());
+        return shopService.uploadBanner(shopId, file, title, linkUrl);
     }
 
     /**
