@@ -119,13 +119,13 @@ inclusion: manual
 #### 文章管理功能（6个接口）
 8. **getArticles** - `/forum/articles` - 获取文章列表 ✅ 已完成
 9. **getArticleDetail** - `/forum/articles/{id}` - 获取文章详情 ✅ 已完成
-10. **createArticle** - `/forum/articles` - 创建文章
-11. **updateArticle** - `/forum/articles/{id}` - 更新文章
-12. **deleteArticle** - `/forum/articles/{id}` - 删除文章
+10. **createArticle** - `/forum/articles` - 创建文章 ✅ 已完成
+11. **updateArticle** - `/forum/articles/{id}` - 更新文章 ✅ 已完成
+12. **deleteArticle** - `/forum/articles/{id}` - 删除文章 ✅ 已完成
 
 #### 版块管理功能（5个接口）
-13. **getForumTopics** - `/forum/topics` - 获取版块列表
-14. **getTopicDetail** - `/forum/topics/{id}` - 获取版块详情
+13. **getForumTopics** - `/forum/topics` - 获取版块列表 ✅ 已完成
+14. **getTopicDetail** - `/forum/topics/{id}` - 获取版块详情 ✅ 已完成
 15. **createTopic** - `/forum/topics` - 创建版块
 16. **updateTopic** - `/forum/topics/{id}` - 更新版块
 17. **deleteTopic** - `/forum/topics/{id}` - 删除版块
