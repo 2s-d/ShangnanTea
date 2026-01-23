@@ -256,7 +256,7 @@ public class ShopController {
      */
     @DeleteMapping("/teas/{teaId}")
     @RequiresLogin
-    public Result<Boolean> deleteShopTea(@PathVariable String teaId) {
+    public Result<Object> deleteShopTea(@PathVariable String teaId) {
         logger.info("删除店铺茶叶请求: {}", teaId);
         return shopService.deleteShopTea(teaId);
     }
@@ -272,9 +272,10 @@ public class ShopController {
      */
     @PutMapping("/teas/{teaId}/status")
     @RequiresLogin
-    public Result<Boolean> toggleShopTeaStatus(@PathVariable String teaId, @RequestBody Map<String, Object> statusData) {
+    public Result<Object> toggleShopTeaStatus(@PathVariable String teaId, @RequestBody Map<String, Object> statusData) {
         logger.info("茶叶上下架请求: {}, status: {}", teaId, statusData.get("status"));
-        return shopService.toggleShopTeaStatus(teaId, statusData);
+        Integer status = statusData.get("status") != null ? Integer.parseInt(statusData.get("status").toString()) : null;
+        return shopService.toggleShopTeaStatus(teaId, status);
     }
 
     // ==================== Banner管理（商家） ====================
