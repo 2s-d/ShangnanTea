@@ -21,6 +21,8 @@ import com.shangnantea.model.entity.forum.ForumTopic;
 import com.shangnantea.model.entity.forum.HomeContent;
 import com.shangnantea.model.entity.forum.TeaArticle;
 import com.shangnantea.model.entity.user.User;
+import com.shangnantea.model.entity.user.UserFavorite;
+import com.shangnantea.model.entity.user.UserLike;
 import com.shangnantea.model.vo.forum.ArticleDetailVO;
 import com.shangnantea.model.vo.forum.ArticleVO;
 import com.shangnantea.model.vo.forum.ForumHomeVO;
@@ -71,6 +73,12 @@ public class ForumServiceImpl implements ForumService {
     
     @Autowired
     private UserMapper userMapper;
+    
+    @Autowired
+    private UserLikeMapper userLikeMapper;
+    
+    @Autowired
+    private UserFavoriteMapper userFavoriteMapper;
     
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
@@ -1706,6 +1714,228 @@ public class ForumServiceImpl implements ForumService {
         } catch (Exception e) {
             logger.error("删除帖子失败: 系统异常, id: {}", id, e);
             return Result.failure(6124); // 帖子删除失败
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> likePost(String id) {
+        try {
+            logger.info("点赞帖子请求: id={}", id);
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("点赞帖子失败: 用户未登录");
+                return Result.failure(6125); // 点赞失败
+            }
+            
+            // 2. 验证帖子是否存在
+            Long postId = Long.parseLong(id);
+            ForumPost post = postMapper.selectById(postId);
+            if (post == null) {
+                logger.warn("点赞帖子失败: 帖子不存在, id: {}", id);
+                return Result.failure(6125); // 点赞失败
+            }
+            
+            // 3. 检查是否已点赞
+            UserLike existingLike = userLikeMapper.selectByUserIdAndTarget(userId, "post", id);
+            if (existingLike != null) {
+                logger.warn("点赞帖子失败: 已点赞, userId: {}, postId: {}", userId, id);
+                return Result.failure(6125); // 点赞失败
+            }
+            
+            // 4. 插入点赞记录
+            UserLike userLike = new UserLike();
+            userLike.setUserId(userId);
+            userLike.setTargetType("post");
+            userLike.setTargetId(id);
+            userLike.setCreateTime(new Date());
+            int insertResult = userLikeMapper.insert(userLike);
+            
+            if (insertResult <= 0) {
+                logger.error("点赞帖子失败: 数据库插入失败, userId: {}, postId: {}", userId, id);
+                return Result.failure(6125); // 点赞失败
+            }
+            
+            // 5. 增加帖子点赞数
+            post.setLikeCount((post.getLikeCount() != null ? post.getLikeCount() : 0) + 1);
+            post.setUpdateTime(new Date());
+            postMapper.updateById(post);
+            
+            logger.info("点赞帖子成功: userId={}, postId={}", userId, id);
+            return Result.success(6014, null); // 点赞成功
+            
+        } catch (NumberFormatException e) {
+            logger.error("点赞帖子失败: ID格式错误, id: {}", id, e);
+            return Result.failure(6125); // 点赞失败
+        } catch (Exception e) {
+            logger.error("点赞帖子失败: 系统异常, id: {}", id, e);
+            return Result.failure(6125); // 点赞失败
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> unlikePost(String id) {
+        try {
+            logger.info("取消点赞帖子请求: id={}", id);
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("取消点赞帖子失败: 用户未登录");
+                return Result.failure(6126); // 取消点赞失败
+            }
+            
+            // 2. 验证帖子是否存在
+            Long postId = Long.parseLong(id);
+            ForumPost post = postMapper.selectById(postId);
+            if (post == null) {
+                logger.warn("取消点赞帖子失败: 帖子不存在, id: {}", id);
+                return Result.failure(6126); // 取消点赞失败
+            }
+            
+            // 3. 检查是否已点赞
+            UserLike existingLike = userLikeMapper.selectByUserIdAndTarget(userId, "post", id);
+            if (existingLike == null) {
+                logger.warn("取消点赞帖子失败: 未点赞, userId: {}, postId: {}", userId, id);
+                return Result.failure(6126); // 取消点赞失败
+            }
+            
+            // 4. 删除点赞记录
+            int deleteResult = userLikeMapper.deleteById(existingLike.getId());
+            if (deleteResult <= 0) {
+                logger.error("取消点赞帖子失败: 数据库删除失败, userId: {}, postId: {}", userId, id);
+                return Result.failure(6126); // 取消点赞失败
+            }
+            
+            // 5. 减少帖子点赞数
+            post.setLikeCount(Math.max(0, (post.getLikeCount() != null ? post.getLikeCount() : 0) - 1));
+            post.setUpdateTime(new Date());
+            postMapper.updateById(post);
+            
+            logger.info("取消点赞帖子成功: userId={}, postId={}", userId, id);
+            return Result.success(6015, null); // 已取消点赞
+            
+        } catch (NumberFormatException e) {
+            logger.error("取消点赞帖子失败: ID格式错误, id: {}", id, e);
+            return Result.failure(6126); // 取消点赞失败
+        } catch (Exception e) {
+            logger.error("取消点赞帖子失败: 系统异常, id: {}", id, e);
+            return Result.failure(6126); // 取消点赞失败
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> favoritePost(String id) {
+        try {
+            logger.info("收藏帖子请求: id={}", id);
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("收藏帖子失败: 用户未登录");
+                return Result.failure(6127); // 收藏失败
+            }
+            
+            // 2. 验证帖子是否存在
+            Long postId = Long.parseLong(id);
+            ForumPost post = postMapper.selectById(postId);
+            if (post == null) {
+                logger.warn("收藏帖子失败: 帖子不存在, id: {}", id);
+                return Result.failure(6127); // 收藏失败
+            }
+            
+            // 3. 检查是否已收藏
+            UserFavorite existingFavorite = userFavoriteMapper.selectByUserIdAndItem(userId, "post", id);
+            if (existingFavorite != null) {
+                logger.warn("收藏帖子失败: 已收藏, userId: {}, postId: {}", userId, id);
+                return Result.failure(6127); // 收藏失败
+            }
+            
+            // 4. 插入收藏记录
+            UserFavorite userFavorite = new UserFavorite();
+            userFavorite.setUserId(userId);
+            userFavorite.setItemType("post");
+            userFavorite.setItemId(id);
+            userFavorite.setTargetName(post.getTitle()); // 冗余字段：帖子标题
+            userFavorite.setTargetImage(null); // 帖子没有封面图
+            userFavorite.setCreateTime(new Date());
+            int insertResult = userFavoriteMapper.insert(userFavorite);
+            
+            if (insertResult <= 0) {
+                logger.error("收藏帖子失败: 数据库插入失败, userId: {}, postId: {}", userId, id);
+                return Result.failure(6127); // 收藏失败
+            }
+            
+            // 5. 增加帖子收藏数
+            post.setFavoriteCount((post.getFavoriteCount() != null ? post.getFavoriteCount() : 0) + 1);
+            post.setUpdateTime(new Date());
+            postMapper.updateById(post);
+            
+            logger.info("收藏帖子成功: userId={}, postId={}", userId, id);
+            return Result.success(6016, null); // 收藏成功
+            
+        } catch (NumberFormatException e) {
+            logger.error("收藏帖子失败: ID格式错误, id: {}", id, e);
+            return Result.failure(6127); // 收藏失败
+        } catch (Exception e) {
+            logger.error("收藏帖子失败: 系统异常, id: {}", id, e);
+            return Result.failure(6127); // 收藏失败
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> unfavoritePost(String id) {
+        try {
+            logger.info("取消收藏帖子请求: id={}", id);
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("取消收藏帖子失败: 用户未登录");
+                return Result.failure(6128); // 取消收藏失败
+            }
+            
+            // 2. 验证帖子是否存在
+            Long postId = Long.parseLong(id);
+            ForumPost post = postMapper.selectById(postId);
+            if (post == null) {
+                logger.warn("取消收藏帖子失败: 帖子不存在, id: {}", id);
+                return Result.failure(6128); // 取消收藏失败
+            }
+            
+            // 3. 检查是否已收藏
+            UserFavorite existingFavorite = userFavoriteMapper.selectByUserIdAndItem(userId, "post", id);
+            if (existingFavorite == null) {
+                logger.warn("取消收藏帖子失败: 未收藏, userId: {}, postId: {}", userId, id);
+                return Result.failure(6128); // 取消收藏失败
+            }
+            
+            // 4. 删除收藏记录
+            int deleteResult = userFavoriteMapper.deleteById(existingFavorite.getId());
+            if (deleteResult <= 0) {
+                logger.error("取消收藏帖子失败: 数据库删除失败, userId: {}, postId: {}", userId, id);
+                return Result.failure(6128); // 取消收藏失败
+            }
+            
+            // 5. 减少帖子收藏数
+            post.setFavoriteCount(Math.max(0, (post.getFavoriteCount() != null ? post.getFavoriteCount() : 0) - 1));
+            post.setUpdateTime(new Date());
+            postMapper.updateById(post);
+            
+            logger.info("取消收藏帖子成功: userId={}, postId={}", userId, id);
+            return Result.success(6017, null); // 已取消收藏
+            
+        } catch (NumberFormatException e) {
+            logger.error("取消收藏帖子失败: ID格式错误, id: {}", id, e);
+            return Result.failure(6128); // 取消收藏失败
+        } catch (Exception e) {
+            logger.error("取消收藏帖子失败: 系统异常, id: {}", id, e);
+            return Result.failure(6128); // 取消收藏失败
         }
     }
 } 

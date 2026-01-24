@@ -388,7 +388,7 @@ public class ForumController {
     /**
      * 点赞帖子
      * 路径: POST /forum/posts/{id}/like
-     * 成功码: 6010, 失败码: 6110
+     * 成功码: 6014, 失败码: 6125
      *
      * @param id 帖子ID
      * @return 点赞结果
@@ -403,7 +403,7 @@ public class ForumController {
     /**
      * 取消点赞帖子
      * 路径: DELETE /forum/posts/{id}/like
-     * 成功码: 6011, 失败码: 6111
+     * 成功码: 6015, 失败码: 6126
      *
      * @param id 帖子ID
      * @return 取消点赞结果
@@ -418,7 +418,7 @@ public class ForumController {
     /**
      * 收藏帖子
      * 路径: POST /forum/posts/{id}/favorite
-     * 成功码: 6012, 失败码: 6112
+     * 成功码: 6016, 失败码: 6127
      *
      * @param id 帖子ID
      * @return 收藏结果
@@ -433,7 +433,7 @@ public class ForumController {
     /**
      * 取消收藏帖子
      * 路径: DELETE /forum/posts/{id}/favorite
-     * 成功码: 6013, 失败码: 6113
+     * 成功码: 6017, 失败码: 6128
      *
      * @param id 帖子ID
      * @return 取消收藏结果

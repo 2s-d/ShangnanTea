@@ -139,10 +139,10 @@ inclusion: manual
 23. **deletePost** - `/forum/posts/{id}` - 删除帖子 ✅ 已完成
 
 #### 帖子互动功能（4个接口）
-24. **likePost** - `/forum/posts/{id}/like` - 点赞帖子
-25. **unlikePost** - `/forum/posts/{id}/like` - 取消点赞
-26. **favoritePost** - `/forum/posts/{id}/favorite` - 收藏帖子
-27. **unfavoritePost** - `/forum/posts/{id}/favorite` - 取消收藏
+24. **likePost** - `/forum/posts/{id}/like` - 点赞帖子 ✅ 已完成
+25. **unlikePost** - `/forum/posts/{id}/like` - 取消点赞 ✅ 已完成
+26. **favoritePost** - `/forum/posts/{id}/favorite` - 收藏帖子 ✅ 已完成
+27. **unfavoritePost** - `/forum/posts/{id}/favorite` - 取消收藏 ✅ 已完成
 
 #### 回复管理功能（6个接口）
 28. **getPostReplies** - `/forum/posts/{id}/replies` - 获取回复列表

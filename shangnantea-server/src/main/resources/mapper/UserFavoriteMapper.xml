@@ -56,11 +56,13 @@
     <!-- 插入收藏 -->
     <insert id="insert" parameterType="com.shangnantea.model.entity.user.UserFavorite" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO user_favorites (
-            user_id, item_type, item_id, create_time
+            user_id, item_type, item_id, target_name, target_image, create_time
         ) VALUES (
             #{userId,jdbcType=VARCHAR}, 
             #{itemType,jdbcType=VARCHAR}, 
             #{itemId,jdbcType=VARCHAR}, 
+            #{targetName,jdbcType=VARCHAR}, 
+            #{targetImage,jdbcType=VARCHAR}, 
             #{createTime,jdbcType=TIMESTAMP}
         )
     </insert>
