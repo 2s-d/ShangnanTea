@@ -89,6 +89,21 @@ public class UserServiceImpl implements UserService {
     private UserSettingMapper userSettingMapper;
     
     @Autowired
+    private ShopMapper shopMapper;
+    
+    @Autowired
+    private TeaMapper teaMapper;
+    
+    @Autowired
+    private ForumPostMapper forumPostMapper;
+    
+    @Autowired
+    private ForumReplyMapper forumReplyMapper;
+    
+    @Autowired
+    private TeaArticleMapper teaArticleMapper;
+    
+    @Autowired
     private PasswordEncoder passwordEncoder;
     
     @Autowired
