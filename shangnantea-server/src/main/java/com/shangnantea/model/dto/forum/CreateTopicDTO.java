@@ -35,6 +35,11 @@ public class CreateTopicDTO {
     private String cover;
     
     /**
+     * 版主用户ID
+     */
+    private String userId;
+    
+    /**
      * 排序值
      */
     private Integer sortOrder;

@@ -842,7 +842,7 @@ public class ForumServiceImpl implements ForumService {
             Long articleId = Long.parseLong(id);
             TeaArticle article = articleMapper.selectById(articleId);
             
-            if (article == null || article.getStatus() == null || article.getStatus() != 1) {
+            if (article == null || article.getStatus() == null || article.getStatus() != ArticleStatus.PUBLISHED) {
                 logger.warn("获取文章详情失败: 文章不存在或未发布, id: {}", id);
                 return Result.failure(6110); // 获取文章详情失败
             }
@@ -930,7 +930,7 @@ public class ForumServiceImpl implements ForumService {
             article.setFavoriteCount(0);
             article.setIsTop(0);
             article.setIsRecommend(0);
-            article.setStatus(1); // 1=已发布
+            article.setStatus(ArticleStatus.PUBLISHED); // 已发布
             article.setPublishTime(new Date());
             article.setCreateTime(new Date());
             article.setUpdateTime(new Date());
@@ -1054,7 +1054,7 @@ public class ForumServiceImpl implements ForumService {
             }
             
             // 2. 软删除：更新状态为已删除
-            article.setStatus(2); // 2=已删除
+            article.setStatus(ArticleStatus.DELETED); // 已删除
             article.setUpdateTime(new Date());
             int result = articleMapper.updateById(article);
             
@@ -1083,7 +1083,7 @@ public class ForumServiceImpl implements ForumService {
             // 1. 查询所有启用的版块（status=1）
             List<ForumTopic> allTopics = topicMapper.selectAll();
             List<TopicVO> topicVOList = allTopics.stream()
-                    .filter(topic -> topic.getStatus() != null && topic.getStatus() == 1)
+                    .filter(topic -> topic.getStatus() != null && topic.getStatus() == 1) // ForumTopic的status: 1=启用
                     .sorted((a, b) -> {
                         // 按sortOrder升序排序
                         Integer orderA = a.getSortOrder() != null ? a.getSortOrder() : 0;
@@ -1177,7 +1177,7 @@ public class ForumServiceImpl implements ForumService {
                     .filter(p -> topicId.equals(p.getTopicId()))
                     .filter(p -> p.getCreateTime() != null)
                     .filter(p -> p.getCreateTime().after(startOfDay) && p.getCreateTime().before(endOfDay))
-                    .filter(p -> p.getStatus() != null && p.getStatus() == 1)
+                    .filter(p -> p.getStatus() != null && p.getStatus() == PostStatus.NORMAL)
                     .count();
             vo.setTodayPostCount((int) todayPostCount);
             
@@ -1221,7 +1221,18 @@ public class ForumServiceImpl implements ForumService {
             topic.setCover(dto.getCover());
             topic.setSortOrder(dto.getSortOrder() != null ? dto.getSortOrder() : 0);
             topic.setPostCount(0); // 初始帖子数为0
-            topic.setStatus(1); // 1=启用
+            topic.setStatus(1); // ForumTopic的status: 1=启用
+            
+            // 设置版主（如果提供了userId，验证用户是否存在）
+            if (dto.getUserId() != null && !dto.getUserId().isEmpty()) {
+                User moderator = userMapper.selectById(dto.getUserId());
+                if (moderator == null) {
+                    logger.warn("创建版块失败: 版主用户不存在, userId: {}", dto.getUserId());
+                    return Result.failure(6116); // 添加版块失败
+                }
+                topic.setUserId(dto.getUserId());
+            }
+            
             topic.setCreateTime(new Date());
             topic.setUpdateTime(new Date());
             
@@ -1286,6 +1297,23 @@ public class ForumServiceImpl implements ForumService {
             if (dto.getStatus() != null) {
                 topic.setStatus(dto.getStatus());
             }
+            
+            // 更新版主（如果提供了userId，验证用户是否存在）
+            if (dto.getUserId() != null) {
+                if (dto.getUserId().isEmpty()) {
+                    // 空字符串表示取消版主
+                    topic.setUserId(null);
+                } else {
+                    // 验证用户是否存在
+                    User moderator = userMapper.selectById(dto.getUserId());
+                    if (moderator == null) {
+                        logger.warn("更新版块失败: 版主用户不存在, userId: {}", dto.getUserId());
+                        return Result.failure(6117); // 更新版块失败
+                    }
+                    topic.setUserId(dto.getUserId());
+                }
+            }
+            
             topic.setUpdateTime(new Date());
             
             // 4. 保存到数据库
@@ -1361,10 +1389,10 @@ public class ForumServiceImpl implements ForumService {
             Integer pageSize = params.get("pageSize") != null ? 
                     Integer.parseInt(params.get("pageSize").toString()) : 10;
             
-            // 2. 查询所有正常状态的帖子（status=1）
+            // 2. 查询所有正常状态的帖子（status=NORMAL）
             List<ForumPost> allPosts = postMapper.selectAll();
             List<PostVO> postVOList = allPosts.stream()
-                    .filter(post -> post.getStatus() != null && post.getStatus() == 1)
+                    .filter(post -> post.getStatus() != null && post.getStatus() == PostStatus.NORMAL)
                     .filter(post -> {
                         // 版块筛选
                         if (topicId != null) {
@@ -1471,7 +1499,11 @@ public class ForumServiceImpl implements ForumService {
             post.setFavoriteCount(0);
             post.setIsSticky(0);
             post.setIsEssence(0);
-            post.setStatus(1); // 1=正常（直接发布，不需要审核）
+            
+            // 根据用户角色决定帖子初始状态：管理员直接发布，普通用户需要审核
+            boolean isAdmin = UserContext.isAdmin();
+            post.setStatus(isAdmin ? PostStatus.NORMAL : PostStatus.PENDING);
+            
             post.setLastReplyTime(new Date());
             post.setCreateTime(new Date());
             post.setUpdateTime(new Date());
@@ -1483,12 +1515,15 @@ public class ForumServiceImpl implements ForumService {
                 return Result.failure(6120); // 帖子发布失败
             }
             
-            // 5. 更新版块的帖子数
-            topic.setPostCount((topic.getPostCount() != null ? topic.getPostCount() : 0) + 1);
-            topic.setUpdateTime(new Date());
-            topicMapper.updateById(topic);
+            // 5. 如果是管理员发帖（直接通过），更新版块的帖子数
+            if (isAdmin) {
+                topic.setPostCount((topic.getPostCount() != null ? topic.getPostCount() : 0) + 1);
+                topic.setUpdateTime(new Date());
+                topicMapper.updateById(topic);
+            }
             
-            logger.info("创建帖子成功: id={}, userId={}", post.getId(), userId);
+            logger.info("创建帖子成功: id={}, userId={}, status={}", post.getId(), userId, 
+                    isAdmin ? "已发布" : "待审核");
             return Result.success(6011, null); // 帖子发布成功
             
         } catch (Exception e) {
@@ -1508,10 +1543,10 @@ public class ForumServiceImpl implements ForumService {
             Integer pageSize = params.get("pageSize") != null ? 
                     Integer.parseInt(params.get("pageSize").toString()) : 10;
             
-            // 2. 查询待审核的帖子（status=0）
+            // 2. 查询待审核的帖子（status=PENDING）
             List<ForumPost> allPosts = postMapper.selectAll();
             List<PostVO> postVOList = allPosts.stream()
-                    .filter(post -> post.getStatus() != null && post.getStatus() == 0)
+                    .filter(post -> post.getStatus() != null && post.getStatus() == PostStatus.PENDING)
                     .sorted((a, b) -> {
                         // 按创建时间降序
                         if (a.getCreateTime() == null && b.getCreateTime() == null) {
@@ -1719,7 +1754,8 @@ public class ForumServiceImpl implements ForumService {
             }
             
             // 4. 软删除：更新状态为已删除
-            post.setStatus(2); // 2=已删除
+            Integer oldStatus = post.getStatus();
+            post.setStatus(PostStatus.DELETED); // 已删除
             post.setUpdateTime(new Date());
             int result = postMapper.updateById(post);
             
@@ -1728,12 +1764,14 @@ public class ForumServiceImpl implements ForumService {
                 return Result.failure(6124); // 帖子删除失败
             }
             
-            // 5. 更新版块的帖子数
-            ForumTopic topic = topicMapper.selectById(post.getTopicId());
-            if (topic != null) {
-                topic.setPostCount(Math.max(0, (topic.getPostCount() != null ? topic.getPostCount() : 0) - 1));
-                topic.setUpdateTime(new Date());
-                topicMapper.updateById(topic);
+            // 5. 只有正常状态的帖子被删除时，才减少版块的帖子数
+            if (oldStatus != null && oldStatus == PostStatus.NORMAL) {
+                ForumTopic topic = topicMapper.selectById(post.getTopicId());
+                if (topic != null) {
+                    topic.setPostCount(Math.max(0, (topic.getPostCount() != null ? topic.getPostCount() : 0) - 1));
+                    topic.setUpdateTime(new Date());
+                    topicMapper.updateById(topic);
+                }
             }
             
             logger.info("删除帖子成功: id={}, userId={}", id, userId);
@@ -1992,9 +2030,9 @@ public class ForumServiceImpl implements ForumService {
             // 3. 查询所有回复
             List<ForumReply> allReplies = replyMapper.selectByPostId(postId);
             
-            // 4. 过滤正常状态的回复（status=1）
+            // 4. 过滤正常状态的回复（status=NORMAL）
             List<ForumReply> filteredReplies = allReplies.stream()
-                    .filter(reply -> reply.getStatus() != null && reply.getStatus() == 1)
+                    .filter(reply -> reply.getStatus() != null && reply.getStatus() == ReplyStatus.NORMAL)
                     .sorted((a, b) -> {
                         if (a.getCreateTime() == null && b.getCreateTime() == null) {
                             return 0;
@@ -2120,7 +2158,7 @@ public class ForumServiceImpl implements ForumService {
             reply.setParentId(parentId);
             reply.setToUserId(toUserId);
             reply.setLikeCount(0);
-            reply.setStatus(1); // 1=正常
+            reply.setStatus(ReplyStatus.NORMAL); // 正常状态
             reply.setCreateTime(new Date());
             reply.setUpdateTime(new Date());
             
@@ -2179,7 +2217,7 @@ public class ForumServiceImpl implements ForumService {
             }
             
             // 4. 软删除：更新状态为已删除
-            reply.setStatus(2); // 2=已删除
+            reply.setStatus(ReplyStatus.DELETED); // 已删除
             reply.setUpdateTime(new Date());
             int result = replyMapper.updateById(reply);
             
@@ -2333,19 +2371,27 @@ public class ForumServiceImpl implements ForumService {
             }
             
             // 2. 验证帖子是否处于待审核状态
-            if (post.getStatus() == null || post.getStatus() != 0) {
+            if (post.getStatus() == null || post.getStatus() != PostStatus.PENDING) {
                 logger.warn("审核通过失败: 帖子不是待审核状态, id: {}, status: {}", id, post.getStatus());
                 return Result.failure(6134); // 审核通过失败
             }
             
             // 3. 更新帖子状态为已通过
-            post.setStatus(1); // 1=正常
+            post.setStatus(PostStatus.NORMAL); // 正常状态
             post.setUpdateTime(new Date());
             int result = postMapper.updateById(post);
             
             if (result <= 0) {
                 logger.error("审核通过失败: 数据库更新失败, id: {}", id);
                 return Result.failure(6134); // 审核通过失败
+            }
+            
+            // 4. 更新版块的帖子数（审核通过后才计入）
+            ForumTopic topic = topicMapper.selectById(post.getTopicId());
+            if (topic != null) {
+                topic.setPostCount((topic.getPostCount() != null ? topic.getPostCount() : 0) + 1);
+                topic.setUpdateTime(new Date());
+                topicMapper.updateById(topic);
             }
             
             logger.info("审核通过成功: id={}", id);
@@ -2375,13 +2421,13 @@ public class ForumServiceImpl implements ForumService {
             }
             
             // 2. 验证帖子是否处于待审核状态
-            if (post.getStatus() == null || post.getStatus() != 0) {
+            if (post.getStatus() == null || post.getStatus() != PostStatus.PENDING) {
                 logger.warn("审核拒绝失败: 帖子不是待审核状态, id: {}, status: {}", id, post.getStatus());
                 return Result.failure(6135); // 审核拒绝失败
             }
             
             // 3. 更新帖子状态为已拒绝
-            post.setStatus(3); // 3=已拒绝
+            post.setStatus(PostStatus.REJECTED); // 已拒绝
             post.setUpdateTime(new Date());
             int result = postMapper.updateById(post);
             
