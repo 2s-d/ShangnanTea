@@ -68,6 +68,9 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private TeaReviewMapper teaReviewMapper;
     
+    @Autowired
+    private ShopMapper shopMapper;
+    
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
     
@@ -462,6 +465,32 @@ public class OrderServiceImpl implements OrderService {
         itemVO.setQuantity(cart.getQuantity());
         itemVO.setSelected(cart.getSelected() != null && cart.getSelected() == 1);
         return itemVO;
+    }
+    
+    /**
+     * 验证商家是否拥有指定店铺
+     * @param userId 用户ID
+     * @param shopId 店铺ID
+     * @return true-拥有该店铺，false-不拥有
+     */
+    private boolean isShopOwner(String userId, String shopId) {
+        if (userId == null || userId.isEmpty() || shopId == null || shopId.isEmpty()) {
+            return false;
+        }
+        
+        try {
+            // 查询该用户对应的店铺
+            Shop shop = shopMapper.selectByOwnerId(userId);
+            if (shop == null) {
+                return false;
+            }
+            
+            // 验证店铺ID是否匹配
+            return shopId.equals(shop.getId());
+        } catch (Exception e) {
+            logger.error("验证商家权限失败: userId={}, shopId={}, error={}", userId, shopId, e.getMessage());
+            return false;
+        }
     }
     
     @Override
@@ -1452,9 +1481,20 @@ public class OrderServiceImpl implements OrderService {
                 return Result.failure(5131);
             }
             
-            // 4. 验证权限（需要是商家或管理员）
-            // TODO: 这里应该验证当前用户是否是该订单所属店铺的商家或管理员
-            // 暂时简化处理，只要登录就可以处理（实际应该检查shopId和用户关系）
+            // 4. 验证权限：只有管理员或订单所属店铺的商家可以处理退款
+            if (!UserContext.isAdmin()) {
+                // 如果不是管理员，必须是商家
+                if (!UserContext.isShop()) {
+                    logger.warn("处理退款失败: 权限不足, userId={}", userId);
+                    return Result.failure(5132); // 权限不足
+                }
+                
+                // 验证是否是该订单所属店铺的商家
+                if (!isShopOwner(userId, order.getShopId())) {
+                    logger.warn("处理退款失败: 不是该订单所属店铺的商家, userId={}, shopId={}", userId, order.getShopId());
+                    return Result.failure(5132); // 权限不足
+                }
+            }
             
             // 5. 验证订单退款状态（只能处理申请中的退款）
             if (order.getRefundStatus() == null || order.getRefundStatus() != 1) {
@@ -1575,11 +1615,19 @@ public class OrderServiceImpl implements OrderService {
                 return Result.failure(5135);
             }
             
-            // 4. 验证权限（需要是商家或管理员）
-            if (!UserContext.isAdmin() && !UserContext.isShop()) {
-                logger.warn("发货失败: 用户不是商家或管理员: orderId={}, userId={}, role={}", 
-                           id, userId, UserContext.getCurrentUserRole());
-                return Result.failure(5137); // 您没有权限操作此订单
+            // 4. 验证权限：只有管理员或订单所属店铺的商家可以发货
+            if (!UserContext.isAdmin()) {
+                // 如果不是管理员，必须是商家
+                if (!UserContext.isShop()) {
+                    logger.warn("发货失败: 权限不足, userId={}", userId);
+                    return Result.failure(5137); // 您没有权限操作此订单
+                }
+                
+                // 验证是否是该订单所属店铺的商家
+                if (!isShopOwner(userId, order.getShopId())) {
+                    logger.warn("发货失败: 不是该订单所属店铺的商家, userId={}, shopId={}", userId, order.getShopId());
+                    return Result.failure(5137); // 您没有权限操作此订单
+                }
             }
             
             // 5. 更新订单状态为待收货
@@ -1646,7 +1694,19 @@ public class OrderServiceImpl implements OrderService {
                 return Result.failure(5139); // 您没有权限操作此订单
             }
             
-            // 4. 循环处理每个订单
+            // 4. 如果是商家，需要验证所有订单都属于该商家的店铺
+            String merchantShopId = null;
+            if (!UserContext.isAdmin() && UserContext.isShop()) {
+                // 查询商家对应的店铺ID
+                Shop shop = shopMapper.selectByOwnerId(userId);
+                if (shop == null) {
+                    logger.warn("批量发货失败: 商家没有关联的店铺: userId={}", userId);
+                    return Result.failure(5139); // 您没有权限操作此订单
+                }
+                merchantShopId = shop.getId();
+            }
+            
+            // 5. 循环处理每个订单
             int successCount = 0;
             int failCount = 0;
             
@@ -1656,6 +1716,14 @@ public class OrderServiceImpl implements OrderService {
                     Order order = orderMapper.selectById(orderId);
                     if (order == null) {
                         logger.warn("批量发货: 订单不存在: orderId={}", orderId);
+                        failCount++;
+                        continue;
+                    }
+                    
+                    // 如果是商家，验证订单是否属于该商家的店铺
+                    if (merchantShopId != null && !merchantShopId.equals(order.getShopId())) {
+                        logger.warn("批量发货: 订单不属于该商家的店铺: orderId={}, orderShopId={}, merchantShopId={}", 
+                                   orderId, order.getShopId(), merchantShopId);
                         failCount++;
                         continue;
                     }
@@ -1724,11 +1792,23 @@ public class OrderServiceImpl implements OrderService {
             }
             
             // 3. 验证用户权限（订单所有者或商家/管理员可以查看）
-            // 简化处理：只验证是否是订单所有者
             if (!userId.equals(order.getUserId())) {
-                logger.warn("获取物流信息失败: 无权限: orderId={}, userId={}, orderUserId={}", 
-                           id, userId, order.getUserId());
-                return Result.failure(5140);
+                // 如果不是订单的买家，检查是否是商家或管理员
+                if (UserContext.isAdmin()) {
+                    // 管理员可以查看所有订单的物流信息
+                } else if (UserContext.isShop()) {
+                    // 商家只能查看自己店铺订单的物流信息
+                    if (!isShopOwner(userId, order.getShopId())) {
+                        logger.warn("获取物流信息失败: 不是该订单所属店铺的商家: orderId={}, userId={}, shopId={}", 
+                                   id, userId, order.getShopId());
+                        return Result.failure(5141); // 权限不足
+                    }
+                } else {
+                    // 既不是买家，也不是商家或管理员
+                    logger.warn("获取物流信息失败: 无权限: orderId={}, userId={}, orderUserId={}", 
+                               id, userId, order.getUserId());
+                    return Result.failure(5140);
+                }
             }
             
             // 4. 构建物流信息VO
@@ -1770,13 +1850,13 @@ public class OrderServiceImpl implements OrderService {
                 userId = currentUserId;
             } else if (UserContext.isShop()) {
                 // 商家查看自己店铺的订单统计
-                // 这里需要根据userId查询对应的shopId
-                // 简化处理：如果传入了shopId参数，使用参数；否则需要查询用户对应的店铺
-                if (shopId == null || shopId.isEmpty()) {
-                    // TODO: 从shop表查询当前用户对应的店铺ID
-                    // 暂时使用userId作为shopId（假设userId和shopId关联）
-                    shopId = currentUserId;
+                // 查询商家对应的店铺ID
+                Shop shop = shopMapper.selectByOwnerId(currentUserId);
+                if (shop == null) {
+                    logger.warn("获取订单统计失败: 商家没有关联的店铺: userId={}", currentUserId);
+                    return Result.failure(5142);
                 }
+                shopId = shop.getId();
             } else if (UserContext.isAdmin()) {
                 // 管理员可以查看所有订单统计，或指定店铺的统计
                 // shopId参数由前端传入
@@ -1856,11 +1936,13 @@ public class OrderServiceImpl implements OrderService {
             String userId = null;
             if (UserContext.isShop()) {
                 // 商家只能导出自己店铺的订单
-                if (shopId == null || shopId.isEmpty()) {
-                    // TODO: 从shop表查询当前用户对应的店铺ID
-                    // 暂时使用userId作为shopId（假设userId和shopId关联）
-                    shopId = currentUserId;
+                // 查询商家对应的店铺ID
+                Shop shop = shopMapper.selectByOwnerId(currentUserId);
+                if (shop == null) {
+                    logger.warn("导出订单失败: 商家没有关联的店铺: userId={}", currentUserId);
+                    return Result.failure(5143);
                 }
+                shopId = shop.getId();
             } else if (UserContext.isAdmin()) {
                 // 管理员可以导出所有订单，或指定店铺的订单
                 // shopId参数由前端传入
