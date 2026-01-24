@@ -8,6 +8,8 @@ import com.shangnantea.mapper.ForumReplyMapper;
 import com.shangnantea.mapper.ForumTopicMapper;
 import com.shangnantea.mapper.HomeContentMapper;
 import com.shangnantea.mapper.TeaArticleMapper;
+import com.shangnantea.mapper.UserFavoriteMapper;
+import com.shangnantea.mapper.UserLikeMapper;
 import com.shangnantea.mapper.UserMapper;
 import com.shangnantea.model.dto.forum.CreatePostDTO;
 import com.shangnantea.model.dto.forum.CreateTopicDTO;
