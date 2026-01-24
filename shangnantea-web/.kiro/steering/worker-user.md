@@ -146,17 +146,17 @@ inclusion: manual
 #### 管理员功能（8个接口）
 28. ✅ **getAdminUserList** - `/user/admin/users` - 获取用户列表（已完成）
 29. ✅ **createAdmin** - `/user/admin/users` - 创建管理员（已完成）
-30. **updateUser** - `/user/admin/users/{userId}` - 更新用户
-31. **deleteUser** - `/user/admin/users/{userId}` - 删除用户
-32. **toggleUserStatus** - `/user/admin/users/{userId}/status` - 切换用户状态
-33. **getCertificationList** - `/user/admin/certifications` - 获取认证列表
-34. **processCertification** - `/user/admin/certifications/{id}` - 审核认证
-35. **uploadCertificationImage** - `/user/merchant/certification/image` - 上传认证图片
+30. ✅ **updateUser** - `/user/admin/users/{userId}` - 更新用户（已完成）
+31. ✅ **deleteUser** - `/user/admin/users/{userId}` - 删除用户（已完成）
+32. ✅ **toggleUserStatus** - `/user/admin/users/{userId}/status` - 切换用户状态（已完成）
+33. ✅ **getCertificationList** - `/user/admin/certifications` - 获取认证列表（已完成）
+34. ✅ **processCertification** - `/user/admin/certifications/{id}` - 审核认证（已完成）
+35. ✅ **uploadCertificationImage** - `/user/merchant/certification/image` - 上传认证图片（已完成）
 
 ### 接口开发进度
-- **已完成**：29/35（login, register, logout, getCurrentUser, refreshToken, getUserInfo, updateUserInfo, uploadAvatar, changePassword, resetPassword, getAddressList, addAddress, updateAddress, deleteAddress, setDefaultAddress, submitShopCertification, getShopCertificationStatus, getFollowList, addFollow, removeFollow, getFavoriteList, addFavorite, removeFavorite, addLike, removeLike, getUserPreferences, updateUserPreferences, getAdminUserList, createAdmin）
-- **待开发**：6/35
-- **完成率**：82.9%
+- **已完成**：35/35（login, register, logout, getCurrentUser, refreshToken, getUserInfo, updateUserInfo, uploadAvatar, changePassword, resetPassword, getAddressList, addAddress, updateAddress, deleteAddress, setDefaultAddress, submitShopCertification, getShopCertificationStatus, getFollowList, addFollow, removeFollow, getFavoriteList, addFavorite, removeFavorite, addLike, removeLike, getUserPreferences, updateUserPreferences, getAdminUserList, createAdmin, updateUser, deleteUser, toggleUserStatus, getCertificationList, processCertification, uploadCertificationImage）
+- **待开发**：0/35
+- **完成率**：100%
 
 ### 状态码范围
 - **成功码**：2000-2024（25个成功状态码）

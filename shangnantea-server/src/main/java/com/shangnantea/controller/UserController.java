@@ -503,14 +503,14 @@ public class UserController {
      * 成功码: 2020, 失败码: 2136, 2137
      *
      * @param userId 用户ID
-     * @param userData 用户数据
+     * @param updateUserDTO 用户数据
      * @return 更新结果
      */
     @PutMapping("/admin/users/{userId}")
     @RequiresRoles({1}) // 管理员角色
-    public Result<Boolean> updateUser(@PathVariable String userId, @RequestBody Map<String, Object> userData) {
+    public Result<Boolean> updateUser(@PathVariable String userId, @Valid @RequestBody UpdateUserDTO updateUserDTO) {
         logger.info("更新用户信息请求(管理员): {}", userId);
-        return userService.updateUser(userId, userData);
+        return userService.updateUser(userId, updateUserDTO);
     }
 
     /**
@@ -570,14 +570,14 @@ public class UserController {
      * 成功码: 2023, 失败码: 2144, 2145
      *
      * @param id 认证ID
-     * @param auditData 审核数据 {status, message}
+     * @param processCertificationDTO 审核数据
      * @return 审核结果
      */
     @PutMapping("/admin/certifications/{id}")
     @RequiresRoles({1}) // 管理员角色
-    public Result<Boolean> processCertification(@PathVariable Integer id, @RequestBody Map<String, Object> auditData) {
-        logger.info("审核认证申请请求(管理员): {}, status: {}", id, auditData.get("status"));
-        return userService.processCertification(id, auditData);
+    public Result<Boolean> processCertification(@PathVariable Integer id, @Valid @RequestBody ProcessCertificationDTO processCertificationDTO) {
+        logger.info("审核认证申请请求(管理员): {}, status: {}", id, processCertificationDTO.getStatus());
+        return userService.processCertification(id, processCertificationDTO);
     }
 
     /**

@@ -1740,7 +1740,7 @@ public class UserServiceImpl implements UserService {
     
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Result<Boolean> processCertification(Integer id, Map<String, Object> auditData) {
+    public Result<Boolean> processCertification(Integer id, ProcessCertificationDTO processCertificationDTO) {
         try {
             // 1. 获取当前管理员ID
             String adminId = UserContext.getCurrentUserId();
@@ -1752,11 +1752,6 @@ public class UserServiceImpl implements UserService {
             // 2. 验证参数
             if (id == null) {
                 logger.warn("审核认证失败(管理员): 认证ID为空");
-                return Result.failure(2144); // 操作失败
-            }
-            
-            if (auditData == null || !auditData.containsKey("status")) {
-                logger.warn("审核认证失败(管理员): 审核状态参数为空, certificationId: {}", id);
                 return Result.failure(2144); // 操作失败
             }
             
@@ -1774,8 +1769,8 @@ public class UserServiceImpl implements UserService {
             }
             
             // 5. 获取审核状态和意见
-            Integer auditStatus = (Integer) auditData.get("status");
-            String message = (String) auditData.get("message");
+            Integer auditStatus = processCertificationDTO.getStatus();
+            String message = processCertificationDTO.getMessage();
             
             if (auditStatus == null || (auditStatus != 1 && auditStatus != 2)) {
                 logger.warn("审核认证失败(管理员): 审核状态值不正确, certificationId: {}, status: {}", id, auditStatus);
