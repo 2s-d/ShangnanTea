@@ -55,4 +55,16 @@ public interface ShopCertificationMapper extends BaseMapper<ShopCertification, I
      * @return 影响行数
      */
     int update(ShopCertification certification);
+    
+    /**
+     * 调用存储过程确认认证并创建店铺
+     * 该存储过程会：
+     * 1. 更新用户角色为商家
+     * 2. 创建店铺记录
+     * 3. 标记认证通知已确认
+     *
+     * @param certificationId 认证ID
+     * @return 创建的店铺ID
+     */
+    String confirmCertification(@Param("certificationId") Integer certificationId);
 } 

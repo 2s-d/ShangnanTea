@@ -2,6 +2,11 @@ package com.shangnantea.service.impl;
 
 import com.shangnantea.common.api.Result;
 import com.shangnantea.mapper.ShopCertificationMapper;
+import com.shangnantea.mapper.ShopMapper;
+import com.shangnantea.mapper.TeaMapper;
+import com.shangnantea.mapper.ForumPostMapper;
+import com.shangnantea.mapper.ForumReplyMapper;
+import com.shangnantea.mapper.TeaArticleMapper;
 import com.shangnantea.mapper.UserAddressMapper;
 import com.shangnantea.mapper.UserFavoriteMapper;
 import com.shangnantea.mapper.UserFollowMapper;
@@ -1791,12 +1796,25 @@ public class UserServiceImpl implements UserService {
                 return Result.failure(2144); // 操作失败
             }
             
-            // 7. 如果审核通过，更新用户角色为商家
+            // 7. 如果审核通过，调用存储过程创建店铺
             if (auditStatus == 1) {
-                User user = getUserEntityById(certification.getUserId());
-                if (user != null) {
-                    user.setRole(3); // 3-商家角色
-                    userMapper.update(user);
+                try {
+                    // 调用存储过程：confirm_shop_certification
+                    // 该存储过程会：
+                    // 1. 更新用户角色为商家（role=3）
+                    // 2. 生成店铺ID并创建店铺记录
+                    // 3. 标记认证通知已确认
+                    String shopId = shopCertificationMapper.confirmCertification(id);
+                    logger.info("审核认证通过，店铺创建成功: certificationId: {}, shopId: {}", id, shopId);
+                } catch (Exception e) {
+                    logger.error("调用存储过程创建店铺失败: certificationId: {}", id, e);
+                    // 如果存储过程调用失败，手动更新用户角色
+                    User user = getUserEntityById(certification.getUserId());
+                    if (user != null) {
+                        user.setRole(3); // 3-商家角色
+                        userMapper.update(user);
+                        logger.warn("存储过程失败，已手动更新用户角色为商家: userId: {}", user.getId());
+                    }
                 }
             }
             

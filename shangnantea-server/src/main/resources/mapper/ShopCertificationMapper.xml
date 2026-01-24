@@ -173,4 +173,9 @@
         </set>
         WHERE id = #{id}
     </update>
+    
+    <!-- 调用存储过程确认认证并创建店铺 -->
+    <select id="confirmCertification" parameterType="java.lang.Integer" resultType="java.lang.String" statementType="CALLABLE">
+        {CALL confirm_shop_certification(#{certificationId, mode=IN, jdbcType=INTEGER})}
+    </select>
 </mapper> 
