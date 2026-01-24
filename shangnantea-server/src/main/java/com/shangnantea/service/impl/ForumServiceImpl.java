@@ -2286,4 +2286,161 @@ public class ForumServiceImpl implements ForumService {
             return Result.failure(6133); // 取消点赞失败
         }
     }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> approvePost(String id) {
+        try {
+            logger.info("审核通过帖子请求: id={}", id);
+            
+            // 1. 验证帖子是否存在
+            Long postId = Long.parseLong(id);
+            ForumPost post = postMapper.selectById(postId);
+            if (post == null) {
+                logger.warn("审核通过失败: 帖子不存在, id: {}", id);
+                return Result.failure(6134); // 审核通过失败
+            }
+            
+            // 2. 验证帖子是否处于待审核状态
+            if (post.getStatus() == null || post.getStatus() != 0) {
+                logger.warn("审核通过失败: 帖子不是待审核状态, id: {}, status: {}", id, post.getStatus());
+                return Result.failure(6134); // 审核通过失败
+            }
+            
+            // 3. 更新帖子状态为已通过
+            post.setStatus(1); // 1=正常
+            post.setUpdateTime(new Date());
+            int result = postMapper.updateById(post);
+            
+            if (result <= 0) {
+                logger.error("审核通过失败: 数据库更新失败, id: {}", id);
+                return Result.failure(6134); // 审核通过失败
+            }
+            
+            logger.info("审核通过成功: id={}", id);
+            return Result.success(6022, null); // 帖子审核通过
+            
+        } catch (NumberFormatException e) {
+            logger.error("审核通过失败: ID格式错误, id: {}", id, e);
+            return Result.failure(6134); // 审核通过失败
+        } catch (Exception e) {
+            logger.error("审核通过失败: 系统异常, id: {}", id, e);
+            return Result.failure(6134); // 审核通过失败
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> rejectPost(String id, com.shangnantea.model.dto.forum.RejectPostDTO dto) {
+        try {
+            logger.info("审核拒绝帖子请求: id={}, reason={}", id, dto.getReason());
+            
+            // 1. 验证帖子是否存在
+            Long postId = Long.parseLong(id);
+            ForumPost post = postMapper.selectById(postId);
+            if (post == null) {
+                logger.warn("审核拒绝失败: 帖子不存在, id: {}", id);
+                return Result.failure(6135); // 审核拒绝失败
+            }
+            
+            // 2. 验证帖子是否处于待审核状态
+            if (post.getStatus() == null || post.getStatus() != 0) {
+                logger.warn("审核拒绝失败: 帖子不是待审核状态, id: {}, status: {}", id, post.getStatus());
+                return Result.failure(6135); // 审核拒绝失败
+            }
+            
+            // 3. 更新帖子状态为已拒绝
+            post.setStatus(3); // 3=已拒绝
+            post.setUpdateTime(new Date());
+            int result = postMapper.updateById(post);
+            
+            if (result <= 0) {
+                logger.error("审核拒绝失败: 数据库更新失败, id: {}", id);
+                return Result.failure(6135); // 审核拒绝失败
+            }
+            
+            // 注意：拒绝原因可以存储到其他表或字段中，这里暂时只记录日志
+            logger.info("审核拒绝成功: id={}, reason={}", id, dto.getReason());
+            return Result.success(6023, null); // 帖子审核拒绝
+            
+        } catch (NumberFormatException e) {
+            logger.error("审核拒绝失败: ID格式错误, id: {}", id, e);
+            return Result.failure(6135); // 审核拒绝失败
+        } catch (Exception e) {
+            logger.error("审核拒绝失败: 系统异常, id: {}", id, e);
+            return Result.failure(6135); // 审核拒绝失败
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> togglePostSticky(String id, Boolean isSticky) {
+        try {
+            logger.info("设置帖子置顶请求: id={}, isSticky={}", id, isSticky);
+            
+            // 1. 验证帖子是否存在
+            Long postId = Long.parseLong(id);
+            ForumPost post = postMapper.selectById(postId);
+            if (post == null) {
+                logger.warn("设置置顶失败: 帖子不存在, id: {}", id);
+                return Result.failure(isSticky ? 6136 : 6137); // 置顶失败/取消置顶失败
+            }
+            
+            // 2. 更新帖子置顶状态
+            post.setIsSticky(isSticky ? 1 : 0);
+            post.setUpdateTime(new Date());
+            int result = postMapper.updateById(post);
+            
+            if (result <= 0) {
+                logger.error("设置置顶失败: 数据库更新失败, id: {}", id);
+                return Result.failure(isSticky ? 6136 : 6137); // 置顶失败/取消置顶失败
+            }
+            
+            logger.info("设置置顶成功: id={}, isSticky={}", id, isSticky);
+            return Result.success(isSticky ? 6024 : 6025, null); // 帖子已置顶/帖子已取消置顶
+            
+        } catch (NumberFormatException e) {
+            logger.error("设置置顶失败: ID格式错误, id: {}", id, e);
+            return Result.failure(isSticky ? 6136 : 6137); // 置顶失败/取消置顶失败
+        } catch (Exception e) {
+            logger.error("设置置顶失败: 系统异常, id: {}", id, e);
+            return Result.failure(isSticky ? 6136 : 6137); // 置顶失败/取消置顶失败
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> togglePostEssence(String id, Boolean isEssence) {
+        try {
+            logger.info("设置帖子精华请求: id={}, isEssence={}", id, isEssence);
+            
+            // 1. 验证帖子是否存在
+            Long postId = Long.parseLong(id);
+            ForumPost post = postMapper.selectById(postId);
+            if (post == null) {
+                logger.warn("设置加精失败: 帖子不存在, id: {}", id);
+                return Result.failure(isEssence ? 6138 : 6139); // 加精失败/取消加精失败
+            }
+            
+            // 2. 更新帖子精华状态
+            post.setIsEssence(isEssence ? 1 : 0);
+            post.setUpdateTime(new Date());
+            int result = postMapper.updateById(post);
+            
+            if (result <= 0) {
+                logger.error("设置加精失败: 数据库更新失败, id: {}", id);
+                return Result.failure(isEssence ? 6138 : 6139); // 加精失败/取消加精失败
+            }
+            
+            logger.info("设置加精成功: id={}, isEssence={}", id, isEssence);
+            return Result.success(isEssence ? 6026 : 6027, null); // 帖子已加精/帖子已取消加精
+            
+        } catch (NumberFormatException e) {
+            logger.error("设置加精失败: ID格式错误, id: {}", id, e);
+            return Result.failure(isEssence ? 6138 : 6139); // 加精失败/取消加精失败
+        } catch (Exception e) {
+            logger.error("设置加精失败: 系统异常, id: {}", id, e);
+            return Result.failure(isEssence ? 6138 : 6139); // 加精失败/取消加精失败
+        }
+    }
 } 

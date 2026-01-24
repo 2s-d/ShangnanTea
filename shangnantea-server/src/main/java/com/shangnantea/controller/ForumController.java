@@ -449,39 +449,38 @@ public class ForumController {
     /**
      * 审核通过帖子（管理员）
      * 路径: POST /forum/posts/{id}/approve
-     * 成功码: 6034, 失败码: 6134
+     * 成功码: 6022, 失败码: 6134
      *
      * @param id 帖子ID
-     * @param data 审核数据
      * @return 审核结果
      */
     @PostMapping("/posts/{id}/approve")
     @RequiresRoles({1})
-    public Result<Object> approvePost(@PathVariable String id, @RequestBody Map<String, Object> data) {
+    public Result<Object> approvePost(@PathVariable String id) {
         logger.info("审核通过帖子请求: {}", id);
-        return forumService.approvePost(id, data);
+        return forumService.approvePost(id);
     }
 
     /**
      * 审核拒绝帖子（管理员）
      * 路径: POST /forum/posts/{id}/reject
-     * 成功码: 6035, 失败码: 6135
+     * 成功码: 6023, 失败码: 6135
      *
      * @param id 帖子ID
-     * @param data 审核数据（包含拒绝原因）
+     * @param dto 审核数据（包含拒绝原因）
      * @return 审核结果
      */
     @PostMapping("/posts/{id}/reject")
     @RequiresRoles({1})
-    public Result<Object> rejectPost(@PathVariable String id, @RequestBody Map<String, Object> data) {
+    public Result<Object> rejectPost(@PathVariable String id, @Valid @RequestBody com.shangnantea.model.dto.forum.RejectPostDTO dto) {
         logger.info("审核拒绝帖子请求: {}", id);
-        return forumService.rejectPost(id, data);
+        return forumService.rejectPost(id, dto);
     }
 
     /**
      * 设置帖子置顶/取消置顶（管理员）
      * 路径: PUT /forum/posts/{id}/sticky
-     * 成功码: 6030, 6031, 失败码: 6130, 6131
+     * 成功码: 6024, 6025, 失败码: 6136, 6137
      *
      * @param id 帖子ID
      * @param isSticky 是否置顶
@@ -497,7 +496,7 @@ public class ForumController {
     /**
      * 设置帖子精华/取消精华（管理员）
      * 路径: PUT /forum/posts/{id}/essence
-     * 成功码: 6032, 6033, 失败码: 6132, 6133
+     * 成功码: 6026, 6027, 失败码: 6138, 6139
      *
      * @param id 帖子ID
      * @param isEssence 是否精华

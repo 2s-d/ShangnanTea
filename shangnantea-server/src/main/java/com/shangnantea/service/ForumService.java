@@ -549,4 +549,47 @@ public interface ForumService {
      * @return 取消点赞结果
      */
     Result<Object> unlikeReply(String id);
+    
+    /**
+     * 审核通过帖子（管理员）
+     * 路径: POST /forum/posts/{id}/approve
+     * 成功码: 6022, 失败码: 6134
+     *
+     * @param id 帖子ID
+     * @return 审核结果
+     */
+    Result<Object> approvePost(String id);
+    
+    /**
+     * 审核拒绝帖子（管理员）
+     * 路径: POST /forum/posts/{id}/reject
+     * 成功码: 6023, 失败码: 6135
+     *
+     * @param id 帖子ID
+     * @param dto 审核数据（包含拒绝原因）
+     * @return 审核结果
+     */
+    Result<Object> rejectPost(String id, com.shangnantea.model.dto.forum.RejectPostDTO dto);
+    
+    /**
+     * 设置帖子置顶/取消置顶（管理员）
+     * 路径: PUT /forum/posts/{id}/sticky
+     * 成功码: 6024, 6025, 失败码: 6136, 6137
+     *
+     * @param id 帖子ID
+     * @param isSticky 是否置顶
+     * @return 操作结果
+     */
+    Result<Object> togglePostSticky(String id, Boolean isSticky);
+    
+    /**
+     * 设置帖子精华/取消精华（管理员）
+     * 路径: PUT /forum/posts/{id}/essence
+     * 成功码: 6026, 6027, 失败码: 6138, 6139
+     *
+     * @param id 帖子ID
+     * @param isEssence 是否精华
+     * @return 操作结果
+     */
+    Result<Object> togglePostEssence(String id, Boolean isEssence);
 } 
