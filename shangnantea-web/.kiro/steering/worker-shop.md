@@ -139,13 +139,13 @@ inclusion: manual
 21. **deleteAnnouncement** - `/shop/announcements/{announcementId}` - 删除公告 ✅ 已完成
 
 #### 关注功能（3个接口）
-22. **followShop** - `/shop/{shopId}/follow` - 关注店铺
-23. **unfollowShop** - `/shop/{shopId}/follow` - 取消关注
-24. **checkFollowStatus** - `/shop/{shopId}/follow-status` - 获取关注状态
+22. **followShop** - `/shop/{shopId}/follow` - 关注店铺 ✅ 已完成
+23. **unfollowShop** - `/shop/{shopId}/follow` - 取消关注 ✅ 已完成
+24. **checkFollowStatus** - `/shop/{shopId}/follow-status` - 获取关注状态 ✅ 已完成
 
 #### 评价功能（2个接口）
-25. **getShopReviews** - `/shop/{shopId}/reviews` - 获取店铺评价
-26. **submitShopReview** - `/shop/{shopId}/reviews` - 提交店铺评价
+25. **getShopReviews** - `/shop/{shopId}/reviews` - 获取店铺评价 ✅ 已完成
+26. **submitShopReview** - `/shop/{shopId}/reviews` - 提交店铺评价 ✅ 已完成
 
 ### 状态码范围
 - **成功码**：4000-4017（18个成功状态码）
