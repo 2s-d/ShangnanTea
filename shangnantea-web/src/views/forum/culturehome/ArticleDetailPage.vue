@@ -60,9 +60,14 @@
         </el-button>
         <div class="action-buttons">
           <el-button type="default" @click="handleLike" :class="{'is-liked': isLiked}">
-            <i class="el-icon-star-off" v-if="!isLiked"></i>
+            <i class="el-icon-thumb" v-if="!isLiked"></i>
+            <i class="el-icon-thumb" v-else style="color: #E6A23C;"></i>
+            点赞 ({{ article.likeCount || 0 }})
+          </el-button>
+          <el-button type="default" @click="handleFavorite" :class="{'is-favorited': isFavorited}">
+            <i class="el-icon-star-off" v-if="!isFavorited"></i>
             <i class="el-icon-star-on" v-else></i>
-            收藏 ({{ article.likeCount }})
+            收藏 ({{ article.favoriteCount || 0 }})
           </el-button>
           <el-button type="default" @click="handleShare">
             <i class="el-icon-share"></i> 分享

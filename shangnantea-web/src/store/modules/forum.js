@@ -11,6 +11,10 @@ import {
   createArticle,
   updateArticle,
   deleteArticle,
+  likeArticle,
+  unlikeArticle,
+  favoriteArticle,
+  unfavoriteArticle,
   getForumTopics,
   getTopicDetail,
   createTopic,
@@ -252,6 +256,35 @@ const mutations = {
   },
   SET_ARTICLE_PAGINATION(state, pagination) {
     state.articlePagination = { ...state.articlePagination, ...pagination }
+  },
+
+  // 文章点赞收藏相关mutations
+  UPDATE_ARTICLE_LIKE(state, { id, isLiked, likeCount }) {
+    // 更新当前文章的点赞状态
+    if (state.currentArticle && state.currentArticle.id === id) {
+      state.currentArticle.isLiked = isLiked
+      state.currentArticle.likeCount = likeCount
+    }
+    // 更新文章列表中的点赞状态
+    const article = state.articles.find(a => a.id === id)
+    if (article) {
+      article.isLiked = isLiked
+      article.likeCount = likeCount
+    }
+  },
+
+  UPDATE_ARTICLE_FAVORITE(state, { id, isFavorited, favoriteCount }) {
+    // 更新当前文章的收藏状态
+    if (state.currentArticle && state.currentArticle.id === id) {
+      state.currentArticle.isFavorited = isFavorited
+      state.currentArticle.favoriteCount = favoriteCount
+    }
+    // 更新文章列表中的收藏状态
+    const article = state.articles.find(a => a.id === id)
+    if (article) {
+      article.isFavorited = isFavorited
+      article.favoriteCount = favoriteCount
+    }
   },
 
   // 任务组F：内容审核相关mutations
@@ -506,6 +539,75 @@ const actions = {
       throw error
     } finally {
       commit('SET_LOADING', false)
+    }
+  },
+
+  // 文章点赞收藏相关actions
+  // 接口#38: 点赞文章 - 成功码6029, 失败码6143
+  async likeArticle({ commit }, id) {
+    try {
+      const res = await likeArticle(id)
+      commit('UPDATE_ARTICLE_LIKE', { 
+        id, 
+        isLiked: true, 
+        likeCount: res.data?.likeCount 
+      })
+      return res // 返回 {code, data}
+    } catch (error) {
+      commit('SET_ERROR', error.message || '点赞失败')
+      console.error('点赞文章失败:', error)
+      throw error
+    }
+  },
+
+  // 接口#39: 取消点赞文章 - 成功码6030, 失败码6144
+  async unlikeArticle({ commit }, id) {
+    try {
+      const res = await unlikeArticle(id)
+      commit('UPDATE_ARTICLE_LIKE', { 
+        id, 
+        isLiked: false, 
+        likeCount: res.data?.likeCount 
+      })
+      return res // 返回 {code, data}
+    } catch (error) {
+      commit('SET_ERROR', error.message || '取消点赞失败')
+      console.error('取消点赞文章失败:', error)
+      throw error
+    }
+  },
+
+  // 接口#40: 收藏文章 - 成功码6031, 失败码6145
+  async favoriteArticle({ commit }, id) {
+    try {
+      const res = await favoriteArticle(id)
+      commit('UPDATE_ARTICLE_FAVORITE', { 
+        id, 
+        isFavorited: true, 
+        favoriteCount: res.data?.favoriteCount 
+      })
+      return res // 返回 {code, data}
+    } catch (error) {
+      commit('SET_ERROR', error.message || '收藏失败')
+      console.error('收藏文章失败:', error)
+      throw error
+    }
+  },
+
+  // 接口#41: 取消收藏文章 - 成功码6032, 失败码6146
+  async unfavoriteArticle({ commit }, id) {
+    try {
+      const res = await unfavoriteArticle(id)
+      commit('UPDATE_ARTICLE_FAVORITE', { 
+        id, 
+        isFavorited: false, 
+        favoriteCount: res.data?.favoriteCount 
+      })
+      return res // 返回 {code, data}
+    } catch (error) {
+      commit('SET_ERROR', error.message || '取消收藏失败')
+      console.error('取消收藏文章失败:', error)
+      throw error
     }
   },
 
