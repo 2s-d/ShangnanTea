@@ -1422,31 +1422,52 @@ public class MessageServiceImpl implements MessageService {
                 return Result.failure(7119);
             }
             
-            // 2. TODO: 调用用户模块获取用户信息
-            // 这里需要调用用户模块的Service获取用户基本信息
-            // 暂时返回模拟数据
+            // 2. 查询用户基本信息
+            com.shangnantea.model.entity.user.User user = userMapper.selectById(userId);
+            if (user == null) {
+                logger.warn("获取用户主页信息失败：用户不存在, userId: {}", userId);
+                return Result.failure(7120);
+            }
+            
+            // 3. 获取当前登录用户ID，检查是否已关注
+            String currentUserId = UserContext.getCurrentUserId();
+            boolean isFollowed = false;
+            if (currentUserId != null && !currentUserId.equals(userId)) {
+                com.shangnantea.model.entity.user.UserFollow follow = 
+                    userFollowMapper.selectByFollowerAndFollowed(currentUserId, userId);
+                isFollowed = (follow != null);
+            }
+            
+            // 4. 统计数据
+            long postCount = forumPostMapper.countByUserId(userId);
+            long followingCount = userFollowMapper.countFollowingByUserId(userId);
+            long followerCount = userFollowMapper.countFollowersByUserId(userId);
+            
+            // 5. 组装返回数据
             Map<String, Object> userProfile = new HashMap<>();
             
             // 用户基本信息
             Map<String, Object> userInfo = new HashMap<>();
-            userInfo.put("id", userId);
-            userInfo.put("username", "用户" + userId);
-            userInfo.put("nickname", "用户昵称" + userId);
-            userInfo.put("avatar", "/images/avatar.png");
-            userInfo.put("role", 2);
+            userInfo.put("id", user.getId());
+            userInfo.put("username", user.getUsername());
+            userInfo.put("nickname", user.getNickname());
+            userInfo.put("avatar", user.getAvatar());
+            userInfo.put("role", user.getRole());
+            userInfo.put("bio", user.getBio());
             userProfile.put("user", userInfo);
             
-            // 是否已关注（需要从用户模块获取）
-            userProfile.put("isFollowed", false);
+            // 是否已关注
+            userProfile.put("isFollowed", isFollowed);
             
-            // 统计数据（需要从各个模块聚合）
+            // 统计数据
             Map<String, Object> statistics = new HashMap<>();
-            statistics.put("postCount", 0);
-            statistics.put("followingCount", 0);
-            statistics.put("followerCount", 0);
+            statistics.put("postCount", postCount);
+            statistics.put("followingCount", followingCount);
+            statistics.put("followerCount", followerCount);
             userProfile.put("statistics", statistics);
             
-            logger.info("获取用户主页信息成功, userId: {}", userId);
+            logger.info("获取用户主页信息成功, userId: {}, postCount: {}, followingCount: {}, followerCount: {}", 
+                    userId, postCount, followingCount, followerCount);
             return Result.success(200, userProfile);
             
         } catch (Exception e) {
@@ -1466,14 +1487,34 @@ public class MessageServiceImpl implements MessageService {
                 return Result.failure(7121);
             }
             
-            // 2. TODO: 从各个模块聚合用户动态
-            // 需要从论坛模块、订单模块等获取用户的动态信息
-            // 暂时返回空列表
-            Map<String, Object> result = new HashMap<>();
-            result.put("list", new ArrayList<>());
-            result.put("total", 0);
+            // 2. 查询用户最新帖子（作为动态）
+            // 查询最近10条帖子
+            List<com.shangnantea.model.entity.forum.ForumPost> posts = 
+                forumPostMapper.selectByUserId(userId, 0, 10);
             
-            logger.info("获取用户动态成功, userId: {}", userId);
+            // 3. 转换为动态VO
+            List<Map<String, Object>> dynamicList = new ArrayList<>();
+            for (com.shangnantea.model.entity.forum.ForumPost post : posts) {
+                Map<String, Object> dynamic = new HashMap<>();
+                dynamic.put("id", post.getId());
+                dynamic.put("type", "post"); // 动态类型：帖子
+                dynamic.put("title", post.getTitle());
+                dynamic.put("content", post.getSummary() != null ? post.getSummary() : post.getContent());
+                dynamic.put("coverImage", post.getCoverImage());
+                dynamic.put("viewCount", post.getViewCount());
+                dynamic.put("likeCount", post.getLikeCount());
+                dynamic.put("replyCount", post.getReplyCount());
+                dynamic.put("createTime", post.getCreateTime());
+                
+                dynamicList.add(dynamic);
+            }
+            
+            // 4. 构造返回数据
+            Map<String, Object> result = new HashMap<>();
+            result.put("list", dynamicList);
+            result.put("total", dynamicList.size());
+            
+            logger.info("获取用户动态成功, userId: {}, count: {}", userId, dynamicList.size());
             return Result.success(200, result);
             
         } catch (Exception e) {
@@ -1493,16 +1534,21 @@ public class MessageServiceImpl implements MessageService {
                 return Result.failure(7122);
             }
             
-            // 2. TODO: 从各个模块聚合统计数据
-            // 需要从论坛模块、用户模块等获取统计信息
-            // 暂时返回模拟数据
-            Map<String, Object> statistics = new HashMap<>();
-            statistics.put("postCount", 0);
-            statistics.put("followingCount", 0);
-            statistics.put("followerCount", 0);
-            statistics.put("favoriteCount", 0);
+            // 2. 统计各项数据
+            long postCount = forumPostMapper.countByUserId(userId);
+            long followingCount = userFollowMapper.countFollowingByUserId(userId);
+            long followerCount = userFollowMapper.countFollowersByUserId(userId);
+            long favoriteCount = userFavoriteMapper.countByUserId(userId);
             
-            logger.info("获取用户统计数据成功, userId: {}", userId);
+            // 3. 组装返回数据
+            Map<String, Object> statistics = new HashMap<>();
+            statistics.put("postCount", postCount);
+            statistics.put("followingCount", followingCount);
+            statistics.put("followerCount", followerCount);
+            statistics.put("favoriteCount", favoriteCount);
+            
+            logger.info("获取用户统计数据成功, userId: {}, postCount: {}, followingCount: {}, followerCount: {}, favoriteCount: {}", 
+                    userId, postCount, followingCount, followerCount, favoriteCount);
             return Result.success(200, statistics);
             
         } catch (Exception e) {
@@ -1531,15 +1577,47 @@ public class MessageServiceImpl implements MessageService {
             String sortBy = params.get("sortBy") != null ? 
                 params.get("sortBy").toString() : "latest";
             
-            // 3. TODO: 调用论坛模块获取用户帖子列表
-            // 需要调用论坛模块的Service获取当前用户发布的帖子
-            // 暂时返回空列表
-            Map<String, Object> result = new HashMap<>();
-            result.put("list", new ArrayList<>());
-            result.put("total", 0);
+            // 3. 参数验证和修正
+            if (page < 1) page = 1;
+            if (size < 1) size = 10;
+            if (size > 100) size = 100;
             
-            logger.info("获取用户帖子列表成功, userId: {}, page: {}, size: {}, sortBy: {}", 
-                    userId, page, size, sortBy);
+            Integer offset = (page - 1) * size;
+            
+            // 4. 查询用户帖子列表
+            List<com.shangnantea.model.entity.forum.ForumPost> posts = 
+                forumPostMapper.selectByUserId(userId, offset, size);
+            long total = forumPostMapper.countByUserId(userId);
+            
+            // 5. 转换为VO
+            List<Map<String, Object>> postList = new ArrayList<>();
+            for (com.shangnantea.model.entity.forum.ForumPost post : posts) {
+                Map<String, Object> postVO = new HashMap<>();
+                postVO.put("id", post.getId());
+                postVO.put("title", post.getTitle());
+                postVO.put("content", post.getContent());
+                postVO.put("summary", post.getSummary());
+                postVO.put("coverImage", post.getCoverImage());
+                postVO.put("viewCount", post.getViewCount());
+                postVO.put("replyCount", post.getReplyCount());
+                postVO.put("likeCount", post.getLikeCount());
+                postVO.put("favoriteCount", post.getFavoriteCount());
+                postVO.put("isSticky", post.getIsSticky());
+                postVO.put("isEssence", post.getIsEssence());
+                postVO.put("status", post.getStatus());
+                postVO.put("createTime", post.getCreateTime());
+                postVO.put("updateTime", post.getUpdateTime());
+                
+                postList.add(postVO);
+            }
+            
+            // 6. 构造返回数据
+            Map<String, Object> result = new HashMap<>();
+            result.put("list", postList);
+            result.put("total", total);
+            
+            logger.info("获取用户帖子列表成功, userId: {}, page: {}, size: {}, sortBy: {}, total: {}", 
+                    userId, page, size, sortBy, total);
             return Result.success(200, result);
             
         } catch (Exception e) {
@@ -1566,15 +1644,45 @@ public class MessageServiceImpl implements MessageService {
             Integer size = params.get("size") != null ? 
                 Integer.parseInt(params.get("size").toString()) : 10;
             
-            // 3. TODO: 调用订单模块获取用户评价记录
-            // 需要调用订单模块的Service获取当前用户的评价记录
-            // 暂时返回空列表
-            Map<String, Object> result = new HashMap<>();
-            result.put("list", new ArrayList<>());
-            result.put("total", 0);
+            // 3. 参数验证和修正
+            if (page < 1) page = 1;
+            if (size < 1) size = 10;
+            if (size > 100) size = 100;
             
-            logger.info("获取用户评价记录成功, userId: {}, page: {}, size: {}", 
-                    userId, page, size);
+            Integer offset = (page - 1) * size;
+            
+            // 4. 查询用户评价记录
+            List<com.shangnantea.model.entity.tea.TeaReview> reviews = 
+                teaReviewMapper.selectByUserId(userId, offset, size);
+            long total = teaReviewMapper.countByUserId(userId);
+            
+            // 5. 转换为VO
+            List<Map<String, Object>> reviewList = new ArrayList<>();
+            for (com.shangnantea.model.entity.tea.TeaReview review : reviews) {
+                Map<String, Object> reviewVO = new HashMap<>();
+                reviewVO.put("id", review.getId());
+                reviewVO.put("teaId", review.getTeaId());
+                reviewVO.put("orderId", review.getOrderId());
+                reviewVO.put("content", review.getContent());
+                reviewVO.put("rating", review.getRating());
+                reviewVO.put("images", review.getImages());
+                reviewVO.put("reply", review.getReply());
+                reviewVO.put("replyTime", review.getReplyTime());
+                reviewVO.put("isAnonymous", review.getIsAnonymous());
+                reviewVO.put("likeCount", review.getLikeCount());
+                reviewVO.put("createTime", review.getCreateTime());
+                reviewVO.put("updateTime", review.getUpdateTime());
+                
+                reviewList.add(reviewVO);
+            }
+            
+            // 6. 构造返回数据
+            Map<String, Object> result = new HashMap<>();
+            result.put("list", reviewList);
+            result.put("total", total);
+            
+            logger.info("获取用户评价记录成功, userId: {}, page: {}, size: {}, total: {}", 
+                    userId, page, size, total);
             return Result.success(200, result);
             
         } catch (Exception e) {

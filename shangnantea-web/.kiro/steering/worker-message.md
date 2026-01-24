@@ -131,11 +131,11 @@ inclusion: manual
 17. **sendImageMessage** - `/message/messages/image` - 发送图片消息 ✅ 已完成
 
 #### 用户主页功能（5个接口）
-18. **getUserProfile** - `/message/user/{userId}` - 获取用户主页信息
-19. **getUserDynamic** - `/message/user/{userId}/dynamic` - 获取用户动态
-20. **getUserStatistics** - `/message/user/{userId}/statistics` - 获取用户统计数据
-21. **getUserPosts** - `/message/user/posts` - 获取用户发布的帖子列表
-22. **getUserReviews** - `/message/user/reviews` - 获取用户评价记录
+18. **getUserProfile** - `/message/user/{userId}` - 获取用户主页信息 ✅ 已完成
+19. **getUserDynamic** - `/message/user/{userId}/dynamic` - 获取用户动态 ✅ 已完成
+20. **getUserStatistics** - `/message/user/{userId}/statistics` - 获取用户统计数据 ✅ 已完成
+21. **getUserPosts** - `/message/user/posts` - 获取用户发布的帖子列表 ✅ 已完成
+22. **getUserReviews** - `/message/user/reviews` - 获取用户评价记录 ✅ 已完成
 
 ### 状态码范围
 - **成功码**：7000-7021（22个成功状态码）
