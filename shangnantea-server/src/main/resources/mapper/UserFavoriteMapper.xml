@@ -82,4 +82,10 @@
         DELETE FROM user_favorites
         WHERE user_id = #{userId,jdbcType=VARCHAR}
     </delete>
+    
+    <!-- 统计用户的收藏数 -->
+    <select id="countByUserId" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM user_favorites
+        WHERE user_id = #{userId}
+    </select>
 </mapper> 

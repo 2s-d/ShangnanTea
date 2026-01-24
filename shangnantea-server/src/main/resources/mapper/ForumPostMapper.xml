@@ -105,4 +105,26 @@
     <select id="count" resultType="java.lang.Long">
         SELECT COUNT(*) FROM forum_posts
     </select>
+    
+    <!-- 根据用户ID查询帖子列表（分页） -->
+    <select id="selectByUserId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM forum_posts
+        WHERE user_id = #{userId} AND status = 1
+        <choose>
+            <when test="sortBy == 'hot'">
+                ORDER BY (view_count + like_count * 2 + reply_count * 3) DESC, create_time DESC
+            </when>
+            <otherwise>
+                ORDER BY create_time DESC
+            </otherwise>
+        </choose>
+        LIMIT #{offset}, #{limit}
+    </select>
+    
+    <!-- 统计用户发布的帖子数量 -->
+    <select id="countByUserId" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM forum_posts
+        WHERE user_id = #{userId} AND status = 1
+    </select>
 </mapper> 

@@ -48,6 +48,21 @@ public class MessageServiceImpl implements MessageService {
     @Autowired
     private UserNotificationMapper notificationMapper;
     
+    @Autowired
+    private com.shangnantea.mapper.UserMapper userMapper;
+    
+    @Autowired
+    private com.shangnantea.mapper.ForumPostMapper forumPostMapper;
+    
+    @Autowired
+    private com.shangnantea.mapper.TeaReviewMapper teaReviewMapper;
+    
+    @Autowired
+    private com.shangnantea.mapper.UserFollowMapper userFollowMapper;
+    
+    @Autowired
+    private com.shangnantea.mapper.UserFavoriteMapper userFavoriteMapper;
+    
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
     

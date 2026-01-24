@@ -54,12 +54,19 @@
     </select>
     
     <!-- 根据用户ID查询评价列表 -->
-    <select id="selectByUserId" resultMap="BaseResultMap" parameterType="java.lang.String">
+    <select id="selectByUserId" resultMap="BaseResultMap">
         SELECT 
         <include refid="Base_Column_List"/>
         FROM tea_reviews
         WHERE user_id = #{userId,jdbcType=VARCHAR}
         ORDER BY create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+    
+    <!-- 统计用户发布的评价数量 -->
+    <select id="countByUserId" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM tea_reviews
+        WHERE user_id = #{userId}
     </select>
     
     <!-- 根据订单ID查询评价 -->
