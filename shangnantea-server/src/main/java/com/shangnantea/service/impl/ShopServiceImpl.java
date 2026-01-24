@@ -35,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -61,9 +62,6 @@ public class ShopServiceImpl implements ShopService {
     
     @Autowired
     private ShopAnnouncementMapper shopAnnouncementMapper;
-    
-    @Autowired
-    private ShopReviewMapper shopReviewMapper;
     
     @Autowired
     private UserFollowMapper userFollowMapper;
@@ -1894,68 +1892,36 @@ public class ShopServiceImpl implements ShopService {
     @Override
     public Result<Object> getShopReviews(String shopId, Map<String, Object> params) {
         try {
-            logger.info("获取店铺评价列表请求: shopId={}, params={}", shopId, params);
+            logger.info("获取店铺评分信息请求: shopId={}", shopId);
             
             // 1. 验证店铺ID不为空
             if (shopId == null || shopId.trim().isEmpty()) {
-                logger.warn("获取店铺评价列表失败: 店铺ID为空");
+                logger.warn("获取店铺评分信息失败: 店铺ID为空");
                 return Result.failure(4130);
             }
             
-            // 2. 验证店铺是否存在
+            // 2. 查询店铺信息
             Shop shop = getShopById(shopId);
             if (shop == null) {
-                logger.warn("获取店铺评价列表失败: 店铺不存在, shopId={}", shopId);
+                logger.warn("获取店铺评分信息失败: 店铺不存在, shopId={}", shopId);
                 return Result.failure(4130);
             }
             
-            // 3. 解析分页参数
-            int page = 1;
-            int pageSize = 10;
-            if (params != null) {
-                if (params.get("page") != null) {
-                    page = Integer.parseInt(params.get("page").toString());
-                }
-                if (params.get("pageSize") != null) {
-                    pageSize = Integer.parseInt(params.get("pageSize").toString());
-                }
-            }
-            
-            // 4. 参数验证和默认值设置
-            if (page < 1) {
-                page = 1;
-            }
-            if (pageSize < 1) {
-                pageSize = 10;
-            }
-            
-            // 5. 计算分页偏移量
-            int offset = (page - 1) * pageSize;
-            
-            // 6. 查询评价列表
-            List<ShopReview> reviewList = shopReviewMapper.selectByShopId(shopId, offset, pageSize);
-            
-            // 7. 查询总数
-            Long total = shopReviewMapper.countByShopId(shopId);
-            
-            // 8. 转换为VO（需要查询用户信息）
-            List<ShopReviewVO> reviewVOList = reviewList.stream()
-                    .map(this::convertToShopReviewVO)
-                    .collect(Collectors.toList());
-            
-            // 9. 构建返回数据
+            // 3. 构建返回数据（只返回评分信息，不返回评价列表）
             Map<String, Object> responseData = new HashMap<>();
-            responseData.put("list", reviewVOList);
-            responseData.put("total", total);
+            responseData.put("rating", shop.getRating());
+            responseData.put("ratingCount", shop.getRatingCount());
+            responseData.put("list", new ArrayList<>()); // 空列表
+            responseData.put("total", 0);
             
-            logger.info("获取店铺评价列表成功: shopId={}, 总记录数={}, 当前页={}, 每页={}", 
-                    shopId, total, page, pageSize);
+            logger.info("获取店铺评分信息成功: shopId={}, rating={}, ratingCount={}", 
+                    shopId, shop.getRating(), shop.getRatingCount());
             
-            // 10. 返回成功（根据code-message-mapping.md，成功码是200）
+            // 4. 返回成功（根据code-message-mapping.md，成功码是200）
             return Result.success(200, responseData);
             
         } catch (Exception e) {
-            logger.error("获取店铺评价列表失败: 系统异常, shopId={}", shopId, e);
+            logger.error("获取店铺评分信息失败: 系统异常, shopId={}", shopId, e);
             return Result.failure(4130);
         }
     }
@@ -1964,130 +1930,68 @@ public class ShopServiceImpl implements ShopService {
     @Transactional(rollbackFor = Exception.class)
     public Result<Boolean> submitShopReview(String shopId, Map<String, Object> reviewData) {
         try {
-            logger.info("提交店铺评价请求: shopId={}, reviewData={}", shopId, reviewData);
+            logger.info("提交店铺评分请求: shopId={}, reviewData={}", shopId, reviewData);
             
             // 1. 获取当前用户ID
             String userId = UserContext.getCurrentUserId();
             if (userId == null) {
-                logger.warn("提交评价失败: 用户未登录");
+                logger.warn("提交评分失败: 用户未登录");
                 return Result.failure(4131);
             }
             
             // 2. 验证店铺ID不为空
             if (shopId == null || shopId.trim().isEmpty()) {
-                logger.warn("提交评价失败: 店铺ID为空");
+                logger.warn("提交评分失败: 店铺ID为空");
                 return Result.failure(4131);
             }
             
             // 3. 验证店铺是否存在
             Shop shop = getShopById(shopId);
             if (shop == null) {
-                logger.warn("提交评价失败: 店铺不存在, shopId={}", shopId);
+                logger.warn("提交评分失败: 店铺不存在, shopId={}", shopId);
                 return Result.failure(4131);
             }
             
-            // 4. 检查用户是否已评价过
-            ShopReview existingReview = shopReviewMapper.selectByUserIdAndShopId(userId, shopId);
-            if (existingReview != null) {
-                logger.warn("提交评价失败: 用户已评价过该店铺, userId={}, shopId={}", userId, shopId);
-                return Result.failure(4131);
-            }
+            // 4. 验证用户是否购买过该店铺的茶叶
+            // TODO: 查询order表，检查用户是否有该店铺的已完成订单
+            // 暂时跳过此验证，后续补充
             
-            // 5. 提取并验证评价数据
+            // 5. 提取并验证评分数据
             Integer rating = reviewData.get("rating") != null ? Integer.parseInt(reviewData.get("rating").toString()) : null;
             if (rating == null || rating < 1 || rating > 5) {
-                logger.warn("提交评价失败: 评分无效, rating={}", rating);
+                logger.warn("提交评分失败: 评分无效, rating={}", rating);
                 return Result.failure(4131);
             }
             
-            String content = reviewData.get("content") != null ? reviewData.get("content").toString() : null;
-            if (content == null || content.trim().isEmpty()) {
-                logger.warn("提交评价失败: 评价内容为空");
-                return Result.failure(4131);
-            }
-            
-            // 6. 构建评价实体
-            ShopReview review = new ShopReview();
-            review.setShopId(shopId);
-            review.setUserId(userId);
-            review.setRating(rating);
-            review.setContent(content);
-            
-            // 处理图片数组
-            if (reviewData.get("images") != null) {
-                @SuppressWarnings("unchecked")
-                List<String> imagesList = (List<String>) reviewData.get("images");
-                if (imagesList != null && !imagesList.isEmpty()) {
-                    // 将图片列表转换为JSON字符串存储
-                    review.setImages(String.join(",", imagesList));
-                }
-            }
-            
-            Date now = new Date();
-            review.setCreateTime(now);
-            review.setUpdateTime(now);
-            
-            // 7. 插入数据库
-            int result = shopReviewMapper.insert(review);
-            if (result <= 0) {
-                logger.error("提交评价失败: 数据库插入失败, userId={}, shopId={}", userId, shopId);
-                return Result.failure(4131);
-            }
-            
-            // 8. 更新店铺评分统计
-            shop.setRatingCount(shop.getRatingCount() + 1);
-            // 重新计算平均评分（简化计算，实际应该查询所有评价计算）
-            BigDecimal currentRating = shop.getRating();
+            // 6. 更新店铺评分统计
             int currentCount = shop.getRatingCount();
-            BigDecimal newRating = currentRating.multiply(new BigDecimal(currentCount - 1))
+            BigDecimal currentRating = shop.getRating();
+            
+            // 计算新的平均评分
+            BigDecimal newRating = currentRating.multiply(new BigDecimal(currentCount))
                     .add(new BigDecimal(rating))
-                    .divide(new BigDecimal(currentCount), 2, BigDecimal.ROUND_HALF_UP);
+                    .divide(new BigDecimal(currentCount + 1), 2, BigDecimal.ROUND_HALF_UP);
+            
             shop.setRating(newRating);
+            shop.setRatingCount(currentCount + 1);
             shop.setUpdateTime(new Date());
-            shopMapper.updateById(shop);
             
-            logger.info("提交评价成功: reviewId={}, userId={}, shopId={}, rating={}", 
-                    review.getId(), userId, shopId, rating);
+            int result = shopMapper.updateById(shop);
+            if (result <= 0) {
+                logger.error("提交评分失败: 数据库更新失败, shopId={}", shopId);
+                return Result.failure(4131);
+            }
             
-            // 9. 返回成功（根据code-message-mapping.md，成功码是4017）
+            logger.info("提交评分成功: userId={}, shopId={}, rating={}, newAvgRating={}", 
+                    userId, shopId, rating, newRating);
+            
+            // 7. 返回成功（根据code-message-mapping.md，成功码是4017）
             return Result.success(4017, true);
             
         } catch (Exception e) {
-            logger.error("提交评价失败: 系统异常, shopId={}", shopId, e);
+            logger.error("提交评分失败: 系统异常, shopId={}", shopId, e);
             return Result.failure(4131);
         }
-    }
-    
-    /**
-     * 将ShopReview实体转换为ShopReviewVO
-     * 注意：这里需要查询用户信息，但为了简化，暂时只返回基本信息
-     *
-     * @param review 评价实体
-     * @return ShopReviewVO
-     */
-    private ShopReviewVO convertToShopReviewVO(ShopReview review) {
-        if (review == null) {
-            return null;
-        }
-        
-        ShopReviewVO reviewVO = new ShopReviewVO();
-        reviewVO.setId(review.getId());
-        reviewVO.setUserId(review.getUserId());
-        reviewVO.setRating(review.getRating());
-        reviewVO.setContent(review.getContent());
-        reviewVO.setCreateTime(review.getCreateTime());
-        
-        // 处理图片字符串转列表
-        if (review.getImages() != null && !review.getImages().isEmpty()) {
-            reviewVO.setImages(java.util.Arrays.asList(review.getImages().split(",")));
-        }
-        
-        // TODO: 查询用户信息填充username和avatar
-        // 这里暂时设置为默认值，后续可以通过UserMapper查询
-        reviewVO.setUsername("用户" + review.getUserId().substring(review.getUserId().length() - 4));
-        reviewVO.setAvatar(null);
-        
-        return reviewVO;
     }
 }
 } 
