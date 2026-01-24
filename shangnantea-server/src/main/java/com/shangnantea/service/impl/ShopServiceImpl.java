@@ -9,6 +9,7 @@ import com.shangnantea.mapper.ShopBannerMapper;
 import com.shangnantea.mapper.ShopAnnouncementMapper;
 import com.shangnantea.mapper.UserFollowMapper;
 import com.shangnantea.mapper.TeaMapper;
+import com.shangnantea.mapper.OrderMapper;
 import com.shangnantea.model.dto.shop.ShopQueryDTO;
 import com.shangnantea.model.entity.shop.Shop;
 import com.shangnantea.model.entity.shop.ShopBanner;
@@ -16,6 +17,7 @@ import com.shangnantea.model.entity.shop.ShopAnnouncement;
 import com.shangnantea.model.entity.shop.ShopCertification;
 import com.shangnantea.model.entity.user.UserFollow;
 import com.shangnantea.model.entity.tea.Tea;
+import com.shangnantea.model.entity.order.Order;
 import com.shangnantea.model.vo.shop.BannerVO;
 import com.shangnantea.model.vo.shop.AnnouncementVO;
 import com.shangnantea.model.vo.shop.ShopVO;
@@ -68,6 +70,9 @@ public class ShopServiceImpl implements ShopService {
     
     @Autowired
     private TeaMapper teaMapper;
+    
+    @Autowired
+    private OrderMapper orderMapper;
     
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
@@ -1936,31 +1941,45 @@ public class ShopServiceImpl implements ShopService {
             String userId = UserContext.getCurrentUserId();
             if (userId == null) {
                 logger.warn("提交评分失败: 用户未登录");
-                return Result.failure(4131);
+                return Result.failure(4132);
             }
             
             // 2. 验证店铺ID不为空
             if (shopId == null || shopId.trim().isEmpty()) {
                 logger.warn("提交评分失败: 店铺ID为空");
-                return Result.failure(4131);
+                return Result.failure(4132);
             }
             
             // 3. 验证店铺是否存在
             Shop shop = getShopById(shopId);
             if (shop == null) {
                 logger.warn("提交评分失败: 店铺不存在, shopId={}", shopId);
-                return Result.failure(4131);
+                return Result.failure(4132);
             }
             
-            // 4. 验证用户是否购买过该店铺的茶叶
-            // TODO: 查询order表，检查用户是否有该店铺的已完成订单
-            // 暂时跳过此验证，后续补充
+            // 4. 验证用户是否购买过该店铺的茶叶（查询已完成的订单）
+            List<Order> userOrders = orderMapper.selectByUserIdAndStatus(userId, 3); // 状态3=已完成
+            boolean hasPurchased = false;
+            if (userOrders != null && !userOrders.isEmpty()) {
+                for (Order order : userOrders) {
+                    // 检查订单中的商品是否属于该店铺
+                    if (shopId.equals(order.getShopId())) {
+                        hasPurchased = true;
+                        break;
+                    }
+                }
+            }
+            
+            if (!hasPurchased) {
+                logger.warn("提交评分失败: 用户未购买过该店铺的商品, userId={}, shopId={}", userId, shopId);
+                return Result.failure(4131); // 未购买过该店铺商品
+            }
             
             // 5. 提取并验证评分数据
             Integer rating = reviewData.get("rating") != null ? Integer.parseInt(reviewData.get("rating").toString()) : null;
             if (rating == null || rating < 1 || rating > 5) {
                 logger.warn("提交评分失败: 评分无效, rating={}", rating);
-                return Result.failure(4131);
+                return Result.failure(4132);
             }
             
             // 6. 更新店铺评分统计
@@ -1979,7 +1998,7 @@ public class ShopServiceImpl implements ShopService {
             int result = shopMapper.updateById(shop);
             if (result <= 0) {
                 logger.error("提交评分失败: 数据库更新失败, shopId={}", shopId);
-                return Result.failure(4131);
+                return Result.failure(4132);
             }
             
             logger.info("提交评分成功: userId={}, shopId={}, rating={}, newAvgRating={}", 
@@ -1990,7 +2009,7 @@ public class ShopServiceImpl implements ShopService {
             
         } catch (Exception e) {
             logger.error("提交评分失败: 系统异常, shopId={}", shopId, e);
-            return Result.failure(4131);
+            return Result.failure(4132);
         }
     }
 }

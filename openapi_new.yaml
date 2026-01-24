@@ -3732,10 +3732,15 @@ paths:
                   value:
                     code: 4017
                     data: null
-                failure:
-                  summary: 提交店铺评价失败
+                failure_not_purchased:
+                  summary: 未购买过该店铺商品
                   value:
                     code: 4131
+                    data: null
+                failure_submit:
+                  summary: 提交评价失败
+                  value:
+                    code: 4132
                     data: null
 
   # ==================== 订单模块 ====================
