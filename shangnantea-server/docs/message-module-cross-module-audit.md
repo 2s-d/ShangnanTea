@@ -126,99 +126,56 @@ long total = teaReviewMapper.countByUserId(userId);
 
 ---
 
-### 2.6 getChatSessions - 获取聊天会话列表 ⚠️
+### 2.6 getChatSessions - 获取聊天会话列表 ✅
 
-**当前实现：**
+**跨模块数据调用：**
 ```java
 // 查询用户的所有会话
 List<ChatSession> sessions = sessionMapper.selectByUserId(userId);
 
-// 转换为VO（简化处理，实际应该查询对方用户信息）
-for (ChatSession session : sessions) {
-    Map<String, Object> sessionVO = new HashMap<>();
-    sessionVO.put("id", session.getId());
-    
-    // 确定对方用户ID
-    String targetUserId = userId.equals(session.getInitiatorId()) ? 
-        session.getReceiverId() : session.getInitiatorId();
-    sessionVO.put("targetUserId", targetUserId);
-    // ...
-}
-```
-
-**问题分析：**
-- ⚠️ 注释说"实际应该查询对方用户信息"
-- 当前只返回了对方的userId，没有返回用户名、头像等信息
-- 前端需要再次请求用户信息
-
-**改进建议：**
-```java
-// 应该查询对方用户信息
+// 查询对方用户信息
 for (ChatSession session : sessions) {
     String targetUserId = userId.equals(session.getInitiatorId()) ? 
         session.getReceiverId() : session.getInitiatorId();
     
-    // 查询对方用户信息
+    // 查询对方用户信息（用户模块）
     com.shangnantea.model.entity.user.User targetUser = userMapper.selectById(targetUserId);
-    
-    Map<String, Object> sessionVO = new HashMap<>();
-    sessionVO.put("id", session.getId());
-    sessionVO.put("targetUserId", targetUserId);
-    sessionVO.put("targetUsername", targetUser != null ? targetUser.getUsername() : "未知用户");
-    sessionVO.put("targetAvatar", targetUser != null ? targetUser.getAvatar() : null);
-    // ...
+    sessionVO.put("targetUsername", targetUser.getUsername());
+    sessionVO.put("targetNickname", targetUser.getNickname());
+    sessionVO.put("targetAvatar", targetUser.getAvatar());
 }
 ```
 
-**评价：** ⚠️ 需要改进
-- 功能可用，但不完整
-- 应该补充对方用户信息的查询
+**评价：** ✅ 优秀（已修复）
+- 补充了对方用户信息查询
+- 返回完整的会话数据（包括对方用户名、昵称、头像）
+- 前端无需额外请求用户信息
 
 ---
 
-### 2.7 getChatHistory - 获取聊天记录 ⚠️
+### 2.7 getChatHistory - 获取聊天记录 ✅
 
-**当前实现：**
+**跨模块数据调用：**
 ```java
 // 查询聊天记录
 List<ChatMessage> messages = messageMapper.selectBySessionId(sessionId, offset, pageSize);
 
-// 转换为VO（简化处理）
+// 查询发送者用户信息
 for (ChatMessage message : messages) {
-    Map<String, Object> messageVO = new HashMap<>();
-    messageVO.put("id", message.getId());
-    messageVO.put("senderId", message.getSenderId());
-    messageVO.put("receiverId", message.getReceiverId());
-    messageVO.put("content", message.getContent());
-    // ...
-}
-```
-
-**问题分析：**
-- ⚠️ 注释说"简化处理"
-- 只返回了senderId和receiverId，没有返回发送者的用户名、头像
-- 前端需要再次请求用户信息
-
-**改进建议：**
-```java
-// 应该查询发送者用户信息
-for (ChatMessage message : messages) {
-    // 查询发送者信息
+    // 查询发送者信息（用户模块）
     com.shangnantea.model.entity.user.User sender = userMapper.selectById(message.getSenderId());
     
-    Map<String, Object> messageVO = new HashMap<>();
-    messageVO.put("id", message.getId());
     messageVO.put("senderId", message.getSenderId());
-    messageVO.put("senderUsername", sender != null ? sender.getUsername() : "未知用户");
-    messageVO.put("senderAvatar", sender != null ? sender.getAvatar() : null);
-    messageVO.put("content", message.getContent());
-    // ...
+    messageVO.put("senderUsername", sender.getUsername());
+    messageVO.put("senderNickname", sender.getNickname());
+    messageVO.put("senderAvatar", sender.getAvatar());
 }
 ```
 
-**评价：** ⚠️ 需要改进
-- 功能可用，但不完整
-- 应该补充发送者用户信息的查询
+**评价：** ✅ 优秀（已修复）
+- 补充了发送者用户信息查询
+- 返回完整的消息数据（包括发送者用户名、昵称、头像）
+- 前端无需额外请求用户信息
 
 ---
 
@@ -309,19 +266,19 @@ public Result<Object> getUserProfile(String userId) {
 | 使用Mapper访问数据 | ✅ 100% | 所有跨模块数据都通过Mapper访问 |
 | 避免硬编码 | ✅ 100% | 没有硬编码的模拟数据 |
 | 避免调用其他模块Service | ✅ 100% | 没有跨模块Service调用 |
-| 数据完整性 | ⚠️ 90% | 2个方法需要补充用户信息查询 |
+| 数据完整性 | ✅ 100% | 所有方法都返回完整数据（已修复） |
 
 ### 5.2 发现的问题
 
-1. ⚠️ **getChatSessions**：应该补充对方用户信息（用户名、头像）
-2. ⚠️ **getChatHistory**：应该补充发送者用户信息（用户名、头像）
+~~1. ⚠️ **getChatSessions**：应该补充对方用户信息（用户名、头像）~~ ✅ 已修复
+~~2. ⚠️ **getChatHistory**：应该补充发送者用户信息（用户名、头像）~~ ✅ 已修复
 3. ℹ️ **旧方法TODO**：可以删除或标记为@Deprecated
 
 ### 5.3 改进建议
 
-**优先级1（重要）：**
-- 修改getChatSessions，补充对方用户信息查询
-- 修改getChatHistory，补充发送者用户信息查询
+~~**优先级1（重要）：**~~
+~~- 修改getChatSessions，补充对方用户信息查询~~ ✅ 已完成
+~~- 修改getChatHistory，补充发送者用户信息查询~~ ✅ 已完成
 
 **优先级2（可选）：**
 - 清理或标记旧的TODO方法
@@ -341,12 +298,17 @@ public Result<Object> getUserProfile(String userId) {
 
 ## 六、审查结论
 
-**消息模块跨模块数据调用：✅ 良好（需要小幅改进）**
+**消息模块跨模块数据调用：✅ 优秀**
 
 - 核心原则遵守得很好（使用Mapper，不调用Service）
 - 没有硬编码或TODO待办
-- 仅有2个方法需要补充用户信息查询
-- 整体质量高，可以作为其他模块的参考
+- 所有方法都返回完整数据（包括用户信息）
+- 整体质量高，可以作为其他模块的参考标准
+
+**修复记录：**
+- ✅ 2025-01-25：修复getChatSessions，补充对方用户信息查询
+- ✅ 2025-01-25：修复getChatHistory，补充发送者用户信息查询
 
 **审查人员签名：** Kiro AI Assistant  
-**审查日期：** 2025-01-25
+**审查日期：** 2025-01-25  
+**最后更新：** 2025-01-25

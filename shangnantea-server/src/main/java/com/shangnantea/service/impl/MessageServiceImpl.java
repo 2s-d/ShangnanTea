@@ -1109,7 +1109,7 @@ public class MessageServiceImpl implements MessageService {
             // 2. 查询用户的所有会话（作为发起者或接收者）
             List<ChatSession> sessions = sessionMapper.selectByUserId(userId);
             
-            // 3. 转换为VO（这里简化处理，实际应该查询对方用户信息）
+            // 3. 转换为VO，并查询对方用户信息
             List<Map<String, Object>> sessionList = new ArrayList<>();
             for (ChatSession session : sessions) {
                 Map<String, Object> sessionVO = new HashMap<>();
@@ -1119,6 +1119,18 @@ public class MessageServiceImpl implements MessageService {
                 String targetUserId = userId.equals(session.getInitiatorId()) ? 
                     session.getReceiverId() : session.getInitiatorId();
                 sessionVO.put("targetUserId", targetUserId);
+                
+                // 查询对方用户信息
+                com.shangnantea.model.entity.user.User targetUser = userMapper.selectById(targetUserId);
+                if (targetUser != null) {
+                    sessionVO.put("targetUsername", targetUser.getUsername());
+                    sessionVO.put("targetNickname", targetUser.getNickname());
+                    sessionVO.put("targetAvatar", targetUser.getAvatar());
+                } else {
+                    sessionVO.put("targetUsername", "未知用户");
+                    sessionVO.put("targetNickname", "未知用户");
+                    sessionVO.put("targetAvatar", null);
+                }
                 
                 // 确定未读数
                 Integer unreadCount = userId.equals(session.getInitiatorId()) ? 
@@ -1195,7 +1207,7 @@ public class MessageServiceImpl implements MessageService {
             List<ChatMessage> messages = messageMapper.selectBySessionId(sessionId, offset, pageSize);
             long total = messageMapper.countBySessionId(sessionId);
             
-            // 6. 转换为VO（简化处理）
+            // 6. 转换为VO，并查询发送者用户信息
             List<Map<String, Object>> messageList = new ArrayList<>();
             for (ChatMessage message : messages) {
                 Map<String, Object> messageVO = new HashMap<>();
@@ -1203,6 +1215,19 @@ public class MessageServiceImpl implements MessageService {
                 messageVO.put("sessionId", message.getSessionId());
                 messageVO.put("senderId", message.getSenderId());
                 messageVO.put("receiverId", message.getReceiverId());
+                
+                // 查询发送者用户信息
+                com.shangnantea.model.entity.user.User sender = userMapper.selectById(message.getSenderId());
+                if (sender != null) {
+                    messageVO.put("senderUsername", sender.getUsername());
+                    messageVO.put("senderNickname", sender.getNickname());
+                    messageVO.put("senderAvatar", sender.getAvatar());
+                } else {
+                    messageVO.put("senderUsername", "未知用户");
+                    messageVO.put("senderNickname", "未知用户");
+                    messageVO.put("senderAvatar", null);
+                }
+                
                 messageVO.put("content", message.getContent());
                 messageVO.put("contentType", message.getContentType());
                 messageVO.put("isRead", message.getIsRead() != null && message.getIsRead() == 1);
