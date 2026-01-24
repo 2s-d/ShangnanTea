@@ -1562,11 +1562,23 @@ public class OrderServiceImpl implements OrderService {
             }
             
             // 3. 验证用户权限（订单所有者或商家/管理员可以查看）
-            // 简化处理：只验证是否是订单所有者
             if (!userId.equals(order.getUserId())) {
-                logger.warn("获取退款详情失败: 无权限: orderId={}, userId={}, orderUserId={}", 
-                           id, userId, order.getUserId());
-                return Result.failure(5133);
+                // 如果不是订单的买家，检查是否是商家或管理员
+                if (UserContext.isAdmin()) {
+                    // 管理员可以查看所有订单的退款详情
+                } else if (UserContext.isShop()) {
+                    // 商家只能查看自己店铺订单的退款详情
+                    if (!isShopOwner(userId, order.getShopId())) {
+                        logger.warn("获取退款详情失败: 不是该订单所属店铺的商家: orderId={}, userId={}, shopId={}", 
+                                   id, userId, order.getShopId());
+                        return Result.failure(5133); // 权限不足
+                    }
+                } else {
+                    // 既不是买家，也不是商家或管理员
+                    logger.warn("获取退款详情失败: 无权限: orderId={}, userId={}, orderUserId={}", 
+                               id, userId, order.getUserId());
+                    return Result.failure(5133);
+                }
             }
             
             // 4. 构建退款详情VO
