@@ -86,4 +86,12 @@
     <select id="count" resultType="java.lang.Long">
         SELECT COUNT(*) FROM forum_replies
     </select>
+    
+    <!-- 根据帖子ID查询回复列表 -->
+    <select id="selectByPostId" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM forum_replies
+        WHERE post_id = #{postId}
+        ORDER BY create_time ASC
+    </select>
 </mapper> 

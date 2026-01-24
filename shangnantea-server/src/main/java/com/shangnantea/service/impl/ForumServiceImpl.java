@@ -1938,4 +1938,352 @@ public class ForumServiceImpl implements ForumService {
             return Result.failure(6128); // 取消收藏失败
         }
     }
+    
+    @Override
+    public Result<Object> getPostReplies(String id, Map<String, Object> params) {
+        try {
+            logger.info("获取帖子回复列表请求: id={}, params={}", id, params);
+            
+            // 1. 验证帖子是否存在
+            Long postId = Long.parseLong(id);
+            ForumPost post = postMapper.selectById(postId);
+            if (post == null) {
+                logger.warn("获取回复列表失败: 帖子不存在, id: {}", id);
+                return Result.failure(6129); // 获取回复列表失败
+            }
+            
+            // 2. 解析分页参数
+            Integer page = params.get("page") != null ? 
+                    Integer.parseInt(params.get("page").toString()) : 1;
+            Integer pageSize = params.get("pageSize") != null ? 
+                    Integer.parseInt(params.get("pageSize").toString()) : 20;
+            
+            // 3. 查询所有回复
+            List<ForumReply> allReplies = replyMapper.selectByPostId(postId);
+            
+            // 4. 过滤正常状态的回复（status=1）
+            List<ForumReply> filteredReplies = allReplies.stream()
+                    .filter(reply -> reply.getStatus() != null && reply.getStatus() == 1)
+                    .sorted((a, b) -> {
+                        if (a.getCreateTime() == null && b.getCreateTime() == null) {
+                            return 0;
+                        }
+                        if (a.getCreateTime() == null) {
+                            return 1;
+                        }
+                        if (b.getCreateTime() == null) {
+                            return -1;
+                        }
+                        return a.getCreateTime().compareTo(b.getCreateTime()); // 按时间升序
+                    })
+                    .collect(Collectors.toList());
+            
+            // 5. 分页处理
+            int total = filteredReplies.size();
+            int startIndex = (page - 1) * pageSize;
+            int endIndex = Math.min(startIndex + pageSize, total);
+            
+            List<ForumReply> pagedReplies = startIndex < total ? 
+                    filteredReplies.subList(startIndex, endIndex) : new ArrayList<>();
+            
+            // 6. 获取当前用户ID（用于判断是否已点赞）
+            String currentUserId = UserContext.getCurrentUserId();
+            
+            // 7. 转换为VO
+            List<com.shangnantea.model.vo.forum.ReplyVO> replyVOs = pagedReplies.stream()
+                    .map(reply -> {
+                        com.shangnantea.model.vo.forum.ReplyVO vo = new com.shangnantea.model.vo.forum.ReplyVO();
+                        vo.setId(String.valueOf(reply.getId()));
+                        vo.setPostId(String.valueOf(reply.getPostId()));
+                        vo.setUserId(reply.getUserId());
+                        vo.setContent(reply.getContent());
+                        vo.setParentId(reply.getParentId() != null ? String.valueOf(reply.getParentId()) : null);
+                        vo.setToUserId(reply.getToUserId());
+                        vo.setLikeCount(reply.getLikeCount() != null ? reply.getLikeCount() : 0);
+                        vo.setCreateTime(reply.getCreateTime() != null ? reply.getCreateTime().toString() : null);
+                        
+                        // 查询用户信息
+                        User user = userMapper.selectById(reply.getUserId());
+                        if (user != null) {
+                            vo.setUsername(user.getUsername());
+                            vo.setAvatar(user.getAvatar());
+                        }
+                        
+                        // 查询目标用户信息
+                        if (reply.getToUserId() != null) {
+                            User toUser = userMapper.selectById(reply.getToUserId());
+                            if (toUser != null) {
+                                vo.setToUsername(toUser.getUsername());
+                            }
+                        }
+                        
+                        // 判断当前用户是否已点赞
+                        if (currentUserId != null) {
+                            UserLike like = userLikeMapper.selectByUserIdAndTarget(
+                                    currentUserId, "reply", String.valueOf(reply.getId()));
+                            vo.setIsLiked(like != null);
+                        } else {
+                            vo.setIsLiked(false);
+                        }
+                        
+                        return vo;
+                    })
+                    .collect(Collectors.toList());
+            
+            // 8. 构造返回数据
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("list", replyVOs);
+            responseData.put("total", total);
+            
+            logger.info("获取回复列表成功: postId={}, total={}", id, total);
+            return Result.success(200, responseData); // 成功码200
+            
+        } catch (NumberFormatException e) {
+            logger.error("获取回复列表失败: ID格式错误, id: {}", id, e);
+            return Result.failure(6129); // 获取回复列表失败
+        } catch (Exception e) {
+            logger.error("获取回复列表失败: 系统异常, id: {}", id, e);
+            return Result.failure(6129); // 获取回复列表失败
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> createReply(String id, com.shangnantea.model.dto.forum.CreateReplyDTO dto) {
+        try {
+            logger.info("创建回复请求: postId={}, content={}", id, dto.getContent());
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("创建回复失败: 用户未登录");
+                return Result.failure(6130); // 创建回复失败
+            }
+            
+            // 2. 验证帖子是否存在
+            Long postId = Long.parseLong(id);
+            ForumPost post = postMapper.selectById(postId);
+            if (post == null) {
+                logger.warn("创建回复失败: 帖子不存在, id: {}", id);
+                return Result.failure(6130); // 创建回复失败
+            }
+            
+            // 3. 如果是回复评论，验证父回复是否存在
+            Long parentId = null;
+            String toUserId = null;
+            if (dto.getParentId() != null && !dto.getParentId().isEmpty()) {
+                parentId = Long.parseLong(dto.getParentId());
+                ForumReply parentReply = replyMapper.selectById(parentId);
+                if (parentReply == null) {
+                    logger.warn("创建回复失败: 父回复不存在, parentId: {}", dto.getParentId());
+                    return Result.failure(6130); // 创建回复失败
+                }
+                toUserId = parentReply.getUserId();
+            }
+            
+            // 4. 创建回复记录
+            ForumReply reply = new ForumReply();
+            reply.setPostId(postId);
+            reply.setUserId(userId);
+            reply.setContent(dto.getContent());
+            reply.setParentId(parentId);
+            reply.setToUserId(toUserId);
+            reply.setLikeCount(0);
+            reply.setStatus(1); // 1=正常
+            reply.setCreateTime(new Date());
+            reply.setUpdateTime(new Date());
+            
+            int insertResult = replyMapper.insert(reply);
+            if (insertResult <= 0) {
+                logger.error("创建回复失败: 数据库插入失败, userId: {}, postId: {}", userId, id);
+                return Result.failure(6130); // 创建回复失败
+            }
+            
+            // 5. 更新帖子回复数和最后回复时间
+            post.setReplyCount((post.getReplyCount() != null ? post.getReplyCount() : 0) + 1);
+            post.setLastReplyTime(new Date());
+            post.setUpdateTime(new Date());
+            postMapper.updateById(post);
+            
+            logger.info("创建回复成功: replyId={}, userId={}, postId={}", reply.getId(), userId, id);
+            return Result.success(6018, null); // 回复发布成功
+            
+        } catch (NumberFormatException e) {
+            logger.error("创建回复失败: ID格式错误, id: {}", id, e);
+            return Result.failure(6130); // 创建回复失败
+        } catch (Exception e) {
+            logger.error("创建回复失败: 系统异常, id: {}", id, e);
+            return Result.failure(6130); // 创建回复失败
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Boolean> deleteReply(String id) {
+        try {
+            logger.info("删除回复请求: id={}", id);
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("删除回复失败: 用户未登录");
+                return Result.failure(6131); // 删除回复失败
+            }
+            
+            // 2. 查询回复是否存在
+            Long replyId = Long.parseLong(id);
+            ForumReply reply = replyMapper.selectById(replyId);
+            
+            if (reply == null) {
+                logger.warn("删除回复失败: 回复不存在, id: {}", id);
+                return Result.failure(6131); // 删除回复失败
+            }
+            
+            // 3. 验证用户是否有权限删除（作者本人或管理员）
+            boolean isAdmin = UserContext.isAdmin();
+            if (!userId.equals(reply.getUserId()) && !isAdmin) {
+                logger.warn("删除回复失败: 无权限删除, userId: {}, replyUserId: {}, isAdmin: {}", 
+                        userId, reply.getUserId(), isAdmin);
+                return Result.failure(6131); // 删除回复失败
+            }
+            
+            // 4. 软删除：更新状态为已删除
+            reply.setStatus(2); // 2=已删除
+            reply.setUpdateTime(new Date());
+            int result = replyMapper.updateById(reply);
+            
+            if (result <= 0) {
+                logger.error("删除回复失败: 数据库更新失败, id: {}", id);
+                return Result.failure(6131); // 删除回复失败
+            }
+            
+            // 5. 更新帖子的回复数
+            ForumPost post = postMapper.selectById(reply.getPostId());
+            if (post != null) {
+                post.setReplyCount(Math.max(0, (post.getReplyCount() != null ? post.getReplyCount() : 0) - 1));
+                post.setUpdateTime(new Date());
+                postMapper.updateById(post);
+            }
+            
+            logger.info("删除回复成功: id={}, userId={}", id, userId);
+            return Result.success(6019, true); // 评论已删除
+            
+        } catch (NumberFormatException e) {
+            logger.error("删除回复失败: ID格式错误, id: {}", id, e);
+            return Result.failure(6131); // 删除回复失败
+        } catch (Exception e) {
+            logger.error("删除回复失败: 系统异常, id: {}", id, e);
+            return Result.failure(6131); // 删除回复失败
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> likeReply(String id) {
+        try {
+            logger.info("点赞回复请求: id={}", id);
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("点赞回复失败: 用户未登录");
+                return Result.failure(6132); // 点赞失败
+            }
+            
+            // 2. 验证回复是否存在
+            Long replyId = Long.parseLong(id);
+            ForumReply reply = replyMapper.selectById(replyId);
+            if (reply == null) {
+                logger.warn("点赞回复失败: 回复不存在, id: {}", id);
+                return Result.failure(6132); // 点赞失败
+            }
+            
+            // 3. 检查是否已点赞
+            UserLike existingLike = userLikeMapper.selectByUserIdAndTarget(userId, "reply", id);
+            if (existingLike != null) {
+                logger.warn("点赞回复失败: 已点赞, userId: {}, replyId: {}", userId, id);
+                return Result.failure(6132); // 点赞失败
+            }
+            
+            // 4. 插入点赞记录
+            UserLike userLike = new UserLike();
+            userLike.setUserId(userId);
+            userLike.setTargetType("reply");
+            userLike.setTargetId(id);
+            userLike.setCreateTime(new Date());
+            int insertResult = userLikeMapper.insert(userLike);
+            
+            if (insertResult <= 0) {
+                logger.error("点赞回复失败: 数据库插入失败, userId: {}, replyId: {}", userId, id);
+                return Result.failure(6132); // 点赞失败
+            }
+            
+            // 5. 增加回复点赞数
+            reply.setLikeCount((reply.getLikeCount() != null ? reply.getLikeCount() : 0) + 1);
+            reply.setUpdateTime(new Date());
+            replyMapper.updateById(reply);
+            
+            logger.info("点赞回复成功: userId={}, replyId={}", userId, id);
+            return Result.success(6020, null); // 点赞成功
+            
+        } catch (NumberFormatException e) {
+            logger.error("点赞回复失败: ID格式错误, id: {}", id, e);
+            return Result.failure(6132); // 点赞失败
+        } catch (Exception e) {
+            logger.error("点赞回复失败: 系统异常, id: {}", id, e);
+            return Result.failure(6132); // 点赞失败
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> unlikeReply(String id) {
+        try {
+            logger.info("取消点赞回复请求: id={}", id);
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("取消点赞回复失败: 用户未登录");
+                return Result.failure(6133); // 取消点赞失败
+            }
+            
+            // 2. 验证回复是否存在
+            Long replyId = Long.parseLong(id);
+            ForumReply reply = replyMapper.selectById(replyId);
+            if (reply == null) {
+                logger.warn("取消点赞回复失败: 回复不存在, id: {}", id);
+                return Result.failure(6133); // 取消点赞失败
+            }
+            
+            // 3. 检查是否已点赞
+            UserLike existingLike = userLikeMapper.selectByUserIdAndTarget(userId, "reply", id);
+            if (existingLike == null) {
+                logger.warn("取消点赞回复失败: 未点赞, userId: {}, replyId: {}", userId, id);
+                return Result.failure(6133); // 取消点赞失败
+            }
+            
+            // 4. 删除点赞记录
+            int deleteResult = userLikeMapper.deleteById(existingLike.getId());
+            if (deleteResult <= 0) {
+                logger.error("取消点赞回复失败: 数据库删除失败, userId: {}, replyId: {}", userId, id);
+                return Result.failure(6133); // 取消点赞失败
+            }
+            
+            // 5. 减少回复点赞数
+            reply.setLikeCount(Math.max(0, (reply.getLikeCount() != null ? reply.getLikeCount() : 0) - 1));
+            reply.setUpdateTime(new Date());
+            replyMapper.updateById(reply);
+            
+            logger.info("取消点赞回复成功: userId={}, replyId={}", userId, id);
+            return Result.success(6021, null); // 已取消点赞
+            
+        } catch (NumberFormatException e) {
+            logger.error("取消点赞回复失败: ID格式错误, id: {}", id, e);
+            return Result.failure(6133); // 取消点赞失败
+        } catch (Exception e) {
+            logger.error("取消点赞回复失败: 系统异常, id: {}", id, e);
+            return Result.failure(6133); // 取消点赞失败
+        }
+    }
 } 

@@ -497,4 +497,56 @@ public interface ForumService {
      * @return 取消收藏结果
      */
     Result<Object> unfavoritePost(String id);
+    
+    /**
+     * 获取帖子回复列表
+     * 路径: GET /forum/posts/{id}/replies
+     * 成功码: 200, 失败码: 6129
+     *
+     * @param id 帖子ID
+     * @param params 查询参数（page, pageSize）
+     * @return 回复列表
+     */
+    Result<Object> getPostReplies(String id, Map<String, Object> params);
+    
+    /**
+     * 创建回复
+     * 路径: POST /forum/posts/{id}/replies
+     * 成功码: 6018, 失败码: 6130
+     *
+     * @param id 帖子ID
+     * @param dto 回复数据
+     * @return 创建结果
+     */
+    Result<Object> createReply(String id, com.shangnantea.model.dto.forum.CreateReplyDTO dto);
+    
+    /**
+     * 删除回复
+     * 路径: DELETE /forum/replies/{id}
+     * 成功码: 6019, 失败码: 6131
+     *
+     * @param id 回复ID
+     * @return 删除结果
+     */
+    Result<Boolean> deleteReply(String id);
+    
+    /**
+     * 点赞回复
+     * 路径: POST /forum/replies/{id}/like
+     * 成功码: 6020, 失败码: 6132
+     *
+     * @param id 回复ID
+     * @return 点赞结果
+     */
+    Result<Object> likeReply(String id);
+    
+    /**
+     * 取消点赞回复
+     * 路径: DELETE /forum/replies/{id}/like
+     * 成功码: 6021, 失败码: 6133
+     *
+     * @param id 回复ID
+     * @return 取消点赞结果
+     */
+    Result<Object> unlikeReply(String id);
 } 

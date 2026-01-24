@@ -2,6 +2,7 @@ package com.shangnantea.controller;
 
 import com.shangnantea.common.api.Result;
 import com.shangnantea.model.dto.forum.CreatePostDTO;
+import com.shangnantea.model.dto.forum.CreateReplyDTO;
 import com.shangnantea.model.dto.forum.CreateTopicDTO;
 import com.shangnantea.model.dto.forum.UpdatePostDTO;
 import com.shangnantea.model.dto.forum.UpdateTopicDTO;
@@ -357,10 +358,10 @@ public class ForumController {
     /**
      * 获取帖子回复列表
      * 路径: GET /forum/posts/{id}/replies
-     * 成功码: 200, 失败码: 6123
+     * 成功码: 200, 失败码: 6129
      *
      * @param id 帖子ID
-     * @param params 查询参数 {page, size, sortBy}
+     * @param params 查询参数 {page, pageSize}
      * @return 回复列表
      */
     @GetMapping("/posts/{id}/replies")
@@ -372,17 +373,17 @@ public class ForumController {
     /**
      * 创建回复
      * 路径: POST /forum/posts/{id}/replies
-     * 成功码: 6022, 失败码: 6122
+     * 成功码: 6018, 失败码: 6130
      *
      * @param id 帖子ID
-     * @param data 回复数据
+     * @param dto 回复数据
      * @return 创建结果
      */
     @PostMapping("/posts/{id}/replies")
     @RequiresLogin
-    public Result<Object> createReply(@PathVariable String id, @RequestBody Map<String, Object> data) {
+    public Result<Object> createReply(@PathVariable String id, @Valid @RequestBody CreateReplyDTO dto) {
         logger.info("创建回复请求, postId: {}", id);
-        return forumService.createReply(id, data);
+        return forumService.createReply(id, dto);
     }
 
     /**
