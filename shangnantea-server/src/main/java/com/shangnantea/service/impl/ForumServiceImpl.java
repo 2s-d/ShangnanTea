@@ -853,7 +853,22 @@ public class ForumServiceImpl implements ForumService {
             article.setUpdateTime(new Date());
             articleMapper.updateById(article);
             
-            // 3. 构造返回VO
+            // 3. 获取当前用户的点赞和收藏状态
+            String currentUserId = UserContext.getCurrentUserId();
+            boolean isLiked = false;
+            boolean isFavorited = false;
+            
+            if (currentUserId != null) {
+                // 查询点赞状态
+                UserLike like = userLikeMapper.selectByUserIdAndTarget(currentUserId, "article", id);
+                isLiked = (like != null);
+                
+                // 查询收藏状态
+                UserFavorite favorite = userFavoriteMapper.selectByUserIdAndItem(currentUserId, "article", id);
+                isFavorited = (favorite != null);
+            }
+            
+            // 4. 构造返回VO
             ArticleDetailVO vo = new ArticleDetailVO();
             vo.setId(article.getId());
             vo.setTitle(article.getTitle());
@@ -873,6 +888,8 @@ public class ForumServiceImpl implements ForumService {
             vo.setViewCount(article.getViewCount());
             vo.setLikeCount(article.getLikeCount() != null ? article.getLikeCount() : 0);
             vo.setFavoriteCount(article.getFavoriteCount() != null ? article.getFavoriteCount() : 0);
+            vo.setIsLiked(isLiked);
+            vo.setIsFavorited(isFavorited);
             vo.setIsTop(article.getIsTop());
             vo.setIsRecommend(article.getIsRecommend());
             vo.setPublishTime(article.getPublishTime());
