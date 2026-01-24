@@ -219,6 +219,62 @@ public class ForumController {
         return forumService.deleteArticle(id);
     }
 
+    /**
+     * 点赞文章
+     * 路径: POST /forum/articles/{id}/like
+     * 成功码: 6029, 失败码: 6143
+     *
+     * @param id 文章ID
+     * @return 点赞结果
+     */
+    @PostMapping("/articles/{id}/like")
+    public Result<Object> likeArticle(@PathVariable String id) {
+        logger.info("点赞文章请求: {}", id);
+        return forumService.likeArticle(id);
+    }
+
+    /**
+     * 取消点赞文章
+     * 路径: DELETE /forum/articles/{id}/like
+     * 成功码: 6030, 失败码: 6144
+     *
+     * @param id 文章ID
+     * @return 取消点赞结果
+     */
+    @DeleteMapping("/articles/{id}/like")
+    public Result<Object> unlikeArticle(@PathVariable String id) {
+        logger.info("取消点赞文章请求: {}", id);
+        return forumService.unlikeArticle(id);
+    }
+
+    /**
+     * 收藏文章
+     * 路径: POST /forum/articles/{id}/favorite
+     * 成功码: 6031, 失败码: 6145
+     *
+     * @param id 文章ID
+     * @return 收藏结果
+     */
+    @PostMapping("/articles/{id}/favorite")
+    public Result<Object> favoriteArticle(@PathVariable String id) {
+        logger.info("收藏文章请求: {}", id);
+        return forumService.favoriteArticle(id);
+    }
+
+    /**
+     * 取消收藏文章
+     * 路径: DELETE /forum/articles/{id}/favorite
+     * 成功码: 6032, 失败码: 6146
+     *
+     * @param id 文章ID
+     * @return 取消收藏结果
+     */
+    @DeleteMapping("/articles/{id}/favorite")
+    public Result<Object> unfavoriteArticle(@PathVariable String id) {
+        logger.info("取消收藏文章请求: {}", id);
+        return forumService.unfavoriteArticle(id);
+    }
+
     // ==================== 版块管理 ====================
 
     /**

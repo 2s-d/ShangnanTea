@@ -592,4 +592,44 @@ public interface ForumService {
      * @return 操作结果
      */
     Result<Object> togglePostEssence(String id, Boolean isEssence);
+    
+    /**
+     * 点赞文章
+     * 路径: POST /forum/articles/{id}/like
+     * 成功码: 6029, 失败码: 6143
+     *
+     * @param id 文章ID
+     * @return 点赞结果
+     */
+    Result<Object> likeArticle(String id);
+    
+    /**
+     * 取消点赞文章
+     * 路径: DELETE /forum/articles/{id}/like
+     * 成功码: 6030, 失败码: 6144
+     *
+     * @param id 文章ID
+     * @return 取消点赞结果
+     */
+    Result<Object> unlikeArticle(String id);
+    
+    /**
+     * 收藏文章
+     * 路径: POST /forum/articles/{id}/favorite
+     * 成功码: 6031, 失败码: 6145
+     *
+     * @param id 文章ID
+     * @return 收藏结果
+     */
+    Result<Object> favoriteArticle(String id);
+    
+    /**
+     * 取消收藏文章
+     * 路径: DELETE /forum/articles/{id}/favorite
+     * 成功码: 6032, 失败码: 6146
+     *
+     * @param id 文章ID
+     * @return 取消收藏结果
+     */
+    Result<Object> unfavoriteArticle(String id);
 } 

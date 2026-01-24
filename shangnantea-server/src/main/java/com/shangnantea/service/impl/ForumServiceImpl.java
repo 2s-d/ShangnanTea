@@ -2616,4 +2616,242 @@ public class ForumServiceImpl implements ForumService {
             return Result.failure(isEssence ? 6138 : 6139); // 加精失败/取消加精失败
         }
     }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> likeArticle(String id) {
+        try {
+            logger.info("点赞文章请求: id={}", id);
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("点赞文章失败: 用户未登录");
+                return Result.failure(6143); // 点赞失败
+            }
+            
+            // 2. 验证文章是否存在
+            Long articleId = Long.parseLong(id);
+            TeaArticle article = articleMapper.selectById(articleId);
+            if (article == null) {
+                logger.warn("点赞文章失败: 文章不存在, id: {}", id);
+                return Result.failure(6143); // 点赞失败
+            }
+            
+            // 3. 检查是否已点赞
+            UserLike existingLike = userLikeMapper.selectByUserIdAndTarget(userId, "article", id);
+            if (existingLike != null) {
+                logger.warn("点赞文章失败: 已点赞, userId: {}, articleId: {}", userId, id);
+                return Result.failure(6143); // 点赞失败
+            }
+            
+            // 4. 插入点赞记录
+            UserLike userLike = new UserLike();
+            userLike.setUserId(userId);
+            userLike.setTargetType("article");
+            userLike.setTargetId(id);
+            userLike.setCreateTime(new Date());
+            int insertResult = userLikeMapper.insert(userLike);
+            
+            if (insertResult <= 0) {
+                logger.error("点赞文章失败: 数据库插入失败, userId: {}, articleId: {}", userId, id);
+                return Result.failure(6143); // 点赞失败
+            }
+            
+            // 5. 增加文章点赞数
+            article.setLikeCount((article.getLikeCount() != null ? article.getLikeCount() : 0) + 1);
+            article.setUpdateTime(new Date());
+            articleMapper.updateById(article);
+            
+            // 6. 返回更新后的点赞数
+            Map<String, Object> result = new HashMap<>();
+            result.put("likeCount", article.getLikeCount());
+            
+            logger.info("点赞文章成功: userId={}, articleId={}", userId, id);
+            return Result.success(6029, result); // 点赞成功
+            
+        } catch (NumberFormatException e) {
+            logger.error("点赞文章失败: ID格式错误, id: {}", id, e);
+            return Result.failure(6143); // 点赞失败
+        } catch (Exception e) {
+            logger.error("点赞文章失败: 系统异常, id: {}", id, e);
+            return Result.failure(6143); // 点赞失败
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> unlikeArticle(String id) {
+        try {
+            logger.info("取消点赞文章请求: id={}", id);
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("取消点赞文章失败: 用户未登录");
+                return Result.failure(6144); // 取消点赞失败
+            }
+            
+            // 2. 验证文章是否存在
+            Long articleId = Long.parseLong(id);
+            TeaArticle article = articleMapper.selectById(articleId);
+            if (article == null) {
+                logger.warn("取消点赞文章失败: 文章不存在, id: {}", id);
+                return Result.failure(6144); // 取消点赞失败
+            }
+            
+            // 3. 检查是否已点赞
+            UserLike existingLike = userLikeMapper.selectByUserIdAndTarget(userId, "article", id);
+            if (existingLike == null) {
+                logger.warn("取消点赞文章失败: 未点赞, userId: {}, articleId: {}", userId, id);
+                return Result.failure(6144); // 取消点赞失败
+            }
+            
+            // 4. 删除点赞记录
+            int deleteResult = userLikeMapper.deleteById(existingLike.getId());
+            if (deleteResult <= 0) {
+                logger.error("取消点赞文章失败: 数据库删除失败, userId: {}, articleId: {}", userId, id);
+                return Result.failure(6144); // 取消点赞失败
+            }
+            
+            // 5. 减少文章点赞数
+            article.setLikeCount(Math.max(0, (article.getLikeCount() != null ? article.getLikeCount() : 0) - 1));
+            article.setUpdateTime(new Date());
+            articleMapper.updateById(article);
+            
+            // 6. 返回更新后的点赞数
+            Map<String, Object> result = new HashMap<>();
+            result.put("likeCount", article.getLikeCount());
+            
+            logger.info("取消点赞文章成功: userId={}, articleId={}", userId, id);
+            return Result.success(6030, result); // 已取消点赞
+            
+        } catch (NumberFormatException e) {
+            logger.error("取消点赞文章失败: ID格式错误, id: {}", id, e);
+            return Result.failure(6144); // 取消点赞失败
+        } catch (Exception e) {
+            logger.error("取消点赞文章失败: 系统异常, id: {}", id, e);
+            return Result.failure(6144); // 取消点赞失败
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> favoriteArticle(String id) {
+        try {
+            logger.info("收藏文章请求: id={}", id);
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("收藏文章失败: 用户未登录");
+                return Result.failure(6145); // 收藏失败
+            }
+            
+            // 2. 验证文章是否存在
+            Long articleId = Long.parseLong(id);
+            TeaArticle article = articleMapper.selectById(articleId);
+            if (article == null) {
+                logger.warn("收藏文章失败: 文章不存在, id: {}", id);
+                return Result.failure(6145); // 收藏失败
+            }
+            
+            // 3. 检查是否已收藏
+            UserFavorite existingFavorite = userFavoriteMapper.selectByUserIdAndItem(userId, "article", id);
+            if (existingFavorite != null) {
+                logger.warn("收藏文章失败: 已收藏, userId: {}, articleId: {}", userId, id);
+                return Result.failure(6145); // 收藏失败
+            }
+            
+            // 4. 插入收藏记录
+            UserFavorite userFavorite = new UserFavorite();
+            userFavorite.setUserId(userId);
+            userFavorite.setItemType("article");
+            userFavorite.setItemId(id);
+            userFavorite.setTargetName(article.getTitle()); // 冗余字段：文章标题
+            userFavorite.setTargetImage(article.getCoverImage()); // 冗余字段：文章封面图
+            userFavorite.setCreateTime(new Date());
+            int insertResult = userFavoriteMapper.insert(userFavorite);
+            
+            if (insertResult <= 0) {
+                logger.error("收藏文章失败: 数据库插入失败, userId: {}, articleId: {}", userId, id);
+                return Result.failure(6145); // 收藏失败
+            }
+            
+            // 5. 增加文章收藏数
+            article.setFavoriteCount((article.getFavoriteCount() != null ? article.getFavoriteCount() : 0) + 1);
+            article.setUpdateTime(new Date());
+            articleMapper.updateById(article);
+            
+            // 6. 返回更新后的收藏数
+            Map<String, Object> result = new HashMap<>();
+            result.put("favoriteCount", article.getFavoriteCount());
+            
+            logger.info("收藏文章成功: userId={}, articleId={}", userId, id);
+            return Result.success(6031, result); // 收藏成功
+            
+        } catch (NumberFormatException e) {
+            logger.error("收藏文章失败: ID格式错误, id: {}", id, e);
+            return Result.failure(6145); // 收藏失败
+        } catch (Exception e) {
+            logger.error("收藏文章失败: 系统异常, id: {}", id, e);
+            return Result.failure(6145); // 收藏失败
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> unfavoriteArticle(String id) {
+        try {
+            logger.info("取消收藏文章请求: id={}", id);
+            
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("取消收藏文章失败: 用户未登录");
+                return Result.failure(6146); // 取消收藏失败
+            }
+            
+            // 2. 验证文章是否存在
+            Long articleId = Long.parseLong(id);
+            TeaArticle article = articleMapper.selectById(articleId);
+            if (article == null) {
+                logger.warn("取消收藏文章失败: 文章不存在, id: {}", id);
+                return Result.failure(6146); // 取消收藏失败
+            }
+            
+            // 3. 检查是否已收藏
+            UserFavorite existingFavorite = userFavoriteMapper.selectByUserIdAndItem(userId, "article", id);
+            if (existingFavorite == null) {
+                logger.warn("取消收藏文章失败: 未收藏, userId: {}, articleId: {}", userId, id);
+                return Result.failure(6146); // 取消收藏失败
+            }
+            
+            // 4. 删除收藏记录
+            int deleteResult = userFavoriteMapper.deleteById(existingFavorite.getId());
+            if (deleteResult <= 0) {
+                logger.error("取消收藏文章失败: 数据库删除失败, userId: {}, articleId: {}", userId, id);
+                return Result.failure(6146); // 取消收藏失败
+            }
+            
+            // 5. 减少文章收藏数
+            article.setFavoriteCount(Math.max(0, (article.getFavoriteCount() != null ? article.getFavoriteCount() : 0) - 1));
+            article.setUpdateTime(new Date());
+            articleMapper.updateById(article);
+            
+            // 6. 返回更新后的收藏数
+            Map<String, Object> result = new HashMap<>();
+            result.put("favoriteCount", article.getFavoriteCount());
+            
+            logger.info("取消收藏文章成功: userId={}, articleId={}", userId, id);
+            return Result.success(6032, result); // 已取消收藏
+            
+        } catch (NumberFormatException e) {
+            logger.error("取消收藏文章失败: ID格式错误, id: {}", id, e);
+            return Result.failure(6146); // 取消收藏失败
+        } catch (Exception e) {
+            logger.error("取消收藏文章失败: 系统异常, id: {}", id, e);
+            return Result.failure(6146); // 取消收藏失败
+        }
+    }
 } 
