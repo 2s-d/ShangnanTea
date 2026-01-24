@@ -915,7 +915,16 @@ public class ForumServiceImpl implements ForumService {
             article.setCategory(category);
             article.setTags(tags);
             article.setSource(source);
-            article.setAuthor("管理员"); // 默认作者
+            
+            // 获取当前用户信息作为作者
+            String userId = UserContext.getCurrentUserId();
+            if (userId != null) {
+                User currentUser = userMapper.selectById(userId);
+                article.setAuthor(currentUser != null ? currentUser.getUsername() : "管理员");
+            } else {
+                article.setAuthor("管理员");
+            }
+            
             article.setViewCount(0);
             article.setLikeCount(0);
             article.setFavoriteCount(0);
@@ -1146,10 +1155,32 @@ public class ForumServiceImpl implements ForumService {
             }
             vo.setCover(cover);
             vo.setUserId(topic.getUserId());
-            vo.setModeratorName("版主"); // TODO: 从用户表查询版主名称
+            
+            // 查询版主信息
+            if (topic.getUserId() != null) {
+                User moderator = userMapper.selectById(topic.getUserId());
+                vo.setModeratorName(moderator != null ? moderator.getUsername() : "未设置版主");
+            } else {
+                vo.setModeratorName("未设置版主");
+            }
+            
             vo.setSortOrder(topic.getSortOrder());
             vo.setPostCount(topic.getPostCount() != null ? topic.getPostCount() : 0);
-            vo.setTodayPostCount(0); // TODO: 统计今日帖子数
+            
+            // 统计今日帖子数
+            java.time.LocalDate today = java.time.LocalDate.now();
+            Date startOfDay = Date.from(today.atStartOfDay(java.time.ZoneId.systemDefault()).toInstant());
+            Date endOfDay = Date.from(today.plusDays(1).atStartOfDay(java.time.ZoneId.systemDefault()).toInstant());
+            
+            List<ForumPost> allPosts = postMapper.selectAll();
+            long todayPostCount = allPosts.stream()
+                    .filter(p -> topicId.equals(p.getTopicId()))
+                    .filter(p -> p.getCreateTime() != null)
+                    .filter(p -> p.getCreateTime().after(startOfDay) && p.getCreateTime().before(endOfDay))
+                    .filter(p -> p.getStatus() != null && p.getStatus() == 1)
+                    .count();
+            vo.setTodayPostCount((int) todayPostCount);
+            
             vo.setStatus(topic.getStatus());
             vo.setCreateTime(topic.getCreateTime());
             vo.setUpdateTime(topic.getUpdateTime());
