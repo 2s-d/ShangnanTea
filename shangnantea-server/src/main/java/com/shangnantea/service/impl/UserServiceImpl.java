@@ -1064,14 +1064,32 @@ public class UserServiceImpl implements UserService {
             String targetId = followDTO.getTargetId();
             String targetType = followDTO.getTargetType();
             
-            // 3. 检查是否已关注
+            // 3. 验证目标对象是否存在
+            if ("shop".equals(targetType)) {
+                // 验证店铺是否存在
+                if (shopMapper.selectById(targetId) == null) {
+                    logger.warn("添加关注失败: 店铺不存在, shopId: {}", targetId);
+                    return Result.failure(2123); // 操作失败
+                }
+            } else if ("user".equals(targetType)) {
+                // 验证用户是否存在
+                if (getUserEntityById(targetId) == null) {
+                    logger.warn("添加关注失败: 用户不存在, userId: {}", targetId);
+                    return Result.failure(2123); // 操作失败
+                }
+            } else {
+                logger.warn("添加关注失败: 关注类型不正确, targetType: {}", targetType);
+                return Result.failure(2123); // 操作失败
+            }
+            
+            // 4. 检查是否已关注
             UserFollow existingFollow = userFollowMapper.selectByUserIdAndFollowId(userId, targetId, targetType);
             if (existingFollow != null) {
                 logger.warn("添加关注失败: 已关注该对象, userId: {}, targetId: {}", userId, targetId);
                 return Result.failure(2123); // 操作失败
             }
             
-            // 4. 构建关注实体
+            // 5. 构建关注实体
             UserFollow follow = new UserFollow();
             follow.setUserId(userId);
             follow.setFollowId(targetId);
@@ -1080,7 +1098,7 @@ public class UserServiceImpl implements UserService {
             follow.setTargetAvatar(followDTO.getTargetAvatar());
             follow.setCreateTime(new Date());
             
-            // 5. 插入数据库
+            // 6. 插入数据库
             int result = userFollowMapper.insert(follow);
             if (result <= 0) {
                 logger.error("添加关注失败: 数据库插入失败, userId: {}", userId);
@@ -1203,14 +1221,38 @@ public class UserServiceImpl implements UserService {
             String itemType = favoriteDTO.getItemType();
             String itemId = favoriteDTO.getItemId();
             
-            // 3. 检查是否已收藏
+            // 3. 验证目标对象是否存在
+            if ("tea".equals(itemType)) {
+                // 验证茶叶是否存在
+                if (teaMapper.selectById(itemId) == null) {
+                    logger.warn("添加收藏失败: 茶叶不存在, teaId: {}", itemId);
+                    return Result.failure(2126); // 操作失败
+                }
+            } else if ("post".equals(itemType)) {
+                // 验证帖子是否存在
+                if (forumPostMapper.selectById(Long.parseLong(itemId)) == null) {
+                    logger.warn("添加收藏失败: 帖子不存在, postId: {}", itemId);
+                    return Result.failure(2126); // 操作失败
+                }
+            } else if ("tea_article".equals(itemType)) {
+                // 验证文章是否存在
+                if (teaArticleMapper.selectById(Long.parseLong(itemId)) == null) {
+                    logger.warn("添加收藏失败: 文章不存在, articleId: {}", itemId);
+                    return Result.failure(2126); // 操作失败
+                }
+            } else {
+                logger.warn("添加收藏失败: 收藏类型不正确, itemType: {}", itemType);
+                return Result.failure(2126); // 操作失败
+            }
+            
+            // 4. 检查是否已收藏
             UserFavorite existingFavorite = userFavoriteMapper.selectByUserIdAndItem(userId, itemType, itemId);
             if (existingFavorite != null) {
                 logger.warn("添加收藏失败: 已收藏该项, userId: {}, itemId: {}", userId, itemId);
                 return Result.failure(2126); // 操作失败
             }
             
-            // 4. 构建收藏实体
+            // 5. 构建收藏实体
             UserFavorite favorite = new UserFavorite();
             favorite.setUserId(userId);
             favorite.setItemType(itemType);
@@ -1219,7 +1261,7 @@ public class UserServiceImpl implements UserService {
             favorite.setTargetImage(favoriteDTO.getTargetImage());
             favorite.setCreateTime(new Date());
             
-            // 5. 插入数据库
+            // 6. 插入数据库
             int result = userFavoriteMapper.insert(favorite);
             if (result <= 0) {
                 logger.error("添加收藏失败: 数据库插入失败, userId: {}", userId);
@@ -1308,21 +1350,45 @@ public class UserServiceImpl implements UserService {
             String targetType = likeDTO.getTargetType();
             String targetId = likeDTO.getTargetId();
             
-            // 3. 检查是否已点赞
+            // 3. 验证目标对象是否存在
+            if ("post".equals(targetType)) {
+                // 验证帖子是否存在
+                if (forumPostMapper.selectById(Long.parseLong(targetId)) == null) {
+                    logger.warn("点赞失败: 帖子不存在, postId: {}", targetId);
+                    return Result.failure(2128); // 操作失败
+                }
+            } else if ("reply".equals(targetType)) {
+                // 验证回复是否存在
+                if (forumReplyMapper.selectById(Long.parseLong(targetId)) == null) {
+                    logger.warn("点赞失败: 回复不存在, replyId: {}", targetId);
+                    return Result.failure(2128); // 操作失败
+                }
+            } else if ("article".equals(targetType)) {
+                // 验证文章是否存在
+                if (teaArticleMapper.selectById(Long.parseLong(targetId)) == null) {
+                    logger.warn("点赞失败: 文章不存在, articleId: {}", targetId);
+                    return Result.failure(2128); // 操作失败
+                }
+            } else {
+                logger.warn("点赞失败: 点赞类型不正确, targetType: {}", targetType);
+                return Result.failure(2128); // 操作失败
+            }
+            
+            // 4. 检查是否已点赞
             UserLike existingLike = userLikeMapper.selectByUserIdAndTarget(userId, targetType, targetId);
             if (existingLike != null) {
                 logger.warn("点赞失败: 已点赞该对象, userId: {}, targetId: {}", userId, targetId);
                 return Result.failure(2128); // 操作失败
             }
             
-            // 4. 构建点赞实体
+            // 5. 构建点赞实体
             UserLike like = new UserLike();
             like.setUserId(userId);
             like.setTargetType(targetType);
             like.setTargetId(targetId);
             like.setCreateTime(new Date());
             
-            // 5. 插入数据库
+            // 6. 插入数据库
             int result = userLikeMapper.insert(like);
             if (result <= 0) {
                 logger.error("点赞失败: 数据库插入失败, userId: {}", userId);
@@ -1653,7 +1719,52 @@ public class UserServiceImpl implements UserService {
                 return Result.failure(2138); // 操作失败
             }
             
-            // 5. 执行删除（软删除）
+            // 5. 清理关联数据
+            try {
+                // 5.1 删除用户地址
+                userAddressMapper.deleteByUserId(userId);
+                logger.info("已清理用户地址数据: userId: {}", userId);
+                
+                // 5.2 删除用户关注
+                userFollowMapper.deleteByUserId(userId);
+                logger.info("已清理用户关注数据: userId: {}", userId);
+                
+                // 5.3 删除用户收藏
+                userFavoriteMapper.deleteByUserId(userId);
+                logger.info("已清理用户收藏数据: userId: {}", userId);
+                
+                // 5.4 删除用户点赞
+                userLikeMapper.deleteByUserId(userId);
+                logger.info("已清理用户点赞数据: userId: {}", userId);
+                
+                // 5.5 删除用户设置
+                userSettingMapper.deleteByUserId(userId);
+                logger.info("已清理用户设置数据: userId: {}", userId);
+                
+                // 5.6 如果是商家，需要处理店铺相关数据
+                if (user.getRole() != null && user.getRole() == 3) {
+                    // 查询是否有店铺
+                    if (shopMapper.selectByOwnerId(userId) != null) {
+                        logger.warn("删除商家用户: 该用户拥有店铺，需要先处理店铺数据, userId: {}", userId);
+                        // 注意：这里不直接删除店铺，因为店铺可能有订单等重要数据
+                        // 建议：先关闭店铺，或者提示管理员需要先处理店铺
+                    }
+                }
+                
+                // 注意：以下数据不删除，保留历史记录
+                // - orders: 订单数据（保留交易记录）
+                // - chat_sessions, chat_messages: 聊天记录（保留沟通记录）
+                // - forum_posts, forum_replies: 论坛内容（保留社区内容）
+                // - tea_reviews: 评价数据（保留评价记录）
+                // - user_notifications: 通知数据（可保留）
+                // - shop_certifications: 认证记录（保留审核记录）
+                
+            } catch (Exception e) {
+                logger.error("清理用户关联数据失败: userId: {}", userId, e);
+                // 继续执行删除用户操作
+            }
+            
+            // 6. 执行删除用户（软删除）
             int result = userMapper.delete(userId);
             if (result <= 0) {
                 logger.error("删除用户失败(管理员): 数据库删除失败, userId: {}", userId);
