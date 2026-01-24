@@ -7,8 +7,10 @@ import com.shangnantea.model.dto.AddLikeDTO;
 import com.shangnantea.model.dto.ChangePasswordDTO;
 import com.shangnantea.model.dto.CreateAdminDTO;
 import com.shangnantea.model.dto.LoginDTO;
+import com.shangnantea.model.dto.ProcessCertificationDTO;
 import com.shangnantea.model.dto.RegisterDTO;
 import com.shangnantea.model.dto.SubmitShopCertificationDTO;
+import com.shangnantea.model.dto.UpdateUserDTO;
 import com.shangnantea.model.dto.UpdateUserPreferencesDTO;
 import com.shangnantea.model.entity.user.User;
 import com.shangnantea.model.vo.user.TokenVO;
@@ -285,10 +287,10 @@ public interface UserService {
      * 更新用户信息（管理员）
      *
      * @param userId 用户ID
-     * @param userData 用户数据
+     * @param updateUserDTO 用户数据
      * @return 更新结果
      */
-    Result<Boolean> updateUser(String userId, Map<String, Object> userData);
+    Result<Boolean> updateUser(String userId, UpdateUserDTO updateUserDTO);
     
     /**
      * 删除用户（管理员）
@@ -321,10 +323,10 @@ public interface UserService {
      * 审核认证申请（管理员）
      *
      * @param id 认证ID
-     * @param auditData 审核数据
+     * @param processCertificationDTO 审核数据
      * @return 审核结果
      */
-    Result<Boolean> processCertification(Integer id, Map<String, Object> auditData);
+    Result<Boolean> processCertification(Integer id, ProcessCertificationDTO processCertificationDTO);
     
     // ==================== 基础方法（内部使用） ====================
     

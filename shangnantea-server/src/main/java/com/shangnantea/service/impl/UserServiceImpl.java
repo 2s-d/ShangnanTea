@@ -954,8 +954,44 @@ public class UserServiceImpl implements UserService {
     
     @Override
     public Result<Map<String, Object>> uploadCertificationImage(MultipartFile file, String type) {
-        // TODO: 实现上传认证图片逻辑
-        return Result.success(2024);
+        try {
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("上传认证图片失败: 用户未登录");
+                return Result.failure(2146); // 操作失败
+            }
+            
+            // 2. 验证文件类型参数
+            if (type == null || type.trim().isEmpty()) {
+                logger.warn("上传认证图片失败: 图片类型参数为空, userId: {}", userId);
+                return Result.failure(2147); // 操作失败
+            }
+            
+            // 3. 验证type参数值
+            if (!type.equals("id_front") && !type.equals("id_back") && !type.equals("business_license")) {
+                logger.warn("上传认证图片失败: 图片类型参数不正确, userId: {}, type: {}", userId, type);
+                return Result.failure(2147); // 操作失败
+            }
+            
+            // 4. 调用工具类上传文件
+            String relativePath = FileUploadUtils.uploadImage(file, "certifications");
+            
+            // 5. 生成访问URL
+            String accessUrl = FileUploadUtils.generateAccessUrl(relativePath, baseUrl);
+            
+            // 6. 构造返回数据
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("url", accessUrl);
+            responseData.put("path", relativePath);
+            
+            logger.info("上传认证图片成功: userId: {}, type: {}, path: {}", userId, type, relativePath);
+            return Result.success(2024, responseData); // 图片上传成功
+            
+        } catch (Exception e) {
+            logger.error("上传认证图片失败: 系统异常", e);
+            return Result.failure(2148); // 操作失败
+        }
     }
     
     // ==================== 用户互动功能 ====================
@@ -1511,33 +1547,271 @@ public class UserServiceImpl implements UserService {
     }
     
     @Override
-    public Result<Boolean> updateUser(String userId, Map<String, Object> userData) {
-        // TODO: 实现更新用户逻辑
-        return Result.success(2022, true);
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Boolean> updateUser(String userId, UpdateUserDTO updateUserDTO) {
+        try {
+            // 1. 验证参数
+            if (userId == null || userId.trim().isEmpty()) {
+                logger.warn("更新用户失败(管理员): 用户ID为空");
+                return Result.failure(2136); // 操作失败
+            }
+            
+            // 2. 查询用户是否存在
+            User user = getUserEntityById(userId);
+            if (user == null) {
+                logger.warn("更新用户失败(管理员): 用户不存在, userId: {}", userId);
+                return Result.failure(2137); // 用户不存在
+            }
+            
+            // 3. 更新允许修改的字段
+            boolean hasUpdate = false;
+            
+            if (updateUserDTO.getNickname() != null) {
+                user.setNickname(updateUserDTO.getNickname());
+                hasUpdate = true;
+            }
+            
+            if (updateUserDTO.getEmail() != null) {
+                user.setEmail(updateUserDTO.getEmail());
+                hasUpdate = true;
+            }
+            
+            if (updateUserDTO.getPhone() != null) {
+                user.setPhone(updateUserDTO.getPhone());
+                hasUpdate = true;
+            }
+            
+            // 4. 如果没有任何更新，直接返回成功
+            if (!hasUpdate) {
+                logger.info("更新用户(管理员): 无需更新, userId: {}", userId);
+                return Result.success(2020, true); // 用户信息更新成功
+            }
+            
+            // 5. 执行更新
+            int rows = userMapper.update(user);
+            if (rows <= 0) {
+                logger.error("更新用户失败(管理员): 数据库更新失败, userId: {}", userId);
+                return Result.failure(2136); // 操作失败
+            }
+            
+            logger.info("更新用户成功(管理员): userId: {}", userId);
+            return Result.success(2020, true); // 用户信息更新成功
+            
+        } catch (Exception e) {
+            logger.error("更新用户失败(管理员): 系统异常", e);
+            return Result.failure(2136); // 操作失败
+        }
     }
     
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Result<Boolean> deleteUser(String userId) {
-        // TODO: 实现删除用户逻辑
-        return Result.success(2020, true);
+        try {
+            // 1. 获取当前管理员ID
+            String adminId = UserContext.getCurrentUserId();
+            if (adminId == null) {
+                logger.warn("删除用户失败(管理员): 管理员未登录");
+                return Result.failure(2138); // 操作失败
+            }
+            
+            // 2. 验证参数
+            if (userId == null || userId.trim().isEmpty()) {
+                logger.warn("删除用户失败(管理员): 用户ID为空");
+                return Result.failure(2138); // 操作失败
+            }
+            
+            // 3. 不能删除自己
+            if (adminId.equals(userId)) {
+                logger.warn("删除用户失败(管理员): 不能删除自己, adminId: {}", adminId);
+                return Result.failure(2139); // 不能删除自己
+            }
+            
+            // 4. 查询用户是否存在
+            User user = getUserEntityById(userId);
+            if (user == null) {
+                logger.warn("删除用户失败(管理员): 用户不存在, userId: {}", userId);
+                return Result.failure(2138); // 操作失败
+            }
+            
+            // 5. 执行删除（软删除）
+            int result = userMapper.delete(userId);
+            if (result <= 0) {
+                logger.error("删除用户失败(管理员): 数据库删除失败, userId: {}", userId);
+                return Result.failure(2138); // 操作失败
+            }
+            
+            logger.info("删除用户成功(管理员): userId: {}, adminId: {}", userId, adminId);
+            return Result.success(2021, true); // 用户删除成功
+            
+        } catch (Exception e) {
+            logger.error("删除用户失败(管理员): 系统异常", e);
+            return Result.failure(2138); // 操作失败
+        }
     }
     
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Result<Boolean> toggleUserStatus(String userId, Map<String, Object> statusData) {
-        // TODO: 实现切换用户状态逻辑
-        return Result.success(2021, true);
+        try {
+            // 1. 验证参数
+            if (userId == null || userId.trim().isEmpty()) {
+                logger.warn("切换用户状态失败(管理员): 用户ID为空");
+                return Result.failure(2140); // 操作失败
+            }
+            
+            if (statusData == null || !statusData.containsKey("status")) {
+                logger.warn("切换用户状态失败(管理员): 状态参数为空, userId: {}", userId);
+                return Result.failure(2140); // 操作失败
+            }
+            
+            // 2. 查询用户是否存在
+            User user = getUserEntityById(userId);
+            if (user == null) {
+                logger.warn("切换用户状态失败(管理员): 用户不存在, userId: {}", userId);
+                return Result.failure(2141); // 用户不存在
+            }
+            
+            // 3. 获取新状态
+            Integer newStatus = (Integer) statusData.get("status");
+            if (newStatus == null || (newStatus != 0 && newStatus != 1)) {
+                logger.warn("切换用户状态失败(管理员): 状态值不正确, userId: {}, status: {}", userId, newStatus);
+                return Result.failure(2140); // 操作失败
+            }
+            
+            // 4. 更新状态
+            user.setStatus(newStatus);
+            int result = userMapper.update(user);
+            if (result <= 0) {
+                logger.error("切换用户状态失败(管理员): 数据库更新失败, userId: {}", userId);
+                return Result.failure(2140); // 操作失败
+            }
+            
+            logger.info("切换用户状态成功(管理员): userId: {}, newStatus: {}", userId, newStatus);
+            return Result.success(2022, true); // 用户状态更新成功
+            
+        } catch (Exception e) {
+            logger.error("切换用户状态失败(管理员): 系统异常", e);
+            return Result.failure(2140); // 操作失败
+        }
     }
     
     @Override
     public Result<Object> getCertificationList(Integer status, Integer page, Integer pageSize) {
-        // TODO: 实现获取认证列表逻辑
-        return Result.success(200);
+        try {
+            // 1. 参数验证
+            if (page == null || page < 1) {
+                page = 1;
+            }
+            if (pageSize == null || pageSize < 1) {
+                pageSize = 10;
+            }
+            
+            // 2. 计算偏移量
+            int offset = (page - 1) * pageSize;
+            
+            // 3. 查询认证列表
+            List<ShopCertification> certificationList = shopCertificationMapper.selectByPage(status, offset, pageSize);
+            
+            // 4. 查询总数
+            int total = shopCertificationMapper.countByCondition(status);
+            
+            // 5. 转换为VO列表
+            List<CertificationStatusVO> certificationVOList = new ArrayList<>();
+            for (ShopCertification certification : certificationList) {
+                certificationVOList.add(convertToCertificationStatusVO(certification));
+            }
+            
+            // 6. 构建分页结果
+            Map<String, Object> result = new HashMap<>();
+            result.put("list", certificationVOList);
+            result.put("total", total);
+            result.put("page", page);
+            result.put("pageSize", pageSize);
+            result.put("totalPages", (int) Math.ceil((double) total / pageSize));
+            
+            logger.info("获取认证列表成功(管理员): status: {}, page: {}, total: {}", status, page, total);
+            return Result.success(200, result); // 操作成功（静默）
+            
+        } catch (Exception e) {
+            logger.error("获取认证列表失败(管理员): 系统异常", e);
+            return Result.failure(2142); // 加载失败
+        }
     }
     
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Result<Boolean> processCertification(Integer id, Map<String, Object> auditData) {
-        // TODO: 实现审核认证逻辑
-        return Result.success(1000, true);
+        try {
+            // 1. 获取当前管理员ID
+            String adminId = UserContext.getCurrentUserId();
+            if (adminId == null) {
+                logger.warn("审核认证失败(管理员): 管理员未登录");
+                return Result.failure(2144); // 操作失败
+            }
+            
+            // 2. 验证参数
+            if (id == null) {
+                logger.warn("审核认证失败(管理员): 认证ID为空");
+                return Result.failure(2144); // 操作失败
+            }
+            
+            if (auditData == null || !auditData.containsKey("status")) {
+                logger.warn("审核认证失败(管理员): 审核状态参数为空, certificationId: {}", id);
+                return Result.failure(2144); // 操作失败
+            }
+            
+            // 3. 查询认证记录是否存在
+            ShopCertification certification = shopCertificationMapper.selectById(id);
+            if (certification == null) {
+                logger.warn("审核认证失败(管理员): 认证记录不存在, certificationId: {}", id);
+                return Result.failure(2145); // 认证记录不存在
+            }
+            
+            // 4. 检查认证状态（只能审核待审核的记录）
+            if (certification.getStatus() != 0) {
+                logger.warn("审核认证失败(管理员): 认证记录已审核, certificationId: {}, status: {}", id, certification.getStatus());
+                return Result.failure(2144); // 操作失败
+            }
+            
+            // 5. 获取审核状态和意见
+            Integer auditStatus = (Integer) auditData.get("status");
+            String message = (String) auditData.get("message");
+            
+            if (auditStatus == null || (auditStatus != 1 && auditStatus != 2)) {
+                logger.warn("审核认证失败(管理员): 审核状态值不正确, certificationId: {}, status: {}", id, auditStatus);
+                return Result.failure(2144); // 操作失败
+            }
+            
+            // 6. 更新认证记录
+            certification.setStatus(auditStatus);
+            certification.setAdminId(adminId);
+            if (auditStatus == 2 && message != null) {
+                certification.setRejectReason(message);
+            }
+            certification.setUpdateTime(new Date());
+            
+            int result = shopCertificationMapper.update(certification);
+            if (result <= 0) {
+                logger.error("审核认证失败(管理员): 数据库更新失败, certificationId: {}", id);
+                return Result.failure(2144); // 操作失败
+            }
+            
+            // 7. 如果审核通过，更新用户角色为商家
+            if (auditStatus == 1) {
+                User user = getUserEntityById(certification.getUserId());
+                if (user != null) {
+                    user.setRole(3); // 3-商家角色
+                    userMapper.update(user);
+                }
+            }
+            
+            logger.info("审核认证成功(管理员): certificationId: {}, status: {}, adminId: {}", id, auditStatus, adminId);
+            return Result.success(2023, true); // 审核操作成功
+            
+        } catch (Exception e) {
+            logger.error("审核认证失败(管理员): 系统异常", e);
+            return Result.failure(2144); // 操作失败
+        }
     }
     
     // ==================== 基础方法（内部使用） ====================
