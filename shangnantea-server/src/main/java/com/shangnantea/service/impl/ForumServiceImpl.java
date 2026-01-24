@@ -8,6 +8,7 @@ import com.shangnantea.mapper.ForumReplyMapper;
 import com.shangnantea.mapper.ForumTopicMapper;
 import com.shangnantea.mapper.HomeContentMapper;
 import com.shangnantea.mapper.TeaArticleMapper;
+import com.shangnantea.mapper.UserMapper;
 import com.shangnantea.model.dto.forum.CreatePostDTO;
 import com.shangnantea.model.dto.forum.CreateTopicDTO;
 import com.shangnantea.model.dto.forum.UpdatePostDTO;
@@ -17,6 +18,7 @@ import com.shangnantea.model.entity.forum.ForumReply;
 import com.shangnantea.model.entity.forum.ForumTopic;
 import com.shangnantea.model.entity.forum.HomeContent;
 import com.shangnantea.model.entity.forum.TeaArticle;
+import com.shangnantea.model.entity.user.User;
 import com.shangnantea.model.vo.forum.ArticleDetailVO;
 import com.shangnantea.model.vo.forum.ArticleVO;
 import com.shangnantea.model.vo.forum.ForumHomeVO;
@@ -24,6 +26,7 @@ import com.shangnantea.model.vo.forum.PostDetailVO;
 import com.shangnantea.model.vo.forum.PostVO;
 import com.shangnantea.model.vo.forum.TopicDetailVO;
 import com.shangnantea.model.vo.forum.TopicVO;
+import com.shangnantea.security.context.UserContext;
 import com.shangnantea.service.ForumService;
 import com.shangnantea.utils.FileUploadUtils;
 import org.slf4j.Logger;
@@ -63,6 +66,9 @@ public class ForumServiceImpl implements ForumService {
     
     @Autowired
     private HomeContentMapper homeContentMapper;
+    
+    @Autowired
+    private UserMapper userMapper;
     
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
@@ -1356,9 +1362,12 @@ public class ForumServiceImpl implements ForumService {
                         PostVO vo = new PostVO();
                         vo.setId(post.getId());
                         vo.setUserId(post.getUserId());
-                        vo.setUserName("用户" + post.getUserId()); // TODO: 从用户表查询用户名
+                        // 查询用户信息
+                        User user = userMapper.selectById(post.getUserId());
+                        vo.setUserName(user != null ? user.getUsername() : "未知用户");
+                        vo.setUserAvatar(user != null ? user.getAvatar() : null);
                         vo.setTopicId(post.getTopicId());
-                        // TODO: 从版块表查询版块名称
+                        // 查询版块名称
                         ForumTopic topic = topicMapper.selectById(post.getTopicId());
                         vo.setTopicName(topic != null ? topic.getName() : "");
                         vo.setTitle(post.getTitle());
@@ -1392,8 +1401,12 @@ public class ForumServiceImpl implements ForumService {
         try {
             logger.info("创建帖子请求: {}", dto);
             
-            // 1. 获取当前用户ID（TODO: 从UserContext获取）
-            String userId = "1"; // 临时硬编码，实际应从UserContext.getCurrentUserId()获取
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("创建帖子失败: 用户未登录");
+                return Result.failure(6120); // 帖子发布失败
+            }
             
             // 2. 验证版块是否存在
             ForumTopic topic = topicMapper.selectById(dto.getTopicId());
@@ -1434,7 +1447,7 @@ public class ForumServiceImpl implements ForumService {
             topic.setUpdateTime(new Date());
             topicMapper.updateById(topic);
             
-            logger.info("创建帖子成功: id={}", post.getId());
+            logger.info("创建帖子成功: id={}, userId={}", post.getId(), userId);
             return Result.success(6011, null); // 帖子发布成功
             
         } catch (Exception e) {
@@ -1477,7 +1490,10 @@ public class ForumServiceImpl implements ForumService {
                         PostVO vo = new PostVO();
                         vo.setId(post.getId());
                         vo.setUserId(post.getUserId());
-                        vo.setUserName("用户" + post.getUserId()); // TODO: 从用户表查询用户名
+                        // 查询用户信息
+                        User user = userMapper.selectById(post.getUserId());
+                        vo.setUserName(user != null ? user.getUsername() : "未知用户");
+                        vo.setUserAvatar(user != null ? user.getAvatar() : null);
                         vo.setTopicId(post.getTopicId());
                         ForumTopic topic = topicMapper.selectById(post.getTopicId());
                         vo.setTopicName(topic != null ? topic.getName() : "");
@@ -1529,7 +1545,10 @@ public class ForumServiceImpl implements ForumService {
             PostDetailVO vo = new PostDetailVO();
             vo.setId(post.getId());
             vo.setUserId(post.getUserId());
-            vo.setUserName("用户" + post.getUserId()); // TODO: 从用户表查询用户名
+            // 查询用户信息
+            User user = userMapper.selectById(post.getUserId());
+            vo.setUserName(user != null ? user.getUsername() : "未知用户");
+            vo.setUserAvatar(user != null ? user.getAvatar() : null);
             vo.setTopicId(post.getTopicId());
             ForumTopic topic = topicMapper.selectById(post.getTopicId());
             vo.setTopicName(topic != null ? topic.getName() : "");
@@ -1567,8 +1586,12 @@ public class ForumServiceImpl implements ForumService {
         try {
             logger.info("更新帖子请求: id={}, dto={}", id, dto);
             
-            // 1. 获取当前用户ID（TODO: 从UserContext获取）
-            String userId = "1"; // 临时硬编码，实际应从UserContext.getCurrentUserId()获取
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("更新帖子失败: 用户未登录");
+                return Result.failure(6123); // 帖子更新失败
+            }
             
             // 2. 查询帖子是否存在
             Long postId = Long.parseLong(id);
@@ -1580,9 +1603,10 @@ public class ForumServiceImpl implements ForumService {
             }
             
             // 3. 验证用户是否有权限修改（作者本人或管理员）
-            // TODO: 添加管理员权限检查
-            if (!userId.equals(post.getUserId())) {
-                logger.warn("更新帖子失败: 无权限修改, userId: {}, postUserId: {}", userId, post.getUserId());
+            boolean isAdmin = UserContext.isAdmin();
+            if (!userId.equals(post.getUserId()) && !isAdmin) {
+                logger.warn("更新帖子失败: 无权限修改, userId: {}, postUserId: {}, isAdmin: {}", 
+                        userId, post.getUserId(), isAdmin);
                 return Result.failure(6123); // 帖子更新失败
             }
             
@@ -1611,7 +1635,7 @@ public class ForumServiceImpl implements ForumService {
                 return Result.failure(6123); // 帖子更新失败
             }
             
-            logger.info("更新帖子成功: id={}", id);
+            logger.info("更新帖子成功: id={}, userId={}", id, userId);
             return Result.success(6012, null); // 帖子更新成功
             
         } catch (NumberFormatException e) {
@@ -1629,8 +1653,12 @@ public class ForumServiceImpl implements ForumService {
         try {
             logger.info("删除帖子请求: id={}", id);
             
-            // 1. 获取当前用户ID（TODO: 从UserContext获取）
-            String userId = "1"; // 临时硬编码，实际应从UserContext.getCurrentUserId()获取
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("删除帖子失败: 用户未登录");
+                return Result.failure(6124); // 帖子删除失败
+            }
             
             // 2. 查询帖子是否存在
             Long postId = Long.parseLong(id);
@@ -1642,9 +1670,10 @@ public class ForumServiceImpl implements ForumService {
             }
             
             // 3. 验证用户是否有权限删除（作者本人或管理员）
-            // TODO: 添加管理员权限检查
-            if (!userId.equals(post.getUserId())) {
-                logger.warn("删除帖子失败: 无权限删除, userId: {}, postUserId: {}", userId, post.getUserId());
+            boolean isAdmin = UserContext.isAdmin();
+            if (!userId.equals(post.getUserId()) && !isAdmin) {
+                logger.warn("删除帖子失败: 无权限删除, userId: {}, postUserId: {}, isAdmin: {}", 
+                        userId, post.getUserId(), isAdmin);
                 return Result.failure(6124); // 帖子删除失败
             }
             
@@ -1666,7 +1695,7 @@ public class ForumServiceImpl implements ForumService {
                 topicMapper.updateById(topic);
             }
             
-            logger.info("删除帖子成功: id={}", id);
+            logger.info("删除帖子成功: id={}, userId={}", id, userId);
             return Result.success(6013, true); // 帖子删除成功
             
         } catch (NumberFormatException e) {
