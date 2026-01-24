@@ -412,7 +412,8 @@ export const CODE_MAP = {
   
   // 接口26: submitShopReview - /shop/{shopId}/reviews
   4017: '评价提交成功',
-  4131: '提交评价失败',
+  4131: '未购买过该店铺商品，无法评价',
+  4132: '提交评价失败',
   
   // ========== 订单模块 (5xxx) ==========
   // 接口1: getCartItems - /order/cart

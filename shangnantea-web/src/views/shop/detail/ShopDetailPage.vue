@@ -428,14 +428,12 @@ export default {
         shopMessages.prompt.showShopIdNotExist()
         return
       }
-      if (!reviewForm.value.content.trim()) {
-        shopMessages.prompt.showReviewContentRequired()
-        return
-      }
+      // 评分验证（评分是必须的）
       if (reviewForm.value.rating === 0) {
         shopMessages.prompt.showReviewRatingRequired()
         return
       }
+      // 评价内容是可选的（店铺评分不需要详细内容）
       
       reviewSubmitting.value = true
       try {
@@ -443,7 +441,7 @@ export default {
           shopId,
           reviewData: {
             rating: reviewForm.value.rating,
-            content: reviewForm.value.content.trim(),
+            content: reviewForm.value.content.trim() || '', // 内容可选
             images: []
           }
         })
