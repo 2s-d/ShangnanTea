@@ -67,4 +67,12 @@ public interface UserMapper extends BaseMapper<User, String> {
      * @return 影响行数
      */
     int delete(@Param("id") String id);
+    
+    /**
+     * 批量查询用户（通过ID列表）
+     *
+     * @param ids 用户ID列表
+     * @return 用户列表
+     */
+    java.util.List<User> selectByIds(@Param("ids") java.util.List<String> ids);
 } 

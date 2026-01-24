@@ -111,4 +111,16 @@
         update_time = now()
         WHERE id = #{id,jdbcType=VARCHAR}
     </delete>
+    
+    <!-- 批量查询用户 -->
+    <select id="selectByIds" resultMap="BaseResultMap">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM users
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
+        AND is_deleted = 0
+    </select>
 </mapper> 
