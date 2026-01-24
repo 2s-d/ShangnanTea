@@ -264,7 +264,7 @@ public class ForumController {
     }
 
     /**
-     * 更新版块（管理员）
+     * 更新版块（管理员或版主）
      * 路径: PUT /forum/topics/{id}
      * 成功码: 6009, 失败码: 6117
      *
@@ -273,14 +273,14 @@ public class ForumController {
      * @return 更新结果
      */
     @PutMapping("/topics/{id}")
-    @RequiresRoles({1})
+    @RequiresLogin
     public Result<Object> updateTopic(@PathVariable String id, @Valid @RequestBody UpdateTopicDTO dto) {
         logger.info("更新版块请求: {}", id);
         return forumService.updateTopic(id, dto);
     }
 
     /**
-     * 删除版块（管理员）
+     * 删除版块（管理员或版主）
      * 路径: DELETE /forum/topics/{id}
      * 成功码: 6010, 失败码: 6118
      *
@@ -288,7 +288,7 @@ public class ForumController {
      * @return 删除结果
      */
     @DeleteMapping("/topics/{id}")
-    @RequiresRoles({1})
+    @RequiresLogin
     public Result<Boolean> deleteTopic(@PathVariable String id) {
         logger.info("删除版块请求: {}", id);
         return forumService.deleteTopic(id);

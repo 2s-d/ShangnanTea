@@ -1258,7 +1258,14 @@ public class ForumServiceImpl implements ForumService {
         try {
             logger.info("更新版块请求: id={}, dto={}", id, dto);
             
-            // 1. 查询版块是否存在
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("更新版块失败: 用户未登录");
+                return Result.failure(6117); // 更新版块失败
+            }
+            
+            // 2. 查询版块是否存在
             Integer topicId = Integer.parseInt(id);
             ForumTopic topic = topicMapper.selectById(topicId);
             
@@ -1267,7 +1274,17 @@ public class ForumServiceImpl implements ForumService {
                 return Result.failure(6117); // 更新版块失败
             }
             
-            // 2. 如果要更新名称，验证名称是否与其他版块重复
+            // 3. 验证用户是否有权限修改（管理员或版主）
+            boolean isAdmin = UserContext.isAdmin();
+            boolean isModerator = userId.equals(topic.getUserId());
+            
+            if (!isAdmin && !isModerator) {
+                logger.warn("更新版块失败: 无权限修改, userId: {}, topicUserId: {}, isAdmin: {}", 
+                        userId, topic.getUserId(), isAdmin);
+                return Result.failure(6117); // 更新版块失败
+            }
+            
+            // 4. 如果要更新名称，验证名称是否与其他版块重复
             if (dto.getName() != null && !dto.getName().isEmpty()) {
                 List<ForumTopic> allTopics = topicMapper.selectAll();
                 boolean nameExists = allTopics.stream()
@@ -1281,7 +1298,7 @@ public class ForumServiceImpl implements ForumService {
                 topic.setName(dto.getName());
             }
             
-            // 3. 更新版块信息
+            // 5. 更新版块信息
             if (dto.getDescription() != null) {
                 topic.setDescription(dto.getDescription());
             }
@@ -1298,8 +1315,13 @@ public class ForumServiceImpl implements ForumService {
                 topic.setStatus(dto.getStatus());
             }
             
-            // 更新版主（如果提供了userId，验证用户是否存在）
+            // 更新版主（只有管理员可以修改版主）
             if (dto.getUserId() != null) {
+                if (!isAdmin) {
+                    logger.warn("更新版块失败: 只有管理员可以修改版主, userId: {}", userId);
+                    return Result.failure(6117); // 更新版块失败
+                }
+                
                 if (dto.getUserId().isEmpty()) {
                     // 空字符串表示取消版主
                     topic.setUserId(null);
@@ -1316,14 +1338,14 @@ public class ForumServiceImpl implements ForumService {
             
             topic.setUpdateTime(new Date());
             
-            // 4. 保存到数据库
+            // 6. 保存到数据库
             int result = topicMapper.updateById(topic);
             if (result <= 0) {
                 logger.error("更新版块失败: 数据库更新失败, id: {}", id);
                 return Result.failure(6117); // 更新版块失败
             }
             
-            logger.info("更新版块成功: id={}", id);
+            logger.info("更新版块成功: id={}, userId={}, isModerator={}", id, userId, isModerator);
             return Result.success(6009, null); // 更新版块成功
             
         } catch (NumberFormatException e) {
@@ -1341,7 +1363,14 @@ public class ForumServiceImpl implements ForumService {
         try {
             logger.info("删除版块请求: id={}", id);
             
-            // 1. 查询版块是否存在
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("删除版块失败: 用户未登录");
+                return Result.failure(6118); // 删除版块失败
+            }
+            
+            // 2. 查询版块是否存在
             Integer topicId = Integer.parseInt(id);
             ForumTopic topic = topicMapper.selectById(topicId);
             
@@ -1350,20 +1379,30 @@ public class ForumServiceImpl implements ForumService {
                 return Result.failure(6118); // 删除版块失败
             }
             
-            // 2. 检查版块下是否还有帖子
+            // 3. 验证用户是否有权限删除（管理员或版主）
+            boolean isAdmin = UserContext.isAdmin();
+            boolean isModerator = userId.equals(topic.getUserId());
+            
+            if (!isAdmin && !isModerator) {
+                logger.warn("删除版块失败: 无权限删除, userId: {}, topicUserId: {}, isAdmin: {}", 
+                        userId, topic.getUserId(), isAdmin);
+                return Result.failure(6118); // 删除版块失败
+            }
+            
+            // 4. 检查版块下是否还有帖子
             if (topic.getPostCount() != null && topic.getPostCount() > 0) {
                 logger.warn("删除版块失败: 版块下还有{}个帖子, id: {}", topic.getPostCount(), id);
                 return Result.failure(6118); // 删除版块失败（版块下还有帖子）
             }
             
-            // 3. 删除版块
+            // 5. 删除版块
             int result = topicMapper.deleteById(topicId);
             if (result <= 0) {
                 logger.error("删除版块失败: 数据库删除失败, id: {}", id);
                 return Result.failure(6118); // 删除版块失败
             }
             
-            logger.info("删除版块成功: id={}", id);
+            logger.info("删除版块成功: id={}, userId={}, isModerator={}", id, userId, isModerator);
             return Result.success(6010, true); // 删除版块成功
             
         } catch (NumberFormatException e) {
