@@ -131,12 +131,12 @@ inclusion: manual
 17. **deleteTopic** - `/forum/topics/{id}` - 删除版块 ✅ 已完成
 
 #### 帖子管理功能（8个接口）
-18. **getForumPosts** - `/forum/posts` - 获取帖子列表
-19. **createPost** - `/forum/posts` - 创建帖子
-20. **getPendingPosts** - `/forum/posts/pending` - 获取待审核帖子
-21. **getPostDetail** - `/forum/posts/{id}` - 获取帖子详情
-22. **updatePost** - `/forum/posts/{id}` - 更新帖子
-23. **deletePost** - `/forum/posts/{id}` - 删除帖子
+18. **getForumPosts** - `/forum/posts` - 获取帖子列表 ✅ 已完成
+19. **createPost** - `/forum/posts` - 创建帖子 ✅ 已完成
+20. **getPendingPosts** - `/forum/posts/pending` - 获取待审核帖子 ✅ 已完成
+21. **getPostDetail** - `/forum/posts/{id}` - 获取帖子详情 ✅ 已完成
+22. **updatePost** - `/forum/posts/{id}` - 更新帖子 ✅ 已完成
+23. **deletePost** - `/forum/posts/{id}` - 删除帖子 ✅ 已完成
 
 #### 帖子互动功能（4个接口）
 24. **likePost** - `/forum/posts/{id}/like` - 点赞帖子
@@ -158,7 +158,7 @@ inclusion: manual
 36. **togglePostEssence** - `/forum/posts/{id}/essence` - 加精/取消加精
 
 #### 图片上传功能（1个接口）
-37. **uploadPostImage** - `/forum/posts/image` - 上传帖子图片
+37. **uploadPostImage** - `/forum/posts/image` - 上传帖子图片 ✅ 已完成
 
 ### 状态码范围
 - **成功码**：6000-6028（29个成功状态码）
