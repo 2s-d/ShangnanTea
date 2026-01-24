@@ -152,7 +152,7 @@ public interface ShopService {
     Result<Object> getShopBanners(String shopId);
     
     /**
-     * 更新店铺Banner
+     * 接口16：更新店铺Banner
      * 商家更新Banner信息
      *
      * @param bannerId Banner ID
@@ -162,7 +162,7 @@ public interface ShopService {
     Result<Object> updateBanner(String bannerId, Map<String, Object> bannerData);
     
     /**
-     * 删除店铺Banner
+     * 接口17：删除店铺Banner
      * 商家删除Banner
      *
      * @param bannerId Banner ID
@@ -171,7 +171,7 @@ public interface ShopService {
     Result<Boolean> deleteBanner(String bannerId);
     
     /**
-     * 更新Banner顺序
+     * 接口18：更新Banner顺序
      * 商家批量更新Banner的显示顺序
      *
      * @param orderData 排序数据
@@ -180,7 +180,7 @@ public interface ShopService {
     Result<Boolean> updateBannerOrder(Map<String, Object> orderData);
     
     /**
-     * 获取店铺公告列表
+     * 接口19：获取店铺公告列表
      * 获取指定店铺的公告列表
      *
      * @param shopId 店铺ID
@@ -189,7 +189,7 @@ public interface ShopService {
     Result<Object> getShopAnnouncements(String shopId);
     
     /**
-     * 创建店铺公告
+     * 接口20：创建店铺公告
      * 商家创建店铺公告
      *
      * @param shopId 店铺ID
@@ -199,7 +199,7 @@ public interface ShopService {
     Result<Object> createAnnouncement(String shopId, Map<String, Object> announcementData);
     
     /**
-     * 更新店铺公告
+     * 接口21：更新店铺公告
      * 商家更新店铺公告
      *
      * @param announcementId 公告ID
@@ -209,7 +209,7 @@ public interface ShopService {
     Result<Object> updateAnnouncement(String announcementId, Map<String, Object> announcementData);
     
     /**
-     * 删除店铺公告
+     * 接口22：删除店铺公告
      * 商家删除店铺公告
      *
      * @param announcementId 公告ID
@@ -217,8 +217,10 @@ public interface ShopService {
      */
     Result<Boolean> deleteAnnouncement(String announcementId);
     
+    // ==================== 接口23-26：关注和评价 ====================
+    
     /**
-     * 关注店铺
+     * 接口23：关注店铺
      * 用户关注店铺
      *
      * @param shopId 店铺ID
@@ -227,7 +229,7 @@ public interface ShopService {
     Result<Boolean> followShop(String shopId);
     
     /**
-     * 取消关注店铺
+     * 接口24：取消关注店铺
      * 用户取消关注店铺
      *
      * @param shopId 店铺ID
@@ -236,7 +238,7 @@ public interface ShopService {
     Result<Boolean> unfollowShop(String shopId);
     
     /**
-     * 检查关注状态
+     * 接口25：检查关注状态
      * 获取当前用户对店铺的关注状态
      *
      * @param shopId 店铺ID
@@ -245,18 +247,18 @@ public interface ShopService {
     Result<Object> checkFollowStatus(String shopId);
     
     /**
-     * 获取店铺评价列表
-     * 获取店铺的用户评价列表
+     * 接口26：获取店铺评价信息
+     * 获取店铺的评分统计信息
      *
      * @param shopId 店铺ID
-     * @param params 查询参数（page, pageSize等）
-     * @return 评价列表
+     * @param params 查询参数
+     * @return 评分信息
      */
     Result<Object> getShopReviews(String shopId, Map<String, Object> params);
     
     /**
-     * 提交店铺评价
-     * 用户提交对店铺的评价
+     * 接口27：提交店铺评价
+     * 用户提交对店铺的评分
      *
      * @param shopId 店铺ID
      * @param reviewData 评价数据

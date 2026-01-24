@@ -1,7 +1,5 @@
 package com.shangnantea.service.impl;
 
-import com.shangnantea.common.api.PageParam;
-import com.shangnantea.common.api.PageResult;
 import com.shangnantea.common.api.Result;
 import com.shangnantea.mapper.ShopCertificationMapper;
 import com.shangnantea.mapper.ShopMapper;
@@ -47,6 +45,7 @@ import java.util.stream.Collectors;
 
 /**
  * 店铺服务实现类
+ * 实现26个店铺模块接口
  */
 @Service
 public class ShopServiceImpl implements ShopService {
@@ -77,133 +76,30 @@ public class ShopServiceImpl implements ShopService {
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
     
-    @Override
-    public Shop getShopById(String id) {
-        // TODO: 实现获取店铺详情的逻辑
+    // ==================== 内部辅助方法 ====================
+    
+    /**
+     * 根据ID获取店铺（内部辅助方法）
+     */
+    private Shop getShopById(String id) {
         return shopMapper.selectById(id);
     }
     
-    @Override
-    public PageResult<Shop> listShops(PageParam pageParam) {
-        // TODO: 实现分页查询店铺的逻辑
-        return new PageResult<>();
-    }
-    
-    @Override
-    public Shop getShopByUserId(String userId) {
+    /**
+     * 根据用户ID获取店铺（内部辅助方法）
+     */
+    private Shop getShopByUserId(String userId) {
         return shopMapper.selectByUserId(userId);
     }
     
-    @Override
-    @Transactional
-    public Shop createShop(Shop shop) {
-        // TODO: 实现创建店铺的逻辑
-        Date now = new Date();
-        shop.setId(UUID.randomUUID().toString().replace("-", ""));
-        shop.setCreateTime(now);
-        shop.setUpdateTime(now);
-        shopMapper.insert(shop);
-        return shop;
-    }
-    
-    @Override
-    public boolean updateShop(Shop shop) {
-        // TODO: 实现更新店铺信息的逻辑
-        shop.setUpdateTime(new Date());
-        return shopMapper.updateById(shop) > 0;
-    }
-    
-    @Override
-    public PageResult<Tea> listShopTeas(String shopId, PageParam pageParam) {
-        // TODO: 实现获取店铺茶叶的逻辑
-        return new PageResult<>();
-    }
-    
-    @Override
-    @Transactional
-    public ShopCertification createCertification(ShopCertification certification) {
-        // TODO: 实现创建商家认证申请的逻辑
-        Date now = new Date();
-        certification.setCreateTime(now);
-        certification.setUpdateTime(now);
-        certification.setStatus(0); // 待审核
-        certificationMapper.insert(certification);
-        return certification;
-    }
-    
-    @Override
-    public ShopCertification getCertificationById(Integer id) {
-        // TODO: 实现获取认证申请的逻辑
-        return certificationMapper.selectById(id);
-    }
-    
-    @Override
-    public ShopCertification getCertificationByUserId(String userId) {
+    /**
+     * 根据用户ID获取认证信息（内部辅助方法）
+     */
+    private ShopCertification getCertificationByUserId(String userId) {
         return certificationMapper.selectByUserId(userId);
     }
     
-    @Override
-    public PageResult<ShopCertification> listCertifications(Integer status, PageParam pageParam) {
-        // TODO: 实现查询认证申请列表的逻辑
-        return new PageResult<>();
-    }
-    
-    @Override
-    @Transactional
-    public boolean processCertification(Integer id, Integer status, String adminId, String rejectReason) {
-        // TODO: 实现处理认证申请的逻辑
-        ShopCertification certification = certificationMapper.selectById(id);
-        if (certification == null) {
-            return false;
-        }
-        
-        certification.setStatus(status);
-        certification.setAdminId(adminId);
-        certification.setRejectReason(rejectReason);
-        certification.setUpdateTime(new Date());
-        
-        return certificationMapper.updateById(certification) > 0;
-    }
-    
-    @Override
-    @Transactional
-    public boolean confirmNotification(Integer certificationId) {
-        // TODO: 实现确认通知的逻辑
-        ShopCertification certification = certificationMapper.selectById(certificationId);
-        if (certification == null || certification.getStatus() != 1) {
-            return false;
-        }
-        
-        certification.setNotificationConfirmed(1);
-        certification.setUpdateTime(new Date());
-        
-        return certificationMapper.updateById(certification) > 0;
-    }
-    
-    @Override
-    public Result<Map<String, Object>> uploadCertificationImage(MultipartFile image) {
-        try {
-            logger.info("上传商家认证图片请求, 文件名: {}", image.getOriginalFilename());
-            
-            // 1. 调用工具类上传（硬编码type为"certifications"）
-            String relativePath = FileUploadUtils.uploadImage(image, "certifications");
-            
-            // 2. 生成访问URL
-            String accessUrl = FileUploadUtils.generateAccessUrl(relativePath, baseUrl);
-            
-            // 3. 直接返回，不存数据库（场景2：先返回URL，稍后存储）
-            Map<String, Object> responseData = new HashMap<>();
-            responseData.put("url", accessUrl);
-            responseData.put("path", relativePath);
-            
-            logger.info("商家认证图片上传成功: path: {}", relativePath);
-            return Result.success(2024, responseData); // 认证图片上传成功
-            
-        } catch (Exception e) {
-            logger.error("商家认证图片上传失败: 系统异常", e);
-            return Result.failure(2146); // 认证图片上传失败
-        }
-    }
+    // ==================== 接口1-7：基础店铺管理 ====================
     
     @Override
     @Transactional(rollbackFor = Exception.class)
