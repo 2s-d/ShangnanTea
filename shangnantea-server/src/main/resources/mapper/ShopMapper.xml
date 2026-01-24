@@ -110,4 +110,12 @@
     <select id="count" resultType="java.lang.Long">
         SELECT COUNT(*) FROM shops
     </select>
+    
+    <!-- 根据店主用户ID查询店铺 -->
+    <select id="selectByOwnerId" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM shops
+        WHERE owner_id = #{ownerId}
+        LIMIT 1
+    </select>
 </mapper> 
