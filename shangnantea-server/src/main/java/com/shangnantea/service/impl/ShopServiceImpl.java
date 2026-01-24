@@ -742,11 +742,24 @@ public class ShopServiceImpl implements ShopService {
             statisticsVO.setRatingCount(shop.getRatingCount());
             statisticsVO.setRating(shop.getRating());
             
-            // TODO: 从订单表和商品表查询更详细的统计数据
-            // 目前先设置默认值，后续可以扩展
-            statisticsVO.setTotalSales(BigDecimal.ZERO);
-            statisticsVO.setOrderCount(0);
-            statisticsVO.setProductCount(0);
+            // 从订单表查询销售统计数据（只统计已完成的订单）
+            List<Order> completedOrders = orderMapper.selectByShopIdAndStatus(shopId, 3); // 状态3=已完成
+            BigDecimal totalSales = BigDecimal.ZERO;
+            int orderCount = 0;
+            if (completedOrders != null && !completedOrders.isEmpty()) {
+                orderCount = completedOrders.size();
+                for (Order order : completedOrders) {
+                    if (order.getTotalAmount() != null) {
+                        totalSales = totalSales.add(order.getTotalAmount());
+                    }
+                }
+            }
+            statisticsVO.setTotalSales(totalSales);
+            statisticsVO.setOrderCount(orderCount);
+            
+            // 从茶叶表查询商品数量
+            Long productCount = teaMapper.countByShopId(shopId);
+            statisticsVO.setProductCount(productCount != null ? productCount.intValue() : 0);
             
             logger.info("获取店铺统计数据成功: shopId={}, followCount={}, ratingCount={}", 
                     shopId, shop.getFollowCount(), shop.getRatingCount());
