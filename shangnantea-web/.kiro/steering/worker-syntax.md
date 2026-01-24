@@ -21,7 +21,7 @@ inclusion: manual
 专门为以下6个模块工人提供代码检查服务：
 - **worker-user**：用户模块接口代码检查
 - **worker-tea**：茶叶模块接口代码检查
-- **worker-order**：订单模块接口代码检查
+- **worker-order**：订单模块接口代码检查好
 - **worker-shop**：店铺模块接口代码检查
 - **worker-forum**：论坛模块接口代码检查
 - **worker-message**：消息模块接口代码检查

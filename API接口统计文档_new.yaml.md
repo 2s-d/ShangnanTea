@@ -52,7 +52,7 @@
 | 31 | 1032 | DELETE | /user/admin/users/{userId} | 删除用户（管理员） |
 | 32 | 1096 | PUT | /user/admin/users/{userId}/status | 启用/禁用用户（管理员） |
 | 33 | 1134 | GET | /user/admin/certifications | 获取商家认证申请列表（管理员） |
-| 35 | 1178 | PUT | /user/admin/certifications/{id} | 审核认证申请（管理员） |
+| 34 | 1178 | PUT | /user/admin/certifications/{id} | 审核认证申请（管理员） |
 
 ---
 
