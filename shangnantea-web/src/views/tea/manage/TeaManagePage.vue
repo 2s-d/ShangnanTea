@@ -778,34 +778,19 @@ export default {
         )
         
         // 任务组E：调用Vuex action更新茶叶状态
-        await store.dispatch('tea/toggleTeaStatus', {
+        const response = await store.dispatch('tea/toggleTeaStatus', {
           teaId: tea.id,
           status: newStatus
         })
         
-        if (newStatus === 1) {
-          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-          teaMessages.success.showTeaOnShelf()
-        } else {
-          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-          teaMessages.success.showTeaOffShelf()
-        }
+        showByCode(response.code)
         
         // 刷新列表
         await loadTeas()
       } catch (error) {
         if (error !== 'cancel') {
-          if (newStatus === 1) {
-            // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-            teaMessages.error.showTeaOnShelfFailed(error.message)
-          } else {
-            // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-            teaMessages.error.showTeaOffShelfFailed(error.message)
-          }
+          // 错误已由拦截器处理
+          console.error('切换茶叶状态失败:', error)
         }
       }
     }
@@ -833,21 +818,18 @@ export default {
         )
         
         const teaIds = selectedTeas.value.map(tea => tea.id)
-        await store.dispatch('tea/batchToggleTeaStatus', {
+        const response = await store.dispatch('tea/batchToggleTeaStatus', {
           teaIds,
           status: 1
         })
         
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        teaMessages.success.showBatchOnShelf()
+        showByCode(response.code)
         selectedTeas.value = []
         await loadTeas()
       } catch (error) {
         if (error !== 'cancel') {
-          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-          teaMessages.error.showBatchOnShelfFailed(error.message)
+          // 错误已由拦截器处理
+          console.error('批量上架失败:', error)
         }
       }
     }
@@ -870,21 +852,18 @@ export default {
         )
         
         const teaIds = selectedTeas.value.map(tea => tea.id)
-        await store.dispatch('tea/batchToggleTeaStatus', {
+        const response = await store.dispatch('tea/batchToggleTeaStatus', {
           teaIds,
           status: 0
         })
         
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        teaMessages.success.showBatchOffShelf()
+        showByCode(response.code)
         selectedTeas.value = []
         await loadTeas()
       } catch (error) {
         if (error !== 'cancel') {
-          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-          teaMessages.error.showBatchOffShelfFailed(error.message)
+          // 错误已由拦截器处理
+          console.error('批量下架失败:', error)
         }
       }
     }
@@ -903,11 +882,9 @@ export default {
         )
         
         // 调用Vuex action删除茶叶
-        await store.dispatch('tea/deleteTea', tea.id)
+        const response = await store.dispatch('tea/deleteTea', tea.id)
         
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        teaMessages.success.showTeaDeleted()
+        showByCode(response.code)
         
         // 如果当前页没有数据了，回到前一页
         if (teas.value.length === 0 && currentPage.value > 1) {
@@ -915,9 +892,8 @@ export default {
         }
       } catch (error) {
         if (error !== 'cancel') {
-          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-          teaMessages.error.showTeaDeleteFailed(error.message)
+          // 错误已由拦截器处理
+          console.error('删除茶叶失败:', error)
         }
       }
     }
