@@ -810,9 +810,7 @@ export default {
     // 任务组C：保存处理（使用Vuex）
     const handleSave = async () => {
       if (!shop.value || !shop.value.id) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        shopMessages.error.showShopInfoNotExist()
+        console.error('店铺信息不存在')
         return
       }
       
@@ -825,22 +823,18 @@ export default {
         
         if (isEdit.value) {
           // 更新茶叶
-          await store.dispatch('shop/updateShopTea', {
+          const response = await store.dispatch('shop/updateShopTea', {
             teaId: currentTea.value.id,
             teaData
           })
-          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-          shopMessages.success.showTeaUpdateSuccess()
+          showByCode(response.code)
         } else {
           // 添加茶叶
-          await store.dispatch('shop/addShopTea', {
+          const response = await store.dispatch('shop/addShopTea', {
             shopId: shop.value.id,
             teaData
           })
-          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-          shopMessages.success.showTeaAddSuccess()
+          showByCode(response.code)
         }
         
         // 关闭对话框
@@ -848,9 +842,7 @@ export default {
         // 重新加载列表
         await loadShopTeas()
       } catch (error) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        shopMessages.error.showTeaSaveFailed(error.message)
+        console.error('保存茶叶失败:', error)
       } finally {
         submitting.value = false
       }
