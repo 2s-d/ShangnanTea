@@ -115,4 +115,14 @@ public class OrderDetailVO {
      * 更新时间
      */
     private Date updateTime;
+    
+    /**
+     * 店铺ID
+     */
+    private String shopId;
+    
+    /**
+     * 是否已评价(0未评价,1已评价)
+     */
+    private Integer isReviewed;
 }

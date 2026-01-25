@@ -153,33 +153,32 @@ export default {
 
     const orderAmount = computed(() => {
       const o = currentOrder.value
-      return o.total_amount || o.order_amount || 0
+      return o.totalAmount || 0
     })
 
     const orderDetail = computed(() => {
       const o = currentOrder.value
-      const shipping = o.shipping_fee || 0
-      const total = o.total_amount || o.order_amount || 0
+      const total = o.totalAmount || 0
       return {
-        goodsAmount: Math.max(total - shipping, 0),
-        shippingFee: shipping
+        goodsAmount: total,
+        shippingFee: 0
       }
     })
 
     // 支付页只展示当前订单的第一件商品信息
     const teaItems = computed(() => {
       const o = currentOrder.value
-      if (!o.order_id) {
+      if (!o.id) {
         return []
       }
       return [
         {
-          orderId: o.order_id,
-          name: o.tea_name || '茶叶商品',
-          spec: o.spec_name || '默认规格',
+          orderId: o.id,
+          name: o.teaName || '茶叶商品',
+          spec: o.specName || '默认规格',
           quantity: o.quantity || 1,
-          price: o.price || o.total_amount || 0,
-          image: o.tea_image || '/images/tea-default.jpg'
+          price: o.price || o.totalAmount || 0,
+          image: o.teaImage || '/images/tea-default.jpg'
         }
       ]
     })
@@ -231,8 +230,8 @@ export default {
       try {
         await store.dispatch('order/fetchOrderDetail', orderId.value)
         // 使用后端返回的支付方式
-        if (currentOrder.value && currentOrder.value.payment_method) {
-          paymentMethod.value = currentOrder.value.payment_method
+        if (currentOrder.value && currentOrder.value.paymentMethod) {
+          paymentMethod.value = currentOrder.value.paymentMethod
         }
         // 简化：统一从现在开始倒计时 30 分钟
         countdown.value = 1800

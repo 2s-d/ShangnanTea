@@ -908,6 +908,8 @@ public class OrderServiceImpl implements OrderService {
                 vo.setSpecName(order.getSpecName());
                 vo.setQuantity(order.getQuantity());
                 vo.setPrice(order.getPrice());
+                vo.setShopId(order.getShopId());
+                vo.setIsReviewed(order.getBuyerRate());
                 orderVOList.add(vo);
             }
             
@@ -986,6 +988,8 @@ public class OrderServiceImpl implements OrderService {
             vo.setBuyerMessage(order.getBuyerMessage());
             vo.setCreateTime(order.getCreateTime());
             vo.setUpdateTime(order.getUpdateTime());
+            vo.setShopId(order.getShopId());
+            vo.setIsReviewed(order.getBuyerRate());
             
             logger.info("获取订单详情成功: orderId={}, userId={}", id, userId);
             return Result.success(200, vo);
