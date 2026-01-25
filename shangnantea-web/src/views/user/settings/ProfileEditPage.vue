@@ -249,9 +249,7 @@ export default {
       preferences.listMode = 'grid'
       preferences.pageSize = 20
       
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      // TODO: [user] 迁移到 showByCode(response.code) - success
+      // 本地操作，使用 userMessages 是正确的（不涉及API调用）
       userMessages.success.showSettingsRestored()
     }
     

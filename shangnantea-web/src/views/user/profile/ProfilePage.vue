@@ -263,7 +263,7 @@ export default {
           handleInitForm()
         }
       } catch (error) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+        // 前端异常处理，使用固定错误码
         showByCode(7121) // 用户信息不完整
       } finally {
         loading.value = false
@@ -281,12 +281,12 @@ export default {
       const isLt2M = file.size / 1024 / 1024 < 2
       
       if (!isImage) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+        // 前端文件验证，使用 userMessages 是正确的（不涉及API调用）
         userMessages.showAvatarFormatInvalid()
         return false
       }
       if (!isLt2M) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+        // 前端文件验证，使用 userMessages 是正确的（不涉及API调用）
         userMessages.showAvatarSizeLimit()
         return false
       }
