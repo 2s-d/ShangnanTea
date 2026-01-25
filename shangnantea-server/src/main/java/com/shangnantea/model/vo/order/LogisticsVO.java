@@ -38,11 +38,11 @@ public class LogisticsVO {
         /**
          * 时间
          */
-        private Date time;
+        private String time;
         
         /**
          * 状态描述
          */
-        private String status;
+        private String content;
     }
 }

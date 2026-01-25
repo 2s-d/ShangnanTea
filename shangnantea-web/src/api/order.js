@@ -178,6 +178,16 @@ export function refundOrder(data) {
 /**
  * 审批退款（/order/{id}/refund/process）
  * @param {Object} payload { orderId, approve, reason }
+ * 
+ * TODO: 后端未实现实际退款操作
+ * - 当前processRefund方法中只更新了订单状态和恢复库存
+ * - 需要对接第三方支付平台API执行实际退款操作（支付宝/微信/银联）
+ * - 建议在同意退款后调用支付接口的退款方法
+ * 
+ * TODO: 缺少商家/管理员处理退款的前端页面
+ * - 需要创建退款管理页面供商家/管理员审批退款申请
+ * - 页面应包含：退款列表、退款详情、同意/拒绝操作
+ * - 路径建议：/merchant/refund 或 /admin/refund
  */
 export function processRefund(payload) {
   const { orderId, approve, reason } = payload
@@ -204,6 +214,11 @@ export function getRefundDetail(orderId) {
 /**
  * 发货（单个订单）
  * @param {Object} payload { id, logisticsCompany, logisticsNumber }
+ * 
+ * TODO: 缺少商家/管理员发货的前端页面
+ * - 需要创建订单发货页面供商家/管理员填写物流信息
+ * - 页面应包含：待发货订单列表、物流公司选择、物流单号输入
+ * - 路径建议：/merchant/ship 或 /admin/ship
  */
 export function shipOrder(payload) {
   const { id, logisticsCompany, logisticsNumber } = payload
@@ -220,6 +235,11 @@ export function shipOrder(payload) {
 /**
  * 批量发货
  * @param {Object} payload { orderIds: string[], logisticsCompany, logisticsNumber }
+ * 
+ * TODO: 缺少批量发货的前端页面
+ * - 需要创建批量发货页面供商家/管理员批量处理订单
+ * - 页面应包含：待发货订单多选列表、统一物流信息输入、批量发货按钮
+ * - 路径建议：/merchant/batch-ship 或 /admin/batch-ship
  */
 export function batchShipOrders(payload) {
   return request({
@@ -232,6 +252,12 @@ export function batchShipOrders(payload) {
 /**
  * 获取订单物流信息
  * @param {string} id 订单ID
+ * 
+ * TODO: 后端物流轨迹功能未完成
+ * - 当前getOrderLogistics方法中traces字段返回null
+ * - 需要对接第三方物流API获取实时物流轨迹信息
+ * - 建议对接：快递100、菜鸟物流、顺丰物流等第三方物流查询API
+ * - 实现后traces字段应返回物流轨迹数组：[{time, content}]
  */
 export function getOrderLogistics(id) {
   return request({
@@ -244,6 +270,12 @@ export function getOrderLogistics(id) {
  * 任务组D：获取订单统计数据
  * @param {Object} params 查询参数 { startDate, endDate, shopId }
  * @returns {Promise} 订单统计数据（概览、趋势、状态分布）
+ * 
+ * TODO: 缺少订单统计的前端页面
+ * - 需要创建订单统计页面展示统计数据和图表
+ * - 页面应包含：订单总数、总金额、状态分布饼图、订单趋势折线图
+ * - 支持按日期范围筛选、按店铺筛选（管理员）
+ * - 路径建议：/merchant/statistics 或 /admin/statistics
  */
 export function getOrderStatistics(params = {}) {
   return request({
@@ -257,6 +289,18 @@ export function getOrderStatistics(params = {}) {
  * 任务组E：导出订单数据
  * @param {Object} params 导出参数 { format, startDate, endDate, status, shopId }
  * @returns {Promise} 文件Blob
+ * 
+ * TODO: 后端导出功能未完成
+ * - 当前exportOrders方法只返回JSON数据，未生成Excel/CSV文件
+ * - 需要添加Apache POI依赖（Excel）或OpenCSV依赖（CSV）
+ * - 实现文件生成逻辑，返回文件流而非JSON
+ * - 建议支持Excel(.xlsx)和CSV(.csv)两种格式
+ * 
+ * TODO: 缺少导出订单的前端功能入口
+ * - 需要在订单列表页面添加"导出"按钮
+ * - 提供导出参数选择：格式、日期范围、订单状态等
+ * - 点击后触发文件下载
+ * - 建议位置：订单列表页面顶部操作栏
  */
 export function exportOrders(params = {}) {
   return request({
