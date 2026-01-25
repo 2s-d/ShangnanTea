@@ -1,15 +1,8 @@
 package com.shangnantea.service;
 
-import com.shangnantea.common.api.PageParam;
-import com.shangnantea.common.api.PageResult;
 import com.shangnantea.common.api.Result;
-import com.shangnantea.model.entity.tea.Tea;
-import com.shangnantea.model.entity.tea.TeaCategory;
-import com.shangnantea.model.entity.tea.TeaImage;
-import com.shangnantea.model.entity.tea.TeaSpecification;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -17,93 +10,145 @@ import java.util.Map;
  */
 public interface TeaService {
     
+    // ==================== 茶叶查询 ====================
+    
+    /**
+     * 获取茶叶列表
+     */
+    Result<Object> getTeas(Map<String, Object> params);
+    
     /**
      * 获取茶叶详情
-     *
-     * @param id 茶叶ID
-     * @return 茶叶信息
      */
-    Tea getTeaById(Long id);
+    Result<Object> getTeaDetail(String id);
     
     /**
-     * 分页查询茶叶
-     *
-     * @param pageParam 分页参数
-     * @return 分页结果
+     * 获取推荐茶叶
      */
-    PageResult<Tea> listTeas(PageParam pageParam);
-    
-    /**
-     * 按分类查询茶叶
-     *
-     * @param categoryId 分类ID
-     * @param pageParam 分页参数
-     * @return 分页结果
-     */
-    PageResult<Tea> listTeasByCategory(Integer categoryId, PageParam pageParam);
-    
-    /**
-     * 添加茶叶
-     *
-     * @param tea 茶叶信息
-     * @return 茶叶信息
-     */
-    Tea addTea(Tea tea);
-    
-    /**
-     * 更新茶叶信息
-     *
-     * @param tea 茶叶信息
-     * @return 是否成功
-     */
-    boolean updateTea(Tea tea);
-    
-    /**
-     * 删除茶叶
-     *
-     * @param id 茶叶ID
-     * @return 是否成功
-     */
-    boolean deleteTea(Long id);
+    Result<Object> getRecommendTeas(Map<String, Object> params);
     
     /**
      * 获取茶叶分类
-     *
-     * @return 分类列表
      */
-    List<TeaCategory> listCategories();
+    Result<Object> getTeaCategories();
     
     /**
-     * 获取茶叶规格
-     *
-     * @param teaId 茶叶ID
-     * @return 规格列表
+     * 获取茶叶评价列表
      */
-    List<TeaSpecification> listSpecifications(Long teaId);
+    Result<Object> getTeaReviews(String teaId, Map<String, Object> params);
     
     /**
-     * 获取茶叶图片
-     *
-     * @param teaId 茶叶ID
-     * @return 图片列表
+     * 获取茶叶评价统计
      */
-    List<TeaImage> listImages(Long teaId);
+    Result<Object> getReviewStats(String teaId);
     
     /**
-     * 搜索茶叶
-     *
-     * @param keyword 关键词
-     * @param pageParam 分页参数
-     * @return 分页结果
+     * 获取茶叶规格列表
      */
-    PageResult<Tea> searchTeas(String keyword, PageParam pageParam);
+    Result<Object> getTeaSpecifications(String teaId);
+    
+    // ==================== 分类管理 ====================
+    
+    /**
+     * 创建茶叶分类
+     */
+    Result<Object> createCategory(Map<String, Object> categoryData);
+    
+    /**
+     * 更新茶叶分类
+     */
+    Result<Boolean> updateCategory(Integer id, Map<String, Object> categoryData);
+    
+    /**
+     * 删除茶叶分类
+     */
+    Result<Boolean> deleteCategory(Integer id);
+    
+    // ==================== 茶叶管理 ====================
+    
+    /**
+     * 添加茶叶
+     */
+    Result<Object> addTea(Map<String, Object> teaData);
+    
+    /**
+     * 更新茶叶信息
+     */
+    Result<Boolean> updateTea(String id, Map<String, Object> teaData);
+    
+    /**
+     * 删除茶叶
+     */
+    Result<Boolean> deleteTea(String id);
+    
+    /**
+     * 更新茶叶状态
+     */
+    Result<Boolean> toggleTeaStatus(String teaId, Map<String, Object> statusData);
+    
+    /**
+     * 批量更新茶叶状态
+     */
+    Result<Boolean> batchToggleTeaStatus(Map<String, Object> batchData);
+    
+    // ==================== 评价系统 ====================
+    
+    /**
+     * 提交评价
+     */
+    Result<Boolean> submitReview(Map<String, Object> reviewData);
+    
+    /**
+     * 商家回复评价
+     */
+    Result<Boolean> replyReview(String reviewId, Map<String, Object> replyData);
+    
+    /**
+     * 点赞评价
+     */
+    Result<Boolean> likeReview(String reviewId);
+    
+    // ==================== 规格管理 ====================
+    
+    /**
+     * 添加规格
+     */
+    Result<Object> addSpecification(String teaId, Map<String, Object> specData);
+    
+    /**
+     * 更新规格
+     */
+    Result<Boolean> updateSpecification(String specId, Map<String, Object> specData);
+    
+    /**
+     * 删除规格
+     */
+    Result<Boolean> deleteSpecification(String specId);
+    
+    /**
+     * 设置默认规格
+     */
+    Result<Boolean> setDefaultSpecification(String specId);
+    
+    // ==================== 图片管理 ====================
     
     /**
      * 上传茶叶图片
-     *
-     * @param teaId 茶叶ID
-     * @param files 图片文件数组
-     * @return 上传结果
      */
     Result<Object> uploadTeaImages(String teaId, MultipartFile[] files);
+    
+    /**
+     * 删除茶叶图片
+     */
+    Result<Boolean> deleteTeaImage(String imageId);
+    
+    /**
+     * 更新图片顺序
+     */
+    Result<Boolean> updateImageOrder(Map<String, Object> orderData);
+    
+    /**
+     * 设置主图
+     */
+    Result<Boolean> setMainImage(String imageId);
 } 
