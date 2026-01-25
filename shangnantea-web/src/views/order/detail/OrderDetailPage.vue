@@ -468,20 +468,6 @@ export default {
       // 实际场景中，可能需要将所有商品添加到购物车，然后跳转到购物车页面
     }
     
-    // 删除订单
-    const deleteOrder = () => {
-      ElMessageBox.confirm('确定要删除该订单吗？删除后无法恢复', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        // TODO-SCRIPT: 删除订单需要后端接口支持（生产形态：不在 UI 层伪删除/伪成功）
-        orderPromptMessages.showDeleteOrderDev()
-      }).catch(() => {
-        // 用户取消操作，不做任何处理
-      })
-    }
-    
     // 加载订单详情
     const loadOrderDetail = () => {
       store.dispatch('order/fetchOrderDetail', orderId)
@@ -558,7 +544,6 @@ export default {
       contactSeller,
       writeReview,
       buyAgain,
-      deleteOrder,
       defaultTeaImage,
       canRequestRefund,
       canReview,
