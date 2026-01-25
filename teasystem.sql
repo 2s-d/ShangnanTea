@@ -11,7 +11,7 @@
  Target Server Version : 80040
  File Encoding         : 65001
 
- Date: 23/01/2026 17:29:11
+ Date: 25/01/2026 08:20:59
 */
 
 SET NAMES utf8mb4;
@@ -85,8 +85,6 @@ CREATE TABLE `forum_posts`  (
   `images` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL COMMENT '图片JSON数组，格式:[{\"url\":\"图片链接\",\"desc\":\"图片描述\"}]',
   `view_count` int NULL DEFAULT 0 COMMENT '浏览量',
   `reply_count` int NULL DEFAULT 0 COMMENT '回复数',
-  `like_count` int NULL DEFAULT 0 COMMENT '点赞数',
-  `favorite_count` int NULL DEFAULT 0 COMMENT '收藏数',
   `is_sticky` tinyint(1) NULL DEFAULT 0 COMMENT '是否置顶',
   `is_essence` tinyint(1) NULL DEFAULT 0 COMMENT '是否精华',
   `status` tinyint NULL DEFAULT 1 COMMENT '状态:1正常,0待审核,2已删除',
@@ -104,7 +102,7 @@ CREATE TABLE `forum_posts`  (
 -- ----------------------------
 -- Records of forum_posts
 -- ----------------------------
-INSERT INTO `forum_posts` VALUES (1, 'cy100002', 1, '如何正确冲泡绿茶？', '绿茶的冲泡温度一般控制在80℃左右较为适宜，水温过高会破坏茶叶中的营养物质，使茶汤变苦涩...(此处省略详细内容)', '分享绿茶冲泡的正确温度和时间', '/images/brewing_green_tea.jpg', NULL, 58, 0, 13, 5, 0, 1, 1, NULL, '2025-03-26 09:03:26', '2025-03-26 09:03:26');
+INSERT INTO `forum_posts` VALUES (1, 'cy100002', 1, '如何正确冲泡绿茶？', '绿茶的冲泡温度一般控制在80℃左右较为适宜，水温过高会破坏茶叶中的营养物质，使茶汤变苦涩...(此处省略详细内容)', '分享绿茶冲泡的正确温度和时间', '/images/brewing_green_tea.jpg', NULL, 58, 0, 0, 1, 1, NULL, '2025-03-26 09:03:26', '2025-03-26 09:03:26');
 
 -- ----------------------------
 -- Table structure for forum_replies
@@ -117,7 +115,6 @@ CREATE TABLE `forum_replies`  (
   `content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '回复内容',
   `parent_id` bigint NULL DEFAULT NULL COMMENT '父回复ID,为空表示一级回复',
   `to_user_id` varchar(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '回复目标用户ID',
-  `like_count` int NULL DEFAULT 0 COMMENT '点赞数',
   `status` tinyint NULL DEFAULT 1 COMMENT '状态:1正常,0待审核,2已删除',
   `create_time` datetime NOT NULL,
   `update_time` datetime NOT NULL,
@@ -131,7 +128,7 @@ CREATE TABLE `forum_replies`  (
 -- ----------------------------
 -- Records of forum_replies
 -- ----------------------------
-INSERT INTO `forum_replies` VALUES (1, 1, 'cy100003', '补充一点，不同品种的绿茶冲泡温度也有差异，比如龙井适合85℃左右，而碧螺春则可以稍低一些，75℃左右更能体现其鲜爽的口感。', NULL, NULL, 3, 1, '2025-03-26 09:03:26', '2025-03-26 09:03:26');
+INSERT INTO `forum_replies` VALUES (1, 1, 'cy100003', '补充一点，不同品种的绿茶冲泡温度也有差异，比如龙井适合85℃左右，而碧螺春则可以稍低一些，75℃左右更能体现其鲜爽的口感。', NULL, NULL, 1, '2025-03-26 09:03:26', '2025-03-26 09:03:26');
 
 -- ----------------------------
 -- Table structure for forum_topics
@@ -359,7 +356,6 @@ CREATE TABLE `shops`  (
   `rating` decimal(2, 1) NULL DEFAULT 5.0 COMMENT '平均评分',
   `rating_count` int NULL DEFAULT 0 COMMENT '评分数量',
   `sales_count` int NULL DEFAULT 0 COMMENT '总销量',
-  `follow_count` int NULL DEFAULT 0 COMMENT '关注数/粉丝数',
   `create_time` datetime NOT NULL,
   `update_time` datetime NOT NULL,
   PRIMARY KEY (`id`) USING BTREE,
@@ -370,7 +366,7 @@ CREATE TABLE `shops`  (
 -- ----------------------------
 -- Records of shops
 -- ----------------------------
-INSERT INTO `shops` VALUES ('shop100001', 'cy100003', '商南茶叶专营店', '/logo/shop1.png', '/banner/shop1.png', '提供优质商南特产茶叶', NULL, '13800000003', '陕西省', '商洛市', '商南县', '城关街道茶叶市场12号', NULL, 1, 4.8, 24, 168, 0, '2025-03-26 09:03:26', '2025-03-26 09:03:26');
+INSERT INTO `shops` VALUES ('shop100001', 'cy100003', '商南茶叶专营店', '/logo/shop1.png', '/banner/shop1.png', '提供优质商南特产茶叶', NULL, '13800000003', '陕西省', '商洛市', '商南县', '城关街道茶叶市场12号', NULL, 1, 4.8, 24, 168, '2025-03-26 09:03:26', '2025-03-26 09:03:26');
 
 -- ----------------------------
 -- Table structure for tea_articles
@@ -390,8 +386,6 @@ CREATE TABLE `tea_articles`  (
   `tags` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '标签,英文逗号分隔',
   `source` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '文章来源',
   `view_count` int NULL DEFAULT 0 COMMENT '阅读量',
-  `like_count` int NULL DEFAULT 0 COMMENT '点赞数',
-  `favorite_count` int NULL DEFAULT 0 COMMENT '收藏数',
   `is_top` tinyint(1) NULL DEFAULT 0 COMMENT '是否置顶',
   `is_recommend` tinyint(1) NULL DEFAULT 0 COMMENT '是否推荐',
   `status` tinyint NULL DEFAULT 1 COMMENT '状态:1已发布,0草稿,2已删除',
@@ -408,7 +402,7 @@ CREATE TABLE `tea_articles`  (
 -- ----------------------------
 -- Records of tea_articles
 -- ----------------------------
-INSERT INTO `tea_articles` VALUES (1, '商南茶的历史与文化', '探寻千年茶乡的古韵今香', '茶史专家', '商南茶的历史可以追溯到唐代，当时已有文人墨客记载了商南地区所产茶叶的独特品质...(此处省略详细内容)', '本文详细介绍了商南茶的历史沿革、文化底蕴和特色工艺', '/images/shangnantea_history.jpg', NULL, NULL, '茶文化', '商南茶,历史,文化', NULL, 126, 35, 0, 0, 0, 1, '2025-03-16 09:03:26', '2025-03-14 09:03:26', '2025-03-16 09:03:26');
+INSERT INTO `tea_articles` VALUES (1, '商南茶的历史与文化', '探寻千年茶乡的古韵今香', '茶史专家', '商南茶的历史可以追溯到唐代，当时已有文人墨客记载了商南地区所产茶叶的独特品质...(此处省略详细内容)', '本文详细介绍了商南茶的历史沿革、文化底蕴和特色工艺', '/images/shangnantea_history.jpg', NULL, NULL, '茶文化', '商南茶,历史,文化', NULL, 126, 0, 0, 1, '2025-03-16 09:03:26', '2025-03-14 09:03:26', '2025-03-16 09:03:26');
 
 -- ----------------------------
 -- Table structure for tea_categories
@@ -470,7 +464,6 @@ CREATE TABLE `tea_reviews`  (
   `reply` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL COMMENT '商家回复',
   `reply_time` datetime NULL DEFAULT NULL COMMENT '回复时间',
   `is_anonymous` tinyint(1) NULL DEFAULT 0 COMMENT '是否匿名',
-  `like_count` int NULL DEFAULT 0 COMMENT '点赞数',
   `create_time` datetime NOT NULL,
   `update_time` datetime NOT NULL,
   PRIMARY KEY (`id`) USING BTREE,
@@ -481,7 +474,7 @@ CREATE TABLE `tea_reviews`  (
 -- ----------------------------
 -- Records of tea_reviews
 -- ----------------------------
-INSERT INTO `tea_reviews` VALUES (1, 'tea1000001', 'cy100002', NULL, '茶叶品质很好，口感清香，回甘持久，非常满意！', 5, NULL, NULL, NULL, 0, 0, '2025-03-26 09:03:26', '2025-03-26 09:03:26');
+INSERT INTO `tea_reviews` VALUES (1, 'tea1000001', 'cy100002', NULL, '茶叶品质很好，口感清香，回甘持久，非常满意！', 5, NULL, NULL, NULL, 0, '2025-03-26 09:03:26', '2025-03-26 09:03:26');
 
 -- ----------------------------
 -- Table structure for tea_specifications
@@ -572,6 +565,8 @@ CREATE TABLE `user_favorites`  (
   `user_id` varchar(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '用户ID',
   `item_type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '收藏项类型(tea, post, tea_article)',
   `item_id` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '收藏项ID',
+  `target_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '收藏目标名称(冗余字段)',
+  `target_image` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '收藏目标图片(冗余字段)',
   `create_time` datetime NOT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_user_item`(`user_id` ASC, `item_type` ASC, `item_id` ASC) USING BTREE,
@@ -581,7 +576,7 @@ CREATE TABLE `user_favorites`  (
 -- ----------------------------
 -- Records of user_favorites
 -- ----------------------------
-INSERT INTO `user_favorites` VALUES (1, 'cy100002', 'tea', 'tea1000001', '2025-03-26 09:03:26');
+INSERT INTO `user_favorites` VALUES (1, 'cy100002', 'tea', 'tea1000001', NULL, NULL, '2025-03-26 09:03:26');
 
 -- ----------------------------
 -- Table structure for user_follows
@@ -592,6 +587,8 @@ CREATE TABLE `user_follows`  (
   `user_id` varchar(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '关注人用户ID',
   `follow_type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '关注类型(shop, user)',
   `follow_id` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '被关注对象ID',
+  `target_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '关注目标名称(冗余字段)',
+  `target_avatar` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '关注目标头像(冗余字段)',
   `create_time` datetime NOT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_user_follow`(`user_id` ASC, `follow_type` ASC, `follow_id` ASC) USING BTREE,
@@ -602,7 +599,7 @@ CREATE TABLE `user_follows`  (
 -- ----------------------------
 -- Records of user_follows
 -- ----------------------------
-INSERT INTO `user_follows` VALUES (1, 'cy100002', 'shop', 'shop100001', '2025-03-26 09:03:26');
+INSERT INTO `user_follows` VALUES (1, 'cy100002', 'shop', 'shop100001', NULL, NULL, '2025-03-26 09:03:26');
 
 -- ----------------------------
 -- Table structure for user_likes
@@ -913,19 +910,6 @@ BEGIN
     
     -- 返回生成的ID
     SET p_user_id = new_user_id;
-END
-;;
-delimiter ;
-
--- ----------------------------
--- Triggers structure for table user_likes
--- ----------------------------
-DROP TRIGGER IF EXISTS `after_like_insert`;
-delimiter ;;
-CREATE TRIGGER `after_like_insert` AFTER INSERT ON `user_likes` FOR EACH ROW BEGIN
-    -- 更新点赞计数
-    UPDATE forum_posts SET like_count = like_count + 1 
-    WHERE id = NEW.target_id AND NEW.target_type = 'post';
 END
 ;;
 delimiter ;
