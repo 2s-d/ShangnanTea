@@ -948,20 +948,60 @@ public class UserServiceImpl implements UserService {
                 return Result.failure(2120); // 操作失败
             }
             
-            // 2. 检查是否已有待审核或已通过的认证
+            // 2. 检查是否已有认证记录
             ShopCertification existingCert = shopCertificationMapper.selectByUserId(userId);
+            
             if (existingCert != null) {
+                // 2.1 如果有待审核的认证申请，不允许重复提交
                 if (existingCert.getStatus() == 0) {
                     logger.warn("提交认证失败: 已有待审核的认证申请, userId: {}", userId);
                     return Result.failure(2120); // 操作失败
                 }
+                
+                // 2.2 如果已通过认证，不允许再次提交
                 if (existingCert.getStatus() == 1) {
                     logger.warn("提交认证失败: 已通过认证, userId: {}", userId);
                     return Result.failure(2120); // 操作失败
                 }
+                
+                // 2.3 如果之前被拒绝（status=2），允许重新提交，更新现有记录
+                if (existingCert.getStatus() == 2) {
+                    logger.info("重新提交认证申请: userId: {}, 之前状态: 已拒绝", userId);
+                    
+                    // 更新现有认证记录
+                    existingCert.setShopName(certificationDTO.getShopName());
+                    existingCert.setBusinessLicense(certificationDTO.getBusinessLicense());
+                    existingCert.setIdCardFront(certificationDTO.getIdCardFront());
+                    existingCert.setIdCardBack(certificationDTO.getIdCardBack());
+                    existingCert.setRealName(certificationDTO.getRealName());
+                    existingCert.setIdCard(certificationDTO.getIdCard());
+                    existingCert.setContactPhone(certificationDTO.getContactPhone());
+                    existingCert.setProvince(certificationDTO.getProvince());
+                    existingCert.setCity(certificationDTO.getCity());
+                    existingCert.setDistrict(certificationDTO.getDistrict());
+                    existingCert.setAddress(certificationDTO.getAddress());
+                    existingCert.setApplyReason(certificationDTO.getApplyReason());
+                    
+                    // 重置状态为待审核
+                    existingCert.setStatus(0);
+                    // 清空之前的拒绝原因和审核管理员
+                    existingCert.setRejectReason(null);
+                    existingCert.setAdminId(null);
+                    existingCert.setUpdateTime(new Date());
+                    
+                    // 更新数据库
+                    int result = shopCertificationMapper.update(existingCert);
+                    if (result <= 0) {
+                        logger.error("重新提交认证失败: 数据库更新失败, userId: {}", userId);
+                        return Result.failure(2120); // 操作失败
+                    }
+                    
+                    logger.info("重新提交认证成功: userId: {}, certificationId: {}", userId, existingCert.getId());
+                    return Result.success(2011, true); // 操作成功
+                }
             }
             
-            // 3. 构建认证实体
+            // 3. 首次提交：构建新的认证实体
             ShopCertification certification = new ShopCertification();
             certification.setUserId(userId);
             certification.setShopName(certificationDTO.getShopName());
