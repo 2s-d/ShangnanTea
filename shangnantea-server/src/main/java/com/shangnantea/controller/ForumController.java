@@ -118,14 +118,21 @@ public class ForumController {
      * 成功码: 6002, 失败码: 6106
      *
      * @param id Banner ID
-     * @param data Banner数据
+     * @param file 新的Banner图片文件（可选）
+     * @param title Banner标题（可选）
+     * @param linkUrl 链接地址（可选）
+     * @param sortOrder 排序顺序（可选）
      * @return 更新结果
      */
     @PutMapping("/banners/{id}")
     @RequiresRoles({1})
-    public Result<Object> updateBanner(@PathVariable String id, @RequestBody Map<String, Object> data) {
-        logger.info("更新Banner请求: {}", id);
-        return forumService.updateBanner(id, data);
+    public Result<Object> updateBanner(@PathVariable String id,
+                                       @RequestParam(value = "file", required = false) MultipartFile file,
+                                       @RequestParam(value = "title", required = false) String title,
+                                       @RequestParam(value = "linkUrl", required = false) String linkUrl,
+                                       @RequestParam(value = "sortOrder", required = false) Integer sortOrder) {
+        logger.info("更新Banner请求: id={}, hasFile={}", id, file != null && !file.isEmpty());
+        return forumService.updateBanner(id, file, title, linkUrl, sortOrder);
     }
 
     /**

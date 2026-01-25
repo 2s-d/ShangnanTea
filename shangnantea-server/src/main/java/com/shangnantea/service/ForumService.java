@@ -137,10 +137,13 @@ public interface ForumService {
      * 成功码: 6002, 失败码: 6106
      *
      * @param id Banner ID
-     * @param data Banner数据（title, linkUrl, sortOrder）
+     * @param file 新的Banner图片文件（可选）
+     * @param title Banner标题（可选）
+     * @param linkUrl 链接地址（可选）
+     * @param sortOrder 排序顺序（可选）
      * @return 更新结果
      */
-    Result<Object> updateBanner(String id, Map<String, Object> data);
+    Result<Object> updateBanner(String id, MultipartFile file, String title, String linkUrl, Integer sortOrder);
     
     /**
      * 删除Banner（管理员）

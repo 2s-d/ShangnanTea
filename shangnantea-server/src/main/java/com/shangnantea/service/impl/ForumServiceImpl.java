@@ -90,16 +90,9 @@ public class ForumServiceImpl implements ForumService {
             
             ForumHomeVO homeVO = new ForumHomeVO();
             
-            // 1. 获取Banner列表（从HomeContent表中查询section='banner'的记录）
-            List<HomeContent> allContents = homeContentMapper.selectAll();
-            List<ForumHomeVO.BannerVO> banners = allContents.stream()
-                    .filter(content -> "banner".equals(content.getSection()) && 
-                            content.getStatus() != null && content.getStatus() == 1)
-                    .sorted((a, b) -> {
-                        Integer orderA = a.getSortOrder() != null ? a.getSortOrder() : 0;
-                        Integer orderB = b.getSortOrder() != null ? b.getSortOrder() : 0;
-                        return orderA.compareTo(orderB);
-                    })
+            // 1. 获取Banner列表（优化：直接查询section='banner'且status=1的记录）
+            List<HomeContent> bannerContents = homeContentMapper.selectBySection("banner", 1);
+            List<ForumHomeVO.BannerVO> banners = bannerContents.stream()
                     .map(content -> {
                         ForumHomeVO.BannerVO bannerVO = new ForumHomeVO.BannerVO();
                         bannerVO.setId(content.getId());
@@ -212,17 +205,14 @@ public class ForumServiceImpl implements ForumService {
                 }
             }
             
-            // 3. 更新热门帖子配置（如果提供）
-            // 注意：这里只是示例，实际可能需要在HomeContent表中存储推荐配置
+            // 3. 热门帖子和最新文章由算法实时计算，不需要持久化存储
+            // 前端调用 getHomeData 接口时会自动获取实时推荐数据
             if (hotPostIds != null && !hotPostIds.isEmpty()) {
-                // 可以在HomeContent表中创建section='hot_posts'的记录来存储推荐配置
-                logger.info("热门帖子ID列表: {}", hotPostIds);
+                logger.info("收到热门帖子ID列表（仅供参考）: {}", hotPostIds);
             }
             
-            // 4. 更新最新文章配置（如果提供）
             if (latestArticleIds != null && !latestArticleIds.isEmpty()) {
-                // 可以在HomeContent表中创建section='latest_articles'的记录来存储推荐配置
-                logger.info("最新文章ID列表: {}", latestArticleIds);
+                logger.info("收到最新文章ID列表（仅供参考）: {}", latestArticleIds);
             }
             
             logger.info("更新论坛首页数据成功");
@@ -239,16 +229,9 @@ public class ForumServiceImpl implements ForumService {
         try {
             logger.info("获取Banner列表请求");
             
-            // 1. 从HomeContent表中查询section='banner'且status=1的记录
-            List<HomeContent> allContents = homeContentMapper.selectAll();
-            List<ForumHomeVO.BannerVO> banners = allContents.stream()
-                    .filter(content -> "banner".equals(content.getSection()) && 
-                            content.getStatus() != null && content.getStatus() == 1)
-                    .sorted((a, b) -> {
-                        Integer orderA = a.getSortOrder() != null ? a.getSortOrder() : 0;
-                        Integer orderB = b.getSortOrder() != null ? b.getSortOrder() : 0;
-                        return orderA.compareTo(orderB); // 升序排序
-                    })
+            // 优化：直接查询section='banner'且status=1的记录
+            List<HomeContent> bannerContents = homeContentMapper.selectBySection("banner", 1);
+            List<ForumHomeVO.BannerVO> banners = bannerContents.stream()
                     .map(content -> {
                         ForumHomeVO.BannerVO bannerVO = new ForumHomeVO.BannerVO();
                         bannerVO.setId(content.getId());
@@ -350,9 +333,9 @@ public class ForumServiceImpl implements ForumService {
     
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Result<Object> updateBanner(String id, Map<String, Object> data) {
+    public Result<Object> updateBanner(String id, MultipartFile file, String title, String linkUrl, Integer sortOrder) {
         try {
-            logger.info("更新Banner请求: id={}", id);
+            logger.info("更新Banner请求: id={}, hasFile={}", id, file != null && !file.isEmpty());
             
             // 1. 验证Banner是否存在
             Integer bannerId = Integer.parseInt(id);
@@ -362,34 +345,60 @@ public class ForumServiceImpl implements ForumService {
                 return Result.failure(6106); // 保存失败
             }
             
-            // 2. 更新Banner信息
-            if (data.containsKey("title")) {
-                content.setTitle((String) data.get("title"));
-            }
-            if (data.containsKey("linkUrl")) {
-                content.setLinkUrl((String) data.get("linkUrl"));
-            }
-            if (data.containsKey("sortOrder")) {
-                Object sortOrderObj = data.get("sortOrder");
-                if (sortOrderObj != null) {
-                    content.setSortOrder(Integer.parseInt(sortOrderObj.toString()));
+            // 2. 如果提供了新图片文件，则替换图片
+            if (file != null && !file.isEmpty()) {
+                // 2.1 保存旧图片路径（用于删除）
+                String oldImagePath = content.getContent();
+                
+                // 2.2 上传新图片
+                String newRelativePath = FileUploadUtils.uploadImage(file, "forum-banners");
+                
+                // 2.3 删除旧图片文件
+                if (oldImagePath != null && !oldImagePath.isEmpty()) {
+                    boolean deleted = FileUploadUtils.deleteFile(oldImagePath);
+                    if (deleted) {
+                        logger.info("旧Banner图片删除成功: path={}", oldImagePath);
+                    } else {
+                        logger.warn("旧Banner图片删除失败或文件不存在: path={}", oldImagePath);
+                    }
                 }
+                
+                // 2.4 更新图片路径
+                content.setContent(newRelativePath);
+                logger.info("Banner图片已更新: oldPath={}, newPath={}", oldImagePath, newRelativePath);
+            }
+            
+            // 3. 更新其他Banner信息
+            if (title != null && !title.trim().isEmpty()) {
+                content.setTitle(title);
+            }
+            if (linkUrl != null) {
+                content.setLinkUrl(linkUrl);
+            }
+            if (sortOrder != null) {
+                content.setSortOrder(sortOrder);
             }
             content.setUpdateTime(new Date());
             
-            // 3. 保存到数据库
+            // 4. 保存到数据库
             int result = homeContentMapper.updateById(content);
             if (result <= 0) {
                 logger.error("更新Banner失败: 数据库更新失败, id: {}", id);
                 return Result.failure(6106); // 保存失败
             }
             
-            // 4. 构造返回数据
+            // 5. 构造返回数据
             Map<String, Object> responseData = new HashMap<>();
             responseData.put("id", content.getId());
             responseData.put("title", content.getTitle());
             responseData.put("linkUrl", content.getLinkUrl());
             responseData.put("sortOrder", content.getSortOrder());
+            // 生成图片访问URL
+            String imageUrl = content.getContent();
+            if (imageUrl != null && !imageUrl.isEmpty()) {
+                imageUrl = FileUploadUtils.generateAccessUrl(imageUrl, baseUrl);
+            }
+            responseData.put("imageUrl", imageUrl);
             
             logger.info("更新Banner成功: id={}", id);
             return Result.success(6002, responseData); // Banner更新成功
@@ -462,19 +471,43 @@ public class ForumServiceImpl implements ForumService {
                 return Result.failure(6108); // 排序更新失败
             }
             
-            // 2. 批量更新sortOrder（按数组顺序，从1开始）
-            for (int i = 0; i < bannerIds.size(); i++) {
-                Integer bannerId = bannerIds.get(i);
-                HomeContent content = homeContentMapper.selectById(bannerId);
-                
-                if (content != null && "banner".equals(content.getSection())) {
-                    content.setSortOrder(i + 1); // 从1开始排序
-                    content.setUpdateTime(new Date());
-                    homeContentMapper.updateById(content);
+            // 2. 批量查询Banner（优化：一次查询所有）
+            List<HomeContent> contents = homeContentMapper.selectByIds(bannerIds);
+            
+            // 3. 验证所有Banner是否存在且类型正确
+            if (contents.size() != bannerIds.size()) {
+                logger.warn("更新Banner顺序失败: 部分Banner不存在");
+                return Result.failure(6108, "部分Banner不存在"); // 排序更新失败
+            }
+            
+            for (HomeContent content : contents) {
+                if (!"banner".equals(content.getSection())) {
+                    logger.warn("更新Banner顺序失败: ID {} 不是Banner记录", content.getId());
+                    return Result.failure(6108, "ID " + content.getId() + " 不是Banner"); // 排序更新失败
                 }
             }
             
-            logger.info("更新Banner顺序成功，共更新{}个Banner", bannerIds.size());
+            // 4. 更新sortOrder（按bannerIds数组顺序）
+            Map<Integer, HomeContent> contentMap = contents.stream()
+                    .collect(java.util.stream.Collectors.toMap(HomeContent::getId, c -> c));
+            
+            List<HomeContent> toUpdate = new ArrayList<>();
+            for (int i = 0; i < bannerIds.size(); i++) {
+                Integer bannerId = bannerIds.get(i);
+                HomeContent content = contentMap.get(bannerId);
+                if (content != null) {
+                    content.setSortOrder(i + 1); // 从1开始排序
+                    content.setUpdateTime(new Date());
+                    toUpdate.add(content);
+                }
+            }
+            
+            // 5. 批量更新（优化：一次更新所有）
+            if (!toUpdate.isEmpty()) {
+                homeContentMapper.batchUpdate(toUpdate);
+            }
+            
+            logger.info("更新Banner顺序成功，共更新{}个Banner", toUpdate.size());
             return Result.success(6004, null); // 排序更新成功
             
         } catch (Exception e) {
