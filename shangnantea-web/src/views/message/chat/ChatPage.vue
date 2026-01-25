@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="chat-page">
     <!-- 
     聊天功能设计：
@@ -483,19 +483,36 @@ export default {
     }
     
     // 删除会话
-    const deleteSession = sessionId => {
-      ElMessageBox.confirm('确定要删除此会话吗？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        // 生产版：删除会话必须由后端确认后再刷新列表，前端不做本地“假删除”
-        // TODO-SCRIPT: 需要后端提供删除会话接口（例如 DELETE /message/sessions/:id）
-        message.info('删除会话：待后端接口接入（当前不执行本地删除，避免产生假状态）')
-        return
-      }).catch(() => {
-        // 用户取消删除
-      })
+    const deleteSession = async sessionId => {
+      try {
+        await ElMessageBox.confirm('确定要删除此会话吗？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        })
+        
+        // 调用Vuex action删除会话
+        const response = await store.dispatch('message/deleteChatSession', sessionId)
+        
+        // 显示API响应消息（成功或失败都通过状态码映射显示）
+        showByCode(response.code)
+        
+        // 成功时刷新会话列表
+        if (isSuccess(response.code)) {
+          await fetchSessions()
+          
+          // 如果删除的是当前会话，清空当前会话
+          if (currentSessionId.value === sessionId) {
+            currentSessionId.value = null
+            currentTargetUserId.value = null
+          }
+        }
+      } catch (error) {
+        // 用户取消删除或操作失败
+        if (error !== 'cancel' && process.env.NODE_ENV === 'development') {
+          console.error('[开发调试] 删除会话时发生意外错误：', error)
+        }
+      }
     }
     
     // 置顶/取消置顶会话
