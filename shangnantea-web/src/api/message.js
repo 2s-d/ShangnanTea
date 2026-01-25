@@ -2,7 +2,9 @@ import request from './index'
 import { API } from './apiConstants'
 
 /**
+ * TODO: 冗余接口，需要删除
  * 获取消息列表（兼容：历史实现）
+ * 说明：前端已使用更具体的接口（getNotifications, getChatHistory），此接口未被调用
  * @param {Object} params 查询参数
  * @returns {Promise} 消息列表
  */
@@ -15,7 +17,9 @@ export function getMessages(params) {
 }
 
 /**
+ * TODO: 冗余接口，需要删除
  * 获取消息详情（兼容：历史实现）
+ * 说明：前端已使用更具体的接口（getNotificationDetail），此接口未被调用
  * @param {number} id 消息ID
  * @returns {Promise} 消息详情
  */
@@ -54,7 +58,9 @@ export function markAsRead(ids) {
 }
 
 /**
+ * TODO: 冗余接口，需要删除
  * 删除消息
+ * 说明：前端已使用更具体的接口（deleteNotification, batchDeleteNotifications），此接口未被调用
  * @param {number|Array} ids 消息ID或ID数组
  * @returns {Promise} 删除结果
  */
