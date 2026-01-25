@@ -639,14 +639,10 @@ export default {
       const isLt2M = file.size / 1024 / 1024 < 2
       
       if (!isImage) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
         userMessages.error.showAvatarFormatError()
       }
       
       if (!isLt2M) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
         userMessages.error.showAvatarSizeError()
       }
       
