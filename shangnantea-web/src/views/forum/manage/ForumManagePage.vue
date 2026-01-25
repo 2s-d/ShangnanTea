@@ -658,8 +658,6 @@ export default {
     const loadPosts = async () => {
       postsLoading.value = true
       
-      // TODO-SCRIPT: 帖子管理列表需要后端接口与 Vuex forum 模块（当前仅保留首页数据）
-      // 生产形态：不在 UI 层 setTimeout 伪造数据与成功状态
       postsList.value = []
       postsTotalCount.value = 0
 
@@ -789,7 +787,6 @@ export default {
     
     // 审核通过帖子
     const approvePost = async post => {
-      // TODO-SCRIPT: 审核帖子需要后端接口与 Vuex forum 模块；不在 UI 层伪造成功/本地改状态
       forumPromptMessages.showFeatureDeveloping()
       return
     }
@@ -840,7 +837,6 @@ export default {
         }
       )
         .then(async () => {
-          // TODO-SCRIPT: 删除帖子需要后端接口与权限控制；不在 UI 层做本地伪删除
           forumPromptMessages.showFeatureDeveloping()
           return
         })
