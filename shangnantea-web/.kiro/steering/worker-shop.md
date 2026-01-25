@@ -11,7 +11,7 @@ inclusion: manual
 ## ⚠️ 重要：工作目录限制
 
 **专属工作目录**：`shangnantea-shop/`
-- 你只能在店铺模块的专属Git Worktree目录中工作
+- 你只能在店铺模块的专属Git Worktree目录中工作嗯
 - 这是通过Git Worktree创建的独立工作空间，对应店铺模块分支
 - **严禁修改其他模块目录**：不得修改 `shangnantea-user/`、`shangnantea-tea/`、`shangnantea-order/`、`shangnantea-forum/`、`shangnantea-message/` 目录
 - **严禁修改主分支目录**：不得修改 `shangnantea/` 主项目目录
