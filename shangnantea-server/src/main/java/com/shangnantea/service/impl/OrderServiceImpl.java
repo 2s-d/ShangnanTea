@@ -98,6 +98,7 @@ public class OrderServiceImpl implements OrderService {
             List<Map<String, Object>> items = (List<Map<String, Object>>) data.get("items");
             Object addressIdObj = data.get("addressId");
             String remark = (String) data.get("remark");
+            Boolean fromCart = (Boolean) data.get("fromCart"); // 是否从购物车创建
             
             if (items == null || items.isEmpty()) {
                 logger.warn("创建订单失败: 订单商品列表为空");
@@ -120,11 +121,13 @@ public class OrderServiceImpl implements OrderService {
             // 3. 验证每个商品并计算总价
             BigDecimal totalPrice = BigDecimal.ZERO;
             List<Order> orderList = new ArrayList<>();
+            List<String> cartItemIdsToRemove = new ArrayList<>(); // 需要删除的购物车项ID
             
             for (Map<String, Object> item : items) {
                 String teaId = (String) item.get("teaId");
                 Object specIdObj = item.get("specId");
                 Object quantityObj = item.get("quantity");
+                Object cartItemIdObj = item.get("cartItemId"); // 购物车项ID（如果从购物车创建）
                 
                 if (teaId == null || quantityObj == null) {
                     logger.warn("创建订单失败: 商品信息不完整");
@@ -137,6 +140,11 @@ public class OrderServiceImpl implements OrderService {
                 } catch (NumberFormatException e) {
                     logger.warn("创建订单失败: 数量格式错误: {}", quantityObj);
                     return Result.failure(5110);
+                }
+                
+                // 如果是从购物车创建，记录购物车项ID
+                if (fromCart != null && fromCart && cartItemIdObj != null) {
+                    cartItemIdsToRemove.add(cartItemIdObj.toString());
                 }
                 
                 // 验证商品是否存在
@@ -221,13 +229,31 @@ public class OrderServiceImpl implements OrderService {
                            order.getId(), order.getTeaId(), order.getQuantity(), order.getTotalAmount());
             }
             
-            // 5. 构建返回数据
+            // 5. 如果是从购物车创建，删除对应的购物车项
+            if (fromCart != null && fromCart && !cartItemIdsToRemove.isEmpty()) {
+                for (String cartItemId : cartItemIdsToRemove) {
+                    try {
+                        Integer id = Integer.parseInt(cartItemId);
+                        ShoppingCart cart = cartMapper.selectById(id);
+                        // 验证购物车项属于当前用户
+                        if (cart != null && userId.equals(cart.getUserId())) {
+                            cartMapper.deleteById(id);
+                            logger.info("已删除购物车项: cartItemId={}, userId={}", id, userId);
+                        }
+                    } catch (NumberFormatException e) {
+                        logger.warn("购物车项ID格式错误: {}", cartItemId);
+                    }
+                }
+            }
+            
+            // 6. 构建返回数据
             Map<String, Object> responseData = new HashMap<>();
             responseData.put("orderId", orderList.get(0).getId()); // 返回第一个订单ID
             responseData.put("totalPrice", totalPrice);
             responseData.put("status", Order.STATUS_PENDING_PAYMENT);
             
-            logger.info("创建订单成功: userId={}, orderCount={}, totalPrice={}", userId, orderList.size(), totalPrice);
+            logger.info("创建订单成功: userId={}, orderCount={}, totalPrice={}, fromCart={}, removedCartItems={}", 
+                       userId, orderList.size(), totalPrice, fromCart, cartItemIdsToRemove.size());
             return Result.success(5005, responseData);
             
         } catch (Exception e) {
@@ -1544,7 +1570,19 @@ public class OrderServiceImpl implements OrderService {
             
             // 6. 根据审批结果更新订单
             if (approve) {
-                // 同意退款
+                // 同意退款 - 恢复库存和销量
+                if (order.getSpecId() != null) {
+                    // 有规格，恢复规格库存
+                    int rows = teaSpecificationMapper.restoreStock(order.getSpecId(), order.getQuantity());
+                    logger.info("退款成功，已恢复规格库存: orderId={}, specId={}, quantity={}, rows={}", 
+                               id, order.getSpecId(), order.getQuantity(), rows);
+                } else {
+                    // 无规格，恢复茶叶库存和销量
+                    int rows = teaMapper.restoreStockAndSales(order.getTeaId(), order.getQuantity());
+                    logger.info("退款成功，已恢复库存和销量: orderId={}, teaId={}, quantity={}, rows={}", 
+                               id, order.getTeaId(), order.getQuantity(), rows);
+                }
+                
                 order.setRefundStatus(2); // 2:已同意
                 order.setStatus(Order.STATUS_REFUNDED); // 订单状态改为已退款
                 order.setRefundProcessTime(new Date());
