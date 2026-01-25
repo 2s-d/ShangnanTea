@@ -33,7 +33,6 @@ import com.shangnantea.model.vo.forum.TopicVO;
 import com.shangnantea.security.context.UserContext;
 import com.shangnantea.service.ForumService;
 import com.shangnantea.utils.FileUploadUtils;
-import com.shangnantea.utils.ForumVOConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -843,7 +842,7 @@ public class ForumServiceImpl implements ForumService {
             Long articleId = Long.parseLong(id);
             TeaArticle article = articleMapper.selectById(articleId);
             
-            if (article == null || article.getStatus() == null || article.getStatus() != ArticleStatus.PUBLISHED) {
+            if (article == null || article.getStatus() == null || article.getStatus() != 1) {
                 logger.warn("获取文章详情失败: 文章不存在或未发布, id: {}", id);
                 return Result.failure(6110); // 获取文章详情失败
             }
@@ -853,22 +852,7 @@ public class ForumServiceImpl implements ForumService {
             article.setUpdateTime(new Date());
             articleMapper.updateById(article);
             
-            // 3. 获取当前用户的点赞和收藏状态
-            String currentUserId = UserContext.getCurrentUserId();
-            boolean isLiked = false;
-            boolean isFavorited = false;
-            
-            if (currentUserId != null) {
-                // 查询点赞状态
-                UserLike like = userLikeMapper.selectByUserIdAndTarget(currentUserId, "article", id);
-                isLiked = (like != null);
-                
-                // 查询收藏状态
-                UserFavorite favorite = userFavoriteMapper.selectByUserIdAndItem(currentUserId, "article", id);
-                isFavorited = (favorite != null);
-            }
-            
-            // 4. 构造返回VO
+            // 3. 构造返回VO
             ArticleDetailVO vo = new ArticleDetailVO();
             vo.setId(article.getId());
             vo.setTitle(article.getTitle());
@@ -888,8 +872,6 @@ public class ForumServiceImpl implements ForumService {
             vo.setViewCount(article.getViewCount());
             vo.setLikeCount(article.getLikeCount() != null ? article.getLikeCount() : 0);
             vo.setFavoriteCount(article.getFavoriteCount() != null ? article.getFavoriteCount() : 0);
-            vo.setIsLiked(isLiked);
-            vo.setIsFavorited(isFavorited);
             vo.setIsTop(article.getIsTop());
             vo.setIsRecommend(article.getIsRecommend());
             vo.setPublishTime(article.getPublishTime());
@@ -933,22 +915,13 @@ public class ForumServiceImpl implements ForumService {
             article.setCategory(category);
             article.setTags(tags);
             article.setSource(source);
-            
-            // 获取当前用户信息作为作者
-            String userId = UserContext.getCurrentUserId();
-            if (userId != null) {
-                User currentUser = userMapper.selectById(userId);
-                article.setAuthor(currentUser != null ? currentUser.getUsername() : "管理员");
-            } else {
-                article.setAuthor("管理员");
-            }
-            
+            article.setAuthor("管理员"); // 默认作者
             article.setViewCount(0);
             article.setLikeCount(0);
             article.setFavoriteCount(0);
             article.setIsTop(0);
             article.setIsRecommend(0);
-            article.setStatus(ArticleStatus.PUBLISHED); // 已发布
+            article.setStatus(1); // 1=已发布
             article.setPublishTime(new Date());
             article.setCreateTime(new Date());
             article.setUpdateTime(new Date());
@@ -1072,7 +1045,7 @@ public class ForumServiceImpl implements ForumService {
             }
             
             // 2. 软删除：更新状态为已删除
-            article.setStatus(ArticleStatus.DELETED); // 已删除
+            article.setStatus(2); // 2=已删除
             article.setUpdateTime(new Date());
             int result = articleMapper.updateById(article);
             
@@ -1101,7 +1074,7 @@ public class ForumServiceImpl implements ForumService {
             // 1. 查询所有启用的版块（status=1）
             List<ForumTopic> allTopics = topicMapper.selectAll();
             List<TopicVO> topicVOList = allTopics.stream()
-                    .filter(topic -> topic.getStatus() != null && topic.getStatus() == 1) // ForumTopic的status: 1=启用
+                    .filter(topic -> topic.getStatus() != null && topic.getStatus() == 1)
                     .sorted((a, b) -> {
                         // 按sortOrder升序排序
                         Integer orderA = a.getSortOrder() != null ? a.getSortOrder() : 0;
@@ -1173,32 +1146,10 @@ public class ForumServiceImpl implements ForumService {
             }
             vo.setCover(cover);
             vo.setUserId(topic.getUserId());
-            
-            // 查询版主信息
-            if (topic.getUserId() != null) {
-                User moderator = userMapper.selectById(topic.getUserId());
-                vo.setModeratorName(moderator != null ? moderator.getUsername() : "未设置版主");
-            } else {
-                vo.setModeratorName("未设置版主");
-            }
-            
+            vo.setModeratorName("版主"); // TODO: 从用户表查询版主名称
             vo.setSortOrder(topic.getSortOrder());
             vo.setPostCount(topic.getPostCount() != null ? topic.getPostCount() : 0);
-            
-            // 统计今日帖子数
-            java.time.LocalDate today = java.time.LocalDate.now();
-            Date startOfDay = Date.from(today.atStartOfDay(java.time.ZoneId.systemDefault()).toInstant());
-            Date endOfDay = Date.from(today.plusDays(1).atStartOfDay(java.time.ZoneId.systemDefault()).toInstant());
-            
-            List<ForumPost> allPosts = postMapper.selectAll();
-            long todayPostCount = allPosts.stream()
-                    .filter(p -> topicId.equals(p.getTopicId()))
-                    .filter(p -> p.getCreateTime() != null)
-                    .filter(p -> p.getCreateTime().after(startOfDay) && p.getCreateTime().before(endOfDay))
-                    .filter(p -> p.getStatus() != null && p.getStatus() == PostStatus.NORMAL)
-                    .count();
-            vo.setTodayPostCount((int) todayPostCount);
-            
+            vo.setTodayPostCount(0); // TODO: 统计今日帖子数
             vo.setStatus(topic.getStatus());
             vo.setCreateTime(topic.getCreateTime());
             vo.setUpdateTime(topic.getUpdateTime());
@@ -1239,18 +1190,7 @@ public class ForumServiceImpl implements ForumService {
             topic.setCover(dto.getCover());
             topic.setSortOrder(dto.getSortOrder() != null ? dto.getSortOrder() : 0);
             topic.setPostCount(0); // 初始帖子数为0
-            topic.setStatus(1); // ForumTopic的status: 1=启用
-            
-            // 设置版主（如果提供了userId，验证用户是否存在）
-            if (dto.getUserId() != null && !dto.getUserId().isEmpty()) {
-                User moderator = userMapper.selectById(dto.getUserId());
-                if (moderator == null) {
-                    logger.warn("创建版块失败: 版主用户不存在, userId: {}", dto.getUserId());
-                    return Result.failure(6116); // 添加版块失败
-                }
-                topic.setUserId(dto.getUserId());
-            }
-            
+            topic.setStatus(1); // 1=启用
             topic.setCreateTime(new Date());
             topic.setUpdateTime(new Date());
             
@@ -1276,14 +1216,7 @@ public class ForumServiceImpl implements ForumService {
         try {
             logger.info("更新版块请求: id={}, dto={}", id, dto);
             
-            // 1. 获取当前用户ID
-            String userId = UserContext.getCurrentUserId();
-            if (userId == null) {
-                logger.warn("更新版块失败: 用户未登录");
-                return Result.failure(6117); // 更新版块失败
-            }
-            
-            // 2. 查询版块是否存在
+            // 1. 查询版块是否存在
             Integer topicId = Integer.parseInt(id);
             ForumTopic topic = topicMapper.selectById(topicId);
             
@@ -1292,17 +1225,7 @@ public class ForumServiceImpl implements ForumService {
                 return Result.failure(6117); // 更新版块失败
             }
             
-            // 3. 验证用户是否有权限修改（管理员或版主）
-            boolean isAdmin = UserContext.isAdmin();
-            boolean isModerator = userId.equals(topic.getUserId());
-            
-            if (!isAdmin && !isModerator) {
-                logger.warn("更新版块失败: 无权限修改, userId: {}, topicUserId: {}, isAdmin: {}", 
-                        userId, topic.getUserId(), isAdmin);
-                return Result.failure(6117); // 更新版块失败
-            }
-            
-            // 4. 如果要更新名称，验证名称是否与其他版块重复
+            // 2. 如果要更新名称，验证名称是否与其他版块重复
             if (dto.getName() != null && !dto.getName().isEmpty()) {
                 List<ForumTopic> allTopics = topicMapper.selectAll();
                 boolean nameExists = allTopics.stream()
@@ -1316,7 +1239,7 @@ public class ForumServiceImpl implements ForumService {
                 topic.setName(dto.getName());
             }
             
-            // 5. 更新版块信息
+            // 3. 更新版块信息
             if (dto.getDescription() != null) {
                 topic.setDescription(dto.getDescription());
             }
@@ -1332,38 +1255,16 @@ public class ForumServiceImpl implements ForumService {
             if (dto.getStatus() != null) {
                 topic.setStatus(dto.getStatus());
             }
-            
-            // 更新版主（只有管理员可以修改版主）
-            if (dto.getUserId() != null) {
-                if (!isAdmin) {
-                    logger.warn("更新版块失败: 只有管理员可以修改版主, userId: {}", userId);
-                    return Result.failure(6117); // 更新版块失败
-                }
-                
-                if (dto.getUserId().isEmpty()) {
-                    // 空字符串表示取消版主
-                    topic.setUserId(null);
-                } else {
-                    // 验证用户是否存在
-                    User moderator = userMapper.selectById(dto.getUserId());
-                    if (moderator == null) {
-                        logger.warn("更新版块失败: 版主用户不存在, userId: {}", dto.getUserId());
-                        return Result.failure(6117); // 更新版块失败
-                    }
-                    topic.setUserId(dto.getUserId());
-                }
-            }
-            
             topic.setUpdateTime(new Date());
             
-            // 6. 保存到数据库
+            // 4. 保存到数据库
             int result = topicMapper.updateById(topic);
             if (result <= 0) {
                 logger.error("更新版块失败: 数据库更新失败, id: {}", id);
                 return Result.failure(6117); // 更新版块失败
             }
             
-            logger.info("更新版块成功: id={}, userId={}, isModerator={}", id, userId, isModerator);
+            logger.info("更新版块成功: id={}", id);
             return Result.success(6009, null); // 更新版块成功
             
         } catch (NumberFormatException e) {
@@ -1381,14 +1282,7 @@ public class ForumServiceImpl implements ForumService {
         try {
             logger.info("删除版块请求: id={}", id);
             
-            // 1. 获取当前用户ID
-            String userId = UserContext.getCurrentUserId();
-            if (userId == null) {
-                logger.warn("删除版块失败: 用户未登录");
-                return Result.failure(6118); // 删除版块失败
-            }
-            
-            // 2. 查询版块是否存在
+            // 1. 查询版块是否存在
             Integer topicId = Integer.parseInt(id);
             ForumTopic topic = topicMapper.selectById(topicId);
             
@@ -1397,30 +1291,20 @@ public class ForumServiceImpl implements ForumService {
                 return Result.failure(6118); // 删除版块失败
             }
             
-            // 3. 验证用户是否有权限删除（管理员或版主）
-            boolean isAdmin = UserContext.isAdmin();
-            boolean isModerator = userId.equals(topic.getUserId());
-            
-            if (!isAdmin && !isModerator) {
-                logger.warn("删除版块失败: 无权限删除, userId: {}, topicUserId: {}, isAdmin: {}", 
-                        userId, topic.getUserId(), isAdmin);
-                return Result.failure(6118); // 删除版块失败
-            }
-            
-            // 4. 检查版块下是否还有帖子
+            // 2. 检查版块下是否还有帖子
             if (topic.getPostCount() != null && topic.getPostCount() > 0) {
                 logger.warn("删除版块失败: 版块下还有{}个帖子, id: {}", topic.getPostCount(), id);
                 return Result.failure(6118); // 删除版块失败（版块下还有帖子）
             }
             
-            // 5. 删除版块
+            // 3. 删除版块
             int result = topicMapper.deleteById(topicId);
             if (result <= 0) {
                 logger.error("删除版块失败: 数据库删除失败, id: {}", id);
                 return Result.failure(6118); // 删除版块失败
             }
             
-            logger.info("删除版块成功: id={}, userId={}, isModerator={}", id, userId, isModerator);
+            logger.info("删除版块成功: id={}", id);
             return Result.success(6010, true); // 删除版块成功
             
         } catch (NumberFormatException e) {
@@ -1446,10 +1330,10 @@ public class ForumServiceImpl implements ForumService {
             Integer pageSize = params.get("pageSize") != null ? 
                     Integer.parseInt(params.get("pageSize").toString()) : 10;
             
-            // 2. 查询所有正常状态的帖子（status=NORMAL）
+            // 2. 查询所有正常状态的帖子（status=1）
             List<ForumPost> allPosts = postMapper.selectAll();
-            List<ForumPost> filteredPosts = allPosts.stream()
-                    .filter(post -> post.getStatus() != null && post.getStatus() == PostStatus.NORMAL)
+            List<PostVO> postVOList = allPosts.stream()
+                    .filter(post -> post.getStatus() != null && post.getStatus() == 1)
                     .filter(post -> {
                         // 版块筛选
                         if (topicId != null) {
@@ -1482,46 +1366,34 @@ public class ForumServiceImpl implements ForumService {
                         }
                         return b.getCreateTime().compareTo(a.getCreateTime());
                     })
-                    .collect(Collectors.toList());
-            
-            // 3. 分页处理
-            int startIndex = (page - 1) * pageSize;
-            int endIndex = Math.min(startIndex + pageSize, filteredPosts.size());
-            List<ForumPost> pagedPosts = startIndex < filteredPosts.size() ? 
-                    filteredPosts.subList(startIndex, endIndex) : new ArrayList<>();
-            
-            // 4. 批量查询用户信息（性能优化：避免N+1查询）
-            List<String> userIds = pagedPosts.stream()
-                    .map(ForumPost::getUserId)
-                    .distinct()
-                    .collect(Collectors.toList());
-            
-            Map<String, User> userMap = new HashMap<>();
-            if (!userIds.isEmpty()) {
-                List<User> users = userMapper.selectByIds(userIds);
-                userMap = users.stream()
-                        .collect(Collectors.toMap(User::getId, user -> user));
-            }
-            
-            // 5. 批量查询版块信息（性能优化：避免N+1查询）
-            List<Integer> topicIds = pagedPosts.stream()
-                    .map(ForumPost::getTopicId)
-                    .distinct()
-                    .collect(Collectors.toList());
-            
-            Map<Integer, ForumTopic> topicMap = new HashMap<>();
-            if (!topicIds.isEmpty()) {
-                List<ForumTopic> topics = topicMapper.selectByIds(topicIds);
-                topicMap = topics.stream()
-                        .collect(Collectors.toMap(ForumTopic::getId, topic -> topic));
-            }
-            
-            // 6. 转换为VO（使用工具类）
-            final Map<String, User> finalUserMap = userMap;
-            final Map<Integer, ForumTopic> finalTopicMap = topicMap;
-            
-            List<PostVO> postVOList = pagedPosts.stream()
-                    .map(post -> ForumVOConverter.convertToPostVO(post, finalUserMap, finalTopicMap, baseUrl))
+                    .skip((long) (page - 1) * pageSize)
+                    .limit(pageSize)
+                    .map(post -> {
+                        PostVO vo = new PostVO();
+                        vo.setId(post.getId());
+                        vo.setUserId(post.getUserId());
+                        // 查询用户信息
+                        User user = userMapper.selectById(post.getUserId());
+                        vo.setUserName(user != null ? user.getUsername() : "未知用户");
+                        vo.setUserAvatar(user != null ? user.getAvatar() : null);
+                        vo.setTopicId(post.getTopicId());
+                        // 查询版块名称
+                        ForumTopic topic = topicMapper.selectById(post.getTopicId());
+                        vo.setTopicName(topic != null ? topic.getName() : "");
+                        vo.setTitle(post.getTitle());
+                        vo.setSummary(post.getSummary());
+                        vo.setCoverImage(post.getCoverImage());
+                        vo.setViewCount(post.getViewCount());
+                        vo.setReplyCount(post.getReplyCount());
+                        vo.setLikeCount(post.getLikeCount());
+                        vo.setFavoriteCount(post.getFavoriteCount());
+                        vo.setIsSticky(post.getIsSticky());
+                        vo.setIsEssence(post.getIsEssence());
+                        vo.setStatus(post.getStatus());
+                        vo.setLastReplyTime(post.getLastReplyTime());
+                        vo.setCreateTime(post.getCreateTime());
+                        return vo;
+                    })
                     .collect(Collectors.toList());
             
             logger.info("获取帖子列表成功，共{}条", postVOList.size());
@@ -1568,11 +1440,7 @@ public class ForumServiceImpl implements ForumService {
             post.setFavoriteCount(0);
             post.setIsSticky(0);
             post.setIsEssence(0);
-            
-            // 根据用户角色决定帖子初始状态：管理员直接发布，普通用户需要审核
-            boolean isAdmin = UserContext.isAdmin();
-            post.setStatus(isAdmin ? PostStatus.NORMAL : PostStatus.PENDING);
-            
+            post.setStatus(1); // 1=正常（直接发布，不需要审核）
             post.setLastReplyTime(new Date());
             post.setCreateTime(new Date());
             post.setUpdateTime(new Date());
@@ -1584,15 +1452,12 @@ public class ForumServiceImpl implements ForumService {
                 return Result.failure(6120); // 帖子发布失败
             }
             
-            // 5. 如果是管理员发帖（直接通过），更新版块的帖子数
-            if (isAdmin) {
-                topic.setPostCount((topic.getPostCount() != null ? topic.getPostCount() : 0) + 1);
-                topic.setUpdateTime(new Date());
-                topicMapper.updateById(topic);
-            }
+            // 5. 更新版块的帖子数
+            topic.setPostCount((topic.getPostCount() != null ? topic.getPostCount() : 0) + 1);
+            topic.setUpdateTime(new Date());
+            topicMapper.updateById(topic);
             
-            logger.info("创建帖子成功: id={}, userId={}, status={}", post.getId(), userId, 
-                    isAdmin ? "已发布" : "待审核");
+            logger.info("创建帖子成功: id={}, userId={}", post.getId(), userId);
             return Result.success(6011, null); // 帖子发布成功
             
         } catch (Exception e) {
@@ -1612,10 +1477,10 @@ public class ForumServiceImpl implements ForumService {
             Integer pageSize = params.get("pageSize") != null ? 
                     Integer.parseInt(params.get("pageSize").toString()) : 10;
             
-            // 2. 查询待审核的帖子（status=PENDING）并排序
+            // 2. 查询待审核的帖子（status=0）
             List<ForumPost> allPosts = postMapper.selectAll();
-            List<ForumPost> filteredPosts = allPosts.stream()
-                    .filter(post -> post.getStatus() != null && post.getStatus() == PostStatus.PENDING)
+            List<PostVO> postVOList = allPosts.stream()
+                    .filter(post -> post.getStatus() != null && post.getStatus() == 0)
                     .sorted((a, b) -> {
                         // 按创建时间降序
                         if (a.getCreateTime() == null && b.getCreateTime() == null) {
@@ -1629,46 +1494,33 @@ public class ForumServiceImpl implements ForumService {
                         }
                         return b.getCreateTime().compareTo(a.getCreateTime());
                     })
-                    .collect(Collectors.toList());
-            
-            // 3. 分页处理
-            int startIndex = (page - 1) * pageSize;
-            int endIndex = Math.min(startIndex + pageSize, filteredPosts.size());
-            List<ForumPost> pagedPosts = startIndex < filteredPosts.size() ? 
-                    filteredPosts.subList(startIndex, endIndex) : new ArrayList<>();
-            
-            // 4. 批量查询用户信息（性能优化：避免N+1查询）
-            List<String> userIds = pagedPosts.stream()
-                    .map(ForumPost::getUserId)
-                    .distinct()
-                    .collect(Collectors.toList());
-            
-            Map<String, User> userMap = new HashMap<>();
-            if (!userIds.isEmpty()) {
-                List<User> users = userMapper.selectByIds(userIds);
-                userMap = users.stream()
-                        .collect(Collectors.toMap(User::getId, user -> user));
-            }
-            
-            // 5. 批量查询版块信息（性能优化：避免N+1查询）
-            List<Integer> topicIds = pagedPosts.stream()
-                    .map(ForumPost::getTopicId)
-                    .distinct()
-                    .collect(Collectors.toList());
-            
-            Map<Integer, ForumTopic> topicMap = new HashMap<>();
-            if (!topicIds.isEmpty()) {
-                List<ForumTopic> topics = topicMapper.selectByIds(topicIds);
-                topicMap = topics.stream()
-                        .collect(Collectors.toMap(ForumTopic::getId, topic -> topic));
-            }
-            
-            // 6. 转换为VO（使用工具类）
-            final Map<String, User> finalUserMap = userMap;
-            final Map<Integer, ForumTopic> finalTopicMap = topicMap;
-            
-            List<PostVO> postVOList = pagedPosts.stream()
-                    .map(post -> ForumVOConverter.convertToPostVO(post, finalUserMap, finalTopicMap, baseUrl))
+                    .skip((long) (page - 1) * pageSize)
+                    .limit(pageSize)
+                    .map(post -> {
+                        PostVO vo = new PostVO();
+                        vo.setId(post.getId());
+                        vo.setUserId(post.getUserId());
+                        // 查询用户信息
+                        User user = userMapper.selectById(post.getUserId());
+                        vo.setUserName(user != null ? user.getUsername() : "未知用户");
+                        vo.setUserAvatar(user != null ? user.getAvatar() : null);
+                        vo.setTopicId(post.getTopicId());
+                        ForumTopic topic = topicMapper.selectById(post.getTopicId());
+                        vo.setTopicName(topic != null ? topic.getName() : "");
+                        vo.setTitle(post.getTitle());
+                        vo.setSummary(post.getSummary());
+                        vo.setCoverImage(post.getCoverImage());
+                        vo.setViewCount(post.getViewCount());
+                        vo.setReplyCount(post.getReplyCount());
+                        vo.setLikeCount(post.getLikeCount());
+                        vo.setFavoriteCount(post.getFavoriteCount());
+                        vo.setIsSticky(post.getIsSticky());
+                        vo.setIsEssence(post.getIsEssence());
+                        vo.setStatus(post.getStatus());
+                        vo.setLastReplyTime(post.getLastReplyTime());
+                        vo.setCreateTime(post.getCreateTime());
+                        return vo;
+                    })
                     .collect(Collectors.toList());
             
             logger.info("获取待审核帖子列表成功，共{}条", postVOList.size());
@@ -1836,8 +1688,7 @@ public class ForumServiceImpl implements ForumService {
             }
             
             // 4. 软删除：更新状态为已删除
-            Integer oldStatus = post.getStatus();
-            post.setStatus(PostStatus.DELETED); // 已删除
+            post.setStatus(2); // 2=已删除
             post.setUpdateTime(new Date());
             int result = postMapper.updateById(post);
             
@@ -1846,14 +1697,12 @@ public class ForumServiceImpl implements ForumService {
                 return Result.failure(6124); // 帖子删除失败
             }
             
-            // 5. 只有正常状态的帖子被删除时，才减少版块的帖子数
-            if (oldStatus != null && oldStatus == PostStatus.NORMAL) {
-                ForumTopic topic = topicMapper.selectById(post.getTopicId());
-                if (topic != null) {
-                    topic.setPostCount(Math.max(0, (topic.getPostCount() != null ? topic.getPostCount() : 0) - 1));
-                    topic.setUpdateTime(new Date());
-                    topicMapper.updateById(topic);
-                }
+            // 5. 更新版块的帖子数
+            ForumTopic topic = topicMapper.selectById(post.getTopicId());
+            if (topic != null) {
+                topic.setPostCount(Math.max(0, (topic.getPostCount() != null ? topic.getPostCount() : 0) - 1));
+                topic.setUpdateTime(new Date());
+                topicMapper.updateById(topic);
             }
             
             logger.info("删除帖子成功: id={}, userId={}", id, userId);
@@ -2112,9 +1961,9 @@ public class ForumServiceImpl implements ForumService {
             // 3. 查询所有回复
             List<ForumReply> allReplies = replyMapper.selectByPostId(postId);
             
-            // 4. 过滤正常状态的回复（status=NORMAL）
+            // 4. 过滤正常状态的回复（status=1）
             List<ForumReply> filteredReplies = allReplies.stream()
-                    .filter(reply -> reply.getStatus() != null && reply.getStatus() == ReplyStatus.NORMAL)
+                    .filter(reply -> reply.getStatus() != null && reply.getStatus() == 1)
                     .sorted((a, b) -> {
                         if (a.getCreateTime() == null && b.getCreateTime() == null) {
                             return 0;
@@ -2137,47 +1986,10 @@ public class ForumServiceImpl implements ForumService {
             List<ForumReply> pagedReplies = startIndex < total ? 
                     filteredReplies.subList(startIndex, endIndex) : new ArrayList<>();
             
-            // 6. 批量查询用户信息（性能优化：避免N+1查询）
-            List<String> userIds = pagedReplies.stream()
-                    .map(ForumReply::getUserId)
-                    .collect(Collectors.toList());
-            
-            // 添加toUserId到查询列表
-            pagedReplies.stream()
-                    .filter(reply -> reply.getToUserId() != null)
-                    .map(ForumReply::getToUserId)
-                    .forEach(userIds::add);
-            
-            // 去重
-            userIds = userIds.stream().distinct().collect(Collectors.toList());
-            
-            Map<String, User> userMap = new HashMap<>();
-            if (!userIds.isEmpty()) {
-                List<User> users = userMapper.selectByIds(userIds);
-                userMap = users.stream()
-                        .collect(Collectors.toMap(User::getId, user -> user));
-            }
-            
-            // 7. 获取当前用户ID（用于判断是否已点赞）
+            // 6. 获取当前用户ID（用于判断是否已点赞）
             String currentUserId = UserContext.getCurrentUserId();
             
-            // 8. 批量查询当前用户的点赞记录（性能优化）
-            Map<Long, Boolean> likeMap = new HashMap<>();
-            if (currentUserId != null && !pagedReplies.isEmpty()) {
-                List<String> replyIds = pagedReplies.stream()
-                        .map(reply -> String.valueOf(reply.getId()))
-                        .collect(Collectors.toList());
-                
-                // 查询当前用户对这些回复的点赞记录
-                for (ForumReply reply : pagedReplies) {
-                    UserLike like = userLikeMapper.selectByUserIdAndTarget(
-                            currentUserId, "reply", String.valueOf(reply.getId()));
-                    likeMap.put(reply.getId(), like != null);
-                }
-            }
-            
-            // 9. 转换为VO
-            final Map<String, User> finalUserMap = userMap;
+            // 7. 转换为VO
             List<com.shangnantea.model.vo.forum.ReplyVO> replyVOs = pagedReplies.stream()
                     .map(reply -> {
                         com.shangnantea.model.vo.forum.ReplyVO vo = new com.shangnantea.model.vo.forum.ReplyVO();
@@ -2190,29 +2002,35 @@ public class ForumServiceImpl implements ForumService {
                         vo.setLikeCount(reply.getLikeCount() != null ? reply.getLikeCount() : 0);
                         vo.setCreateTime(reply.getCreateTime() != null ? reply.getCreateTime().toString() : null);
                         
-                        // 从Map中获取用户信息
-                        User user = finalUserMap.get(reply.getUserId());
+                        // 查询用户信息
+                        User user = userMapper.selectById(reply.getUserId());
                         if (user != null) {
                             vo.setUsername(user.getUsername());
                             vo.setAvatar(user.getAvatar());
                         }
                         
-                        // 从Map中获取目标用户信息
+                        // 查询目标用户信息
                         if (reply.getToUserId() != null) {
-                            User toUser = finalUserMap.get(reply.getToUserId());
+                            User toUser = userMapper.selectById(reply.getToUserId());
                             if (toUser != null) {
                                 vo.setToUsername(toUser.getUsername());
                             }
                         }
                         
-                        // 从Map中获取点赞状态
-                        vo.setIsLiked(likeMap.getOrDefault(reply.getId(), false));
+                        // 判断当前用户是否已点赞
+                        if (currentUserId != null) {
+                            UserLike like = userLikeMapper.selectByUserIdAndTarget(
+                                    currentUserId, "reply", String.valueOf(reply.getId()));
+                            vo.setIsLiked(like != null);
+                        } else {
+                            vo.setIsLiked(false);
+                        }
                         
                         return vo;
                     })
                     .collect(Collectors.toList());
             
-            // 10. 构造返回数据
+            // 8. 构造返回数据
             Map<String, Object> responseData = new HashMap<>();
             responseData.put("list", replyVOs);
             responseData.put("total", total);
@@ -2271,7 +2089,7 @@ public class ForumServiceImpl implements ForumService {
             reply.setParentId(parentId);
             reply.setToUserId(toUserId);
             reply.setLikeCount(0);
-            reply.setStatus(ReplyStatus.NORMAL); // 正常状态
+            reply.setStatus(1); // 1=正常
             reply.setCreateTime(new Date());
             reply.setUpdateTime(new Date());
             
@@ -2330,7 +2148,7 @@ public class ForumServiceImpl implements ForumService {
             }
             
             // 4. 软删除：更新状态为已删除
-            reply.setStatus(ReplyStatus.DELETED); // 已删除
+            reply.setStatus(2); // 2=已删除
             reply.setUpdateTime(new Date());
             int result = replyMapper.updateById(reply);
             
@@ -2466,409 +2284,6 @@ public class ForumServiceImpl implements ForumService {
         } catch (Exception e) {
             logger.error("取消点赞回复失败: 系统异常, id: {}", id, e);
             return Result.failure(6133); // 取消点赞失败
-        }
-    }
-    
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public Result<Object> approvePost(String id) {
-        try {
-            logger.info("审核通过帖子请求: id={}", id);
-            
-            // 1. 验证帖子是否存在
-            Long postId = Long.parseLong(id);
-            ForumPost post = postMapper.selectById(postId);
-            if (post == null) {
-                logger.warn("审核通过失败: 帖子不存在, id: {}", id);
-                return Result.failure(6134); // 审核通过失败
-            }
-            
-            // 2. 验证帖子是否处于待审核状态
-            if (post.getStatus() == null || post.getStatus() != PostStatus.PENDING) {
-                logger.warn("审核通过失败: 帖子不是待审核状态, id: {}, status: {}", id, post.getStatus());
-                return Result.failure(6134); // 审核通过失败
-            }
-            
-            // 3. 更新帖子状态为已通过
-            post.setStatus(PostStatus.NORMAL); // 正常状态
-            post.setUpdateTime(new Date());
-            int result = postMapper.updateById(post);
-            
-            if (result <= 0) {
-                logger.error("审核通过失败: 数据库更新失败, id: {}", id);
-                return Result.failure(6134); // 审核通过失败
-            }
-            
-            // 4. 更新版块的帖子数（审核通过后才计入）
-            ForumTopic topic = topicMapper.selectById(post.getTopicId());
-            if (topic != null) {
-                topic.setPostCount((topic.getPostCount() != null ? topic.getPostCount() : 0) + 1);
-                topic.setUpdateTime(new Date());
-                topicMapper.updateById(topic);
-            }
-            
-            logger.info("审核通过成功: id={}", id);
-            return Result.success(6022, null); // 帖子审核通过
-            
-        } catch (NumberFormatException e) {
-            logger.error("审核通过失败: ID格式错误, id: {}", id, e);
-            return Result.failure(6134); // 审核通过失败
-        } catch (Exception e) {
-            logger.error("审核通过失败: 系统异常, id: {}", id, e);
-            return Result.failure(6134); // 审核通过失败
-        }
-    }
-    
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public Result<Object> rejectPost(String id, com.shangnantea.model.dto.forum.RejectPostDTO dto) {
-        try {
-            logger.info("审核拒绝帖子请求: id={}, reason={}", id, dto.getReason());
-            
-            // 1. 验证帖子是否存在
-            Long postId = Long.parseLong(id);
-            ForumPost post = postMapper.selectById(postId);
-            if (post == null) {
-                logger.warn("审核拒绝失败: 帖子不存在, id: {}", id);
-                return Result.failure(6135); // 审核拒绝失败
-            }
-            
-            // 2. 验证帖子是否处于待审核状态
-            if (post.getStatus() == null || post.getStatus() != PostStatus.PENDING) {
-                logger.warn("审核拒绝失败: 帖子不是待审核状态, id: {}, status: {}", id, post.getStatus());
-                return Result.failure(6135); // 审核拒绝失败
-            }
-            
-            // 3. 更新帖子状态为已拒绝
-            post.setStatus(PostStatus.REJECTED); // 已拒绝
-            post.setUpdateTime(new Date());
-            int result = postMapper.updateById(post);
-            
-            if (result <= 0) {
-                logger.error("审核拒绝失败: 数据库更新失败, id: {}", id);
-                return Result.failure(6135); // 审核拒绝失败
-            }
-            
-            // 注意：拒绝原因可以存储到其他表或字段中，这里暂时只记录日志
-            logger.info("审核拒绝成功: id={}, reason={}", id, dto.getReason());
-            return Result.success(6023, null); // 帖子审核拒绝
-            
-        } catch (NumberFormatException e) {
-            logger.error("审核拒绝失败: ID格式错误, id: {}", id, e);
-            return Result.failure(6135); // 审核拒绝失败
-        } catch (Exception e) {
-            logger.error("审核拒绝失败: 系统异常, id: {}", id, e);
-            return Result.failure(6135); // 审核拒绝失败
-        }
-    }
-    
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public Result<Object> togglePostSticky(String id, Boolean isSticky) {
-        try {
-            logger.info("设置帖子置顶请求: id={}, isSticky={}", id, isSticky);
-            
-            // 1. 验证帖子是否存在
-            Long postId = Long.parseLong(id);
-            ForumPost post = postMapper.selectById(postId);
-            if (post == null) {
-                logger.warn("设置置顶失败: 帖子不存在, id: {}", id);
-                return Result.failure(isSticky ? 6136 : 6137); // 置顶失败/取消置顶失败
-            }
-            
-            // 2. 更新帖子置顶状态
-            post.setIsSticky(isSticky ? 1 : 0);
-            post.setUpdateTime(new Date());
-            int result = postMapper.updateById(post);
-            
-            if (result <= 0) {
-                logger.error("设置置顶失败: 数据库更新失败, id: {}", id);
-                return Result.failure(isSticky ? 6136 : 6137); // 置顶失败/取消置顶失败
-            }
-            
-            logger.info("设置置顶成功: id={}, isSticky={}", id, isSticky);
-            return Result.success(isSticky ? 6024 : 6025, null); // 帖子已置顶/帖子已取消置顶
-            
-        } catch (NumberFormatException e) {
-            logger.error("设置置顶失败: ID格式错误, id: {}", id, e);
-            return Result.failure(isSticky ? 6136 : 6137); // 置顶失败/取消置顶失败
-        } catch (Exception e) {
-            logger.error("设置置顶失败: 系统异常, id: {}", id, e);
-            return Result.failure(isSticky ? 6136 : 6137); // 置顶失败/取消置顶失败
-        }
-    }
-    
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public Result<Object> togglePostEssence(String id, Boolean isEssence) {
-        try {
-            logger.info("设置帖子精华请求: id={}, isEssence={}", id, isEssence);
-            
-            // 1. 验证帖子是否存在
-            Long postId = Long.parseLong(id);
-            ForumPost post = postMapper.selectById(postId);
-            if (post == null) {
-                logger.warn("设置加精失败: 帖子不存在, id: {}", id);
-                return Result.failure(isEssence ? 6138 : 6139); // 加精失败/取消加精失败
-            }
-            
-            // 2. 更新帖子精华状态
-            post.setIsEssence(isEssence ? 1 : 0);
-            post.setUpdateTime(new Date());
-            int result = postMapper.updateById(post);
-            
-            if (result <= 0) {
-                logger.error("设置加精失败: 数据库更新失败, id: {}", id);
-                return Result.failure(isEssence ? 6138 : 6139); // 加精失败/取消加精失败
-            }
-            
-            logger.info("设置加精成功: id={}, isEssence={}", id, isEssence);
-            return Result.success(isEssence ? 6026 : 6027, null); // 帖子已加精/帖子已取消加精
-            
-        } catch (NumberFormatException e) {
-            logger.error("设置加精失败: ID格式错误, id: {}", id, e);
-            return Result.failure(isEssence ? 6138 : 6139); // 加精失败/取消加精失败
-        } catch (Exception e) {
-            logger.error("设置加精失败: 系统异常, id: {}", id, e);
-            return Result.failure(isEssence ? 6138 : 6139); // 加精失败/取消加精失败
-        }
-    }
-    
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public Result<Object> likeArticle(String id) {
-        try {
-            logger.info("点赞文章请求: id={}", id);
-            
-            // 1. 获取当前用户ID
-            String userId = UserContext.getCurrentUserId();
-            if (userId == null) {
-                logger.warn("点赞文章失败: 用户未登录");
-                return Result.failure(6143); // 点赞失败
-            }
-            
-            // 2. 验证文章是否存在
-            Long articleId = Long.parseLong(id);
-            TeaArticle article = articleMapper.selectById(articleId);
-            if (article == null) {
-                logger.warn("点赞文章失败: 文章不存在, id: {}", id);
-                return Result.failure(6143); // 点赞失败
-            }
-            
-            // 3. 检查是否已点赞
-            UserLike existingLike = userLikeMapper.selectByUserIdAndTarget(userId, "article", id);
-            if (existingLike != null) {
-                logger.warn("点赞文章失败: 已点赞, userId: {}, articleId: {}", userId, id);
-                return Result.failure(6143); // 点赞失败
-            }
-            
-            // 4. 插入点赞记录
-            UserLike userLike = new UserLike();
-            userLike.setUserId(userId);
-            userLike.setTargetType("article");
-            userLike.setTargetId(id);
-            userLike.setCreateTime(new Date());
-            int insertResult = userLikeMapper.insert(userLike);
-            
-            if (insertResult <= 0) {
-                logger.error("点赞文章失败: 数据库插入失败, userId: {}, articleId: {}", userId, id);
-                return Result.failure(6143); // 点赞失败
-            }
-            
-            // 5. 增加文章点赞数
-            article.setLikeCount((article.getLikeCount() != null ? article.getLikeCount() : 0) + 1);
-            article.setUpdateTime(new Date());
-            articleMapper.updateById(article);
-            
-            // 6. 返回更新后的点赞数
-            Map<String, Object> result = new HashMap<>();
-            result.put("likeCount", article.getLikeCount());
-            
-            logger.info("点赞文章成功: userId={}, articleId={}", userId, id);
-            return Result.success(6029, result); // 点赞成功
-            
-        } catch (NumberFormatException e) {
-            logger.error("点赞文章失败: ID格式错误, id: {}", id, e);
-            return Result.failure(6143); // 点赞失败
-        } catch (Exception e) {
-            logger.error("点赞文章失败: 系统异常, id: {}", id, e);
-            return Result.failure(6143); // 点赞失败
-        }
-    }
-    
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public Result<Object> unlikeArticle(String id) {
-        try {
-            logger.info("取消点赞文章请求: id={}", id);
-            
-            // 1. 获取当前用户ID
-            String userId = UserContext.getCurrentUserId();
-            if (userId == null) {
-                logger.warn("取消点赞文章失败: 用户未登录");
-                return Result.failure(6144); // 取消点赞失败
-            }
-            
-            // 2. 验证文章是否存在
-            Long articleId = Long.parseLong(id);
-            TeaArticle article = articleMapper.selectById(articleId);
-            if (article == null) {
-                logger.warn("取消点赞文章失败: 文章不存在, id: {}", id);
-                return Result.failure(6144); // 取消点赞失败
-            }
-            
-            // 3. 检查是否已点赞
-            UserLike existingLike = userLikeMapper.selectByUserIdAndTarget(userId, "article", id);
-            if (existingLike == null) {
-                logger.warn("取消点赞文章失败: 未点赞, userId: {}, articleId: {}", userId, id);
-                return Result.failure(6144); // 取消点赞失败
-            }
-            
-            // 4. 删除点赞记录
-            int deleteResult = userLikeMapper.deleteById(existingLike.getId());
-            if (deleteResult <= 0) {
-                logger.error("取消点赞文章失败: 数据库删除失败, userId: {}, articleId: {}", userId, id);
-                return Result.failure(6144); // 取消点赞失败
-            }
-            
-            // 5. 减少文章点赞数
-            article.setLikeCount(Math.max(0, (article.getLikeCount() != null ? article.getLikeCount() : 0) - 1));
-            article.setUpdateTime(new Date());
-            articleMapper.updateById(article);
-            
-            // 6. 返回更新后的点赞数
-            Map<String, Object> result = new HashMap<>();
-            result.put("likeCount", article.getLikeCount());
-            
-            logger.info("取消点赞文章成功: userId={}, articleId={}", userId, id);
-            return Result.success(6030, result); // 已取消点赞
-            
-        } catch (NumberFormatException e) {
-            logger.error("取消点赞文章失败: ID格式错误, id: {}", id, e);
-            return Result.failure(6144); // 取消点赞失败
-        } catch (Exception e) {
-            logger.error("取消点赞文章失败: 系统异常, id: {}", id, e);
-            return Result.failure(6144); // 取消点赞失败
-        }
-    }
-    
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public Result<Object> favoriteArticle(String id) {
-        try {
-            logger.info("收藏文章请求: id={}", id);
-            
-            // 1. 获取当前用户ID
-            String userId = UserContext.getCurrentUserId();
-            if (userId == null) {
-                logger.warn("收藏文章失败: 用户未登录");
-                return Result.failure(6145); // 收藏失败
-            }
-            
-            // 2. 验证文章是否存在
-            Long articleId = Long.parseLong(id);
-            TeaArticle article = articleMapper.selectById(articleId);
-            if (article == null) {
-                logger.warn("收藏文章失败: 文章不存在, id: {}", id);
-                return Result.failure(6145); // 收藏失败
-            }
-            
-            // 3. 检查是否已收藏
-            UserFavorite existingFavorite = userFavoriteMapper.selectByUserIdAndItem(userId, "article", id);
-            if (existingFavorite != null) {
-                logger.warn("收藏文章失败: 已收藏, userId: {}, articleId: {}", userId, id);
-                return Result.failure(6145); // 收藏失败
-            }
-            
-            // 4. 插入收藏记录
-            UserFavorite userFavorite = new UserFavorite();
-            userFavorite.setUserId(userId);
-            userFavorite.setItemType("article");
-            userFavorite.setItemId(id);
-            userFavorite.setTargetName(article.getTitle()); // 冗余字段：文章标题
-            userFavorite.setTargetImage(article.getCoverImage()); // 冗余字段：文章封面图
-            userFavorite.setCreateTime(new Date());
-            int insertResult = userFavoriteMapper.insert(userFavorite);
-            
-            if (insertResult <= 0) {
-                logger.error("收藏文章失败: 数据库插入失败, userId: {}, articleId: {}", userId, id);
-                return Result.failure(6145); // 收藏失败
-            }
-            
-            // 5. 增加文章收藏数
-            article.setFavoriteCount((article.getFavoriteCount() != null ? article.getFavoriteCount() : 0) + 1);
-            article.setUpdateTime(new Date());
-            articleMapper.updateById(article);
-            
-            // 6. 返回更新后的收藏数
-            Map<String, Object> result = new HashMap<>();
-            result.put("favoriteCount", article.getFavoriteCount());
-            
-            logger.info("收藏文章成功: userId={}, articleId={}", userId, id);
-            return Result.success(6031, result); // 收藏成功
-            
-        } catch (NumberFormatException e) {
-            logger.error("收藏文章失败: ID格式错误, id: {}", id, e);
-            return Result.failure(6145); // 收藏失败
-        } catch (Exception e) {
-            logger.error("收藏文章失败: 系统异常, id: {}", id, e);
-            return Result.failure(6145); // 收藏失败
-        }
-    }
-    
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public Result<Object> unfavoriteArticle(String id) {
-        try {
-            logger.info("取消收藏文章请求: id={}", id);
-            
-            // 1. 获取当前用户ID
-            String userId = UserContext.getCurrentUserId();
-            if (userId == null) {
-                logger.warn("取消收藏文章失败: 用户未登录");
-                return Result.failure(6146); // 取消收藏失败
-            }
-            
-            // 2. 验证文章是否存在
-            Long articleId = Long.parseLong(id);
-            TeaArticle article = articleMapper.selectById(articleId);
-            if (article == null) {
-                logger.warn("取消收藏文章失败: 文章不存在, id: {}", id);
-                return Result.failure(6146); // 取消收藏失败
-            }
-            
-            // 3. 检查是否已收藏
-            UserFavorite existingFavorite = userFavoriteMapper.selectByUserIdAndItem(userId, "article", id);
-            if (existingFavorite == null) {
-                logger.warn("取消收藏文章失败: 未收藏, userId: {}, articleId: {}", userId, id);
-                return Result.failure(6146); // 取消收藏失败
-            }
-            
-            // 4. 删除收藏记录
-            int deleteResult = userFavoriteMapper.deleteById(existingFavorite.getId());
-            if (deleteResult <= 0) {
-                logger.error("取消收藏文章失败: 数据库删除失败, userId: {}, articleId: {}", userId, id);
-                return Result.failure(6146); // 取消收藏失败
-            }
-            
-            // 5. 减少文章收藏数
-            article.setFavoriteCount(Math.max(0, (article.getFavoriteCount() != null ? article.getFavoriteCount() : 0) - 1));
-            article.setUpdateTime(new Date());
-            articleMapper.updateById(article);
-            
-            // 6. 返回更新后的收藏数
-            Map<String, Object> result = new HashMap<>();
-            result.put("favoriteCount", article.getFavoriteCount());
-            
-            logger.info("取消收藏文章成功: userId={}, articleId={}", userId, id);
-            return Result.success(6032, result); // 已取消收藏
-            
-        } catch (NumberFormatException e) {
-            logger.error("取消收藏文章失败: ID格式错误, id: {}", id, e);
-            return Result.failure(6146); // 取消收藏失败
-        } catch (Exception e) {
-            logger.error("取消收藏文章失败: 系统异常, id: {}", id, e);
-            return Result.failure(6146); // 取消收藏失败
         }
     }
 } 
