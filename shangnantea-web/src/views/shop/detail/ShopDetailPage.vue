@@ -318,9 +318,7 @@ export default {
       if (!shopId) return
 
       if (shopId === 'PLATFORM' || shopId === '0') {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        shopMessages.error.showShopNotPlatform()
+        shopMessages.shop.showShopIdNotExist()
         router.push('/shop/list')
         return
       }
@@ -340,9 +338,7 @@ export default {
           size: 10
         })
       } catch (error) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        shopMessages.error.showShopDataLoadFailed(error.message)
+        console.error('加载店铺详情失败:', error)
       }
     }
     
@@ -371,22 +367,15 @@ export default {
       try {
         if (isFollowing.value) {
           // 任务组F：通过shop模块取消关注
-          await store.dispatch('shop/unfollowShop', shop.value.id)
-          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-          shopMessages.success.showUnfollowSuccess()
+          const response = await store.dispatch('shop/unfollowShop', shop.value.id)
+          showByCode(response.code)
         } else {
           // 任务组F：通过shop模块关注
-          await store.dispatch('shop/followShop', shop.value.id)
-          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-          // TODO: [shop] 迁移到 showByCode(response.code) - success
-          shopMessages.success.showFollowSuccess()
+          const response = await store.dispatch('shop/followShop', shop.value.id)
+          showByCode(response.code)
         }
       } catch (error) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        shopMessages.error.showFollowOperationFailed(error.message)
+        console.error('关注操作失败:', error)
       } finally {
         followLoading.value = false
       }
@@ -415,9 +404,7 @@ export default {
           size: reviewPagination.value.pageSize
         })
       } catch (error) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        shopMessages.error.showReviewLoadFailed(error.message)
+        console.error('加载评价失败:', error)
       }
     }
     
@@ -425,19 +412,19 @@ export default {
     const handleSubmitReview = async () => {
       const shopId = route.params.id
       if (!shopId) {
-        shopMessages.prompt.showShopIdNotExist()
+        shopMessages.shop.showShopIdNotExist()
         return
       }
       // 评分验证（评分是必须的）
       if (reviewForm.value.rating === 0) {
-        shopMessages.prompt.showReviewRatingRequired()
+        shopMessages.shop.showReviewRatingRequired()
         return
       }
       // 评价内容是可选的（店铺评分不需要详细内容）
       
       reviewSubmitting.value = true
       try {
-        await store.dispatch('shop/submitShopReview', {
+        const response = await store.dispatch('shop/submitShopReview', {
           shopId,
           reviewData: {
             rating: reviewForm.value.rating,
@@ -445,9 +432,7 @@ export default {
             images: []
           }
         })
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        shopMessages.success.showReviewSubmitSuccess()
+        showByCode(response.code)
         reviewForm.value = {
           rating: 5,
           content: ''
@@ -459,9 +444,7 @@ export default {
           size: reviewPagination.value.pageSize
         })
       } catch (error) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        shopMessages.error.showReviewSubmitFailed(error.message)
+        console.error('提交评价失败:', error)
       } finally {
         reviewSubmitting.value = false
       }

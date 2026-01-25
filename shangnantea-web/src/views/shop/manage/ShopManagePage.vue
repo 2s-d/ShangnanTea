@@ -684,16 +684,14 @@ export default {
       try {
         await store.dispatch('shop/fetchMyShop')
       } catch (error) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        shopMessages.error.showShopInfoLoadFailed(error.message)
+        console.error('加载店铺信息失败:', error)
       }
     }
     
     // 任务组0：使用Vuex加载店铺茶叶列表
     const loadShopTeas = async () => {
       if (!shop.value || !shop.value.id) {
-        shopMessages.prompt.showShopInfoLoadFirst()
+        shopMessages.shop.showShopInfoLoadFirst()
         return
       }
       
@@ -721,9 +719,7 @@ export default {
           params
         })
       } catch (error) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        shopMessages.error.showTeaListLoadFailed(error.message)
+        console.error('加载茶叶列表失败:', error)
       } finally {
         teaLoading.value = false
       }
@@ -754,19 +750,14 @@ export default {
         )
         
         teaLoading.value = true
-        await store.dispatch('shop/toggleShopTeaStatus', {
+        const response = await store.dispatch('shop/toggleShopTeaStatus', {
           teaId: tea.id,
           status: newStatus
         })
-        
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        shopMessages.success.showTeaToggleSuccess(action)
+        showByCode(response.code)
       } catch (error) {
         if (error !== 'cancel') {
-          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-          shopMessages.error.showTeaToggleFailed(action, error.message)
+          console.error(`${action}茶叶失败:`, error)
         }
       } finally {
         teaLoading.value = false
@@ -787,14 +778,11 @@ export default {
         )
         
         teaLoading.value = true
-        await store.dispatch('shop/deleteShopTea', {
+        const response = await store.dispatch('shop/deleteShopTea', {
           teaId: tea.id,
           shopId: shop.value?.id
         })
-        
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        shopMessages.success.showTeaDeleteSuccess()
+        showByCode(response.code)
         
         // 如果当前页没有数据了，回到前一页
         if (shopTeas.value.length === 0 && currentPage.value > 1) {
@@ -803,9 +791,7 @@ export default {
         }
       } catch (error) {
         if (error !== 'cancel') {
-          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-          shopMessages.error.showTeaDeleteFailed(error.message)
+          console.error('删除茶叶失败:', error)
         }
       } finally {
         teaLoading.value = false
@@ -815,7 +801,7 @@ export default {
     // 对话框关闭
     const handleDialogClose = done => {
       if (submitting.value) {
-        shopMessages.prompt.showSubmittingWait()
+        shopMessages.shop.showSubmittingWait()
         return
       }
       done()

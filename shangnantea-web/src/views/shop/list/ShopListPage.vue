@@ -190,9 +190,7 @@ export default {
       try {
         await store.dispatch('shop/fetchShops', {})
       } catch (error) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        shopMessages.error.showShopDataLoadFailed(error.message)
+        console.error('加载店铺列表失败:', error)
       }
     }
     
