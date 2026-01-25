@@ -777,7 +777,6 @@ export default {
           }
         )
         
-        // 任务组E：调用Vuex action更新茶叶状态
         const response = await store.dispatch('tea/toggleTeaStatus', {
           teaId: tea.id,
           status: newStatus
@@ -1063,9 +1062,7 @@ export default {
               // 图片同步失败不影响主流程，只记录错误
             }
             
-            // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-            teaMessages.success.showTeaUpdated()
+            showByCode(response.code)
           } else {
             // 平台直售茶叶权限控制：管理员创建的茶叶shopId固定为'PLATFORM'
             // 权限规则：只有管理员(role=1)可以管理平台直售茶叶
