@@ -620,13 +620,11 @@ const actions = {
   // 任务A-3：实现uploadAvatar action
   async uploadAvatar({ commit, state }, file) {
     if (!state.userInfo) {
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
       console.warn('Token已过期')
       return false
     }
     
     if (!file || !(file instanceof File)) {
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
       userPromptMessages.showFormIncomplete()
       return false
     }
@@ -652,10 +650,6 @@ const actions = {
       return res // 返回 {code, data}，组件调用showByCode(res.code)
     } catch (error) {
       // 显示上传失败消息
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
       userPromptMessages.error.showProfileUpdateFailure(error.message || '头像上传失败')
       throw error
     } finally {
@@ -670,8 +664,6 @@ const actions = {
       
       // 检查新密码与确认密码是否一致
       if (passwordData.newPassword !== passwordData.confirmPassword) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
         userPromptMessages.error.showPasswordMismatch()
         return false
       }
@@ -680,19 +672,11 @@ const actions = {
       await changePassword(passwordData)
       
       // 显示修改成功消息
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
       userPromptMessages.success.showPasswordChangeSuccess()
       
       return true
     } catch (error) {
       // 显示修改失败消息
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
       userPromptMessages.error.showPasswordChangeFailure(error.message)
       throw error
     } finally {
@@ -739,15 +723,11 @@ const actions = {
       const result = await resetPasswordApi(resetData)
       
       // 显示找回成功消息
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
       userPromptMessages.success.showPasswordResetSuccess()
       
       return result
     } catch (error) {
       // 显示找回失败消息
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
       userPromptMessages.error.showPasswordResetFailure(error.message)
       throw error
     } finally {
