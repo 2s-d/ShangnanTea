@@ -1767,7 +1767,7 @@ public class ForumServiceImpl implements ForumService {
             Long postId = Long.parseLong(id);
             ForumPost post = postMapper.selectById(postId);
             if (post == null) {
-                logger.warn("获取回复列表失败: 帖子不存在, id: {}", id);
+                logger.warn("获取回复列表失败: 帖子不存在或已删除, id: {}", id);
                 return Result.failure(6129); // 获取回复列表失败
             }
             
@@ -1777,24 +1777,12 @@ public class ForumServiceImpl implements ForumService {
             Integer pageSize = params.get("pageSize") != null ? 
                     Integer.parseInt(params.get("pageSize").toString()) : 20;
             
-            // 3. 查询所有回复
+            // 3. 查询所有回复（数据库层面已按时间升序排序）
             List<ForumReply> allReplies = replyMapper.selectByPostId(postId);
             
             // 4. 过滤正常状态的回复（status=1）
             List<ForumReply> filteredReplies = allReplies.stream()
                     .filter(reply -> reply.getStatus() != null && reply.getStatus() == 1)
-                    .sorted((a, b) -> {
-                        if (a.getCreateTime() == null && b.getCreateTime() == null) {
-                            return 0;
-                        }
-                        if (a.getCreateTime() == null) {
-                            return 1;
-                        }
-                        if (b.getCreateTime() == null) {
-                            return -1;
-                        }
-                        return a.getCreateTime().compareTo(b.getCreateTime()); // 按时间升序
-                    })
                     .collect(Collectors.toList());
             
             // 5. 分页处理
@@ -1805,10 +1793,46 @@ public class ForumServiceImpl implements ForumService {
             List<ForumReply> pagedReplies = startIndex < total ? 
                     filteredReplies.subList(startIndex, endIndex) : new ArrayList<>();
             
-            // 6. 获取当前用户ID（用于判断是否已点赞）
+            // 6. 批量查询用户信息（优化N+1查询）
+            List<String> userIds = pagedReplies.stream()
+                    .map(ForumReply::getUserId)
+                    .distinct()
+                    .collect(Collectors.toList());
+            
+            List<String> toUserIds = pagedReplies.stream()
+                    .map(ForumReply::getToUserId)
+                    .filter(toUserId -> toUserId != null && !toUserId.isEmpty())
+                    .distinct()
+                    .collect(Collectors.toList());
+            
+            userIds.addAll(toUserIds);
+            userIds = userIds.stream().distinct().collect(Collectors.toList());
+            
+            Map<String, User> userMap = new HashMap<>();
+            if (!userIds.isEmpty()) {
+                List<User> users = userMapper.selectByIds(userIds);
+                userMap = users.stream().collect(Collectors.toMap(User::getId, u -> u));
+            }
+            
+            // 7. 获取当前用户ID（用于判断是否已点赞）
             String currentUserId = UserContext.getCurrentUserId();
             
-            // 7. 转换为VO
+            // 8. 批量查询当前用户的点赞记录（优化N+1查询）
+            Map<String, Boolean> likeMap = new HashMap<>();
+            if (currentUserId != null && !pagedReplies.isEmpty()) {
+                List<String> replyIds = pagedReplies.stream()
+                        .map(reply -> String.valueOf(reply.getId()))
+                        .collect(Collectors.toList());
+                
+                for (String replyId : replyIds) {
+                    UserLike like = userLikeMapper.selectByUserIdAndTarget(
+                            currentUserId, "reply", replyId);
+                    likeMap.put(replyId, like != null);
+                }
+            }
+            
+            // 9. 转换为VO
+            final Map<String, User> finalUserMap = userMap;
             List<com.shangnantea.model.vo.forum.ReplyVO> replyVOs = pagedReplies.stream()
                     .map(reply -> {
                         com.shangnantea.model.vo.forum.ReplyVO vo = new com.shangnantea.model.vo.forum.ReplyVO();
@@ -1821,40 +1845,34 @@ public class ForumServiceImpl implements ForumService {
                         vo.setLikeCount(reply.getLikeCount() != null ? reply.getLikeCount() : 0);
                         vo.setCreateTime(reply.getCreateTime() != null ? reply.getCreateTime().toString() : null);
                         
-                        // 查询用户信息
-                        User user = userMapper.selectById(reply.getUserId());
+                        // 从Map获取用户信息
+                        User user = finalUserMap.get(reply.getUserId());
                         if (user != null) {
                             vo.setUsername(user.getUsername());
                             vo.setAvatar(user.getAvatar());
                         }
                         
-                        // 查询目标用户信息
+                        // 从Map获取目标用户信息
                         if (reply.getToUserId() != null) {
-                            User toUser = userMapper.selectById(reply.getToUserId());
+                            User toUser = finalUserMap.get(reply.getToUserId());
                             if (toUser != null) {
                                 vo.setToUsername(toUser.getUsername());
                             }
                         }
                         
-                        // 判断当前用户是否已点赞
-                        if (currentUserId != null) {
-                            UserLike like = userLikeMapper.selectByUserIdAndTarget(
-                                    currentUserId, "reply", String.valueOf(reply.getId()));
-                            vo.setIsLiked(like != null);
-                        } else {
-                            vo.setIsLiked(false);
-                        }
+                        // 从Map获取点赞状态
+                        vo.setIsLiked(likeMap.getOrDefault(String.valueOf(reply.getId()), false));
                         
                         return vo;
                     })
                     .collect(Collectors.toList());
             
-            // 8. 构造返回数据
+            // 10. 构造返回数据
             Map<String, Object> responseData = new HashMap<>();
             responseData.put("list", replyVOs);
             responseData.put("total", total);
             
-            logger.info("获取回复列表成功: postId={}, total={}", id, total);
+            logger.info("获取回复列表成功: postId={}, total={}, returned={}", id, total, replyVOs.size());
             return Result.success(200, responseData); // 成功码200
             
         } catch (NumberFormatException e) {
