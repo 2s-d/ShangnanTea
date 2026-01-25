@@ -168,6 +168,18 @@
         WHERE id = #{id,jdbcType=VARCHAR} AND stock >= #{quantity,jdbcType=INTEGER}
     </update>
     
+    <!-- 恢复库存和销量 -->
+    <update id="restoreStockAndSales">
+        UPDATE teas
+        SET stock = stock + #{quantity,jdbcType=INTEGER},
+        sales = CASE 
+            WHEN sales >= #{quantity,jdbcType=INTEGER} THEN sales - #{quantity,jdbcType=INTEGER}
+            ELSE 0
+        END,
+        update_time = now()
+        WHERE id = #{id,jdbcType=VARCHAR}
+    </update>
+    
     <!-- 逻辑删除茶叶 -->
     <update id="delete" parameterType="java.lang.String">
         UPDATE teas

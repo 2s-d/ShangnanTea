@@ -96,7 +96,15 @@
         UPDATE tea_specifications
         SET stock = stock - #{quantity,jdbcType=INTEGER},
         update_time = now()
-        WHERE id = #{id,jdbcType=INTEGER} AND stock &gt;= #{quantity,jdbcType=INTEGER}
+        WHERE id = #{id,jdbcType=INTEGER} AND stock >= #{quantity,jdbcType=INTEGER}
+    </update>
+    
+    <!-- 恢复库存 -->
+    <update id="restoreStock">
+        UPDATE tea_specifications
+        SET stock = stock + #{quantity,jdbcType=INTEGER},
+        update_time = now()
+        WHERE id = #{id,jdbcType=INTEGER}
     </update>
     
     <!-- 删除规格 -->

@@ -1079,7 +1079,31 @@ public class OrderServiceImpl implements OrderService {
                 return Result.failure(5120); // 余额不足
             }
             
-            // 7. 更新订单状态为待发货
+            // 7. 扣减库存和增加销量
+            boolean stockUpdated = false;
+            if (order.getSpecId() != null) {
+                // 有规格，更新规格库存
+                int rows = teaSpecificationMapper.updateStock(order.getSpecId(), order.getQuantity());
+                if (rows == 0) {
+                    logger.warn("支付订单失败: 库存不足或规格不存在: specId={}, quantity={}", 
+                               order.getSpecId(), order.getQuantity());
+                    return Result.failure(5111); // 商品库存不足
+                }
+                stockUpdated = true;
+                logger.info("已扣减规格库存: specId={}, quantity={}", order.getSpecId(), order.getQuantity());
+            } else {
+                // 无规格，更新茶叶库存和销量
+                int rows = teaMapper.updateStockAndSales(order.getTeaId(), order.getQuantity());
+                if (rows == 0) {
+                    logger.warn("支付订单失败: 库存不足或商品不存在: teaId={}, quantity={}", 
+                               order.getTeaId(), order.getQuantity());
+                    return Result.failure(5111); // 商品库存不足
+                }
+                stockUpdated = true;
+                logger.info("已扣减库存并增加销量: teaId={}, quantity={}", order.getTeaId(), order.getQuantity());
+            }
+            
+            // 8. 更新订单状态为待发货
             order.setStatus(Order.STATUS_PENDING_SHIPMENT); // 待发货
             order.setPaymentMethod(paymentMethod);
             order.setPaymentTime(new Date());
@@ -1089,7 +1113,7 @@ public class OrderServiceImpl implements OrderService {
             if (rows > 0) {
                 logger.info("支付订单成功: orderId={}, userId={}, paymentMethod={}", orderId, userId, paymentMethod);
                 
-                // 8. 构建返回数据
+                // 9. 构建返回数据
                 Map<String, Object> responseData = new HashMap<>();
                 responseData.put("orderId", orderId);
                 responseData.put("status", order.getStatus());
@@ -1152,7 +1176,23 @@ public class OrderServiceImpl implements OrderService {
                 return Result.failure(5121);
             }
             
-            // 6. 更新订单状态为已取消
+            // 6. 如果订单已支付（待发货状态），需要恢复库存
+            boolean needRestoreStock = (order.getStatus() == Order.STATUS_PENDING_SHIPMENT);
+            if (needRestoreStock) {
+                if (order.getSpecId() != null) {
+                    // 有规格，恢复规格库存
+                    int rows = teaSpecificationMapper.restoreStock(order.getSpecId(), order.getQuantity());
+                    logger.info("已恢复规格库存: orderId={}, specId={}, quantity={}, rows={}", 
+                               orderId, order.getSpecId(), order.getQuantity(), rows);
+                } else {
+                    // 无规格，恢复茶叶库存和销量
+                    int rows = teaMapper.restoreStockAndSales(order.getTeaId(), order.getQuantity());
+                    logger.info("已恢复库存和销量: orderId={}, teaId={}, quantity={}, rows={}", 
+                               orderId, order.getTeaId(), order.getQuantity(), rows);
+                }
+            }
+            
+            // 7. 更新订单状态为已取消
             order.setStatus(Order.STATUS_CANCELLED); // 已取消
             order.setCancelReason(cancelReason);
             order.setCancelTime(new Date());
