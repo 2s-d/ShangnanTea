@@ -86,11 +86,11 @@
         WHERE id = #{id}
     </update>
 
-    <!-- 根据主键查询记录 -->
+    <!-- 根据主键查询记录（过滤已删除） -->
     <select id="selectById" parameterType="java.lang.Long" resultMap="BaseResultMap">
         SELECT <include refid="Base_Column_List"/>
         FROM tea_articles
-        WHERE id = #{id}
+        WHERE id = #{id} AND status != 2
     </select>
 
     <!-- 根据主键批量查询记录 -->
@@ -112,5 +112,19 @@
     <!-- 统计记录总数 -->
     <select id="count" resultType="java.lang.Long">
         SELECT COUNT(*) FROM tea_articles
+    </select>
+    
+    <!-- 查询已发布的文章列表（支持分类和关键词过滤） -->
+    <select id="selectPublishedArticles" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM tea_articles
+        WHERE status = #{status}
+        <if test="category != null and category != ''">
+            AND category = #{category}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND (title LIKE CONCAT('%', #{keyword}, '%') OR summary LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        ORDER BY create_time DESC
     </select>
 </mapper> 

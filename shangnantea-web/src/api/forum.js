@@ -113,7 +113,7 @@ export function getArticles(params = {}) {
  */
 export function getArticleDetail(id) {
   return request({
-    url: `${API.FORUM.ARTICLE_DETAIL}${id}`,
+    url: `${API.FORUM.ARTICLES}/${id}`,
     method: 'get'
   })
 }
@@ -139,7 +139,7 @@ export function createArticle(data) {
  */
 export function updateArticle(id, data) {
   return request({
-    url: `${API.FORUM.ARTICLE_DETAIL}${id}`,
+    url: `${API.FORUM.ARTICLES}/${id}`,
     method: 'put',
     data
   })
@@ -152,7 +152,7 @@ export function updateArticle(id, data) {
  */
 export function deleteArticle(id) {
   return request({
-    url: `${API.FORUM.ARTICLE_DETAIL}${id}`,
+    url: `${API.FORUM.ARTICLES}/${id}`,
     method: 'delete'
   })
 }

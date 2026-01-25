@@ -529,49 +529,17 @@ public class ForumServiceImpl implements ForumService {
             Integer pageSize = params.get("pageSize") != null ? 
                     Integer.parseInt(params.get("pageSize").toString()) : 10;
             
-            // 2. 查询所有文章（status=1已发布）
-            List<TeaArticle> allArticles = articleMapper.selectAll();
-            List<TeaArticle> filteredArticles = allArticles.stream()
-                    .filter(article -> article.getStatus() != null && article.getStatus() == 1)
-                    .filter(article -> {
-                        // 分类过滤
-                        if (categoryId != null && !categoryId.isEmpty()) {
-                            return categoryId.equals(article.getCategory());
-                        }
-                        return true;
-                    })
-                    .filter(article -> {
-                        // 关键词过滤（标题或摘要包含关键词）
-                        if (keyword != null && !keyword.isEmpty()) {
-                            String title = article.getTitle() != null ? article.getTitle() : "";
-                            String summary = article.getSummary() != null ? article.getSummary() : "";
-                            return title.contains(keyword) || summary.contains(keyword);
-                        }
-                        return true;
-                    })
-                    .sorted((a, b) -> {
-                        // 按创建时间降序排序
-                        if (a.getCreateTime() == null && b.getCreateTime() == null) {
-                            return 0;
-                        }
-                        if (a.getCreateTime() == null) {
-                            return 1;
-                        }
-                        if (b.getCreateTime() == null) {
-                            return -1;
-                        }
-                        return b.getCreateTime().compareTo(a.getCreateTime());
-                    })
-                    .collect(Collectors.toList());
+            // 2. 使用优化的查询方法（数据库层面过滤和排序）
+            List<TeaArticle> allArticles = articleMapper.selectPublishedArticles(categoryId, keyword, 1);
             
-            // 3. 分页处理
-            int total = filteredArticles.size();
+            // 3. 内存分页处理
+            int total = allArticles.size();
             int startIndex = (page - 1) * pageSize;
             int endIndex = Math.min(startIndex + pageSize, total);
             
             List<ArticleVO> articleVOList = new ArrayList<>();
             if (startIndex < total) {
-                articleVOList = filteredArticles.subList(startIndex, endIndex).stream()
+                articleVOList = allArticles.subList(startIndex, endIndex).stream()
                         .map(article -> {
                             ArticleVO vo = new ArticleVO();
                             vo.setId(article.getId());
@@ -683,9 +651,31 @@ public class ForumServiceImpl implements ForumService {
             String tags = (String) data.get("tags");
             String source = (String) data.get("source");
             
-            // 2. 创建文章实体
+            // 2. 参数验证
+            if (title == null || title.trim().isEmpty()) {
+                logger.warn("创建文章失败: 标题不能为空");
+                return Result.failure(6111, "标题不能为空");
+            }
+            if (title.length() > 100) {
+                logger.warn("创建文章失败: 标题长度超过限制");
+                return Result.failure(6111, "标题长度不能超过100个字符");
+            }
+            if (content == null || content.trim().isEmpty()) {
+                logger.warn("创建文章失败: 内容不能为空");
+                return Result.failure(6111, "内容不能为空");
+            }
+            if (subtitle != null && subtitle.length() > 200) {
+                logger.warn("创建文章失败: 副标题长度超过限制");
+                return Result.failure(6111, "副标题长度不能超过200个字符");
+            }
+            if (summary != null && summary.length() > 500) {
+                logger.warn("创建文章失败: 摘要长度超过限制");
+                return Result.failure(6111, "摘要长度不能超过500个字符");
+            }
+            
+            // 3. 创建文章实体
             TeaArticle article = new TeaArticle();
-            article.setTitle(title);
+            article.setTitle(title.trim());
             article.setSubtitle(subtitle);
             article.setContent(content);
             article.setSummary(summary);
@@ -704,10 +694,10 @@ public class ForumServiceImpl implements ForumService {
             article.setCreateTime(new Date());
             article.setUpdateTime(new Date());
             
-            // 3. 保存到数据库
+            // 4. 保存到数据库
             articleMapper.insert(article);
             
-            // 4. 构造返回VO
+            // 5. 构造返回VO
             ArticleVO vo = new ArticleVO();
             vo.setId(article.getId());
             vo.setTitle(article.getTitle());
@@ -746,18 +736,42 @@ public class ForumServiceImpl implements ForumService {
                 return Result.failure(6112); // 文章更新失败
             }
             
-            // 2. 更新文章信息
+            // 2. 参数验证并更新文章信息
             if (data.containsKey("title")) {
-                article.setTitle((String) data.get("title"));
+                String title = (String) data.get("title");
+                if (title == null || title.trim().isEmpty()) {
+                    logger.warn("更新文章失败: 标题不能为空");
+                    return Result.failure(6112, "标题不能为空");
+                }
+                if (title.length() > 100) {
+                    logger.warn("更新文章失败: 标题长度超过限制");
+                    return Result.failure(6112, "标题长度不能超过100个字符");
+                }
+                article.setTitle(title.trim());
             }
             if (data.containsKey("subtitle")) {
-                article.setSubtitle((String) data.get("subtitle"));
+                String subtitle = (String) data.get("subtitle");
+                if (subtitle != null && subtitle.length() > 200) {
+                    logger.warn("更新文章失败: 副标题长度超过限制");
+                    return Result.failure(6112, "副标题长度不能超过200个字符");
+                }
+                article.setSubtitle(subtitle);
             }
             if (data.containsKey("content")) {
-                article.setContent((String) data.get("content"));
+                String content = (String) data.get("content");
+                if (content == null || content.trim().isEmpty()) {
+                    logger.warn("更新文章失败: 内容不能为空");
+                    return Result.failure(6112, "内容不能为空");
+                }
+                article.setContent(content);
             }
             if (data.containsKey("summary")) {
-                article.setSummary((String) data.get("summary"));
+                String summary = (String) data.get("summary");
+                if (summary != null && summary.length() > 500) {
+                    logger.warn("更新文章失败: 摘要长度超过限制");
+                    return Result.failure(6112, "摘要长度不能超过500个字符");
+                }
+                article.setSummary(summary);
             }
             if (data.containsKey("coverImage")) {
                 article.setCoverImage((String) data.get("coverImage"));
