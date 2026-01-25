@@ -52,201 +52,6 @@ public interface ForumService {
     Result<List<ForumHomeVO.BannerVO>> getBanners();
     
     /**
-     * 获取论坛主题列表
-     *
-     * @return 主题列表
-     */
-    List<ForumTopic> listTopics();
-    
-    /**
-     * 获取论坛主题详情
-     *
-     * @param id 主题ID
-     * @return 主题信息
-     */
-    ForumTopic getTopicById(Integer id);
-    
-    /**
-     * 创建论坛主题(管理员)
-     *
-     * @param topic 主题信息
-     * @return 主题信息
-     */
-    ForumTopic createTopic(ForumTopic topic);
-    
-    /**
-     * 更新论坛主题(管理员)
-     *
-     * @param topic 主题信息
-     * @return 是否成功
-     */
-    boolean updateTopic(ForumTopic topic);
-    
-    /**
-     * 删除论坛主题(管理员)
-     *
-     * @param id 主题ID
-     * @return 是否成功
-     */
-    boolean deleteTopic(Integer id);
-    
-    /**
-     * 获取帖子详情
-     *
-     * @param id 帖子ID
-     * @return 帖子信息
-     */
-    ForumPost getPostById(Long id);
-    
-    /**
-     * 分页查询主题下的帖子
-     *
-     * @param topicId 主题ID
-     * @param pageParam 分页参数
-     * @return 分页结果
-     */
-    PageResult<ForumPost> listPostsByTopic(Integer topicId, PageParam pageParam);
-    
-    /**
-     * 创建帖子
-     *
-     * @param post 帖子信息
-     * @return 帖子信息
-     */
-    ForumPost createPost(ForumPost post);
-    
-    /**
-     * 更新帖子
-     *
-     * @param post 帖子信息
-     * @return 是否成功
-     */
-    boolean updatePost(ForumPost post);
-    
-    /**
-     * 删除帖子
-     *
-     * @param id 帖子ID
-     * @return 是否成功
-     */
-    boolean deletePost(Long id);
-    
-    /**
-     * 设置帖子置顶(管理员)
-     *
-     * @param id 帖子ID
-     * @param isSticky 是否置顶
-     * @return 是否成功
-     */
-    boolean setPostSticky(Long id, Boolean isSticky);
-    
-    /**
-     * 设置帖子精华(管理员)
-     *
-     * @param id 帖子ID
-     * @param isEssence 是否精华
-     * @return 是否成功
-     */
-    boolean setPostEssence(Long id, Boolean isEssence);
-    
-    /**
-     * 获取回复列表
-     *
-     * @param postId 帖子ID
-     * @param pageParam 分页参数
-     * @return 分页结果
-     */
-    PageResult<ForumReply> listRepliesByPost(Long postId, PageParam pageParam);
-    
-    /**
-     * 创建回复
-     *
-     * @param reply 回复信息
-     * @return 回复信息
-     */
-    ForumReply createReply(ForumReply reply);
-    
-    /**
-     * 删除回复
-     *
-     * @param id 回复ID
-     * @return 是否成功
-     */
-    boolean deleteReply(Long id);
-    
-    /**
-     * 获取茶文化文章详情
-     *
-     * @param id 文章ID
-     * @return 文章信息
-     */
-    TeaArticle getArticleById(Long id);
-    
-    /**
-     * 分页查询茶文化文章
-     *
-     * @param pageParam 分页参数
-     * @return 分页结果
-     */
-    PageResult<TeaArticle> listArticles(PageParam pageParam);
-    
-    /**
-     * 创建茶文化文章(管理员)
-     *
-     * @param article 文章信息
-     * @return 文章信息
-     */
-    TeaArticle createArticle(TeaArticle article);
-    
-    /**
-     * 更新茶文化文章(管理员)
-     *
-     * @param article 文章信息
-     * @return 是否成功
-     */
-    boolean updateArticle(TeaArticle article);
-    
-    /**
-     * 删除茶文化文章(管理员)
-     *
-     * @param id 文章ID
-     * @return 是否成功
-     */
-    boolean deleteArticle(Long id);
-    
-    /**
-     * 获取首页内容列表
-     *
-     * @param section 板块
-     * @return 内容列表
-     */
-    List<HomeContent> listHomeContents(String section);
-    
-    /**
-     * 创建首页内容(管理员)
-     *
-     * @param content 内容信息
-     * @return 内容信息
-     */
-    HomeContent createHomeContent(HomeContent content);
-    
-    /**
-     * 更新首页内容(管理员)
-     *
-     * @param content 内容信息
-     * @return 是否成功
-     */
-    boolean updateHomeContent(HomeContent content);
-    
-    /**
-     * 删除首页内容(管理员)
-     *
-     * @param id 内容ID
-     * @return 是否成功
-     */
-    boolean deleteHomeContent(Integer id);
-    
-    /**
      * 上传帖子图片
      *
      * @param image 图片文件
@@ -549,4 +354,47 @@ public interface ForumService {
      * @return 取消点赞结果
      */
     Result<Object> unlikeReply(String id);
+    
+    /**
+     * 审核通过帖子（管理员）
+     * 路径: POST /forum/posts/{id}/approve
+     * 成功码: 6022, 失败码: 6134
+     *
+     * @param id 帖子ID
+     * @return 审核结果
+     */
+    Result<Object> approvePost(String id);
+    
+    /**
+     * 审核拒绝帖子（管理员）
+     * 路径: POST /forum/posts/{id}/reject
+     * 成功码: 6023, 失败码: 6135
+     *
+     * @param id 帖子ID
+     * @param dto 审核数据（包含拒绝原因）
+     * @return 审核结果
+     */
+    Result<Object> rejectPost(String id, com.shangnantea.model.dto.forum.RejectPostDTO dto);
+    
+    /**
+     * 设置帖子置顶/取消置顶（管理员）
+     * 路径: PUT /forum/posts/{id}/sticky
+     * 成功码: 6024, 6025, 失败码: 6136, 6137
+     *
+     * @param id 帖子ID
+     * @param isSticky 是否置顶
+     * @return 操作结果
+     */
+    Result<Object> togglePostSticky(String id, Boolean isSticky);
+    
+    /**
+     * 设置帖子精华/取消精华（管理员）
+     * 路径: PUT /forum/posts/{id}/essence
+     * 成功码: 6026, 6027, 失败码: 6138, 6139
+     *
+     * @param id 帖子ID
+     * @param isEssence 是否精华
+     * @return 操作结果
+     */
+    Result<Object> togglePostEssence(String id, Boolean isEssence);
 } 
