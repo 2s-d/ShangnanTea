@@ -1092,9 +1092,9 @@ const actions = {
   async toggleUserStatus({ commit }, { userId, status }) {
     commit('SET_LOADING', true)
     try {
-      await toggleUserStatusApi(userId, status)
+      const res = await toggleUserStatusApi(userId, status)
       commit('UPDATE_USER_IN_LIST', { id: userId, status })
-      return true
+      return res // 返回 {code, data}，组件调用showByCode(res.code)
     } catch (error) {
       console.error('切换用户状态失败', error)
       throw error
@@ -1176,9 +1176,9 @@ const actions = {
   async updateUser({ commit }, { userId, userData }) {
     commit('SET_LOADING', true)
     try {
-      await updateUserApi(userId, userData)
+      const res = await updateUserApi(userId, userData)
       commit('UPDATE_USER_IN_LIST', { id: userId, ...userData })
-      return true
+      return res // 返回 {code, data}，组件调用showByCode(res.code)
     } catch (error) {
       console.error('更新用户失败:', error)
       throw error
@@ -1196,9 +1196,9 @@ const actions = {
   async deleteUser({ commit }, userId) {
     commit('SET_LOADING', true)
     try {
-      await deleteUserApi(userId)
+      const res = await deleteUserApi(userId)
       commit('REMOVE_USER_FROM_LIST', userId)
-      return true
+      return res // 返回 {code, data}，组件调用showByCode(res.code)
     } catch (error) {
       console.error('删除用户失败:', error)
       throw error
