@@ -45,8 +45,6 @@ const SILENT_CODES = [
   6015, // 论坛模块-接口25: unlikePost - 已取消点赞
   6017, // 论坛模块-接口27: unfavoritePost - 已取消收藏
   6021, // 论坛模块-接口32: unlikeReply - 已取消点赞
-  6030, // 论坛模块-接口39: unlikeArticle - 已取消点赞文章
-  6032, // 论坛模块-接口41: unfavoriteArticle - 已取消收藏文章
   7001, // 消息模块-接口4: markAsRead - 通知已标记为已读
   7004  // 消息模块-接口10: batchMarkAsRead - 所有通知已标记为已读
 ]
@@ -669,22 +667,6 @@ export const CODE_MAP = {
   6140: '图片上传失败',
   6141: '不支持的文件类型',
   6142: '文件大小超限',
-  
-  // 接口38: likeArticle - /forum/articles/{id}/like
-  6029: '点赞成功',
-  6143: '点赞失败',
-  
-  // 接口39: unlikeArticle - /forum/articles/{id}/like
-  6030: '已取消点赞',
-  6144: '取消点赞失败',
-  
-  // 接口40: favoriteArticle - /forum/articles/{id}/favorite
-  6031: '收藏成功',
-  6145: '收藏失败',
-  
-  // 接口41: unfavoriteArticle - /forum/articles/{id}/favorite
-  6032: '已取消收藏',
-  6146: '取消收藏失败',
   
   // ========== 消息模块 (7xxx) ==========
   // 接口1: getMessages - /message/list

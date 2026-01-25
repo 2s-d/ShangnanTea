@@ -871,7 +871,7 @@
 | 5145 | 不支持的文件类型 | 文件类型错误 | 显示 |
 | 5146 | 文件大小超限 | 文件过大 | 显示 |
 
-### 五、论坛模块接口 (forum.js) - 共41个接口
+### 五、论坛模块接口 (forum.js) - 共37个接口
 
 #### 接口1: getHomeData - /forum/home (2个状态码)
 
@@ -1139,34 +1139,6 @@
 | 6140 | 图片上传失败 | 上传帖子图片失败 | 显示 |
 | 6141 | 不支持的文件类型 | 文件类型错误 | 显示 |
 | 6142 | 文件大小超限 | 文件过大 | 显示 |
-
-#### 接口38: likeArticle - /forum/articles/{id}/like (2个状态码)
-
-| Code | 消息 | 场景 | 显示 |
-|------|------|------|------|
-| 6029 | 点赞成功 | 点赞文章成功 | 显示 |
-| 6143 | 点赞失败 | 点赞文章失败 | 显示 |
-
-#### 接口39: unlikeArticle - /forum/articles/{id}/like (2个状态码)
-
-| Code | 消息 | 场景 | 显示 |
-|------|------|------|------|
-| 6030 | 已取消点赞 | 取消点赞文章成功 | [静默] |
-| 6144 | 取消点赞失败 | 取消点赞文章失败 | 显示 |
-
-#### 接口40: favoriteArticle - /forum/articles/{id}/favorite (2个状态码)
-
-| Code | 消息 | 场景 | 显示 |
-|------|------|------|------|
-| 6031 | 收藏成功 | 收藏文章成功 | 显示 |
-| 6145 | 收藏失败 | 收藏文章失败 | 显示 |
-
-#### 接口41: unfavoriteArticle - /forum/articles/{id}/favorite (2个状态码)
-
-| Code | 消息 | 场景 | 显示 |
-|------|------|------|------|
-| 6032 | 已取消收藏 | 取消收藏文章成功 | [静默] |
-| 6146 | 取消收藏失败 | 取消收藏文章失败 | 显示 |
 
 ### 六、消息模块接口 (message.js) - 共22个接口
 
@@ -1614,7 +1586,7 @@
 | 6 | deleteBanner | DELETE | /forum/banners/{id} | 6003 | 6107 | 删除Banner |
 | 7 | updateBannerOrder | PUT | /forum/banners/order | 6004 | 6108 | 更新Banner排序 |
 
-### 5.2 文章管理 (9个)
+### 5.2 文章管理 (5个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
@@ -1623,10 +1595,6 @@
 | 10 | createArticle | POST | /forum/articles | 6005 | 6111 | 创建文章 |
 | 11 | updateArticle | PUT | /forum/articles/{id} | 6006 | 6112 | 更新文章 |
 | 12 | deleteArticle | DELETE | /forum/articles/{id} | 6007 | 6113 | 删除文章 |
-| 38 | likeArticle | POST | /forum/articles/{id}/like | 6029 | 6143 | 点赞文章 |
-| 39 | unlikeArticle | DELETE | /forum/articles/{id}/like | 6030 | 6144 | 取消点赞文章 |
-| 40 | favoriteArticle | POST | /forum/articles/{id}/favorite | 6031 | 6145 | 收藏文章 |
-| 41 | unfavoriteArticle | DELETE | /forum/articles/{id}/favorite | 6032 | 6146 | 取消收藏文章 |
 
 ### 5.3 版块管理 (5个)
 
@@ -1738,9 +1706,9 @@
 | 茶叶模块 | 26 | 3xxx |
 | 店铺模块 | 26 | 4xxx |
 | 订单模块 | 21 | 5xxx |
-| 论坛模块 | 41 | 6xxx |
+| 论坛模块 | 37 | 6xxx |
 | 消息模块 | 22 | 7xxx |
-| **总计** | **171** | - |
+| **总计** | **167** | - |
 
 ---
 

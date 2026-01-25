@@ -60,14 +60,9 @@
         </el-button>
         <div class="action-buttons">
           <el-button type="default" @click="handleLike" :class="{'is-liked': isLiked}">
-            <i class="el-icon-thumb" v-if="!isLiked"></i>
-            <i class="el-icon-thumb" v-else style="color: #E6A23C;"></i>
-            点赞 ({{ article.likeCount || 0 }})
-          </el-button>
-          <el-button type="default" @click="handleFavorite" :class="{'is-favorited': isFavorited}">
-            <i class="el-icon-star-off" v-if="!isFavorited"></i>
+            <i class="el-icon-star-off" v-if="!isLiked"></i>
             <i class="el-icon-star-on" v-else></i>
-            收藏 ({{ article.favoriteCount || 0 }})
+            收藏 ({{ article.likeCount }})
           </el-button>
           <el-button type="default" @click="handleShare">
             <i class="el-icon-share"></i> 分享
@@ -146,6 +141,7 @@ export default {
     const router = useRouter()
     const store = useStore()
     const loading = computed(() => store.state.forum.loading)
+    const isLiked = ref(false)
     const shareDialogVisible = ref(false)
     
     // 从Vuex获取当前文章
@@ -158,17 +154,10 @@ export default {
       publishTime: new Date(),
       viewCount: 0,
       likeCount: 0,
-      favoriteCount: 0,
-      isLiked: false,
-      isFavorited: false,
       tags: [],
       source: '',
       coverImage: ''
     })
-    
-    // 从Vuex获取点赞和收藏状态
-    const isLiked = computed(() => article.value.isLiked || false)
-    const isFavorited = computed(() => article.value.isFavorited || false)
     
     // 相关文章（从文章列表中筛选同分类的其他文章）
     const relatedArticles = computed(() => {
@@ -232,37 +221,13 @@ export default {
       router.back()
     }
 
-    // 处理点赞
+    // 处理收藏
     const handleLike = async () => {
       try {
-        const articleId = article.value.id
-        if (isLiked.value) {
-          // 取消点赞
-          const res = await store.dispatch('forum/unlikeArticle', articleId)
-          showByCode(res.code)
-        } else {
-          // 点赞
-          const res = await store.dispatch('forum/likeArticle', articleId)
-          showByCode(res.code)
-        }
-      } catch (error) {
-        console.error('点赞操作失败:', error)
-      }
-    }
-    
-    // 处理收藏
-    const handleFavorite = async () => {
-      try {
-        const articleId = article.value.id
-        if (isFavorited.value) {
-          // 取消收藏
-          const res = await store.dispatch('forum/unfavoriteArticle', articleId)
-          showByCode(res.code)
-        } else {
-          // 收藏
-          const res = await store.dispatch('forum/favoriteArticle', articleId)
-          showByCode(res.code)
-        }
+        // 这里可以调用文章点赞API，目前暂时使用简单的状态切换
+        isLiked.value = !isLiked.value
+        // 收藏状态切换不需要API调用，只是本地状态变化
+        console.log('收藏状态已切换:', isLiked.value)
       } catch (error) {
         console.error('收藏操作失败:', error)
       }
@@ -320,12 +285,10 @@ export default {
       relatedArticles,
       loading,
       isLiked,
-      isFavorited,
       shareDialogVisible,
       formatDate,
       goBack,
       handleLike,
-      handleFavorite,
       handleShare,
       shareToWeixin,
       shareToWeibo,
@@ -479,13 +442,6 @@ export default {
           &.is-liked {
             color: #E6A23C;
             border-color: #E6A23C;
-            background-color: #fef5e7;
-          }
-          
-          &.is-favorited {
-            color: #E6A23C;
-            border-color: #E6A23C;
-            background-color: #fef5e7;
             
             i {
               color: #E6A23C;

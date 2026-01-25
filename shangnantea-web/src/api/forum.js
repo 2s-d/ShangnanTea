@@ -158,54 +158,6 @@ export function deleteArticle(id) {
 }
 
 /**
- * 点赞文章
- * @param {number} id 文章ID
- * @returns {Promise} 点赞结果
- */
-export function likeArticle(id) {
-  return request({
-    url: `${API.FORUM.ARTICLE_DETAIL}${id}/like`,
-    method: 'post'
-  })
-}
-
-/**
- * 取消点赞文章
- * @param {number} id 文章ID
- * @returns {Promise} 取消点赞结果
- */
-export function unlikeArticle(id) {
-  return request({
-    url: `${API.FORUM.ARTICLE_DETAIL}${id}/like`,
-    method: 'delete'
-  })
-}
-
-/**
- * 收藏文章
- * @param {number} id 文章ID
- * @returns {Promise} 收藏结果
- */
-export function favoriteArticle(id) {
-  return request({
-    url: `${API.FORUM.ARTICLE_DETAIL}${id}/favorite`,
-    method: 'post'
-  })
-}
-
-/**
- * 取消收藏文章
- * @param {number} id 文章ID
- * @returns {Promise} 取消收藏结果
- */
-export function unfavoriteArticle(id) {
-  return request({
-    url: `${API.FORUM.ARTICLE_DETAIL}${id}/favorite`,
-    method: 'delete'
-  })
-}
-
-/**
  * 获取论坛版块列表
  * @returns {Promise} 版块列表
  */
@@ -546,10 +498,6 @@ export default {
   createArticle,
   updateArticle,
   deleteArticle,
-  likeArticle,
-  unlikeArticle,
-  favoriteArticle,
-  unfavoriteArticle,
   getForumTopics,
   getTopicDetail,
   createTopic,
