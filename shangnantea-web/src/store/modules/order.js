@@ -128,34 +128,33 @@ const mutations = {
 
 const actions = {
   // === 购物车相关actions ===
-  // 接口88-92: 购物车操作
   
-  // #88 获取购物车列表 - 成功码200, 失败码4110
+  // 获取购物车列表 - 成功码200, 失败码5100
   async fetchCartItems({ commit }) {
     try {
       commit('SET_LOADING', true)
       const res = await getCartItems()
       commit('SET_CART_ITEMS', res.data)
-      return res // 返回 {code, data}
+      return res
     } finally {
       commit('SET_LOADING', false)
     }
   },
   
-  // #89 添加商品到购物车 - 成功码4010, 失败码4111/4116/4117/4118
-  async addToCart({ commit, dispatch }, { teaId, quantity }) {
+  // 添加商品到购物车 - 成功码5000, 失败码5101/5102/5103/5104
+  async addToCart({ commit, dispatch }, { teaId, quantity, specificationId }) {
     try {
       commit('SET_LOADING', true)
-      const res = await addToCart({ teaId, quantity })
+      const res = await addToCart({ teaId, quantity, specificationId })
       // 刷新购物车列表
       dispatch('fetchCartItems')
-      return res // 返回 {code, data}
+      return res
     } finally {
       commit('SET_LOADING', false)
     }
   },
   
-  // #90 更新购物车商品 - 成功码4011/4012, 失败码4112/4116/4117
+  // 更新购物车商品 - 成功码5001/5002, 失败码5105/5106/5107
   async updateCartItem({ commit, dispatch }, { id, quantity, specificationId }) {
     try {
       commit('SET_LOADING', true)
@@ -164,7 +163,7 @@ const actions = {
       if (quantity !== undefined) {
         commit('UPDATE_CART_ITEM', { id, quantity })
       }
-      return res // 返回 {code, data}
+      return res
     } catch (error) {
       // 如果失败，重新获取购物车
       dispatch('fetchCartItems')
@@ -174,35 +173,34 @@ const actions = {
     }
   },
   
-  // #91 移除购物车商品 - 成功码4013, 失败码4113
+  // 移除购物车商品 - 成功码5003, 失败码5108
   async removeFromCart({ commit }, id) {
     try {
       commit('SET_LOADING', true)
       const res = await removeFromCart(id)
       // 乐观更新前端状态
       commit('REMOVE_CART_ITEM', id)
-      return res // 返回 {code, data}
+      return res
     } finally {
       commit('SET_LOADING', false)
     }
   },
   
-  // #92 清空购物车 - 成功码4015, 失败码4115
+  // 清空购物车 - 成功码5004, 失败码5109
   async clearCart({ commit }) {
     try {
       commit('SET_LOADING', true)
       const res = await clearCart()
       commit('CLEAR_CART')
-      return res // 返回 {code, data}
+      return res
     } finally {
       commit('SET_LOADING', false)
     }
   },
   
   // === 订单相关actions ===
-  // 接口93-99: 订单基础操作
   
-  // #93 创建订单 - 成功码4000, 失败码4100/4116/4118
+  // 创建订单 - 成功码5005, 失败码5110/5111/5112
   async createOrder({ commit, dispatch }, orderData) {
     try {
       commit('SET_LOADING', true)
@@ -217,7 +215,7 @@ const actions = {
     }
   },
   
-  // #94 获取订单列表 - 成功码200, 失败码1102
+  // 获取订单列表 - 成功码200, 失败码5113
   async fetchOrders({ commit, state }, params = {}) {
     try {
       commit('SET_LOADING', true)
@@ -240,7 +238,7 @@ const actions = {
     }
   },
   
-  // #95 获取订单详情 - 成功码200, 失败码4105/4106/4107
+  // 获取订单详情 - 成功码200, 失败码5114/5115/5116
   async fetchOrderDetail({ commit }, id) {
     try {
       commit('SET_LOADING', true)
@@ -252,7 +250,7 @@ const actions = {
     }
   },
   
-  // #96 支付订单 - 成功码4005/4020, 失败码4120/4121/4122/4124
+  // 支付订单 - 成功码5006/5007, 失败码5117/5118/5119/5120
   async payOrder({ commit }, { orderId, paymentMethod }) {
     try {
       commit('SET_LOADING', true)
@@ -265,7 +263,7 @@ const actions = {
     }
   },
   
-  // #97 取消订单 - 成功码4002, 失败码4102/4105/4106
+  // 取消订单 - 成功码5008, 失败码5121/5122/5123
   async cancelOrder({ commit }, id) {
     try {
       commit('SET_LOADING', true)
@@ -278,7 +276,7 @@ const actions = {
     }
   },
 
-  // #98 确认收货 - 成功码4003, 失败码4103/4105/4106
+  // 确认收货 - 成功码5009, 失败码5124/5125/5126
   async confirmReceipt({ commit }, id) {
     try {
       commit('SET_LOADING', true)
@@ -291,7 +289,7 @@ const actions = {
     }
   },
 
-  // #99 评价订单 - 成功码4050, 失败码4150
+  // 评价订单 - 成功码5010, 失败码5127
   async submitOrderReview({ commit }, payload) {
     try {
       commit('SET_LOADING', true)
@@ -305,7 +303,7 @@ const actions = {
     }
   },
 
-  // #100 申请退款 - 成功码4030, 失败码4130/4105/4106
+  // 申请退款 - 成功码5011, 失败码5128/5129/5130
   async applyRefund({ commit }, { orderId, reason }) {
     try {
       commit('SET_LOADING', true)
@@ -322,9 +320,8 @@ const actions = {
   },
   
   // === 发货相关 actions ===
-  // 接口103-105: 发货与物流
   
-  // #103 单个订单发货 - 成功码4004, 失败码4104/4105/4106
+  // 单个订单发货 - 成功码5014, 失败码5135/5136/5137
   async shipOrder({ commit }, { id, logisticsCompany, logisticsNumber }) {
     try {
       commit('SET_LOADING', true)
@@ -337,7 +334,7 @@ const actions = {
     }
   },
   
-  // #104 批量发货 - 成功码4006, 失败码4108/4106
+  // 批量发货 - 成功码5015, 失败码5138/5139
   async batchShipOrders({ commit }, { orderIds, logisticsCompany, logisticsNumber }) {
     try {
       commit('SET_LOADING', true)
@@ -352,7 +349,7 @@ const actions = {
     }
   },
   
-  // #105 获取订单物流信息 - 成功码200, 失败码4140/4105
+  // 获取订单物流信息 - 成功码200, 失败码5140/5141
   async fetchOrderLogistics(_, id) {
     try {
       const res = await getOrderLogistics(id)
@@ -364,9 +361,8 @@ const actions = {
   },
   
   // === 退款相关 actions ===
-  // 接口101-102: 退款处理
   
-  // #101 审批退款 - 成功码4031/4032, 失败码4131/4106
+  // 审批退款 - 成功码5012/5013, 失败码5131/5132
   async processRefund({ commit }, { orderId, approve, reason }) {
     try {
       commit('SET_LOADING', true)
@@ -381,7 +377,7 @@ const actions = {
     }
   },
   
-  // #102 获取退款详情 - 成功码200, 失败码4132/4105
+  // 获取退款详情 - 成功码200, 失败码5133/5134
   async fetchRefundDetail(_, orderId) {
     try {
       const res = await getRefundDetail(orderId)
@@ -393,9 +389,8 @@ const actions = {
   },
   
   // === 统计与导出 actions ===
-  // 接口106-107: 统计与导出
   
-  // #106 获取订单统计数据 - 成功码200, 失败码1102
+  // 获取订单统计数据 - 成功码200, 失败码5142
   async fetchOrderStatistics({ commit }, params = {}) {
     try {
       const res = await getOrderStatistics(params)
@@ -407,7 +402,7 @@ const actions = {
     }
   },
   
-  // #107 导出订单数据 - 成功码200, 失败码1100
+  // 导出订单数据 - 成功码200, 失败码5143
   async exportOrders({ commit }, params = {}) {
     try {
       commit('SET_LOADING', true)

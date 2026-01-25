@@ -37,13 +37,13 @@
                 <el-checkbox v-model="item.selected" @change="handleItemSelectChange"></el-checkbox>
               </div>
               
-              <div class="item-info" @click="goToTeaDetail(item.tea_id)">
+              <div class="item-info" @click="goToTeaDetail(item.teaId)">
                 <div class="item-image">
-                  <SafeImage :src="item.tea_image" type="tea" :alt="item.tea_name" style="width:80px;height:80px;object-fit:cover;" />
+                  <SafeImage :src="item.teaImage" type="tea" :alt="item.teaName" style="width:80px;height:80px;object-fit:cover;" />
                 </div>
                 <div class="item-details">
-                  <div class="item-name">{{ item.tea_name }}</div>
-                  <div class="item-spec">规格：{{ item.spec_name }}</div>
+                  <div class="item-name">{{ item.teaName }}</div>
+                  <div class="item-spec">规格：{{ item.specName }}</div>
                   <div class="item-stock" v-if="item.stock !== undefined">
                     <el-tag 
                       :type="item.stock >= item.quantity ? 'success' : 'danger'" 
@@ -53,8 +53,8 @@
                     </el-tag>
                   </div>
                   <div class="item-from">
-                    <el-tag size="small" type="info">{{ isPlatformProduct(item.shop_id) ? '平台直售' : '店铺商品' }}</el-tag>
-                    <span v-if="!isPlatformProduct(item.shop_id)" class="shop-name">{{ item.shop_name }}</span>
+                    <el-tag size="small" type="info">{{ isPlatformProduct(item.shopId) ? '平台直售' : '店铺商品' }}</el-tag>
+                    <span v-if="!isPlatformProduct(item.shopId)" class="shop-name">{{ item.shopName }}</span>
                   </div>
                 </div>
               </div>
@@ -139,9 +139,9 @@
     >
       <div class="spec-select-container">
         <div class="current-tea-info" v-if="currentSpecTea">
-          <SafeImage :src="currentSpecTea.tea_image" type="tea" :alt="currentSpecTea.tea_name" class="tea-image" style="width:80px;height:80px;object-fit:cover;" />
+          <SafeImage :src="currentSpecTea.teaImage" type="tea" :alt="currentSpecTea.teaName" class="tea-image" style="width:80px;height:80px;object-fit:cover;" />
           <div class="tea-info">
-            <div class="tea-name">{{ currentSpecTea.tea_name }}</div>
+            <div class="tea-name">{{ currentSpecTea.teaName }}</div>
             <div class="tea-price">¥{{ selectedSpecPrice.toFixed(2) }}</div>
             <div class="selected-spec">已选规格：{{ selectedSpecName }}</div>
           </div>
@@ -314,12 +314,12 @@ export default {
     const selectSpecification = async item => {
       currentCartItemId.value = item.id
       currentSpecTea.value = item
-      tempSelectedSpecId.value = item.spec_id || null
+      tempSelectedSpecId.value = item.specId || null
       
       // 获取茶叶的规格列表
       try {
         loading.value = true
-        const res = await store.dispatch('tea/fetchTeaSpecifications', item.tea_id)
+        const res = await store.dispatch('tea/fetchTeaSpecifications', item.teaId)
         availableSpecs.value = res?.data || res || []
         
         // 如果没有规格，提示用户
@@ -345,7 +345,7 @@ export default {
 
       // 如果选择的规格和当前规格相同，直接关闭
       const currentItem = cartItems.value.find(item => item.id === currentCartItemId.value)
-      if (currentItem && currentItem.spec_id === tempSelectedSpecId.value) {
+      if (currentItem && currentItem.specId === tempSelectedSpecId.value) {
         specDialogVisible.value = false
         return
       }

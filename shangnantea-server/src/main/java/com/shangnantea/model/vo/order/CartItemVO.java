@@ -55,6 +55,21 @@ public class CartItemVO implements Serializable {
      */
     private Boolean selected;
     
+    /**
+     * 店铺ID
+     */
+    private String shopId;
+    
+    /**
+     * 店铺名称
+     */
+    private String shopName;
+    
+    /**
+     * 库存数量
+     */
+    private Integer stock;
+    
     // Getters and Setters
     
     public String getId() {
@@ -127,5 +142,29 @@ public class CartItemVO implements Serializable {
     
     public void setSelected(Boolean selected) {
         this.selected = selected;
+    }
+    
+    public String getShopId() {
+        return shopId;
+    }
+    
+    public void setShopId(String shopId) {
+        this.shopId = shopId;
+    }
+    
+    public String getShopName() {
+        return shopName;
+    }
+    
+    public void setShopName(String shopName) {
+        this.shopName = shopName;
+    }
+    
+    public Integer getStock() {
+        return stock;
+    }
+    
+    public void setStock(Integer stock) {
+        this.stock = stock;
     }
 }

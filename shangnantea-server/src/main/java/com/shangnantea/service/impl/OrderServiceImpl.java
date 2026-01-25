@@ -357,7 +357,7 @@ public class OrderServiceImpl implements OrderService {
                 logger.info("购物车商品数量已更新: cartId={}, newQuantity={}", existingCart.getId(), newQuantity);
                 
                 // 构建返回VO
-                CartItemVO itemVO = buildCartItemVO(existingCart, tea, specName, price);
+                CartItemVO itemVO = buildCartItemVO(existingCart, tea, specName, price, stock);
                 return Result.success(5000, itemVO);
                 
             } else {
@@ -376,7 +376,7 @@ public class OrderServiceImpl implements OrderService {
                 logger.info("商品已加入购物车: cartId={}, teaId={}, quantity={}", cart.getId(), teaId, quantity);
                 
                 // 构建返回VO
-                CartItemVO itemVO = buildCartItemVO(cart, tea, specName, price);
+                CartItemVO itemVO = buildCartItemVO(cart, tea, specName, price, stock);
                 return Result.success(5000, itemVO);
             }
             
@@ -389,7 +389,7 @@ public class OrderServiceImpl implements OrderService {
     /**
      * 构建购物车项VO
      */
-    private CartItemVO buildCartItemVO(ShoppingCart cart, Tea tea, String specName, BigDecimal price) {
+    private CartItemVO buildCartItemVO(ShoppingCart cart, Tea tea, String specName, BigDecimal price, Integer stock) {
         CartItemVO itemVO = new CartItemVO();
         itemVO.setId(String.valueOf(cart.getId()));
         itemVO.setTeaId(cart.getTeaId());
@@ -400,6 +400,21 @@ public class OrderServiceImpl implements OrderService {
         itemVO.setPrice(price);
         itemVO.setQuantity(cart.getQuantity());
         itemVO.setSelected(cart.getSelected() != null && cart.getSelected() == 1);
+        itemVO.setShopId(tea.getShopId());
+        itemVO.setStock(stock);
+        
+        // 查询店铺名称
+        if (tea.getShopId() != null) {
+            try {
+                Shop shop = shopMapper.selectById(tea.getShopId());
+                if (shop != null) {
+                    itemVO.setShopName(shop.getShopName());
+                }
+            } catch (Exception e) {
+                logger.warn("查询店铺信息失败: shopId={}, error={}", tea.getShopId(), e.getMessage());
+            }
+        }
+        
         return itemVO;
     }
     
@@ -530,7 +545,7 @@ public class OrderServiceImpl implements OrderService {
                 logger.info("购物车规格已更新: cartId={}, newSpecId={}", id, newSpecId);
                 
                 // 构建返回VO
-                CartItemVO itemVO = buildCartItemVO(cart, tea, newSpecName, newPrice);
+                CartItemVO itemVO = buildCartItemVO(cart, tea, newSpecName, newPrice, stock);
                 return Result.success(5002, itemVO); // 规格已更新
             }
             
@@ -580,7 +595,7 @@ public class OrderServiceImpl implements OrderService {
                 logger.info("购物车数量已更新: cartId={}, newQuantity={}", id, quantity);
                 
                 // 构建返回VO
-                CartItemVO itemVO = buildCartItemVO(cart, tea, specName, price);
+                CartItemVO itemVO = buildCartItemVO(cart, tea, specName, price, stock);
                 return Result.success(5001, itemVO); // 商品数量已更新
             }
             
@@ -664,43 +679,74 @@ public class OrderServiceImpl implements OrderService {
             BigDecimal totalPrice = BigDecimal.ZERO;
             
             for (ShoppingCart cart : cartList) {
-                CartItemVO itemVO = new CartItemVO();
-                itemVO.setId(String.valueOf(cart.getId()));
-                itemVO.setTeaId(cart.getTeaId());
-                itemVO.setSpecId(cart.getSpecId() != null ? String.valueOf(cart.getSpecId()) : null);
-                itemVO.setQuantity(cart.getQuantity());
-                itemVO.setSelected(cart.getSelected() != null && cart.getSelected() == 1);
-                
                 // 查询商品信息
+                Tea tea = null;
                 if (cart.getTeaId() != null) {
                     try {
-                        Tea tea = teaMapper.selectById(Long.parseLong(cart.getTeaId()));
-                        if (tea != null) {
-                            itemVO.setTeaName(tea.getName());
-                            itemVO.setTeaImage(tea.getMainImage());
-                        }
+                        tea = teaMapper.selectById(Long.parseLong(cart.getTeaId()));
                     } catch (NumberFormatException e) {
                         logger.warn("商品ID格式错误: {}", cart.getTeaId());
+                        continue; // 跳过无效商品
                     }
                 }
                 
-                // 查询规格信息
+                if (tea == null) {
+                    logger.warn("商品不存在，跳过: teaId={}", cart.getTeaId());
+                    continue; // 跳过不存在的商品
+                }
+                
+                // 查询规格信息和库存
+                BigDecimal price = null;
+                String specName = null;
+                Integer stock = 0;
+                
                 if (cart.getSpecId() != null) {
                     try {
                         TeaSpecification spec = teaSpecificationMapper.selectById(cart.getSpecId().longValue());
                         if (spec != null) {
-                            itemVO.setSpecName(spec.getSpecName());
-                            itemVO.setPrice(spec.getPrice());
-                            
-                            // 计算总价
-                            if (spec.getPrice() != null && cart.getQuantity() != null) {
-                                BigDecimal itemTotal = spec.getPrice().multiply(new BigDecimal(cart.getQuantity()));
-                                totalPrice = totalPrice.add(itemTotal);
-                            }
+                            specName = spec.getSpecName();
+                            price = spec.getPrice();
+                            stock = spec.getStock() != null ? spec.getStock() : 0;
                         }
                     } catch (Exception e) {
                         logger.warn("查询规格信息失败: specId={}, error={}", cart.getSpecId(), e.getMessage());
                     }
+                } else {
+                    // 没有规格，使用商品默认价格和库存
+                    price = tea.getPrice();
+                    stock = tea.getStock() != null ? tea.getStock() : 0;
+                }
+                
+                // 构建CartItemVO
+                CartItemVO itemVO = new CartItemVO();
+                itemVO.setId(String.valueOf(cart.getId()));
+                itemVO.setTeaId(cart.getTeaId());
+                itemVO.setTeaName(tea.getName());
+                itemVO.setTeaImage(tea.getMainImage());
+                itemVO.setSpecId(cart.getSpecId() != null ? String.valueOf(cart.getSpecId()) : null);
+                itemVO.setSpecName(specName);
+                itemVO.setPrice(price);
+                itemVO.setQuantity(cart.getQuantity());
+                itemVO.setSelected(cart.getSelected() != null && cart.getSelected() == 1);
+                itemVO.setShopId(tea.getShopId());
+                itemVO.setStock(stock);
+                
+                // 查询店铺名称
+                if (tea.getShopId() != null) {
+                    try {
+                        Shop shop = shopMapper.selectById(tea.getShopId());
+                        if (shop != null) {
+                            itemVO.setShopName(shop.getShopName());
+                        }
+                    } catch (Exception e) {
+                        logger.warn("查询店铺信息失败: shopId={}, error={}", tea.getShopId(), e.getMessage());
+                    }
+                }
+                
+                // 计算总价（仅计算选中的商品）
+                if (itemVO.getSelected() && price != null && cart.getQuantity() != null) {
+                    BigDecimal itemTotal = price.multiply(new BigDecimal(cart.getQuantity()));
+                    totalPrice = totalPrice.add(itemTotal);
                 }
                 
                 itemList.add(itemVO);
