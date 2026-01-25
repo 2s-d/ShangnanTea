@@ -364,8 +364,8 @@ const actions = {
     // 响应拦截器返回 {code, data}，从 res.data 提取数据
     const res = await getUnreadCount()
     const data = res.data
-    // 如果返回的是数字直接使用，如果是对象取 count 字段
-    const count = typeof data === 'number' ? data : (data?.count || 0)
+    // 后端返回 UnreadCountVO{total, system, chat}，提取 total 字段
+    const count = data?.total || 0
     commit('SET_UNREAD_COUNT', count)
     
     return res

@@ -246,10 +246,7 @@ export default {
     
     // 打开通知
     const openNotification = async notification => {
-      // 标记为已读
-      if (notification.isRead === 0) {
-        await markAsRead(notification.id)
-      }
+      // 注意：后端在 getNotificationDetail() 中会自动标记为已读，无需前端手动调用
       
       // 根据通知类型跳转到相应页面
       switch (notification.type) {
