@@ -1126,19 +1126,14 @@ export default {
               }
             }
             
-            // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-            // TODO: [tea] 迁移到 showByCode(response.code) - success
-            teaMessages.success.showTeaCreated()
+            showByCode(result.code)
           }
           
           // 关闭对话框
           dialogVisible.value = false
           submitting.value = false
         } catch (error) {
-          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-          teaMessages.error.showTeaSubmitFailed(error.message)
+          console.error('保存茶叶失败:', error)
           submitting.value = false
         }
       })
@@ -1194,15 +1189,11 @@ export default {
         )
         
         categoryLoading.value = true
-        await store.dispatch('tea/deleteCategory', category.id)
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        teaMessages.success.showCategoryDeleted()
+        const response = await store.dispatch('tea/deleteCategory', category.id)
+        showByCode(response.code)
       } catch (error) {
         if (error !== 'cancel') {
-          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-          teaMessages.error.showCategoryDeleteFailed(error?.message)
+          console.error('删除分类失败:', error)
         }
       } finally {
         categoryLoading.value = false
@@ -1226,25 +1217,19 @@ export default {
           }
           
           if (isEditCategory.value) {
-            await store.dispatch('tea/updateCategory', {
+            const response = await store.dispatch('tea/updateCategory', {
               id: currentCategory.value.id,
               categoryData
             })
-            // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-            teaMessages.success.showCategoryUpdated()
+            showByCode(response.code)
           } else {
-            await store.dispatch('tea/createCategory', categoryData)
-            // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-            teaMessages.success.showCategoryCreated()
+            const response = await store.dispatch('tea/createCategory', categoryData)
+            showByCode(response.code)
           }
           
           categoryDialogVisible.value = false
         } catch (error) {
-          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-          teaMessages.error.showCategorySubmitFailed(error?.message)
+          console.error('提交分类失败:', error)
         } finally {
           categorySubmitting.value = false
         }
@@ -1278,9 +1263,7 @@ export default {
         // 更新Vuex filters并获取数据
         await store.dispatch('tea/updateFilters', filters)
       } catch (error) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        teaMessages.error.showListFailed(error.message)
+        console.error('加载茶叶列表失败:', error)
       }
     }
     

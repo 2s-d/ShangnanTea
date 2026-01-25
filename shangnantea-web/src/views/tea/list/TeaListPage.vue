@@ -250,10 +250,7 @@ export default {
           status: 1 // 任务组E：只显示上架茶叶
         })
       } catch (error) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        // TODO: [tea] 迁移到 showByCode(response.code) - error
-        teaMessages.error.showListFailed(error.message)
+        console.error('加载茶叶列表失败:', error)
       }
     }
     

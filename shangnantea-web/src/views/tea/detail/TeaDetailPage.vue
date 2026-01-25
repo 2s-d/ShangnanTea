@@ -433,19 +433,15 @@ export default {
       submittingReply.value = true
       
       try {
-        await store.dispatch('tea/replyReview', {
+        const response = await store.dispatch('tea/replyReview', {
           reviewId: review.id,
           reply: replyContent.value
         })
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        teaMessages.success.showReplySuccess()
+        showByCode(response.code)
         activeReplyId.value = null
         replyContent.value = ''
       } catch (error) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        teaMessages.error.showReplyFailed(error.message)
+        console.error('回复评价失败:', error)
       } finally {
         submittingReply.value = false
       }
@@ -454,11 +450,10 @@ export default {
     // 点赞评价
     const handleLikeReview = async review => {
       try {
-        await store.dispatch('tea/likeReview', review.id)
+        const response = await store.dispatch('tea/likeReview', review.id)
+        showByCode(response.code)
       } catch (error) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        teaMessages.error.showLikeFailed(error.message)
+        console.error('点赞失败:', error)
       }
     }
     
@@ -516,28 +511,21 @@ export default {
             item.targetType === 'tea' && item.targetId === tea.value.id
           )
           if (favoriteItem) {
-            await store.dispatch('user/removeFavorite', favoriteItem.id)
-            // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-            teaMessages.success.showRemovedFromFavorites()
+            const response = await store.dispatch('user/removeFavorite', favoriteItem.id)
+            showByCode(response.code)
           }
         } else {
           // 添加收藏
-          await store.dispatch('user/addFavorite', {
+          const response = await store.dispatch('user/addFavorite', {
             targetId: tea.value.id,
             targetType: 'tea',
             targetName: tea.value.name,
             targetImage: tea.value.main_image || tea.value.images?.[0] || ''
           })
-          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-          // TODO: [tea] 迁移到 showByCode(response.code) - success
-          teaMessages.success.showAddedToFavorites()
+          showByCode(response.code)
         }
       } catch (error) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        teaMessages.error.showFavoriteFailed(error.message)
+        console.error('收藏操作失败:', error)
       } finally {
         favoriteLoading.value = false
       }
@@ -575,9 +563,7 @@ export default {
           selectedSpecId.value = specs[0].id
         }
       } catch (e) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        teaMessages.error.showDetailFailed(e?.message)
+        console.error('加载茶叶详情失败:', e)
       }
     }
     
@@ -667,18 +653,14 @@ export default {
       submitting.value = true
       try {
         // 生产版：通过 order 模块 action 走后端，传递规格ID
-        await store.dispatch('order/addToCart', { 
+        const response = await store.dispatch('order/addToCart', { 
           teaId: tea.value.id, 
           quantity: quantity.value,
           specificationId: selectedSpecId.value
         })
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        teaMessages.success.showAddedToCart()
+        showByCode(response.code)
       } catch (error) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        teaMessages.error.showCartFailed(error.message)
+        console.error('加入购物车失败:', error)
       } finally {
         submitting.value = false
       }
