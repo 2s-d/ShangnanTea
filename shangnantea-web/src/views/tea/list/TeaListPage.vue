@@ -180,7 +180,6 @@ import TeaCard from '@/components/tea/card/TeaCard.vue'
 
 import SearchBar from '@/components/common/SearchBar.vue'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
-import teaMessages from '@/utils/promptMessages'
 
 export default {
   name: 'TeaListPage',
@@ -250,10 +249,7 @@ export default {
           status: 1 // 任务组E：只显示上架茶叶
         })
       } catch (error) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        // TODO: [tea] 迁移到 showByCode(response.code) - error
-        teaMessages.error.showListFailed(error.message)
+        showByCode(3100) // 茶叶列表加载失败
       }
     }
     

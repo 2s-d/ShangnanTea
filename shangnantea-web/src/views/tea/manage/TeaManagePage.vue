@@ -473,7 +473,7 @@ import { useImageUpload } from '@/composables/useImageUpload'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 
 import { showByCode, isSuccess } from '@/utils/apiMessages'
-import teaMessages from '@/utils/promptMessages'
+import { teaPromptMessages } from '@/utils/promptMessages'
 
 export default {
   name: 'TeaManagePage',
@@ -784,13 +784,9 @@ export default {
         })
         
         if (newStatus === 1) {
-          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-          teaMessages.success.showTeaOnShelf()
+          showByCode(3018) // 茶叶上架成功
         } else {
-          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-          teaMessages.success.showTeaOffShelf()
+          showByCode(3019) // 茶叶下架成功
         }
         
         // 刷新列表
@@ -798,13 +794,9 @@ export default {
       } catch (error) {
         if (error !== 'cancel') {
           if (newStatus === 1) {
-            // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-            teaMessages.error.showTeaOnShelfFailed(error.message)
+            showByCode(3126) // 茶叶上架失败
           } else {
-            // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-            teaMessages.error.showTeaOffShelfFailed(error.message)
+            showByCode(3127) // 茶叶下架失败
           }
         }
       }
@@ -838,16 +830,12 @@ export default {
           status: 1
         })
         
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        teaMessages.success.showBatchOnShelf()
+        showByCode(3020) // 批量上架成功
         selectedTeas.value = []
         await loadTeas()
       } catch (error) {
         if (error !== 'cancel') {
-          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-          teaMessages.error.showBatchOnShelfFailed(error.message)
+          showByCode(3128) // 批量上架失败
         }
       }
     }
@@ -875,16 +863,12 @@ export default {
           status: 0
         })
         
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        teaMessages.success.showBatchOffShelf()
+        showByCode(3021) // 批量下架成功
         selectedTeas.value = []
         await loadTeas()
       } catch (error) {
         if (error !== 'cancel') {
-          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-          teaMessages.error.showBatchOffShelfFailed(error.message)
+          showByCode(3129) // 批量下架失败
         }
       }
     }
@@ -905,9 +889,7 @@ export default {
         // 调用Vuex action删除茶叶
         await store.dispatch('tea/deleteTea', tea.id)
         
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        teaMessages.success.showTeaDeleted()
+        showByCode(3003) // 茶叶删除成功
         
         // 如果当前页没有数据了，回到前一页
         if (teas.value.length === 0 && currentPage.value > 1) {
@@ -915,9 +897,7 @@ export default {
         }
       } catch (error) {
         if (error !== 'cancel') {
-          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-          teaMessages.error.showTeaDeleteFailed(error.message)
+          showByCode(3104) // 茶叶删除失败
         }
       }
     }
@@ -1087,9 +1067,7 @@ export default {
               // 图片同步失败不影响主流程，只记录错误
             }
             
-            // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-            teaMessages.success.showTeaUpdated()
+            showByCode(3002) // 茶叶更新成功
           } else {
             // 平台直售茶叶权限控制：管理员创建的茶叶shopId固定为'PLATFORM'
             // 权限规则：只有管理员(role=1)可以管理平台直售茶叶
@@ -1153,19 +1131,14 @@ export default {
               }
             }
             
-            // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-            // TODO: [tea] 迁移到 showByCode(response.code) - success
-            teaMessages.success.showTeaCreated()
+            showByCode(3001) // 茶叶创建成功
           }
           
           // 关闭对话框
           dialogVisible.value = false
           submitting.value = false
         } catch (error) {
-          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-          teaMessages.error.showTeaSubmitFailed(error.message)
+          showByCode(3101) // 茶叶提交失败
           submitting.value = false
         }
       })
@@ -1222,14 +1195,10 @@ export default {
         
         categoryLoading.value = true
         await store.dispatch('tea/deleteCategory', category.id)
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        teaMessages.success.showCategoryDeleted()
+        showByCode(3006) // 分类删除成功
       } catch (error) {
         if (error !== 'cancel') {
-          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-          teaMessages.error.showCategoryDeleteFailed(error?.message)
+          showByCode(3109) // 分类删除失败
         }
       } finally {
         categoryLoading.value = false
@@ -1257,21 +1226,15 @@ export default {
               id: currentCategory.value.id,
               categoryData
             })
-            // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-            teaMessages.success.showCategoryUpdated()
+            showByCode(3005) // 分类更新成功
           } else {
             await store.dispatch('tea/createCategory', categoryData)
-            // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-            teaMessages.success.showCategoryCreated()
+            showByCode(3004) // 分类创建成功
           }
           
           categoryDialogVisible.value = false
         } catch (error) {
-          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-          teaMessages.error.showCategorySubmitFailed(error?.message)
+          showByCode(isEditCategory.value ? 3108 : 3107) // 分类操作失败
         } finally {
           categorySubmitting.value = false
         }
@@ -1305,9 +1268,7 @@ export default {
         // 更新Vuex filters并获取数据
         await store.dispatch('tea/updateFilters', filters)
       } catch (error) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        teaMessages.error.showListFailed(error.message)
+        showByCode(3100) // 茶叶列表加载失败
       }
     }
     
