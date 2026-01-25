@@ -99,7 +99,6 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
-import { ElMessage } from 'element-plus'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { userPromptMessages } from '@/utils/promptMessages'
 
@@ -146,8 +145,8 @@ export default {
     const codeCountdown = ref(0)
     
     // 发送验证码
-    const sendVerificationCode = async () => {
-      // 1. 验证输入
+    const sendVerificationCode = () => {
+      // 验证输入
       if (resetForm.method === 'username' && !resetForm.username) {
         userPromptMessages.showUsernameInputRequired()
         return
@@ -161,39 +160,8 @@ export default {
         return
       }
       
-      try {
-        // 2. 准备发送数据
-        const captchaData = {}
-        if (resetForm.method === 'username') {
-          captchaData.username = resetForm.username
-        } else if (resetForm.method === 'phone') {
-          captchaData.phone = resetForm.phone
-        } else if (resetForm.method === 'email') {
-          captchaData.email = resetForm.email
-        }
-        
-        // 3. 调用Vuex action发送验证码
-        const res = await store.dispatch('user/sendCaptcha', captchaData)
-        
-        // 4. 显示API响应消息
-        showByCode(res.code)
-        
-        // 5. 只有成功时才开始倒计时
-        if (isSuccess(res.code)) {
-          codeCountdown.value = 60
-          const timer = setInterval(() => {
-            codeCountdown.value--
-            if (codeCountdown.value <= 0) {
-              clearInterval(timer)
-            }
-          }, 1000)
-        }
-      } catch (error) {
-        // 捕获意外的运行时错误
-        if (process.env.NODE_ENV === 'development') {
-          console.error('[开发调试] 发送验证码时发生意外错误：', error)
-        }
-      }
+      // 功能未实现：等待后端实现验证码发送接口
+      userPromptMessages.showFeatureNotImplemented()
     }
     
     // 处理密码找回
