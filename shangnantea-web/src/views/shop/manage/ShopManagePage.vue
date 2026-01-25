@@ -631,7 +631,7 @@ import SafeImage from '@/components/common/form/SafeImage.vue'
 import { API } from '@/api/apiConstants'
 
 import { showByCode, isSuccess } from '@/utils/apiMessages'
-import shopMessages from '@/utils/promptMessages'
+import { shopPromptMessages } from '@/utils/promptMessages'
 
 export default {
   name: 'ShopManagePage',
@@ -978,11 +978,12 @@ export default {
       
       bannerLoading.value = true
       try {
-        await store.dispatch('shop/fetchShopBanners', shop.value.id)
+        const response = await store.dispatch('shop/fetchShopBanners', shop.value.id)
+        if (response && !isSuccess(response.code)) {
+          showByCode(response.code)
+        }
       } catch (error) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        shopMessages.error.showBannerListLoadFailed(error.message)
+        console.error('加载Banner列表失败:', error)
       } finally {
         bannerLoading.value = false
       }
@@ -1011,9 +1012,7 @@ export default {
     // 保存Banner
     const handleSaveBanner = async () => {
       if (!shop.value || !shop.value.id) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        shopMessages.error.showShopInfoNotExist()
+        showByCode(4103) // 店铺信息不存在
         return
       }
       
@@ -1026,31 +1025,27 @@ export default {
           is_enabled: currentBanner.value.is_enabled
         }
         
+        let response
         if (isEditBanner.value) {
-          await store.dispatch('shop/updateBanner', {
+          response = await store.dispatch('shop/updateBanner', {
             bannerId: currentBanner.value.id,
             bannerData
           })
-          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-          shopMessages.success.showBannerUpdateSuccess()
         } else {
-          await store.dispatch('shop/uploadBanner', {
+          response = await store.dispatch('shop/uploadBanner', {
             shopId: shop.value.id,
             bannerData
           })
-          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-          // TODO: [shop] 迁移到 showByCode(response.code) - success
-          shopMessages.success.showBannerAddSuccess()
         }
         
-        bannerDialogVisible.value = false
-        await loadBanners()
+        showByCode(response.code)
+        
+        if (isSuccess(response.code)) {
+          bannerDialogVisible.value = false
+          await loadBanners()
+        }
       } catch (error) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        shopMessages.error.showBannerSaveFailed(error.message)
+        console.error('保存Banner失败:', error)
       }
     }
     
@@ -1067,18 +1062,14 @@ export default {
           }
         )
         
-        await store.dispatch('shop/deleteBanner', {
+        const response = await store.dispatch('shop/deleteBanner', {
           bannerId: banner.id,
           shopId: shop.value.id
         })
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        shopMessages.success.showBannerDeleteSuccess()
+        showByCode(response.code)
       } catch (error) {
         if (error !== 'cancel') {
-          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-          shopMessages.error.showBannerDeleteFailed(error.message)
+          console.error('删除Banner失败:', error)
         }
       }
     }
@@ -1102,17 +1093,13 @@ export default {
       }))
       
       try {
-        await store.dispatch('shop/updateBannerOrder', {
+        const response = await store.dispatch('shop/updateBannerOrder', {
           orderData,
           shopId: shop.value.id
         })
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        shopMessages.success.showBannerOrderUpdateSuccess()
+        showByCode(response.code)
       } catch (error) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        shopMessages.error.showBannerOrderUpdateFailed(error.message)
+        console.error('更新Banner排序失败:', error)
       }
     }
     
@@ -1130,11 +1117,12 @@ export default {
       
       announcementLoading.value = true
       try {
-        await store.dispatch('shop/fetchShopAnnouncements', shop.value.id)
+        const response = await store.dispatch('shop/fetchShopAnnouncements', shop.value.id)
+        if (response && !isSuccess(response.code)) {
+          showByCode(response.code)
+        }
       } catch (error) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        shopMessages.error.showAnnouncementListLoadFailed(error.message)
+        console.error('加载公告列表失败:', error)
       } finally {
         announcementLoading.value = false
       }
@@ -1161,9 +1149,7 @@ export default {
     // 保存公告
     const handleSaveAnnouncement = async () => {
       if (!shop.value || !shop.value.id) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        shopMessages.error.showShopInfoNotExist()
+        showByCode(4103) // 店铺信息不存在
         return
       }
       
@@ -1174,30 +1160,27 @@ export default {
           is_top: currentAnnouncement.value.is_top ? 1 : 0
         }
         
+        let response
         if (isEditAnnouncement.value) {
-          await store.dispatch('shop/updateAnnouncement', {
+          response = await store.dispatch('shop/updateAnnouncement', {
             announcementId: currentAnnouncement.value.id,
             announcementData
           })
-          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-          shopMessages.success.showAnnouncementUpdateSuccess()
         } else {
-          await store.dispatch('shop/createAnnouncement', {
+          response = await store.dispatch('shop/createAnnouncement', {
             shopId: shop.value.id,
             announcementData
           })
-          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-          shopMessages.success.showAnnouncementAddSuccess()
         }
         
-        announcementDialogVisible.value = false
-        await loadAnnouncements()
+        showByCode(response.code)
+        
+        if (isSuccess(response.code)) {
+          announcementDialogVisible.value = false
+          await loadAnnouncements()
+        }
       } catch (error) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        shopMessages.error.showAnnouncementSaveFailed(error.message)
+        console.error('保存公告失败:', error)
       }
     }
     
@@ -1214,15 +1197,11 @@ export default {
           }
         )
         
-        await store.dispatch('shop/deleteAnnouncement', announcement.id)
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        shopMessages.success.showAnnouncementDeleteSuccess()
+        const response = await store.dispatch('shop/deleteAnnouncement', announcement.id)
+        showByCode(response.code)
       } catch (error) {
         if (error !== 'cancel') {
-          // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-          shopMessages.error.showAnnouncementDeleteFailed(error.message)
+          console.error('删除公告失败:', error)
         }
       }
     }
@@ -1251,15 +1230,16 @@ export default {
           startDate = dateRange.value[0]
           endDate = dateRange.value[1]
         }
-        await store.dispatch('shop/fetchShopStatistics', {
+        const response = await store.dispatch('shop/fetchShopStatistics', {
           shopId: shop.value.id,
           startDate,
           endDate
         })
+        if (response && !isSuccess(response.code)) {
+          showByCode(response.code)
+        }
       } catch (error) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        shopMessages.error.showStatisticsLoadFailed(error.message)
+        console.error('加载统计数据失败:', error)
       } finally {
         statisticsLoading.value = false
       }
@@ -1282,15 +1262,11 @@ export default {
       const isLt2M = file.size / 1024 / 1024 < 2
       
       if (!isAllowedType) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        shopMessages.error.showLogoFormatError()
+        showByCode(4114) // 不支持的文件类型
         return false
       }
       if (!isLt2M) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        shopMessages.error.showLogoSizeError()
+        showByCode(4115) // 文件大小超限
         return false
       }
       return true
@@ -1299,24 +1275,18 @@ export default {
     // Logo上传成功处理
     const handleLogoSuccess = async response => {
       if (response.code === 200 && response.data) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        shopMessages.success.showLogoUploadSuccess()
+        showByCode(4007) // Logo上传成功
         // 更新店铺信息
         await store.dispatch('shop/fetchMyShop')
       } else {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        shopMessages.error.showLogoUploadFailed(response.message)
+        showByCode(response.code || 4113) // Logo上传失败
       }
     }
 
     // 任务组E：通过Vuex Action处理Logo上传，遵循组件 → Vuex → API 数据流
     const handleLogoUploadRequest = async param => {
       if (!shop.value || !shop.value.id) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        shopMessages.error.showLogoUploadNoShop()
+        showByCode(4103) // 店铺信息不存在
         param.onError(new Error('店铺信息不存在'))
         return
       }
@@ -1329,9 +1299,7 @@ export default {
         param.onSuccess({ code: 200, data: res })
       } catch (error) {
         console.error('Logo上传失败:', error)
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        shopMessages.error.showLogoUploadFailed(error.message)
+        showByCode(4113) // Logo上传失败
         param.onError(error)
       }
     }
