@@ -21,7 +21,7 @@ public class CreateTopicDTO {
     /**
      * 版块描述
      */
-    @Size(max = 500, message = "版块描述长度不能超过500个字符")
+    @Size(max = 200, message = "版块描述长度不能超过200个字符")
     private String description;
     
     /**

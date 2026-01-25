@@ -863,16 +863,9 @@ public class ForumServiceImpl implements ForumService {
         try {
             logger.info("获取版块列表请求");
             
-            // 1. 查询所有启用的版块（status=1）
-            List<ForumTopic> allTopics = topicMapper.selectAll();
-            List<TopicVO> topicVOList = allTopics.stream()
-                    .filter(topic -> topic.getStatus() != null && topic.getStatus() == 1)
-                    .sorted((a, b) -> {
-                        // 按sortOrder升序排序
-                        Integer orderA = a.getSortOrder() != null ? a.getSortOrder() : 0;
-                        Integer orderB = b.getSortOrder() != null ? b.getSortOrder() : 0;
-                        return orderA.compareTo(orderB);
-                    })
+            // 1. 使用优化的查询方法（数据库层面过滤和排序）
+            List<ForumTopic> topics = topicMapper.selectByStatus(1);
+            List<TopicVO> topicVOList = topics.stream()
                     .map(topic -> {
                         TopicVO vo = new TopicVO();
                         vo.setId(topic.getId());
@@ -964,14 +957,11 @@ public class ForumServiceImpl implements ForumService {
         try {
             logger.info("创建版块请求: {}", dto);
             
-            // 1. 验证版块名称是否重复
-            List<ForumTopic> allTopics = topicMapper.selectAll();
-            boolean nameExists = allTopics.stream()
-                    .anyMatch(topic -> dto.getName() != null && dto.getName().equals(topic.getName()));
-            
-            if (nameExists) {
+            // 1. 使用优化的查询方法检查名称是否重复
+            ForumTopic existingTopic = topicMapper.selectByName(dto.getName());
+            if (existingTopic != null) {
                 logger.warn("创建版块失败: 版块名称已存在, name: {}", dto.getName());
-                return Result.failure(6116); // 添加版块失败
+                return Result.failure(6116, "版块名称已存在");
             }
             
             // 2. 创建版块实体
@@ -980,6 +970,7 @@ public class ForumServiceImpl implements ForumService {
             topic.setDescription(dto.getDescription());
             topic.setIcon(dto.getIcon());
             topic.setCover(dto.getCover());
+            topic.setUserId(dto.getUserId()); // 设置版主ID
             topic.setSortOrder(dto.getSortOrder() != null ? dto.getSortOrder() : 0);
             topic.setPostCount(0); // 初始帖子数为0
             topic.setStatus(1); // 1=启用
@@ -1017,16 +1008,12 @@ public class ForumServiceImpl implements ForumService {
                 return Result.failure(6117); // 更新版块失败
             }
             
-            // 2. 如果要更新名称，验证名称是否与其他版块重复
+            // 2. 如果要更新名称，使用优化的查询方法验证名称是否与其他版块重复
             if (dto.getName() != null && !dto.getName().isEmpty()) {
-                List<ForumTopic> allTopics = topicMapper.selectAll();
-                boolean nameExists = allTopics.stream()
-                        .anyMatch(t -> !t.getId().equals(topicId) && 
-                                dto.getName().equals(t.getName()));
-                
-                if (nameExists) {
+                ForumTopic existingTopic = topicMapper.selectByNameExcludeId(dto.getName(), topicId);
+                if (existingTopic != null) {
                     logger.warn("更新版块失败: 版块名称已存在, name: {}", dto.getName());
-                    return Result.failure(6117); // 更新版块失败
+                    return Result.failure(6117, "版块名称已存在");
                 }
                 topic.setName(dto.getName());
             }
@@ -1040,6 +1027,9 @@ public class ForumServiceImpl implements ForumService {
             }
             if (dto.getCover() != null) {
                 topic.setCover(dto.getCover());
+            }
+            if (dto.getUserId() != null) {
+                topic.setUserId(dto.getUserId());
             }
             if (dto.getSortOrder() != null) {
                 topic.setSortOrder(dto.getSortOrder());

@@ -175,7 +175,7 @@ export function getForumTopics() {
  */
 export function getTopicDetail(id) {
   return request({
-    url: `${API.FORUM.TOPIC_DETAIL}${id}`,
+    url: `${API.FORUM.TOPICS}/${id}`,
     method: 'get'
   })
 }
@@ -201,7 +201,7 @@ export function createTopic(data) {
  */
 export function updateTopic(id, data) {
   return request({
-    url: `${API.FORUM.TOPIC_DETAIL}${id}`,
+    url: `${API.FORUM.TOPICS}/${id}`,
     method: 'put',
     data
   })
@@ -214,7 +214,7 @@ export function updateTopic(id, data) {
  */
 export function deleteTopic(id) {
   return request({
-    url: `${API.FORUM.TOPIC_DETAIL}${id}`,
+    url: `${API.FORUM.TOPICS}/${id}`,
     method: 'delete'
   })
 }
