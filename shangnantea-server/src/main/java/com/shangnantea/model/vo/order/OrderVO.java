@@ -59,4 +59,14 @@ public class OrderVO {
      * 单价
      */
     private BigDecimal price;
+    
+    /**
+     * 店铺ID
+     */
+    private String shopId;
+    
+    /**
+     * 是否已评价(0未评价,1已评价)
+     */
+    private Integer isReviewed;
 }
