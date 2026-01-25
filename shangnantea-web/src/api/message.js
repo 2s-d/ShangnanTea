@@ -8,7 +8,7 @@ import { API } from './apiConstants'
  */
 export function getMessages(params) {
   return request({
-    url: API.MESSAGE.MESSAGES,
+    url: API.MESSAGE.LIST,
     method: 'get',
     params
   })
@@ -21,7 +21,7 @@ export function getMessages(params) {
  */
 export function getMessageDetail(id) {
   return request({
-    url: API.MESSAGE.MESSAGES + '/' + id,
+    url: API.MESSAGE.DETAIL.replace('{id}', id),
     method: 'get'
   })
 }
