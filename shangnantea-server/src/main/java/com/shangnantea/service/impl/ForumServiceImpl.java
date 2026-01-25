@@ -13,6 +13,7 @@ import com.shangnantea.mapper.UserLikeMapper;
 import com.shangnantea.mapper.UserMapper;
 import com.shangnantea.model.dto.forum.CreatePostDTO;
 import com.shangnantea.model.dto.forum.CreateTopicDTO;
+import com.shangnantea.model.dto.forum.RejectPostDTO;
 import com.shangnantea.model.dto.forum.UpdatePostDTO;
 import com.shangnantea.model.dto.forum.UpdateTopicDTO;
 import com.shangnantea.model.entity.forum.ForumPost;
@@ -2119,6 +2120,221 @@ public class ForumServiceImpl implements ForumService {
             logger.error("取消点赞回复失败: ID格式错误, id: {}", id, e);
             return Result.failure(6133); // 取消点赞失败
         } catch (Exception e) {
+            logger.error("取消点赞回复失败: 系统异常, id: {}", id, e);
+            return Result.failure(6133); // 取消点赞失败
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> approvePost(String id) {
+        try {
+            logger.info("审核通过帖子请求: id={}", id);
+            
+            // 1. 查询帖子是否存在
+            Long postId = Long.parseLong(id);
+            ForumPost post = postMapper.selectById(postId);
+            
+            if (post == null) {
+                logger.warn("审核通过失败: 帖子不存在, id: {}", id);
+                return Result.failure(6134); // 审核失败
+            }
+            
+            // 2. 检查帖子状态
+            if (post.getStatus() != 0) {
+                logger.warn("审核通过失败: 帖子状态不是待审核, id: {}, status: {}", id, post.getStatus());
+                return Result.failure(6134, "帖子状态不是待审核");
+            }
+            
+            // 3. 更新帖子状态为已发布
+            post.setStatus(1); // 1=已发布
+            post.setUpdateTime(new Date());
+            int result = postMapper.updateById(post);
+            
+            if (result <= 0) {
+                logger.error("审核通过失败: 数据库更新失败, id: {}", id);
+                return Result.failure(6134); // 审核失败
+            }
+            
+            logger.info("审核通过成功: id={}", id);
+            return Result.success(6022, null); // 审核通过
+            
+        } catch (NumberFormatException e) {
+            logger.error("审核通过失败: ID格式错误, id: {}", id, e);
+            return Result.failure(6134); // 审核失败
+        } catch (Exception e) {
+            logger.error("审核通过失败: 系统异常, id: {}", id, e);
+            return Result.failure(6134); // 审核失败
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> rejectPost(String id, RejectPostDTO dto) {
+        try {
+            logger.info("审核拒绝帖子请求: id={}, reason={}", id, dto.getReason());
+            
+            // 1. 查询帖子是否存在
+            Long postId = Long.parseLong(id);
+            ForumPost post = postMapper.selectById(postId);
+            
+            if (post == null) {
+                logger.warn("审核拒绝失败: 帖子不存在, id: {}", id);
+                return Result.failure(6135); // 审核拒绝失败
+            }
+            
+            // 2. 检查帖子状态
+            if (post.getStatus() != 0) {
+                logger.warn("审核拒绝失败: 帖子状态不是待审核, id: {}, status: {}", id, post.getStatus());
+                return Result.failure(6135, "帖子状态不是待审核");
+            }
+            
+            // 3. 更新帖子状态为已拒绝
+            post.setStatus(3); // 3=已拒绝
+            post.setUpdateTime(new Date());
+            // Note: 拒绝原因可以存储在单独的审核记录表中，这里暂不处理
+            int result = postMapper.updateById(post);
+            
+            if (result <= 0) {
+                logger.error("审核拒绝失败: 数据库更新失败, id: {}", id);
+                return Result.failure(6135); // 审核拒绝失败
+            }
+            
+            logger.info("审核拒绝成功: id={}, reason={}", id, dto.getReason());
+            return Result.success(6023, null); // 审核已拒绝
+            
+        } catch (NumberFormatException e) {
+            logger.error("审核拒绝失败: ID格式错误, id: {}", id, e);
+            return Result.failure(6135); // 审核拒绝失败
+        } catch (Exception e) {
+            logger.error("审核拒绝失败: 系统异常, id: {}", id, e);
+            return Result.failure(6135); // 审核拒绝失败
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> togglePostSticky(String id, Boolean isSticky) {
+        try {
+            logger.info("设置帖子置顶请求: id={}, isSticky={}", id, isSticky);
+            
+            // 1. 查询帖子是否存在
+            Long postId = Long.parseLong(id);
+            ForumPost post = postMapper.selectById(postId);
+            
+            if (post == null) {
+                logger.warn("设置置顶失败: 帖子不存在, id: {}", id);
+                return Result.failure(6136); // 设置置顶失败
+            }
+            
+            // 2. 更新置顶状态
+            post.setIsSticky(isSticky ? 1 : 0);
+            post.setUpdateTime(new Date());
+            int result = postMapper.updateById(post);
+            
+            if (result <= 0) {
+                logger.error("设置置顶失败: 数据库更新失败, id: {}", id);
+                return Result.failure(6136); // 设置置顶失败
+            }
+            
+            logger.info("设置置顶成功: id={}, isSticky={}", id, isSticky);
+            return Result.success(6024, null); // 置顶状态已更新
+            
+        } catch (NumberFormatException e) {
+            logger.error("设置置顶失败: ID格式错误, id: {}", id, e);
+            return Result.failure(6136); // 设置置顶失败
+        } catch (Exception e) {
+            logger.error("设置置顶失败: 系统异常, id: {}", id, e);
+            return Result.failure(6136); // 设置置顶失败
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> togglePostEssence(String id, Boolean isEssence) {
+        try {
+            logger.info("设置帖子精华请求: id={}, isEssence={}", id, isEssence);
+            
+            // 1. 查询帖子是否存在
+            Long postId = Long.parseLong(id);
+            ForumPost post = postMapper.selectById(postId);
+            
+            if (post == null) {
+                logger.warn("设置精华失败: 帖子不存在, id: {}", id);
+                return Result.failure(6137); // 设置精华失败
+            }
+            
+            // 2. 更新精华状态
+            post.setIsEssence(isEssence ? 1 : 0);
+            post.setUpdateTime(new Date());
+            int result = postMapper.updateById(post);
+            
+            if (result <= 0) {
+                logger.error("设置精华失败: 数据库更新失败, id: {}", id);
+                return Result.failure(6137); // 设置精华失败
+            }
+            
+            logger.info("设置精华成功: id={}, isEssence={}", id, isEssence);
+            return Result.success(6025, null); // 精华状态已更新
+            
+        } catch (NumberFormatException e) {
+            logger.error("设置精华失败: ID格式错误, id: {}", id, e);
+            return Result.failure(6137); // 设置精华失败
+        } catch (Exception e) {
+            logger.error("设置精华失败: 系统异常, id: {}", id, e);
+            return Result.failure(6137); // 设置精华失败
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Map<String, Object>> uploadPostImage(MultipartFile image) {
+        try {
+            logger.info("上传帖子图片请求: filename={}", image.getOriginalFilename());
+            
+            // 1. 验证文件
+            if (image == null || image.isEmpty()) {
+                logger.warn("上传帖子图片失败: 文件为空");
+                return Result.failure(6138, "文件不能为空");
+            }
+            
+            // 2. 验证文件类型
+            String contentType = image.getContentType();
+            if (contentType == null || !contentType.startsWith("image/")) {
+                logger.warn("上传帖子图片失败: 文件类型不正确, contentType: {}", contentType);
+                return Result.failure(6138, "只能上传图片文件");
+            }
+            
+            // 3. 验证文件大小（限制5MB）
+            if (image.getSize() > 5 * 1024 * 1024) {
+                logger.warn("上传帖子图片失败: 文件大小超过限制, size: {}", image.getSize());
+                return Result.failure(6138, "图片大小不能超过5MB");
+            }
+            
+            // 4. 上传文件
+            String filePath = FileUploadUtils.uploadImage(image, "forum-posts");
+            if (filePath == null || filePath.isEmpty()) {
+                logger.error("上传帖子图片失败: 文件上传失败");
+                return Result.failure(6138); // 图片上传失败
+            }
+            
+            // 5. 生成访问URL
+            String accessUrl = FileUploadUtils.generateAccessUrl(filePath, baseUrl);
+            
+            // 6. 构造返回数据
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("url", accessUrl);
+            responseData.put("path", filePath);
+            
+            logger.info("上传帖子图片成功: path={}, url={}", filePath, accessUrl);
+            return Result.success(6026, responseData); // 图片上传成功
+            
+        } catch (Exception e) {
+            logger.error("上传帖子图片失败: 系统异常", e);
+            return Result.failure(6138); // 图片上传失败
+        }
+    }
+}
             logger.error("取消点赞回复失败: 系统异常, id: {}", id, e);
             return Result.failure(6133); // 取消点赞失败
         }
