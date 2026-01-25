@@ -42,8 +42,7 @@ import { useStore } from 'vuex'
 
 import { ShoppingCart } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-import { showByCode, isSuccess } from '@/utils/apiMessages'
-import teaMessages from '@/utils/promptMessages'
+import { showByCode } from '@/utils/apiMessages'
 
 export default {
   name: 'TeaCard',
@@ -74,17 +73,13 @@ export default {
     const addToCart = async () => {
       loading.value = true
       try {
-        await store.dispatch('order/addToCart', {
+        const response = await store.dispatch('order/addToCart', {
           teaId: props.tea.id,
           quantity: 1
         })
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        teaMessages.success.showCardAddedToCart()
+        showByCode(response.code)
       } catch (error) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        teaMessages.error.showCardAddFailed(error.message)
+        console.error('加入购物车失败:', error)
       } finally {
         loading.value = false
       }
