@@ -144,8 +144,6 @@ export default {
       bio: ''
     })
     
-    // TODO-SCRIPT: 用户信息应从 Vuex user 模块获取（user/getUserInfo），此处不在 UI 层保留 mock 声明
-    
     const { rules: validationRules } = useFormValidation()
     
     const validatePhone = (rule, value, callback) => {

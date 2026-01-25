@@ -161,7 +161,7 @@ export default {
       }
       
       // 模拟发送验证码（实际应该调用后端API）
-      // TODO: 当后端API实现后，改为 const res = await store.dispatch('user/sendCaptcha', data); showByCode(res.code)
+      // TODO: 等待后端实现验证码发送API（sendCaptcha接口），实现后调用 store.dispatch('user/sendCaptcha', data) 并使用 showByCode(res.code)
       userPromptMessages.showCaptchaSent()
       
       // 开始倒计时
