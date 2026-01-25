@@ -1,30 +1,30 @@
 package com.shangnantea.service.impl;
 
 import com.shangnantea.common.api.Result;
+import com.shangnantea.exception.BusinessException;
+import com.shangnantea.mapper.OrderMapper;
+import com.shangnantea.mapper.ShopAnnouncementMapper;
+import com.shangnantea.mapper.ShopBannerMapper;
 import com.shangnantea.mapper.ShopCertificationMapper;
 import com.shangnantea.mapper.ShopMapper;
-import com.shangnantea.mapper.ShopBannerMapper;
-import com.shangnantea.mapper.ShopAnnouncementMapper;
-import com.shangnantea.mapper.UserFollowMapper;
 import com.shangnantea.mapper.TeaMapper;
-import com.shangnantea.mapper.OrderMapper;
+import com.shangnantea.mapper.UserFollowMapper;
 import com.shangnantea.model.dto.shop.ShopQueryDTO;
-import com.shangnantea.model.entity.shop.Shop;
-import com.shangnantea.model.entity.shop.ShopBanner;
-import com.shangnantea.model.entity.shop.ShopAnnouncement;
-import com.shangnantea.model.entity.shop.ShopCertification;
-import com.shangnantea.model.entity.user.UserFollow;
-import com.shangnantea.model.entity.tea.Tea;
 import com.shangnantea.model.entity.order.Order;
-import com.shangnantea.model.vo.shop.BannerVO;
+import com.shangnantea.model.entity.shop.Shop;
+import com.shangnantea.model.entity.shop.ShopAnnouncement;
+import com.shangnantea.model.entity.shop.ShopBanner;
+import com.shangnantea.model.entity.shop.ShopCertification;
+import com.shangnantea.model.entity.tea.Tea;
+import com.shangnantea.model.entity.user.UserFollow;
+import com.shangnantea.model.vo.TeaVO;
 import com.shangnantea.model.vo.shop.AnnouncementVO;
-import com.shangnantea.model.vo.shop.ShopVO;
+import com.shangnantea.model.vo.shop.BannerVO;
 import com.shangnantea.model.vo.shop.ShopDetailVO;
 import com.shangnantea.model.vo.shop.ShopStatisticsVO;
-import com.shangnantea.model.vo.TeaVO;
+import com.shangnantea.model.vo.shop.ShopVO;
 import com.shangnantea.security.context.UserContext;
 import com.shangnantea.service.ShopService;
-import com.shangnantea.exception.BusinessException;
 import com.shangnantea.utils.FileUploadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +48,7 @@ import java.util.stream.Collectors;
  * 实现26个店铺模块接口
  */
 @Service
+public class ShopServiceImpl implements ShopService {
 public class ShopServiceImpl implements ShopService {
 
     private static final Logger logger = LoggerFactory.getLogger(ShopServiceImpl.class);
@@ -1921,5 +1922,4 @@ public class ShopServiceImpl implements ShopService {
             return Result.failure(4132);
         }
     }
-}
 } 
