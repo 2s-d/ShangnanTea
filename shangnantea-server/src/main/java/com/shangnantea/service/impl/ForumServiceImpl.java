@@ -2224,7 +2224,7 @@ public class ForumServiceImpl implements ForumService {
             
             if (post == null) {
                 logger.warn("设置置顶失败: 帖子不存在, id: {}", id);
-                return Result.failure(6136); // 设置置顶失败
+                return Result.failure(isSticky ? 6136 : 6137); // 置顶失败 / 取消置顶失败
             }
             
             // 2. 更新置顶状态
@@ -2234,18 +2234,18 @@ public class ForumServiceImpl implements ForumService {
             
             if (result <= 0) {
                 logger.error("设置置顶失败: 数据库更新失败, id: {}", id);
-                return Result.failure(6136); // 设置置顶失败
+                return Result.failure(isSticky ? 6136 : 6137); // 置顶失败 / 取消置顶失败
             }
             
             logger.info("设置置顶成功: id={}, isSticky={}", id, isSticky);
-            return Result.success(6024, null); // 置顶状态已更新
+            return Result.success(isSticky ? 6024 : 6025, null); // 帖子已置顶 / 帖子已取消置顶
             
         } catch (NumberFormatException e) {
             logger.error("设置置顶失败: ID格式错误, id: {}", id, e);
-            return Result.failure(6136); // 设置置顶失败
+            return Result.failure(isSticky ? 6136 : 6137); // 置顶失败 / 取消置顶失败
         } catch (Exception e) {
             logger.error("设置置顶失败: 系统异常, id: {}", id, e);
-            return Result.failure(6136); // 设置置顶失败
+            return Result.failure(isSticky ? 6136 : 6137); // 置顶失败 / 取消置顶失败
         }
     }
     
@@ -2261,7 +2261,7 @@ public class ForumServiceImpl implements ForumService {
             
             if (post == null) {
                 logger.warn("设置精华失败: 帖子不存在, id: {}", id);
-                return Result.failure(6137); // 设置精华失败
+                return Result.failure(isEssence ? 6138 : 6139); // 加精失败 / 取消加精失败
             }
             
             // 2. 更新精华状态
@@ -2271,18 +2271,18 @@ public class ForumServiceImpl implements ForumService {
             
             if (result <= 0) {
                 logger.error("设置精华失败: 数据库更新失败, id: {}", id);
-                return Result.failure(6137); // 设置精华失败
+                return Result.failure(isEssence ? 6138 : 6139); // 加精失败 / 取消加精失败
             }
             
             logger.info("设置精华成功: id={}, isEssence={}", id, isEssence);
-            return Result.success(6025, null); // 精华状态已更新
+            return Result.success(isEssence ? 6026 : 6027, null); // 帖子已加精 / 帖子已取消加精
             
         } catch (NumberFormatException e) {
             logger.error("设置精华失败: ID格式错误, id: {}", id, e);
-            return Result.failure(6137); // 设置精华失败
+            return Result.failure(isEssence ? 6138 : 6139); // 加精失败 / 取消加精失败
         } catch (Exception e) {
             logger.error("设置精华失败: 系统异常, id: {}", id, e);
-            return Result.failure(6137); // 设置精华失败
+            return Result.failure(isEssence ? 6138 : 6139); // 加精失败 / 取消加精失败
         }
     }
     
@@ -2295,27 +2295,27 @@ public class ForumServiceImpl implements ForumService {
             // 1. 验证文件
             if (image == null || image.isEmpty()) {
                 logger.warn("上传帖子图片失败: 文件为空");
-                return Result.failure(6138, "文件不能为空");
+                return Result.failure(6140, "文件不能为空");
             }
             
             // 2. 验证文件类型
             String contentType = image.getContentType();
             if (contentType == null || !contentType.startsWith("image/")) {
                 logger.warn("上传帖子图片失败: 文件类型不正确, contentType: {}", contentType);
-                return Result.failure(6138, "只能上传图片文件");
+                return Result.failure(6141); // 不支持的文件类型
             }
             
             // 3. 验证文件大小（限制5MB）
             if (image.getSize() > 5 * 1024 * 1024) {
                 logger.warn("上传帖子图片失败: 文件大小超过限制, size: {}", image.getSize());
-                return Result.failure(6138, "图片大小不能超过5MB");
+                return Result.failure(6142); // 文件大小超限
             }
             
             // 4. 上传文件
             String filePath = FileUploadUtils.uploadImage(image, "forum-posts");
             if (filePath == null || filePath.isEmpty()) {
                 logger.error("上传帖子图片失败: 文件上传失败");
-                return Result.failure(6138); // 图片上传失败
+                return Result.failure(6140); // 图片上传失败
             }
             
             // 5. 生成访问URL
@@ -2327,11 +2327,11 @@ public class ForumServiceImpl implements ForumService {
             responseData.put("path", filePath);
             
             logger.info("上传帖子图片成功: path={}, url={}", filePath, accessUrl);
-            return Result.success(6026, responseData); // 图片上传成功
+            return Result.success(6028, responseData); // 图片上传成功
             
         } catch (Exception e) {
             logger.error("上传帖子图片失败: 系统异常", e);
-            return Result.failure(6138); // 图片上传失败
+            return Result.failure(6140); // 图片上传失败
         }
     }
 }
