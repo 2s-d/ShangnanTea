@@ -405,15 +405,21 @@ export default {
       try {
         loadingMessages.value = true
 
-        // 通过后端API获取聊天记录
-        const sessionIdNum = parseInt(sessionId.replace('session_', ''))
+        // 通过Vuex调用后端API获取聊天记录
+        const response = await store.dispatch('message/fetchChatHistory', {
+          sessionId: sessionId,
+          params: {
+            page: 1,
+            pageSize: 50
+          }
+        })
         
-        // 调用后端API获取消息列表
-        const response = await fetch(`/api/message/sessions/${sessionIdNum}/messages`)
-        const result = await response.json()
+        // 显示API响应消息（成功或失败都通过状态码映射显示）
+        showByCode(response.code)
         
-        if (result.success && result.data) {
-          const history = result.data.list || []
+        // 只有成功时才更新消息列表
+        if (isSuccess(response.code)) {
+          const history = response.data?.list || []
           messagesMap[sessionId] = history.map(msg => ({
             id: msg.id,
             sessionId: sessionId,
@@ -421,22 +427,17 @@ export default {
             type: msg.contentType || 'text',
             createTime: msg.createTime,
             status: msg.isRead ? 'read' : 'sent',
-            isSelf: msg.senderId === '当前登录用户ID',
-            showTimeDivider: false // 可以根据时间间隔计算
+            isSelf: msg.senderId === store.state.user?.userInfo?.id,
+            showTimeDivider: false
           }))
-        } else {
-          // TODO: 迁移到 Vuex，使用 showByCode 处理错误
-          message.error('获取聊天记录失败，请稍后重试')
         }
 
         return
       } catch (error) {
         // 捕获意外的运行时错误（非API业务错误）
-        // TODO: 迁移到 Vuex，使用 showByCode 处理错误
         if (process.env.NODE_ENV === 'development') {
           console.error('[开发调试] 获取消息列表时发生意外错误：', error)
         }
-        message.error('获取消息列表失败，请稍后重试')
       } finally {
         loadingMessages.value = false
       }
@@ -573,44 +574,34 @@ export default {
         let messageType = 'text'
         let messageContent = messageInput.value.trim()
         
-        // 如果有图片文件，则处理图片消息
+        // 如果有图片文件，则调用图片上传API
         if (imageFile.value) {
           messageType = 'image'
-          // 在实际项目中，这里应该上传图片到服务器，获取图片URL
-          // 模拟图片上传
-          messageContent = URL.createObjectURL(imageFile.value)
+          
+          // 调用图片上传API
+          const uploadResponse = await store.dispatch('message/sendImageMessage', {
+            sessionId: currentSessionId.value,
+            receiverId: currentTargetUserId.value,
+            image: imageFile.value
+          })
+          
+          // 显示API响应消息
+          showByCode(uploadResponse.code)
+          
+          // 清空图片文件
           imageFile.value = null
+          
+          // 成功时刷新消息列表
+          if (isSuccess(uploadResponse.code)) {
+            await fetchMessages(currentSessionId.value, false)
+            await nextTick()
+            scrollToBottom()
+          }
+          
+          return
         }
         
-        // 创建消息对象
-        const message = {
-          id: messageId,
-          sessionId: currentSessionId.value,
-          senderId: 'self',
-          content: messageContent,
-          type: messageType,
-          createTime: now,
-          status: 'sending',
-          isSelf: true
-        }
-        
-        // 添加到消息列表
-        if (!messagesMap[currentSessionId.value]) {
-          messagesMap[currentSessionId.value] = []
-        }
-        messagesMap[currentSessionId.value].push(message)
-        
-        // 清空输入框
-        messageInput.value = ''
-        
-        // 滚动到底部
-        await nextTick()
-        scrollToBottom()
-        
-        /**
-         * 生产版：发送消息走 Vuex(message) → API
-         * TODO-SCRIPT: 需要接口契约确认 sendMessage 的参数结构（receiverId/sessionId 等）。
-         */
+        // 发送文本消息
         if (!currentTargetUserId.value) {
           message.warning('缺少会话目标用户ID，暂无法发送消息')
           return
@@ -621,6 +612,9 @@ export default {
           content: messageContent,
           type: messageType
         })
+        
+        // 清空输入框
+        messageInput.value = ''
         
         // 显示API响应消息（成功或失败都通过状态码映射显示）
         showByCode(sendResponse.code)

@@ -159,18 +159,18 @@ export function getChatSessions() {
 }
 
 /**
- * 获取与指定用户的聊天记录
- * @param {number} userId 用户ID
+ * 获取聊天记录
+ * @param {string} sessionId 会话ID
  * @param {Object} params 查询参数
  * @returns {Promise} 聊天记录
  */
-export function getChatHistory(userId, params) {
+export function getChatHistory(sessionId, params) {
   return request({
     url: API.MESSAGE.LIST_HISTORY,
     method: 'get',
     params: {
       ...params,
-      userId
+      sessionId
     }
   })
 }

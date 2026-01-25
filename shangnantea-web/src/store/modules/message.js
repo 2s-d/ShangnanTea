@@ -387,14 +387,13 @@ const actions = {
   },
   
   // 获取聊天历史
-  async fetchChatHistory({ commit }, { userId, params = {} }) {
+  async fetchChatHistory({ commit }, { sessionId, params = {} }) {
     try {
       commit('SET_LOADING', true)
-      commit('SET_CURRENT_CHAT_USER', userId)
       
       // 响应拦截器返回 {code, data}，从 res.data 提取数据
-      const res = await getChatHistory(userId, params)
-      commit('SET_CHAT_HISTORY', res.data || [])
+      const res = await getChatHistory(sessionId, params)
+      commit('SET_CHAT_HISTORY', res.data?.list || [])
       
       return res
     } finally {
