@@ -274,7 +274,7 @@ import { Back, Check, Star, ChatLineRound, Bell } from '@element-plus/icons-vue'
 import TeaCard from '@/components/tea/card/TeaCard.vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
-import shopMessages from '@/utils/promptMessages'
+import { shopPromptMessages } from '@/utils/promptMessages'
 
 export default {
   name: 'ShopDetailPage',
@@ -318,7 +318,7 @@ export default {
       if (!shopId) return
 
       if (shopId === 'PLATFORM' || shopId === '0') {
-        shopMessages.shop.showShopIdNotExist()
+        shopPromptMessages.showShopIdNotExist()
         router.push('/shop/list')
         return
       }
@@ -412,12 +412,12 @@ export default {
     const handleSubmitReview = async () => {
       const shopId = route.params.id
       if (!shopId) {
-        shopMessages.shop.showShopIdNotExist()
+        shopPromptMessages.showShopIdNotExist()
         return
       }
       // 评分验证（评分是必须的）
       if (reviewForm.value.rating === 0) {
-        shopMessages.shop.showReviewRatingRequired()
+        shopPromptMessages.showReviewRatingRequired()
         return
       }
       // 评价内容是可选的（店铺评分不需要详细内容）

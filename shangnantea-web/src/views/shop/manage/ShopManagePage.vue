@@ -691,7 +691,7 @@ export default {
     // 任务组0：使用Vuex加载店铺茶叶列表
     const loadShopTeas = async () => {
       if (!shop.value || !shop.value.id) {
-        shopMessages.shop.showShopInfoLoadFirst()
+        shopPromptMessages.showShopInfoLoadFirst()
         return
       }
       
@@ -801,7 +801,7 @@ export default {
     // 对话框关闭
     const handleDialogClose = done => {
       if (submitting.value) {
-        shopMessages.shop.showSubmittingWait()
+        shopPromptMessages.showSubmittingWait()
         return
       }
       done()
