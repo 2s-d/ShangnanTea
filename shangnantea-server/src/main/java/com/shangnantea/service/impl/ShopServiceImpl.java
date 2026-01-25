@@ -49,7 +49,6 @@ import java.util.stream.Collectors;
  */
 @Service
 public class ShopServiceImpl implements ShopService {
-public class ShopServiceImpl implements ShopService {
 
     private static final Logger logger = LoggerFactory.getLogger(ShopServiceImpl.class);
 
@@ -1922,4 +1921,5 @@ public class ShopServiceImpl implements ShopService {
             return Result.failure(4132);
         }
     }
-} 
+}
+}
