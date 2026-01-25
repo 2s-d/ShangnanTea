@@ -368,8 +368,7 @@ export default {
         // 转换数据格式以匹配UI组件的期望格式
         mockSessions.value = sessions.map(session => ({
           sessionId: session.id,
-          userId: session.receiverId, // 对方用户ID
-          targetId: session.receiverId,
+          receiverId: session.receiverId, // 对方用户ID（统一使用receiverId）
           targetType: session.sessionType === 'customer' ? 'shop' : 'user',
           name: session.sessionType === 'customer' ? `店铺${session.receiverId}客服` : `用户${session.receiverId}`,
           avatar: `https://via.placeholder.com/50x50?text=${session.sessionType === 'customer' ? '店铺' : '用户'}`,
@@ -467,8 +466,7 @@ export default {
       
       currentSessionId.value = sessionId
       // 记录会话对端用户ID（用于拉取历史与发送消息）
-      // TODO-SCRIPT: 需要统一 session 字段命名（userId/targetId），并在后端接口中固定。
-      currentTargetUserId.value = session.userId || session.targetId || null
+      currentTargetUserId.value = session.receiverId
       
       // 如果该会话的消息尚未加载，则加载消息
       if (!messagesMap[sessionId]) {
@@ -774,7 +772,7 @@ export default {
         // 根据shopId找到对应店铺的会话
         // 在实际应用中，这里可能需要先检查是否已有此会话，没有则创建新会话
         const shopSession = mockSessions.value.find(session => 
-          session.targetType === 'shop' && session.targetId.toString() === shopId.toString()
+          session.targetType === 'shop' && session.receiverId.toString() === shopId.toString()
         )
         
         if (shopSession) {
@@ -787,7 +785,7 @@ export default {
       } else if (userId) {
         // 根据userId找到对应用户的会话
         const userSession = mockSessions.value.find(session => 
-          session.targetType === 'user' && session.targetId.toString() === userId.toString()
+          session.targetType === 'user' && session.receiverId.toString() === userId.toString()
         )
         
         if (userSession) {
@@ -819,7 +817,7 @@ export default {
       // 创建新会话
       const newSession = {
         sessionId: `shop_${shopId}_${Date.now()}`,
-        targetId: shopId,
+        receiverId: shopId,
         targetType: 'shop',
         name: `${shopInfo.name}客服`,
         avatar: shopInfo.avatar,
@@ -869,7 +867,7 @@ export default {
       // 创建新会话
       const newSession = {
         sessionId: `user_${userId}_${Date.now()}`,
-        targetId: userId,
+        receiverId: userId,
         targetType: 'user',
         name: userInfo.name,
         avatar: userInfo.avatar,
