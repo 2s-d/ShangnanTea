@@ -99,6 +99,7 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
+import { ElMessage } from 'element-plus'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { userPromptMessages } from '@/utils/promptMessages'
 
@@ -145,8 +146,8 @@ export default {
     const codeCountdown = ref(0)
     
     // 发送验证码
-    const sendVerificationCode = () => {
-      // 验证输入
+    const sendVerificationCode = async () => {
+      // 1. 验证输入
       if (resetForm.method === 'username' && !resetForm.username) {
         userPromptMessages.showUsernameInputRequired()
         return
@@ -160,18 +161,39 @@ export default {
         return
       }
       
-      // 模拟发送验证码（实际应该调用后端API）
-      // TODO: 等待后端实现验证码发送API（sendCaptcha接口），实现后调用 store.dispatch('user/sendCaptcha', data) 并使用 showByCode(res.code)
-      userPromptMessages.showCaptchaSent()
-      
-      // 开始倒计时
-      codeCountdown.value = 60
-      const timer = setInterval(() => {
-        codeCountdown.value--
-        if (codeCountdown.value <= 0) {
-          clearInterval(timer)
+      try {
+        // 2. 准备发送数据
+        const captchaData = {}
+        if (resetForm.method === 'username') {
+          captchaData.username = resetForm.username
+        } else if (resetForm.method === 'phone') {
+          captchaData.phone = resetForm.phone
+        } else if (resetForm.method === 'email') {
+          captchaData.email = resetForm.email
         }
-      }, 1000)
+        
+        // 3. 调用Vuex action发送验证码
+        const res = await store.dispatch('user/sendCaptcha', captchaData)
+        
+        // 4. 显示API响应消息
+        showByCode(res.code)
+        
+        // 5. 只有成功时才开始倒计时
+        if (isSuccess(res.code)) {
+          codeCountdown.value = 60
+          const timer = setInterval(() => {
+            codeCountdown.value--
+            if (codeCountdown.value <= 0) {
+              clearInterval(timer)
+            }
+          }, 1000)
+        }
+      } catch (error) {
+        // 捕获意外的运行时错误
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[开发调试] 发送验证码时发生意外错误：', error)
+        }
+      }
     }
     
     // 处理密码找回

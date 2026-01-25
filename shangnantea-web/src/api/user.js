@@ -137,6 +137,19 @@ export function resetPassword(resetData) {
   })
 }
 
+/**
+ * 发送验证码（用于密码找回）
+ * @param {Object} captchaData 验证码数据 {username/phone/email}
+ * @returns {Promise} 发送结果
+ */
+export function sendCaptcha(captchaData) {
+  return request({
+    url: API.USER.SEND_CAPTCHA,
+    method: 'post',
+    data: captchaData
+  })
+}
+
 // === 用户地址相关API ===
 
 /**
