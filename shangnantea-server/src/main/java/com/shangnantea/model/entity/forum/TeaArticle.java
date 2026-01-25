@@ -75,16 +75,6 @@ public class TeaArticle {
     private Integer viewCount;
     
     /**
-     * 点赞数
-     */
-    private Integer likeCount;
-    
-    /**
-     * 收藏数
-     */
-    private Integer favoriteCount;
-    
-    /**
      * 是否置顶
      */
     private Integer isTop;
