@@ -517,6 +517,14 @@ public class UserServiceImpl implements UserService {
      * 密码找回/重置
      * 成功码：2006，失败码：2114
      * 注意：简化实现，通过用户名+手机号验证身份（实际项目应使用验证码）
+     * TODO: 集成第三方验证码服务（短信验证码或邮箱验证码）
+     *       - 推荐服务：阿里云短信服务、腾讯云短信服务
+     *       - 实现步骤：
+     *         1. 用户输入用户名/手机号，请求发送验证码
+     *         2. 后端调用第三方API发送验证码，并缓存验证码（Redis，5分钟有效期）
+     *         3. 用户输入验证码+新密码
+     *         4. 后端验证验证码是否正确且未过期
+     *         5. 验证通过后重置密码
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -526,6 +534,8 @@ public class UserServiceImpl implements UserService {
             String username = (String) resetData.get("username");
             String phone = (String) resetData.get("phone");
             String newPassword = (String) resetData.get("newPassword");
+            // TODO: 添加验证码参数
+            // String verificationCode = (String) resetData.get("verificationCode");
             
             // 2. 参数验证
             if (username == null || username.trim().isEmpty()) {
@@ -543,6 +553,12 @@ public class UserServiceImpl implements UserService {
                 return Result.failure(2114); // 密码重置失败
             }
             
+            // TODO: 验证验证码
+            // if (verificationCode == null || verificationCode.trim().isEmpty()) {
+            //     logger.warn("密码重置失败: 验证码不能为空");
+            //     return Result.failure(2114);
+            // }
+            
             // 3. 验证用户名和手机号是否匹配
             User user = getUserByUsername(username);
             if (user == null) {
@@ -555,6 +571,13 @@ public class UserServiceImpl implements UserService {
                 return Result.failure(2114); // 密码重置失败
             }
             
+            // TODO: 验证验证码是否正确
+            // String cachedCode = redisTemplate.opsForValue().get("reset_pwd:" + phone);
+            // if (cachedCode == null || !cachedCode.equals(verificationCode)) {
+            //     logger.warn("密码重置失败: 验证码错误或已过期, phone: {}", phone);
+            //     return Result.failure(2114);
+            // }
+            
             // 4. 加密新密码并更新
             String encodedPassword = passwordEncoder.encode(newPassword);
             int result = userMapper.updatePassword(user.getId(), encodedPassword);
@@ -563,6 +586,9 @@ public class UserServiceImpl implements UserService {
                 logger.error("密码重置失败: 数据库更新失败, username: {}", username);
                 return Result.failure(2114); // 密码重置失败
             }
+            
+            // TODO: 删除已使用的验证码
+            // redisTemplate.delete("reset_pwd:" + phone);
             
             logger.info("密码重置成功: username: {}, userId: {}", username, user.getId());
             return Result.success(2006, "密码重置成功"); // 密码重置成功
