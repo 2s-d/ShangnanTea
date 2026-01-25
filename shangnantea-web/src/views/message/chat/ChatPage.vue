@@ -24,8 +24,6 @@
     
     4. 管理功能：
        - 删除会话
-       - 清空聊天记录
-       - 举报功能
     -->
     
     <div class="chat-layout">
@@ -116,17 +114,6 @@
         <!-- 聊天头部 -->
         <div class="chat-header" v-if="currentSession">
           <h3 class="chat-title">{{ currentSession.name }}</h3>
-          <div class="chat-actions">
-            <el-dropdown trigger="click">
-              <el-button icon="el-icon-more" circle></el-button>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item @click="clearMessages">清空聊天记录</el-dropdown-item>
-                  <el-dropdown-item @click="reportUser">举报用户</el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </div>
         </div>
         
         <div class="chat-header" v-else>
@@ -533,50 +520,6 @@ export default {
       }
     }
     
-    // 清空聊天记录
-    const clearMessages = () => {
-      if (!currentSessionId.value) return
-      
-      ElMessageBox.confirm('确定要清空聊天记录吗？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        // 生产版：清空聊天记录必须由后端确认后再刷新历史，前端不做本地“假清空”
-        // TODO-SCRIPT: 需要后端提供清空接口（例如 POST /message/history/clear）
-        message.info('清空聊天记录：待后端接口接入（当前不执行本地清空，避免产生假状态）')
-        return
-      }).catch(() => {
-        // 用户取消清空
-      })
-    }
-    
-    // 举报用户
-    const reportUser = () => {
-      if (!currentSessionId.value) return
-      
-      ElMessageBox.prompt('请输入举报原因', '举报用户', {
-        confirmButtonText: '提交',
-        cancelButtonText: '取消',
-        inputPlaceholder: '请详细描述您的举报原因'
-      }).then(({ value }) => {
-        // 生产版：举报需要后端记录与审核，前端不做本地“假提交成功”状态变更
-        // TODO-SCRIPT: 需要后端提供举报接口（例如 POST /message/report）
-        // 这里先保留输入流程，但不提交到本地状态，避免伪成功
-        if (!value.trim()) {
-          message.warning('举报原因不能为空')
-          return
-        }
-        
-        // 生产版：举报需要后端记录与审核，前端不做本地“假提交成功”状态变更
-        // TODO-SCRIPT: 需要后端提供举报接口（例如 POST /message/report）
-        message.info('举报：待后端接口接入（已记录原因输入，但当前不提交）')
-        return
-      }).catch(() => {
-        // 用户取消举报
-      })
-    }
-    
     // 发送消息
     const sendMessage = async () => {
       if (!currentSessionId.value) return
@@ -945,8 +888,6 @@ export default {
       selectSession,
       deleteSession,
       togglePinSession,
-      clearMessages,
-      reportUser,
       sendMessage,
       triggerImageUpload,
       handleImageUpload,
@@ -1115,14 +1056,6 @@ export default {
           color: var(--text-primary);
           text-align: center;
           flex: 1;
-        }
-        
-        .chat-actions {
-          :deep(.el-button) {
-            padding: 6px;
-            font-size: 16px;
-          }
-        }
       }
       
       .chat-messages {
