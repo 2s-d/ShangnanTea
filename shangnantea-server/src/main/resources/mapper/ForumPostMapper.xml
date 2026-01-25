@@ -78,11 +78,33 @@
         WHERE id = #{id}
     </update>
 
-    <!-- 根据主键查询记录 -->
+    <!-- 根据主键查询记录（排除已删除） -->
     <select id="selectById" parameterType="java.lang.Long" resultMap="BaseResultMap">
         SELECT <include refid="Base_Column_List"/>
         FROM forum_posts
-        WHERE id = #{id}
+        WHERE id = #{id} AND status != 2
+    </select>
+    
+    <!-- 查询正常状态的帖子（支持版块和关键词过滤） -->
+    <select id="selectPublishedPosts" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM forum_posts
+        WHERE status = #{status}
+        <if test="topicId != null">
+            AND topic_id = #{topicId}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND (title LIKE CONCAT('%', #{keyword}, '%') OR content LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        ORDER BY is_sticky DESC, create_time DESC
+    </select>
+    
+    <!-- 根据状态查询帖子 -->
+    <select id="selectByStatus" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM forum_posts
+        WHERE status = #{status}
+        ORDER BY create_time DESC
     </select>
 
     <!-- 根据主键批量查询记录 -->

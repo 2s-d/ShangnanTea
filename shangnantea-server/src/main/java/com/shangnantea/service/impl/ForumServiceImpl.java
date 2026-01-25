@@ -1112,74 +1112,78 @@ public class ForumServiceImpl implements ForumService {
             Integer pageSize = params.get("pageSize") != null ? 
                     Integer.parseInt(params.get("pageSize").toString()) : 10;
             
-            // 2. 查询所有正常状态的帖子（status=1）
-            List<ForumPost> allPosts = postMapper.selectAll();
-            List<PostVO> postVOList = allPosts.stream()
-                    .filter(post -> post.getStatus() != null && post.getStatus() == 1)
-                    .filter(post -> {
-                        // 版块筛选
-                        if (topicId != null) {
-                            return topicId.equals(post.getTopicId());
-                        }
-                        return true;
-                    })
-                    .filter(post -> {
-                        // 关键词筛选（标题或内容包含关键词）
-                        if (keyword != null && !keyword.isEmpty()) {
-                            String title = post.getTitle() != null ? post.getTitle() : "";
-                            String content = post.getContent() != null ? post.getContent() : "";
-                            return title.contains(keyword) || content.contains(keyword);
-                        }
-                        return true;
-                    })
-                    .sorted((a, b) -> {
-                        // 置顶帖子优先，然后按创建时间降序
-                        if (!a.getIsSticky().equals(b.getIsSticky())) {
-                            return b.getIsSticky().compareTo(a.getIsSticky());
-                        }
-                        if (a.getCreateTime() == null && b.getCreateTime() == null) {
-                            return 0;
-                        }
-                        if (a.getCreateTime() == null) {
-                            return 1;
-                        }
-                        if (b.getCreateTime() == null) {
-                            return -1;
-                        }
-                        return b.getCreateTime().compareTo(a.getCreateTime());
-                    })
-                    .skip((long) (page - 1) * pageSize)
-                    .limit(pageSize)
-                    .map(post -> {
-                        PostVO vo = new PostVO();
-                        vo.setId(post.getId());
-                        vo.setUserId(post.getUserId());
-                        // 查询用户信息
-                        User user = userMapper.selectById(post.getUserId());
-                        vo.setUserName(user != null ? user.getUsername() : "未知用户");
-                        vo.setUserAvatar(user != null ? user.getAvatar() : null);
-                        vo.setTopicId(post.getTopicId());
-                        // 查询版块名称
-                        ForumTopic topic = topicMapper.selectById(post.getTopicId());
-                        vo.setTopicName(topic != null ? topic.getName() : "");
-                        vo.setTitle(post.getTitle());
-                        vo.setSummary(post.getSummary());
-                        vo.setCoverImage(post.getCoverImage());
-                        vo.setViewCount(post.getViewCount());
-                        vo.setReplyCount(post.getReplyCount());
-                        vo.setLikeCount(post.getLikeCount());
-                        vo.setFavoriteCount(post.getFavoriteCount());
-                        vo.setIsSticky(post.getIsSticky());
-                        vo.setIsEssence(post.getIsEssence());
-                        vo.setStatus(post.getStatus());
-                        vo.setLastReplyTime(post.getLastReplyTime());
-                        vo.setCreateTime(post.getCreateTime());
-                        return vo;
-                    })
+            // 2. 使用优化的查询方法（数据库层面过滤和排序）
+            List<ForumPost> allPosts = postMapper.selectPublishedPosts(topicId, keyword, 1);
+            
+            // 3. 批量查询用户和版块信息（优化N+1查询）
+            List<String> userIds = allPosts.stream()
+                    .map(ForumPost::getUserId)
+                    .distinct()
+                    .collect(Collectors.toList());
+            List<Integer> topicIds = allPosts.stream()
+                    .map(ForumPost::getTopicId)
+                    .distinct()
                     .collect(Collectors.toList());
             
-            logger.info("获取帖子列表成功，共{}条", postVOList.size());
-            return Result.success(200, postVOList); // 成功码200
+            Map<String, User> userMap = new HashMap<>();
+            if (!userIds.isEmpty()) {
+                List<User> users = userMapper.selectByIds(userIds);
+                userMap = users.stream().collect(Collectors.toMap(User::getId, u -> u));
+            }
+            
+            Map<Integer, ForumTopic> topicMap = new HashMap<>();
+            if (!topicIds.isEmpty()) {
+                List<ForumTopic> topics = topicMapper.selectByIds(topicIds);
+                topicMap = topics.stream().collect(Collectors.toMap(ForumTopic::getId, t -> t));
+            }
+            
+            // 4. 内存分页
+            int total = allPosts.size();
+            int startIndex = (page - 1) * pageSize;
+            int endIndex = Math.min(startIndex + pageSize, total);
+            
+            List<PostVO> postVOList = new ArrayList<>();
+            if (startIndex < total) {
+                final Map<String, User> finalUserMap = userMap;
+                final Map<Integer, ForumTopic> finalTopicMap = topicMap;
+                
+                postVOList = allPosts.subList(startIndex, endIndex).stream()
+                        .map(post -> {
+                            PostVO vo = new PostVO();
+                            vo.setId(post.getId());
+                            vo.setUserId(post.getUserId());
+                            // 从Map获取用户信息
+                            User user = finalUserMap.get(post.getUserId());
+                            vo.setUserName(user != null ? user.getUsername() : "未知用户");
+                            vo.setUserAvatar(user != null ? user.getAvatar() : null);
+                            vo.setTopicId(post.getTopicId());
+                            // 从Map获取版块名称
+                            ForumTopic topic = finalTopicMap.get(post.getTopicId());
+                            vo.setTopicName(topic != null ? topic.getName() : "");
+                            vo.setTitle(post.getTitle());
+                            vo.setSummary(post.getSummary());
+                            vo.setCoverImage(post.getCoverImage());
+                            vo.setViewCount(post.getViewCount());
+                            vo.setReplyCount(post.getReplyCount());
+                            vo.setLikeCount(post.getLikeCount() != null ? post.getLikeCount() : 0);
+                            vo.setFavoriteCount(post.getFavoriteCount() != null ? post.getFavoriteCount() : 0);
+                            vo.setIsSticky(post.getIsSticky());
+                            vo.setIsEssence(post.getIsEssence());
+                            vo.setStatus(post.getStatus());
+                            vo.setLastReplyTime(post.getLastReplyTime());
+                            vo.setCreateTime(post.getCreateTime());
+                            return vo;
+                        })
+                        .collect(Collectors.toList());
+            }
+            
+            // 5. 构造返回数据
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("list", postVOList);
+            responseData.put("total", total);
+            
+            logger.info("获取帖子列表成功，共{}条，返回{}条", total, postVOList.size());
+            return Result.success(200, responseData); // 成功码200
             
         } catch (Exception e) {
             logger.error("获取帖子列表失败: 系统异常", e);
@@ -1259,54 +1263,78 @@ public class ForumServiceImpl implements ForumService {
             Integer pageSize = params.get("pageSize") != null ? 
                     Integer.parseInt(params.get("pageSize").toString()) : 10;
             
-            // 2. 查询待审核的帖子（status=0）
-            List<ForumPost> allPosts = postMapper.selectAll();
-            List<PostVO> postVOList = allPosts.stream()
-                    .filter(post -> post.getStatus() != null && post.getStatus() == 0)
-                    .sorted((a, b) -> {
-                        // 按创建时间降序
-                        if (a.getCreateTime() == null && b.getCreateTime() == null) {
-                            return 0;
-                        }
-                        if (a.getCreateTime() == null) {
-                            return 1;
-                        }
-                        if (b.getCreateTime() == null) {
-                            return -1;
-                        }
-                        return b.getCreateTime().compareTo(a.getCreateTime());
-                    })
-                    .skip((long) (page - 1) * pageSize)
-                    .limit(pageSize)
-                    .map(post -> {
-                        PostVO vo = new PostVO();
-                        vo.setId(post.getId());
-                        vo.setUserId(post.getUserId());
-                        // 查询用户信息
-                        User user = userMapper.selectById(post.getUserId());
-                        vo.setUserName(user != null ? user.getUsername() : "未知用户");
-                        vo.setUserAvatar(user != null ? user.getAvatar() : null);
-                        vo.setTopicId(post.getTopicId());
-                        ForumTopic topic = topicMapper.selectById(post.getTopicId());
-                        vo.setTopicName(topic != null ? topic.getName() : "");
-                        vo.setTitle(post.getTitle());
-                        vo.setSummary(post.getSummary());
-                        vo.setCoverImage(post.getCoverImage());
-                        vo.setViewCount(post.getViewCount());
-                        vo.setReplyCount(post.getReplyCount());
-                        vo.setLikeCount(post.getLikeCount());
-                        vo.setFavoriteCount(post.getFavoriteCount());
-                        vo.setIsSticky(post.getIsSticky());
-                        vo.setIsEssence(post.getIsEssence());
-                        vo.setStatus(post.getStatus());
-                        vo.setLastReplyTime(post.getLastReplyTime());
-                        vo.setCreateTime(post.getCreateTime());
-                        return vo;
-                    })
+            // 2. 使用优化的查询方法（数据库层面过滤和排序）
+            List<ForumPost> allPosts = postMapper.selectByStatus(0);
+            
+            // 3. 批量查询用户和版块信息（优化N+1查询）
+            List<String> userIds = allPosts.stream()
+                    .map(ForumPost::getUserId)
+                    .distinct()
+                    .collect(Collectors.toList());
+            List<Integer> topicIds = allPosts.stream()
+                    .map(ForumPost::getTopicId)
+                    .distinct()
                     .collect(Collectors.toList());
             
-            logger.info("获取待审核帖子列表成功，共{}条", postVOList.size());
-            return Result.success(200, postVOList); // 成功码200
+            Map<String, User> userMap = new HashMap<>();
+            if (!userIds.isEmpty()) {
+                List<User> users = userMapper.selectByIds(userIds);
+                userMap = users.stream().collect(Collectors.toMap(User::getId, u -> u));
+            }
+            
+            Map<Integer, ForumTopic> topicMap = new HashMap<>();
+            if (!topicIds.isEmpty()) {
+                List<ForumTopic> topics = topicMapper.selectByIds(topicIds);
+                topicMap = topics.stream().collect(Collectors.toMap(ForumTopic::getId, t -> t));
+            }
+            
+            // 4. 内存分页
+            int total = allPosts.size();
+            int startIndex = (page - 1) * pageSize;
+            int endIndex = Math.min(startIndex + pageSize, total);
+            
+            List<PostVO> postVOList = new ArrayList<>();
+            if (startIndex < total) {
+                final Map<String, User> finalUserMap = userMap;
+                final Map<Integer, ForumTopic> finalTopicMap = topicMap;
+                
+                postVOList = allPosts.subList(startIndex, endIndex).stream()
+                        .map(post -> {
+                            PostVO vo = new PostVO();
+                            vo.setId(post.getId());
+                            vo.setUserId(post.getUserId());
+                            // 从Map获取用户信息
+                            User user = finalUserMap.get(post.getUserId());
+                            vo.setUserName(user != null ? user.getUsername() : "未知用户");
+                            vo.setUserAvatar(user != null ? user.getAvatar() : null);
+                            vo.setTopicId(post.getTopicId());
+                            // 从Map获取版块名称
+                            ForumTopic topic = finalTopicMap.get(post.getTopicId());
+                            vo.setTopicName(topic != null ? topic.getName() : "");
+                            vo.setTitle(post.getTitle());
+                            vo.setSummary(post.getSummary());
+                            vo.setCoverImage(post.getCoverImage());
+                            vo.setViewCount(post.getViewCount());
+                            vo.setReplyCount(post.getReplyCount());
+                            vo.setLikeCount(post.getLikeCount() != null ? post.getLikeCount() : 0);
+                            vo.setFavoriteCount(post.getFavoriteCount() != null ? post.getFavoriteCount() : 0);
+                            vo.setIsSticky(post.getIsSticky());
+                            vo.setIsEssence(post.getIsEssence());
+                            vo.setStatus(post.getStatus());
+                            vo.setLastReplyTime(post.getLastReplyTime());
+                            vo.setCreateTime(post.getCreateTime());
+                            return vo;
+                        })
+                        .collect(Collectors.toList());
+            }
+            
+            // 5. 构造返回数据
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("list", postVOList);
+            responseData.put("total", total);
+            
+            logger.info("获取待审核帖子列表成功，共{}条，返回{}条", total, postVOList.size());
+            return Result.success(200, responseData); // 成功码200
             
         } catch (Exception e) {
             logger.error("获取待审核帖子列表失败: 系统异常", e);
@@ -1325,7 +1353,7 @@ public class ForumServiceImpl implements ForumService {
             ForumPost post = postMapper.selectById(postId);
             
             if (post == null) {
-                logger.warn("获取帖子详情失败: 帖子不存在, id: {}", id);
+                logger.warn("获取帖子详情失败: 帖子不存在或已删除, id: {}", id);
                 return Result.failure(6122); // 获取帖子详情失败
             }
             
@@ -1333,16 +1361,17 @@ public class ForumServiceImpl implements ForumService {
             post.setViewCount((post.getViewCount() != null ? post.getViewCount() : 0) + 1);
             postMapper.updateById(post);
             
-            // 3. 构造返回VO
+            // 3. 查询用户和版块信息
+            User user = userMapper.selectById(post.getUserId());
+            ForumTopic topic = topicMapper.selectById(post.getTopicId());
+            
+            // 4. 构造返回VO
             PostDetailVO vo = new PostDetailVO();
             vo.setId(post.getId());
             vo.setUserId(post.getUserId());
-            // 查询用户信息
-            User user = userMapper.selectById(post.getUserId());
             vo.setUserName(user != null ? user.getUsername() : "未知用户");
             vo.setUserAvatar(user != null ? user.getAvatar() : null);
             vo.setTopicId(post.getTopicId());
-            ForumTopic topic = topicMapper.selectById(post.getTopicId());
             vo.setTopicName(topic != null ? topic.getName() : "");
             vo.setTitle(post.getTitle());
             vo.setContent(post.getContent());
@@ -1351,8 +1380,8 @@ public class ForumServiceImpl implements ForumService {
             vo.setImages(post.getImages());
             vo.setViewCount(post.getViewCount());
             vo.setReplyCount(post.getReplyCount());
-            vo.setLikeCount(post.getLikeCount());
-            vo.setFavoriteCount(post.getFavoriteCount());
+            vo.setLikeCount(post.getLikeCount() != null ? post.getLikeCount() : 0);
+            vo.setFavoriteCount(post.getFavoriteCount() != null ? post.getFavoriteCount() : 0);
             vo.setIsSticky(post.getIsSticky());
             vo.setIsEssence(post.getIsEssence());
             vo.setStatus(post.getStatus());
@@ -1402,11 +1431,19 @@ public class ForumServiceImpl implements ForumService {
                 return Result.failure(6123); // 帖子更新失败
             }
             
-            // 4. 更新帖子信息
+            // 4. 参数验证并更新帖子信息
             if (dto.getTitle() != null && !dto.getTitle().isEmpty()) {
+                if (dto.getTitle().length() > 100) {
+                    logger.warn("更新帖子失败: 标题长度超过限制");
+                    return Result.failure(6123, "标题长度不能超过100个字符");
+                }
                 post.setTitle(dto.getTitle());
             }
             if (dto.getContent() != null) {
+                if (dto.getContent().length() > 10000) {
+                    logger.warn("更新帖子失败: 内容长度超过限制");
+                    return Result.failure(6123, "内容长度不能超过10000个字符");
+                }
                 post.setContent(dto.getContent());
             }
             if (dto.getSummary() != null) {
