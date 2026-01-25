@@ -48,6 +48,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 /**
  * 论坛服务实现类
@@ -932,10 +935,29 @@ public class ForumServiceImpl implements ForumService {
             }
             vo.setCover(cover);
             vo.setUserId(topic.getUserId());
-            vo.setModeratorName("版主"); // TODO: 从用户表查询版主名称
+            
+            // 查询版主名称
+            String moderatorName = "未设置版主";
+            if (topic.getUserId() != null) {
+                User moderator = userMapper.selectById(topic.getUserId());
+                if (moderator != null && moderator.getUsername() != null) {
+                    moderatorName = moderator.getUsername();
+                }
+            }
+            vo.setModeratorName(moderatorName);
+            
             vo.setSortOrder(topic.getSortOrder());
             vo.setPostCount(topic.getPostCount() != null ? topic.getPostCount() : 0);
-            vo.setTodayPostCount(0); // TODO: 统计今日帖子数
+            
+            // 统计今日帖子数
+            LocalDate today = LocalDate.now();
+            LocalDateTime startOfDay = today.atStartOfDay();
+            LocalDateTime endOfDay = today.plusDays(1).atStartOfDay();
+            Date startTime = Date.from(startOfDay.atZone(ZoneId.systemDefault()).toInstant());
+            Date endTime = Date.from(endOfDay.atZone(ZoneId.systemDefault()).toInstant());
+            int todayPostCount = postMapper.countTodayPosts(topicId, startTime, endTime, 1);
+            vo.setTodayPostCount(todayPostCount);
+            
             vo.setStatus(topic.getStatus());
             vo.setCreateTime(topic.getCreateTime());
             vo.setUpdateTime(topic.getUpdateTime());

@@ -26,4 +26,17 @@ public interface ForumPostMapper extends BaseMapper<ForumPost, Long> {
      * @return 帖子列表
      */
     List<ForumPost> selectByStatus(@Param("status") Integer status);
+    
+    /**
+     * 统计指定版块今日发布的帖子数
+     * @param topicId 版块ID
+     * @param startTime 开始时间
+     * @param endTime 结束时间
+     * @param status 状态（1=已发布）
+     * @return 帖子数量
+     */
+    int countTodayPosts(@Param("topicId") Integer topicId,
+                        @Param("startTime") Date startTime,
+                        @Param("endTime") Date endTime,
+                        @Param("status") Integer status);
 } 
