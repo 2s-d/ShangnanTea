@@ -687,7 +687,18 @@ public class ForumServiceImpl implements ForumService {
             article.setCategory(category);
             article.setTags(tags);
             article.setSource(source);
-            article.setAuthor("管理员"); // 默认作者
+            
+            // 获取当前用户作为作者
+            String currentUserId = UserContext.getCurrentUserId();
+            String authorName = "管理员"; // 默认值
+            if (currentUserId != null) {
+                User author = userMapper.selectById(currentUserId);
+                if (author != null && author.getUsername() != null) {
+                    authorName = author.getUsername();
+                }
+            }
+            article.setAuthor(authorName);
+            
             article.setViewCount(0);
             article.setLikeCount(0);
             article.setFavoriteCount(0);
