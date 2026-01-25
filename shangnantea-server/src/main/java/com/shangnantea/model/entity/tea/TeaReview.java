@@ -60,11 +60,6 @@ public class TeaReview {
     private Integer isAnonymous;
     
     /**
-     * 点赞数
-     */
-    private Integer likeCount;
-    
-    /**
      * 创建时间
      */
     private Date createTime;

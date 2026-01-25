@@ -40,11 +40,6 @@ public class ForumReply {
     private String toUserId;
     
     /**
-     * 点赞数
-     */
-    private Integer likeCount;
-    
-    /**
      * 状态(1正常,0待审核,2已删除)
      */
     private Integer status;
