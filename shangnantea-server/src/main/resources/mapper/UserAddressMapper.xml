@@ -84,6 +84,22 @@
         WHERE id = #{id,jdbcType=INTEGER}
     </update>
     
+    <!-- 根据ID更新地址 -->
+    <update id="updateById" parameterType="com.shangnantea.model.entity.user.UserAddress">
+        UPDATE user_addresses
+        <set>
+            <if test="receiverName != null">receiver_name = #{receiverName,jdbcType=VARCHAR},</if>
+            <if test="receiverPhone != null">receiver_phone = #{receiverPhone,jdbcType=VARCHAR},</if>
+            <if test="province != null">province = #{province,jdbcType=VARCHAR},</if>
+            <if test="city != null">city = #{city,jdbcType=VARCHAR},</if>
+            <if test="district != null">district = #{district,jdbcType=VARCHAR},</if>
+            <if test="detailAddress != null">detail_address = #{detailAddress,jdbcType=VARCHAR},</if>
+            <if test="isDefault != null">is_default = #{isDefault,jdbcType=INTEGER},</if>
+            <if test="updateTime != null">update_time = #{updateTime,jdbcType=TIMESTAMP},</if>
+        </set>
+        WHERE id = #{id,jdbcType=INTEGER}
+    </update>
+    
     <!-- 将用户的所有地址设为非默认 -->
     <update id="resetDefaultByUserId" parameterType="java.lang.String">
         UPDATE user_addresses

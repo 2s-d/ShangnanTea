@@ -388,12 +388,10 @@ export default {
           role: roleFilter.value ? Number(roleFilter.value) : undefined,
           status: statusFilter.value !== '' ? Number(statusFilter.value) : undefined
         }
-        await store.dispatch('user/fetchUserList', params)
+        const res = await store.dispatch('user/fetchUserList', params)
+        showByCode(res.code)
       } catch (error) {
         console.error('获取用户列表失败：', error)
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        userMessages.error.showUserListFetchFailed()
       }
     }
     
@@ -539,17 +537,11 @@ export default {
     // 确认删除
     const confirmDelete = async () => {
       try {
-        await store.dispatch('user/deleteUser', selectedUser.value.id)
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        // TODO: [user] 迁移到 showByCode(response.code) - success
-        userMessages.success.showUserDeleted(selectedUser.value.username)
+        const res = await store.dispatch('user/deleteUser', selectedUser.value.id)
+        showByCode(res.code)
         deleteDialogVisible.value = false
       } catch (error) {
         console.error('删除用户失败：', error)
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        userMessages.error.showUserDeleteFailed()
       }
     }
     
@@ -557,18 +549,13 @@ export default {
     const handleStatusChange = async user => {
       try {
         const newStatus = user.status === 1 ? 0 : 1
-        await store.dispatch('user/toggleUserStatus', {
+        const res = await store.dispatch('user/toggleUserStatus', {
           userId: user.id,
           status: newStatus
         })
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        userMessages.success.showUserStatusToggled(user.username, newStatus)
+        showByCode(res.code)
       } catch (error) {
         console.error('修改用户状态失败：', error)
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        userMessages.error.showUserStatusToggleFailed()
         // 恢复原状态
         user.status = user.status === 1 ? 0 : 1
       }
@@ -591,14 +578,12 @@ export default {
                 avatar: userForm.avatar
               }
               
-              await store.dispatch('user/updateUser', {
+              const res = await store.dispatch('user/updateUser', {
                 userId: userForm.id,
                 userData
               })
               
-              // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-              userMessages.success.showUserUpdated(userForm.username)
+              showByCode(res.code)
             } else {
               // 添加管理员（固定role=1）
               const adminData = {
@@ -611,11 +596,9 @@ export default {
                 role: 1 // 固定为管理员
               }
               
-              await store.dispatch('user/createAdmin', adminData)
+              const res = await store.dispatch('user/createAdmin', adminData)
               
-              // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-              userMessages.success.showAdminCreated(userForm.username)
+              showByCode(res.code)
             }
             
             dialogVisible.value = false
@@ -623,9 +606,6 @@ export default {
             await fetchUserList()
           } catch (error) {
             console.error('提交用户表单失败：', error)
-            // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-            userMessages.error.showUserFormSubmitFailed()
           }
         } else {
           return false
@@ -639,14 +619,10 @@ export default {
       const isLt2M = file.size / 1024 / 1024 < 2
       
       if (!isImage) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
         userMessages.error.showAvatarFormatError()
       }
       
       if (!isLt2M) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
         userMessages.error.showAvatarSizeError()
       }
       

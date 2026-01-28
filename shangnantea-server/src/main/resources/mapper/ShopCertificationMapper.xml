@@ -113,4 +113,69 @@
     <select id="count" resultType="java.lang.Long">
         SELECT COUNT(*) FROM shop_certifications
     </select>
+    
+    <!-- 根据用户ID查询认证信息 -->
+    <select id="selectByUserId" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM shop_certifications
+        WHERE user_id = #{userId}
+        ORDER BY create_time DESC
+        LIMIT 1
+    </select>
+    
+    <!-- 分页查询认证列表 -->
+    <select id="selectByPage" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM shop_certifications
+        <where>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+    
+    <!-- 统计认证数量 -->
+    <select id="countByCondition" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM shop_certifications
+        <where>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+    </select>
+    
+    <!-- 更新认证信息 -->
+    <update id="update" parameterType="com.shangnantea.model.entity.shop.ShopCertification">
+        UPDATE shop_certifications
+        <set>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="realName != null">real_name = #{realName},</if>
+            <if test="idCard != null">id_card = #{idCard},</if>
+            <if test="idCardFront != null">id_card_front = #{idCardFront},</if>
+            <if test="idCardBack != null">id_card_back = #{idCardBack},</if>
+            <if test="businessLicense != null">business_license = #{businessLicense},</if>
+            <if test="shopName != null">shop_name = #{shopName},</if>
+            <if test="contactPhone != null">contact_phone = #{contactPhone},</if>
+            <if test="province != null">province = #{province},</if>
+            <if test="city != null">city = #{city},</if>
+            <if test="district != null">district = #{district},</if>
+            <if test="address != null">address = #{address},</if>
+            <if test="applyReason != null">apply_reason = #{applyReason},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="adminId != null">admin_id = #{adminId},</if>
+            <if test="rejectReason != null">reject_reason = #{rejectReason},</if>
+            <if test="notificationId != null">notification_id = #{notificationId},</if>
+            <if test="notificationConfirmed != null">notification_confirmed = #{notificationConfirmed},</if>
+            update_time = now()
+        </set>
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 调用存储过程确认认证并创建店铺 -->
+    <select id="confirmCertification" parameterType="java.lang.Integer" resultType="java.lang.String" statementType="CALLABLE">
+        {CALL confirm_shop_certification(#{certificationId, mode=IN, jdbcType=INTEGER})}
+    </select>
 </mapper> 

@@ -110,52 +110,52 @@ inclusion: manual
 2. ✅ **register** - `/user/register` - 用户注册（已完成）
 3. ✅ **logout** - `/user/logout` - 用户登出（已完成）
 4. ✅ **getCurrentUser** - `/user/me` - 获取当前用户信息（已完成）
-5. **refreshToken** - `/user/refresh` - 刷新令牌
-6. **getUserInfo** - `/user/{userId}` - 获取用户信息
-7. **updateUserInfo** - `/user` - 更新用户信息
-8. **uploadAvatar** - `/user/avatar` - 上传头像
-9. **changePassword** - `/user/password` - 修改密码
-10. **resetPassword** - `/user/password/reset` - 重置密码
+5. ✅ **refreshToken** - `/user/refresh` - 刷新令牌（已完成）
+6. ✅ **getUserInfo** - `/user/{userId}` - 获取用户信息（已完成）
+7. ✅ **updateUserInfo** - `/user` - 更新用户信息（已完成）
+8. ✅ **uploadAvatar** - `/user/avatar` - 上传头像（已完成）
+9. ✅ **changePassword** - `/user/password` - 修改密码（已完成）
+10. ✅ **resetPassword** - `/user/password/reset` - 重置密码（已完成）
 
 #### 地址管理功能（5个接口）
-11. **getAddressList** - `/user/addresses` - 获取地址列表
-12. **addAddress** - `/user/addresses` - 添加地址
-13. **updateAddress** - `/user/addresses/{id}` - 更新地址
-14. **deleteAddress** - `/user/addresses/{id}` - 删除地址
-15. **setDefaultAddress** - `/user/addresses/{id}/default` - 设置默认地址
+11. ✅ **getAddressList** - `/user/addresses` - 获取地址列表（已完成）
+12. ✅ **addAddress** - `/user/addresses` - 添加地址（已完成）
+13. ✅ **updateAddress** - `/user/addresses/{id}` - 更新地址（已完成）
+14. ✅ **deleteAddress** - `/user/addresses/{id}` - 删除地址（已完成）
+15. ✅ **setDefaultAddress** - `/user/addresses/{id}/default` - 设置默认地址（已完成）
 
-#### 商家认证功能（3个接口）
-16. **submitShopCertification** - `/user/shop-certification` - 提交商家认证
-17. **getShopCertificationStatus** - `/user/shop-certification` - 获取认证状态
-18. **uploadCertificationImage** - `/user/merchant/certification/image` - 上传认证图片
+#### 商家认证功能（2个接口）
+16. ✅ **submitShopCertification** - `/user/shop-certification` - 提交商家认证（已完成）
+17. ✅ **getShopCertificationStatus** - `/user/shop-certification` - 获取认证状态（已完成）
 
-#### 社交功能（7个接口）
-19. **getFollowList** - `/user/follows` - 获取关注列表
-20. **addFollow** - `/user/follows` - 添加关注
-21. **removeFollow** - `/user/follows/{id}` - 取消关注
-22. **getFavoriteList** - `/user/favorites` - 获取收藏列表
-23. **addFavorite** - `/user/favorites` - 添加收藏
-24. **removeFavorite** - `/user/favorites/{id}` - 取消收藏
-25. **addLike** - `/user/likes` - 点赞
-26. **removeLike** - `/user/likes/{id}` - 取消点赞
+#### 社交功能（8个接口）
+18. ✅ **getFollowList** - `/user/follows` - 获取关注列表（已完成）
+19. ✅ **addFollow** - `/user/follows` - 添加关注（已完成）
+20. ✅ **removeFollow** - `/user/follows/{id}` - 取消关注（已完成）
+21. ✅ **getFavoriteList** - `/user/favorites` - 获取收藏列表（已完成）
+22. ✅ **addFavorite** - `/user/favorites` - 添加收藏（已完成）
+23. ✅ **removeFavorite** - `/user/favorites/{id}` - 取消收藏（已完成）
+24. ✅ **addLike** - `/user/likes` - 点赞（已完成）
+25. ✅ **removeLike** - `/user/likes/{id}` - 取消点赞（已完成）
 
 #### 用户偏好设置（2个接口）
-27. **getUserPreferences** - `/user/preferences` - 获取用户偏好设置
-28. **updateUserPreferences** - `/user/preferences` - 更新用户偏好设置
+26. ✅ **getUserPreferences** - `/user/preferences` - 获取用户偏好设置（已完成）
+27. ✅ **updateUserPreferences** - `/user/preferences` - 更新用户偏好设置（已完成）
 
-#### 管理员功能（7个接口）
-29. **getAdminUserList** - `/user/admin/users` - 获取用户列表
-30. **createAdmin** - `/user/admin/users` - 创建管理员
-31. **updateUser** - `/user/admin/users/{userId}` - 更新用户
-32. **deleteUser** - `/user/admin/users/{userId}` - 删除用户
-33. **toggleUserStatus** - `/user/admin/users/{userId}/status` - 切换用户状态
-34. **getCertificationList** - `/user/admin/certifications` - 获取认证列表
-35. **processCertification** - `/user/admin/certifications/{id}` - 审核认证
+#### 管理员功能（8个接口）
+28. ✅ **getAdminUserList** - `/user/admin/users` - 获取用户列表（已完成）
+29. ✅ **createAdmin** - `/user/admin/users` - 创建管理员（已完成）
+30. ✅ **updateUser** - `/user/admin/users/{userId}` - 更新用户（已完成）
+31. ✅ **deleteUser** - `/user/admin/users/{userId}` - 删除用户（已完成）
+32. ✅ **toggleUserStatus** - `/user/admin/users/{userId}/status` - 切换用户状态（已完成）
+33. ✅ **getCertificationList** - `/user/admin/certifications` - 获取认证列表（已完成）
+34. ✅ **processCertification** - `/user/admin/certifications/{id}` - 审核认证（已完成）
+35. ✅ **uploadCertificationImage** - `/user/merchant/certification/image` - 上传认证图片（已完成）
 
 ### 接口开发进度
-- **已完成**：4/35（login, register, logout, getCurrentUser）
-- **待开发**：31/35
-- **完成率**：11.4%
+- **已完成**：35/35（login, register, logout, getCurrentUser, refreshToken, getUserInfo, updateUserInfo, uploadAvatar, changePassword, resetPassword, getAddressList, addAddress, updateAddress, deleteAddress, setDefaultAddress, submitShopCertification, getShopCertificationStatus, getFollowList, addFollow, removeFollow, getFavoriteList, addFavorite, removeFavorite, addLike, removeLike, getUserPreferences, updateUserPreferences, getAdminUserList, createAdmin, updateUser, deleteUser, toggleUserStatus, getCertificationList, processCertification, uploadCertificationImage）
+- **待开发**：0/35
+- **完成率**：100%
 
 ### 状态码范围
 - **成功码**：2000-2024（25个成功状态码）

@@ -1,9 +1,17 @@
 package com.shangnantea.controller;
 
 import com.shangnantea.common.api.Result;
+import com.shangnantea.model.dto.AddFavoriteDTO;
+import com.shangnantea.model.dto.AddFollowDTO;
+import com.shangnantea.model.dto.AddLikeDTO;
 import com.shangnantea.model.dto.ChangePasswordDTO;
+import com.shangnantea.model.dto.CreateAdminDTO;
 import com.shangnantea.model.dto.LoginDTO;
+import com.shangnantea.model.dto.ProcessCertificationDTO;
 import com.shangnantea.model.dto.RegisterDTO;
+import com.shangnantea.model.dto.SubmitShopCertificationDTO;
+import com.shangnantea.model.dto.UpdateUserDTO;
+import com.shangnantea.model.dto.UpdateUserPreferencesDTO;
 import com.shangnantea.model.vo.user.TokenVO;
 import com.shangnantea.model.vo.user.UserVO;
 import com.shangnantea.security.annotation.RequiresLogin;
@@ -82,7 +90,7 @@ public class UserController {
     /**
      * 刷新令牌
      * 路径: POST /user/refresh
-     * 成功码: 200, 失败码: 2102, 2103
+     * 成功码: 200, 失败码: 2105, 2106
      *
      * @param request HTTP请求
      * @return 刷新结果
@@ -113,7 +121,7 @@ public class UserController {
     /**
      * 更新用户信息
      * 路径: PUT /user
-     * 成功码: 2010, 失败码: 2110
+     * 成功码: 2003, 失败码: 2108
      *
      * @param userData 用户信息
      * @return 修改结果
@@ -128,7 +136,7 @@ public class UserController {
     /**
      * 上传头像
      * 路径: POST /user/avatar
-     * 成功码: 2012, 失败码: 2112, 1103, 1104
+     * 成功码: 2004, 失败码: 2109, 2110, 2111
      *
      * @param file 头像文件
      * @return 上传结果
@@ -145,7 +153,7 @@ public class UserController {
     /**
      * 修改密码
      * 路径: PUT /user/password
-     * 成功码: 2011, 失败码: 2111, 2113
+     * 成功码: 2005, 失败码: 2112, 2113
      *
      * @param changePasswordDTO 修改密码信息
      * @return 修改结果
@@ -160,7 +168,7 @@ public class UserController {
     /**
      * 密码找回/重置
      * 路径: POST /user/password/reset
-     * 成功码: 2004, 失败码: 2104
+     * 成功码: 2006, 失败码: 2114
      *
      * @param resetData 重置信息
      * @return 重置结果
@@ -176,7 +184,7 @@ public class UserController {
     /**
      * 获取用户地址列表
      * 路径: GET /user/addresses
-     * 成功码: 200, 失败码: 4160
+     * 成功码: 200, 失败码: 2115
      *
      * @return 地址列表
      */
@@ -190,7 +198,7 @@ public class UserController {
     /**
      * 新增收货地址
      * 路径: POST /user/addresses
-     * 成功码: 4060, 失败码: 4161
+     * 成功码: 2007, 失败码: 2116
      *
      * @param addressData 地址数据
      * @return 创建结果
@@ -205,7 +213,7 @@ public class UserController {
     /**
      * 更新收货地址
      * 路径: PUT /user/addresses/{id}
-     * 成功码: 1004, 失败码: 4161
+     * 成功码: 2008, 失败码: 2117
      *
      * @param id 地址ID
      * @param addressData 地址数据
@@ -221,7 +229,7 @@ public class UserController {
     /**
      * 删除收货地址
      * 路径: DELETE /user/addresses/{id}
-     * 成功码: 1003, 失败码: 1100
+     * 成功码: 2009, 失败码: 2118
      *
      * @param id 地址ID
      * @return 删除结果
@@ -236,7 +244,7 @@ public class UserController {
     /**
      * 设置默认地址
      * 路径: PUT /user/addresses/{id}/default
-     * 成功码: 1004, 失败码: 1100
+     * 成功码: 2010, 失败码: 2119
      *
      * @param id 地址ID
      * @return 设置结果
@@ -253,7 +261,7 @@ public class UserController {
     /**
      * 获取商家认证状态
      * 路径: GET /user/shop-certification
-     * 成功码: 200, 失败码: 1102
+     * 成功码: 200, 失败码: 2121
      *
      * @return 认证状态
      */
@@ -267,16 +275,16 @@ public class UserController {
     /**
      * 提交商家认证申请
      * 路径: POST /user/shop-certification
-     * 成功码: 1000, 失败码: 1100
+     * 成功码: 2011, 失败码: 2120
      *
-     * @param certificationData 认证数据
+     * @param certificationDTO 认证数据
      * @return 提交结果
      */
     @PostMapping("/shop-certification")
     @RequiresLogin
-    public Result<Boolean> submitShopCertification(@RequestBody Map<String, Object> certificationData) {
+    public Result<Boolean> submitShopCertification(@Valid @RequestBody SubmitShopCertificationDTO certificationDTO) {
         logger.info("提交商家认证申请请求");
-        return userService.submitShopCertification(certificationData);
+        return userService.submitShopCertification(certificationDTO);
     }
 
     // ==================== 用户互动功能 ====================
@@ -284,7 +292,7 @@ public class UserController {
     /**
      * 获取关注列表
      * 路径: GET /user/follows
-     * 成功码: 200, 失败码: 1102
+     * 成功码: 200, 失败码: 2122
      *
      * @param type 关注类型（user/shop），可选
      * @return 关注列表
@@ -299,22 +307,22 @@ public class UserController {
     /**
      * 添加关注
      * 路径: POST /user/follows
-     * 成功码: 5000, 失败码: 5102
+     * 成功码: 2012, 失败码: 2123
      *
-     * @param followData 关注信息 {targetId, targetType}
+     * @param followDTO 关注信息
      * @return 关注结果
      */
     @PostMapping("/follows")
     @RequiresLogin
-    public Result<Boolean> addFollow(@RequestBody Map<String, Object> followData) {
+    public Result<Boolean> addFollow(@Valid @RequestBody AddFollowDTO followDTO) {
         logger.info("添加关注请求");
-        return userService.addFollow(followData);
+        return userService.addFollow(followDTO);
     }
 
     /**
      * 取消关注
      * 路径: DELETE /user/follows/{id}
-     * 成功码: 5001, 失败码: 5102
+     * 成功码: 2013, 失败码: 2124
      *
      * @param id 关注ID
      * @return 取消结果
@@ -329,7 +337,7 @@ public class UserController {
     /**
      * 获取收藏列表
      * 路径: GET /user/favorites
-     * 成功码: 200, 失败码: 1102
+     * 成功码: 200, 失败码: 2125
      *
      * @param type 收藏类型（tea/post/article），可选
      * @return 收藏列表
@@ -344,22 +352,22 @@ public class UserController {
     /**
      * 添加收藏
      * 路径: POST /user/favorites
-     * 成功码: 3010(茶叶), 6012(帖子), 失败码: 3110, 6112
+     * 成功码: 2014, 失败码: 2126
      *
-     * @param favoriteData 收藏信息 {targetId, targetType}
+     * @param favoriteDTO 收藏信息
      * @return 收藏结果
      */
     @PostMapping("/favorites")
     @RequiresLogin
-    public Result<Boolean> addFavorite(@RequestBody Map<String, Object> favoriteData) {
+    public Result<Boolean> addFavorite(@Valid @RequestBody AddFavoriteDTO favoriteDTO) {
         logger.info("添加收藏请求");
-        return userService.addFavorite(favoriteData);
+        return userService.addFavorite(favoriteDTO);
     }
 
     /**
      * 取消收藏
      * 路径: DELETE /user/favorites/{id}
-     * 成功码: 3011(茶叶), 6013(帖子), 失败码: 3110, 6113
+     * 成功码: 2015, 失败码: 2127
      *
      * @param id 收藏ID
      * @return 取消结果
@@ -374,22 +382,22 @@ public class UserController {
     /**
      * 点赞
      * 路径: POST /user/likes
-     * 成功码: 6010, 失败码: 6110
+     * 成功码: 2016, 失败码: 2128
      *
-     * @param likeData 点赞信息 {targetId, targetType}
+     * @param likeDTO 点赞信息
      * @return 点赞结果
      */
     @PostMapping("/likes")
     @RequiresLogin
-    public Result<Boolean> addLike(@RequestBody Map<String, Object> likeData) {
+    public Result<Boolean> addLike(@Valid @RequestBody AddLikeDTO likeDTO) {
         logger.info("点赞请求");
-        return userService.addLike(likeData);
+        return userService.addLike(likeDTO);
     }
 
     /**
      * 取消点赞
      * 路径: DELETE /user/likes/{id}
-     * 成功码: 6011, 失败码: 6111
+     * 成功码: 2017, 失败码: 2129
      *
      * @param id 点赞ID
      * @return 取消结果
@@ -406,7 +414,7 @@ public class UserController {
     /**
      * 获取用户偏好设置
      * 路径: GET /user/preferences
-     * 成功码: 200, 失败码: 1102
+     * 成功码: 200, 失败码: 2130
      *
      * @return 偏好设置
      */
@@ -420,22 +428,22 @@ public class UserController {
     /**
      * 更新用户偏好设置
      * 路径: PUT /user/preferences
-     * 成功码: 2013(建议), 失败码: 2114(建议)
+     * 成功码: 2018, 失败码: 2131
      *
-     * @param preferences 偏好设置
+     * @param preferencesDTO 偏好设置
      * @return 更新结果
      */
     @PutMapping("/preferences")
     @RequiresLogin
-    public Result<Object> updateUserPreferences(@RequestBody Map<String, Object> preferences) {
+    public Result<Object> updateUserPreferences(@Valid @RequestBody UpdateUserPreferencesDTO preferencesDTO) {
         logger.info("更新用户偏好设置请求");
-        return userService.updateUserPreferences(preferences);
+        return userService.updateUserPreferences(preferencesDTO);
     }
 
     /**
      * 获取指定用户信息
      * 路径: GET /user/{userId}
-     * 成功码: 200, 失败码: 2120
+     * 成功码: 200, 失败码: 2107
      * 注意：此路径应放在最后，避免与更具体的路径冲突
      *
      * @param userId 用户ID
@@ -452,7 +460,7 @@ public class UserController {
     /**
      * 获取用户列表（管理员）
      * 路径: GET /user/admin/users
-     * 成功码: 200, 失败码: 2120, 2124
+     * 成功码: 200, 失败码: 2132, 2133
      *
      * @param keyword 关键词
      * @param role 角色
@@ -477,38 +485,38 @@ public class UserController {
     /**
      * 创建管理员账号（管理员）
      * 路径: POST /user/admin/users
-     * 成功码: 2023, 失败码: 2123, 2124
+     * 成功码: 2019, 失败码: 2134, 2135
      *
-     * @param adminData 管理员数据
+     * @param adminDTO 管理员数据
      * @return 创建结果
      */
     @PostMapping("/admin/users")
     @RequiresRoles({1}) // 管理员角色
-    public Result<Boolean> createAdmin(@RequestBody Map<String, Object> adminData) {
+    public Result<Boolean> createAdmin(@Valid @RequestBody CreateAdminDTO adminDTO) {
         logger.info("创建管理员账号请求");
-        return userService.createAdmin(adminData);
+        return userService.createAdmin(adminDTO);
     }
 
     /**
      * 更新用户信息（管理员）
      * 路径: PUT /user/admin/users/{userId}
-     * 成功码: 2022, 失败码: 2123, 2124
+     * 成功码: 2020, 失败码: 2136, 2137
      *
      * @param userId 用户ID
-     * @param userData 用户数据
+     * @param updateUserDTO 用户数据
      * @return 更新结果
      */
     @PutMapping("/admin/users/{userId}")
     @RequiresRoles({1}) // 管理员角色
-    public Result<Boolean> updateUser(@PathVariable String userId, @RequestBody Map<String, Object> userData) {
+    public Result<Boolean> updateUser(@PathVariable String userId, @Valid @RequestBody UpdateUserDTO updateUserDTO) {
         logger.info("更新用户信息请求(管理员): {}", userId);
-        return userService.updateUser(userId, userData);
+        return userService.updateUser(userId, updateUserDTO);
     }
 
     /**
      * 删除用户（管理员）
      * 路径: DELETE /user/admin/users/{userId}
-     * 成功码: 2020, 失败码: 2121, 2124
+     * 成功码: 2021, 失败码: 2138, 2139
      *
      * @param userId 用户ID
      * @return 删除结果
@@ -523,7 +531,7 @@ public class UserController {
     /**
      * 启用/禁用用户（管理员）
      * 路径: PUT /user/admin/users/{userId}/status
-     * 成功码: 2021, 失败码: 2122, 2124
+     * 成功码: 2022, 失败码: 2140, 2141
      *
      * @param userId 用户ID
      * @param statusData 状态数据 {status}
@@ -539,7 +547,7 @@ public class UserController {
     /**
      * 获取商家认证申请列表（管理员）
      * 路径: GET /user/admin/certifications
-     * 成功码: 200, 失败码: 1102, 2124
+     * 成功码: 200, 失败码: 2142, 2143
      *
      * @param status 状态，可选
      * @param page 页码
@@ -559,17 +567,17 @@ public class UserController {
     /**
      * 审核认证申请（管理员）
      * 路径: PUT /user/admin/certifications/{id}
-     * 成功码: 1000, 失败码: 1100, 2124
+     * 成功码: 2023, 失败码: 2144, 2145
      *
      * @param id 认证ID
-     * @param auditData 审核数据 {status, message}
+     * @param processCertificationDTO 审核数据
      * @return 审核结果
      */
     @PutMapping("/admin/certifications/{id}")
     @RequiresRoles({1}) // 管理员角色
-    public Result<Boolean> processCertification(@PathVariable Integer id, @RequestBody Map<String, Object> auditData) {
-        logger.info("审核认证申请请求(管理员): {}, status: {}", id, auditData.get("status"));
-        return userService.processCertification(id, auditData);
+    public Result<Boolean> processCertification(@PathVariable Integer id, @Valid @RequestBody ProcessCertificationDTO processCertificationDTO) {
+        logger.info("审核认证申请请求(管理员): {}, status: {}", id, processCertificationDTO.getStatus());
+        return userService.processCertification(id, processCertificationDTO);
     }
 
     /**

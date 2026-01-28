@@ -120,8 +120,6 @@ export function useFormValidation() {
    */
   const validateForm = async (formRef, onValid) => {
     if (!formRef) {
-      // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
       commonMessages.error.showFormRefNotFound()
       return false
     }

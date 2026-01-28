@@ -160,18 +160,8 @@ export default {
         return
       }
       
-      // 模拟发送验证码（实际应该调用后端API）
-      // TODO: 当后端API实现后，改为 const res = await store.dispatch('user/sendCaptcha', data); showByCode(res.code)
-      userPromptMessages.showCaptchaSent()
-      
-      // 开始倒计时
-      codeCountdown.value = 60
-      const timer = setInterval(() => {
-        codeCountdown.value--
-        if (codeCountdown.value <= 0) {
-          clearInterval(timer)
-        }
-      }, 1000)
+      // 功能未实现：等待后端实现验证码发送接口
+      userPromptMessages.showFeatureNotImplemented()
     }
     
     // 处理密码找回

@@ -50,7 +50,7 @@ export function logout() {
  */
 export function getCurrentUser() {
   return request({
-    url: API.USER.INFO + 'me',
+    url: API.USER.ME,
     method: 'get'
   })
 }
@@ -75,7 +75,7 @@ export function refreshToken() {
  */
 export function getUserInfo(userId) {
   return request({
-    url: userId ? `${API.USER.INFO}${userId}` : `${API.USER.INFO}me`,
+    url: userId ? API.USER.INFO.replace('{userId}', userId) : API.USER.ME,
     method: 'get'
   })
 }
@@ -87,7 +87,7 @@ export function getUserInfo(userId) {
  */
 export function updateUserInfo(userData) {
   return request({
-    url: API.USER.INFO,
+    url: API.USER.UPDATE,
     method: 'put',
     data: userData
   })
@@ -136,6 +136,20 @@ export function resetPassword(resetData) {
     data: resetData
   })
 }
+
+// TODO: 新增发送验证码接口
+// /**
+//  * 发送验证码
+//  * @param {Object} data 验证码数据 {type: 'reset_password', target: username/phone/email}
+//  * @returns {Promise} 发送结果
+//  */
+// export function sendVerificationCode(data) {
+//   return request({
+//     url: API.USER.SEND_VERIFICATION_CODE,
+//     method: 'post',
+//     data: data
+//   })
+// }
 
 // === 用户地址相关API ===
 

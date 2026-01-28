@@ -67,4 +67,32 @@ public interface UserMapper extends BaseMapper<User, String> {
      * @return 影响行数
      */
     int delete(@Param("id") String id);
+    
+    /**
+     * 分页查询用户列表
+     *
+     * @param keyword 关键词（用户名/昵称/手机号）
+     * @param role 角色
+     * @param status 状态
+     * @param offset 偏移量
+     * @param pageSize 每页数量
+     * @return 用户列表
+     */
+    List<User> selectByPage(@Param("keyword") String keyword, 
+                            @Param("role") Integer role, 
+                            @Param("status") Integer status, 
+                            @Param("offset") Integer offset, 
+                            @Param("pageSize") Integer pageSize);
+    
+    /**
+     * 统计用户数量
+     *
+     * @param keyword 关键词（用户名/昵称/手机号）
+     * @param role 角色
+     * @param status 状态
+     * @return 用户数量
+     */
+    int countByCondition(@Param("keyword") String keyword, 
+                        @Param("role") Integer role, 
+                        @Param("status") Integer status);
 } 

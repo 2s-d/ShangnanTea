@@ -27,12 +27,26 @@
     </select>
     
     <!-- 查询用户的关注列表 -->
-    <select id="selectByUserId" resultMap="BaseResultMap" parameterType="java.lang.String">
+    <select id="selectByUserId" resultMap="BaseResultMap">
         SELECT 
         <include refid="Base_Column_List"/>
         FROM user_follows
         WHERE user_id = #{userId,jdbcType=VARCHAR}
+        <if test="followType != null and followType != ''">
+            AND follow_type = #{followType,jdbcType=VARCHAR}
+        </if>
         ORDER BY create_time DESC
+    </select>
+    
+    <!-- 检查是否已关注 -->
+    <select id="selectByUserIdAndFollowId" resultMap="BaseResultMap">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM user_follows
+        WHERE user_id = #{userId,jdbcType=VARCHAR} 
+        AND follow_id = #{followId,jdbcType=VARCHAR}
+        AND follow_type = #{followType,jdbcType=VARCHAR}
+        LIMIT 1
     </select>
     
     <!-- 根据用户ID和关注类型查询关注列表 -->

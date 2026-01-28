@@ -1,9 +1,17 @@
 package com.shangnantea.service;
 
 import com.shangnantea.common.api.Result;
+import com.shangnantea.model.dto.AddFavoriteDTO;
+import com.shangnantea.model.dto.AddFollowDTO;
+import com.shangnantea.model.dto.AddLikeDTO;
 import com.shangnantea.model.dto.ChangePasswordDTO;
+import com.shangnantea.model.dto.CreateAdminDTO;
 import com.shangnantea.model.dto.LoginDTO;
+import com.shangnantea.model.dto.ProcessCertificationDTO;
 import com.shangnantea.model.dto.RegisterDTO;
+import com.shangnantea.model.dto.SubmitShopCertificationDTO;
+import com.shangnantea.model.dto.UpdateUserDTO;
+import com.shangnantea.model.dto.UpdateUserPreferencesDTO;
 import com.shangnantea.model.entity.user.User;
 import com.shangnantea.model.vo.user.TokenVO;
 import com.shangnantea.model.vo.user.UserVO;
@@ -156,10 +164,10 @@ public interface UserService {
     /**
      * 提交商家认证申请
      *
-     * @param certificationData 认证数据
+     * @param certificationDTO 认证数据
      * @return 提交结果
      */
-    Result<Boolean> submitShopCertification(Map<String, Object> certificationData);
+    Result<Boolean> submitShopCertification(SubmitShopCertificationDTO certificationDTO);
     
     /**
      * 上传商家认证图片
@@ -183,10 +191,10 @@ public interface UserService {
     /**
      * 添加关注
      *
-     * @param followData 关注信息
+     * @param followDTO 关注信息
      * @return 关注结果
      */
-    Result<Boolean> addFollow(Map<String, Object> followData);
+    Result<Boolean> addFollow(AddFollowDTO followDTO);
     
     /**
      * 取消关注
@@ -207,10 +215,10 @@ public interface UserService {
     /**
      * 添加收藏
      *
-     * @param favoriteData 收藏信息
+     * @param favoriteDTO 收藏信息
      * @return 收藏结果
      */
-    Result<Boolean> addFavorite(Map<String, Object> favoriteData);
+    Result<Boolean> addFavorite(AddFavoriteDTO favoriteDTO);
     
     /**
      * 取消收藏
@@ -223,10 +231,10 @@ public interface UserService {
     /**
      * 点赞
      *
-     * @param likeData 点赞信息
+     * @param likeDTO 点赞信息
      * @return 点赞结果
      */
-    Result<Boolean> addLike(Map<String, Object> likeData);
+    Result<Boolean> addLike(AddLikeDTO likeDTO);
     
     /**
      * 取消点赞
@@ -248,10 +256,10 @@ public interface UserService {
     /**
      * 更新用户偏好设置
      *
-     * @param preferences 偏好设置
+     * @param preferencesDTO 偏好设置
      * @return 更新结果
      */
-    Result<Object> updateUserPreferences(Map<String, Object> preferences);
+    Result<Object> updateUserPreferences(UpdateUserPreferencesDTO preferencesDTO);
     
     // ==================== 管理员功能 ====================
     
@@ -270,19 +278,19 @@ public interface UserService {
     /**
      * 创建管理员账号（管理员）
      *
-     * @param adminData 管理员数据
+     * @param adminDTO 管理员数据
      * @return 创建结果
      */
-    Result<Boolean> createAdmin(Map<String, Object> adminData);
+    Result<Boolean> createAdmin(CreateAdminDTO adminDTO);
     
     /**
      * 更新用户信息（管理员）
      *
      * @param userId 用户ID
-     * @param userData 用户数据
+     * @param updateUserDTO 用户数据
      * @return 更新结果
      */
-    Result<Boolean> updateUser(String userId, Map<String, Object> userData);
+    Result<Boolean> updateUser(String userId, UpdateUserDTO updateUserDTO);
     
     /**
      * 删除用户（管理员）
@@ -315,10 +323,10 @@ public interface UserService {
      * 审核认证申请（管理员）
      *
      * @param id 认证ID
-     * @param auditData 审核数据
+     * @param processCertificationDTO 审核数据
      * @return 审核结果
      */
-    Result<Boolean> processCertification(Integer id, Map<String, Object> auditData);
+    Result<Boolean> processCertification(Integer id, ProcessCertificationDTO processCertificationDTO);
     
     // ==================== 基础方法（内部使用） ====================
     
