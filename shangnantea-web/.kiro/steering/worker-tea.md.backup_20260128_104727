@@ -60,32 +60,32 @@ inclusion: manual
    - 理解业务逻辑和功能背景
 
 2. **创建/修改DTO类**
-   - 位置：`shangnantea-tea/shangnantea-server/src/main/java/com/shangnantea/model/dto/tea/`
+   - 位置：`src/main/java/com/shangnantea/model/dto/tea/`
    - 包含参数验证注解（`@NotBlank`, `@Size` 等）
    - 类名以 `DTO` 结尾
 
 3. **创建/修改VO类**
-   - 位置：`shangnantea-tea/shangnantea-server/src/main/java/com/shangnantea/model/vo/tea/`
+   - 位置：`src/main/java/com/shangnantea/model/vo/tea/`
    - 不包含敏感信息
    - 类名以 `VO` 结尾
 
 4. **在Service接口中定义方法**
-   - 位置：`shangnantea-tea/shangnantea-server/src/main/java/com/shangnantea/service/TeaService.java`
+   - 位置：`src/main/java/com/shangnantea/service/TeaService.java`
    - 方法返回类型为 `Result<T>`
    - 添加JavaDoc注释
 
 5. **实现Service方法**
-   - 位置：`shangnantea-tea/shangnantea-server/src/main/java/com/shangnantea/service/impl/TeaServiceImpl.java`
+   - 位置：`src/main/java/com/shangnantea/service/impl/TeaServiceImpl.java`
    - 包含业务逻辑处理、数据转换、错误处理
    - 使用 `Result.success(code, data)` 和 `Result.failure(code)`
 
 6. **在Controller中添加接口**
-   - 位置：`shangnantea-tea/shangnantea-server/src/main/java/com/shangnantea/controller/TeaController.java`
+   - 位置：`src/main/java/com/shangnantea/controller/TeaController.java`
    - 直接返回Service的 `Result<T>`
    - 添加适当的注解（`@PostMapping`, `@GetMapping` 等）
 
 7. **更新参考文档（可选）**
-   - 位置：`shangnantea-tea/shangnantea-server/docs/接口开发流程指南.md`
+   - 位置：`shangnantea-server/docs/接口开发流程指南.md`
    - **执行条件**：仅在本次接口开发中遇到从未遇到的问题或有用的经验时执行
    - **更新内容**：将新发现的问题解决方案、开发经验、最佳实践补充到流程指南中
    - **目的**：方便后续接口更流畅的开发，避免重复踩坑
@@ -106,42 +106,42 @@ inclusion: manual
 ### 茶叶模块接口列表（共26个接口）
 
 #### 基础茶叶功能（6个接口）
-1. **getTeas** - `/tea/list` - 获取茶叶列表 ✅ 已完成
-2. **addTea** - `/tea/list` - 添加茶叶 ✅ 已完成
-3. **getTeaDetail** - `/tea/{id}` - 获取茶叶详情 ✅ 已完成
-4. **updateTea** - `/tea/{id}` - 更新茶叶 ✅ 已完成
-5. **deleteTea** - `/tea/{id}` - 删除茶叶 ✅ 已完成
-6. **getRecommendTeas** - `/tea/recommend` - 获取推荐茶叶 ✅ 已完成
+1. **getTeas** - `/tea/list` - 获取茶叶列表
+2. **addTea** - `/tea/list` - 添加茶叶
+3. **getTeaDetail** - `/tea/{id}` - 获取茶叶详情
+4. **updateTea** - `/tea/{id}` - 更新茶叶
+5. **deleteTea** - `/tea/{id}` - 删除茶叶
+6. **getRecommendTeas** - `/tea/recommend` - 获取推荐茶叶
 
 #### 分类管理功能（4个接口）
-7. **getTeaCategories** - `/tea/categories` - 获取分类列表 ✅ 已完成
-8. **createCategory** - `/tea/categories` - 创建分类 ✅ 已完成
-9. **updateCategory** - `/tea/categories/{id}` - 更新分类 ✅ 已完成
-10. **deleteCategory** - `/tea/categories/{id}` - 删除分类 ✅ 已完成
+7. **getTeaCategories** - `/tea/categories` - 获取分类列表
+8. **createCategory** - `/tea/categories` - 创建分类
+9. **updateCategory** - `/tea/categories/{id}` - 更新分类
+10. **deleteCategory** - `/tea/categories/{id}` - 删除分类
 
 #### 评价管理功能（5个接口）
-11. **getTeaReviews** - `/tea/{teaId}/reviews` - 获取评价列表 ✅ 已完成
-12. **getReviewStats** - `/tea/{teaId}/reviews/stats` - 获取评价统计 ✅ 已完成
-13. **submitReview** - `/tea/reviews` - 提交评价 ✅ 已完成
-14. **replyReview** - `/tea/reviews/{reviewId}/reply` - 回复评价 ✅ 已完成
-15. **likeReview** - `/tea/reviews/{reviewId}/like` - 点赞评价 ✅ 已完成
+11. **getTeaReviews** - `/tea/{teaId}/reviews` - 获取评价列表
+12. **getReviewStats** - `/tea/{teaId}/reviews/stats` - 获取评价统计
+13. **submitReview** - `/tea/reviews` - 提交评价
+14. **replyReview** - `/tea/reviews/{reviewId}/reply` - 回复评价
+15. **likeReview** - `/tea/reviews/{reviewId}/like` - 点赞评价
 
 #### 规格管理功能（5个接口）
-16. **getTeaSpecifications** - `/tea/{teaId}/specifications` - 获取规格列表 ✅ 已完成
-17. **addSpecification** - `/tea/{teaId}/specifications` - 添加规格 ✅ 已完成
-18. **updateSpecification** - `/tea/specifications/{specId}` - 更新规格 ✅ 已完成
-19. **deleteSpecification** - `/tea/specifications/{specId}` - 删除规格 ✅ 已完成
-20. **setDefaultSpecification** - `/tea/specifications/{specId}/default` - 设置默认规格 ✅ 已完成
+16. **getTeaSpecifications** - `/tea/{teaId}/specifications` - 获取规格列表
+17. **addSpecification** - `/tea/{teaId}/specifications` - 添加规格
+18. **updateSpecification** - `/tea/specifications/{specId}` - 更新规格
+19. **deleteSpecification** - `/tea/specifications/{specId}` - 删除规格
+20. **setDefaultSpecification** - `/tea/specifications/{specId}/default` - 设置默认规格
 
 #### 图片管理功能（4个接口）
-21. **uploadTeaImages** - `/tea/{teaId}/images` - 上传茶叶图片 ✅ 已完成
-22. **deleteTeaImage** - `/tea/images/{imageId}` - 删除图片 ✅ 已完成
-23. **setMainImage** - `/tea/images/{imageId}/main` - 设置主图 ✅ 已完成
-24. **updateImageOrder** - `/tea/images/order` - 更新图片顺序 ✅ 已完成
+21. **uploadTeaImages** - `/tea/{teaId}/images` - 上传茶叶图片
+22. **deleteTeaImage** - `/tea/images/{imageId}` - 删除图片
+23. **setMainImage** - `/tea/images/{imageId}/main` - 设置主图
+24. **updateImageOrder** - `/tea/images/order` - 更新图片顺序
 
 #### 状态管理功能（2个接口）
-25. **toggleTeaStatus** - `/tea/{teaId}/status` - 切换茶叶状态 ✅ 已完成
-26. **batchToggleTeaStatus** - `/tea/batch-status` - 批量切换状态 ✅ 已完成
+25. **toggleTeaStatus** - `/tea/{teaId}/status` - 切换茶叶状态
+26. **batchToggleTeaStatus** - `/tea/batch-status` - 批量切换状态
 
 ### 状态码范围
 - **成功码**：3000-3021（22个成功状态码）

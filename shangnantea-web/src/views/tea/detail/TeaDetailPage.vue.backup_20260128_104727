@@ -24,15 +24,15 @@
             :loading="favoriteLoading"
             class="favorite-button"
           >
-            <el-icon><Star /></el-icon> {{ isFavorite ? '已收藏' : '收藏' }}
+            <el-icon><Star /></el-icon> {{ isFavorite ? '已收�? : '收藏' }}
           </el-button>
           </div>
         </div>
       </div>
       
-      <!-- 商品基本信息区 -->
+      <!-- 商品基本信息�?-->
       <div class="tea-basic-info">
-        <!-- 左侧图片区 -->
+        <!-- 左侧图片�?-->
         <div class="tea-images">
           <div class="main-image">
             <el-carousel indicator-position="outside" height="400px">
@@ -54,14 +54,14 @@
           </div>
         </div>
         
-        <!-- 右侧信息区 -->
+        <!-- 右侧信息�?-->
         <div class="tea-info">
           <h1 class="tea-name">{{ tea.name }}</h1>
           
           <div class="shop-info">
             <h3 class="section-title">店铺信息</h3>
             <div class="shop-details">
-              <!-- 平台直售茶叶显示平台标签，无法跳转 -->
+              <!-- 平台直售茶叶显示平台标签，无法跳�?-->
               <template v-if="isPlatformTea">
                 <div class="platform-shop">
                   <div class="platform-logo">
@@ -77,7 +77,7 @@
                 </div>
               </template>
               
-              <!-- 店铺茶叶显示店铺信息，可以跳转 -->
+              <!-- 店铺茶叶显示店铺信息，可以跳�?-->
               <template v-else>
                 <el-link @click="goToShop" class="shop-link">
                   <div class="shop-basic">
@@ -104,19 +104,19 @@
           
           <div class="tea-price-info">
             <div class="price-row">
-              <span class="label">价格：</span>
+              <span class="label">价格�?/span>
               <span class="current-price">¥{{ selectedSpec ? selectedSpec.price : (tea.discount_price || tea.price) }}</span>
               <span class="original-price" v-if="tea.discount_price && !selectedSpec">¥{{ tea.price }}</span>
             </div>
             <div class="sales-row">
               <span class="label">销量：</span>
-              <span class="sales-value">{{ tea.sales }} 件</span>
+              <span class="sales-value">{{ tea.sales }} �?/span>
             </div>
           </div>
           
           <!-- 规格选择 -->
           <div class="tea-specs">
-            <div class="spec-label">规格：</div>
+            <div class="spec-label">规格�?/div>
             <div class="spec-options">
               <el-radio-group v-model="selectedSpecId" @change="handleSpecChange">
                 <el-radio-button 
@@ -126,7 +126,7 @@
                   :disabled="spec.stock <= 0"
                 >
                   {{ spec.spec_name }} - ¥{{ spec.price }}
-                  <span v-if="spec.stock <= 0" class="sold-out">已售罄</span>
+                  <span v-if="spec.stock <= 0" class="sold-out">已售�?/span>
                 </el-radio-button>
               </el-radio-group>
             </div>
@@ -134,14 +134,14 @@
           
           <!-- 数量选择 -->
           <div class="tea-quantity">
-            <span class="quantity-label">数量：</span>
+            <span class="quantity-label">数量�?/span>
             <el-input-number 
               v-model="quantity" 
               :min="1" 
               :max="currentStock" 
               size="large"
             />
-            <span class="stock-info">库存：{{ currentStock }} 件</span>
+            <span class="stock-info">库存：{{ currentStock }} �?/span>
           </div>
           
           <!-- 操作按钮 -->
@@ -153,7 +153,7 @@
               :loading="submitting"
               :disabled="!canAddToCart"
             >
-              <el-icon><ShoppingCart /></el-icon> 加入购物车
+              <el-icon><ShoppingCart /></el-icon> 加入购物�?
             </el-button>
             <el-button 
               type="danger" 
@@ -168,7 +168,7 @@
         </div>
       </div>
       
-      <!-- 商品详情和评价 -->
+      <!-- 商品详情和评�?-->
       <div class="tea-detail-tabs">
         <el-tabs v-model="activeTab">
           <el-tab-pane label="商品详情" name="detail">
@@ -179,15 +179,15 @@
               <el-descriptions :column="1" border>
                 <el-descriptions-item label="品名">{{ tea.name }}</el-descriptions-item>
                 <el-descriptions-item label="分类">{{ getCategoryName(tea.category_id) }}</el-descriptions-item>
-                <el-descriptions-item label="产地">商南县</el-descriptions-item>
+                <el-descriptions-item label="产地">商南�?/el-descriptions-item>
                 <el-descriptions-item label="规格">
                   <div v-for="spec in teaSpecifications" :key="spec.id">
                     {{ spec.spec_name }} - ¥{{ spec.price }}
                   </div>
                 </el-descriptions-item>
-                <el-descriptions-item label="净含量">根据规格不同，详见包装</el-descriptions-item>
-                <el-descriptions-item label="保质期">18个月</el-descriptions-item>
-                <el-descriptions-item label="存储方法">避光、干燥、密封保存</el-descriptions-item>
+                <el-descriptions-item label="净含量">根据规格不同，详见包�?/el-descriptions-item>
+                <el-descriptions-item label="保质�?>18个月</el-descriptions-item>
+                <el-descriptions-item label="存储方法">避光、干燥、密封保�?/el-descriptions-item>
               </el-descriptions>
             </div>
           </el-tab-pane>
@@ -198,11 +198,11 @@
                 <div class="average-rating">
                   <span class="rating-value">{{ reviewStats.averageRating || 0 }}</span>
                   <el-rate v-model="averageRatingNumber" disabled :max="5" />
-                  <span class="total-count">共{{ reviewStats.totalCount || 0 }}条评价</span>
+                  <span class="total-count">共{{ reviewStats.totalCount || 0 }}条评�?/span>
                 </div>
                 <div class="rating-distribution" v-if="reviewStats.ratingDistribution">
                   <div v-for="(count, rating) in reviewStats.ratingDistribution" :key="rating" class="distribution-item">
-                    <span class="rating-label">{{ rating }}星</span>
+                    <span class="rating-label">{{ rating }}�?/span>
                     <el-progress :percentage="(count / reviewStats.totalCount) * 100" :stroke-width="8" />
                     <span class="count-label">{{ count }}</span>
                   </div>
@@ -257,7 +257,7 @@
                       @click="showReplyForm(review)"
                       plain
                     >
-                      回复此评价
+                      回复此评�?
                     </el-button>
                   </div>
                   <div class="reply-form" v-if="activeReplyId === review.id">
@@ -265,7 +265,7 @@
                       v-model="replyContent"
                       type="textarea"
                       :rows="3"
-                      placeholder="请输入回复内容..."
+                      placeholder="请输入回复内�?.."
                       maxlength="500"
                       show-word-limit
                     ></el-input>
@@ -301,7 +301,7 @@
         </el-tabs>
       </div>
       
-      <!-- 任务组F：相似推荐 -->
+      <!-- 任务组F：相似推�?-->
       <div class="recommend-section" v-if="similarTeas.length > 0">
         <h2 class="section-title">相似推荐</h2>
         <div class="recommend-list">
@@ -319,7 +319,7 @@
                 <span v-if="tea.discount_price" class="original-price">¥{{ tea.price }}</span>
               </div>
               <div class="recommend-meta">
-                <span class="sales">销量: {{ tea.sales }}</span>
+                <span class="sales">销�? {{ tea.sales }}</span>
                 <el-rate :model-value="tea.rating" disabled :max="5" size="small" />
               </div>
             </div>
@@ -328,9 +328,9 @@
       </div>
     </div>
     
-    <!-- 空状态 -->
+    <!-- 空状�?-->
     <div v-else-if="!loading" class="empty-state">
-      <el-empty description="未找到茶叶信息" />
+      <el-empty description="未找到茶叶信�? />
       <el-button type="primary" @click="goToTeaList">返回茶叶列表</el-button>
     </div>
   </div>
@@ -377,18 +377,18 @@ export default {
     })
     const favoriteLoading = ref(false)
     
-    // 回复相关状态
+    // 回复相关状�?
     const activeReplyId = ref(null) // 当前正在回复的评论ID
     const replyContent = ref('') // 回复内容
-    const submittingReply = ref(false) // 提交回复的loading状态
+    const submittingReply = ref(false) // 提交回复的loading状�?
     
-    // 判断当前用户是否为商店所有者
+    // 判断当前用户是否为商店所有�?
     const isShopOwner = computed(() => {
       const currentUserId = store.state.user.userInfo?.id
       return currentUserId && tea.value && currentUserId === tea.value.shopOwnerId
     })
     
-    // 任务组B：评价相关数据
+    // 任务组B：评价相关数�?
     const teaReviews = computed(() => store.state.tea.teaReviews || [])
     const reviewStats = computed(() => store.state.tea.reviewStats)
     const reviewTotalCount = computed(() => store.state.tea.reviewPagination?.total || 0)
@@ -401,7 +401,7 @@ export default {
       return 0
     })
     
-    // 任务组C：规格相关数据
+    // 任务组C：规格相关数�?
     const teaSpecifications = computed(() => {
       // 优先使用Vuex中的规格列表，如果没有则使用currentTea中的规格
       const specs = store.state.tea.currentTeaSpecs || []
@@ -468,7 +468,7 @@ export default {
       }
     }
     
-    // 格式化时间
+    // 格式化时�?
     const formatTime = time => {
       if (!time) return ''
       const date = new Date(time)
@@ -490,7 +490,7 @@ export default {
       }
     }
     
-    // 茶叶分类（从 Vuex 获取）
+    // 茶叶分类（从 Vuex 获取�?
     const categories = computed(() => store.state.tea.categories || [])
     
     // 获取茶叶类别名称
@@ -499,7 +499,7 @@ export default {
       return category ? category.name : '未知分类'
     }
     
-    // 切换收藏状态
+    // 切换收藏状�?
     const toggleFavorite = async () => {
       if (!tea.value) return
       
@@ -531,16 +531,16 @@ export default {
       }
     }
     
-    // 加载茶叶详情（生产版：走 Vuex）
+    // 加载茶叶详情（生产版：走 Vuex�?
     const loadTeaDetail = async () => {
       try {
         const teaId = route.params.id
         await store.dispatch('tea/fetchTeaDetail', teaId)
         
         // 任务组B：同时加载评价列表和统计数据
-        // 任务组C：同时加载规格列表
-        // 任务组D：加载图片列表（如果后端返回的tea.images为空，则从Vuex获取）
-        // 任务组F：加载相似推荐
+        // 任务组C：同时加载规格列�?
+        // 任务组D：加载图片列表（如果后端返回的tea.images为空，则从Vuex获取�?
+        // 任务组F：加载相似推�?
         await Promise.all([
           store.dispatch('tea/fetchTeaReviews', { teaId, page: 1, pageSize: 10 }),
           store.dispatch('tea/fetchReviewStats', teaId),
@@ -554,7 +554,7 @@ export default {
           store.state.tea.currentTea.images = store.state.tea.teaImages
         }
         
-        // 任务组C：设置默认规格（从Vuex的currentTeaSpecs获取）
+        // 任务组C：设置默认规格（从Vuex的currentTeaSpecs获取�?
         const specs = store.state.tea.currentTeaSpecs || []
         const defaultSpec = specs.find(spec => spec.is_default === 1)
         if (defaultSpec) {
@@ -567,13 +567,13 @@ export default {
       }
     }
     
-    // 计算属性 - 是否为平台直售
+    // 计算属�?- 是否为平台直�?
     const isPlatformTea = computed(() => {
       return tea.value && (tea.value.shopId === '0' || tea.value.shop_id === '0' || tea.value.shop_id === 'PLATFORM')
     })
 
-    // 兼容后端返回的图片结构（可能是 string[] 或 {url}[]）
-    // 任务组D：图片列表（优先使用Vuex中的teaImages，如果没有则使用currentTea中的images）
+    // 兼容后端返回的图片结构（可能�?string[] �?{url}[]�?
+    // 任务组D：图片列表（优先使用Vuex中的teaImages，如果没有则使用currentTea中的images�?
     const teaImages = computed(() => {
       // 优先使用Vuex中的teaImages
       const vuexImages = store.state.tea.teaImages || []
@@ -603,7 +603,7 @@ export default {
       return []
     })
     
-    // 计算属性 - 当前选中的规格
+    // 计算属�?- 当前选中的规�?
     const selectedSpec = computed(() => {
       if (!selectedSpecId.value) return null
       return teaSpecifications.value.find(spec => spec.id === selectedSpecId.value)
@@ -617,15 +617,15 @@ export default {
       }
     }
     
-    // 任务组F：相似推荐数据
+    // 任务组F：相似推荐数�?
     const similarTeas = computed(() => store.state.tea.recommendTeas || [])
     
-    // 任务组F：跳转到茶叶详情页
+    // 任务组F：跳转到茶叶详情�?
     const goToTeaDetail = teaId => {
       router.push(`/tea/${teaId}`)
     }
     
-    // 计算属性 - 当前库存
+    // 计算属�?- 当前库存
     const currentStock = computed(() => {
       if (selectedSpec.value) {
         return selectedSpec.value.stock
@@ -633,12 +633,12 @@ export default {
       return tea.value ? tea.value.stock : 0
     })
     
-    // 计算属性 - 是否可以加入购物车
+    // 计算属�?- 是否可以加入购物�?
     const canAddToCart = computed(() => {
       return currentStock.value > 0
     })
     
-    // 加入购物车
+    // 加入购物�?
     const addToCart = async () => {
       if (!canAddToCart.value) {
         teaMessages.prompt.showSoldOut()
@@ -660,7 +660,7 @@ export default {
         })
         showByCode(response.code)
       } catch (error) {
-        console.error('加入购物车失败:', error)
+        console.error('加入购物车失�?', error)
       } finally {
         submitting.value = false
       }
@@ -680,25 +680,24 @@ export default {
       
       try {
         submitting.value = true
-        // TODO: 直接购买的生产版流程需要订单模块提供“direct buy”能力；目前先跳转结算页
+        // ֱ�ӹ�����ת������ҳ
         router.push('/order/checkout?direct=1')
       } catch (error) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
+        console.error('��������ʧ��:', error)
 
-        teaMessages.error.showBuyFailed(error.message)
       } finally {
         submitting.value = false
       }
     }
     
-    // 跳转到店铺详情
+    // 跳转到店铺详�?
     const goToShop = () => {
-      // 如果是平台直售茶叶，不进行跳转
+      // 如果是平台直售茶叶，不进行跳�?
       if (isPlatformTea.value) {
         return
       }
       
-      // 否则跳转到对应的店铺详情页
+      // 否则跳转到对应的店铺详情�?
       const shopId = tea.value?.shopId || tea.value?.shop_id
       if (shopId) {
         router.push(`/shop/${shopId}`)
@@ -719,7 +718,7 @@ export default {
       }
     }
     
-    // 返回上一页
+    // 返回上一�?
     const goBack = () => {
       router.back()
     }
@@ -775,7 +774,7 @@ export default {
       submitReply,
       defaultAvatar,
       contactShop,
-      // 任务组F：相似推荐
+      // 任务组F：相似推�?
       similarTeas,
       goToTeaDetail
     }
@@ -1238,7 +1237,7 @@ export default {
     }
   }
   
-  // 任务组F：相似推荐样式
+  // 任务组F：相似推荐样�?
   .recommend-section {
     margin-top: 40px;
     padding: 30px;

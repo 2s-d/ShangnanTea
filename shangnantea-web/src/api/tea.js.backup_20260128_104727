@@ -146,11 +146,6 @@ export function getReviewStats(teaId) {
  * 提交评价
  * @param {Object} data 评价数据（teaId, rating, content, images, orderId）
  * @returns {Promise} 提交结果
- * 
- * @deprecated 此接口为冗余接口，后续将删除
- * 原因：提交茶叶评价应该在订单完成后通过订单模块进行提交，而不是在茶叶模块
- * 正确的评价流程：订单完成 -> 订单模块提交评价 -> 评价数据写入tea_reviews表
- * TODO: 待订单模块评价功能完善后删除此接口
  */
 export function submitReview(data) {
   return request({
