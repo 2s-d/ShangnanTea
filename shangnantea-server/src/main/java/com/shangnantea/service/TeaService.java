@@ -18,85 +18,209 @@ import java.util.Map;
 public interface TeaService {
     
     /**
-     * 获取茶叶详情
+     * 获取茶叶列表
+     * 路径: GET /tea/list
+     * 成功码: 3000, 失败码: 3100
      *
-     * @param id 茶叶ID
-     * @return 茶叶信息
+     * @param params 查询参数（Map格式，包含page, pageSize, categoryId, keyword, shopId, sortBy, sortOrder等）
+     * @return 茶叶列表分页结果
      */
-    Tea getTeaById(Long id);
-    
-    /**
-     * 分页查询茶叶
-     *
-     * @param pageParam 分页参数
-     * @return 分页结果
-     */
-    PageResult<Tea> listTeas(PageParam pageParam);
-    
-    /**
-     * 按分类查询茶叶
-     *
-     * @param categoryId 分类ID
-     * @param pageParam 分页参数
-     * @return 分页结果
-     */
-    PageResult<Tea> listTeasByCategory(Integer categoryId, PageParam pageParam);
+    Result<Object> getTeas(Map<String, Object> params);
     
     /**
      * 添加茶叶
+     * 路径: POST /tea/list
+     * 成功码: 3001, 失败码: 3101
      *
-     * @param tea 茶叶信息
-     * @return 茶叶信息
+     * @param teaData 茶叶数据（Map格式）
+     * @return 添加结果，包含新创建的茶叶信息
      */
-    Tea addTea(Tea tea);
+    Result<Object> addTea(Map<String, Object> teaData);
+    
+    /**
+     * 获取茶叶详情
+     * 路径: GET /tea/{id}
+     * 成功码: 200, 失败码: 3102
+     *
+     * @param id 茶叶ID
+     * @return 茶叶详情信息
+     */
+    Result<Object> getTeaDetail(String id);
     
     /**
      * 更新茶叶信息
-     *
-     * @param tea 茶叶信息
-     * @return 是否成功
-     */
-    boolean updateTea(Tea tea);
-    
-    /**
-     * 删除茶叶
+     * 路径: PUT /tea/{id}
+     * 成功码: 3002, 失败码: 3103
      *
      * @param id 茶叶ID
-     * @return 是否成功
+     * @param teaData 茶叶数据（Map格式）
+     * @return 更新后的茶叶信息
      */
-    boolean deleteTea(Long id);
+    Result<Object> updateTea(String id, Map<String, Object> teaData);
     
     /**
-     * 获取茶叶分类
+     * 删除茶叶（商家/管理员）
+     * 路径: DELETE /tea/{id}
+     * 成功码: 3003, 失败码: 3104
+     *
+     * @param id 茶叶ID
+     * @return 删除结果
+     */
+    Result<Object> deleteTea(String id);
+    
+    /**
+     * 获取推荐茶叶
+     * 路径: GET /tea/recommend
+     * 成功码: 200, 失败码: 3105
+     *
+     * @param params 查询参数（Map格式，包含type, teaId, count等）
+     * @return 推荐茶叶列表
+     */
+    Result<Object> getRecommendTeas(Map<String, Object> params);
+    
+    /**
+     * 获取茶叶分类列表
+     * 路径: GET /tea/categories
+     * 成功码: 200, 失败码: 3106
      *
      * @return 分类列表
      */
-    List<TeaCategory> listCategories();
+    Result<Object> getTeaCategories();
     
     /**
-     * 获取茶叶规格
+     * 创建茶叶分类（管理员）
+     * 路径: POST /tea/categories
+     * 成功码: 3004, 失败码: 3107
+     *
+     * @param categoryData 分类数据（Map格式）
+     * @return 创建结果
+     */
+    Result<Object> createCategory(Map<String, Object> categoryData);
+    
+    /**
+     * 更新茶叶分类（管理员）
+     * 路径: PUT /tea/categories/{id}
+     * 成功码: 3005, 失败码: 3108
+     *
+     * @param id 分类ID
+     * @param categoryData 分类数据（Map格式）
+     * @return 更新结果
+     */
+    Result<Object> updateCategory(Integer id, Map<String, Object> categoryData);
+    
+    /**
+     * 删除茶叶分类（管理员）
+     * 路径: DELETE /tea/categories/{id}
+     * 成功码: 3006, 失败码: 3109
+     *
+     * @param id 分类ID
+     * @return 删除结果
+     */
+    Result<Boolean> deleteCategory(Integer id);
+    
+    /**
+     * 获取茶叶评价列表
+     * 路径: GET /tea/{teaId}/reviews
+     * 成功码: 200, 失败码: 3110
+     *
+     * @param teaId 茶叶ID
+     * @param params 查询参数（Map格式，包含page, pageSize等）
+     * @return 评价列表
+     */
+    Result<Object> getTeaReviews(String teaId, Map<String, Object> params);
+    
+    /**
+     * 获取茶叶评价统计
+     * 路径: GET /tea/{teaId}/reviews/stats
+     * 成功码: 200, 失败码: 3111
+     *
+     * @param teaId 茶叶ID
+     * @return 评价统计数据
+     */
+    Result<Object> getReviewStats(String teaId);
+    
+    /**
+     * 提交茶叶评价
+     * 路径: POST /tea/reviews
+     * 成功码: 3007, 失败码: 3112
+     *
+     * @param reviewData 评价数据（Map格式）
+     * @return 提交结果
+     */
+    Result<Boolean> submitReview(Map<String, Object> reviewData);
+    
+    /**
+     * 商家回复评价
+     * 路径: POST /tea/reviews/{reviewId}/reply
+     * 成功码: 3008, 失败码: 3113
+     *
+     * @param reviewId 评价ID
+     * @param replyData 回复数据（Map格式）
+     * @return 回复结果
+     */
+    Result<Boolean> replyReview(String reviewId, Map<String, Object> replyData);
+    
+    /**
+     * 点赞评价
+     * 路径: POST /tea/reviews/{reviewId}/like
+     * 成功码: 3009, 失败码: 3114
+     *
+     * @param reviewId 评价ID
+     * @return 点赞结果
+     */
+    Result<Boolean> likeReview(String reviewId);
+    
+    /**
+     * 获取茶叶规格列表
+     * 路径: GET /tea/{teaId}/specifications
+     * 成功码: 200, 失败码: 3115
      *
      * @param teaId 茶叶ID
      * @return 规格列表
      */
-    List<TeaSpecification> listSpecifications(Long teaId);
+    Result<Object> getTeaSpecifications(String teaId);
     
     /**
-     * 获取茶叶图片
+     * 添加茶叶规格
+     * 路径: POST /tea/{teaId}/specifications
+     * 成功码: 3010, 失败码: 3116
      *
      * @param teaId 茶叶ID
-     * @return 图片列表
+     * @param specData 规格数据（Map格式）
+     * @return 添加结果
      */
-    List<TeaImage> listImages(Long teaId);
+    Result<Object> addSpecification(String teaId, Map<String, Object> specData);
     
     /**
-     * 搜索茶叶
+     * 更新茶叶规格
+     * 路径: PUT /tea/specifications/{specId}
+     * 成功码: 3011, 失败码: 3117
      *
-     * @param keyword 关键词
-     * @param pageParam 分页参数
-     * @return 分页结果
+     * @param specId 规格ID
+     * @param specData 规格数据（Map格式）
+     * @return 更新结果
      */
-    PageResult<Tea> searchTeas(String keyword, PageParam pageParam);
+    Result<Boolean> updateSpecification(String specId, Map<String, Object> specData);
+    
+    /**
+     * 删除茶叶规格
+     * 路径: DELETE /tea/specifications/{specId}
+     * 成功码: 3012, 失败码: 3118
+     *
+     * @param specId 规格ID
+     * @return 删除结果
+     */
+    Result<Boolean> deleteSpecification(String specId);
+    
+    /**
+     * 设置默认规格
+     * 路径: PUT /tea/specifications/{specId}/default
+     * 成功码: 3013, 失败码: 3119
+     *
+     * @param specId 规格ID
+     * @return 设置结果
+     */
+    Result<Boolean> setDefaultSpecification(String specId);
     
     /**
      * 上传茶叶图片
@@ -106,4 +230,55 @@ public interface TeaService {
      * @return 上传结果
      */
     Result<Object> uploadTeaImages(String teaId, MultipartFile[] files);
+    
+    /**
+     * 删除茶叶图片
+     * 路径: DELETE /tea/images/{imageId}
+     * 成功码: 3015, 失败码: 3123
+     *
+     * @param imageId 图片ID
+     * @return 删除结果
+     */
+    Result<Boolean> deleteTeaImage(String imageId);
+    
+    /**
+     * 设置主图
+     * 路径: PUT /tea/images/{imageId}/main
+     * 成功码: 3016, 失败码: 3124
+     *
+     * @param imageId 图片ID
+     * @return 设置结果
+     */
+    Result<Boolean> setMainImage(String imageId);
+    
+    /**
+     * 更新图片顺序
+     * 路径: PUT /tea/images/order
+     * 成功码: 3017, 失败码: 3125
+     *
+     * @param orderData 包含teaId和orders数组的数据
+     * @return 更新结果
+     */
+    Result<Boolean> updateImageOrder(Map<String, Object> orderData);
+    
+    /**
+     * 切换茶叶状态（上架/下架）
+     * 路径: PUT /tea/{teaId}/status
+     * 成功码: 3018(上架), 3019(下架), 失败码: 3126, 3127
+     *
+     * @param teaId 茶叶ID
+     * @param statusData 状态数据（Map格式）
+     * @return 切换结果
+     */
+    Result<Boolean> toggleTeaStatus(String teaId, Map<String, Object> statusData);
+    
+    /**
+     * 批量切换茶叶状态（上架/下架）
+     * 路径: PUT /tea/batch-status
+     * 成功码: 3020(批量上架), 3021(批量下架), 失败码: 3128, 3129
+     *
+     * @param batchData 批量数据（Map格式）
+     * @return 批量切换结果
+     */
+    Result<Boolean> batchToggleTeaStatus(Map<String, Object> batchData);
 } 
