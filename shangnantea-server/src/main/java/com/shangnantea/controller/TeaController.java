@@ -47,7 +47,7 @@ public class TeaController {
     /**
      * 获取推荐茶叶
      * 路径: GET /tea/recommend
-     * 成功码: 200, 失败码: 3105
+     * 成功码: 200, 失败码: 1102
      *
      * @param params 推荐参数 {type, teaId, count}
      * @return 推荐茶叶列表
@@ -61,7 +61,7 @@ public class TeaController {
     /**
      * 获取茶叶分类
      * 路径: GET /tea/categories
-     * 成功码: 200, 失败码: 3106
+     * 成功码: 200, 失败码: 1102
      *
      * @return 分类列表
      */
@@ -74,7 +74,7 @@ public class TeaController {
     /**
      * 获取茶叶评价列表
      * 路径: GET /tea/{teaId}/reviews
-     * 成功码: 200, 失败码: 3110
+     * 成功码: 200, 失败码: 1102
      *
      * @param teaId 茶叶ID
      * @param params 查询参数（page, pageSize）
@@ -89,7 +89,7 @@ public class TeaController {
     /**
      * 获取茶叶评价统计数据
      * 路径: GET /tea/{teaId}/reviews/stats
-     * 成功码: 200, 失败码: 3111
+     * 成功码: 200, 失败码: 1102
      *
      * @param teaId 茶叶ID
      * @return 评价统计数据
@@ -103,7 +103,7 @@ public class TeaController {
     /**
      * 获取茶叶规格列表
      * 路径: GET /tea/{teaId}/specifications
-     * 成功码: 200, 失败码: 3115
+     * 成功码: 200, 失败码: 1102
      *
      * @param teaId 茶叶ID
      * @return 规格列表
@@ -117,7 +117,7 @@ public class TeaController {
     /**
      * 获取茶叶详情
      * 路径: GET /tea/{id}
-     * 成功码: 200, 失败码: 3102
+     * 成功码: 3001, 失败码: 3101
      * 注意：此路径应放在最后，避免与更具体的路径冲突
      *
      * @param id 茶叶ID
@@ -135,7 +135,7 @@ public class TeaController {
     /**
      * 创建茶叶分类（仅管理员）
      * 路径: POST /tea/categories
-     * 成功码: 3004, 失败码: 3107
+     * 成功码: 3030, 失败码: 3130
      *
      * @param categoryData 分类数据 {name, parentId, sortOrder, icon}
      * @return 创建结果
@@ -150,7 +150,7 @@ public class TeaController {
     /**
      * 更新茶叶分类（仅管理员）
      * 路径: PUT /tea/categories/{id}
-     * 成功码: 3005, 失败码: 3108
+     * 成功码: 3031, 失败码: 3130
      *
      * @param id 分类ID
      * @param categoryData 分类数据 {name, parentId, sortOrder, icon}
@@ -158,7 +158,7 @@ public class TeaController {
      */
     @PutMapping("/categories/{id}")
     @RequiresRoles({1}) // 管理员角色
-    public Result<Object> updateCategory(@PathVariable Integer id, @RequestBody Map<String, Object> categoryData) {
+    public Result<Boolean> updateCategory(@PathVariable Integer id, @RequestBody Map<String, Object> categoryData) {
         logger.info("更新茶叶分类请求: {}", id);
         return teaService.updateCategory(id, categoryData);
     }
@@ -166,7 +166,7 @@ public class TeaController {
     /**
      * 删除茶叶分类（仅管理员）
      * 路径: DELETE /tea/categories/{id}
-     * 成功码: 3006, 失败码: 3109
+     * 成功码: 3032, 失败码: 3131
      *
      * @param id 分类ID
      * @return 删除结果
@@ -183,7 +183,7 @@ public class TeaController {
     /**
      * 添加茶叶（管理员/商家）
      * 路径: POST /tea/list
-     * 成功码: 3001, 失败码: 3101
+     * 成功码: 3026, 失败码: 3125
      *
      * @param teaData 茶叶数据
      * @return 添加结果
@@ -198,7 +198,7 @@ public class TeaController {
     /**
      * 更新茶叶信息（管理员/商家）
      * 路径: PUT /tea/{id}
-     * 成功码: 3002, 失败码: 3103
+     * 成功码: 3025, 失败码: 3125
      *
      * @param id 茶叶ID
      * @param teaData 茶叶数据
@@ -206,7 +206,7 @@ public class TeaController {
      */
     @PutMapping("/{id}")
     @RequiresLogin
-    public Result<Object> updateTea(@PathVariable String id, @RequestBody Map<String, Object> teaData) {
+    public Result<Boolean> updateTea(@PathVariable String id, @RequestBody Map<String, Object> teaData) {
         logger.info("更新茶叶信息请求: {}", id);
         return teaService.updateTea(id, teaData);
     }
@@ -214,14 +214,14 @@ public class TeaController {
     /**
      * 删除茶叶（管理员/商家）
      * 路径: DELETE /tea/{id}
-     * 成功码: 3003, 失败码: 3104
+     * 成功码: 3024, 失败码: 3124
      *
      * @param id 茶叶ID
      * @return 删除结果
      */
     @DeleteMapping("/{id}")
     @RequiresLogin
-    public Result<Object> deleteTea(@PathVariable String id) {
+    public Result<Boolean> deleteTea(@PathVariable String id) {
         logger.info("删除茶叶请求: {}", id);
         return teaService.deleteTea(id);
     }
@@ -229,7 +229,7 @@ public class TeaController {
     /**
      * 更新茶叶状态（上架/下架）
      * 路径: PUT /tea/{teaId}/status
-     * 成功码: 3018(上架), 3019(下架), 失败码: 3126, 3127
+     * 成功码: 3020(上架), 3021(下架), 失败码: 3120, 3121
      *
      * @param teaId 茶叶ID
      * @param statusData 状态数据 {status}
@@ -245,7 +245,7 @@ public class TeaController {
     /**
      * 批量更新茶叶状态（上架/下架）
      * 路径: PUT /tea/batch-status
-     * 成功码: 3020(批量上架), 3021(批量下架), 失败码: 3128, 3129
+     * 成功码: 3022(批量上架), 3023(批量下架), 失败码: 3122, 3123
      *
      * @param batchData 批量数据 {teaIds, status}
      * @return 更新结果
@@ -262,7 +262,7 @@ public class TeaController {
     /**
      * 提交评价
      * 路径: POST /tea/reviews
-     * 成功码: 3007, 失败码: 3112
+     * 成功码: 200, 失败码: 1100
      *
      * @param reviewData 评价数据 {teaId, rating, content, images, orderId}
      * @return 提交结果
@@ -277,7 +277,7 @@ public class TeaController {
     /**
      * 商家回复评价
      * 路径: POST /tea/reviews/{reviewId}/reply
-     * 成功码: 3008, 失败码: 3113
+     * 成功码: 3013, 失败码: 3112
      *
      * @param reviewId 评价ID
      * @param replyData 回复数据 {reply}
@@ -293,7 +293,7 @@ public class TeaController {
     /**
      * 点赞评价
      * 路径: POST /tea/reviews/{reviewId}/like
-     * 成功码: 3009, 失败码: 3114
+     * 成功码: 200, 失败码: 3113
      *
      * @param reviewId 评价ID
      * @return 点赞结果
@@ -310,7 +310,7 @@ public class TeaController {
     /**
      * 添加规格
      * 路径: POST /tea/{teaId}/specifications
-     * 成功码: 3010, 失败码: 3116
+     * 成功码: 1002, 失败码: 1100
      *
      * @param teaId 茶叶ID
      * @param specData 规格数据 {spec_name, price, stock, is_default}
@@ -326,7 +326,7 @@ public class TeaController {
     /**
      * 更新规格
      * 路径: PUT /tea/specifications/{specId}
-     * 成功码: 3011, 失败码: 3117
+     * 成功码: 1004, 失败码: 1100
      *
      * @param specId 规格ID
      * @param specData 规格数据 {spec_name, price, stock, is_default}
@@ -342,7 +342,7 @@ public class TeaController {
     /**
      * 删除规格
      * 路径: DELETE /tea/specifications/{specId}
-     * 成功码: 3012, 失败码: 3118
+     * 成功码: 1003, 失败码: 1100
      *
      * @param specId 规格ID
      * @return 删除结果
@@ -357,7 +357,7 @@ public class TeaController {
     /**
      * 设置默认规格
      * 路径: PUT /tea/specifications/{specId}/default
-     * 成功码: 3013, 失败码: 3119
+     * 成功码: 1004, 失败码: 1100
      *
      * @param specId 规格ID
      * @return 设置结果
@@ -374,7 +374,7 @@ public class TeaController {
     /**
      * 上传茶叶图片
      * 路径: POST /tea/{teaId}/images
-     * 成功码: 3014, 失败码: 3120, 3121, 3122
+     * 成功码: 1001, 失败码: 1101, 1103, 1104
      *
      * @param teaId 茶叶ID
      * @param files 图片文件（支持多文件上传）
@@ -391,7 +391,7 @@ public class TeaController {
     /**
      * 删除茶叶图片
      * 路径: DELETE /tea/images/{imageId}
-     * 成功码: 3015, 失败码: 3123
+     * 成功码: 1003, 失败码: 1100
      *
      * @param imageId 图片ID
      * @return 删除结果
@@ -406,7 +406,7 @@ public class TeaController {
     /**
      * 更新图片顺序
      * 路径: PUT /tea/images/order
-     * 成功码: 3017, 失败码: 3125
+     * 成功码: 1004, 失败码: 1100
      *
      * @param orderData 包含teaId和orders数组的数据
      * @return 更新结果
@@ -421,7 +421,7 @@ public class TeaController {
     /**
      * 设置主图
      * 路径: PUT /tea/images/{imageId}/main
-     * 成功码: 3016, 失败码: 3124
+     * 成功码: 1004, 失败码: 1100
      *
      * @param imageId 图片ID
      * @return 设置结果
