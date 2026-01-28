@@ -121,4 +121,12 @@
         update_time = now()
         WHERE tea_id = (SELECT tea_id FROM tea_specifications WHERE id = #{id,jdbcType=INTEGER})
     </update>
+    
+    <!-- 取消茶叶的所有默认规格 -->
+    <update id="clearDefaultByTeaId" parameterType="java.lang.String">
+        UPDATE tea_specifications
+        SET is_default = 0,
+            update_time = now()
+        WHERE tea_id = #{teaId,jdbcType=VARCHAR}
+    </update>
 </mapper> 
