@@ -155,4 +155,12 @@
         FROM tea_reviews
         WHERE tea_id = #{teaId,jdbcType=VARCHAR}
     </select>
+    
+    <!-- 增加点赞数 -->
+    <update id="incrementLikeCount" parameterType="java.lang.Long">
+        UPDATE tea_reviews
+        SET like_count = like_count + 1,
+            update_time = now()
+        WHERE id = #{reviewId,jdbcType=BIGINT}
+    </update>
 </mapper> 

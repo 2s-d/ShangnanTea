@@ -115,6 +115,95 @@
         </choose>
     </select>
     
+    <!-- 分页查询茶叶列表（支持多条件筛选） -->
+    <select id="selectTeasWithPage" resultMap="BaseResultMap" parameterType="java.util.Map">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM teas
+        <where>
+            is_deleted = 0
+            <if test="status != null">
+                AND status = #{status,jdbcType=INTEGER}
+            </if>
+            <if test="status == null">
+                AND status = 1
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (name LIKE CONCAT('%', #{keyword}, '%') OR description LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="categoryId != null">
+                AND category_id = #{categoryId,jdbcType=INTEGER}
+            </if>
+            <if test="shopId != null and shopId != ''">
+                AND shop_id = #{shopId,jdbcType=VARCHAR}
+            </if>
+            <if test="priceMin != null">
+                AND price &gt;= #{priceMin,jdbcType=DECIMAL}
+            </if>
+            <if test="priceMax != null">
+                AND price &lt;= #{priceMax,jdbcType=DECIMAL}
+            </if>
+            <if test="origin != null and origin != ''">
+                AND origin LIKE CONCAT('%', #{origin}, '%')
+            </if>
+        </where>
+        <choose>
+            <when test="sortBy == 'price' and sortOrder == 'asc'">
+                ORDER BY price ASC
+            </when>
+            <when test="sortBy == 'price' and sortOrder == 'desc'">
+                ORDER BY price DESC
+            </when>
+            <when test="sortBy == 'sales'">
+                ORDER BY sales DESC
+            </when>
+            <when test="sortBy == 'rating'">
+                ORDER BY (
+                    SELECT COALESCE(AVG(rating), 0)
+                    FROM tea_reviews
+                    WHERE tea_id = teas.id
+                ) DESC
+            </when>
+            <otherwise>
+                ORDER BY sales DESC, create_time DESC
+            </otherwise>
+        </choose>
+        LIMIT #{offset,jdbcType=INTEGER}, #{pageSize,jdbcType=INTEGER}
+    </select>
+    
+    <!-- 统计符合条件的茶叶总数 -->
+    <select id="countTeas" resultType="long" parameterType="java.util.Map">
+        SELECT COUNT(*)
+        FROM teas
+        <where>
+            is_deleted = 0
+            <if test="status != null">
+                AND status = #{status,jdbcType=INTEGER}
+            </if>
+            <if test="status == null">
+                AND status = 1
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (name LIKE CONCAT('%', #{keyword}, '%') OR description LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="categoryId != null">
+                AND category_id = #{categoryId,jdbcType=INTEGER}
+            </if>
+            <if test="shopId != null and shopId != ''">
+                AND shop_id = #{shopId,jdbcType=VARCHAR}
+            </if>
+            <if test="priceMin != null">
+                AND price &gt;= #{priceMin,jdbcType=DECIMAL}
+            </if>
+            <if test="priceMax != null">
+                AND price &lt;= #{priceMax,jdbcType=DECIMAL}
+            </if>
+            <if test="origin != null and origin != ''">
+                AND origin LIKE CONCAT('%', #{origin}, '%')
+            </if>
+        </where>
+    </select>
+    
     <!-- 插入茶叶 -->
     <insert id="insert" parameterType="com.shangnantea.model.entity.tea.Tea">
         INSERT INTO teas (
@@ -183,4 +272,22 @@
         update_time = now()
         WHERE id = #{id,jdbcType=VARCHAR}
     </update>
-</mapper> 
+    
+    <!-- 批量更新茶叶状态 -->
+    <update id="batchUpdateStatus">
+        UPDATE teas
+        SET status = #{status,jdbcType=INTEGER},
+        update_time = now()
+        WHERE id IN
+        <foreach collection="teaIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+    
+    <!-- 统计指定分类下的茶叶数量 -->
+    <select id="countByCategory" resultType="java.lang.Integer" parameterType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM teas
+        WHERE category_id = #{categoryId,jdbcType=INTEGER} AND is_deleted = 0
+    </select>
+</mapper>
