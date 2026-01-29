@@ -1402,7 +1402,7 @@
 | 35 | uploadCertificationImage | POST | /user/merchant/certification/image | 2024 | 2146, 2147, 2148 | 上传商家认证图片 |
 
 
-## 二、茶叶模块接口 (tea.js) - 共25个接口
+## 二、茶叶模块接口 (tea.js) - 共24个接口
 
 ### 2.1 茶叶基础操作 (6个)
 
