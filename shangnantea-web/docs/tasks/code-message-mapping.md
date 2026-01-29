@@ -398,12 +398,15 @@
 | 200 | 操作成功 | 获取评价统计成功 | [静默] |
 | 3111 | 加载失败 | 获取评价统计失败 | 显示 |
 
-#### 接口13: submitReview - /tea/reviews (2个状态码)
+(已删除第十三接口)
 
-| Code | 消息 | 场景 | 显示 |
-|------|------|------|------|
-| 3007 | 评价提交成功，感谢您的反馈 | 提交评价成功 | 显示 |
-| 3112 | 评价提交失败 | 提交评价失败 | 显示 |
+**⚠️ 此接口已被删除**
+
+**删除原因**: 此接口为冗余接口，茶叶评价应该在订单完成后通过订单模块的 `reviewOrder` 接口提交（POST /order/review），而不是在茶叶模块直接提交。
+
+**正确流程**: 用户完成订单 → 订单模块提交评价 → 评价数据写入 tea_reviews 表
+
+**状态码保留**: 状态码 3007 和 3112 保留分配，标记为已弃用（DEPRECATED），不再使用但不回收。
 
 #### 接口14: replyReview - /tea/reviews/{reviewId}/reply (2个状态码)
 
@@ -1434,7 +1437,7 @@
 |------|----------|----------|------|--------|--------|------|
 | 11 | getTeaReviews | GET | /tea/{teaId}/reviews | 200 | 3110 | 获取评价列表 |
 | 12 | getReviewStats | GET | /tea/{teaId}/reviews/stats | 200 | 3111 | 获取评价统计 |
-| 13 | submitReview | POST | /tea/reviews | 3007 | 3112 | 提交评价 |
+已删除第十三
 | 14 | replyReview | POST | /tea/reviews/{reviewId}/reply | 3008 | 3113 | 回复评价 |
 | 15 | likeReview | POST | /tea/reviews/{reviewId}/like | 3009 | 3114 | 点赞评价 |
 

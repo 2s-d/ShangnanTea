@@ -260,21 +260,6 @@ public class TeaController {
     // ==================== 评价系统 ====================
 
     /**
-     * 提交评价
-     * 路径: POST /tea/reviews
-     * 成功码: 3007, 失败码: 3112
-     *
-     * @param reviewData 评价数据 {teaId, rating, content, images, orderId}
-     * @return 提交结果
-     */
-    @PostMapping("/reviews")
-    @RequiresLogin
-    public Result<Boolean> submitReview(@RequestBody Map<String, Object> reviewData) {
-        logger.info("提交评价请求");
-        return teaService.submitReview(reviewData);
-    }
-
-    /**
      * 商家回复评价
      * 路径: POST /tea/reviews/{reviewId}/reply
      * 成功码: 3008, 失败码: 3113

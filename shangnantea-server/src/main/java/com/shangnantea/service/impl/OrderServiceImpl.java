@@ -1344,7 +1344,7 @@ public class OrderServiceImpl implements OrderService {
             review.setContent(content);
             review.setRating(rating);
             review.setIsAnonymous(isAnonymous);
-            review.setLikeCount(0);
+            // likeCount已从数据库删除，使用动态计算
             
             // 处理评价图片（将图片列表转为JSON字符串）
             if (images != null && !images.isEmpty()) {

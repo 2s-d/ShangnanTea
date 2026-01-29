@@ -1,4 +1,4 @@
-import { getTeas, getTeaDetail, getTeaCategories, createCategory, updateCategory, deleteCategory, addTea, updateTea, deleteTea, getTeaReviews, getReviewStats, submitReview, replyReview, likeReview, getTeaSpecifications, addSpecification, updateSpecification, deleteSpecification, setDefaultSpecification, uploadTeaImages, deleteTeaImage, updateImageOrder, setMainImage, toggleTeaStatus, batchToggleTeaStatus, getRecommendTeas } from '@/api/tea'
+import { getTeas, getTeaDetail, getTeaCategories, createCategory, updateCategory, deleteCategory, addTea, updateTea, deleteTea, getTeaReviews, getReviewStats, replyReview, likeReview, getTeaSpecifications, addSpecification, updateSpecification, deleteSpecification, setDefaultSpecification, uploadTeaImages, deleteTeaImage, updateImageOrder, setMainImage, toggleTeaStatus, batchToggleTeaStatus, getRecommendTeas } from '@/api/tea'
 
 const state = () => ({
   // 茶叶列表
@@ -436,32 +436,6 @@ const actions = {
       console.error('获取评价统计数据失败:', error)
       commit('SET_REVIEW_STATS', null)
       throw error
-    }
-  },
-  
-  // 提交评价
-  async submitReview({ commit, dispatch }, reviewData) {
-    try {
-      commit('SET_LOADING', true)
-      
-      const res = await submitReview(reviewData)
-      
-      // 添加到评价列表
-      if (res.data) {
-        commit('ADD_REVIEW', res.data)
-      }
-      
-      // 刷新评价统计
-      if (reviewData.teaId) {
-        await dispatch('fetchReviewStats', reviewData.teaId)
-      }
-      
-      return res // 返回 {code, data}
-    } catch (error) {
-      console.error('提交评价失败:', error)
-      throw error
-    } finally {
-      commit('SET_LOADING', false)
     }
   },
   

@@ -90,4 +90,11 @@
         SELECT COUNT(*) FROM user_favorites
         WHERE user_id = #{userId}
     </select>
+    
+    <!-- 统计某个对象的收藏数 -->
+    <select id="countByItem" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM user_favorites
+        WHERE item_type = #{itemType,jdbcType=VARCHAR} AND item_id = #{itemId,jdbcType=VARCHAR}
+    </select>
 </mapper> 

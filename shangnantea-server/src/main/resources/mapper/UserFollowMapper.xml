@@ -77,11 +77,13 @@
     <!-- 插入关注 -->
     <insert id="insert" parameterType="com.shangnantea.model.entity.user.UserFollow" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO user_follows (
-            user_id, follow_type, follow_id, create_time
+            user_id, follow_type, follow_id, target_name, target_avatar, create_time
         ) VALUES (
             #{userId,jdbcType=VARCHAR}, 
             #{followType,jdbcType=VARCHAR}, 
             #{followId,jdbcType=VARCHAR}, 
+            #{targetName,jdbcType=VARCHAR}, 
+            #{targetAvatar,jdbcType=VARCHAR}, 
             #{createTime,jdbcType=TIMESTAMP}
         )
     </insert>

@@ -13,6 +13,7 @@ import com.shangnantea.model.vo.message.UnreadCountVO;
 import com.shangnantea.security.context.UserContext;
 import com.shangnantea.service.MessageService;
 import com.shangnantea.utils.FileUploadUtils;
+import com.shangnantea.utils.StatisticsUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,6 +61,9 @@ public class MessageServiceImpl implements MessageService {
     
     @Autowired
     private com.shangnantea.mapper.UserFavoriteMapper userFavoriteMapper;
+    
+    @Autowired
+    private StatisticsUtils statisticsUtils;
     
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
@@ -1382,7 +1386,8 @@ public class MessageServiceImpl implements MessageService {
                 dynamic.put("content", post.getSummary() != null ? post.getSummary() : post.getContent());
                 dynamic.put("coverImage", post.getCoverImage());
                 dynamic.put("viewCount", post.getViewCount());
-                dynamic.put("likeCount", post.getLikeCount());
+                // 使用动态计算获取点赞数
+                dynamic.put("likeCount", statisticsUtils.getLikeCount("post", String.valueOf(post.getId())));
                 dynamic.put("replyCount", post.getReplyCount());
                 dynamic.put("createTime", post.getCreateTime());
                 
@@ -1480,8 +1485,9 @@ public class MessageServiceImpl implements MessageService {
                 postVO.put("coverImage", post.getCoverImage());
                 postVO.put("viewCount", post.getViewCount());
                 postVO.put("replyCount", post.getReplyCount());
-                postVO.put("likeCount", post.getLikeCount());
-                postVO.put("favoriteCount", post.getFavoriteCount());
+                // 使用动态计算获取点赞数和收藏数
+                postVO.put("likeCount", statisticsUtils.getLikeCount("post", String.valueOf(post.getId())));
+                postVO.put("favoriteCount", statisticsUtils.getFavoriteCount("post", String.valueOf(post.getId())));
                 postVO.put("isSticky", post.getIsSticky());
                 postVO.put("isEssence", post.getIsEssence());
                 postVO.put("status", post.getStatus());
@@ -1549,7 +1555,8 @@ public class MessageServiceImpl implements MessageService {
                 reviewVO.put("reply", review.getReply());
                 reviewVO.put("replyTime", review.getReplyTime());
                 reviewVO.put("isAnonymous", review.getIsAnonymous());
-                reviewVO.put("likeCount", review.getLikeCount());
+                // 使用动态计算获取点赞数
+                reviewVO.put("likeCount", statisticsUtils.getLikeCount("review", String.valueOf(review.getId())));
                 reviewVO.put("createTime", review.getCreateTime());
                 reviewVO.put("updateTime", review.getUpdateTime());
                 

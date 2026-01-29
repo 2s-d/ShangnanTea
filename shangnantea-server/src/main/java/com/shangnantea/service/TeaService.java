@@ -140,16 +140,6 @@ public interface TeaService {
     Result<Object> getReviewStats(String teaId);
     
     /**
-     * 提交茶叶评价
-     * 路径: POST /tea/reviews
-     * 成功码: 3007, 失败码: 3112
-     *
-     * @param reviewData 评价数据（Map格式）
-     * @return 提交结果
-     */
-    Result<Boolean> submitReview(Map<String, Object> reviewData);
-    
-    /**
      * 商家回复评价
      * 路径: POST /tea/reviews/{reviewId}/reply
      * 成功码: 3008, 失败码: 3113

@@ -1977,46 +1977,6 @@ paths:
                     code: 3111
                     data: null
 
-  /tea/reviews:
-    post:
-      operationId: submitTeaReview
-      tags:
-        - 茶叶模块
-      summary: 提交茶叶评价
-      description: 用户提交茶叶商品评价
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ReviewRequest'
-            example:
-              teaId: "1"
-              rating: 5
-              content: "茶叶很好喝"
-              images: []
-              orderId: "order001"
-      responses:
-        '200':
-          description: 提交成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BaseResponse'
-              examples:
-                success:
-                  summary: 提交评价成功
-                  value:
-                    code: 3007
-                    data: null
-                failure:
-                  summary: 提交评价失败
-                  value:
-                    code: 3112
-                    data: null
-
   /tea/reviews/{reviewId}/reply:
     post:
       operationId: replyTeaReview

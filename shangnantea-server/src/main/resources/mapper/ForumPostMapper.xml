@@ -13,8 +13,6 @@
         <result column="images" property="images"/>
         <result column="view_count" property="viewCount"/>
         <result column="reply_count" property="replyCount"/>
-        <result column="like_count" property="likeCount"/>
-        <result column="favorite_count" property="favoriteCount"/>
         <result column="is_sticky" property="isSticky"/>
         <result column="is_essence" property="isEssence"/>
         <result column="status" property="status"/>
@@ -26,17 +24,17 @@
     <!-- 所有列 -->
     <sql id="Base_Column_List">
         id, user_id, topic_id, title, content, summary, cover_image, images, view_count, reply_count, 
-        like_count, favorite_count, is_sticky, is_essence, status, last_reply_time, create_time, update_time
+        is_sticky, is_essence, status, last_reply_time, create_time, update_time
     </sql>
 
     <!-- 插入记录 -->
     <insert id="insert" parameterType="com.shangnantea.model.entity.forum.ForumPost">
         INSERT INTO forum_posts (
             id, user_id, topic_id, title, content, summary, cover_image, images, view_count, reply_count, 
-            like_count, favorite_count, is_sticky, is_essence, status, last_reply_time, create_time, update_time
+            is_sticky, is_essence, status, last_reply_time, create_time, update_time
         ) VALUES (
             #{id}, #{userId}, #{topicId}, #{title}, #{content}, #{summary}, #{coverImage}, #{images}, #{viewCount}, 
-            #{replyCount}, #{likeCount}, #{favoriteCount}, #{isSticky}, #{isEssence}, #{status}, 
+            #{replyCount}, #{isSticky}, #{isEssence}, #{status}, 
             #{lastReplyTime}, #{createTime}, #{updateTime}
         )
     </insert>
@@ -67,8 +65,6 @@
             <if test="images != null">images = #{images},</if>
             <if test="viewCount != null">view_count = #{viewCount},</if>
             <if test="replyCount != null">reply_count = #{replyCount},</if>
-            <if test="likeCount != null">like_count = #{likeCount},</if>
-            <if test="favoriteCount != null">favorite_count = #{favoriteCount},</if>
             <if test="isSticky != null">is_sticky = #{isSticky},</if>
             <if test="isEssence != null">is_essence = #{isEssence},</if>
             <if test="status != null">status = #{status},</if>
@@ -145,7 +141,7 @@
         WHERE user_id = #{userId} AND status = 1
         <choose>
             <when test="sortBy == 'hot'">
-                ORDER BY (view_count + like_count * 2 + reply_count * 3) DESC, create_time DESC
+                ORDER BY (view_count + reply_count * 3) DESC, create_time DESC
             </when>
             <otherwise>
                 ORDER BY create_time DESC

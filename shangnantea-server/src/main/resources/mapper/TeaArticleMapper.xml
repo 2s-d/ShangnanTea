@@ -16,8 +16,6 @@
         <result column="tags" property="tags"/>
         <result column="source" property="source"/>
         <result column="view_count" property="viewCount"/>
-        <result column="like_count" property="likeCount"/>
-        <result column="favorite_count" property="favoriteCount"/>
         <result column="is_top" property="isTop"/>
         <result column="is_recommend" property="isRecommend"/>
         <result column="status" property="status"/>
@@ -29,7 +27,7 @@
     <!-- 所有列 -->
     <sql id="Base_Column_List">
         id, title, subtitle, author, content, summary, cover_image, images, video_url, category, 
-        tags, source, view_count, like_count, favorite_count, is_top, is_recommend, status, 
+        tags, source, view_count, is_top, is_recommend, status, 
         publish_time, create_time, update_time
     </sql>
 
@@ -37,7 +35,7 @@
     <insert id="insert" parameterType="com.shangnantea.model.entity.forum.TeaArticle">
         INSERT INTO tea_articles (
             id, title, subtitle, author, content, summary, cover_image, images, video_url, category, 
-            tags, source, view_count, like_count, favorite_count, is_top, is_recommend, status, 
+            tags, source, view_count, is_top, is_recommend, status, 
             publish_time, create_time, update_time
         ) VALUES (
             #{id}, #{title}, #{subtitle}, #{author}, #{content}, #{summary}, #{coverImage}, #{images}, 
@@ -75,8 +73,6 @@
             <if test="tags != null">tags = #{tags},</if>
             <if test="source != null">source = #{source},</if>
             <if test="viewCount != null">view_count = #{viewCount},</if>
-            <if test="likeCount != null">like_count = #{likeCount},</if>
-            <if test="favoriteCount != null">favorite_count = #{favoriteCount},</if>
             <if test="isTop != null">is_top = #{isTop},</if>
             <if test="isRecommend != null">is_recommend = #{isRecommend},</if>
             <if test="status != null">status = #{status},</if>

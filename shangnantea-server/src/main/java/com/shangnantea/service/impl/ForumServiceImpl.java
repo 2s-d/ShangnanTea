@@ -34,6 +34,7 @@ import com.shangnantea.model.vo.forum.TopicVO;
 import com.shangnantea.security.context.UserContext;
 import com.shangnantea.service.ForumService;
 import com.shangnantea.utils.FileUploadUtils;
+import com.shangnantea.utils.StatisticsUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,6 +84,9 @@ public class ForumServiceImpl implements ForumService {
     
     @Autowired
     private UserFavoriteMapper userFavoriteMapper;
+    
+    @Autowired
+    private StatisticsUtils statisticsUtils;
     
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
@@ -558,7 +562,8 @@ public class ForumServiceImpl implements ForumService {
                             vo.setAuthorName(article.getAuthor());
                             vo.setCategory(article.getCategory());
                             vo.setViewCount(article.getViewCount() != null ? article.getViewCount() : 0);
-                            vo.setLikeCount(article.getLikeCount() != null ? article.getLikeCount() : 0);
+                            // 使用动态计算获取点赞数
+                            vo.setLikeCount(statisticsUtils.getLikeCount("article", String.valueOf(article.getId())));
                             vo.setIsTop(article.getIsTop());
                             vo.setIsRecommend(article.getIsRecommend());
                             vo.setPublishTime(article.getPublishTime());
@@ -620,8 +625,9 @@ public class ForumServiceImpl implements ForumService {
             vo.setTags(article.getTags());
             vo.setSource(article.getSource());
             vo.setViewCount(article.getViewCount());
-            vo.setLikeCount(article.getLikeCount() != null ? article.getLikeCount() : 0);
-            vo.setFavoriteCount(article.getFavoriteCount() != null ? article.getFavoriteCount() : 0);
+            // 使用动态计算获取点赞数和收藏数
+            vo.setLikeCount(statisticsUtils.getLikeCount("article", String.valueOf(article.getId())));
+            vo.setFavoriteCount(statisticsUtils.getFavoriteCount("article", String.valueOf(article.getId())));
             vo.setIsTop(article.getIsTop());
             vo.setIsRecommend(article.getIsRecommend());
             vo.setPublishTime(article.getPublishTime());
@@ -700,8 +706,7 @@ public class ForumServiceImpl implements ForumService {
             article.setAuthor(authorName);
             
             article.setViewCount(0);
-            article.setLikeCount(0);
-            article.setFavoriteCount(0);
+            // likeCount和favoriteCount已从数据库删除，使用动态计算
             article.setIsTop(0);
             article.setIsRecommend(0);
             article.setStatus(1); // 1=已发布
@@ -721,7 +726,8 @@ public class ForumServiceImpl implements ForumService {
             vo.setAuthorName(article.getAuthor());
             vo.setCategory(article.getCategory());
             vo.setViewCount(article.getViewCount());
-            vo.setLikeCount(article.getLikeCount());
+            // 使用动态计算获取点赞数
+            vo.setLikeCount(statisticsUtils.getLikeCount("article", String.valueOf(article.getId())));
             vo.setIsTop(article.getIsTop());
             vo.setIsRecommend(article.getIsRecommend());
             vo.setPublishTime(article.getPublishTime());
@@ -818,7 +824,8 @@ public class ForumServiceImpl implements ForumService {
             vo.setAuthorName(article.getAuthor());
             vo.setCategory(article.getCategory());
             vo.setViewCount(article.getViewCount());
-            vo.setLikeCount(article.getLikeCount());
+            // 使用动态计算获取点赞数
+            vo.setLikeCount(statisticsUtils.getLikeCount("article", String.valueOf(article.getId())));
             vo.setIsTop(article.getIsTop());
             vo.setIsRecommend(article.getIsRecommend());
             vo.setPublishTime(article.getPublishTime());
@@ -1199,8 +1206,9 @@ public class ForumServiceImpl implements ForumService {
                             vo.setCoverImage(post.getCoverImage());
                             vo.setViewCount(post.getViewCount());
                             vo.setReplyCount(post.getReplyCount());
-                            vo.setLikeCount(post.getLikeCount() != null ? post.getLikeCount() : 0);
-                            vo.setFavoriteCount(post.getFavoriteCount() != null ? post.getFavoriteCount() : 0);
+                            // 使用动态计算获取点赞数和收藏数
+                            vo.setLikeCount(statisticsUtils.getLikeCount("post", String.valueOf(post.getId())));
+                            vo.setFavoriteCount(statisticsUtils.getFavoriteCount("post", String.valueOf(post.getId())));
                             vo.setIsSticky(post.getIsSticky());
                             vo.setIsEssence(post.getIsEssence());
                             vo.setStatus(post.getStatus());
@@ -1256,8 +1264,7 @@ public class ForumServiceImpl implements ForumService {
             post.setImages(dto.getImages());
             post.setViewCount(0);
             post.setReplyCount(0);
-            post.setLikeCount(0);
-            post.setFavoriteCount(0);
+            // likeCount和favoriteCount已从数据库删除，使用动态计算
             post.setIsSticky(0);
             post.setIsEssence(0);
             post.setStatus(1); // 1=正常（直接发布，不需要审核）
@@ -1350,8 +1357,9 @@ public class ForumServiceImpl implements ForumService {
                             vo.setCoverImage(post.getCoverImage());
                             vo.setViewCount(post.getViewCount());
                             vo.setReplyCount(post.getReplyCount());
-                            vo.setLikeCount(post.getLikeCount() != null ? post.getLikeCount() : 0);
-                            vo.setFavoriteCount(post.getFavoriteCount() != null ? post.getFavoriteCount() : 0);
+                            // 使用动态计算获取点赞数和收藏数
+                            vo.setLikeCount(statisticsUtils.getLikeCount("post", String.valueOf(post.getId())));
+                            vo.setFavoriteCount(statisticsUtils.getFavoriteCount("post", String.valueOf(post.getId())));
                             vo.setIsSticky(post.getIsSticky());
                             vo.setIsEssence(post.getIsEssence());
                             vo.setStatus(post.getStatus());
@@ -1414,8 +1422,9 @@ public class ForumServiceImpl implements ForumService {
             vo.setImages(post.getImages());
             vo.setViewCount(post.getViewCount());
             vo.setReplyCount(post.getReplyCount());
-            vo.setLikeCount(post.getLikeCount() != null ? post.getLikeCount() : 0);
-            vo.setFavoriteCount(post.getFavoriteCount() != null ? post.getFavoriteCount() : 0);
+            // 使用动态计算获取点赞数和收藏数
+            vo.setLikeCount(statisticsUtils.getLikeCount("post", String.valueOf(post.getId())));
+            vo.setFavoriteCount(statisticsUtils.getFavoriteCount("post", String.valueOf(post.getId())));
             vo.setIsSticky(post.getIsSticky());
             vo.setIsEssence(post.getIsEssence());
             vo.setStatus(post.getStatus());
@@ -1611,10 +1620,7 @@ public class ForumServiceImpl implements ForumService {
                 return Result.failure(6125); // 点赞失败
             }
             
-            // 5. 增加帖子点赞数
-            post.setLikeCount((post.getLikeCount() != null ? post.getLikeCount() : 0) + 1);
-            post.setUpdateTime(new Date());
-            postMapper.updateById(post);
+            // likeCount已从数据库删除，使用动态计算
             
             logger.info("点赞帖子成功: userId={}, postId={}", userId, id);
             return Result.success(6014, null); // 点赞成功
@@ -1663,10 +1669,7 @@ public class ForumServiceImpl implements ForumService {
                 return Result.failure(6126); // 取消点赞失败
             }
             
-            // 5. 减少帖子点赞数
-            post.setLikeCount(Math.max(0, (post.getLikeCount() != null ? post.getLikeCount() : 0) - 1));
-            post.setUpdateTime(new Date());
-            postMapper.updateById(post);
+            // likeCount已从数据库删除，使用动态计算
             
             logger.info("取消点赞帖子成功: userId={}, postId={}", userId, id);
             return Result.success(6015, null); // 已取消点赞
@@ -1723,10 +1726,7 @@ public class ForumServiceImpl implements ForumService {
                 return Result.failure(6127); // 收藏失败
             }
             
-            // 5. 增加帖子收藏数
-            post.setFavoriteCount((post.getFavoriteCount() != null ? post.getFavoriteCount() : 0) + 1);
-            post.setUpdateTime(new Date());
-            postMapper.updateById(post);
+            // favoriteCount已从数据库删除，使用动态计算
             
             logger.info("收藏帖子成功: userId={}, postId={}", userId, id);
             return Result.success(6016, null); // 收藏成功
@@ -1775,10 +1775,7 @@ public class ForumServiceImpl implements ForumService {
                 return Result.failure(6128); // 取消收藏失败
             }
             
-            // 5. 减少帖子收藏数
-            post.setFavoriteCount(Math.max(0, (post.getFavoriteCount() != null ? post.getFavoriteCount() : 0) - 1));
-            post.setUpdateTime(new Date());
-            postMapper.updateById(post);
+            // favoriteCount已从数据库删除，使用动态计算
             
             logger.info("取消收藏帖子成功: userId={}, postId={}", userId, id);
             return Result.success(6017, null); // 已取消收藏
@@ -1876,7 +1873,8 @@ public class ForumServiceImpl implements ForumService {
                         vo.setContent(reply.getContent());
                         vo.setParentId(reply.getParentId() != null ? String.valueOf(reply.getParentId()) : null);
                         vo.setToUserId(reply.getToUserId());
-                        vo.setLikeCount(reply.getLikeCount() != null ? reply.getLikeCount() : 0);
+                        // 使用动态计算获取点赞数
+                        vo.setLikeCount(statisticsUtils.getLikeCount("reply", String.valueOf(reply.getId())));
                         vo.setCreateTime(reply.getCreateTime() != null ? reply.getCreateTime().toString() : null);
                         
                         // 从Map获取用户信息
@@ -1959,7 +1957,7 @@ public class ForumServiceImpl implements ForumService {
             reply.setContent(dto.getContent());
             reply.setParentId(parentId);
             reply.setToUserId(toUserId);
-            reply.setLikeCount(0);
+            // likeCount已从数据库删除，使用动态计算
             reply.setStatus(1); // 1=正常
             reply.setCreateTime(new Date());
             reply.setUpdateTime(new Date());
@@ -2089,10 +2087,7 @@ public class ForumServiceImpl implements ForumService {
                 return Result.failure(6132); // 点赞失败
             }
             
-            // 5. 增加回复点赞数
-            reply.setLikeCount((reply.getLikeCount() != null ? reply.getLikeCount() : 0) + 1);
-            reply.setUpdateTime(new Date());
-            replyMapper.updateById(reply);
+            // likeCount已从数据库删除，使用动态计算
             
             logger.info("点赞回复成功: userId={}, replyId={}", userId, id);
             return Result.success(6020, null); // 点赞成功
@@ -2141,10 +2136,7 @@ public class ForumServiceImpl implements ForumService {
                 return Result.failure(6133); // 取消点赞失败
             }
             
-            // 5. 减少回复点赞数
-            reply.setLikeCount(Math.max(0, (reply.getLikeCount() != null ? reply.getLikeCount() : 0) - 1));
-            reply.setUpdateTime(new Date());
-            replyMapper.updateById(reply);
+            // likeCount已从数据库删除，使用动态计算
             
             logger.info("取消点赞回复成功: userId={}, replyId={}", userId, id);
             return Result.success(6021, null); // 已取消点赞

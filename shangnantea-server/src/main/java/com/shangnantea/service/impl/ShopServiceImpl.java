@@ -26,6 +26,7 @@ import com.shangnantea.model.vo.shop.ShopVO;
 import com.shangnantea.security.context.UserContext;
 import com.shangnantea.service.ShopService;
 import com.shangnantea.utils.FileUploadUtils;
+import com.shangnantea.utils.StatisticsUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,6 +73,9 @@ public class ShopServiceImpl implements ShopService {
     
     @Autowired
     private OrderMapper orderMapper;
+    
+    @Autowired
+    private StatisticsUtils statisticsUtils;
     
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
@@ -375,7 +379,7 @@ public class ShopServiceImpl implements ShopService {
             shop.setRating(new BigDecimal("5.0")); // 默认评分
             shop.setRatingCount(0);
             shop.setSalesCount(0);
-            shop.setFollowCount(0);
+            // followCount已从数据库删除，使用动态计算
             
             Date now = new Date();
             shop.setCreateTime(now);
@@ -418,7 +422,8 @@ public class ShopServiceImpl implements ShopService {
         shopVO.setDescription(shop.getDescription());
         shopVO.setRating(shop.getRating());
         shopVO.setSalesCount(shop.getSalesCount());
-        shopVO.setFollowCount(shop.getFollowCount());
+        // 使用动态计算获取关注数
+        shopVO.setFollowCount(statisticsUtils.getFollowCount("shop", shop.getId()));
         shopVO.setOwnerId(shop.getOwnerId());
         
         return shopVO;
@@ -474,7 +479,8 @@ public class ShopServiceImpl implements ShopService {
         shopDetailVO.setDescription(shop.getDescription());
         shopDetailVO.setRating(shop.getRating());
         shopDetailVO.setSalesCount(shop.getSalesCount());
-        shopDetailVO.setFollowCount(shop.getFollowCount());
+        // 使用动态计算获取关注数
+        shopDetailVO.setFollowCount(statisticsUtils.getFollowCount("shop", shop.getId()));
         shopDetailVO.setOwnerId(shop.getOwnerId());
         
         return shopDetailVO;
@@ -634,7 +640,8 @@ public class ShopServiceImpl implements ShopService {
             ShopStatisticsVO statisticsVO = new ShopStatisticsVO();
             
             // 从店铺基本信息中获取统计数据
-            statisticsVO.setFollowCount(shop.getFollowCount());
+            // 使用动态计算获取关注数
+            statisticsVO.setFollowCount(statisticsUtils.getFollowCount("shop", shopId));
             statisticsVO.setRatingCount(shop.getRatingCount());
             statisticsVO.setRating(shop.getRating());
             
@@ -658,7 +665,7 @@ public class ShopServiceImpl implements ShopService {
             statisticsVO.setProductCount(productCount != null ? productCount.intValue() : 0);
             
             logger.info("获取店铺统计数据成功: shopId={}, followCount={}, ratingCount={}", 
-                    shopId, shop.getFollowCount(), shop.getRatingCount());
+                    shopId, statisticsUtils.getFollowCount("shop", shopId), shop.getRatingCount());
             
             // 6. 返回成功（根据code-message-mapping.md，成功码是200）
             return Result.success(200, statisticsVO);
@@ -1692,10 +1699,7 @@ public class ShopServiceImpl implements ShopService {
                 return Result.failure(4127);
             }
             
-            // 6. 更新店铺关注数
-            shop.setFollowCount(shop.getFollowCount() + 1);
-            shop.setUpdateTime(new Date());
-            shopMapper.updateById(shop);
+            // followCount已从数据库删除，使用动态计算
             
             logger.info("关注店铺成功: userId={}, shopId={}", userId, shopId);
             
@@ -1748,12 +1752,7 @@ public class ShopServiceImpl implements ShopService {
                 return Result.failure(4128);
             }
             
-            // 6. 更新店铺关注数
-            if (shop.getFollowCount() > 0) {
-                shop.setFollowCount(shop.getFollowCount() - 1);
-                shop.setUpdateTime(new Date());
-                shopMapper.updateById(shop);
-            }
+            // followCount已从数据库删除，使用动态计算
             
             logger.info("取消关注店铺成功: userId={}, shopId={}", userId, shopId);
             

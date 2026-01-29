@@ -251,8 +251,11 @@ export const CODE_MAP = {
   3111: '加载失败',
   
   // 接口13: submitReview - /tea/reviews
-  3007: '评价提交成功，感谢您的反馈',
-  3112: '评价提交失败',
+  // ⚠️ DEPRECATED - 此接口已被删除，状态码保留但不再使用
+  // 删除原因：茶叶评价应该在订单完成后通过订单模块提交（POST /order/review）
+  // 正确流程：用户完成订单 → 订单模块提交评价 → 评价数据写入tea_reviews表
+  // 3007: '评价提交成功，感谢您的反馈', // DEPRECATED - 不再使用
+  // 3112: '评价提交失败', // DEPRECATED - 不再使用
   
   // 接口14: replyReview - /tea/reviews/{reviewId}/reply
   3008: '回复成功',

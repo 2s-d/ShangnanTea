@@ -29,6 +29,7 @@ import com.shangnantea.model.vo.ReviewStatsVO;
 import com.shangnantea.security.context.UserContext;
 import com.shangnantea.service.TeaService;
 import com.shangnantea.utils.FileUploadUtils;
+import com.shangnantea.utils.StatisticsUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -80,6 +81,9 @@ public class TeaServiceImpl implements TeaService {
     
     @Autowired
     private UserFavoriteMapper userFavoriteMapper;
+    
+    @Autowired
+    private StatisticsUtils statisticsUtils;
     
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
@@ -1320,163 +1324,6 @@ public class TeaServiceImpl implements TeaService {
     }
     
     /**
-     * 提交茶叶评价
-     * 路径: POST /tea/reviews
-     * 成功码: 3007, 失败码: 3112
-     */
-    @Override
-    public Result<Boolean> submitReview(Map<String, Object> reviewData) {
-        try {
-            logger.info("提交茶叶评价请求, reviewData: {}", reviewData);
-            
-            // 1. 参数验证
-            if (reviewData == null || reviewData.isEmpty()) {
-                logger.warn("提交茶叶评价失败: 参数为空");
-                return Result.failure(3112);
-            }
-            
-            // 2. 提取并验证必填字段
-            String teaId = reviewData.get("teaId") != null ? reviewData.get("teaId").toString() : null;
-            Integer rating = reviewData.get("rating") != null ? 
-                    Integer.valueOf(reviewData.get("rating").toString()) : null;
-            String content = reviewData.get("content") != null ? reviewData.get("content").toString() : "";
-            String orderId = reviewData.get("orderId") != null ? reviewData.get("orderId").toString() : null;
-            
-            // 验证必填字段
-            if (teaId == null || teaId.trim().isEmpty()) {
-                logger.warn("提交茶叶评价失败: 茶叶ID不能为空");
-                return Result.failure(3112);
-            }
-            if (rating == null || rating < 1 || rating > 5) {
-                logger.warn("提交茶叶评价失败: 评分必须在1-5之间");
-                return Result.failure(3112);
-            }
-            
-            // 3. 验证茶叶是否存在
-            Tea tea = teaMapper.selectById(teaId);
-            if (tea == null) {
-                logger.warn("提交茶叶评价失败: 茶叶不存在, teaId: {}", teaId);
-                return Result.failure(3112);
-            }
-            
-            // 4. 获取当前用户ID
-            String currentUserId = UserContext.getCurrentUserId();
-            if (currentUserId == null) {
-                logger.warn("提交茶叶评价失败: 用户未登录");
-                return Result.failure(3112);
-            }
-            
-            // 5. 如果提供了订单ID，进行订单相关验证（问题3修复：跨模块数据访问）
-            if (orderId != null && !orderId.trim().isEmpty()) {
-                // 5.1 验证订单是否存在
-                Order order = orderMapper.selectById(orderId);
-                if (order == null) {
-                    logger.warn("提交茶叶评价失败: 订单不存在, orderId: {}", orderId);
-                    return Result.failure(3112);
-                }
-                
-                // 5.2 验证订单是否属于当前用户（权限验证）
-                if (!currentUserId.equals(order.getUserId())) {
-                    logger.warn("提交茶叶评价失败: 订单不属于当前用户, orderId: {}, currentUserId: {}, orderUserId: {}", 
-                            orderId, currentUserId, order.getUserId());
-                    return Result.failure(3112);
-                }
-                
-                // 5.3 验证订单状态是否为"已完成"（业务规则验证）
-                if (order.getStatus() == null || !order.getStatus().equals(Order.STATUS_COMPLETED)) {
-                    logger.warn("提交茶叶评价失败: 订单状态不是已完成, orderId: {}, status: {}", 
-                            orderId, order.getStatus());
-                    return Result.failure(3112);
-                }
-                
-                // 5.4 验证订单是否已评价过
-                if (order.getBuyerRate() != null && order.getBuyerRate() == 1) {
-                    logger.warn("提交茶叶评价失败: 订单已评价过, orderId: {}", orderId);
-                    return Result.failure(3112);
-                }
-                
-                // 5.5 验证订单的茶叶ID是否与评价的茶叶ID一致
-                if (!teaId.equals(order.getTeaId())) {
-                    logger.warn("提交茶叶评价失败: 订单茶叶ID与评价茶叶ID不一致, orderId: {}, orderTeaId: {}, reviewTeaId: {}", 
-                            orderId, order.getTeaId(), teaId);
-                    return Result.failure(3112);
-                }
-            }
-            
-            // 6. 创建TeaReview实体
-            TeaReview review = new TeaReview();
-            review.setTeaId(teaId);
-            review.setUserId(currentUserId);
-            review.setOrderId(orderId);
-            review.setContent(content.trim());
-            review.setRating(rating);
-            
-            // 7. 处理图片列表
-            if (reviewData.get("images") != null && reviewData.get("images") instanceof List) {
-                @SuppressWarnings("unchecked")
-                List<String> images = (List<String>) reviewData.get("images");
-                if (!images.isEmpty()) {
-                    // 将图片列表转换为JSON字符串存储
-                    review.setImages(String.join(",", images));
-                }
-            }
-            
-            // 8. 设置是否匿名
-            Integer isAnonymous = reviewData.get("isAnonymous") != null ? 
-                    Integer.valueOf(reviewData.get("isAnonymous").toString()) : 0;
-            review.setIsAnonymous(isAnonymous);
-            
-            // 9. 设置初始值
-            review.setLikeCount(0);
-            
-            // 10. 设置时间
-            Date now = new Date();
-            review.setCreateTime(now);
-            review.setUpdateTime(now);
-            
-            // 11. 插入评价数据到tea_review表
-            int result = teaReviewMapper.insert(review);
-            if (result <= 0) {
-                logger.error("提交茶叶评价失败: 数据库插入失败");
-                return Result.failure(3112);
-            }
-            
-            // 12. 如果提供了订单ID，更新订单的评价状态（问题2修复：更新订单状态）
-            if (orderId != null && !orderId.trim().isEmpty()) {
-                try {
-                    Order order = orderMapper.selectById(orderId);
-                    if (order != null) {
-                        order.setBuyerRate(1); // 标记为已评价
-                        order.setUpdateTime(now);
-                        int updateResult = orderMapper.updateById(order);
-                        if (updateResult > 0) {
-                            logger.info("订单评价状态更新成功, orderId: {}", orderId);
-                        } else {
-                            logger.warn("订单评价状态更新失败, orderId: {}", orderId);
-                            // 注意：这里不返回失败，因为评价已经成功插入，只是订单状态更新失败
-                            // 可以通过后台任务或手动修复数据一致性
-                        }
-                    }
-                } catch (Exception e) {
-                    logger.error("更新订单评价状态时发生异常, orderId: {}", orderId, e);
-                    // 同样不返回失败，评价数据已经成功保存
-                }
-            }
-            
-            logger.info("提交茶叶评价成功, teaId: {}, userId: {}, rating: {}, orderId: {}", 
-                    teaId, currentUserId, rating, orderId);
-            return Result.success(3007, true);
-            
-        } catch (NumberFormatException e) {
-            logger.error("提交茶叶评价失败: 数字格式错误", e);
-            return Result.failure(3112);
-        } catch (Exception e) {
-            logger.error("提交茶叶评价失败: 系统异常", e);
-            return Result.failure(3112);
-        }
-    }
-    
-    /**
      * 商家回复评价
      * 路径: POST /tea/reviews/{reviewId}/reply
      * 成功码: 3008, 失败码: 3113
@@ -1576,7 +1423,8 @@ public class TeaServiceImpl implements TeaService {
         vo.setReply(review.getReply());
         vo.setReplyTime(review.getReplyTime());
         vo.setIsAnonymous(review.getIsAnonymous());
-        vo.setLikeCount(review.getLikeCount());
+        // 使用动态计算获取点赞数
+        vo.setLikeCount(statisticsUtils.getLikeCount("review", String.valueOf(review.getId())));
         vo.setCreateTime(review.getCreateTime());
         
         // 处理图片列表
@@ -1620,7 +1468,8 @@ public class TeaServiceImpl implements TeaService {
         vo.setReply(review.getReply());
         vo.setReplyTime(review.getReplyTime());
         vo.setIsAnonymous(review.getIsAnonymous());
-        vo.setLikeCount(review.getLikeCount());
+        // 使用动态计算获取点赞数
+        vo.setLikeCount(statisticsUtils.getLikeCount("review", String.valueOf(review.getId())));
         vo.setCreateTime(review.getCreateTime());
         
         // 处理图片列表
@@ -1685,12 +1534,8 @@ public class TeaServiceImpl implements TeaService {
                 return Result.failure(3114);
             }
             
-            // 4. 增加点赞数
-            int updateCount = teaReviewMapper.incrementLikeCount(Long.valueOf(reviewId));
-            if (updateCount == 0) {
-                logger.warn("点赞评价失败: 数据库更新失败, reviewId: {}", reviewId);
-                return Result.failure(3114);
-            }
+            // likeCount已从数据库删除，使用动态计算
+            // 点赞功能应该通过user_likes表实现，而不是直接修改review表
             
             logger.info("点赞评价成功, reviewId: {}, userId: {}", reviewId, currentUserId);
             return Result.success(3009, true);

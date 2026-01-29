@@ -14,7 +14,6 @@
         <result column="reply" property="reply" jdbcType="VARCHAR"/>
         <result column="reply_time" property="replyTime" jdbcType="TIMESTAMP"/>
         <result column="is_anonymous" property="isAnonymous" jdbcType="INTEGER"/>
-        <result column="like_count" property="likeCount" jdbcType="INTEGER"/>
         <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
         <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
     </resultMap>
@@ -30,7 +29,7 @@
     <!-- 公共列 -->
     <sql id="Base_Column_List">
         id, tea_id, user_id, order_id, content, rating, images, reply, reply_time, 
-        is_anonymous, like_count, create_time, update_time
+        is_anonymous, create_time, update_time
     </sql>
     
     <!-- 根据ID查询评价 -->
@@ -164,10 +163,14 @@
     </select>
     
     <!-- 增加点赞数 -->
+    <!-- incrementLikeCount方法已移除，因为like_count字段已从数据库删除 -->
+    <!-- 点赞数现在需要从user_likes表动态计算 -->
+    <!--
     <update id="incrementLikeCount" parameterType="java.lang.Long">
         UPDATE tea_reviews
         SET like_count = like_count + 1,
             update_time = now()
         WHERE id = #{reviewId,jdbcType=BIGINT}
     </update>
+    -->
 </mapper> 

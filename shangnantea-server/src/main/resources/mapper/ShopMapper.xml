@@ -20,7 +20,6 @@
         <result column="rating" property="rating"/>
         <result column="rating_count" property="ratingCount"/>
         <result column="sales_count" property="salesCount"/>
-        <result column="follow_count" property="followCount"/>
         <result column="create_time" property="createTime"/>
         <result column="update_time" property="updateTime"/>
     </resultMap>
@@ -29,7 +28,7 @@
     <sql id="Base_Column_List">
         id, owner_id, shop_name, logo, banner, description, announcement, contact_phone, 
         province, city, district, address, business_license, status, rating, rating_count, 
-        sales_count, follow_count, create_time, update_time
+        sales_count, create_time, update_time
     </sql>
 
     <!-- 插入记录 -->
@@ -37,7 +36,7 @@
         INSERT INTO shops (
             id, owner_id, shop_name, logo, banner, description, announcement, contact_phone, 
             province, city, district, address, business_license, status, rating, rating_count, 
-            sales_count, follow_count, create_time, update_time
+            sales_count, create_time, update_time
         ) VALUES (
             #{id}, #{ownerId}, #{shopName}, #{logo}, #{banner}, #{description}, #{announcement}, #{contactPhone},
             #{province}, #{city}, #{district}, #{address}, #{businessLicense}, #{status}, #{rating}, #{ratingCount},
@@ -78,7 +77,6 @@
             <if test="rating != null">rating = #{rating},</if>
             <if test="ratingCount != null">rating_count = #{ratingCount},</if>
             <if test="salesCount != null">sales_count = #{salesCount},</if>
-            <if test="followCount != null">follow_count = #{followCount},</if>
             <if test="updateTime != null">update_time = #{updateTime},</if>
         </set>
         WHERE id = #{id}
@@ -137,11 +135,8 @@
                         <if test="sortOrder != null and sortOrder == 'desc'">DESC</if>
                         <if test="sortOrder == null or sortOrder == 'asc'">ASC</if>
                     </when>
-                    <when test="sortBy == 'followCount'">
-                        ORDER BY follow_count
-                        <if test="sortOrder != null and sortOrder == 'desc'">DESC</if>
-                        <if test="sortOrder == null or sortOrder == 'asc'">ASC</if>
-                    </when>
+                    <!-- followCount排序已移除，因为follow_count字段已从数据库删除 -->
+                    <!-- 如需按关注数排序，需要从user_follows表动态计算 -->
                     <otherwise>
                         ORDER BY create_time DESC
                     </otherwise>
