@@ -4,6 +4,8 @@ import com.shangnantea.model.entity.user.User;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
 /**
  * 用户数据访问层
  */
@@ -95,4 +97,12 @@ public interface UserMapper extends BaseMapper<User, String> {
     int countByCondition(@Param("keyword") String keyword, 
                         @Param("role") Integer role, 
                         @Param("status") Integer status);
+    
+    /**
+     * 批量查询用户（通过ID列表）
+     *
+     * @param ids 用户ID列表
+     * @return 用户列表
+     */
+    List<User> selectByIds(@Param("ids") List<String> ids);
 } 

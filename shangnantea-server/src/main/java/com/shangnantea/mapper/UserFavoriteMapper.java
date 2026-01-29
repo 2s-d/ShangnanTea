@@ -20,7 +20,12 @@ public interface UserFavoriteMapper extends BaseMapper<UserFavorite, Integer> {
     List<UserFavorite> selectByUserIdAndType(@Param("userId") String userId, @Param("itemType") String itemType);
     
     /**
-     * 检查是否已收藏
+     * 根据用户ID和收藏项查询收藏记录
+     *
+     * @param userId 用户ID
+     * @param itemType 收藏项类型
+     * @param itemId 收藏项ID
+     * @return 收藏记录
      */
     UserFavorite selectByUserIdAndItem(@Param("userId") String userId, @Param("itemType") String itemType, @Param("itemId") String itemId);
 } 

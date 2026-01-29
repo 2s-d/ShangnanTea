@@ -59,11 +59,11 @@
         WHERE id = #{id}
     </update>
 
-    <!-- 根据主键查询记录 -->
+    <!-- 根据主键查询记录（排除已删除） -->
     <select id="selectById" parameterType="java.lang.Long" resultMap="BaseResultMap">
         SELECT <include refid="Base_Column_List"/>
         FROM forum_replies
-        WHERE id = #{id}
+        WHERE id = #{id} AND status != 2
     </select>
 
     <!-- 根据主键批量查询记录 -->
@@ -85,5 +85,13 @@
     <!-- 统计记录总数 -->
     <select id="count" resultType="java.lang.Long">
         SELECT COUNT(*) FROM forum_replies
+    </select>
+    
+    <!-- 根据帖子ID查询回复列表 -->
+    <select id="selectByPostId" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM forum_replies
+        WHERE post_id = #{postId}
+        ORDER BY create_time ASC
     </select>
 </mapper> 

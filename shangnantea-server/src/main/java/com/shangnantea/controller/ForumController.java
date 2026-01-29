@@ -1,9 +1,15 @@
 package com.shangnantea.controller;
 
 import com.shangnantea.common.api.Result;
+import com.shangnantea.model.dto.forum.CreatePostDTO;
+import com.shangnantea.model.dto.forum.CreateReplyDTO;
+import com.shangnantea.model.dto.forum.CreateTopicDTO;
+import com.shangnantea.model.dto.forum.UpdatePostDTO;
+import com.shangnantea.model.dto.forum.UpdateTopicDTO;
 import com.shangnantea.security.annotation.RequiresLogin;
 import com.shangnantea.security.annotation.RequiresRoles;
 import com.shangnantea.service.ForumService;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +38,7 @@ public class ForumController {
     /**
      * 获取首页数据
      * 路径: GET /forum/home
-     * 成功码: 200, 失败码: 6160
+     * 成功码: 200, 失败码: 6100
      *
      * @return 首页数据
      */
@@ -45,7 +51,7 @@ public class ForumController {
     /**
      * 更新首页数据（管理员）
      * 路径: PUT /forum/home
-     * 成功码: 6060, 失败码: 6163
+     * 成功码: 6000, 失败码: 6101
      *
      * @param data 首页数据
      * @return 更新结果
@@ -60,7 +66,7 @@ public class ForumController {
     /**
      * 获取Banner列表
      * 路径: GET /forum/banners
-     * 成功码: 200, 失败码: 6161
+     * 成功码: 200, 失败码: 6102
      *
      * @return Banner列表
      */
@@ -73,7 +79,7 @@ public class ForumController {
     /**
      * 上传Banner（管理员）
      * 路径: POST /forum/banners
-     * 成功码: 5010, 失败码: 5111, 1103, 1104
+     * 成功码: 6001, 失败码: 6103, 6104, 6105
      *
      * @param file Banner图片文件
      * @param title Banner标题
@@ -94,7 +100,7 @@ public class ForumController {
     /**
      * 更新Banner顺序（管理员）
      * 路径: PUT /forum/banners/order
-     * 成功码: 5013, 失败码: 5113
+     * 成功码: 6004, 失败码: 6108
      *
      * @param data Banner顺序数据 {bannerIds}
      * @return 更新结果
@@ -109,23 +115,30 @@ public class ForumController {
     /**
      * 更新Banner（管理员）
      * 路径: PUT /forum/banners/{id}
-     * 成功码: 5011, 失败码: 5111
+     * 成功码: 6002, 失败码: 6106
      *
      * @param id Banner ID
-     * @param data Banner数据
+     * @param file 新的Banner图片文件（可选）
+     * @param title Banner标题（可选）
+     * @param linkUrl 链接地址（可选）
+     * @param sortOrder 排序顺序（可选）
      * @return 更新结果
      */
     @PutMapping("/banners/{id}")
     @RequiresRoles({1})
-    public Result<Object> updateBanner(@PathVariable String id, @RequestBody Map<String, Object> data) {
-        logger.info("更新Banner请求: {}", id);
-        return forumService.updateBanner(id, data);
+    public Result<Object> updateBanner(@PathVariable String id,
+                                       @RequestParam(value = "file", required = false) MultipartFile file,
+                                       @RequestParam(value = "title", required = false) String title,
+                                       @RequestParam(value = "linkUrl", required = false) String linkUrl,
+                                       @RequestParam(value = "sortOrder", required = false) Integer sortOrder) {
+        logger.info("更新Banner请求: id={}, hasFile={}", id, file != null && !file.isEmpty());
+        return forumService.updateBanner(id, file, title, linkUrl, sortOrder);
     }
 
     /**
      * 删除Banner（管理员）
      * 路径: DELETE /forum/banners/{id}
-     * 成功码: 5012, 失败码: 5112
+     * 成功码: 6003, 失败码: 6107
      *
      * @param id Banner ID
      * @return 删除结果
@@ -142,7 +155,7 @@ public class ForumController {
     /**
      * 获取文章列表
      * 路径: GET /forum/articles
-     * 成功码: 200, 失败码: 6153
+     * 成功码: 200, 失败码: 6109
      *
      * @param params 查询参数 {page, size, category}
      * @return 文章列表
@@ -156,7 +169,7 @@ public class ForumController {
     /**
      * 创建文章（管理员）
      * 路径: POST /forum/articles
-     * 成功码: 6050, 失败码: 6150
+     * 成功码: 6005, 失败码: 6111
      *
      * @param data 文章数据
      * @return 创建结果
@@ -171,7 +184,7 @@ public class ForumController {
     /**
      * 获取文章详情
      * 路径: GET /forum/articles/{id}
-     * 成功码: 200, 失败码: 6153
+     * 成功码: 200, 失败码: 6110
      *
      * @param id 文章ID
      * @return 文章详情
@@ -185,7 +198,7 @@ public class ForumController {
     /**
      * 更新文章（管理员）
      * 路径: PUT /forum/articles/{id}
-     * 成功码: 6051, 失败码: 6151
+     * 成功码: 6006, 失败码: 6112
      *
      * @param id 文章ID
      * @param data 文章数据
@@ -201,7 +214,7 @@ public class ForumController {
     /**
      * 删除文章（管理员）
      * 路径: DELETE /forum/articles/{id}
-     * 成功码: 6052, 失败码: 6152
+     * 成功码: 6007, 失败码: 6113
      *
      * @param id 文章ID
      * @return 删除结果
@@ -213,12 +226,68 @@ public class ForumController {
         return forumService.deleteArticle(id);
     }
 
+    /**
+     * 点赞文章
+     * 路径: POST /forum/articles/{id}/like
+     * 成功码: 6029, 失败码: 6143
+     *
+     * @param id 文章ID
+     * @return 点赞结果
+     */
+    @PostMapping("/articles/{id}/like")
+    public Result<Object> likeArticle(@PathVariable String id) {
+        logger.info("点赞文章请求: {}", id);
+        return forumService.likeArticle(id);
+    }
+
+    /**
+     * 取消点赞文章
+     * 路径: DELETE /forum/articles/{id}/like
+     * 成功码: 6030, 失败码: 6144
+     *
+     * @param id 文章ID
+     * @return 取消点赞结果
+     */
+    @DeleteMapping("/articles/{id}/like")
+    public Result<Object> unlikeArticle(@PathVariable String id) {
+        logger.info("取消点赞文章请求: {}", id);
+        return forumService.unlikeArticle(id);
+    }
+
+    /**
+     * 收藏文章
+     * 路径: POST /forum/articles/{id}/favorite
+     * 成功码: 6031, 失败码: 6145
+     *
+     * @param id 文章ID
+     * @return 收藏结果
+     */
+    @PostMapping("/articles/{id}/favorite")
+    public Result<Object> favoriteArticle(@PathVariable String id) {
+        logger.info("收藏文章请求: {}", id);
+        return forumService.favoriteArticle(id);
+    }
+
+    /**
+     * 取消收藏文章
+     * 路径: DELETE /forum/articles/{id}/favorite
+     * 成功码: 6032, 失败码: 6146
+     *
+     * @param id 文章ID
+     * @return 取消收藏结果
+     */
+    @DeleteMapping("/articles/{id}/favorite")
+    public Result<Object> unfavoriteArticle(@PathVariable String id) {
+        logger.info("取消收藏文章请求: {}", id);
+        return forumService.unfavoriteArticle(id);
+    }
+
     // ==================== 版块管理 ====================
 
     /**
      * 获取版块列表
      * 路径: GET /forum/topics
-     * 成功码: 200, 失败码: 6143
+     * 成功码: 200, 失败码: 6114
      *
      * @return 版块列表
      */
@@ -231,22 +300,22 @@ public class ForumController {
     /**
      * 创建版块（管理员）
      * 路径: POST /forum/topics
-     * 成功码: 6040, 失败码: 6140
+     * 成功码: 6008, 失败码: 6116
      *
-     * @param data 版块数据
+     * @param dto 版块数据
      * @return 创建结果
      */
     @PostMapping("/topics")
     @RequiresRoles({1})
-    public Result<Object> createTopic(@RequestBody Map<String, Object> data) {
+    public Result<Object> createTopic(@Valid @RequestBody CreateTopicDTO dto) {
         logger.info("创建版块请求");
-        return forumService.createTopic(data);
+        return forumService.createTopic(dto);
     }
 
     /**
      * 获取版块详情
      * 路径: GET /forum/topics/{id}
-     * 成功码: 200, 失败码: 6143
+     * 成功码: 200, 失败码: 6115
      *
      * @param id 版块ID
      * @return 版块详情
@@ -258,31 +327,31 @@ public class ForumController {
     }
 
     /**
-     * 更新版块（管理员）
+     * 更新版块（管理员或版主）
      * 路径: PUT /forum/topics/{id}
-     * 成功码: 6041, 失败码: 6141
+     * 成功码: 6009, 失败码: 6117
      *
      * @param id 版块ID
-     * @param data 版块数据
+     * @param dto 版块数据
      * @return 更新结果
      */
     @PutMapping("/topics/{id}")
-    @RequiresRoles({1})
-    public Result<Object> updateTopic(@PathVariable String id, @RequestBody Map<String, Object> data) {
+    @RequiresLogin
+    public Result<Object> updateTopic(@PathVariable String id, @Valid @RequestBody UpdateTopicDTO dto) {
         logger.info("更新版块请求: {}", id);
-        return forumService.updateTopic(id, data);
+        return forumService.updateTopic(id, dto);
     }
 
     /**
-     * 删除版块（管理员）
+     * 删除版块（管理员或版主）
      * 路径: DELETE /forum/topics/{id}
-     * 成功码: 6042, 失败码: 6142
+     * 成功码: 6010, 失败码: 6118
      *
      * @param id 版块ID
      * @return 删除结果
      */
     @DeleteMapping("/topics/{id}")
-    @RequiresRoles({1})
+    @RequiresLogin
     public Result<Boolean> deleteTopic(@PathVariable String id) {
         logger.info("删除版块请求: {}", id);
         return forumService.deleteTopic(id);
@@ -293,7 +362,7 @@ public class ForumController {
     /**
      * 获取帖子列表
      * 路径: GET /forum/posts
-     * 成功码: 200, 失败码: 6103
+     * 成功码: 200, 失败码: 6119
      *
      * @param params 查询参数 {topicId, keyword, sortBy, page, size}
      * @return 帖子列表
@@ -307,7 +376,7 @@ public class ForumController {
     /**
      * 获取待审核帖子列表（管理员）
      * 路径: GET /forum/posts/pending
-     * 成功码: 200, 失败码: 6136
+     * 成功码: 200, 失败码: 6121
      *
      * @param params 查询参数 {page, size}
      * @return 待审核帖子列表
@@ -322,16 +391,16 @@ public class ForumController {
     /**
      * 创建帖子
      * 路径: POST /forum/posts
-     * 成功码: 6000, 失败码: 6100
+     * 成功码: 6011, 失败码: 6120
      *
-     * @param data 帖子数据
+     * @param dto 帖子数据
      * @return 创建结果
      */
     @PostMapping("/posts")
     @RequiresLogin
-    public Result<Object> createPost(@RequestBody Map<String, Object> data) {
+    public Result<Object> createPost(@Valid @RequestBody CreatePostDTO dto) {
         logger.info("创建帖子请求");
-        return forumService.createPost(data);
+        return forumService.createPost(dto);
     }
 
     /**
@@ -352,10 +421,10 @@ public class ForumController {
     /**
      * 获取帖子回复列表
      * 路径: GET /forum/posts/{id}/replies
-     * 成功码: 200, 失败码: 6123
+     * 成功码: 200, 失败码: 6129
      *
      * @param id 帖子ID
-     * @param params 查询参数 {page, size, sortBy}
+     * @param params 查询参数 {page, pageSize}
      * @return 回复列表
      */
     @GetMapping("/posts/{id}/replies")
@@ -367,23 +436,23 @@ public class ForumController {
     /**
      * 创建回复
      * 路径: POST /forum/posts/{id}/replies
-     * 成功码: 6022, 失败码: 6122
+     * 成功码: 6018, 失败码: 6130
      *
      * @param id 帖子ID
-     * @param data 回复数据
+     * @param dto 回复数据
      * @return 创建结果
      */
     @PostMapping("/posts/{id}/replies")
     @RequiresLogin
-    public Result<Object> createReply(@PathVariable String id, @RequestBody Map<String, Object> data) {
+    public Result<Object> createReply(@PathVariable String id, @Valid @RequestBody CreateReplyDTO dto) {
         logger.info("创建回复请求, postId: {}", id);
-        return forumService.createReply(id, data);
+        return forumService.createReply(id, dto);
     }
 
     /**
      * 点赞帖子
      * 路径: POST /forum/posts/{id}/like
-     * 成功码: 6010, 失败码: 6110
+     * 成功码: 6014, 失败码: 6125
      *
      * @param id 帖子ID
      * @return 点赞结果
@@ -398,7 +467,7 @@ public class ForumController {
     /**
      * 取消点赞帖子
      * 路径: DELETE /forum/posts/{id}/like
-     * 成功码: 6011, 失败码: 6111
+     * 成功码: 6015, 失败码: 6126
      *
      * @param id 帖子ID
      * @return 取消点赞结果
@@ -413,7 +482,7 @@ public class ForumController {
     /**
      * 收藏帖子
      * 路径: POST /forum/posts/{id}/favorite
-     * 成功码: 6012, 失败码: 6112
+     * 成功码: 6016, 失败码: 6127
      *
      * @param id 帖子ID
      * @return 收藏结果
@@ -428,7 +497,7 @@ public class ForumController {
     /**
      * 取消收藏帖子
      * 路径: DELETE /forum/posts/{id}/favorite
-     * 成功码: 6013, 失败码: 6113
+     * 成功码: 6017, 失败码: 6128
      *
      * @param id 帖子ID
      * @return 取消收藏结果
@@ -443,39 +512,38 @@ public class ForumController {
     /**
      * 审核通过帖子（管理员）
      * 路径: POST /forum/posts/{id}/approve
-     * 成功码: 6034, 失败码: 6134
+     * 成功码: 6022, 失败码: 6134
      *
      * @param id 帖子ID
-     * @param data 审核数据
      * @return 审核结果
      */
     @PostMapping("/posts/{id}/approve")
     @RequiresRoles({1})
-    public Result<Object> approvePost(@PathVariable String id, @RequestBody Map<String, Object> data) {
+    public Result<Object> approvePost(@PathVariable String id) {
         logger.info("审核通过帖子请求: {}", id);
-        return forumService.approvePost(id, data);
+        return forumService.approvePost(id);
     }
 
     /**
      * 审核拒绝帖子（管理员）
      * 路径: POST /forum/posts/{id}/reject
-     * 成功码: 6035, 失败码: 6135
+     * 成功码: 6023, 失败码: 6135
      *
      * @param id 帖子ID
-     * @param data 审核数据（包含拒绝原因）
+     * @param dto 审核数据（包含拒绝原因）
      * @return 审核结果
      */
     @PostMapping("/posts/{id}/reject")
     @RequiresRoles({1})
-    public Result<Object> rejectPost(@PathVariable String id, @RequestBody Map<String, Object> data) {
+    public Result<Object> rejectPost(@PathVariable String id, @Valid @RequestBody com.shangnantea.model.dto.forum.RejectPostDTO dto) {
         logger.info("审核拒绝帖子请求: {}", id);
-        return forumService.rejectPost(id, data);
+        return forumService.rejectPost(id, dto);
     }
 
     /**
      * 设置帖子置顶/取消置顶（管理员）
      * 路径: PUT /forum/posts/{id}/sticky
-     * 成功码: 6030, 6031, 失败码: 6130, 6131
+     * 成功码: 6024, 6025, 失败码: 6136, 6137
      *
      * @param id 帖子ID
      * @param isSticky 是否置顶
@@ -491,7 +559,7 @@ public class ForumController {
     /**
      * 设置帖子精华/取消精华（管理员）
      * 路径: PUT /forum/posts/{id}/essence
-     * 成功码: 6032, 6033, 失败码: 6132, 6133
+     * 成功码: 6026, 6027, 失败码: 6138, 6139
      *
      * @param id 帖子ID
      * @param isEssence 是否精华
@@ -522,23 +590,23 @@ public class ForumController {
     /**
      * 更新帖子
      * 路径: PUT /forum/posts/{id}
-     * 成功码: 6001, 失败码: 6101
+     * 成功码: 6012, 失败码: 6123
      *
      * @param id 帖子ID
-     * @param data 帖子数据
+     * @param dto 帖子数据
      * @return 更新结果
      */
     @PutMapping("/posts/{id}")
     @RequiresLogin
-    public Result<Object> updatePost(@PathVariable String id, @RequestBody Map<String, Object> data) {
+    public Result<Object> updatePost(@PathVariable String id, @Valid @RequestBody UpdatePostDTO dto) {
         logger.info("更新帖子请求: {}", id);
-        return forumService.updatePost(id, data);
+        return forumService.updatePost(id, dto);
     }
 
     /**
      * 删除帖子
      * 路径: DELETE /forum/posts/{id}
-     * 成功码: 6002, 失败码: 6102
+     * 成功码: 6013, 失败码: 6124
      *
      * @param id 帖子ID
      * @return 删除结果
@@ -555,7 +623,7 @@ public class ForumController {
     /**
      * 点赞回复
      * 路径: POST /forum/replies/{id}/like
-     * 成功码: 6010, 失败码: 6110
+     * 成功码: 6020, 失败码: 6132
      *
      * @param id 回复ID
      * @return 点赞结果
@@ -570,7 +638,7 @@ public class ForumController {
     /**
      * 取消点赞回复
      * 路径: DELETE /forum/replies/{id}/like
-     * 成功码: 6011, 失败码: 6111
+     * 成功码: 6021, 失败码: 6133
      *
      * @param id 回复ID
      * @return 取消点赞结果
@@ -585,7 +653,7 @@ public class ForumController {
     /**
      * 删除回复
      * 路径: DELETE /forum/replies/{id}
-     * 成功码: 6021, 失败码: 6121
+     * 成功码: 6019, 失败码: 6131
      *
      * @param id 回复ID
      * @return 删除结果

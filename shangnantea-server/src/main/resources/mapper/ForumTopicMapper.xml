@@ -88,4 +88,28 @@
     <select id="count" resultType="java.lang.Long">
         SELECT COUNT(*) FROM forum_topics
     </select>
+    
+    <!-- 查询启用的版块列表（按排序值升序） -->
+    <select id="selectByStatus" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM forum_topics
+        WHERE status = #{status}
+        ORDER BY sort_order ASC
+    </select>
+    
+    <!-- 根据名称查询版块 -->
+    <select id="selectByName" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM forum_topics
+        WHERE name = #{name}
+        LIMIT 1
+    </select>
+    
+    <!-- 根据名称查询版块（排除指定ID） -->
+    <select id="selectByNameExcludeId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM forum_topics
+        WHERE name = #{name} AND id != #{excludeId}
+        LIMIT 1
+    </select>
 </mapper> 

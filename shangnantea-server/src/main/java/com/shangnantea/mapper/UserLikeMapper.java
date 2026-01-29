@@ -21,6 +21,11 @@ public interface UserLikeMapper extends BaseMapper<UserLike, Integer> {
     
     /**
      * 查询用户是否点赞了某个对象
+     *
+     * @param userId 用户ID
+     * @param targetType 目标类型
+     * @param targetId 目标ID
+     * @return 点赞记录
      */
     UserLike selectByUserIdAndTarget(@Param("userId") String userId, @Param("targetType") String targetType, @Param("targetId") String targetId);
 } 

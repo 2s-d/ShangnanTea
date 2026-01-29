@@ -113,7 +113,7 @@ export function getArticles(params = {}) {
  */
 export function getArticleDetail(id) {
   return request({
-    url: `${API.FORUM.ARTICLE_DETAIL}${id}`,
+    url: `${API.FORUM.ARTICLES}/${id}`,
     method: 'get'
   })
 }
@@ -139,7 +139,7 @@ export function createArticle(data) {
  */
 export function updateArticle(id, data) {
   return request({
-    url: `${API.FORUM.ARTICLE_DETAIL}${id}`,
+    url: `${API.FORUM.ARTICLES}/${id}`,
     method: 'put',
     data
   })
@@ -152,7 +152,7 @@ export function updateArticle(id, data) {
  */
 export function deleteArticle(id) {
   return request({
-    url: `${API.FORUM.ARTICLE_DETAIL}${id}`,
+    url: `${API.FORUM.ARTICLES}/${id}`,
     method: 'delete'
   })
 }
@@ -175,7 +175,7 @@ export function getForumTopics() {
  */
 export function getTopicDetail(id) {
   return request({
-    url: `${API.FORUM.TOPIC_DETAIL}${id}`,
+    url: `${API.FORUM.TOPICS}/${id}`,
     method: 'get'
   })
 }
@@ -201,7 +201,7 @@ export function createTopic(data) {
  */
 export function updateTopic(id, data) {
   return request({
-    url: `${API.FORUM.TOPIC_DETAIL}${id}`,
+    url: `${API.FORUM.TOPICS}/${id}`,
     method: 'put',
     data
   })
@@ -214,7 +214,7 @@ export function updateTopic(id, data) {
  */
 export function deleteTopic(id) {
   return request({
-    url: `${API.FORUM.TOPIC_DETAIL}${id}`,
+    url: `${API.FORUM.TOPICS}/${id}`,
     method: 'delete'
   })
 }
@@ -239,7 +239,7 @@ export function getForumPosts(params = {}) {
  */
 export function getPostDetail(id) {
   return request({
-    url: `${API.FORUM.POST_DETAIL}${id}`,
+    url: `${API.FORUM.POSTS}/${id}`,
     method: 'get'
   })
 }
@@ -284,7 +284,7 @@ export function uploadPostImage(file) {
  */
 export function updatePost(id, data) {
   return request({
-    url: `${API.FORUM.POST_DETAIL}${id}`,
+    url: `${API.FORUM.POSTS}/${id}`,
     method: 'put',
     data
   })
@@ -297,7 +297,7 @@ export function updatePost(id, data) {
  */
 export function deletePost(id) {
   return request({
-    url: `${API.FORUM.POST_DETAIL}${id}`,
+    url: `${API.FORUM.POSTS}/${id}`,
     method: 'delete'
   })
 }
@@ -310,7 +310,7 @@ export function deletePost(id) {
  */
 export function getPostReplies(postId, params = {}) {
   return request({
-    url: `${API.FORUM.POST_DETAIL}${postId}/replies`,
+    url: `${API.FORUM.POSTS}/${postId}/replies`,
     method: 'get',
     params
   })
@@ -324,7 +324,7 @@ export function getPostReplies(postId, params = {}) {
  */
 export function createReply(postId, data) {
   return request({
-    url: `${API.FORUM.POST_DETAIL}${postId}/replies`,
+    url: `${API.FORUM.POSTS}/${postId}/replies`,
     method: 'post',
     data
   })
@@ -373,7 +373,7 @@ export function unlikeReply(id) {
  */
 export function likePost(id) {
   return request({
-    url: `${API.FORUM.POST_DETAIL}${id}/like`,
+    url: `${API.FORUM.POSTS}/${id}/like`,
     method: 'post'
   })
 }
@@ -385,7 +385,7 @@ export function likePost(id) {
  */
 export function unlikePost(id) {
   return request({
-    url: `${API.FORUM.POST_DETAIL}${id}/like`,
+    url: `${API.FORUM.POSTS}/${id}/like`,
     method: 'delete'
   })
 }
@@ -397,7 +397,7 @@ export function unlikePost(id) {
  */
 export function favoritePost(id) {
   return request({
-    url: `${API.FORUM.POST_DETAIL}${id}/favorite`,
+    url: `${API.FORUM.POSTS}/${id}/favorite`,
     method: 'post'
   })
 }
@@ -409,7 +409,7 @@ export function favoritePost(id) {
  */
 export function unfavoritePost(id) {
   return request({
-    url: `${API.FORUM.POST_DETAIL}${id}/favorite`,
+    url: `${API.FORUM.POSTS}/${id}/favorite`,
     method: 'delete'
   })
 }
@@ -437,7 +437,7 @@ export function getPendingPosts(params = {}) {
  */
 export function approvePost(id, data) {
   return request({
-    url: `${API.FORUM.POST_DETAIL}${id}/approve`,
+    url: `${API.FORUM.POSTS}/${id}/approve`,
     method: 'post',
     data
   })
@@ -451,7 +451,7 @@ export function approvePost(id, data) {
  */
 export function rejectPost(id, data) {
   return request({
-    url: `${API.FORUM.POST_DETAIL}${id}/reject`,
+    url: `${API.FORUM.POSTS}/${id}/reject`,
     method: 'post',
     data
   })
@@ -465,7 +465,7 @@ export function rejectPost(id, data) {
  */
 export function togglePostSticky(id, isSticky) {
   return request({
-    url: `${API.FORUM.POST_DETAIL}${id}/sticky`,
+    url: `${API.FORUM.POSTS}/${id}/sticky`,
     method: 'put',
     params: { isSticky }
   })
@@ -479,7 +479,7 @@ export function togglePostSticky(id, isSticky) {
  */
 export function togglePostEssence(id, isEssence) {
   return request({
-    url: `${API.FORUM.POST_DETAIL}${id}/essence`,
+    url: `${API.FORUM.POSTS}/${id}/essence`,
     method: 'put',
     params: { isEssence }
   })

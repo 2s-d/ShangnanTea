@@ -84,4 +84,32 @@
     <select id="count" resultType="java.lang.Long">
         SELECT COUNT(*) FROM home_contents
     </select>
+    
+    <!-- 根据section和status查询内容列表 -->
+    <select id="selectBySection" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM home_contents
+        WHERE section = #{section}
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+        ORDER BY sort_order ASC
+    </select>
+    
+    <!-- 批量更新内容 -->
+    <update id="batchUpdate" parameterType="java.util.List">
+        <foreach collection="contents" item="item" separator=";">
+            UPDATE home_contents
+            <set>
+                <if test="item.section != null">section = #{item.section},</if>
+                <if test="item.title != null">title = #{item.title},</if>
+                <if test="item.subTitle != null">sub_title = #{item.subTitle},</if>
+                <if test="item.content != null">content = #{item.content},</if>
+                <if test="item.sortOrder != null">sort_order = #{item.sortOrder},</if>
+                <if test="item.status != null">status = #{item.status},</if>
+                <if test="item.updateTime != null">update_time = #{item.updateTime},</if>
+            </set>
+            WHERE id = #{item.id}
+        </foreach>
+    </update>
 </mapper> 

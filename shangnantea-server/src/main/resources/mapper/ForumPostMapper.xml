@@ -78,11 +78,33 @@
         WHERE id = #{id}
     </update>
 
-    <!-- 根据主键查询记录 -->
+    <!-- 根据主键查询记录（排除已删除） -->
     <select id="selectById" parameterType="java.lang.Long" resultMap="BaseResultMap">
         SELECT <include refid="Base_Column_List"/>
         FROM forum_posts
-        WHERE id = #{id}
+        WHERE id = #{id} AND status != 2
+    </select>
+    
+    <!-- 查询正常状态的帖子（支持版块和关键词过滤） -->
+    <select id="selectPublishedPosts" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM forum_posts
+        WHERE status = #{status}
+        <if test="topicId != null">
+            AND topic_id = #{topicId}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND (title LIKE CONCAT('%', #{keyword}, '%') OR content LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        ORDER BY is_sticky DESC, create_time DESC
+    </select>
+    
+    <!-- 根据状态查询帖子 -->
+    <select id="selectByStatus" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM forum_posts
+        WHERE status = #{status}
+        ORDER BY create_time DESC
     </select>
 
     <!-- 根据主键批量查询记录 -->
@@ -104,5 +126,15 @@
     <!-- 统计记录总数 -->
     <select id="count" resultType="java.lang.Long">
         SELECT COUNT(*) FROM forum_posts
+    </select>
+    
+    <!-- 统计指定版块今日发布的帖子数 -->
+    <select id="countTodayPosts" resultType="int">
+        SELECT COUNT(*)
+        FROM forum_posts
+        WHERE topic_id = #{topicId}
+        AND create_time &gt;= #{startTime}
+        AND create_time &lt; #{endTime}
+        AND status = #{status}
     </select>
 </mapper> 
