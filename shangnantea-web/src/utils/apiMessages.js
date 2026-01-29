@@ -1,7 +1,7 @@
 /**
  * API消息工具 - 基于状态码的消息映射
  * 
- * ⚠️ 重要：本文件必须与 docs/code-message-mapping.md 保持完全同步
+ * ⚠️ 重要：本文件必须与 docs/tasks/code-message-mapping.md 保持完全同步
  * 
  * 功能：
  * - 根据状态码获取对应消息
@@ -20,8 +20,8 @@
  * 3. 文档更新时，必须同步更新本文件
  * 4. 状态码去重：同一状态码只保留一个消息（四位数状态码足够分配，不会重复）
  * 
- * 数据来源：docs/code-message-mapping.md
- * 最后更新: 2026-01-13
+ * 数据来源：docs/tasks/code-message-mapping.md
+ * 最后更新: 2026-01-29
  */
 
 import { apiMessage } from './messageManager'
@@ -41,17 +41,18 @@ const SILENT_CODES = [
   2015, // 用户模块-接口23: removeFavorite - 已取消收藏
   2017, // 用户模块-接口25: removeLike - 已取消点赞
   3000, // 茶叶模块-接口1: getTeas - 茶叶列表加载成功
-  4016, // 店铺模块-接口23: unfollowShop - 已取消关注
-  6015, // 论坛模块-接口25: unlikePost - 已取消点赞
-  6017, // 论坛模块-接口27: unfavoritePost - 已取消收藏
-  6021, // 论坛模块-接口32: unlikeReply - 已取消点赞
+  // ===== DEPRECATED（接口已删除，保留分配但不再使用）=====
+  // 4016, // 店铺模块-接口23: unfollowShop - 已取消关注（接口已删除）
+  // 6015, // 论坛模块-接口25: unlikePost - 已取消点赞（接口已删除）
+  // 6017, // 论坛模块-接口27: unfavoritePost - 已取消收藏（接口已删除）
+  // 6021, // 论坛模块-接口32: unlikeReply - 已取消点赞（接口已删除）
   7001, // 消息模块-接口4: markAsRead - 通知已标记为已读
   7004  // 消息模块-接口10: batchMarkAsRead - 所有通知已标记为已读
 ]
 
 // 状态码消息映射表
 // ⚠️ 必须与 docs/code-message-mapping.md 文档完全同步
-// 基于文档中的166个接口提取，每个状态码只保留一个消息
+// 基于文档中的157个接口提取，每个状态码只保留一个消息
 // 状态码去重：同一状态码在不同接口中出现时，消息应该一致（四位数状态码足够分配，不会重复）
 export const CODE_MAP = {
   // HTTP状态码
@@ -261,9 +262,11 @@ export const CODE_MAP = {
   3008: '回复成功',
   3113: '回复失败',
   
-  // 接口15: likeReview - /tea/reviews/{reviewId}/like
-  3009: '点赞成功',
-  3114: '点赞失败',
+  // ===== DEPRECATED（接口已删除，保留分配但不再使用）=====
+  // 接口15: likeReview - /tea/reviews/{reviewId}/like（接口已删除）
+  // 替代：POST /user/likes（targetType=review，targetId=reviewId）
+  // 3009: '点赞成功', // DEPRECATED - 不再使用
+  // 3114: '点赞失败', // DEPRECATED - 不再使用
   
   // 接口16: getTeaSpecifications - /tea/{teaId}/specifications
   3115: '加载失败',
@@ -399,16 +402,20 @@ export const CODE_MAP = {
   4014: '删除成功',
   4126: '删除失败',
   
-  // 接口22: followShop - /shop/{shopId}/follow
-  4015: '已关注店铺',
-  4127: '操作失败',
-  
-  // 接口23: unfollowShop - /shop/{shopId}/follow
-  4016: '已取消关注',
-  4128: '操作失败',
-  
-  // 接口24: checkFollowStatus - /shop/{shopId}/follow-status
-  4129: '加载失败',
+  // ===== DEPRECATED（接口已删除，保留分配但不再使用）=====
+  // 接口22: followShop - /shop/{shopId}/follow（接口已删除）
+  // 替代：POST /user/follows（targetType=shop，targetId=shopId）
+  // 4015: '已关注店铺', // DEPRECATED - 不再使用
+  // 4127: '操作失败', // DEPRECATED - 不再使用
+  //
+  // 接口23: unfollowShop - /shop/{shopId}/follow（接口已删除）
+  // 替代：DELETE /user/follows/{id}
+  // 4016: '已取消关注', // DEPRECATED - 不再使用
+  // 4128: '操作失败', // DEPRECATED - 不再使用
+  //
+  // 接口24: checkFollowStatus - /shop/{shopId}/follow-status（接口已删除）
+  // 替代：GET /shop/{id} 返回 isFollowed
+  // 4129: '加载失败', // DEPRECATED - 不再使用
   
   // 接口25: getShopReviews - /shop/{shopId}/reviews
   4130: '加载评价失败',
@@ -611,21 +618,26 @@ export const CODE_MAP = {
   6013: '帖子删除成功',
   6124: '帖子删除失败',
   
-  // 接口24: likePost - /forum/posts/{id}/like
-  6014: '点赞成功',
-  6125: '点赞失败',
-  
-  // 接口25: unlikePost - /forum/posts/{id}/like
-  6015: '已取消点赞',
-  6126: '取消点赞失败',
-  
-  // 接口26: favoritePost - /forum/posts/{id}/favorite
-  6016: '收藏成功',
-  6127: '收藏失败',
-  
-  // 接口27: unfavoritePost - /forum/posts/{id}/favorite
-  6017: '已取消收藏',
-  6128: '取消收藏失败',
+  // ===== DEPRECATED（接口已删除，保留分配但不再使用）=====
+  // 接口24: likePost - /forum/posts/{id}/like（接口已删除）
+  // 替代：POST /user/likes（targetType=post，targetId=id）
+  // 6014: '点赞成功', // DEPRECATED - 不再使用
+  // 6125: '点赞失败', // DEPRECATED - 不再使用
+  //
+  // 接口25: unlikePost - /forum/posts/{id}/like（接口已删除）
+  // 替代：DELETE /user/likes/{id}
+  // 6015: '已取消点赞', // DEPRECATED - 不再使用
+  // 6126: '取消点赞失败', // DEPRECATED - 不再使用
+  //
+  // 接口26: favoritePost - /forum/posts/{id}/favorite（接口已删除）
+  // 替代：POST /user/favorites（itemType=post，itemId=id）
+  // 6016: '收藏成功', // DEPRECATED - 不再使用
+  // 6127: '收藏失败', // DEPRECATED - 不再使用
+  //
+  // 接口27: unfavoritePost - /forum/posts/{id}/favorite（接口已删除）
+  // 替代：DELETE /user/favorites/{id}
+  // 6017: '已取消收藏', // DEPRECATED - 不再使用
+  // 6128: '取消收藏失败', // DEPRECATED - 不再使用
   
   // 接口28: getPostReplies - /forum/posts/{id}/replies
   6129: '获取回复列表失败',
@@ -638,13 +650,16 @@ export const CODE_MAP = {
   6019: '评论已删除',
   6131: '评论删除失败',
   
-  // 接口31: likeReply - /forum/replies/{id}/like
-  6020: '点赞成功',
-  6132: '点赞失败',
-  
-  // 接口32: unlikeReply - /forum/replies/{id}/like
-  6021: '已取消点赞',
-  6133: '取消点赞失败',
+  // ===== DEPRECATED（接口已删除，保留分配但不再使用）=====
+  // 接口31: likeReply - /forum/replies/{id}/like（接口已删除）
+  // 替代：POST /user/likes（targetType=reply，targetId=id）
+  // 6020: '点赞成功', // DEPRECATED - 不再使用
+  // 6132: '点赞失败', // DEPRECATED - 不再使用
+  //
+  // 接口32: unlikeReply - /forum/replies/{id}/like（接口已删除）
+  // 替代：DELETE /user/likes/{id}
+  // 6021: '已取消点赞', // DEPRECATED - 不再使用
+  // 6133: '取消点赞失败', // DEPRECATED - 不再使用
   
   // 接口33: approvePost - /forum/posts/{id}/approve
   6022: '帖子审核通过',
