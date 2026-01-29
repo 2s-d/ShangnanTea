@@ -20,7 +20,7 @@
 
     <!-- 插入记录 -->
     <insert id="insert" parameterType="com.shangnantea.model.entity.order.ShoppingCart">
-        INSERT INTO shopping_carts (
+        INSERT INTO shopping_cart (
             id, user_id, tea_id, spec_id, quantity, selected, create_time, update_time
         ) VALUES (
             #{id}, #{userId}, #{teaId}, #{specId}, #{quantity}, #{selected}, #{createTime}, #{updateTime}
@@ -29,12 +29,12 @@
 
     <!-- 根据主键删除记录 -->
     <delete id="deleteById" parameterType="java.lang.Integer">
-        DELETE FROM shopping_carts WHERE id = #{id}
+        DELETE FROM shopping_cart WHERE id = #{id}
     </delete>
 
     <!-- 根据主键批量删除记录 -->
     <delete id="deleteByIds" parameterType="java.util.List">
-        DELETE FROM shopping_carts WHERE id IN
+        DELETE FROM shopping_cart WHERE id IN
         <foreach collection="list" item="id" open="(" separator="," close=")">
             #{id}
         </foreach>
@@ -42,7 +42,7 @@
 
     <!-- 根据主键更新记录 -->
     <update id="updateById" parameterType="com.shangnantea.model.entity.order.ShoppingCart">
-        UPDATE shopping_carts
+        UPDATE shopping_cart
         <set>
             <if test="userId != null">user_id = #{userId},</if>
             <if test="teaId != null">tea_id = #{teaId},</if>
@@ -57,14 +57,14 @@
     <!-- 根据主键查询记录 -->
     <select id="selectById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
         SELECT <include refid="Base_Column_List"/>
-        FROM shopping_carts
+        FROM shopping_cart
         WHERE id = #{id}
     </select>
 
     <!-- 根据主键批量查询记录 -->
     <select id="selectByIds" parameterType="java.util.List" resultMap="BaseResultMap">
         SELECT <include refid="Base_Column_List"/>
-        FROM shopping_carts
+        FROM shopping_cart
         WHERE id IN
         <foreach collection="list" item="id" open="(" separator="," close=")">
             #{id}
@@ -74,11 +74,36 @@
     <!-- 查询所有记录 -->
     <select id="selectAll" resultMap="BaseResultMap">
         SELECT <include refid="Base_Column_List"/>
-        FROM shopping_carts
+        FROM shopping_cart
     </select>
 
     <!-- 统计记录总数 -->
     <select id="count" resultType="java.lang.Long">
-        SELECT COUNT(*) FROM shopping_carts
+        SELECT COUNT(*) FROM shopping_cart
+    </select>
+
+    <!-- 根据用户ID查询购物车列表 -->
+    <select id="selectByUserId" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM shopping_cart
+        WHERE user_id = #{userId}
+        ORDER BY create_time DESC
+    </select>
+    
+    <!-- 根据用户ID、茶叶ID和规格ID查询购物车项 -->
+    <select id="selectByUserIdAndTeaIdAndSpecId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM shopping_cart
+        WHERE user_id = #{userId}
+        AND tea_id = #{teaId}
+        <choose>
+            <when test="specId != null">
+                AND spec_id = #{specId}
+            </when>
+            <otherwise>
+                AND spec_id IS NULL
+            </otherwise>
+        </choose>
+        LIMIT 1
     </select>
 </mapper> 

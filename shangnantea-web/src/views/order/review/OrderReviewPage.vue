@@ -14,11 +14,11 @@
           <div class="section-title">评价商品</div>
           <div class="product-item">
             <div class="product-image">
-              <SafeImage :src="orderDetail.tea_image" type="tea" :alt="orderDetail.tea_name" />
+              <SafeImage :src="orderDetail.teaImage" type="tea" :alt="orderDetail.teaName" />
             </div>
             <div class="product-info">
-              <div class="product-name">{{ orderDetail.tea_name }}</div>
-              <div class="product-spec">规格：{{ orderDetail.spec_name }}</div>
+              <div class="product-name">{{ orderDetail.teaName }}</div>
+              <div class="product-spec">规格：{{ orderDetail.specName }}</div>
               <div class="product-price">¥{{ orderDetail.price }} x {{ orderDetail.quantity }}</div>
             </div>
           </div>
@@ -151,13 +151,13 @@ export default {
         orderDetail.value = data
         
         // 检查订单状态是否可以评价
-        if (data && data.order_status !== 3) {
+        if (data && data.status !== 3) {
           orderPromptMessages.showReviewNotAllowed()
           goBack()
         }
         
         // 检查是否已评价
-        if (data && data.buyer_rate === 1) {
+        if (data && data.isReviewed === 1) {
           orderPromptMessages.showAlreadyReviewed()
           goBack()
         }
@@ -220,7 +220,7 @@ export default {
         // 提交评价
         const res = await store.dispatch('order/submitOrderReview', {
           orderId: orderId,
-          teaId: orderDetail.value.tea_id,
+          teaId: orderDetail.value.teaId,
           rating: reviewForm.rating,
           content: reviewForm.content.trim(),
           images: imageUrls,

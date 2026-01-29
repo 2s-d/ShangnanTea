@@ -8,8 +8,8 @@
             <span class="title">订单详情</span>
           </div>
           <div class="status">
-            <span :class="['status-tag', getStatusClass(orderDetail.order_status)]">
-              {{ getStatusText(orderDetail.order_status) }}
+            <span :class="['status-tag', getStatusClass(orderDetail.status)]">
+              {{ getStatusText(orderDetail.status) }}
             </span>
           </div>
         </div>
@@ -21,19 +21,19 @@
           <div class="section-title">订单信息</div>
           <div class="info-item">
             <span class="label">订单号：</span>
-            <span class="value">{{ orderDetail.order_id }}</span>
+            <span class="value">{{ orderDetail.id }}</span>
           </div>
           <div class="info-item">
             <span class="label">下单时间：</span>
-            <span class="value">{{ formatTime(orderDetail.create_time) }}</span>
+            <span class="value">{{ formatTime(orderDetail.createTime) }}</span>
           </div>
           <div class="info-item">
             <span class="label">支付方式：</span>
-            <span class="value">{{ getPaymentMethodText(orderDetail.payment_method) }}</span>
+            <span class="value">{{ getPaymentMethodText(orderDetail.paymentMethod) }}</span>
           </div>
-          <div v-if="orderDetail.order_status >= 2" class="info-item">
+          <div v-if="orderDetail.status >= 2" class="info-item">
             <span class="label">付款时间：</span>
-            <span class="value">{{ formatTime(orderDetail.pay_time || orderDetail.update_time) }}</span>
+            <span class="value">{{ formatTime(orderDetail.paymentTime || orderDetail.updateTime) }}</span>
           </div>
         </div>
 
@@ -61,14 +61,14 @@
             <!-- 注意：系统使用单品订单模式，每个订单只对应一个茶叶商品 -->
             <div
               class="product-item"
-              @click="viewTeaDetail(orderDetail.tea_id)"
+              @click="viewTeaDetail(orderDetail.teaId)"
             >
               <div class="product-image">
-                <SafeImage :src="orderDetail.tea_image" type="tea" :alt="orderDetail.tea_name" style="width:80px;height:80px;object-fit:cover;" />
+                <SafeImage :src="orderDetail.teaImage" type="tea" :alt="orderDetail.teaName" style="width:80px;height:80px;object-fit:cover;" />
               </div>
               <div class="product-info">
-                <div class="product-name">{{ orderDetail.tea_name }}</div>
-                <div class="product-spec">规格：{{ orderDetail.spec_name }}</div>
+                <div class="product-name">{{ orderDetail.teaName }}</div>
+                <div class="product-spec">规格：{{ orderDetail.specName }}</div>
               </div>
               <div class="product-price">¥{{ orderDetail.price }}</div>
               <div class="product-quantity">x{{ orderDetail.quantity }}</div>
@@ -85,16 +85,16 @@
           </div>
           <div class="amount-item">
             <span class="label">运费：</span>
-            <span class="value">¥{{ orderDetail.shipping_fee.toFixed(2) }}</span>
+            <span class="value">¥0.00</span>
           </div>
           <div class="amount-item total">
             <span class="label">实付金额：</span>
-            <span class="value">¥{{ orderDetail.total_amount.toFixed(2) }}</span>
+            <span class="value">¥{{ orderDetail.totalPrice.toFixed(2) }}</span>
           </div>
         </div>
 
         <!-- 物流信息 (仅在待收货和已完成状态显示) -->
-        <div v-if="orderDetail.order_status === 2 || orderDetail.order_status === 3" class="detail-section">
+        <div v-if="orderDetail.status === 2 || orderDetail.status === 3" class="detail-section">
           <div class="section-title">物流信息</div>
           <div class="logistics-info">
             <div class="info-item">
@@ -150,7 +150,7 @@
         
         <!-- 操作按钮区域：待收货时支持查看物流与确认收货；已完成时显示评价按钮；可申请退款 -->
         <div class="detail-section action-section">
-          <template v-if="orderDetail.order_status === 2">
+          <template v-if="orderDetail.status === 2">
             <el-button type="primary" @click="viewLogistics">查看详细物流</el-button>
             <el-button type="success" @click="confirmReceipt">确认收货</el-button>
           </template>
@@ -394,7 +394,7 @@ export default {
     
     const canRequestRefund = computed(() => {
       if (!orderDetail.value) return false
-      const status = orderDetail.value.order_status
+      const status = orderDetail.value.status
       if (status === 5) return false
       // 简单规则：待发货/待收货/已完成允许申请一次
       return status === 1 || status === 2 || status === 3
@@ -403,7 +403,7 @@ export default {
     // 是否可以评价（订单状态为已完成）
     const canReview = computed(() => {
       if (!orderDetail.value) return false
-      return orderDetail.value.order_status === 3 // 已完成
+      return orderDetail.value.status === 3 // 已完成
     })
     
     const refundDialogVisible = ref(false)
@@ -459,27 +459,13 @@ export default {
     
     // 评价商品
     const writeReview = () => {
-      router.push(`/order/review/${orderDetail.value.order_id}`)
+      router.push(`/order/review/${orderDetail.value.id}`)
     }
     
     // 再次购买
     const buyAgain = () => {
       orderPromptMessages.showBuyAgainDev()
       // 实际场景中，可能需要将所有商品添加到购物车，然后跳转到购物车页面
-    }
-    
-    // 删除订单
-    const deleteOrder = () => {
-      ElMessageBox.confirm('确定要删除该订单吗？删除后无法恢复', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        // TODO-SCRIPT: 删除订单需要后端接口支持（生产形态：不在 UI 层伪删除/伪成功）
-        orderPromptMessages.showDeleteOrderDev()
-      }).catch(() => {
-        // 用户取消操作，不做任何处理
-      })
     }
     
     // 加载订单详情
@@ -558,7 +544,6 @@ export default {
       contactSeller,
       writeReview,
       buyAgain,
-      deleteOrder,
       defaultTeaImage,
       canRequestRefund,
       canReview,

@@ -178,6 +178,11 @@ export function refundOrder(data) {
 /**
  * 审批退款（/order/{id}/refund/process）
  * @param {Object} payload { orderId, approve, reason }
+ * 
+ * TODO: 后端未实现实际退款操作
+ * - 当前processRefund方法中只更新了订单状态和恢复库存
+ * - 需要对接第三方支付平台API执行实际退款操作（支付宝/微信/银联）
+ * - 建议在同意退款后调用支付接口的退款方法
  */
 export function processRefund(payload) {
   const { orderId, approve, reason } = payload
@@ -232,6 +237,12 @@ export function batchShipOrders(payload) {
 /**
  * 获取订单物流信息
  * @param {string} id 订单ID
+ * 
+ * TODO: 后端物流轨迹功能未完成
+ * - 当前getOrderLogistics方法中traces字段返回null
+ * - 需要对接第三方物流API获取实时物流轨迹信息
+ * - 建议对接：快递100、菜鸟物流、顺丰物流等第三方物流查询API
+ * - 实现后traces字段应返回物流轨迹数组：[{time, content}]
  */
 export function getOrderLogistics(id) {
   return request({
@@ -257,6 +268,12 @@ export function getOrderStatistics(params = {}) {
  * 任务组E：导出订单数据
  * @param {Object} params 导出参数 { format, startDate, endDate, status, shopId }
  * @returns {Promise} 文件Blob
+ * 
+ * TODO: 后端导出功能未完成
+ * - 当前exportOrders方法只返回JSON数据，未生成Excel/CSV文件
+ * - 需要添加Apache POI依赖（Excel）或OpenCSV依赖（CSV）
+ * - 实现文件生成逻辑，返回文件流而非JSON
+ * - 建议支持Excel(.xlsx)和CSV(.csv)两种格式
  */
 export function exportOrders(params = {}) {
   return request({

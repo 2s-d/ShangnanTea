@@ -33,17 +33,17 @@
         <div v-else class="order-list">
           <div
             v-for="order in filteredOrders"
-            :key="order.order_id"
+            :key="order.id"
             class="order-item"
           >
             <div class="order-header">
               <div class="order-info">
-                <span class="order-time">{{ formatTime(order.create_time) }}</span>
-                <span class="order-id">订单号：{{ order.order_id }}</span>
+                <span class="order-time">{{ formatTime(order.createTime) }}</span>
+                <span class="order-id">订单号：{{ order.id }}</span>
               </div>
               <div class="order-status">
-                <span :class="['status-tag', getStatusClass(order.order_status)]">
-                  {{ getStatusText(order.order_status) }}
+                <span :class="['status-tag', getStatusClass(order.status)]">
+                  {{ getStatusText(order.status) }}
                 </span>
               </div>
             </div>
@@ -51,14 +51,14 @@
             <div class="order-content">
               <div
                 class="order-product"
-                @click="viewOrderDetail(order.order_id)"
+                @click="viewOrderDetail(order.id)"
               >
                 <div class="product-image">
-                  <SafeImage :src="order.tea_image" type="tea" :alt="order.tea_name" style="width:80px;height:80px;object-fit:cover;" />
+                  <SafeImage :src="order.teaImage" type="tea" :alt="order.teaName" style="width:80px;height:80px;object-fit:cover;" />
                 </div>
                 <div class="product-info">
-                  <div class="product-name">{{ order.tea_name }}</div>
-                  <div class="product-spec">规格：{{ order.spec_name }}</div>
+                  <div class="product-name">{{ order.teaName }}</div>
+                  <div class="product-spec">规格：{{ order.specName }}</div>
                   <div class="product-price-qty">
                     <span class="product-price">¥{{ order.price }}</span>
                     <span class="product-qty">x{{ order.quantity }}</span>
@@ -70,67 +70,67 @@
             <div class="order-footer">
               <div class="order-total">
                 <span class="total-label">实付金额：</span>
-                <span class="total-price">¥{{ order.total_amount }}</span>
+                <span class="total-price">¥{{ order.totalPrice }}</span>
                 <span class="item-count">(数量：{{ order.quantity }})</span>
               </div>
               <div class="order-actions">
-                <template v-if="order.order_status === 0">
+                <template v-if="order.status === 0">
                   <!-- 待付款 -->
-                  <el-button type="primary" size="small" @click="continuePay(order.order_id)">
+                  <el-button type="primary" size="small" @click="continuePay(order.id)">
                     去支付
                   </el-button>
-                  <el-button size="small" @click="cancelOrder(order.order_id)">
+                  <el-button size="small" @click="cancelOrder(order.id)">
                     取消订单
                   </el-button>
-                  <el-button size="small" @click="contactShop(order.shop_id)">
+                  <el-button size="small" @click="contactShop(order.shopId)">
                     联系商家
                   </el-button>
                 </template>
-                <template v-else-if="order.order_status === 1">
+                <template v-else-if="order.status === 1">
                   <!-- 待发货 -->
-                  <el-button type="primary" size="small" @click="openRefundDialog(order.order_id)">
+                  <el-button type="primary" size="small" @click="openRefundDialog(order.id)">
                     申请退款
                   </el-button>
-                  <el-button size="small" @click="modifyAddress(order.order_id)">
+                  <el-button size="small" @click="modifyAddress(order.id)">
                     修改地址
                   </el-button>
-                  <el-button size="small" @click="contactShop(order.shop_id)">
+                  <el-button size="small" @click="contactShop(order.shopId)">
                     联系商家
                   </el-button>
                 </template>
-                <template v-else-if="order.order_status === 2">
+                <template v-else-if="order.status === 2">
                   <!-- 待收货 -->
-                  <el-button type="primary" size="small" @click="confirmReceipt(order.order_id)">
+                  <el-button type="primary" size="small" @click="confirmReceipt(order.id)">
                     确认收货
                   </el-button>
-                  <el-button size="small" @click="viewLogistics(order.order_id)">
+                  <el-button size="small" @click="viewLogistics(order.id)">
                     查看物流
                   </el-button>
-                  <el-button size="small" @click="contactShop(order.shop_id)">
+                  <el-button size="small" @click="contactShop(order.shopId)">
                     联系商家
                   </el-button>
                 </template>
-                <template v-else-if="order.order_status === 3">
+                <template v-else-if="order.status === 3">
                   <!-- 已完成 -->
-                  <el-button v-if="!order.is_reviewed" type="primary" size="small" @click="writeReview(order.order_id)">
+                  <el-button v-if="!order.isReviewed || order.isReviewed === 0" type="primary" size="small" @click="writeReview(order.id)">
                     评价
                   </el-button>
                   <el-button v-else type="info" size="small" plain disabled>
                     已评价
                   </el-button>
-                  <el-button size="small" @click="deleteOrder(order.order_id)">
+                  <el-button size="small" @click="deleteOrder(order.id)">
                     删除订单
                   </el-button>
-                  <el-button size="small" @click="contactShop(order.shop_id)">
+                  <el-button size="small" @click="contactShop(order.shopId)">
                     联系商家
                   </el-button>
                 </template>
                 <template v-else>
                   <!-- 已取消/已退款等状态 -->
-                  <el-button size="small" @click="viewOrderDetail(order.order_id)">
+                  <el-button size="small" @click="viewOrderDetail(order.id)">
                     查看详情
                   </el-button>
-                  <el-button size="small" @click="contactShop(order.shop_id)">
+                  <el-button size="small" @click="contactShop(order.shopId)">
                     联系商家
                   </el-button>
                 </template>

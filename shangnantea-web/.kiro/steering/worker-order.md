@@ -40,10 +40,12 @@ inclusion: manual
 - ❌ **不要修改其他模块目录**：严禁修改 `shangnantea-user/`、`shangnantea-tea/`、`shangnantea-shop/`、`shangnantea-forum/`、`shangnantea-message/` 目录
 - ❌ **不要修改主分支目录**：严禁修改 `shangnantea/` 主项目目录
 - ❌ **不要跨目录操作**：所有操作必须在 `shangnantea-order/` 目录内进行
+
 - ❌ 不要修改其他模块的后端文件（user、tea、shop、forum、message模块）
 - ❌ 不要修改通用工具类（除非任务明确要求）
 - ❌ 不要修改数据库表结构（除非任务明确要求）
 - ❌ 不要删除文件，除非任务明确要求
+- ❌ 不要修改其他模块的Controller、Service、Mapper
 
 ## 工作流程
 
@@ -106,41 +108,41 @@ inclusion: manual
 ### 订单模块接口列表（共21个接口）
 
 #### 购物车管理（5个接口）
-1. **getCartItems** - `/order/cart` - 获取购物车
-2. **addToCart** - `/order/cart/add` - 加入购物车
-3. **updateCartItem** - `/order/cart/update` - 更新购物车商品
-4. **removeFromCart** - `/order/cart/remove` - 移除购物车商品
-5. **clearCart** - `/order/cart/clear` - 清空购物车
+1. **getCartItems** - `/order/cart` - 获取购物车 ✅ 已完成
+2. **addToCart** - `/order/cart/add` - 加入购物车 ✅ 已完成
+3. **updateCartItem** - `/order/cart/update` - 更新购物车商品 ✅ 已完成
+4. **removeFromCart** - `/order/cart/remove` - 移除购物车商品 ✅ 已完成
+5. **clearCart** - `/order/cart/clear` - 清空购物车 ✅ 已完成
 
 #### 订单基础功能（3个接口）
-6. **createOrder** - `/order/create` - 创建订单
-7. **getOrders** - `/order/list` - 获取订单列表
-8. **getOrderDetail** - `/order/{id}` - 获取订单详情
+6. **createOrder** - `/order/create` - 创建订单 ✅ 已完成
+7. **getOrders** - `/order/list` - 获取订单列表 ✅ 已完成
+8. **getOrderDetail** - `/order/{id}` - 获取订单详情 ✅ 已完成
 
 #### 订单支付功能（1个接口）
-9. **payOrder** - `/order/pay` - 订单支付
+9. **payOrder** - `/order/pay` - 订单支付 ✅ 已完成
 
 #### 订单状态管理（3个接口）
-10. **cancelOrder** - `/order/cancel` - 取消订单
-11. **confirmOrder** - `/order/confirm` - 确认收货
-12. **reviewOrder** - `/order/review` - 评价订单
+10. **cancelOrder** - `/order/cancel` - 取消订单 ✅ 已完成
+11. **confirmOrder** - `/order/confirm` - 确认收货 ✅ 已完成
+12. **reviewOrder** - `/order/review` - 评价订单 ✅ 已完成
 
 #### 退款管理功能（3个接口）
-13. **refundOrder** - `/order/refund` - 申请退款
-14. **processRefund** - `/order/{id}/refund/process` - 处理退款
-15. **getRefundDetail** - `/order/{id}/refund` - 获取退款详情
+13. **refundOrder** - `/order/refund` - 申请退款 ✅ 已完成
+14. **processRefund** - `/order/{id}/refund/process` - 处理退款 ✅ 已完成
+15. **getRefundDetail** - `/order/{id}/refund` - 获取退款详情 ✅ 已完成
 
 #### 发货管理功能（3个接口）
-16. **shipOrder** - `/order/{id}/ship` - 发货
-17. **batchShipOrders** - `/order/batch-ship` - 批量发货
-18. **getOrderLogistics** - `/order/{id}/logistics` - 获取物流信息
+16. **shipOrder** - `/order/{id}/ship` - 发货 ✅ 已完成
+17. **batchShipOrders** - `/order/batch-ship` - 批量发货 ✅ 已完成
+18. **getOrderLogistics** - `/order/{id}/logistics` - 获取物流信息 ✅ 已完成
 
 #### 统计和导出功能（2个接口）
-19. **getOrderStatistics** - `/order/statistics` - 获取订单统计
-20. **exportOrders** - `/order/export` - 导出订单数据
+19. **getOrderStatistics** - `/order/statistics` - 获取订单统计 ✅ 已完成
+20. **exportOrders** - `/order/export` - 导出订单数据 ✅ 已完成
 
 #### 图片上传功能（1个接口）
-21. **uploadReviewImage** - `/order/review/image` - 上传订单评价图片
+21. **uploadReviewImage** - `/order/review/image` - 上传订单评价图片 ✅ 已完成
 
 ### 状态码范围
 - **成功码**：5000-5016（17个成功状态码）

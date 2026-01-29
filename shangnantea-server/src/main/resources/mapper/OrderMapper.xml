@@ -207,4 +207,116 @@
         WHERE status = 5
         ORDER BY update_time DESC
     </select>
+    
+    <!-- 统计订单总数 -->
+    <select id="countOrders" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM orders
+        <where>
+            <if test="userId != null and userId != ''">
+                AND user_id = #{userId}
+            </if>
+            <if test="shopId != null and shopId != ''">
+                AND shop_id = #{shopId}
+            </if>
+            <if test="startDate != null and startDate != ''">
+                AND DATE(create_time) &gt;= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND DATE(create_time) &lt;= #{endDate}
+            </if>
+        </where>
+    </select>
+    
+    <!-- 统计订单总金额 -->
+    <select id="sumOrderAmount" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(total_amount), 0)
+        FROM orders
+        <where>
+            <if test="userId != null and userId != ''">
+                AND user_id = #{userId}
+            </if>
+            <if test="shopId != null and shopId != ''">
+                AND shop_id = #{shopId}
+            </if>
+            <if test="startDate != null and startDate != ''">
+                AND DATE(create_time) &gt;= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND DATE(create_time) &lt;= #{endDate}
+            </if>
+        </where>
+    </select>
+    
+    <!-- 统计各状态订单数量 -->
+    <select id="countOrdersByStatus" resultType="java.util.HashMap">
+        SELECT 
+            CAST(status AS CHAR) as status,
+            COUNT(*) as count
+        FROM orders
+        <where>
+            <if test="userId != null and userId != ''">
+                AND user_id = #{userId}
+            </if>
+            <if test="shopId != null and shopId != ''">
+                AND shop_id = #{shopId}
+            </if>
+            <if test="startDate != null and startDate != ''">
+                AND DATE(create_time) &gt;= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND DATE(create_time) &lt;= #{endDate}
+            </if>
+        </where>
+        GROUP BY status
+    </select>
+    
+    <!-- 查询订单趋势数据 -->
+    <select id="selectOrderTrend" resultType="java.util.HashMap">
+        SELECT 
+            DATE(create_time) as date,
+            COUNT(*) as orders,
+            COALESCE(SUM(total_amount), 0) as amount
+        FROM orders
+        <where>
+            <if test="userId != null and userId != ''">
+                AND user_id = #{userId}
+            </if>
+            <if test="shopId != null and shopId != ''">
+                AND shop_id = #{shopId}
+            </if>
+            <if test="startDate != null and startDate != ''">
+                AND DATE(create_time) &gt;= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND DATE(create_time) &lt;= #{endDate}
+            </if>
+        </where>
+        GROUP BY DATE(create_time)
+        ORDER BY DATE(create_time) ASC
+    </select>
+    
+    <!-- 根据条件查询订单列表（用于导出） -->
+    <select id="selectOrdersForExport" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM orders
+        <where>
+            <if test="userId != null and userId != ''">
+                AND user_id = #{userId}
+            </if>
+            <if test="shopId != null and shopId != ''">
+                AND shop_id = #{shopId}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+            <if test="startDate != null and startDate != ''">
+                AND DATE(create_time) &gt;= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND DATE(create_time) &lt;= #{endDate}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
 </mapper> 

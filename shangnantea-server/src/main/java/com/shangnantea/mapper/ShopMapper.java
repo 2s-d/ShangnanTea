@@ -54,4 +54,12 @@ public interface ShopMapper extends BaseMapper<Shop, String> {
      * @return 店铺信息
      */
     Shop selectByUserId(@Param("userId") String userId);
+    
+    /**
+     * 根据店主用户ID查询店铺
+     *
+     * @param ownerId 店主用户ID
+     * @return 店铺信息
+     */
+    Shop selectByOwnerId(@Param("ownerId") String ownerId);
 } 
