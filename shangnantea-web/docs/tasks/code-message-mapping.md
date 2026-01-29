@@ -49,7 +49,7 @@
 
 ## 状态码列表（按接口提取）
 
-**说明**: 以下状态码从157个接口中逐行提取，每个接口下列出所有使用的状态码（包括逗号分隔的多个）。
+**说明**: 以下状态码从156个接口中逐行提取，每个接口下列出所有使用的状态码（包括逗号分隔的多个）。
 
 ### 一、用户模块接口 (user.js) - 共35个接口
 
@@ -312,7 +312,7 @@
 | 2147 | 不支持的文件类型 | 文件类型错误 | 显示 |
 | 2148 | 文件大小超限 | 文件过大 | 显示 |
 
-### 二、茶叶模块接口 (tea.js) - 共26个接口
+### 二、茶叶模块接口 (tea.js) - 共24个接口
 
 #### 接口1: getTeas - /tea/list (2个状态码)
 
@@ -508,7 +508,7 @@
 | 3128 | 批量上架失败 | 批量上架失败 | 显示 |
 | 3129 | 批量下架失败 | 批量下架失败 | 显示 |
 
-### 三、店铺模块接口 (shop.js) - 共26个接口
+### 三、店铺模块接口 (shop.js) - 共23个接口
 
 #### 接口1: getShops - /shop/list (2个状态码)
 
@@ -874,7 +874,7 @@
 | 5145 | 不支持的文件类型 | 文件类型错误 | 显示 |
 | 5146 | 文件大小超限 | 文件过大 | 显示 |
 
-### 五、论坛模块接口 (forum.js) - 共37个接口
+### 五、论坛模块接口 (forum.js) - 共31个接口
 
 #### 接口1: getHomeData - /forum/home (2个状态码)
 
@@ -1345,7 +1345,7 @@
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 6 | getUserInfo | GET | /user/{userId} | 200 | 2107 | 获取用户信息 |
+| 6 | getUserInfo | GET | /user/{userId} | 200 | 2107 | 获取用户信息（返回包含：isFollowed） |
 | 7 | updateUserInfo | PUT | /user | 2003 | 2108 | 更新用户信息 |
 | 8 | uploadAvatar | POST | /user/avatar | 2004 | 2109, 2110, 2111 | 上传头像 |
 | 9 | changePassword | PUT | /user/password | 2005 | 2112, 2113 | 修改密码 |
@@ -1402,7 +1402,7 @@
 | 35 | uploadCertificationImage | POST | /user/merchant/certification/image | 2024 | 2146, 2147, 2148 | 上传商家认证图片 |
 
 
-## 二、茶叶模块接口 (tea.js) - 共26个接口
+## 二、茶叶模块接口 (tea.js) - 共25个接口
 
 ### 2.1 茶叶基础操作 (6个)
 
@@ -1410,7 +1410,7 @@
 |------|----------|----------|------|--------|--------|------|
 | 1 | getTeas | GET | /tea/list | 3000 | 3100 | 获取茶叶列表 |
 | 2 | addTea | POST | /tea/list | 3001 | 3101 | 添加茶叶 |
-| 3 | getTeaDetail | GET | /tea/{id} | 200 | 3102 | 获取茶叶详情 |
+| 3 | getTeaDetail | GET | /tea/{id} | 200 | 3102 | 获取茶叶详情（返回包含：isFavorited） |
 | 4 | updateTea | PUT | /tea/{id} | 3002 | 3103 | 更新茶叶 |
 | 5 | deleteTea | DELETE | /tea/{id} | 3003 | 3104 | 删除茶叶 |
 | 6 | getRecommendTeas | GET | /tea/recommend | 200 | 3105 | 获取推荐茶叶 |
@@ -1428,11 +1428,10 @@
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 11 | getTeaReviews | GET | /tea/{teaId}/reviews | 200 | 3110 | 获取评价列表 |
+| 11 | getTeaReviews | GET | /tea/{teaId}/reviews | 200 | 3110 | 获取评价列表（每条评价返回包含：isLiked） |
 | 12 | getReviewStats | GET | /tea/{teaId}/reviews/stats | 200 | 3111 | 获取评价统计 |
 已删除第十三
 | 14 | replyReview | POST | /tea/reviews/{reviewId}/reply | 3008 | 3113 | 回复评价 |
-| 15 | likeReview | POST | /tea/reviews/{reviewId}/like | 3009 | 3114 | 点赞评价 |
 
 ### 2.4 规格管理 (5个)
 
@@ -1461,7 +1460,7 @@
 | 26 | batchToggleTeaStatus | PUT | /tea/batch-status | 3020, 3021 | 3128, 3129 | 批量上架/下架 |
 
 
-## 三、店铺模块接口 (shop.js) - 共26个接口
+## 三、店铺模块接口 (shop.js) - 共23个接口
 
 ### 3.1 店铺基础操作 (6个)
 
@@ -1469,7 +1468,7 @@
 |------|----------|----------|------|--------|--------|------|
 | 1 | getShops | GET | /shop/list | 200 | 4100 | 获取店铺列表 |
 | 2 | createShop | POST | /shop/list | 4000 | 4101 | 创建店铺 |
-| 3 | getShopDetail | GET | /shop/{id} | 200 | 4102, 4103 | 获取店铺详情 |
+| 3 | getShopDetail | GET | /shop/{id} | 200 | 4102, 4103 | 获取店铺详情（返回包含：isFollowed） |
 | 4 | updateShop | PUT | /shop/{id} | 4001 | 4104 | 更新店铺信息 |
 | 5 | getMyShop | GET | /shop/my | 200 | 4105 | 获取我的店铺 |
 | 6 | getShopStatistics | GET | /shop/{shopId}/statistics | 200 | 4106 | 获取店铺统计 |
@@ -1509,13 +1508,10 @@
 | 20 | updateAnnouncement | PUT | /shop/announcements/{announcementId} | 4013 | 4125 | 更新公告 |
 | 21 | deleteAnnouncement | DELETE | /shop/announcements/{announcementId} | 4014 | 4126 | 删除公告 |
 
-### 3.6 店铺关注与评价 (5个)
+### 3.6 店铺评价 (2个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 22 | followShop | POST | /shop/{shopId}/follow | 4015 | 4127 | 关注店铺 |
-| 23 | unfollowShop | DELETE | /shop/{shopId}/follow | 4016 | 4128 | 取消关注 |
-| 24 | checkFollowStatus | GET | /shop/{shopId}/follow-status | 200 | 4129 | 获取关注状态 |
 | 25 | getShopReviews | GET | /shop/{shopId}/reviews | 200 | 4130 | 获取店铺评价 |
 | 26 | submitShopReview | POST | /shop/{shopId}/reviews | 4017 | 4131, 4132 | 提交店铺评价 |
 
@@ -1569,7 +1565,7 @@
 | 21 | uploadReviewImage | POST | /order/review/image | 5016 | 5144, 5145, 5146 | 上传订单评价图片 |
 
 
-## 五、论坛模块接口 (forum.js) - 共37个接口
+## 五、论坛模块接口 (forum.js) - 共31个接口
 
 ### 5.1 首页与Banner (7个)
 
@@ -1588,7 +1584,7 @@
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
 | 8 | getArticles | GET | /forum/articles | 200 | 6109 | 获取文章列表 |
-| 9 | getArticleDetail | GET | /forum/articles/{id} | 200 | 6110 | 获取文章详情 |
+| 9 | getArticleDetail | GET | /forum/articles/{id} | 200 | 6110 | 获取文章详情（返回包含：isLiked、isFavorited） |
 | 10 | createArticle | POST | /forum/articles | 6005 | 6111 | 创建文章 |
 | 11 | updateArticle | PUT | /forum/articles/{id} | 6006 | 6112 | 更新文章 |
 | 12 | deleteArticle | DELETE | /forum/articles/{id} | 6007 | 6113 | 删除文章 |
@@ -1610,29 +1606,18 @@
 | 18 | getForumPosts | GET | /forum/posts | 200 | 6119 | 获取帖子列表 |
 | 19 | createPost | POST | /forum/posts | 6011 | 6120 | 创建帖子 |
 | 20 | getPendingPosts | GET | /forum/posts/pending | 200 | 6121 | 获取待审核帖子 |
-| 21 | getPostDetail | GET | /forum/posts/{id} | 200 | 6122 | 获取帖子详情 |
+| 21 | getPostDetail | GET | /forum/posts/{id} | 200 | 6122 | 获取帖子详情（返回包含：isLiked、isFavorited） |
 | 22 | updatePost | PUT | /forum/posts/{id} | 6012 | 6123 | 更新帖子 |
 | 23 | deletePost | DELETE | /forum/posts/{id} | 6013 | 6124 | 删除帖子 |
 | 37 | uploadPostImage | POST | /forum/posts/image | 6028 | 6140, 6141, 6142 | 上传帖子图片 |
 
-### 5.5 帖子互动 (4个)
+### 5.6 回复管理 (3个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 24 | likePost | POST | /forum/posts/{id}/like | 6014 | 6125 | 点赞帖子 |
-| 25 | unlikePost | DELETE | /forum/posts/{id}/like | 6015 | 6126 | 取消点赞 |
-| 26 | favoritePost | POST | /forum/posts/{id}/favorite | 6016 | 6127 | 收藏帖子 |
-| 27 | unfavoritePost | DELETE | /forum/posts/{id}/favorite | 6017 | 6128 | 取消收藏 |
-
-### 5.6 回复管理 (5个)
-
-| 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
-|------|----------|----------|------|--------|--------|------|
-| 28 | getPostReplies | GET | /forum/posts/{id}/replies | 200 | 6129 | 获取回复列表 |
+| 28 | getPostReplies | GET | /forum/posts/{id}/replies | 200 | 6129 | 获取回复列表（每条回复返回包含：isLiked） |
 | 29 | createReply | POST | /forum/posts/{id}/replies | 6018 | 6130 | 创建回复 |
 | 30 | deleteReply | DELETE | /forum/replies/{id} | 6019 | 6131 | 删除回复 |
-| 31 | likeReply | POST | /forum/replies/{id}/like | 6020 | 6132 | 点赞回复 |
-| 32 | unlikeReply | DELETE | /forum/replies/{id}/like | 6021 | 6133 | 取消点赞回复 |
 
 ### 5.7 内容审核 (4个)
 
@@ -1687,7 +1672,7 @@
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 18 | getUserProfile | GET | /message/user/{userId} | 200 | 7119, 7120 | 获取用户主页 |
+| 18 | getUserProfile | GET | /message/user/{userId} | 200 | 7119, 7120 | 获取用户主页（返回包含：isFollowed） |
 | 19 | getUserDynamic | GET | /message/user/{userId}/dynamic | 200 | 7121 | 获取用户动态 |
 | 20 | getUserStatistics | GET | /message/user/{userId}/statistics | 200 | 7122 | 获取用户统计 |
 | 21 | getUserPosts | GET | /message/user/posts | 200 | 7123 | 获取用户帖子 |
@@ -1700,12 +1685,12 @@
 | 模块 | 接口数量 | 状态码范围 |
 |------|----------|------------|
 | 用户模块 | 35 | 2xxx |
-| 茶叶模块 | 26 | 3xxx |
-| 店铺模块 | 26 | 4xxx |
+| 茶叶模块 | 25 | 3xxx |
+| 店铺模块 | 23 | 4xxx |
 | 订单模块 | 21 | 5xxx |
-| 论坛模块 | 37 | 6xxx |
+| 论坛模块 | 31 | 6xxx |
 | 消息模块 | 22 | 7xxx |
-| **总计** | **167** | - |
+| **总计** | **157** | - |
 
 ---
 
