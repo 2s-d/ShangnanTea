@@ -10,6 +10,7 @@
         <result column="last_message_time" property="lastMessageTime"/>
         <result column="initiator_unread" property="initiatorUnread"/>
         <result column="receiver_unread" property="receiverUnread"/>
+        <result column="is_pinned" property="isPinned"/>
         <result column="session_type" property="sessionType"/>
         <result column="status" property="status"/>
         <result column="create_time" property="createTime"/>
@@ -18,15 +19,15 @@
 
     <!-- 所有列 -->
     <sql id="Base_Column_List">
-        id, initiator_id, receiver_id, last_message, last_message_time, initiator_unread, receiver_unread, session_type, status, create_time, update_time
+        id, initiator_id, receiver_id, last_message, last_message_time, initiator_unread, receiver_unread, is_pinned, session_type, status, create_time, update_time
     </sql>
 
     <!-- 插入记录 -->
     <insert id="insert" parameterType="com.shangnantea.model.entity.message.ChatSession">
         INSERT INTO chat_sessions (
-            id, initiator_id, receiver_id, last_message, last_message_time, initiator_unread, receiver_unread, session_type, status, create_time, update_time
+            id, initiator_id, receiver_id, last_message, last_message_time, initiator_unread, receiver_unread, is_pinned, session_type, status, create_time, update_time
         ) VALUES (
-            #{id}, #{initiatorId}, #{receiverId}, #{lastMessage}, #{lastMessageTime}, #{initiatorUnread}, #{receiverUnread}, #{sessionType}, #{status}, #{createTime}, #{updateTime}
+            #{id}, #{initiatorId}, #{receiverId}, #{lastMessage}, #{lastMessageTime}, #{initiatorUnread}, #{receiverUnread}, #{isPinned}, #{sessionType}, #{status}, #{createTime}, #{updateTime}
         )
     </insert>
 
@@ -53,6 +54,7 @@
             <if test="lastMessageTime != null">last_message_time = #{lastMessageTime},</if>
             <if test="initiatorUnread != null">initiator_unread = #{initiatorUnread},</if>
             <if test="receiverUnread != null">receiver_unread = #{receiverUnread},</if>
+            <if test="isPinned != null">is_pinned = #{isPinned},</if>
             <if test="sessionType != null">session_type = #{sessionType},</if>
             <if test="status != null">status = #{status},</if>
             <if test="updateTime != null">update_time = #{updateTime},</if>
@@ -86,5 +88,24 @@
     <!-- 统计记录总数 -->
     <select id="count" resultType="java.lang.Long">
         SELECT COUNT(*) FROM chat_sessions
+    </select>
+
+    <!-- 根据用户ID查询会话列表 -->
+    <select id="selectByUserId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM chat_sessions
+        WHERE (initiator_id = #{userId} OR receiver_id = #{userId})
+        AND status = 1
+        ORDER BY is_pinned DESC, last_message_time DESC
+    </select>
+
+    <!-- 根据两个用户ID查询会话 -->
+    <select id="selectByUserIds" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM chat_sessions
+        WHERE ((initiator_id = #{userId1} AND receiver_id = #{userId2})
+           OR (initiator_id = #{userId2} AND receiver_id = #{userId1}))
+        AND status = 1
+        LIMIT 1
     </select>
 </mapper> 

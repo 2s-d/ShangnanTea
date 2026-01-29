@@ -28,4 +28,12 @@ public interface UserFavoriteMapper extends BaseMapper<UserFavorite, Integer> {
      * @return 收藏记录
      */
     UserFavorite selectByUserIdAndItem(@Param("userId") String userId, @Param("itemType") String itemType, @Param("itemId") String itemId);
+    
+    /**
+     * 统计用户的收藏数
+     *
+     * @param userId 用户ID
+     * @return 收藏数
+     */
+    long countByUserId(@Param("userId") String userId);
 } 

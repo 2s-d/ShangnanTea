@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="chat-page">
     <!-- 
     聊天功能设计：
@@ -24,8 +24,6 @@
     
     4. 管理功能：
        - 删除会话
-       - 清空聊天记录
-       - 举报功能
     -->
     
     <div class="chat-layout">
@@ -58,7 +56,12 @@
             </div>
             
             <div class="session-info">
-              <div class="session-name">{{ session.name }}</div>
+              <div class="session-name">
+                {{ session.name }}
+                <el-icon v-if="session.isPinned" class="pin-icon" title="已置顶">
+                  <Top />
+                </el-icon>
+              </div>
               <div class="session-preview">{{ session.lastMessage }}</div>
             </div>
             
@@ -80,6 +83,11 @@
                     </el-button>
                   </template>
                   <div class="action-buttons">
+                    <el-button 
+                      size="small" 
+                      @click="togglePinSession(session.sessionId)">
+                      {{ session.isPinned ? '取消置顶' : '置顶会话' }}
+                    </el-button>
                     <el-button 
                       size="small" 
                       type="danger" 
@@ -106,17 +114,6 @@
         <!-- 聊天头部 -->
         <div class="chat-header" v-if="currentSession">
           <h3 class="chat-title">{{ currentSession.name }}</h3>
-          <div class="chat-actions">
-            <el-dropdown trigger="click">
-              <el-button icon="el-icon-more" circle></el-button>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item @click="clearMessages">清空聊天记录</el-dropdown-item>
-                  <el-dropdown-item @click="reportUser">举报用户</el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </div>
         </div>
         
         <div class="chat-header" v-else>
@@ -285,7 +282,7 @@ import { message } from '@/components/common'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { 
   Check, CircleCheck, Warning, Picture, Smile, Loading, 
-  MoreFilled
+  MoreFilled, Top
 } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 import { timeFormat } from '@/utils/timeFormat'
@@ -300,6 +297,7 @@ export default {
     Smile,
     Loading,
     MoreFilled,
+    Top,
     SafeImage
   },
   setup() {
@@ -357,14 +355,14 @@ export default {
         // 转换数据格式以匹配UI组件的期望格式
         mockSessions.value = sessions.map(session => ({
           sessionId: session.id,
-          userId: session.receiverId, // 对方用户ID
-          targetId: session.receiverId,
+          receiverId: session.receiverId, // 对方用户ID（统一使用receiverId）
           targetType: session.sessionType === 'customer' ? 'shop' : 'user',
           name: session.sessionType === 'customer' ? `店铺${session.receiverId}客服` : `用户${session.receiverId}`,
           avatar: `https://via.placeholder.com/50x50?text=${session.sessionType === 'customer' ? '店铺' : '用户'}`,
           lastMessage: session.lastMessage || '',
           lastTime: session.lastMessageTime,
-          unreadCount: session.initiatorUnread || 0
+          unreadCount: session.initiatorUnread || 0,
+          isPinned: session.isPinned || false // 添加置顶状态
         }))
 
         // 默认选中：优先未读，否则第一个
@@ -393,15 +391,21 @@ export default {
       try {
         loadingMessages.value = true
 
-        // 通过后端API获取聊天记录
-        const sessionIdNum = parseInt(sessionId.replace('session_', ''))
+        // 通过Vuex调用后端API获取聊天记录
+        const response = await store.dispatch('message/fetchChatHistory', {
+          sessionId: sessionId,
+          params: {
+            page: 1,
+            pageSize: 50
+          }
+        })
         
-        // 调用后端API获取消息列表
-        const response = await fetch(`/api/message/sessions/${sessionIdNum}/messages`)
-        const result = await response.json()
+        // 显示API响应消息（成功或失败都通过状态码映射显示）
+        showByCode(response.code)
         
-        if (result.success && result.data) {
-          const history = result.data.list || []
+        // 只有成功时才更新消息列表
+        if (isSuccess(response.code)) {
+          const history = response.data?.list || []
           messagesMap[sessionId] = history.map(msg => ({
             id: msg.id,
             sessionId: sessionId,
@@ -409,22 +413,17 @@ export default {
             type: msg.contentType || 'text',
             createTime: msg.createTime,
             status: msg.isRead ? 'read' : 'sent',
-            isSelf: msg.senderId === '当前登录用户ID',
-            showTimeDivider: false // 可以根据时间间隔计算
+            isSelf: msg.senderId === store.state.user?.userInfo?.id,
+            showTimeDivider: false
           }))
-        } else {
-          // TODO: 迁移到 Vuex，使用 showByCode 处理错误
-          message.error('获取聊天记录失败，请稍后重试')
         }
 
         return
       } catch (error) {
         // 捕获意外的运行时错误（非API业务错误）
-        // TODO: 迁移到 Vuex，使用 showByCode 处理错误
         if (process.env.NODE_ENV === 'development') {
           console.error('[开发调试] 获取消息列表时发生意外错误：', error)
         }
-        message.error('获取消息列表失败，请稍后重试')
       } finally {
         loadingMessages.value = false
       }
@@ -454,8 +453,7 @@ export default {
       
       currentSessionId.value = sessionId
       // 记录会话对端用户ID（用于拉取历史与发送消息）
-      // TODO-SCRIPT: 需要统一 session 字段命名（userId/targetId），并在后端接口中固定。
-      currentTargetUserId.value = session.userId || session.targetId || null
+      currentTargetUserId.value = session.receiverId
       
       // 如果该会话的消息尚未加载，则加载消息
       if (!messagesMap[sessionId]) {
@@ -470,63 +468,56 @@ export default {
     }
     
     // 删除会话
-    const deleteSession = sessionId => {
-      ElMessageBox.confirm('确定要删除此会话吗？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        // 生产版：删除会话必须由后端确认后再刷新列表，前端不做本地“假删除”
-        // TODO-SCRIPT: 需要后端提供删除会话接口（例如 DELETE /message/sessions/:id）
-        message.info('删除会话：待后端接口接入（当前不执行本地删除，避免产生假状态）')
-        return
-      }).catch(() => {
-        // 用户取消删除
-      })
-    }
-    
-    // 清空聊天记录
-    const clearMessages = () => {
-      if (!currentSessionId.value) return
-      
-      ElMessageBox.confirm('确定要清空聊天记录吗？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        // 生产版：清空聊天记录必须由后端确认后再刷新历史，前端不做本地“假清空”
-        // TODO-SCRIPT: 需要后端提供清空接口（例如 POST /message/history/clear）
-        message.info('清空聊天记录：待后端接口接入（当前不执行本地清空，避免产生假状态）')
-        return
-      }).catch(() => {
-        // 用户取消清空
-      })
-    }
-    
-    // 举报用户
-    const reportUser = () => {
-      if (!currentSessionId.value) return
-      
-      ElMessageBox.prompt('请输入举报原因', '举报用户', {
-        confirmButtonText: '提交',
-        cancelButtonText: '取消',
-        inputPlaceholder: '请详细描述您的举报原因'
-      }).then(({ value }) => {
-        // 生产版：举报需要后端记录与审核，前端不做本地“假提交成功”状态变更
-        // TODO-SCRIPT: 需要后端提供举报接口（例如 POST /message/report）
-        // 这里先保留输入流程，但不提交到本地状态，避免伪成功
-        if (!value.trim()) {
-          message.warning('举报原因不能为空')
-          return
-        }
+    const deleteSession = async sessionId => {
+      try {
+        await ElMessageBox.confirm('确定要删除此会话吗？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        })
         
-        // 生产版：举报需要后端记录与审核，前端不做本地“假提交成功”状态变更
-        // TODO-SCRIPT: 需要后端提供举报接口（例如 POST /message/report）
-        message.info('举报：待后端接口接入（已记录原因输入，但当前不提交）')
-        return
-      }).catch(() => {
-        // 用户取消举报
-      })
+        // 调用Vuex action删除会话
+        const response = await store.dispatch('message/deleteChatSession', sessionId)
+        
+        // 显示API响应消息（成功或失败都通过状态码映射显示）
+        showByCode(response.code)
+        
+        // 成功时刷新会话列表
+        if (isSuccess(response.code)) {
+          await fetchSessions()
+          
+          // 如果删除的是当前会话，清空当前会话
+          if (currentSessionId.value === sessionId) {
+            currentSessionId.value = null
+            currentTargetUserId.value = null
+          }
+        }
+      } catch (error) {
+        // 用户取消删除或操作失败
+        if (error !== 'cancel' && process.env.NODE_ENV === 'development') {
+          console.error('[开发调试] 删除会话时发生意外错误：', error)
+        }
+      }
+    }
+    
+    // 置顶/取消置顶会话
+    const togglePinSession = async sessionId => {
+      try {
+        const response = await store.dispatch('message/pinChatSession', sessionId)
+        
+        // 显示API响应消息（成功或失败都通过状态码映射显示）
+        showByCode(response.code)
+        
+        // 成功时刷新会话列表
+        if (isSuccess(response.code)) {
+          await fetchSessions()
+        }
+      } catch (error) {
+        // 捕获意外的运行时错误（非API业务错误）
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[开发调试] 置顶会话时发生意外错误：', error)
+        }
+      }
     }
     
     // 发送消息
@@ -541,44 +532,34 @@ export default {
         let messageType = 'text'
         let messageContent = messageInput.value.trim()
         
-        // 如果有图片文件，则处理图片消息
+        // 如果有图片文件，则调用图片上传API
         if (imageFile.value) {
           messageType = 'image'
-          // 在实际项目中，这里应该上传图片到服务器，获取图片URL
-          // 模拟图片上传
-          messageContent = URL.createObjectURL(imageFile.value)
+          
+          // 调用图片上传API
+          const uploadResponse = await store.dispatch('message/sendImageMessage', {
+            sessionId: currentSessionId.value,
+            receiverId: currentTargetUserId.value,
+            image: imageFile.value
+          })
+          
+          // 显示API响应消息
+          showByCode(uploadResponse.code)
+          
+          // 清空图片文件
           imageFile.value = null
+          
+          // 成功时刷新消息列表
+          if (isSuccess(uploadResponse.code)) {
+            await fetchMessages(currentSessionId.value, false)
+            await nextTick()
+            scrollToBottom()
+          }
+          
+          return
         }
         
-        // 创建消息对象
-        const message = {
-          id: messageId,
-          sessionId: currentSessionId.value,
-          senderId: 'self',
-          content: messageContent,
-          type: messageType,
-          createTime: now,
-          status: 'sending',
-          isSelf: true
-        }
-        
-        // 添加到消息列表
-        if (!messagesMap[currentSessionId.value]) {
-          messagesMap[currentSessionId.value] = []
-        }
-        messagesMap[currentSessionId.value].push(message)
-        
-        // 清空输入框
-        messageInput.value = ''
-        
-        // 滚动到底部
-        await nextTick()
-        scrollToBottom()
-        
-        /**
-         * 生产版：发送消息走 Vuex(message) → API
-         * TODO-SCRIPT: 需要接口契约确认 sendMessage 的参数结构（receiverId/sessionId 等）。
-         */
+        // 发送文本消息
         if (!currentTargetUserId.value) {
           message.warning('缺少会话目标用户ID，暂无法发送消息')
           return
@@ -589,6 +570,9 @@ export default {
           content: messageContent,
           type: messageType
         })
+        
+        // 清空输入框
+        messageInput.value = ''
         
         // 显示API响应消息（成功或失败都通过状态码映射显示）
         showByCode(sendResponse.code)
@@ -731,7 +715,7 @@ export default {
         // 根据shopId找到对应店铺的会话
         // 在实际应用中，这里可能需要先检查是否已有此会话，没有则创建新会话
         const shopSession = mockSessions.value.find(session => 
-          session.targetType === 'shop' && session.targetId.toString() === shopId.toString()
+          session.targetType === 'shop' && session.receiverId.toString() === shopId.toString()
         )
         
         if (shopSession) {
@@ -744,7 +728,7 @@ export default {
       } else if (userId) {
         // 根据userId找到对应用户的会话
         const userSession = mockSessions.value.find(session => 
-          session.targetType === 'user' && session.targetId.toString() === userId.toString()
+          session.targetType === 'user' && session.receiverId.toString() === userId.toString()
         )
         
         if (userSession) {
@@ -776,7 +760,7 @@ export default {
       // 创建新会话
       const newSession = {
         sessionId: `shop_${shopId}_${Date.now()}`,
-        targetId: shopId,
+        receiverId: shopId,
         targetType: 'shop',
         name: `${shopInfo.name}客服`,
         avatar: shopInfo.avatar,
@@ -826,7 +810,7 @@ export default {
       // 创建新会话
       const newSession = {
         sessionId: `user_${userId}_${Date.now()}`,
-        targetId: userId,
+        receiverId: userId,
         targetType: 'user',
         name: userInfo.name,
         avatar: userInfo.avatar,
@@ -903,8 +887,7 @@ export default {
       loadMoreMessages,
       selectSession,
       deleteSession,
-      clearMessages,
-      reportUser,
+      togglePinSession,
       sendMessage,
       triggerImageUpload,
       handleImageUpload,
@@ -990,6 +973,14 @@ export default {
               font-weight: 500;
               color: var(--text-primary);
               margin-bottom: 4px;
+              display: flex;
+              align-items: center;
+              gap: 6px;
+              
+              .pin-icon {
+                color: #f59e0b;
+                font-size: 14px;
+              }
             }
             
             .session-preview {
@@ -1065,14 +1056,6 @@ export default {
           color: var(--text-primary);
           text-align: center;
           flex: 1;
-        }
-        
-        .chat-actions {
-          :deep(.el-button) {
-            padding: 6px;
-            font-size: 16px;
-          }
-        }
       }
       
       .chat-messages {

@@ -2,26 +2,30 @@ import request from './index'
 import { API } from './apiConstants'
 
 /**
+ * TODO: 冗余接口，需要删除
  * 获取消息列表（兼容：历史实现）
+ * 说明：前端已使用更具体的接口（getNotifications, getChatHistory），此接口未被调用
  * @param {Object} params 查询参数
  * @returns {Promise} 消息列表
  */
 export function getMessages(params) {
   return request({
-    url: API.MESSAGE.MESSAGES,
+    url: API.MESSAGE.LIST,
     method: 'get',
     params
   })
 }
 
 /**
+ * TODO: 冗余接口，需要删除
  * 获取消息详情（兼容：历史实现）
+ * 说明：前端已使用更具体的接口（getNotificationDetail），此接口未被调用
  * @param {number} id 消息ID
  * @returns {Promise} 消息详情
  */
 export function getMessageDetail(id) {
   return request({
-    url: API.MESSAGE.MESSAGES + '/' + id,
+    url: API.MESSAGE.DETAIL.replace('{id}', id),
     method: 'get'
   })
 }
@@ -54,7 +58,9 @@ export function markAsRead(ids) {
 }
 
 /**
+ * TODO: 冗余接口，需要删除
  * 删除消息
+ * 说明：前端已使用更具体的接口（deleteNotification, batchDeleteNotifications），此接口未被调用
  * @param {number|Array} ids 消息ID或ID数组
  * @returns {Promise} 删除结果
  */
@@ -153,18 +159,18 @@ export function getChatSessions() {
 }
 
 /**
- * 获取与指定用户的聊天记录
- * @param {number} userId 用户ID
+ * 获取聊天记录
+ * @param {string} sessionId 会话ID
  * @param {Object} params 查询参数
  * @returns {Promise} 聊天记录
  */
-export function getChatHistory(userId, params) {
+export function getChatHistory(sessionId, params) {
   return request({
     url: API.MESSAGE.LIST_HISTORY,
     method: 'get',
     params: {
       ...params,
-      userId
+      sessionId
     }
   })
 }
