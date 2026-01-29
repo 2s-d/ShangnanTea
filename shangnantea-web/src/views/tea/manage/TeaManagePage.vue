@@ -473,7 +473,7 @@ import { useImageUpload } from '@/composables/useImageUpload'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 
 import { showByCode, isSuccess } from '@/utils/apiMessages'
-import teaMessages from '@/utils/promptMessages'
+import { teaPromptMessages } from '@/utils/promptMessages'
 
 export default {
   name: 'TeaManagePage',
@@ -720,7 +720,10 @@ export default {
           }))
         }
       } catch (error) {
-        console.error('加载规格列表失败:', error)
+        // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
+        if (process.env.NODE_ENV === 'development') {
+          console.error('加载规格列表失败:', error)
+        }
         // 如果加载失败，使用tea中的规格数据
         if (!currentTea.value.specifications || currentTea.value.specifications.length === 0) {
           currentTea.value.specifications = [{
@@ -788,8 +791,10 @@ export default {
         await loadTeas()
       } catch (error) {
         if (error !== 'cancel') {
-          // 错误已由拦截器处理
-          console.error('切换茶叶状态失败:', error)
+          // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
+          if (process.env.NODE_ENV === 'development') {
+            console.error('切换茶叶状态失败:', error)
+          }
         }
       }
     }
@@ -827,8 +832,10 @@ export default {
         await loadTeas()
       } catch (error) {
         if (error !== 'cancel') {
-          // 错误已由拦截器处理
-          console.error('批量上架失败:', error)
+          // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
+          if (process.env.NODE_ENV === 'development') {
+            console.error('批量上架失败:', error)
+          }
         }
       }
     }
@@ -861,8 +868,10 @@ export default {
         await loadTeas()
       } catch (error) {
         if (error !== 'cancel') {
-          // 错误已由拦截器处理
-          console.error('批量下架失败:', error)
+          // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
+          if (process.env.NODE_ENV === 'development') {
+            console.error('批量下架失败:', error)
+          }
         }
       }
     }
@@ -891,8 +900,10 @@ export default {
         }
       } catch (error) {
         if (error !== 'cancel') {
-          // 错误已由拦截器处理
-          console.error('删除茶叶失败:', error)
+          // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
+          if (process.env.NODE_ENV === 'development') {
+            console.error('删除茶叶失败:', error)
+          }
         }
       }
     }
@@ -1020,7 +1031,10 @@ export default {
                 }
               }
             } catch (error) {
-              console.error('同步规格数据失败:', error)
+              // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
+              if (process.env.NODE_ENV === 'development') {
+                console.error('同步规格数据失败:', error)
+              }
               // 规格同步失败不影响主流程，只记录错误
             }
             
@@ -1097,7 +1111,10 @@ export default {
                   }
                 }
               } catch (error) {
-                console.error('添加规格失败:', error)
+                // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
+                if (process.env.NODE_ENV === 'development') {
+                  console.error('添加规格失败:', error)
+                }
                 // 规格添加失败不影响主流程
               }
             }
@@ -1121,7 +1138,10 @@ export default {
                   }
                 }
               } catch (error) {
-                console.error('上传图片失败:', error)
+                // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
+                if (process.env.NODE_ENV === 'development') {
+                  console.error('上传图片失败:', error)
+                }
                 // 图片上传失败不影响主流程
               }
             }
@@ -1133,7 +1153,10 @@ export default {
           dialogVisible.value = false
           submitting.value = false
         } catch (error) {
-          console.error('保存茶叶失败:', error)
+          // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
+          if (process.env.NODE_ENV === 'development') {
+            console.error('保存茶叶失败:', error)
+          }
           submitting.value = false
         }
       })
@@ -1193,7 +1216,10 @@ export default {
         showByCode(response.code)
       } catch (error) {
         if (error !== 'cancel') {
-          console.error('删除分类失败:', error)
+          // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
+          if (process.env.NODE_ENV === 'development') {
+            console.error('删除分类失败:', error)
+          }
         }
       } finally {
         categoryLoading.value = false
@@ -1229,7 +1255,10 @@ export default {
           
           categoryDialogVisible.value = false
         } catch (error) {
-          console.error('提交分类失败:', error)
+          // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
+          if (process.env.NODE_ENV === 'development') {
+            console.error('提交分类失败:', error)
+          }
         } finally {
           categorySubmitting.value = false
         }
@@ -1263,7 +1292,10 @@ export default {
         // 更新Vuex filters并获取数据
         await store.dispatch('tea/updateFilters', filters)
       } catch (error) {
-        console.error('加载茶叶列表失败:', error)
+        // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
+        if (process.env.NODE_ENV === 'development') {
+          console.error('加载茶叶列表失败:', error)
+        }
       }
     }
     

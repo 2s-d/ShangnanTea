@@ -686,12 +686,13 @@
 | 200 | 操作成功 | 获取店铺评价成功 | [静默] |
 | 4130 | 加载评价失败 | 获取店铺评价失败 | 显示 |
 
-#### 接口26: submitShopReview - /shop/{shopId}/reviews (2个状态码)
+#### 接口26: submitShopReview - /shop/{shopId}/reviews (3个状态码)
 
 | Code | 消息 | 场景 | 显示 |
 |------|------|------|------|
 | 4017 | 评价提交成功 | 提交店铺评价成功 | 显示 |
-| 4131 | 提交评价失败 | 提交店铺评价失败 | 显示 |
+| 4131 | 未购买过该店铺商品，无法评价 | 用户未购买过该店铺的茶叶 | 显示 |
+| 4132 | 提交评价失败 | 评价提交失败（系统错误） | 显示 |
 
 ### 四、订单模块接口 (order.js) - 共21个接口
 
@@ -1520,7 +1521,7 @@
 | 23 | unfollowShop | DELETE | /shop/{shopId}/follow | 4016 | 4128 | 取消关注 |
 | 24 | checkFollowStatus | GET | /shop/{shopId}/follow-status | 200 | 4129 | 获取关注状态 |
 | 25 | getShopReviews | GET | /shop/{shopId}/reviews | 200 | 4130 | 获取店铺评价 |
-| 26 | submitShopReview | POST | /shop/{shopId}/reviews | 4017 | 4131 | 提交店铺评价 |
+| 26 | submitShopReview | POST | /shop/{shopId}/reviews | 4017 | 4131, 4132 | 提交店铺评价 |
 
 
 ## 四、订单模块接口 (order.js) - 共21个接口

@@ -35,4 +35,39 @@
         ORDER BY sort_order ASC, create_time DESC
     </select>
     
+    <!-- 插入Banner -->
+    <insert id="insert" parameterType="com.shangnantea.model.entity.shop.ShopBanner" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO shop_banners (
+            shop_id, image_url, link_url, title, sort_order, status, create_time, update_time
+        ) VALUES (
+            #{shopId,jdbcType=VARCHAR},
+            #{imageUrl,jdbcType=VARCHAR},
+            #{linkUrl,jdbcType=VARCHAR},
+            #{title,jdbcType=VARCHAR},
+            #{sortOrder,jdbcType=INTEGER},
+            #{status,jdbcType=TINYINT},
+            #{createTime,jdbcType=TIMESTAMP},
+            #{updateTime,jdbcType=TIMESTAMP}
+        )
+    </insert>
+    
+    <!-- 更新Banner -->
+    <update id="updateById" parameterType="com.shangnantea.model.entity.shop.ShopBanner">
+        UPDATE shop_banners
+        <set>
+            <if test="title != null">title = #{title,jdbcType=VARCHAR},</if>
+            <if test="linkUrl != null">link_url = #{linkUrl,jdbcType=VARCHAR},</if>
+            <if test="sortOrder != null">sort_order = #{sortOrder,jdbcType=INTEGER},</if>
+            <if test="status != null">status = #{status,jdbcType=TINYINT},</if>
+            update_time = #{updateTime,jdbcType=TIMESTAMP}
+        </set>
+        WHERE id = #{id,jdbcType=INTEGER}
+    </update>
+    
+    <!-- 删除Banner -->
+    <delete id="deleteById" parameterType="java.lang.Integer">
+        DELETE FROM shop_banners
+        WHERE id = #{id,jdbcType=INTEGER}
+    </delete>
+    
 </mapper>

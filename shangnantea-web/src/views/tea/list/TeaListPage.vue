@@ -180,7 +180,6 @@ import TeaCard from '@/components/tea/card/TeaCard.vue'
 
 import SearchBar from '@/components/common/SearchBar.vue'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
-import teaMessages from '@/utils/promptMessages'
 
 export default {
   name: 'TeaListPage',
@@ -250,7 +249,10 @@ export default {
           status: 1 // 任务组E：只显示上架茶叶
         })
       } catch (error) {
-        console.error('加载茶叶列表失败:', error)
+        // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
+        if (process.env.NODE_ENV === 'development') {
+          console.error('加载茶叶列表失败:', error)
+        }
       }
     }
     
@@ -374,7 +376,10 @@ export default {
       try {
         await store.dispatch('tea/fetchRecommendTeas', { type: 'popular', count: 6 })
       } catch (error) {
-        console.error('加载热门推荐失败:', error)
+        // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
+        if (process.env.NODE_ENV === 'development') {
+          console.error('加载热门推荐失败:', error)
+        }
       }
     }
     

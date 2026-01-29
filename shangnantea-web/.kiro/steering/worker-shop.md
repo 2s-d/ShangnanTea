@@ -106,46 +106,46 @@ inclusion: manual
 ### 店铺模块接口列表（共26个接口）
 
 #### 基础店铺功能（5个接口）
-1. **getShops** - `/shop/list` - 获取店铺列表
-2. **createShop** - `/shop/list` - 创建店铺
-3. **getShopDetail** - `/shop/{id}` - 获取店铺详情
-4. **updateShop** - `/shop/{id}` - 更新店铺信息
-5. **getMyShop** - `/shop/my` - 获取我的店铺
+1. **getShops** - `/shop/list` - 获取店铺列表 ✅ 已完成
+2. **createShop** - `/shop/list` - 创建店铺 ✅ 已完成
+3. **getShopDetail** - `/shop/{id}` - 获取店铺详情 ✅ 已完成
+4. **updateShop** - `/shop/{id}` - 更新店铺信息 ✅ 已完成
+5. **getMyShop** - `/shop/my` - 获取我的店铺 ✅ 已完成
 
 #### 店铺统计功能（2个接口）
-6. **getShopStatistics** - `/shop/{shopId}/statistics` - 获取店铺统计
-7. **getShopTeas** - `/shop/{shopId}/teas` - 获取店铺茶叶
+6. **getShopStatistics** - `/shop/{shopId}/statistics` - 获取店铺统计 ✅ 已完成
+7. **getShopTeas** - `/shop/{shopId}/teas` - 获取店铺茶叶 ✅ 已完成
 
 #### 店铺茶叶管理（4个接口）
-8. **addShopTea** - `/shop/{shopId}/teas` - 添加店铺茶叶
-9. **updateShopTea** - `/shop/teas/{teaId}` - 更新店铺茶叶
-10. **deleteShopTea** - `/shop/teas/{teaId}` - 删除店铺茶叶
-11. **toggleShopTeaStatus** - `/shop/teas/{teaId}/status` - 切换茶叶状态
+8. **addShopTea** - `/shop/{shopId}/teas` - 添加店铺茶叶 ✅ 已完成
+9. **updateShopTea** - `/shop/teas/{teaId}` - 更新店铺茶叶 ✅ 已完成
+10. **deleteShopTea** - `/shop/teas/{teaId}` - 删除店铺茶叶 ✅ 已完成
+11. **toggleShopTeaStatus** - `/shop/teas/{teaId}/status` - 切换茶叶状态 ✅ 已完成
 
 #### 店铺图片管理（2个接口）
-12. **uploadShopLogo** - `/shop/{shopId}/logo` - 上传店铺Logo
-13. **getShopBanners** - `/shop/{shopId}/banners` - 获取Banner列表
+12. **uploadShopLogo** - `/shop/{shopId}/logo` - 上传店铺Logo ✅ 已完成
+13. **getShopBanners** - `/shop/{shopId}/banners` - 获取Banner列表 ✅ 已完成
 
 #### Banner管理功能（4个接口）
-14. **uploadBanner** - `/shop/{shopId}/banners` - 上传Banner
-15. **updateBanner** - `/shop/banners/{bannerId}` - 更新Banner
-16. **deleteBanner** - `/shop/banners/{bannerId}` - 删除Banner
-17. **updateBannerOrder** - `/shop/banners/order` - 更新Banner排序
+14. **uploadBanner** - `/shop/{shopId}/banners` - 上传Banner ✅ 已完成
+15. **updateBanner** - `/shop/banners/{bannerId}` - 更新Banner ✅ 已完成
+16. **deleteBanner** - `/shop/banners/{bannerId}` - 删除Banner ✅ 已完成
+17. **updateBannerOrder** - `/shop/banners/order` - 更新Banner排序 ✅ 已完成
 
 #### 公告管理功能（4个接口）
-18. **getShopAnnouncements** - `/shop/{shopId}/announcements` - 获取公告列表
-19. **createAnnouncement** - `/shop/{shopId}/announcements` - 创建公告
-20. **updateAnnouncement** - `/shop/announcements/{announcementId}` - 更新公告
-21. **deleteAnnouncement** - `/shop/announcements/{announcementId}` - 删除公告
+18. **getShopAnnouncements** - `/shop/{shopId}/announcements` - 获取公告列表 ✅ 已完成
+19. **createAnnouncement** - `/shop/{shopId}/announcements` - 创建公告 ✅ 已完成
+20. **updateAnnouncement** - `/shop/announcements/{announcementId}` - 更新公告 ✅ 已完成
+21. **deleteAnnouncement** - `/shop/announcements/{announcementId}` - 删除公告 ✅ 已完成
 
 #### 关注功能（3个接口）
-22. **followShop** - `/shop/{shopId}/follow` - 关注店铺
-23. **unfollowShop** - `/shop/{shopId}/follow` - 取消关注
-24. **checkFollowStatus** - `/shop/{shopId}/follow-status` - 获取关注状态
+22. **followShop** - `/shop/{shopId}/follow` - 关注店铺 ✅ 已完成
+23. **unfollowShop** - `/shop/{shopId}/follow` - 取消关注 ✅ 已完成
+24. **checkFollowStatus** - `/shop/{shopId}/follow-status` - 获取关注状态 ✅ 已完成
 
 #### 评价功能（2个接口）
-25. **getShopReviews** - `/shop/{shopId}/reviews` - 获取店铺评价
-26. **submitShopReview** - `/shop/{shopId}/reviews` - 提交店铺评价
+25. **getShopReviews** - `/shop/{shopId}/reviews` - 获取店铺评价 ✅ 已完成
+26. **submitShopReview** - `/shop/{shopId}/reviews` - 提交店铺评价 ✅ 已完成
 
 ### 状态码范围
 - **成功码**：4000-4017（18个成功状态码）

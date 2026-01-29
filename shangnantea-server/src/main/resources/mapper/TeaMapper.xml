@@ -36,12 +36,24 @@
     </select>
     
     <!-- 根据店铺ID查询茶叶列表 -->
-    <select id="selectByShopId" resultMap="BaseResultMap" parameterType="java.lang.String">
+    <select id="selectByShopId" resultMap="BaseResultMap">
         SELECT 
         <include refid="Base_Column_List"/>
         FROM teas
-        WHERE shop_id = #{shopId,jdbcType=VARCHAR} AND is_deleted = 0
+        WHERE shop_id = #{shopId,jdbcType=VARCHAR} 
+          AND is_deleted = 0 
+          AND status = 1
         ORDER BY create_time DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+    
+    <!-- 统计店铺茶叶总数 -->
+    <select id="countByShopId" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM teas
+        WHERE shop_id = #{shopId,jdbcType=VARCHAR} 
+          AND is_deleted = 0 
+          AND status = 1
     </select>
     
     <!-- 根据分类ID查询茶叶列表 -->
@@ -258,19 +270,11 @@
     </update>
     
     <!-- 逻辑删除茶叶 -->
-    <update id="delete" parameterType="java.lang.String">
+    <update id="deleteById">
         UPDATE teas
         SET is_deleted = 1,
-        update_time = now()
-        WHERE id = #{id,jdbcType=VARCHAR}
-    </update>
-    
-    <!-- 上架/下架茶叶 -->
-    <update id="updateStatus">
-        UPDATE teas
-        SET status = #{status,jdbcType=INTEGER},
-        update_time = now()
-        WHERE id = #{id,jdbcType=VARCHAR}
+            update_time = now()
+        WHERE id = #{id,jdbcType=BIGINT}
     </update>
     
     <!-- 批量更新茶叶状态 -->

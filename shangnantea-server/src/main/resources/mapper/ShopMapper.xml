@@ -37,11 +37,11 @@
         INSERT INTO shops (
             id, owner_id, shop_name, logo, banner, description, announcement, contact_phone, 
             province, city, district, address, business_license, status, rating, rating_count, 
-            sales_count, create_time, update_time
+            sales_count, follow_count, create_time, update_time
         ) VALUES (
             #{id}, #{ownerId}, #{shopName}, #{logo}, #{banner}, #{description}, #{announcement}, #{contactPhone},
             #{province}, #{city}, #{district}, #{address}, #{businessLicense}, #{status}, #{rating}, #{ratingCount},
-            #{salesCount}, #{createTime}, #{updateTime}
+            #{salesCount}, #{followCount}, #{createTime}, #{updateTime}
         )
     </insert>
 
@@ -78,6 +78,7 @@
             <if test="rating != null">rating = #{rating},</if>
             <if test="ratingCount != null">rating_count = #{ratingCount},</if>
             <if test="salesCount != null">sales_count = #{salesCount},</if>
+            <if test="followCount != null">follow_count = #{followCount},</if>
             <if test="updateTime != null">update_time = #{updateTime},</if>
         </set>
         WHERE id = #{id}
@@ -109,5 +110,77 @@
     <!-- 统计记录总数 -->
     <select id="count" resultType="java.lang.Long">
         SELECT COUNT(*) FROM shops
+    </select>
+
+    <!-- 分页查询店铺列表 -->
+    <select id="selectShopList" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM shops
+        WHERE status = 1
+        <if test="keyword != null and keyword != ''">
+            AND (shop_name LIKE CONCAT('%', #{keyword}, '%') 
+            OR description LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="rating != null">
+            AND rating >= #{rating}
+        </if>
+        <choose>
+            <when test="sortBy != null and sortBy != ''">
+                <choose>
+                    <when test="sortBy == 'rating'">
+                        ORDER BY rating
+                        <if test="sortOrder != null and sortOrder == 'desc'">DESC</if>
+                        <if test="sortOrder == null or sortOrder == 'asc'">ASC</if>
+                    </when>
+                    <when test="sortBy == 'salesCount'">
+                        ORDER BY sales_count
+                        <if test="sortOrder != null and sortOrder == 'desc'">DESC</if>
+                        <if test="sortOrder == null or sortOrder == 'asc'">ASC</if>
+                    </when>
+                    <when test="sortBy == 'followCount'">
+                        ORDER BY follow_count
+                        <if test="sortOrder != null and sortOrder == 'desc'">DESC</if>
+                        <if test="sortOrder == null or sortOrder == 'asc'">ASC</if>
+                    </when>
+                    <otherwise>
+                        ORDER BY create_time DESC
+                    </otherwise>
+                </choose>
+            </when>
+            <otherwise>
+                ORDER BY create_time DESC
+            </otherwise>
+        </choose>
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <!-- 统计店铺总数（用于分页） -->
+    <select id="countShopList" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM shops
+        WHERE status = 1
+        <if test="keyword != null and keyword != ''">
+            AND (shop_name LIKE CONCAT('%', #{keyword}, '%') 
+            OR description LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="rating != null">
+            AND rating >= #{rating}
+        </if>
+    </select>
+
+    <!-- 根据店铺名称查询店铺 -->
+    <select id="selectByShopName" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM shops
+        WHERE shop_name = #{shopName}
+        LIMIT 1
+    </select>
+
+    <!-- 根据用户ID查询店铺 -->
+    <select id="selectByUserId" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM shops
+        WHERE owner_id = #{userId}
+        LIMIT 1
     </select>
 </mapper> 

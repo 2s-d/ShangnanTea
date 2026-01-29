@@ -1,6 +1,7 @@
 package com.shangnantea.mapper;
 
 import com.shangnantea.model.entity.tea.Tea;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,26 @@ public interface TeaMapper extends BaseMapper<Tea, Long> {
      * @return 总数
      */
     long countTeas(Map<String, Object> params);
+
+    /**
+     * 分页查询店铺茶叶列表
+     *
+     * @param shopId 店铺ID
+     * @param offset 分页偏移量
+     * @param pageSize 每页记录数
+     * @return 茶叶列表
+     */
+    List<Tea> selectByShopId(@Param("shopId") String shopId,
+                             @Param("offset") Integer offset,
+                             @Param("pageSize") Integer pageSize);
+
+    /**
+     * 统计店铺茶叶总数
+     *
+     * @param shopId 店铺ID
+     * @return 茶叶总数
+     */
+    Long countByShopId(@Param("shopId") String shopId);
     
     /**
      * 逻辑删除茶叶（软删除）
@@ -33,6 +54,15 @@ public interface TeaMapper extends BaseMapper<Tea, Long> {
      * @return 影响行数
      */
     int delete(String id);
+
+    /**
+     * 逻辑删除茶叶（设置is_deleted=1）
+     * 兼容：为店铺模块提供Long类型ID的删除接口，不影响原有delete(String)调用。
+     *
+     * @param id 茶叶ID
+     * @return 影响行数
+     */
+    int deleteById(@Param("id") Long id);
     
     /**
      * 统计指定分类下的茶叶数量
