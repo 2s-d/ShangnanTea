@@ -454,7 +454,7 @@ public class ShopServiceImpl implements ShopService {
             String currentUserId = UserContext.getCurrentUserId();
             if (currentUserId != null) {
                 try {
-                    UserFollow follow = userFollowMapper.selectByUserIdAndFollow(currentUserId, "shop", id);
+                    UserFollow follow = userFollowMapper.selectByUserIdAndFollowId(currentUserId, id, "shop");
                     shopDetailVO.setIsFollowed(follow != null);
                 } catch (Exception e) {
                     logger.warn("查询店铺关注状态失败, shopId: {}, userId: {}, 默认设置为未关注", id, currentUserId, e);

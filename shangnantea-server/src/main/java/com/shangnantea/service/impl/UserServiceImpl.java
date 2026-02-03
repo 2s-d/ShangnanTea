@@ -345,9 +345,27 @@ public class UserServiceImpl implements UserService {
                 return Result.failure(2107); // 获取用户信息失败
             }
             
-            // 转换为VO并返回（只返回公开信息，不包含敏感数据）
+            // 转换为VO
+            UserVO userVO = convertToUserVO(user);
+            
+            // 查询当前用户是否已关注该用户（仅当查询其他用户时）
+            String currentUserId = UserContext.getCurrentUserId();
+            if (currentUserId != null && !currentUserId.equals(userId)) {
+                try {
+                    UserFollow follow = userFollowMapper.selectByFollowerAndFollowed(currentUserId, userId);
+                    userVO.setIsFollowed(follow != null);
+                } catch (Exception e) {
+                    logger.warn("查询用户关注状态失败, targetUserId: {}, currentUserId: {}, 默认设置为未关注", userId, currentUserId, e);
+                    userVO.setIsFollowed(false);
+                }
+            } else {
+                // 查询自己或未登录时，不设置 isFollowed（或设置为 null）
+                userVO.setIsFollowed(null);
+            }
+            
+            // 返回（只返回公开信息，不包含敏感数据）
             logger.info("获取用户信息成功: userId: {}, username: {}", userId, user.getUsername());
-            return Result.success(200, convertToUserVO(user)); // 操作成功（静默）
+            return Result.success(200, userVO); // 操作成功（静默）
             
         } catch (Exception e) {
             logger.error("获取用户信息失败: 系统异常, userId: {}", userId, e);

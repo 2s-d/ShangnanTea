@@ -633,6 +633,26 @@ public class ForumServiceImpl implements ForumService {
             vo.setPublishTime(article.getPublishTime());
             vo.setCreateTime(article.getCreateTime());
             
+            // 查询当前用户是否已点赞/收藏该文章
+            String currentUserId = UserContext.getCurrentUserId();
+            if (currentUserId != null) {
+                try {
+                    UserLike like = userLikeMapper.selectByUserIdAndTarget(currentUserId, "article", id);
+                    vo.setIsLiked(like != null);
+                    
+                    UserFavorite favorite = userFavoriteMapper.selectByUserIdAndItem(currentUserId, "article", id);
+                    vo.setIsFavorited(favorite != null);
+                } catch (Exception e) {
+                    logger.warn("查询文章点赞/收藏状态失败, articleId: {}, userId: {}, 默认设置为未点赞/未收藏", id, currentUserId, e);
+                    vo.setIsLiked(false);
+                    vo.setIsFavorited(false);
+                }
+            } else {
+                // 未登录用户默认未点赞/未收藏
+                vo.setIsLiked(false);
+                vo.setIsFavorited(false);
+            }
+            
             logger.info("获取文章详情成功: id={}", id);
             return Result.success(200, vo); // 成功码200
             
@@ -1429,8 +1449,27 @@ public class ForumServiceImpl implements ForumService {
             vo.setIsEssence(post.getIsEssence());
             vo.setStatus(post.getStatus());
             vo.setLastReplyTime(post.getLastReplyTime());
-            vo.setCreateTime(post.getCreateTime());
             vo.setUpdateTime(post.getUpdateTime());
+            
+            // 查询当前用户是否已点赞/收藏该帖子
+            String currentUserId = UserContext.getCurrentUserId();
+            if (currentUserId != null) {
+                try {
+                    UserLike like = userLikeMapper.selectByUserIdAndTarget(currentUserId, "post", id);
+                    vo.setIsLiked(like != null);
+                    
+                    UserFavorite favorite = userFavoriteMapper.selectByUserIdAndItem(currentUserId, "post", id);
+                    vo.setIsFavorited(favorite != null);
+                } catch (Exception e) {
+                    logger.warn("查询帖子点赞/收藏状态失败, postId: {}, userId: {}, 默认设置为未点赞/未收藏", id, currentUserId, e);
+                    vo.setIsLiked(false);
+                    vo.setIsFavorited(false);
+                }
+            } else {
+                // 未登录用户默认未点赞/未收藏
+                vo.setIsLiked(false);
+                vo.setIsFavorited(false);
+            }
             
             logger.info("获取帖子详情成功: id={}", id);
             return Result.success(200, vo); // 成功码200
@@ -2051,11 +2090,6 @@ public class ForumServiceImpl implements ForumService {
         } catch (Exception e) {
             logger.error("上传帖子图片失败: 系统异常", e);
             return Result.failure(6140); // 图片上传失败
-        }
-    }
-}
-            logger.error("取消点赞回复失败: 系统异常, id: {}", id, e);
-            return Result.failure(6133); // 取消点赞失败
         }
     }
 } 

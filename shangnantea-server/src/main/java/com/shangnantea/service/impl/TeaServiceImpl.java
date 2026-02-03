@@ -11,6 +11,7 @@ import com.shangnantea.mapper.TeaReviewMapper;
 import com.shangnantea.mapper.TeaSpecificationMapper;
 import com.shangnantea.mapper.ShopMapper;
 import com.shangnantea.mapper.UserFavoriteMapper;
+import com.shangnantea.mapper.UserLikeMapper;
 import com.shangnantea.mapper.UserMapper;
 import com.shangnantea.model.dto.tea.TeaQueryDTO;
 import com.shangnantea.model.entity.order.Order;
@@ -22,6 +23,7 @@ import com.shangnantea.model.entity.tea.TeaSpecification;
 import com.shangnantea.model.entity.shop.Shop;
 import com.shangnantea.model.entity.user.User;
 import com.shangnantea.model.entity.user.UserFavorite;
+import com.shangnantea.model.entity.user.UserLike;
 import com.shangnantea.model.vo.TeaVO;
 import com.shangnantea.model.vo.CategoryVO;
 import com.shangnantea.model.vo.ReviewVO;
@@ -81,6 +83,9 @@ public class TeaServiceImpl implements TeaService {
     
     @Autowired
     private UserFavoriteMapper userFavoriteMapper;
+    
+    @Autowired
+    private UserLikeMapper userLikeMapper;
     
     @Autowired
     private StatisticsUtils statisticsUtils;
@@ -1230,12 +1235,37 @@ public class TeaServiceImpl implements TeaService {
                 }
             }
             
-            // 8. 转换为VO（使用缓存的用户信息）
+            // 8. 批量查询当前用户的点赞记录（优化N+1查询）
+            String currentUserId = UserContext.getCurrentUserId();
+            Map<String, Boolean> likeMap = new HashMap<>();
+            if (currentUserId != null && !reviews.isEmpty()) {
+                for (TeaReview review : reviews) {
+                    try {
+                        UserLike like = userLikeMapper.selectByUserIdAndTarget(
+                                currentUserId, "review", String.valueOf(review.getId()));
+                        likeMap.put(String.valueOf(review.getId()), like != null);
+                    } catch (Exception e) {
+                        logger.warn("查询评价点赞状态失败, reviewId: {}, userId: {}, 默认设置为未点赞", 
+                                review.getId(), currentUserId, e);
+                        likeMap.put(String.valueOf(review.getId()), false);
+                    }
+                }
+            }
+            
+            // 9. 转换为VO（使用缓存的用户信息和点赞状态）
+            final Map<String, Boolean> finalLikeMap = likeMap;
             List<ReviewVO> reviewVOList = reviews.stream()
-                    .map(review -> convertToReviewVO(review, userCache))
+                    .map(review -> {
+                        ReviewVO vo = convertToReviewVO(review, userCache);
+                        // 设置点赞状态
+                        if (vo != null) {
+                            vo.setIsLiked(finalLikeMap.getOrDefault(String.valueOf(review.getId()), false));
+                        }
+                        return vo;
+                    })
                     .collect(Collectors.toList());
             
-            // 8. 构建返回数据
+            // 10. 构建返回数据
             Map<String, Object> resultData = new HashMap<>();
             resultData.put("list", reviewVOList);
             resultData.put("total", total);
