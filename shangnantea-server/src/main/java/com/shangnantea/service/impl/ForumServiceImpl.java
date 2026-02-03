@@ -266,31 +266,6 @@ public class ForumServiceImpl implements ForumService {
     }
     
     @Override
-    public Result<Map<String, Object>> uploadPostImage(MultipartFile image) {
-        try {
-            logger.info("上传帖子图片请求, 文件名: {}", image.getOriginalFilename());
-            
-            // 1. 调用工具类上传（硬编码type为"posts"）
-            String relativePath = FileUploadUtils.uploadImage(image, "posts");
-            
-            // 2. 生成访问URL
-            String accessUrl = FileUploadUtils.generateAccessUrl(relativePath, baseUrl);
-            
-            // 3. 直接返回，不存数据库（场景2：先返回URL，稍后存储）
-            Map<String, Object> responseData = new HashMap<>();
-            responseData.put("url", accessUrl);
-            responseData.put("path", relativePath);
-            
-            logger.info("帖子图片上传成功: path: {}", relativePath);
-            return Result.success(6028, responseData); // 帖子图片上传成功
-            
-        } catch (Exception e) {
-            logger.error("帖子图片上传失败: 系统异常", e);
-            return Result.failure(6140); // 帖子图片上传失败
-        }
-    }
-    
-    @Override
     @Transactional(rollbackFor = Exception.class)
     public Result<Object> uploadBanner(MultipartFile file, String title, String subtitle, String linkUrl) {
         try {
@@ -2053,7 +2028,7 @@ public class ForumServiceImpl implements ForumService {
             // 1. 验证文件
             if (image == null || image.isEmpty()) {
                 logger.warn("上传帖子图片失败: 文件为空");
-                return Result.failure(6140, "文件不能为空");
+                return Result.failure(6140); // 图片上传失败
             }
             
             // 2. 验证文件类型

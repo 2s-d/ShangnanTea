@@ -8,7 +8,7 @@ import java.util.Map;
 /**
  * 茶叶Mapper接口
  */
-public interface TeaMapper extends BaseMapper<Tea, Long> {
+public interface TeaMapper extends BaseMapper<Tea, String> {
     
     /**
      * 分页查询茶叶列表（支持多条件筛选）
