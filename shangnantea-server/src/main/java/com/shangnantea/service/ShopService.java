@@ -34,9 +34,10 @@ public interface ShopService {
     /**
      * 接口3：获取店铺详情
      * 根据店铺ID获取店铺详细信息
+     * 改造说明：返回的店铺详情中包含 isFollowed 字段（当前用户是否已关注该店铺）
      *
      * @param id 店铺ID
-     * @return 店铺详情
+     * @return 店铺详情（包含 isFollowed 字段）
      */
     Result<Object> getShopDetail(String id);
     
@@ -217,34 +218,10 @@ public interface ShopService {
      */
     Result<Boolean> deleteAnnouncement(String announcementId);
     
-    // ==================== 接口23-26：关注和评价 ====================
-    
-    /**
-     * 接口23：关注店铺
-     * 用户关注店铺
-     *
-     * @param shopId 店铺ID
-     * @return 关注结果
-     */
-    Result<Boolean> followShop(String shopId);
-    
-    /**
-     * 接口24：取消关注店铺
-     * 用户取消关注店铺
-     *
-     * @param shopId 店铺ID
-     * @return 取消结果
-     */
-    Result<Boolean> unfollowShop(String shopId);
-    
-    /**
-     * 接口25：检查关注状态
-     * 获取当前用户对店铺的关注状态
-     *
-     * @param shopId 店铺ID
-     * @return 关注状态
-     */
-    Result<Object> checkFollowStatus(String shopId);
+    // ==================== 接口23-26：评价 ====================
+    // ⚠️ 已删除：店铺关注相关接口（followShop, unfollowShop, checkFollowStatus）
+    // 说明：店铺关注功能已统一使用用户模块的通用接口（UserService 中的 addFollow/removeFollow）
+    // 店铺详情接口（getShopDetail）已包含 isFollowed 字段，无需单独检查关注状态
     
     /**
      * 接口26：获取店铺评价信息

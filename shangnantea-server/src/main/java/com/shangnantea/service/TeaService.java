@@ -41,9 +41,10 @@ public interface TeaService {
      * 获取茶叶详情
      * 路径: GET /tea/{id}
      * 成功码: 200, 失败码: 3102
+     * 改造说明：返回的茶叶详情中包含 isFavorited 字段（当前用户是否已收藏该茶叶）
      *
      * @param id 茶叶ID
-     * @return 茶叶详情信息
+     * @return 茶叶详情信息（包含 isFavorited 字段）
      */
     Result<Object> getTeaDetail(String id);
     
@@ -122,10 +123,11 @@ public interface TeaService {
      * 获取茶叶评价列表
      * 路径: GET /tea/{teaId}/reviews
      * 成功码: 200, 失败码: 3110
+     * 改造说明：返回的评价列表中，每个评价对象包含 isLiked 字段（当前用户是否已点赞该评价）
      *
      * @param teaId 茶叶ID
      * @param params 查询参数（Map格式，包含page, pageSize等）
-     * @return 评价列表
+     * @return 评价列表（每个评价对象包含 isLiked 字段）
      */
     Result<Object> getTeaReviews(String teaId, Map<String, Object> params);
     
@@ -150,15 +152,9 @@ public interface TeaService {
      */
     Result<Boolean> replyReview(String reviewId, Map<String, Object> replyData);
     
-    /**
-     * 点赞评价
-     * 路径: POST /tea/reviews/{reviewId}/like
-     * 成功码: 3009, 失败码: 3114
-     *
-     * @param reviewId 评价ID
-     * @return 点赞结果
-     */
-    Result<Boolean> likeReview(String reviewId);
+    // ⚠️ 已删除：评价点赞相关接口（likeReview）
+    // 说明：评价点赞功能已统一使用用户模块的通用接口（UserService 中的 addLike/removeLike）
+    // 评价列表接口（getTeaReviews）已包含每个评价的 isLiked 字段，无需单独调用点赞接口
     
     /**
      * 获取茶叶规格列表

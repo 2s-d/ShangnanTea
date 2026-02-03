@@ -70,9 +70,10 @@ public interface UserService {
     
     /**
      * 根据用户ID获取用户信息
+     * 改造说明：当查询其他用户时，返回的用户信息中包含 isFollowed 字段（当前用户是否已关注该用户）
      *
      * @param userId 用户ID
-     * @return 用户信息
+     * @return 用户信息（查询其他用户时包含 isFollowed 字段）
      */
     Result<UserVO> getUserById(String userId);
     
