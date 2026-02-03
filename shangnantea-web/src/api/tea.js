@@ -17,7 +17,7 @@ export function getTeas(params) {
 /**
  * 获取茶叶详情
  * @param {number} id 茶叶ID
- * @returns {Promise} 茶叶详情
+ * @returns {Promise} 茶叶详情，包含 isFavorited 字段（当前用户是否已收藏该茶叶）
  */
 export function getTeaDetail(id) {
   return request({
@@ -120,7 +120,7 @@ export function deleteTea(id) {
  * 获取茶叶评价列表
  * @param {string} teaId 茶叶ID
  * @param {Object} params 查询参数（page, pageSize）
- * @returns {Promise} 评价列表
+ * @returns {Promise} 评价列表，每个评价对象包含 isLiked 字段（当前用户是否已点赞该评价）
  */
 export function getTeaReviews(teaId, params) {
   return request({
@@ -157,16 +157,10 @@ export function replyReview(reviewId, data) {
 }
 
 /**
- * 点赞评价
- * @param {string} reviewId 评价ID
- * @returns {Promise} 点赞结果
+ * ⚠️ 已删除：likeReview
+ * 说明：评价点赞功能已统一使用用户模块的通用接口（user.js 中的 addLike/removeLike）
+ * 评价列表接口（getTeaReviews）已包含 isLiked 字段，无需单独调用点赞接口
  */
-export function likeReview(reviewId) {
-  return request({
-    url: `${API.TEA.REVIEWS}/${reviewId}/like`,
-    method: 'post'
-  })
-}
 
 // ==================== 任务组C：规格管理API ====================
 

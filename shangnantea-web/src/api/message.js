@@ -191,7 +191,7 @@ export function createChatSession(data) {
 /**
  * 获取用户主页信息
  * @param {string} userId 用户ID
- * @returns {Promise} 用户主页信息
+ * @returns {Promise} 用户主页信息，包含 isFollowed 字段（当前用户是否已关注该用户）
  */
 export function getUserProfile(userId) {
   return request({

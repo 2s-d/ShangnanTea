@@ -18,7 +18,7 @@ export function getShops(params) {
 /**
  * 获取商店详情
  * @param {number} id 商店ID
- * @returns {Promise} 商店详情
+ * @returns {Promise} 商店详情，包含 isFollowed 字段（当前用户是否已关注该店铺）
  */
 export function getShopDetail(id) {
   return request({
@@ -299,40 +299,10 @@ export function deleteAnnouncement(announcementId) {
 
 /**
  * 任务组F：店铺关注相关API
+ * ⚠️ 已删除：followShop, unfollowShop, checkFollowStatus
+ * 说明：店铺关注功能已统一使用用户模块的通用接口（user.js 中的 addFollow/removeFollow）
+ * 店铺详情接口（getShopDetail）已包含 isFollowed 字段，无需单独检查关注状态
  */
-
-/**
- * 关注店铺
- * @param {string} shopId 店铺ID
- */
-export function followShop(shopId) {
-  return request({
-    url: API.SHOP.DETAIL + shopId + '/follow',
-    method: 'post'
-  })
-}
-
-/**
- * 取消关注店铺
- * @param {string} shopId 店铺ID
- */
-export function unfollowShop(shopId) {
-  return request({
-    url: API.SHOP.DETAIL + shopId + '/follow',
-    method: 'delete'
-  })
-}
-
-/**
- * 获取店铺关注状态
- * @param {string} shopId 店铺ID
- */
-export function checkFollowStatus(shopId) {
-  return request({
-    url: API.SHOP.DETAIL + shopId + '/follow-status',
-    method: 'get'
-  })
-}
 
 /**
  * 获取店铺评价列表

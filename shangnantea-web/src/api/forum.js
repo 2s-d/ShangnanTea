@@ -109,7 +109,7 @@ export function getArticles(params = {}) {
 /**
  * 获取文章详情
  * @param {number} id 文章ID
- * @returns {Promise} 文章详情
+ * @returns {Promise} 文章详情，包含 isLiked 和 isFavorited 字段（当前用户是否已点赞/收藏该文章）
  */
 export function getArticleDetail(id) {
   return request({
@@ -235,7 +235,7 @@ export function getForumPosts(params = {}) {
 /**
  * 获取帖子详情
  * @param {number} id 帖子ID
- * @returns {Promise} 帖子详情
+ * @returns {Promise} 帖子详情，包含 isLiked 和 isFavorited 字段（当前用户是否已点赞/收藏该帖子）
  */
 export function getPostDetail(id) {
   return request({
@@ -306,7 +306,7 @@ export function deletePost(id) {
  * 获取帖子回复列表
  * @param {number} postId 帖子ID
  * @param {Object} params 查询参数
- * @returns {Promise} 回复列表
+ * @returns {Promise} 回复列表，每个回复对象包含 isLiked 字段（当前用户是否已点赞该回复）
  */
 export function getPostReplies(postId, params = {}) {
   return request({
@@ -343,76 +343,10 @@ export function deleteReply(id) {
 }
 
 /**
- * 点赞回复
- * @param {number} id 回复ID
- * @returns {Promise} 点赞结果
+ * ⚠️ 已删除：likeReply, unlikeReply, likePost, unlikePost, favoritePost, unfavoritePost
+ * 说明：帖子/回复/文章的点赞和收藏功能已统一使用用户模块的通用接口（user.js 中的 addLike/removeLike, addFavorite/removeFavorite）
+ * 详情接口（getPostDetail, getArticleDetail, getPostReplies）已包含相应的状态字段，无需单独调用点赞/收藏接口
  */
-export function likeReply(id) {
-  return request({
-    url: `${API.FORUM.REPLIES}/${id}/like`,
-    method: 'post'
-  })
-}
-
-/**
- * 取消点赞回复
- * @param {number} id 回复ID
- * @returns {Promise} 取消点赞结果
- */
-export function unlikeReply(id) {
-  return request({
-    url: `${API.FORUM.REPLIES}/${id}/like`,
-    method: 'delete'
-  })
-}
-
-/**
- * 点赞帖子
- * @param {number} id 帖子ID
- * @returns {Promise} 点赞结果
- */
-export function likePost(id) {
-  return request({
-    url: `${API.FORUM.POSTS}/${id}/like`,
-    method: 'post'
-  })
-}
-
-/**
- * 取消点赞帖子
- * @param {number} id 帖子ID
- * @returns {Promise} 取消点赞结果
- */
-export function unlikePost(id) {
-  return request({
-    url: `${API.FORUM.POSTS}/${id}/like`,
-    method: 'delete'
-  })
-}
-
-/**
- * 收藏帖子
- * @param {number} id 帖子ID
- * @returns {Promise} 收藏结果
- */
-export function favoritePost(id) {
-  return request({
-    url: `${API.FORUM.POSTS}/${id}/favorite`,
-    method: 'post'
-  })
-}
-
-/**
- * 取消收藏帖子
- * @param {number} id 帖子ID
- * @returns {Promise} 取消收藏结果
- */
-export function unfavoritePost(id) {
-  return request({
-    url: `${API.FORUM.POSTS}/${id}/favorite`,
-    method: 'delete'
-  })
-}
 
 // ===== 任务组F：内容审核相关API方法 =====
 
@@ -512,12 +446,6 @@ export default {
   getPostReplies,
   createReply,
   deleteReply,
-  likeReply,
-  unlikeReply,
-  likePost,
-  unlikePost,
-  favoritePost,
-  unfavoritePost,
   // 任务组F：内容审核相关
   getPendingPosts,
   approvePost,
