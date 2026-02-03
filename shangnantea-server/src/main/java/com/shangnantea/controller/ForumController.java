@@ -185,9 +185,10 @@ public class ForumController {
      * 获取文章详情
      * 路径: GET /forum/articles/{id}
      * 成功码: 200, 失败码: 6110
+     * 改造说明：返回的文章详情中包含 isLiked 和 isFavorited 字段（当前用户是否已点赞/收藏该文章）
      *
      * @param id 文章ID
-     * @return 文章详情
+     * @return 文章详情（包含 isLiked 和 isFavorited 字段）
      */
     @GetMapping("/articles/{id}")
     public Result<Object> getArticleDetail(@PathVariable String id) {
@@ -366,10 +367,11 @@ public class ForumController {
      * 获取帖子回复列表
      * 路径: GET /forum/posts/{id}/replies
      * 成功码: 200, 失败码: 6129
+     * 改造说明：返回的回复列表中，每个回复对象包含 isLiked 字段（当前用户是否已点赞该回复）
      *
      * @param id 帖子ID
      * @param params 查询参数 {page, pageSize}
-     * @return 回复列表
+     * @return 回复列表（每个回复对象包含 isLiked 字段）
      */
     @GetMapping("/posts/{id}/replies")
     public Result<Object> getPostReplies(@PathVariable String id, @RequestParam Map<String, Object> params) {
@@ -393,65 +395,9 @@ public class ForumController {
         return forumService.createReply(id, dto);
     }
 
-    /**
-     * 点赞帖子
-     * 路径: POST /forum/posts/{id}/like
-     * 成功码: 6014, 失败码: 6125
-     *
-     * @param id 帖子ID
-     * @return 点赞结果
-     */
-    @PostMapping("/posts/{id}/like")
-    @RequiresLogin
-    public Result<Object> likePost(@PathVariable String id) {
-        logger.info("点赞帖子请求: {}", id);
-        return forumService.likePost(id);
-    }
-
-    /**
-     * 取消点赞帖子
-     * 路径: DELETE /forum/posts/{id}/like
-     * 成功码: 6015, 失败码: 6126
-     *
-     * @param id 帖子ID
-     * @return 取消点赞结果
-     */
-    @DeleteMapping("/posts/{id}/like")
-    @RequiresLogin
-    public Result<Object> unlikePost(@PathVariable String id) {
-        logger.info("取消点赞帖子请求: {}", id);
-        return forumService.unlikePost(id);
-    }
-
-    /**
-     * 收藏帖子
-     * 路径: POST /forum/posts/{id}/favorite
-     * 成功码: 6016, 失败码: 6127
-     *
-     * @param id 帖子ID
-     * @return 收藏结果
-     */
-    @PostMapping("/posts/{id}/favorite")
-    @RequiresLogin
-    public Result<Object> favoritePost(@PathVariable String id) {
-        logger.info("收藏帖子请求: {}", id);
-        return forumService.favoritePost(id);
-    }
-
-    /**
-     * 取消收藏帖子
-     * 路径: DELETE /forum/posts/{id}/favorite
-     * 成功码: 6017, 失败码: 6128
-     *
-     * @param id 帖子ID
-     * @return 取消收藏结果
-     */
-    @DeleteMapping("/posts/{id}/favorite")
-    @RequiresLogin
-    public Result<Object> unfavoritePost(@PathVariable String id) {
-        logger.info("取消收藏帖子请求: {}", id);
-        return forumService.unfavoritePost(id);
-    }
+    // ⚠️ 已删除：帖子点赞/收藏相关接口（likePost, unlikePost, favoritePost, unfavoritePost）
+    // 说明：帖子点赞和收藏功能已统一使用用户模块的通用接口（UserController 中的 addLike/removeLike, addFavorite/removeFavorite）
+    // 帖子详情接口（getPostDetail）已包含 isLiked 和 isFavorited 字段，无需单独调用点赞/收藏接口
 
     /**
      * 审核通过帖子（管理员）
@@ -521,9 +467,10 @@ public class ForumController {
      * 路径: GET /forum/posts/{id}
      * 成功码: 200, 失败码: 6104
      * 注意：此路径应放在最后，避免与更具体的路径冲突
+     * 改造说明：返回的帖子详情中包含 isLiked 和 isFavorited 字段（当前用户是否已点赞/收藏该帖子）
      *
      * @param id 帖子ID
-     * @return 帖子详情
+     * @return 帖子详情（包含 isLiked 和 isFavorited 字段）
      */
     @GetMapping("/posts/{id}")
     public Result<Object> getPostDetail(@PathVariable String id) {
@@ -563,36 +510,9 @@ public class ForumController {
     }
 
     // ==================== 回复管理 ====================
-
-    /**
-     * 点赞回复
-     * 路径: POST /forum/replies/{id}/like
-     * 成功码: 6020, 失败码: 6132
-     *
-     * @param id 回复ID
-     * @return 点赞结果
-     */
-    @PostMapping("/replies/{id}/like")
-    @RequiresLogin
-    public Result<Object> likeReply(@PathVariable String id) {
-        logger.info("点赞回复请求: {}", id);
-        return forumService.likeReply(id);
-    }
-
-    /**
-     * 取消点赞回复
-     * 路径: DELETE /forum/replies/{id}/like
-     * 成功码: 6021, 失败码: 6133
-     *
-     * @param id 回复ID
-     * @return 取消点赞结果
-     */
-    @DeleteMapping("/replies/{id}/like")
-    @RequiresLogin
-    public Result<Object> unlikeReply(@PathVariable String id) {
-        logger.info("取消点赞回复请求: {}", id);
-        return forumService.unlikeReply(id);
-    }
+    // ⚠️ 已删除：回复点赞相关接口（likeReply, unlikeReply）
+    // 说明：回复点赞功能已统一使用用户模块的通用接口（UserController 中的 addLike/removeLike）
+    // 回复列表接口（getPostReplies）已包含每个回复的 isLiked 字段，无需单独调用点赞接口
 
     /**
      * 删除回复

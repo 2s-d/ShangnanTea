@@ -75,10 +75,11 @@ public class TeaController {
      * 获取茶叶评价列表
      * 路径: GET /tea/{teaId}/reviews
      * 成功码: 200, 失败码: 3110
+     * 改造说明：返回的评价列表中，每个评价对象包含 isLiked 字段（当前用户是否已点赞该评价）
      *
      * @param teaId 茶叶ID
      * @param params 查询参数（page, pageSize）
-     * @return 评价列表
+     * @return 评价列表（每个评价对象包含 isLiked 字段）
      */
     @GetMapping("/{teaId}/reviews")
     public Result<Object> getTeaReviews(@PathVariable String teaId, @RequestParam Map<String, Object> params) {
@@ -119,9 +120,10 @@ public class TeaController {
      * 路径: GET /tea/{id}
      * 成功码: 200, 失败码: 3102
      * 注意：此路径应放在最后，避免与更具体的路径冲突
+     * 改造说明：返回的茶叶详情中包含 isFavorited 字段（当前用户是否已收藏该茶叶）
      *
      * @param id 茶叶ID
-     * @return 茶叶详情
+     * @return 茶叶详情（包含 isFavorited 字段）
      */
     @GetMapping("/{id}")
     public Result<Object> getTeaDetail(@PathVariable String id) {
@@ -275,20 +277,9 @@ public class TeaController {
         return teaService.replyReview(reviewId, replyData);
     }
 
-    /**
-     * 点赞评价
-     * 路径: POST /tea/reviews/{reviewId}/like
-     * 成功码: 3009, 失败码: 3114
-     *
-     * @param reviewId 评价ID
-     * @return 点赞结果
-     */
-    @PostMapping("/reviews/{reviewId}/like")
-    @RequiresLogin
-    public Result<Boolean> likeReview(@PathVariable String reviewId) {
-        logger.info("点赞评价请求: {}", reviewId);
-        return teaService.likeReview(reviewId);
-    }
+    // ⚠️ 已删除：评价点赞相关接口（likeReview）
+    // 说明：评价点赞功能已统一使用用户模块的通用接口（UserController 中的 addLike/removeLike）
+    // 评价列表接口（getTeaReviews）已包含每个评价的 isLiked 字段，无需单独调用点赞接口
 
     // ==================== 规格管理 ====================
 

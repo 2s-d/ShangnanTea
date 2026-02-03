@@ -359,9 +359,10 @@ public class MessageController {
      * 路径: GET /message/user/{userId}
      * 成功码: 200, 失败码: 7119, 7120
      * 注意：此路径应放在最后，避免与更具体的路径冲突
+     * 改造说明：返回的用户主页信息中包含 isFollowed 字段（当前用户是否已关注该用户）
      *
      * @param userId 用户ID
-     * @return 用户主页信息
+     * @return 用户主页信息（包含 isFollowed 字段）
      */
     @GetMapping("/user/{userId}")
     public Result<Object> getUserProfile(@PathVariable String userId) {

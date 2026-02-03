@@ -118,21 +118,6 @@ public class ShopController {
     }
 
     /**
-     * 获取店铺关注状态
-     * 路径: GET /shop/{shopId}/follow-status
-     * 成功码: 200, 失败码: 4129
-     *
-     * @param shopId 店铺ID
-     * @return 关注状态
-     */
-    @GetMapping("/{shopId}/follow-status")
-    @RequiresLogin
-    public Result<Object> checkFollowStatus(@PathVariable String shopId) {
-        logger.info("获取店铺关注状态请求: {}", shopId);
-        return shopService.checkFollowStatus(shopId);
-    }
-
-    /**
      * 获取店铺评价列表
      * 路径: GET /shop/{shopId}/reviews
      * 成功码: 200, 失败码: 4130
@@ -396,37 +381,10 @@ public class ShopController {
         return shopService.deleteAnnouncement(announcementId);
     }
 
-    // ==================== 店铺关注与评价 ====================
-
-    /**
-     * 关注店铺
-     * 路径: POST /shop/{shopId}/follow
-     * 成功码: 4015, 失败码: 4127
-     *
-     * @param shopId 店铺ID
-     * @return 关注结果
-     */
-    @PostMapping("/{shopId}/follow")
-    @RequiresLogin
-    public Result<Boolean> followShop(@PathVariable String shopId) {
-        logger.info("关注店铺请求: {}", shopId);
-        return shopService.followShop(shopId);
-    }
-
-    /**
-     * 取消关注店铺
-     * 路径: DELETE /shop/{shopId}/follow
-     * 成功码: 4016, 失败码: 4128
-     *
-     * @param shopId 店铺ID
-     * @return 取消结果
-     */
-    @DeleteMapping("/{shopId}/follow")
-    @RequiresLogin
-    public Result<Boolean> unfollowShop(@PathVariable String shopId) {
-        logger.info("取消关注店铺请求: {}", shopId);
-        return shopService.unfollowShop(shopId);
-    }
+    // ==================== 店铺评价 ====================
+    // ⚠️ 已删除：店铺关注相关接口（followShop, unfollowShop, checkFollowStatus）
+    // 说明：店铺关注功能已统一使用用户模块的通用接口（UserController 中的 addFollow/removeFollow）
+    // 店铺详情接口（getShopDetail）已包含 isFollowed 字段，无需单独检查关注状态
 
     /**
      * 提交店铺评价
@@ -449,9 +407,10 @@ public class ShopController {
      * 路径: GET /shop/{id}
      * 成功码: 200, 失败码: 4102, 4103
      * 注意：此路径应放在最后，避免与更具体的路径冲突
+     * 改造说明：返回的店铺详情中包含 isFollowed 字段（当前用户是否已关注该店铺）
      *
      * @param id 店铺ID
-     * @return 店铺详情
+     * @return 店铺详情（包含 isFollowed 字段）
      */
     @GetMapping("/{id}")
     public Result<Object> getShopDetail(@PathVariable String id) {

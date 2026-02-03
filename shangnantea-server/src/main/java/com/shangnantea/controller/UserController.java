@@ -445,9 +445,10 @@ public class UserController {
      * 路径: GET /user/{userId}
      * 成功码: 200, 失败码: 2107
      * 注意：此路径应放在最后，避免与更具体的路径冲突
+     * 改造说明：当查询其他用户时，返回的用户信息中包含 isFollowed 字段（当前用户是否已关注该用户）
      *
      * @param userId 用户ID
-     * @return 用户信息
+     * @return 用户信息（查询其他用户时包含 isFollowed 字段）
      */
     @GetMapping("/{userId}")
     public Result<UserVO> getUserInfo(@PathVariable String userId) {
