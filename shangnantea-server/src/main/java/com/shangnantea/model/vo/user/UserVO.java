@@ -138,4 +138,17 @@ public class UserVO {
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
     }
+    
+    /**
+     * 当前用户是否已关注该用户（仅当查询其他用户时有效）
+     */
+    private Boolean isFollowed;
+    
+    public Boolean getIsFollowed() {
+        return isFollowed;
+    }
+    
+    public void setIsFollowed(Boolean isFollowed) {
+        this.isFollowed = isFollowed;
+    }
 } 

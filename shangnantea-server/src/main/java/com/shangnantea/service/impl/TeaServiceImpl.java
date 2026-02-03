@@ -1504,50 +1504,9 @@ public class TeaServiceImpl implements TeaService {
         return vo;
     }
     
-    /**
-     * 点赞评价
-     * 路径: POST /tea/reviews/{reviewId}/like
-     * 成功码: 3009, 失败码: 3114
-     */
-    @Override
-    public Result<Boolean> likeReview(String reviewId) {
-        try {
-            logger.info("点赞评价请求, reviewId: {}", reviewId);
-            
-            // 1. 参数验证
-            if (reviewId == null || reviewId.trim().isEmpty()) {
-                logger.warn("点赞评价失败: 评价ID不能为空");
-                return Result.failure(3114);
-            }
-            
-            // 2. 验证评价是否存在
-            TeaReview review = teaReviewMapper.selectById(Long.valueOf(reviewId));
-            if (review == null) {
-                logger.warn("点赞评价失败: 评价不存在, reviewId: {}", reviewId);
-                return Result.failure(3114);
-            }
-            
-            // 3. 获取当前用户ID（需要登录）
-            String currentUserId = UserContext.getCurrentUserId();
-            if (currentUserId == null) {
-                logger.warn("点赞评价失败: 用户未登录");
-                return Result.failure(3114);
-            }
-            
-            // likeCount已从数据库删除，使用动态计算
-            // 点赞功能应该通过user_likes表实现，而不是直接修改review表
-            
-            logger.info("点赞评价成功, reviewId: {}, userId: {}", reviewId, currentUserId);
-            return Result.success(3009, true);
-            
-        } catch (NumberFormatException e) {
-            logger.error("点赞评价失败: 评价ID格式错误, reviewId: {}", reviewId, e);
-            return Result.failure(3114);
-        } catch (Exception e) {
-            logger.error("点赞评价失败: 系统异常, reviewId: {}", reviewId, e);
-            return Result.failure(3114);
-        }
-    }
+    // ⚠️ 已删除：评价点赞相关方法实现（likeReview）
+    // 说明：评价点赞功能已统一使用用户模块的通用接口（UserServiceImpl 中的 addLike/removeLike）
+    // 评价列表接口（getTeaReviews）已包含每个评价的 isLiked 字段，无需单独调用点赞接口
     
     /**
      * 获取茶叶规格列表

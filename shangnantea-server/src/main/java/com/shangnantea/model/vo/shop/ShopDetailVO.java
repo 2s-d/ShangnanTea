@@ -50,4 +50,9 @@ public class ShopDetailVO {
      * 店主用户ID
      */
     private String ownerId;
+    
+    /**
+     * 当前用户是否已关注该店铺
+     */
+    private Boolean isFollowed;
 }

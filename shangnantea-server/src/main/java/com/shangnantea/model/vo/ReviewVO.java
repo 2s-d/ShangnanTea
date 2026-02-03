@@ -79,4 +79,9 @@ public class ReviewVO {
      * 创建时间
      */
     private Date createTime;
+    
+    /**
+     * 当前用户是否已点赞该评价
+     */
+    private Boolean isLiked;
 }

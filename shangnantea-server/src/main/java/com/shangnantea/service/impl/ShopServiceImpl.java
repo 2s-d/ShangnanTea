@@ -450,9 +450,24 @@ public class ShopServiceImpl implements ShopService {
             // 3. 转换为ShopDetailVO
             ShopDetailVO shopDetailVO = convertToShopDetailVO(shop);
             
+            // 4. 查询当前用户是否已关注该店铺
+            String currentUserId = UserContext.getCurrentUserId();
+            if (currentUserId != null) {
+                try {
+                    UserFollow follow = userFollowMapper.selectByUserIdAndFollow(currentUserId, "shop", id);
+                    shopDetailVO.setIsFollowed(follow != null);
+                } catch (Exception e) {
+                    logger.warn("查询店铺关注状态失败, shopId: {}, userId: {}, 默认设置为未关注", id, currentUserId, e);
+                    shopDetailVO.setIsFollowed(false);
+                }
+            } else {
+                // 未登录用户默认未关注
+                shopDetailVO.setIsFollowed(false);
+            }
+            
             logger.info("获取店铺详情成功: id={}, name={}", id, shop.getShopName());
             
-            // 4. 返回成功（根据code-message-mapping.md，成功码是200）
+            // 5. 返回成功（根据code-message-mapping.md，成功码是200）
             return Result.success(200, shopDetailVO);
             
         } catch (Exception e) {

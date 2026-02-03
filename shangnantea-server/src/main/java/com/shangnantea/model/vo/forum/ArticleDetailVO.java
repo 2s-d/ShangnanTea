@@ -93,4 +93,14 @@ public class ArticleDetailVO {
      * 创建时间
      */
     private Date createTime;
+    
+    /**
+     * 当前用户是否已点赞该文章
+     */
+    private Boolean isLiked;
+    
+    /**
+     * 当前用户是否已收藏该文章
+     */
+    private Boolean isFavorited;
 }

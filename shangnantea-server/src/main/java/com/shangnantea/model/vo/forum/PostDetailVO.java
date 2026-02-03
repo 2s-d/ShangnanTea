@@ -114,4 +114,14 @@ public class PostDetailVO {
      * 更新时间
      */
     private Date updateTime;
+    
+    /**
+     * 当前用户是否已点赞该帖子
+     */
+    private Boolean isLiked;
+    
+    /**
+     * 当前用户是否已收藏该帖子
+     */
+    private Boolean isFavorited;
 }
