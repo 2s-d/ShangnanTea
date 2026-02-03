@@ -1665,6 +1665,7 @@ paths:
                       description: "优质商南高山绿茶"
                       images: ["/images/tea1.jpg"]
                       status: 1
+                      isFavorited: false
                 failure:
                   summary: 获取茶叶详情失败
                   value:
@@ -1930,6 +1931,7 @@ paths:
                           rating: 5
                           content: "茶叶很好喝"
                           images: []
+                          isLiked: false
                           createTime: "2025-01-01T12:00:00Z"
                       total: 10
                 failure:
@@ -5383,6 +5385,7 @@ paths:
                       likeCount: 10
                       commentCount: 5
                       isLiked: false
+                      isFavorited: false
                       createTime: "2025-01-15T10:30:00Z"
                 failure:
                   summary: 获取帖子详情失败
@@ -5505,6 +5508,7 @@ paths:
                           avatar: "/images/avatar.png"
                           content: "写得很好"
                           likeCount: 5
+                          isLiked: false
                           createTime: "2025-01-15T11:00:00Z"
                       total: 20
                 failure:
@@ -5901,6 +5905,8 @@ paths:
                       authorName: "管理员"
                       categoryId: "cat001"
                       viewCount: 500
+                      isLiked: false
+                      isFavorited: false
                       createTime: "2025-01-01T00:00:00Z"
                 failure:
                   summary: 获取文章详情失败
