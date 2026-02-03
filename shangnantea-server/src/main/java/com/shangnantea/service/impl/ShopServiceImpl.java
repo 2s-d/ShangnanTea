@@ -977,7 +977,7 @@ public class ShopServiceImpl implements ShopService {
             // 7. 如果有更新，则保存到数据库
             if (updated) {
                 tea.setUpdateTime(new Date());
-                int result = teaMapper.update(tea);
+                int result = teaMapper.updateById(tea);
                 if (result <= 0) {
                     logger.error("更新店铺茶叶失败: 数据库更新失败, teaId={}", teaId);
                     return Result.failure(4109);
@@ -1037,9 +1037,8 @@ public class ShopServiceImpl implements ShopService {
                 return Result.failure(4110);
             }
             
-            // 6. 逻辑删除茶叶
-            Long teaIdLong = Long.parseLong(teaId);
-            int result = teaMapper.deleteById(teaIdLong);
+            // 6. 逻辑删除茶叶（使用BaseMapper的deleteById方法，teaId是String类型）
+            int result = teaMapper.deleteById(teaId);
             if (result <= 0) {
                 logger.error("删除店铺茶叶失败: 数据库删除失败, teaId={}", teaId);
                 return Result.failure(4110);
@@ -1105,7 +1104,7 @@ public class ShopServiceImpl implements ShopService {
             // 6. 更新茶叶状态
             tea.setStatus(status);
             tea.setUpdateTime(new Date());
-            int result = teaMapper.update(tea);
+            int result = teaMapper.updateById(tea);
             if (result <= 0) {
                 logger.error("茶叶上下架失败: 数据库更新失败, teaId={}", teaId);
                 return Result.failure(status == 1 ? 4111 : 4112);

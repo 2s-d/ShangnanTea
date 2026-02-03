@@ -54,14 +54,9 @@ public interface TeaMapper extends BaseMapper<Tea, String> {
      */
     int delete(String id);
 
-    /**
-     * 逻辑删除茶叶（设置is_deleted=1）
-     * 兼容：为店铺模块提供Long类型ID的删除接口，不影响原有delete(String)调用。
-     *
-     * @param id 茶叶ID
-     * @return 影响行数
-     */
-    int deleteById(@Param("id") Long id);
+    // ⚠️ 已删除：deleteById(Long id) 方法
+    // 说明：TeaMapper 已改为 BaseMapper<Tea, String>，BaseMapper 的 deleteById(String id) 方法已满足需求
+    // 如需删除茶叶，请使用 BaseMapper 的 deleteById(String id) 方法
     
     /**
      * 统计指定分类下的茶叶数量

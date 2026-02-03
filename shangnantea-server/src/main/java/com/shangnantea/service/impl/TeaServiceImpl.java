@@ -528,14 +528,8 @@ public class TeaServiceImpl implements TeaService {
             String currentUserId = UserContext.getCurrentUserId();
             if (currentUserId != null) {
                 try {
-                    // 构建查询参数
-                    Map<String, Object> favoriteParams = new HashMap<>();
-                    favoriteParams.put("userId", currentUserId);
-                    favoriteParams.put("itemType", "tea");
-                    favoriteParams.put("itemId", id);
-                    
                     // 查询收藏记录
-                    UserFavorite favorite = userFavoriteMapper.selectByUserIdAndItem(favoriteParams);
+                    UserFavorite favorite = userFavoriteMapper.selectByUserIdAndItem(currentUserId, "tea", id);
                     teaVO.setIsFavorite(favorite != null);
                     
                     logger.debug("查询收藏状态成功, teaId: {}, userId: {}, isFavorite: {}", 
@@ -667,7 +661,7 @@ public class TeaServiceImpl implements TeaService {
             }
             
             // 7. 执行更新
-            int updateCount = teaMapper.update(tea);
+            int updateCount = teaMapper.updateById(tea);
             if (updateCount == 0) {
                 logger.warn("更新茶叶失败: 数据库更新失败, id: {}", id);
                 return Result.failure(3103);
@@ -2075,7 +2069,7 @@ public class TeaServiceImpl implements TeaService {
             Tea updateTea = new Tea();
             updateTea.setId(image.getTeaId());
             updateTea.setMainImage(image.getUrl());
-            teaMapper.update(updateTea);
+            teaMapper.updateById(updateTea);
             
             logger.info("设置主图成功, imageId: {}, teaId: {}", imageId, image.getTeaId());
             return Result.success(3016, true);
