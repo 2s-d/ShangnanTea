@@ -256,7 +256,7 @@ paths:
                 failure:
                   summary: 获取当前用户信息失败
                   value:
-                    code: 2107
+                    code: 2104
                     data: null
 
   /user/{userId}:
@@ -265,16 +265,13 @@ paths:
       tags:
         - 用户模块
       summary: 获取指定用户信息
-      description: 根据用户ID获取用户公开信息（查询其他用户时返回isFollowed字段）
-      security:
-        - BearerAuth: []
+      description: 根据用户ID获取用户公开信息
       parameters:
         - name: userId
           in: path
           required: true
           schema:
             type: string
-          description: 用户ID
       responses:
         '200':
           description: 获取成功
@@ -288,9 +285,9 @@ paths:
                   value:
                     code: 200
                     data:
-                      id: "cy100003"
-                      username: "otheruser"
-                      nickname: "其他用户"
+                      id: "cy100002"
+                      username: "user"
+                      nickname: "测试用户"
                       avatar: "/images/default-avatar.png"
                       role: 2
                       status: 1
@@ -800,7 +797,7 @@ paths:
                     code: 2123
                     data: null
 
-  /user/follows:
+  /user/follows/{id}:
     delete:
       operationId: removeFollow
       tags:
@@ -809,15 +806,12 @@ paths:
       description: 取消关注用户或店铺
       security:
         - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/FollowRequest'
-            example:
-              targetId: "cy100003"
-              targetType: "user"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
       responses:
         '200':
           description: 取消成功
@@ -892,8 +886,8 @@ paths:
             schema:
               $ref: '#/components/schemas/FavoriteRequest'
             example:
-              itemId: "1"
-              itemType: "tea"
+              targetId: "1"
+              targetType: "tea"
       responses:
         '200':
           description: 收藏成功
@@ -913,7 +907,7 @@ paths:
                     code: 2126
                     data: null
 
-  /user/favorites:
+  /user/favorites/{id}:
     delete:
       operationId: removeFavorite
       tags:
@@ -922,15 +916,12 @@ paths:
       description: 取消收藏茶叶、帖子或文章
       security:
         - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/FavoriteRequest'
-            example:
-              itemId: "1"
-              itemType: "tea"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
       responses:
         '200':
           description: 取消成功
@@ -7321,16 +7312,14 @@ components:
     FavoriteRequest:
       type: object
       required:
-        - itemId
-        - itemType
+        - targetId
+        - targetType
       properties:
-        itemId:
+        targetId:
           type: string
-          description: 收藏项ID（茶叶ID、帖子ID、文章ID等）
-        itemType:
+        targetType:
           type: string
-          description: 收藏项类型
-          enum: [tea, post, tea_article]
+          enum: [tea, post, article]
 
     LikeRequest:
       type: object
