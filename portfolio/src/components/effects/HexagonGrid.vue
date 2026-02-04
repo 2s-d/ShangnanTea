@@ -98,7 +98,8 @@ class Hexagon {
     // 只有在鼠标移动时才点亮新的六边形
     if (isMouseMoving && distToCurrent < 80) {
       const intensity = 1 - (distToCurrent / 80)
-      this.opacity = Math.max(this.opacity, intensity * 0.7)
+      // 适度降低基础亮度：从0.7改为0.55
+      this.opacity = Math.max(this.opacity, intensity * 0.55)
       this.lastActivatedTime = currentTime
     }
     
@@ -189,13 +190,14 @@ class Hexagon {
         this.opacity *= 0.88
       }
       
-      // 偶尔闪烁（非常稀疏）
+      // 偶尔闪烁（非常稀疏）- 闪烁时保持原亮度
       if (this.opacity > 0.1 && this.opacity < 0.5 && distToCurrent > 80) {
         const sparklePhase = (currentTime + this.sparkleOffset) * this.sparkleSpeed * 0.003
         const sparkle = Math.sin(sparklePhase) * 0.5 + 0.5
         
         if (sparkle > 0.98 && Math.random() > 0.97) {
-          this.opacity = Math.min(this.opacity * 2.5, 0.9)
+          // 闪烁时提升到更高亮度
+          this.opacity = Math.min(this.opacity * 3.0, 0.9)
         }
       }
       
@@ -221,16 +223,16 @@ class Hexagon {
     }
     ctx.closePath()
     
-    // 半透明填充，不遮挡内容
-    ctx.fillStyle = `rgba(99, 102, 241, ${this.opacity * 0.2})`
+    // 半透明填充，适度减暗（从0.2改为0.17）
+    ctx.fillStyle = `rgba(99, 102, 241, ${this.opacity * 0.17})`
     ctx.fill()
 
-    // 绘制边框
-    ctx.strokeStyle = `rgba(99, 102, 241, ${this.opacity * 0.6})`
+    // 绘制边框，适度减暗（从0.6改为0.5）
+    ctx.strokeStyle = `rgba(99, 102, 241, ${this.opacity * 0.5})`
     ctx.lineWidth = 0.8
     ctx.stroke()
 
-    // 高亮时的发光效果
+    // 高亮时的发光效果（保持不变，让闪烁更明显）
     if (this.opacity > 0.5) {
       ctx.shadowBlur = 6
       ctx.shadowColor = `rgba(99, 102, 241, ${this.opacity * 0.7})`
@@ -256,9 +258,9 @@ const initHexagons = () => {
   hexagons = []
   
   // 更小更密集的六边形
-  const sizes = [5, 6, 7, 8]
-  const hexWidth = 16 // 更密集
-  const hexHeight = 14
+  const sizes = [4, 5, 6, 7]  // 从[5,6,7,8]改为[4,5,6,7]
+  const hexWidth = 14  // 从16改为14，更密集
+  const hexHeight = 12  // 从14改为12，更密集
 
   // 创建六边形网格（覆盖整个文档高度）
   for (let row = 0; row < canvas.value.height / hexHeight + 2; row++) {
@@ -276,6 +278,43 @@ const initHexagons = () => {
       hexagons.push(new Hexagon(x, y, size))
     }
   }
+}
+
+// 绘制鼠标光晕效果
+const drawMouseGlow = (mx, my, isMoving) => {
+  if (!isMoving || mx < 0 || my < 0) return
+  
+  // 绘制多层渐变光晕
+  const glowLayers = [
+    { radius: 60, opacity: 0.15 },
+    { radius: 40, opacity: 0.25 },
+    { radius: 20, opacity: 0.35 }
+  ]
+  
+  glowLayers.forEach(layer => {
+    const gradient = ctx.createRadialGradient(mx, my, 0, mx, my, layer.radius)
+    gradient.addColorStop(0, `rgba(99, 102, 241, ${layer.opacity})`)
+    gradient.addColorStop(0.5, `rgba(99, 102, 241, ${layer.opacity * 0.5})`)
+    gradient.addColorStop(1, 'rgba(99, 102, 241, 0)')
+    
+    ctx.fillStyle = gradient
+    ctx.beginPath()
+    ctx.arc(mx, my, layer.radius, 0, Math.PI * 2)
+    ctx.fill()
+  })
+  
+  // 中心亮点
+  ctx.fillStyle = 'rgba(139, 142, 255, 0.6)'
+  ctx.beginPath()
+  ctx.arc(mx, my, 4, 0, Math.PI * 2)
+  ctx.fill()
+  
+  // 外圈光环
+  ctx.strokeStyle = 'rgba(99, 102, 241, 0.4)'
+  ctx.lineWidth = 2
+  ctx.beginPath()
+  ctx.arc(mx, my, 8, 0, Math.PI * 2)
+  ctx.stroke()
 }
 
 // 动画循环
@@ -296,6 +335,9 @@ const animate = () => {
     hex.update(mouseX, mouseY, currentTime, hexagons, isMouseMoving)
     hex.draw()
   })
+  
+  // 绘制鼠标光晕（在六边形之上）
+  drawMouseGlow(mouseX, mouseY, isMouseMoving)
 
   animationId = requestAnimationFrame(animate)
 }
