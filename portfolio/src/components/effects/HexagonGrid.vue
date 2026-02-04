@@ -46,8 +46,25 @@ class Hexagon {
     return Math.sqrt(dx * dx + dy * dy)
   }
 
+  // 计算周围亮着的六边形数量（密度检测）
+  countNearbyActive(allHexagons, radius = 50) {
+    let count = 0
+    for (const hex of allHexagons) {
+      if (hex === this || hex.opacity < 0.1) continue
+      
+      const dx = this.x - hex.x
+      const dy = this.y - hex.y
+      const dist = Math.sqrt(dx * dx + dy * dy)
+      
+      if (dist < radius) {
+        count++
+      }
+    }
+    return count
+  }
+
   // 更新透明度
-  update(mx, my, currentTime) {
+  update(mx, my, currentTime, allHexagons) {
     // 检查鼠标当前位置
     const distToCurrent = this.distanceToMouse(mx, my)
     
@@ -58,37 +75,43 @@ class Hexagon {
       this.lastActivatedTime = currentTime
     }
     
-    // 拖尾衰减逻辑：结合时间和距离
+    // 拖尾衰减逻辑：结合时间、距离和密度
     if (this.lastActivatedTime > 0 && this.opacity > 0.01) {
       const timeSinceActivation = currentTime - this.lastActivatedTime
       
-      // 基础存活时间：2.5秒
-      const baseLifetime = 2500
+      // 计算周围密度
+      const nearbyCount = this.countNearbyActive(allHexagons, 50)
+      
+      // 密度系数：周围六边形越多，存活时间越长
+      // 0个周围：系数0.5（快速消失）
+      // 10个以上：系数1.0（正常消失）
+      const densityFactor = Math.min(0.5 + nearbyCount * 0.05, 1.0)
+      
+      // 基础存活时间：根据密度调整
+      const baseLifetime = 2500 * densityFactor
       
       // 根据距离计算延迟消失时间
-      // 距离越远，越早开始消失；距离越近，延迟越久
-      // 每50px距离增加200ms延迟
-      const distanceDelay = Math.max(0, (300 - distToCurrent) / 50 * 200)
+      const distanceDelay = Math.max(0, (300 - distToCurrent) / 50 * 200) * densityFactor
       
-      // 实际开始消失的时间 = 基础时间 + 距离延迟
+      // 实际开始消失的时间
       const effectiveLifetime = baseLifetime + distanceDelay
       
       if (timeSinceActivation < effectiveLifetime) {
         // 还在存活期内
-        // 计算消失进度 (0-1)
         const fadeProgress = timeSinceActivation / effectiveLifetime
         
-        // 基础衰减（很慢）
-        this.opacity *= 0.998
+        // 基础衰减（根据密度调整）
+        const baseDensityDecay = densityFactor > 0.8 ? 0.998 : 0.995
+        this.opacity *= baseDensityDecay
         
         // 根据进度和距离加速衰减
         if (fadeProgress > 0.3) {
-          // 30%之后开始根据距离加速衰减
           const distanceFactor = Math.max(0, distToCurrent - 80) / 200
           const progressFactor = (fadeProgress - 0.3) / 0.7
           
-          // 距离越远且时间越久，衰减越快
-          const extraDecay = distanceFactor * progressFactor * 0.015
+          // 密度低的额外加速衰减
+          const densityDecayBoost = (1 - densityFactor) * 0.01
+          const extraDecay = (distanceFactor * progressFactor * 0.015) + densityDecayBoost
           this.opacity *= (1 - extraDecay)
         }
         
@@ -97,12 +120,10 @@ class Hexagon {
           const narrowProgress = (fadeProgress - 0.5) * 2
           const excessDistance = distToCurrent - 80
           
-          // 距离80-200px范围内逐渐变窄
           if (excessDistance < 120) {
             const narrowFactor = 1 - Math.sqrt(narrowProgress) * 0.6
             const narrowedRadius = 80 + excessDistance * narrowFactor
             
-            // 在变窄边缘的六边形额外衰减
             if (distToCurrent > narrowedRadius) {
               const edgeFactor = (distToCurrent - narrowedRadius) / 30
               this.opacity *= (1 - Math.min(edgeFactor, 1) * 0.02)
@@ -210,7 +231,7 @@ const animate = () => {
 
   // 更新和绘制六边形
   hexagons.forEach(hex => {
-    hex.update(mouseX, mouseY, currentTime)
+    hex.update(mouseX, mouseY, currentTime, hexagons)
     hex.draw()
   })
 
