@@ -183,7 +183,6 @@ import { useStore } from 'vuex'
 import { ElMessageBox } from 'element-plus'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { orderPromptMessages } from '@/utils/promptMessages'
-import { apiMessage } from '@/utils/messageManager'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 export default {
   name: 'CartPage',
@@ -225,7 +224,10 @@ export default {
           }
         }
       } catch (error) {
-        apiMessage.error(error?.message || '加载购物车失败')
+        // 网络错误等已由响应拦截器处理，这里只记录日志
+        if (process.env.NODE_ENV === 'development') {
+          console.error('加载购物车失败:', error)
+        }
       } finally {
         loading.value = false
       }
@@ -304,7 +306,10 @@ export default {
           showByCode(res.code)
         }
       } catch (error) {
-        apiMessage.error(error?.message || '更新数量失败')
+        // 网络错误等已由响应拦截器处理，这里只记录日志
+        if (process.env.NODE_ENV === 'development') {
+          console.error('更新数量失败:', error)
+        }
         // 恢复：重新拉取购物车
         await initCartData()
       }
@@ -330,7 +335,10 @@ export default {
         
         specDialogVisible.value = true
       } catch (error) {
-        apiMessage.error(error?.message || '加载规格失败')
+        // 网络错误等已由响应拦截器处理，这里只记录日志
+        if (process.env.NODE_ENV === 'development') {
+          console.error('加载规格失败:', error)
+        }
       } finally {
         loading.value = false
       }
@@ -365,7 +373,10 @@ export default {
         // 重新获取购物车数据以更新价格和库存
         await initCartData()
       } catch (error) {
-        apiMessage.error(error?.message || '更新规格失败')
+        // 网络错误等已由响应拦截器处理，这里只记录日志
+        if (process.env.NODE_ENV === 'development') {
+          console.error('更新规格失败:', error)
+        }
       } finally {
         loading.value = false
       }
@@ -386,7 +397,10 @@ export default {
           // 刷新本地列表
           await initCartData()
         }).catch(error => {
-          apiMessage.error(error?.message || '移除商品失败')
+          // 网络错误等已由响应拦截器处理，这里只记录日志
+          if (process.env.NODE_ENV === 'development') {
+            console.error('移除商品失败:', error)
+          }
         })
       }).catch(() => {
         // 用户取消操作
@@ -417,7 +431,10 @@ export default {
           }
           await initCartData()
         }).catch(error => {
-          apiMessage.error(error?.message || '删除商品失败')
+          // 网络错误等已由响应拦截器处理，这里只记录日志
+          if (process.env.NODE_ENV === 'development') {
+            console.error('删除商品失败:', error)
+          }
         })
       }).catch(() => {
         // 用户取消操作

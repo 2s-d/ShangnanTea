@@ -212,7 +212,6 @@ import { useStore } from 'vuex'
 import { ArrowLeft, Plus } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
-import { apiMessage } from '@/utils/messageManager'
 import { orderPromptMessages } from '@/utils/promptMessages'
 
 export default {
@@ -410,7 +409,10 @@ export default {
           
           // 静默成功，不显示消息
         } catch (error) {
-          apiMessage.error(error?.message || '保存地址失败')
+          // 网络错误等已由响应拦截器处理，这里只记录日志
+          if (process.env.NODE_ENV === 'development') {
+            console.error('保存地址失败:', error)
+          }
         } finally {
           addressSubmitting.value = false
         }

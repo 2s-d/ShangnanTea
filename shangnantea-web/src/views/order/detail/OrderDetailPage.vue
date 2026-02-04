@@ -210,7 +210,6 @@ import { useStore } from 'vuex'
 import { ElMessageBox } from 'element-plus'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { orderPromptMessages } from '@/utils/promptMessages'
-import { apiMessage } from '@/utils/messageManager'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 export default {
   name: 'OrderDetailPage',
@@ -341,7 +340,10 @@ export default {
             loadOrderDetail()
           })
           .catch(error => {
-            apiMessage.error(error?.message || '取消订单失败')
+            // 网络错误等已由响应拦截器处理，这里只记录日志
+            if (process.env.NODE_ENV === 'development') {
+              console.error('取消订单失败:', error)
+            }
           })
       }).catch(() => {
         // 用户取消操作，不做任何处理
@@ -364,7 +366,10 @@ export default {
             loadOrderDetail()
           })
           .catch(error => {
-            apiMessage.error(error?.message || '确认收货失败')
+            // 网络错误等已由响应拦截器处理，这里只记录日志
+            if (process.env.NODE_ENV === 'development') {
+              console.error('确认收货失败:', error)
+            }
           })
       }).catch(() => {
         // 用户取消操作，不做任何处理
