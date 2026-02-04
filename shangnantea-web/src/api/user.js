@@ -271,13 +271,14 @@ export function addFollow(followData) {
 
 /**
  * 取消关注
- * @param {String|Number} followId 关注ID
+ * @param {Object} followData 关注数据 {targetId, targetType}
  * @returns {Promise} 删除结果
  */
-export function removeFollow(followId) {
+export function removeFollow(followData) {
   return request({
-    url: `${API.USER.FOLLOWS}/${followId}`,
-    method: 'delete'
+    url: API.USER.FOLLOWS,
+    method: 'delete',
+    data: followData
   })
 }
 
@@ -309,13 +310,14 @@ export function addFavorite(favoriteData) {
 
 /**
  * 取消收藏
- * @param {String|Number} favoriteId 收藏ID
+ * @param {Object} favoriteData 收藏数据 {itemId, itemType}
  * @returns {Promise} 删除结果
  */
-export function removeFavorite(favoriteId) {
+export function removeFavorite(favoriteData) {
   return request({
-    url: `${API.USER.FAVORITES}/${favoriteId}`,
-    method: 'delete'
+    url: API.USER.FAVORITES,
+    method: 'delete',
+    data: favoriteData
   })
 }
 

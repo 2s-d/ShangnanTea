@@ -930,14 +930,21 @@ const actions = {
   /**
    * 取消关注
    * @param {Object} context Vuex context
-   * @param {String|Number} followId 关注ID
+   * @param {Object} followData 关注数据 {targetId, targetType}
    * @returns {Promise} 删除结果 {code, data}
    */
-  async removeFollow({ commit }, followId) {
+  async removeFollow({ commit, state }, followData) {
     commit('SET_LOADING', true)
     try {
-      const res = await removeFollowApi(followId)
-      commit('REMOVE_FOLLOW', followId)
+      const res = await removeFollowApi(followData)
+      // 从followList中移除对应的关注记录（如果存在）
+      const followList = state.followList || []
+      const followItem = followList.find(item => 
+        item.targetType === followData.targetType && item.targetId === followData.targetId
+      )
+      if (followItem && followItem.id) {
+        commit('REMOVE_FOLLOW', followItem.id)
+      }
       return res // 返回 {code, data}，组件调用showByCode(res.code)
     } catch (error) {
       console.error('取消关注失败:', error)
@@ -994,14 +1001,21 @@ const actions = {
   /**
    * 取消收藏
    * @param {Object} context Vuex context
-   * @param {String|Number} favoriteId 收藏ID
-   * @returns {Promise} 删除结果
+   * @param {Object} favoriteData 收藏数据 {itemId, itemType}
+   * @returns {Promise} 删除结果 {code, data}
    */
-  async removeFavorite({ commit }, favoriteId) {
+  async removeFavorite({ commit, state }, favoriteData) {
     commit('SET_LOADING', true)
     try {
-      const res = await removeFavoriteApi(favoriteId)
-      commit('REMOVE_FAVORITE', favoriteId)
+      const res = await removeFavoriteApi(favoriteData)
+      // 从favoriteList中移除对应的收藏记录（如果存在）
+      const favoriteList = state.favoriteList || []
+      const favoriteItem = favoriteList.find(item => 
+        item.itemType === favoriteData.itemType && item.itemId === favoriteData.itemId
+      )
+      if (favoriteItem && favoriteItem.id) {
+        commit('REMOVE_FAVORITE', favoriteItem.id)
+      }
       return res // 返回 {code, data}，组件调用showByCode(res.code)
     } catch (error) {
       console.error('取消收藏失败:', error)

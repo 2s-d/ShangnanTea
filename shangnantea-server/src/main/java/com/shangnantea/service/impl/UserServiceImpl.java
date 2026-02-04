@@ -1204,7 +1204,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Result<Boolean> removeFollow(String id) {
+    public Result<Boolean> removeFollow(AddFollowDTO followDTO) {
         try {
             // 1. 获取当前用户ID
             String userId = UserContext.getCurrentUserId();
@@ -1213,37 +1213,24 @@ public class UserServiceImpl implements UserService {
                 return Result.failure(2124); // 操作失败
             }
             
-            // 2. 验证关注ID
-            Integer followId;
-            try {
-                followId = Integer.parseInt(id);
-            } catch (NumberFormatException e) {
-                logger.warn("取消关注失败: 关注ID格式错误, id: {}", id);
+            // 2. 验证参数
+            if (followDTO == null || followDTO.getTargetId() == null || followDTO.getTargetType() == null) {
+                logger.warn("取消关注失败: 参数不完整");
                 return Result.failure(2124); // 操作失败
             }
             
-            // 3. 查询关注记录是否存在
-            UserFollow existingFollow = userFollowMapper.selectById(followId);
-            if (existingFollow == null) {
-                logger.warn("取消关注失败: 关注记录不存在, followId: {}", followId);
-                return Result.failure(2124); // 操作失败
-            }
+            String targetId = followDTO.getTargetId();
+            String targetType = followDTO.getTargetType();
             
-            // 4. 验证用户是否有权限删除该关注
-            if (!userId.equals(existingFollow.getUserId())) {
-                logger.warn("取消关注失败: 无权限删除该关注, userId: {}, followUserId: {}", 
-                    userId, existingFollow.getUserId());
-                return Result.failure(2124); // 操作失败
-            }
-            
-            // 5. 执行删除
-            int result = userFollowMapper.deleteById(followId);
+            // 3. 执行删除（根据 userId, targetType, targetId 删除）
+            int result = userFollowMapper.deleteByUserIdAndFollow(userId, targetType, targetId);
             if (result <= 0) {
-                logger.error("取消关注失败: 数据库删除失败, followId: {}", followId);
+                logger.warn("取消关注失败: 关注记录不存在或已删除, userId: {}, targetType: {}, targetId: {}", 
+                    userId, targetType, targetId);
                 return Result.failure(2124); // 操作失败
             }
             
-            logger.info("取消关注成功: userId: {}, followId: {}", userId, followId);
+            logger.info("取消关注成功: userId: {}, targetType: {}, targetId: {}", userId, targetType, targetId);
             return Result.success(2013, true); // 已取消关注
             
         } catch (Exception e) {
@@ -1367,7 +1354,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Result<Boolean> removeFavorite(String id) {
+    public Result<Boolean> removeFavorite(AddFavoriteDTO favoriteDTO) {
         try {
             // 1. 获取当前用户ID
             String userId = UserContext.getCurrentUserId();
@@ -1376,37 +1363,24 @@ public class UserServiceImpl implements UserService {
                 return Result.failure(2127); // 操作失败
             }
             
-            // 2. 验证收藏ID
-            Integer favoriteId;
-            try {
-                favoriteId = Integer.parseInt(id);
-            } catch (NumberFormatException e) {
-                logger.warn("取消收藏失败: 收藏ID格式错误, id: {}", id);
+            // 2. 验证参数
+            if (favoriteDTO == null || favoriteDTO.getItemId() == null || favoriteDTO.getItemType() == null) {
+                logger.warn("取消收藏失败: 参数不完整");
                 return Result.failure(2127); // 操作失败
             }
             
-            // 3. 查询收藏记录是否存在
-            UserFavorite existingFavorite = userFavoriteMapper.selectById(favoriteId);
-            if (existingFavorite == null) {
-                logger.warn("取消收藏失败: 收藏记录不存在, favoriteId: {}", favoriteId);
-                return Result.failure(2127); // 操作失败
-            }
+            String itemId = favoriteDTO.getItemId();
+            String itemType = favoriteDTO.getItemType();
             
-            // 4. 验证用户是否有权限删除该收藏
-            if (!userId.equals(existingFavorite.getUserId())) {
-                logger.warn("取消收藏失败: 无权限删除该收藏, userId: {}, favoriteUserId: {}", 
-                    userId, existingFavorite.getUserId());
-                return Result.failure(2127); // 操作失败
-            }
-            
-            // 5. 执行删除
-            int result = userFavoriteMapper.deleteById(favoriteId);
+            // 3. 执行删除（根据 userId, itemType, itemId 删除）
+            int result = userFavoriteMapper.deleteByUserIdAndItem(userId, itemType, itemId);
             if (result <= 0) {
-                logger.error("取消收藏失败: 数据库删除失败, favoriteId: {}", favoriteId);
+                logger.warn("取消收藏失败: 收藏记录不存在或已删除, userId: {}, itemType: {}, itemId: {}", 
+                    userId, itemType, itemId);
                 return Result.failure(2127); // 操作失败
             }
             
-            logger.info("取消收藏成功: userId: {}, favoriteId: {}", userId, favoriteId);
+            logger.info("取消收藏成功: userId: {}, itemType: {}, itemId: {}", userId, itemType, itemId);
             return Result.success(2015, true); // 已取消收藏
             
         } catch (Exception e) {

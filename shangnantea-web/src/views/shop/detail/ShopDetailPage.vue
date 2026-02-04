@@ -365,17 +365,14 @@ export default {
       followLoading.value = true
       try {
         if (isFollowing.value) {
-          // 取消关注：需要先找到关注记录ID
-          const followList = store.state.user.followList || []
-          const followItem = followList.find(item => 
-            item.targetType === 'shop' && item.targetId === shop.value.id
-          )
-          if (followItem) {
-            const response = await store.dispatch('user/removeFollow', followItem.id)
-            showByCode(response.code)
-            // 重新加载店铺详情以更新isFollowed状态
-            await store.dispatch('shop/fetchShopDetail', shop.value.id)
-          }
+          // 取消关注：直接传递 targetId 和 targetType
+          const response = await store.dispatch('user/removeFollow', {
+            targetId: shop.value.id,
+            targetType: 'shop'
+          })
+          showByCode(response.code)
+          // 重新加载店铺详情以更新isFollowed状态
+          await store.dispatch('shop/fetchShopDetail', shop.value.id)
         } else {
           // 添加关注
           const response = await store.dispatch('user/addFollow', {

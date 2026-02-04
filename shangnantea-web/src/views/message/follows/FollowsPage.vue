@@ -346,7 +346,10 @@ export default {
       }
       
       try {
-        const res = await store.dispatch('user/removeFollow', followItem.id)
+        const res = await store.dispatch('user/removeFollow', {
+          targetId: userId,
+          targetType: 'user'
+        })
         // 使用状态码消息系统，符合项目规范
         showByCode(res.code)
         // 重新加载关注列表以更新状态
@@ -372,20 +375,11 @@ export default {
     
     // 取消关注店铺
     const unfollowShop = async shopId => {
-      // 找到对应的关注记录
-      const followItem = followList.value.find(item => 
-        item.targetType === 'shop' && item.targetId === shopId
-      )
-      if (!followItem) {
-        // 异常情况：数据不同步。开发环境记录错误，生产环境静默处理
-        if (process.env.NODE_ENV === 'development') {
-          console.error('[异常] 未找到关注记录，shopId:', shopId, 'followList:', followList.value)
-        }
-        return
-      }
-      
       try {
-        const res = await store.dispatch('user/removeFollow', followItem.id)
+        const res = await store.dispatch('user/removeFollow', {
+          targetId: shopId,
+          targetType: 'shop'
+        })
         // 使用状态码消息系统，符合项目规范
         showByCode(res.code)
         // 重新加载关注列表以更新状态

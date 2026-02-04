@@ -529,17 +529,14 @@ export default {
       favoriteLoading.value = true
       try {
         if (isFavorite.value) {
-          // 取消收藏：需要先找到收藏记录ID
-          const favoriteList = store.state.user.favoriteList || []
-          const favoriteItem = favoriteList.find(item => 
-            item.itemType === 'tea' && item.itemId === tea.value.id
-          )
-          if (favoriteItem) {
-            const response = await store.dispatch('user/removeFavorite', favoriteItem.id)
-            showByCode(response.code)
-            // 重新加载茶叶详情以更新isFavorited状态
-            await store.dispatch('tea/fetchTeaDetail', tea.value.id)
-          }
+          // 取消收藏：直接传递 itemId 和 itemType
+          const response = await store.dispatch('user/removeFavorite', {
+            itemId: tea.value.id,
+            itemType: 'tea'
+          })
+          showByCode(response.code)
+          // 重新加载茶叶详情以更新isFavorited状态
+          await store.dispatch('tea/fetchTeaDetail', tea.value.id)
         } else {
           // 添加收藏
           const response = await store.dispatch('user/addFavorite', {

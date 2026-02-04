@@ -321,17 +321,17 @@ public class UserController {
 
     /**
      * 取消关注
-     * 路径: DELETE /user/follows/{id}
+     * 路径: DELETE /user/follows
      * 成功码: 2013, 失败码: 2124
      *
-     * @param id 关注ID
+     * @param followDTO 关注信息（targetId, targetType）
      * @return 取消结果
      */
-    @DeleteMapping("/follows/{id}")
+    @DeleteMapping("/follows")
     @RequiresLogin
-    public Result<Boolean> removeFollow(@PathVariable String id) {
-        logger.info("取消关注请求: {}", id);
-        return userService.removeFollow(id);
+    public Result<Boolean> removeFollow(@Valid @RequestBody AddFollowDTO followDTO) {
+        logger.info("取消关注请求: targetType: {}, targetId: {}", followDTO.getTargetType(), followDTO.getTargetId());
+        return userService.removeFollow(followDTO);
     }
 
     /**
@@ -366,17 +366,17 @@ public class UserController {
 
     /**
      * 取消收藏
-     * 路径: DELETE /user/favorites/{id}
+     * 路径: DELETE /user/favorites
      * 成功码: 2015, 失败码: 2127
      *
-     * @param id 收藏ID
+     * @param favoriteDTO 收藏信息（itemId, itemType）
      * @return 取消结果
      */
-    @DeleteMapping("/favorites/{id}")
+    @DeleteMapping("/favorites")
     @RequiresLogin
-    public Result<Boolean> removeFavorite(@PathVariable String id) {
-        logger.info("取消收藏请求: {}", id);
-        return userService.removeFavorite(id);
+    public Result<Boolean> removeFavorite(@Valid @RequestBody AddFavoriteDTO favoriteDTO) {
+        logger.info("取消收藏请求: itemType: {}, itemId: {}", favoriteDTO.getItemType(), favoriteDTO.getItemId());
+        return userService.removeFavorite(favoriteDTO);
     }
 
     /**
