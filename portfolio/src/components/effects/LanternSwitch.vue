@@ -6,7 +6,7 @@
     <!-- 灯笼 -->
     <div 
       class="lantern"
-      :class="{ 'is-dark': isDark, 'is-dragging': isDragging }"
+      :class="{ 'is-tech': currentTheme === 'tech', 'is-dragging': isDragging }"
       :style="lanternStyle"
       @mousedown="startDrag"
       @touchstart="startDrag"
@@ -16,8 +16,8 @@
       
       <!-- 灯笼主体 -->
       <div class="lantern-body">
-        <div class="lantern-light" :class="{ 'glow': isDark }"></div>
-        <div class="lantern-text">{{ isDark ? '夜' : '昼' }}</div>
+        <div class="lantern-light" :class="{ 'glow': currentTheme === 'tech' }"></div>
+        <div class="lantern-text">{{ currentTheme === 'tech' ? '科' : '简' }}</div>
         <div class="lantern-pattern pattern-1"></div>
         <div class="lantern-pattern pattern-2"></div>
       </div>
@@ -41,7 +41,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 
 const props = defineProps({
-  isDark: Boolean,
+  currentTheme: String,
   onToggle: Function
 })
 
@@ -322,8 +322,8 @@ onUnmounted(() => {
   }
 }
 
-/* 深色模式下的灯笼 */
-.lantern.is-dark .lantern-body {
+/* 科技模式下的灯笼 */
+.lantern.is-tech .lantern-body {
   box-shadow: 
     0 4px 8px rgba(0, 0, 0, 0.3),
     inset 0 -10px 20px rgba(0, 0, 0, 0.2),

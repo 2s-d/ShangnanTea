@@ -192,7 +192,7 @@ body {
 
 /* 主题特定样式 */
 
-/* 简约模式 */
+/* 主题1：简约模式 - 粒子背景 */
 .theme-minimal .glass-effect {
   background: var(--color-bg-secondary) !important;
   backdrop-filter: none !important;
@@ -203,7 +203,7 @@ body {
   animation: none !important;
 }
 
-/* 科技模式 */
+/* 主题2：科技模式 - 代码雨 */
 .theme-tech .glass-effect {
   /* 保持玻璃态效果 */
 }

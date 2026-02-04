@@ -10,9 +10,11 @@
     <CursorGlow />
     <ScrollProgress />
     
-    <!-- 控制器 -->
-    <LanternSwitch :is-dark="isDark" :on-toggle="toggleDarkMode" />
-    <ThemeSwitcher />
+    <!-- 红灯笼：切换主题模板 -->
+    <LanternSwitch 
+      :current-theme="currentTheme" 
+      :on-toggle="toggleTheme" 
+    />
 
     <!-- 顶部导航 -->
     <el-affix :offset="0">
@@ -49,7 +51,7 @@
             <el-icon><Message /></el-icon>
             联系
           </el-menu-item>
-          <el-menu-item index="6" @click="toggleTheme()">
+          <el-menu-item index="6" @click="toggleDarkMode()">
             <el-icon v-if="isDark"><Sunny /></el-icon>
             <el-icon v-else><Moon /></el-icon>
           </el-menu-item>
@@ -178,7 +180,8 @@
               :sm="12"
               :md="8"
             >
-              <TiltCard :max-tilt="5">
+              <!-- 科技模式：3D倾斜卡片 + 玻璃态 -->
+              <TiltCard v-if="currentTheme === THEMES.TECH" :max-tilt="5">
                 <el-card shadow="hover" class="project-card card-hover glass-effect">
                 <template #header>
                   <div class="project-header">
@@ -214,6 +217,42 @@
                 </div>
               </el-card>
               </TiltCard>
+              
+              <!-- 简约模式：普通卡片 -->
+              <el-card v-else shadow="hover" class="project-card card-hover">
+                <template #header>
+                  <div class="project-header">
+                    <span class="project-name">{{ project.name }}</span>
+                    <el-tag :type="project.status === 'online' ? 'success' : 'info'">
+                      {{ project.status === 'online' ? '已上线' : '开发中' }}
+                    </el-tag>
+                  </div>
+                </template>
+                <div class="project-image">
+                  <img :src="project.image" :alt="project.name" />
+                </div>
+                <p class="project-desc">{{ project.description }}</p>
+                <div class="project-tags">
+                  <el-tag
+                    v-for="tech in project.tech"
+                    :key="tech"
+                    size="small"
+                    class="tech-tag"
+                  >
+                    {{ tech }}
+                  </el-tag>
+                </div>
+                <div class="project-actions">
+                  <el-button type="primary" link @click="openProject(project.url)">
+                    <el-icon><View /></el-icon>
+                    查看项目
+                  </el-button>
+                  <el-button link v-if="project.github" @click="openProject(project.github)">
+                    <el-icon><Link /></el-icon>
+                    GitHub
+                  </el-button>
+                </div>
+              </el-card>
             </el-col>
           </el-row>
         </el-main>
@@ -272,13 +311,12 @@ import TiltCard from './components/effects/TiltCard.vue'
 import LanternSwitch from './components/effects/LanternSwitch.vue'
 import CodeRain from './components/effects/CodeRain.vue'
 import SkillProgress from './components/effects/SkillProgress.vue'
-import ThemeSwitcher from './components/ThemeSwitcher.vue'
 import { useThemeSystem } from './composables/useThemeSystem'
 import { useScroll } from './composables/useScroll'
 import { profile, skills, projects } from './data/portfolio'
 
 // 主题系统
-const { isDark, currentTheme, toggleDarkMode, THEMES } = useThemeSystem()
+const { isDark, currentTheme, toggleDarkMode, toggleTheme, THEMES } = useThemeSystem()
 
 // 滚动功能
 const { scrollTo } = useScroll()
