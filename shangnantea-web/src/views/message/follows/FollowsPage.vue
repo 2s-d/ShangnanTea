@@ -56,7 +56,7 @@
                 <el-button size="small" @click="sendMessage(item.userId)">
                   <el-icon><Message /></el-icon> 发消息
                 </el-button>
-                <el-button size="small" plain type="danger" @click="unfollowUser(item.userId)">
+                <el-button size="small" plain type="danger" @click="unfollowUser(item.id)">
                   取消关注
                 </el-button>
               </div>
@@ -77,7 +77,7 @@
                 <el-button size="small" type="primary" @click="contactShop(item.shopId)">
                   <el-icon><Service /></el-icon> 联系客服
                 </el-button>
-                <el-button size="small" plain type="danger" @click="unfollowShop(item.shopId)">
+                <el-button size="small" plain type="danger" @click="unfollowShop(item.id)">
                   取消关注
                 </el-button>
               </div>
@@ -158,7 +158,6 @@ import { ElMessage } from 'element-plus'
 import { Search, Male, Female, Message, Service } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 import { showByCode } from '@/utils/apiMessages'
-import { messagePromptMessages } from '@/utils/promptMessages'
 
 export default {
   name: 'FollowsPage',
@@ -339,8 +338,10 @@ export default {
         item.targetType === 'user' && item.targetId === userId
       )
       if (!followItem) {
-        // 前端验证错误，使用提示消息系统
-        messagePromptMessages.showFollowNotFound()
+        // 异常情况：数据不同步，不应该出现。开发环境记录错误
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[异常] 未找到关注记录，userId:', userId, 'followList:', followList.value)
+        }
         return
       }
       
@@ -376,8 +377,10 @@ export default {
         item.targetType === 'shop' && item.targetId === shopId
       )
       if (!followItem) {
-        // 前端验证错误，使用提示消息系统
-        messagePromptMessages.showFollowNotFound()
+        // 异常情况：数据不同步，不应该出现。开发环境记录错误
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[异常] 未找到关注记录，shopId:', shopId, 'followList:', followList.value)
+        }
         return
       }
       
