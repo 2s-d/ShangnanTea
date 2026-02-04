@@ -171,15 +171,6 @@ const routes = [
     name: 'OrderPayment',
     component: () => import('@/views/order/payment/PaymentPage.vue'),
     meta: {
-      title: '订单支付 - 商南茶文化',
-      requireAuth: true
-    }
-  },
-  {
-    path: '/payment/result',
-    name: 'PaymentResult',
-    component: () => import('@/views/order/payment/PaymentResultPage.vue'),
-    meta: {
       title: '支付结果 - 商南茶文化',
       requireAuth: true
     }

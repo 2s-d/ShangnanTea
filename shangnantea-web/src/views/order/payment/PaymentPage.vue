@@ -1,111 +1,71 @@
 <template>
-  <div class="payment-page">
+  <div class="payment-result-page">
     <el-card class="box-card" shadow="hover">
-      <template #header>
-        <div class="card-header">
-          <span class="title">订单支付</span>
-          <div class="order-info">
-            <span class="countdown">
-              <el-icon><Timer /></el-icon>
-              支付剩余时间: {{ formatTime(countdown) }}
-            </span>
-          </div>
-        </div>
-      </template>
-
-      <div v-loading="loading" class="payment-content">
-        <!-- 商品信息与订单号 -->
-        <div class="payment-section tea-items-section">
-          <div class="section-title">商品信息</div>
-          <div v-for="(item, index) in teaItems" :key="index" class="tea-item">
-            <div class="tea-image">
-              <SafeImage :src="item.image" type="tea" :alt="item.name" style="width:80px;height:80px;object-fit:cover;" />
-            </div>
-            <div class="tea-info">
-              <div class="tea-name">{{ item.name }}</div>
-              <div class="tea-spec">规格：{{ item.spec }}</div>
-              <div class="tea-quantity">数量：{{ item.quantity }}</div>
-              <div class="order-id">订单编号：{{ item.orderId }}</div>
-            </div>
-            <div class="tea-price">¥{{ item.price.toFixed(2) }}</div>
-          </div>
+      <div v-loading="loading" class="result-content">
+        <!-- 加载中 -->
+        <div v-if="loading" class="loading-section">
+          <el-icon class="is-loading" :size="60"><Loading /></el-icon>
+          <p class="loading-text">正在确认支付结果...</p>
+          <p class="loading-tip">请稍候，不要关闭页面</p>
         </div>
 
-        <!-- 订单信息摘要 -->
-        <div class="payment-section order-summary">
-          <div class="section-title">订单信息</div>
-          <div class="order-amount">
-            <span class="amount-label">支付金额</span>
-            <span class="amount-value">¥{{ orderAmount.toFixed(2) }}</span>
-          </div>
-          <div class="order-detail">
-            <div class="detail-item">
-              <span class="label">商品金额：</span>
-              <span class="value">¥{{ orderDetail.goodsAmount.toFixed(2) }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="label">运费：</span>
-              <span class="value">¥{{ orderDetail.shippingFee.toFixed(2) }}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- 支付方式部分 -->
-        <div class="payment-section payment-method">
-          <div class="section-title">支付方式</div>
+        <!-- 支付成功 -->
+        <div v-else-if="paymentSuccess" class="success-section">
+          <el-icon class="success-icon" :size="80"><CircleCheck /></el-icon>
+          <h2 class="result-title">支付成功！</h2>
+          <p class="result-desc">您的订单已支付成功，我们将尽快为您发货</p>
           
-          <div class="payment-method-container">
-            <div class="payment-method-info">
-              <div class="payment-icon-container">
-                <SafeImage 
-                  v-if="paymentMethod === 'wechat'" 
-                  src="/images/payments/wechat.jpg" 
-                  type="banner"
-                  alt="微信支付" 
-                  class="payment-icon" 
-                />
-                <SafeImage 
-                  v-else-if="paymentMethod === 'alipay'" 
-                  src="/images/payments/alipay.jpg" 
-                  type="banner"
-                  alt="支付宝" 
-                  class="payment-icon" 
-                />
-              </div>
-              <div class="payment-desc">
-                <div class="payment-method-name">
-                  {{ paymentMethod === 'wechat' ? '微信支付' : '支付宝' }}（扫码支付）
-                </div>
-                <div class="payment-tip">点击"立即支付"按钮完成支付</div>
-              </div>
+          <div class="order-info">
+            <div class="info-item">
+              <span class="label">订单编号：</span>
+              <span class="value">{{ orderId }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">支付金额：</span>
+              <span class="value amount">¥{{ orderAmount.toFixed(2) }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">支付时间：</span>
+              <span class="value">{{ paymentTime }}</span>
             </div>
           </div>
-        </div>
 
-        <!-- 支付操作 -->
-        <div class="payment-section payment-action">
-          <el-button 
-            type="primary" 
-            size="large" 
-            :loading="submitting" 
-            @click="handlePayment"
-            class="pay-button"
-          >
-            立即支付
-          </el-button>
-          <el-button @click="cancelPayment">取消支付</el-button>
-        </div>
-
-        <!-- 支付说明 -->
-        <div class="payment-section payment-notice">
-          <div class="notice-title">
-            <el-icon><InfoFilled /></el-icon>
-            支付说明
+          <div class="action-buttons">
+            <el-button type="primary" size="large" @click="goToOrderDetail">
+              查看订单详情
+            </el-button>
+            <el-button size="large" @click="goToOrderList">
+              我的订单
+            </el-button>
+            <el-button size="large" @click="goToHome">
+              返回首页
+            </el-button>
           </div>
-          <div class="notice-content">
-            <p>1. 请在30分钟内完成支付，超时订单将自动取消</p>
-            <p>2. 支付成功后，将自动跳转到订单详情页面</p>
-            <p>3. 如遇支付问题，请联系客服：400-123-4567</p>
+        </div>
+
+        <!-- 支付失败或取消 -->
+        <div v-else class="failure-section">
+          <el-icon class="failure-icon" :size="80"><CircleClose /></el-icon>
+          <h2 class="result-title">支付失败</h2>
+          <p class="result-desc">{{ failureReason }}</p>
+          
+          <div class="order-info" v-if="orderId">
+            <div class="info-item">
+              <span class="label">订单编号：</span>
+              <span class="value">{{ orderId }}</span>
+            </div>
+          </div>
+
+          <div class="action-buttons">
+            <el-button type="primary" size="large" @click="retryPayment" v-if="orderId">
+              重新支付
+            </el-button>
+            <el-button size="large" @click="goToOrderList">
+              我的订单
+            </el-button>
+            <el-button size="large" @click="goToHome">
+              返回首页
+            </el-button>
           </div>
         </div>
       </div>
@@ -117,496 +77,293 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useStore } from 'vuex'
-import { ElMessageBox } from 'element-plus'
-import { InfoFilled, Timer } from '@element-plus/icons-vue'
-import SafeImage from '@/components/common/form/SafeImage.vue'
-import { showByCode, isSuccess } from '@/utils/apiMessages'
-import { orderPromptMessages } from '@/utils/promptMessages'
+import { CircleCheck, CircleClose, Loading } from '@element-plus/icons-vue'
 
 export default {
   name: 'PaymentPage',
   components: {
-    InfoFilled,
-    Timer,
-    SafeImage
+    CircleCheck,
+    CircleClose,
+    Loading
   },
   setup() {
     const router = useRouter()
     const route = useRoute()
     const store = useStore()
 
-    // 一个支付页只处理单个订单，优先从 query.orderId / params.id 取
-    const orderId = ref(
-      route.query.orderId ||
-      (route.query.orderIds ? String(route.query.orderIds).split(',')[0] : '') ||
-      route.params.id ||
-      ''
-    )
-
-    const loading = ref(false)
-    const submitting = ref(false)
-    const paymentMethod = ref('wechat') // 默认微信
-
-    // 当前订单数据来自 Vuex
+    const loading = ref(true)
+    const paymentSuccess = ref(false)
+    const failureReason = ref('支付已取消或支付失败，请重试')
+    
+    // 从URL获取订单ID
+    const orderId = ref(route.query.orderId || route.query.out_trade_no || '')
+    
+    // 当前订单数据
     const currentOrder = computed(() => store.state.order.currentOrder || {})
-
+    
     const orderAmount = computed(() => {
-      const o = currentOrder.value
-      return o.totalAmount || 0
+      return currentOrder.value.totalAmount || 0
+    })
+    
+    const paymentTime = computed(() => {
+      if (currentOrder.value.paymentTime) {
+        return new Date(currentOrder.value.paymentTime).toLocaleString('zh-CN')
+      }
+      return new Date().toLocaleString('zh-CN')
     })
 
-    const orderDetail = computed(() => {
-      const o = currentOrder.value
-      const total = o.totalAmount || 0
-      return {
-        goodsAmount: total,
-        shippingFee: 0
-      }
-    })
+    let pollingTimer = null
+    let pollingCount = 0
+    const MAX_POLLING_COUNT = 10 // 最多轮询10次
 
-    // 支付页只展示当前订单的第一件商品信息
-    const teaItems = computed(() => {
-      const o = currentOrder.value
-      if (!o.id) {
-        return []
-      }
-      return [
-        {
-          orderId: o.id,
-          name: o.teaName || '茶叶商品',
-          spec: o.specName || '默认规格',
-          quantity: o.quantity || 1,
-          price: o.price || o.totalAmount || 0,
-          image: o.teaImage || '/images/tea-default.jpg'
-        }
-      ]
-    })
-
-    // 30 分钟倒计时（单位：秒）
-    const countdown = ref(1800)
-    let countdownTimer = null
-
-    const formatTime = seconds => {
-      const m = Math.floor(seconds / 60)
-      const s = seconds % 60
-      return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
-    }
-
-    const startCountdown = () => {
-      if (countdownTimer) {
-        clearInterval(countdownTimer)
-      }
-      countdownTimer = setInterval(() => {
-        countdown.value -= 1
-        if (countdown.value <= 0) {
-          clearInterval(countdownTimer)
-          handleOrderTimeout()
-        }
-      }, 1000)
-    }
-
-    const handleOrderTimeout = async () => {
+    /**
+     * 轮询查询订单状态
+     * 因为支付宝异步回调可能有延迟，需要轮询确认
+     */
+    const checkPaymentStatus = async () => {
       if (!orderId.value) {
-        router.push('/order/list')
+        loading.value = false
+        paymentSuccess.value = false
+        failureReason.value = '订单信息丢失，请在"我的订单"中查看'
         return
       }
+
       try {
-        showByCode(4122) // 支付超时，订单已自动取消
-        await store.dispatch('order/cancelOrder', orderId.value)
-      } catch (e) {
-        // 忽略失败，仍然跳转
+        // 获取订单详情
+        await store.dispatch('order/fetchOrderDetail', orderId.value)
+        
+        const order = currentOrder.value
+        
+        // 检查订单状态
+        // 订单状态：0-待付款, 1-待发货(已支付), 2-待收货, 3-已完成, 4-已取消, 5-已退款
+        if (order.status === 1 || order.status === 2 || order.status === 3) {
+          // 支付成功
+          paymentSuccess.value = true
+          loading.value = false
+          stopPolling()
+          return
+        }
+        
+        // 如果还是待付款状态，继续轮询
+        if (order.status === 0) {
+          pollingCount++
+          
+          if (pollingCount >= MAX_POLLING_COUNT) {
+            // 轮询次数用完，认为支付失败
+            paymentSuccess.value = false
+            loading.value = false
+            failureReason.value = '支付结果确认超时，请稍后在"我的订单"中查看订单状态'
+            stopPolling()
+            return
+          }
+          
+          // 继续轮询，2秒后再次查询
+          pollingTimer = setTimeout(checkPaymentStatus, 2000)
+          return
+        }
+        
+        // 其他状态（如已取消），认为支付失败
+        paymentSuccess.value = false
+        loading.value = false
+        failureReason.value = '订单已取消或支付失败'
+        stopPolling()
+        
+      } catch (error) {
+        console.error('查询订单状态失败:', error)
+        
+        pollingCount++
+        
+        if (pollingCount >= MAX_POLLING_COUNT) {
+          paymentSuccess.value = false
+          loading.value = false
+          failureReason.value = '无法确认支付结果，请稍后在"我的订单"中查看'
+          stopPolling()
+        } else {
+          // 出错了也继续轮询
+          pollingTimer = setTimeout(checkPaymentStatus, 2000)
+        }
       }
+    }
+
+    const stopPolling = () => {
+      if (pollingTimer) {
+        clearTimeout(pollingTimer)
+        pollingTimer = null
+      }
+    }
+
+    const goToOrderDetail = () => {
+      router.push(`/order/detail/${orderId.value}`)
+    }
+
+    const goToOrderList = () => {
       router.push('/order/list')
     }
 
-    const loadOrderData = async () => {
-      if (!orderId.value) {
-        orderPromptMessages.showOrderIdRequired()
-        router.push('/order/list')
-        return
-      }
-      loading.value = true
-      try {
-        await store.dispatch('order/fetchOrderDetail', orderId.value)
-        // 使用后端返回的支付方式
-        if (currentOrder.value && currentOrder.value.paymentMethod) {
-          paymentMethod.value = currentOrder.value.paymentMethod
-        }
-        // 简化：统一从现在开始倒计时 30 分钟
-        countdown.value = 1800
-        startCountdown()
-      } catch (error) {
-        showByCode(4123) // 加载订单信息失败
-        router.push('/order/list')
-      } finally {
-        loading.value = false
-      }
+    const goToHome = () => {
+      router.push('/tea-culture')
     }
 
-    const handlePayment = async () => {
-      if (!orderId.value) {
-        orderPromptMessages.showOrderIdRequired()
-        return
-      }
-      submitting.value = true
-      try {
-        const res = await store.dispatch('order/payOrder', {
-          orderId: orderId.value,
-          paymentMethod: paymentMethod.value
-        })
-        if (res?.code) showByCode(res.code)
-        router.push(`/order/detail/${orderId.value}`)
-      } catch (error) {
-        // 网络错误等已由响应拦截器处理，这里只记录日志
-        if (process.env.NODE_ENV === 'development') {
-          console.error('支付失败:', error)
-        }
-      } finally {
-        submitting.value = false
-      }
-    }
-
-    const cancelPayment = () => {
-      if (!orderId.value) {
-        router.push('/order/list')
-        return
-      }
-      ElMessageBox.confirm('确定要取消支付吗？订单将被取消', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '继续支付',
-        type: 'warning'
-      })
-        .then(async () => {
-          try {
-            const res = await store.dispatch('order/cancelOrder', orderId.value)
-            if (res?.code) showByCode(res.code)
-          } catch (error) {
-            // 网络错误等已由响应拦截器处理，这里只记录日志
-            if (process.env.NODE_ENV === 'development') {
-              console.error('取消订单失败:', error)
-            }
-          } finally {
-            router.push('/order/list')
-          }
-        })
-        .catch(() => {
-          // 用户选择继续支付，不做处理
-        })
+    const retryPayment = () => {
+      // 跳转回结算页面，重新发起支付
+      router.push(`/order/checkout?orderId=${orderId.value}`)
     }
 
     onMounted(() => {
-      loadOrderData()
+      // 开始轮询查询订单状态
+      checkPaymentStatus()
     })
 
     onUnmounted(() => {
-      if (countdownTimer) {
-        clearInterval(countdownTimer)
-      }
+      stopPolling()
     })
 
     return {
       loading,
-      submitting,
-      paymentMethod,
-      teaItems,
+      paymentSuccess,
+      failureReason,
+      orderId,
       orderAmount,
-      orderDetail,
-      countdown,
-      formatTime,
-      handlePayment,
-      cancelPayment
+      paymentTime,
+      goToOrderDetail,
+      goToOrderList,
+      goToHome,
+      retryPayment
     }
   }
 }
 </script>
 
 <style lang="scss" scoped>
-.payment-page {
+.payment-result-page {
   padding: 20px;
   background-color: #f5f7fa;
   min-height: calc(100vh - 60px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .box-card {
-  max-width: 800px;
-  margin: 0 auto;
+  max-width: 600px;
+  width: 100%;
 }
 
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  
-  .title {
-    font-size: 18px;
-    font-weight: bold;
-  }
-  
-  .order-info {
-    color: #606266;
-    font-size: 14px;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    
-    .countdown {
-      margin-top: 5px;
-      color: #f56c6c;
-      font-weight: bold;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-  }
-}
-
-.payment-content {
+.result-content {
   min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
 }
 
-.payment-section {
-  margin-bottom: 30px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #ebeef5;
+// 加载中样式
+.loading-section {
+  text-align: center;
   
-  &:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
+  .loading-text {
+    font-size: 18px;
+    color: #303133;
+    margin-top: 20px;
+    margin-bottom: 10px;
+  }
+  
+  .loading-tip {
+    font-size: 14px;
+    color: #909399;
   }
 }
 
-.section-title {
-  font-size: 16px;
-  font-weight: bold;
-  margin-bottom: 20px;
-  color: #303133;
+// 成功样式
+.success-section {
+  text-align: center;
+  width: 100%;
+  
+  .success-icon {
+    color: #67c23a;
+    margin-bottom: 20px;
+  }
 }
 
-// 茶叶商品信息样式
-.tea-items-section {
-  .tea-item {
+// 失败样式
+.failure-section {
+  text-align: center;
+  width: 100%;
+  
+  .failure-icon {
+    color: #f56c6c;
+    margin-bottom: 20px;
+  }
+}
+
+// 通用样式
+.result-title {
+  font-size: 24px;
+  color: #303133;
+  margin-bottom: 10px;
+}
+
+.result-desc {
+  font-size: 16px;
+  color: #606266;
+  margin-bottom: 30px;
+}
+
+.order-info {
+  background-color: #f8f9fa;
+  padding: 20px;
+  border-radius: 4px;
+  margin-bottom: 30px;
+  text-align: left;
+  
+  .info-item {
     display: flex;
-    align-items: center;
-    padding: 15px;
-    border: 1px solid #ebeef5;
-    border-radius: 4px;
-    background-color: #f8f9fa;
+    justify-content: space-between;
     margin-bottom: 12px;
     
     &:last-child {
       margin-bottom: 0;
     }
-  }
-  
-  .tea-image {
-    width: 80px;
-    height: 80px;
-    overflow: hidden;
-    border-radius: 4px;
-    margin-right: 15px;
     
-    img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-  }
-  
-  .tea-info {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-  }
-  
-  .tea-name {
-    font-weight: bold;
-    font-size: 16px;
-    color: #303133;
-  }
-  
-  .tea-spec, .tea-quantity {
-    color: #606266;
-    font-size: 14px;
-  }
-  
-  .order-id {
-    margin-top: 5px;
-    color: #909399;
-    font-size: 13px;
-  }
-  
-  .tea-price {
-    font-size: 18px;
-    font-weight: bold;
-    color: #f56c6c;
-    margin-left: 15px;
-  }
-}
-
-// 订单摘要样式
-.order-summary {
-  .order-amount {
-    text-align: center;
-    margin-bottom: 20px;
-    
-    .amount-label {
-      font-size: 16px;
+    .label {
       color: #606266;
-      margin-right: 10px;
+      font-size: 14px;
     }
     
-    .amount-value {
-      font-size: 24px;
-      font-weight: bold;
-      color: #f56c6c;
-    }
-  }
-  
-  .order-detail {
-    background-color: #f8f9fa;
-    padding: 15px;
-    border-radius: 4px;
-    
-    .detail-item {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 10px;
-      
-      &:last-child {
-        margin-bottom: 0;
-      }
-      
-      .label {
-        color: #606266;
-      }
-      
-      .value {
-        font-weight: 500;
-      }
-    }
-  }
-}
-
-// 支付方式样式
-.payment-method {
-  .payment-method-container {
-    display: flex;
-    justify-content: center;
-    padding: 20px 0;
-  }
-  
-  .payment-method-info {
-    display: flex;
-    align-items: center;
-    padding: 15px 20px;
-    border: 1px solid #dcdfe6;
-    border-radius: 4px;
-    background-color: #fff;
-  }
-  
-  .payment-icon-container {
-    margin-right: 15px;
-    
-    .payment-icon {
-      width: 48px;
-      height: 48px;
-      object-fit: contain;
-    }
-  }
-  
-  .payment-desc {
-    .payment-method-name {
-      font-weight: bold;
+    .value {
       color: #303133;
-      margin-bottom: 5px;
-    }
-    
-    .payment-tip {
-      color: #909399;
-      font-size: 13px;
+      font-size: 14px;
+      font-weight: 500;
+      
+      &.amount {
+        color: #f56c6c;
+        font-size: 18px;
+        font-weight: bold;
+      }
     }
   }
 }
 
-// 支付操作样式
-.payment-action {
-  text-align: center;
-  padding: 20px 0;
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   
-  .pay-button {
-    min-width: 150px;
-    margin-right: 20px;
+  .el-button {
+    width: 100%;
   }
 }
 
-// 支付说明样式
-.payment-notice {
-  background-color: #f8f9fa;
-  padding: 15px;
-  border-radius: 4px;
-  
-  .notice-title {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-weight: bold;
-    margin-bottom: 10px;
-    color: #409eff;
-  }
-  
-  .notice-content {
-    color: #606266;
-    font-size: 14px;
-    line-height: 1.6;
-  }
-}
-
-// 响应式样式调整
-@media (max-width: 768px) {
-  .card-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
+// 响应式
+@media (min-width: 768px) {
+  .action-buttons {
+    flex-direction: row;
+    justify-content: center;
     
-    .order-info {
-      align-items: flex-start;
-    }
-  }
-  
-  .tea-item {
-    flex-direction: column;
-    align-items: flex-start;
-    
-    .tea-image {
-      margin-right: 0;
-      margin-bottom: 10px;
-    }
-    
-    .tea-price {
-      margin-left: 0;
-      margin-top: 10px;
-    }
-  }
-  
-  .payment-action {
-    .pay-button {
-      margin-right: 0;
-      margin-bottom: 10px;
-    }
-  }
-  
-  .payment-method-info {
-    flex-direction: column;
-    
-    .payment-icon-container {
-      margin-right: 0;
-      margin-bottom: 10px;
-    }
-    
-    .payment-desc {
-      text-align: center;
+    .el-button {
+      width: auto;
+      min-width: 120px;
     }
   }
 }
-</style> 
+</style>
