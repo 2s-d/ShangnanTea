@@ -1,16 +1,12 @@
 <template>
-  <div
-    class="tilt-card"
-    @mousemove="handleMouseMove"
-    @mouseleave="handleMouseLeave"
-    :style="cardStyle"
-  >
+  <div ref="tiltRef" class="tilt-card">
     <slot></slot>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
+import VanillaTilt from 'vanilla-tilt'
 
 const props = defineProps({
   maxTilt: {
@@ -19,43 +15,38 @@ const props = defineProps({
   }
 })
 
-const rotateX = ref(0)
-const rotateY = ref(0)
-const isHovering = ref(false)
+const tiltRef = ref(null)
+let tiltInstance = null
 
-const cardStyle = computed(() => ({
-  transform: `perspective(1000px) rotateX(${rotateX.value}deg) rotateY(${rotateY.value}deg) scale(${isHovering.value ? 1.02 : 1})`,
-  transition: isHovering.value ? 'transform 0.1s ease' : 'transform 0.5s ease'
-}))
+onMounted(() => {
+  if (tiltRef.value) {
+    VanillaTilt.init(tiltRef.value, {
+      max: props.maxTilt,
+      speed: 1000, // 降低响应速度，减少抖动
+      glare: false,
+      scale: 1.0, // 移除放大效果，避免边缘抖动
+      perspective: 1000,
+      transition: false, // 禁用过渡动画，避免与实时计算冲突
+      easing: "cubic-bezier(.03,.98,.52,.99)",
+      reset: true, // 鼠标离开时重置状态
+      gyroscope: false, // 禁用陀螺仪，避免不必要的计算
+      reverse: false, // 确保方向正确
+      axis: null, // 允许所有方向的倾斜
+      disableAxis: null // 不禁用任何轴
+    })
+    tiltInstance = tiltRef.value.vanillaTilt
+  }
+})
 
-const handleMouseMove = (e) => {
-  isHovering.value = true
-  const card = e.currentTarget
-  const rect = card.getBoundingClientRect()
-  
-  const x = e.clientX - rect.left
-  const y = e.clientY - rect.top
-  
-  const centerX = rect.width / 2
-  const centerY = rect.height / 2
-  
-  const percentX = (x - centerX) / centerX
-  const percentY = (y - centerY) / centerY
-  
-  rotateY.value = percentX * props.maxTilt
-  rotateX.value = -percentY * props.maxTilt
-}
-
-const handleMouseLeave = () => {
-  isHovering.value = false
-  rotateX.value = 0
-  rotateY.value = 0
-}
+onUnmounted(() => {
+  if (tiltInstance) {
+    tiltInstance.destroy()
+  }
+})
 </script>
 
 <style scoped>
 .tilt-card {
   transform-style: preserve-3d;
-  will-change: transform;
 }
 </style>
