@@ -51,6 +51,12 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -122,6 +128,15 @@ public class UserServiceImpl implements UserService {
     
     @Value("${spring.mail.username}")
     private String mailFrom;
+    
+    @Value("${yunpian.sms.enabled:false}")
+    private boolean smsEnabled;  // 是否启用真实短信发送
+    
+    @Value("${yunpian.sms.api-key:}")
+    private String yunpianApiKey;  // 云片网络ApiKey
+    
+    @Value("${yunpian.sms.api-url:https://sms.yunpian.com/v2/sms/single_send.json}")
+    private String yunpianApiUrl;  // 云片网络API地址
     
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
@@ -2339,14 +2354,62 @@ public class UserServiceImpl implements UserService {
     }
     
     /**
-     * 发送短信验证码（模拟发送）
+     * 发送短信验证码（支持云片网络真实发送 + 模拟发送）
      */
     private boolean sendSmsCode(String phone, String code, String sceneType) {
-        // TODO: 后续接入真实的短信服务（阿里云SMS/腾讯云SMS）
         String sceneName = getSceneName(sceneType);
-        logger.info("【模拟发送短信】手机号: {}, 验证码: {}, 场景: {}", phone, code, sceneName);
-        logger.info("短信内容: 【商南茶城】您正在进行{}操作，验证码是：{}，5分钟内有效，请勿泄露。", sceneName, code);
-        return true; // 模拟发送总是成功
+        String smsContent = String.format("【商南茶城】您正在进行%s操作，验证码是：%s，5分钟内有效，请勿泄露。", sceneName, code);
+        
+        // 判断是否启用真实短信发送
+        if (smsEnabled && yunpianApiKey != null && !yunpianApiKey.isEmpty()) {
+            // 真实发送（云片网络）
+            return sendYunpianSms(phone, smsContent);
+        } else {
+            // 模拟发送
+            logger.info("【模拟发送短信】手机号: {}, 验证码: {}, 场景: {}", phone, code, sceneName);
+            logger.info("短信内容: {}", smsContent);
+            return true; // 模拟发送总是成功
+        }
+    }
+    
+    /**
+     * 云片网络真实发送短信
+     */
+    private boolean sendYunpianSms(String phone, String content) {
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            
+            // 构建请求参数
+            MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+            params.add("apikey", yunpianApiKey);
+            params.add("mobile", phone);
+            params.add("text", content);
+            
+            // 设置请求头
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+            
+            HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
+            
+            // 发送请求
+            String response = restTemplate.postForObject(yunpianApiUrl, request, String.class);
+            
+            logger.info("云片网络短信发送响应: {}", response);
+            
+            // 判断是否成功（云片网络返回code=0表示成功）
+            boolean success = response != null && response.contains("\"code\":0");
+            
+            if (success) {
+                logger.info("云片网络短信发送成功: phone={}", phone);
+            } else {
+                logger.error("云片网络短信发送失败: phone={}, response={}", phone, response);
+            }
+            
+            return success;
+        } catch (Exception e) {
+            logger.error("云片网络短信发送异常: phone={}, error={}", phone, e.getMessage());
+            return false;
+        }
     }
     
     /**
