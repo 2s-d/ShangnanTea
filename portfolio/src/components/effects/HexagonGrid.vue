@@ -10,6 +10,9 @@ let ctx = null
 let hexagons = []
 let mouseX = -1000
 let mouseY = -1000
+let lastMouseX = -1000
+let lastMouseY = -1000
+let lastMouseMoveTime = 0
 let animationId = null
 
 // 六边形类
@@ -44,6 +47,30 @@ class Hexagon {
     const dx = this.x - mx
     const dy = this.y - my
     return Math.sqrt(dx * dx + dy * dy)
+  }
+
+  // 根据密度计算系数（多段平滑过渡）
+  getDensityFactor(nearbyCount) {
+    // 分段密度系数，更平滑的过渡
+    if (nearbyCount <= 2) {
+      // 极低密度：0.25-0.35（非常快速消失）
+      return 0.25 + nearbyCount * 0.05
+    } else if (nearbyCount <= 5) {
+      // 低密度：0.35-0.50
+      return 0.35 + (nearbyCount - 2) * 0.05
+    } else if (nearbyCount <= 10) {
+      // 中低密度：0.50-0.70
+      return 0.50 + (nearbyCount - 5) * 0.04
+    } else if (nearbyCount <= 15) {
+      // 中高密度：0.70-0.85
+      return 0.70 + (nearbyCount - 10) * 0.03
+    } else if (nearbyCount <= 20) {
+      // 高密度：0.85-0.95
+      return 0.85 + (nearbyCount - 15) * 0.02
+    } else {
+      // 极高密度：0.95-1.0
+      return Math.min(0.95 + (nearbyCount - 20) * 0.01, 1.0)
+    }
   }
 
   // 计算周围亮着的六边形数量（密度检测）
@@ -82,12 +109,11 @@ class Hexagon {
       // 计算周围密度
       const nearbyCount = this.countNearbyActive(allHexagons, 50)
       
-      // 密度系数：周围六边形越多，存活时间越长
-      // 0个周围：系数0.5（快速消失）
-      // 10个以上：系数1.0（正常消失）
-      const densityFactor = Math.min(0.5 + nearbyCount * 0.05, 1.0)
+      // 使用多段密度系数
+      const densityFactor = this.getDensityFactor(nearbyCount)
       
-      // 基础存活时间：根据密度调整
+      // 基础存活时间：根据密度大幅调整
+      // 极短拖尾：0.625秒，长拖尾：2.5秒
       const baseLifetime = 2500 * densityFactor
       
       // 根据距离计算延迟消失时间
@@ -100,8 +126,17 @@ class Hexagon {
         // 还在存活期内
         const fadeProgress = timeSinceActivation / effectiveLifetime
         
-        // 基础衰减（根据密度调整）
-        const baseDensityDecay = densityFactor > 0.8 ? 0.998 : 0.995
+        // 基础衰减（根据密度分段调整）
+        let baseDensityDecay
+        if (densityFactor < 0.4) {
+          baseDensityDecay = 0.985  // 极低密度：快速衰减
+        } else if (densityFactor < 0.6) {
+          baseDensityDecay = 0.990  // 低密度：中快衰减
+        } else if (densityFactor < 0.8) {
+          baseDensityDecay = 0.995  // 中密度：中等衰减
+        } else {
+          baseDensityDecay = 0.998  // 高密度：慢速衰减
+        }
         this.opacity *= baseDensityDecay
         
         // 根据进度和距离加速衰减
@@ -109,8 +144,18 @@ class Hexagon {
           const distanceFactor = Math.max(0, distToCurrent - 80) / 200
           const progressFactor = (fadeProgress - 0.3) / 0.7
           
-          // 密度低的额外加速衰减
-          const densityDecayBoost = (1 - densityFactor) * 0.01
+          // 密度低的大幅加速衰减（分段）
+          let densityDecayBoost
+          if (densityFactor < 0.4) {
+            densityDecayBoost = 0.035  // 极低密度：大幅加速
+          } else if (densityFactor < 0.6) {
+            densityDecayBoost = 0.025  // 低密度：中等加速
+          } else if (densityFactor < 0.8) {
+            densityDecayBoost = 0.015  // 中密度：轻微加速
+          } else {
+            densityDecayBoost = 0.005  // 高密度：几乎不加速
+          }
+          
           const extraDecay = (distanceFactor * progressFactor * 0.015) + densityDecayBoost
           this.opacity *= (1 - extraDecay)
         }
@@ -133,7 +178,7 @@ class Hexagon {
         
       } else {
         // 超过存活时间，快速消失
-        this.opacity *= 0.92
+        this.opacity *= 0.88
       }
       
       // 偶尔闪烁（非常稀疏）
