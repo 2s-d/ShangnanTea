@@ -108,8 +108,6 @@ import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useStore } from 'vuex'
 import { useRoute, useRouter } from 'vue-router'
 
-import messageManager from '@/utils/messageManager'
-
 import { useFormValidation } from '@/composables/useFormValidation'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 import { userPromptMessages as userMessages, messagePromptMessages as messageMessages } from '@/utils/promptMessages'

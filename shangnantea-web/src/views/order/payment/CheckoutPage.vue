@@ -452,7 +452,10 @@ export default {
         if (res?.code) showByCode(res.code)
         router.push(`/order/detail/${res?.data?.order_id || res?.data?.id || ''}`)
       } catch (error) {
-        apiMessage.error(error?.message || '提交订单失败')
+        // 网络错误等已由响应拦截器处理，这里只记录日志
+        if (process.env.NODE_ENV === 'development') {
+          console.error('提交订单失败:', error)
+        }
       } finally {
         submitting.value = false
       }

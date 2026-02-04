@@ -29,8 +29,14 @@ export const commonPromptMessages = {
   showEmailRequired() {
     promptMessage.show(COMMON_PROMPT.EMAIL_REQUIRED)
   },
+  showEmailFormatInvalid() {
+    promptMessage.show('请输入有效的邮箱地址')
+  },
   showEmailAlreadySubscribed() {
     promptMessage.info(COMMON_PROMPT.EMAIL_ALREADY_SUBSCRIBED)
+  },
+  showSubscribeSuccess() {
+    promptMessage.info('订阅成功，感谢您的关注！')
   },
   showProcessing() {
     promptMessage.info(COMMON_PROMPT.PROCESSING)

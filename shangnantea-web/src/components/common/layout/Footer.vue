@@ -66,7 +66,6 @@
 <script>
 import { ref, computed, onMounted } from 'vue'
 import { commonPromptMessages } from '@/utils/promptMessages'
-import { apiMessage } from '@/utils/messageManager'
 import { useStorage } from '@/composables/useStorage'
 
 export default {
@@ -94,7 +93,7 @@ export default {
       
       // 验证邮箱格式
       if (!isValidEmail(email.value)) {
-        apiMessage.error('请输入有效的邮箱地址')
+        commonPromptMessages.showEmailFormatInvalid()
         return
       }
       
@@ -107,8 +106,8 @@ export default {
       // 添加到已订阅列表
       setSubscribedEmails([...subscribedEmails.value, email.value])
       
-      // 模拟订阅成功
-      apiMessage.success('订阅成功，感谢您的关注！')
+      // 模拟订阅成功（前端提示消息）
+      commonPromptMessages.showSubscribeSuccess()
       email.value = ''
     }
     

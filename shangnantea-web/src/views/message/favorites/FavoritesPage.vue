@@ -165,7 +165,6 @@ import { useStore } from 'vuex'
 
 import { Search, View, ChatDotRound, Star, ShoppingCart } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-import { apiMessage } from '@/utils/messageManager'
 import { showByCode } from '@/utils/apiMessages'
 
 export default {
@@ -354,16 +353,16 @@ export default {
     // 取消收藏
     const cancelFavorite = async (type, favoriteId) => {
       try {
-        await store.dispatch('user/removeFavorite', favoriteId)
-        if (type === 'culture') {
-          apiMessage.success('已取消收藏文章')
-        } else if (type === 'product') {
-          apiMessage.success('已取消收藏茶叶')
-        } else if (type === 'post') {
-          apiMessage.success('已取消收藏帖子')
-        }
+        const res = await store.dispatch('user/removeFavorite', favoriteId)
+        // 使用状态码消息系统，符合项目规范
+        showByCode(res.code)
+        // 重新加载收藏列表以更新状态
+        await loadFavoriteList()
       } catch (error) {
-        apiMessage.error(error.message || '取消收藏失败')
+        // 网络错误等已由响应拦截器处理，这里只记录日志
+        if (process.env.NODE_ENV === 'development') {
+          console.error('取消收藏失败:', error)
+        }
       }
     }
     
