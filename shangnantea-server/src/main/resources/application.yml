@@ -19,6 +19,18 @@ spring:
     port: 6379
     timeout: 3000ms
     database: 0
+  mail:
+    host: smtp.qq.com
+    port: 587
+    username: your_email@qq.com  # 替换成你的QQ邮箱
+    password: your_authorization_code  # 替换成你的授权码
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
 
 mybatis:
   mapper-locations: classpath:mapper/*.xml
