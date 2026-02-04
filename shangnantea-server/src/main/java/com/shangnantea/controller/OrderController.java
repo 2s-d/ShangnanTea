@@ -356,3 +356,19 @@ public class OrderController {
         return orderService.uploadReviewImage(file);
     }
 }
+
+    
+    /**
+     * 支付宝异步回调接口
+     * 路径: POST /order/alipay/notify
+     * 注意：此接口由支付宝服务器调用，不需要登录验证
+     *
+     * @param params 支付宝回调参数
+     * @return "success" 或 "failure"
+     */
+    @PostMapping("/alipay/notify")
+    public String alipayNotify(@RequestParam Map<String, String> params) {
+        logger.info("收到支付宝异步回调");
+        return orderService.handleAlipayNotify(params);
+    }
+}

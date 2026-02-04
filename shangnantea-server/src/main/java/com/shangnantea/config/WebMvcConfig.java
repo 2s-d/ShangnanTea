@@ -33,7 +33,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/v2/api-docs",
                         "/webjars/**",
                         "/static/**",
-                        "/files/**"  // 添加文件访问路径
+                        "/files/**",  // 文件访问路径
+                        "/order/alipay/notify"  // 支付宝异步回调接口（不需要登录验证）
                 );
     }
     

@@ -1999,3 +1999,99 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 } 
+
+    
+    @Override
+    @Transactional
+    public String handleAlipayNotify(Map<String, String> params) {
+        logger.info("收到支付宝异步回调: params={}", params);
+        
+        try {
+            // 1. 验证签名
+            boolean signVerified = alipayService.verifyNotify(params);
+            if (!signVerified) {
+                logger.warn("支付宝回调签名验证失败");
+                return "failure";
+            }
+            
+            // 2. 获取回调参数
+            String tradeStatus = params.get("trade_status");
+            String outTradeNo = params.get("out_trade_no"); // 订单ID
+            String tradeNo = params.get("trade_no"); // 支付宝交易号
+            String totalAmount = params.get("total_amount"); // 支付金额
+            
+            logger.info("支付宝回调参数: orderId={}, tradeNo={}, tradeStatus={}, totalAmount={}", 
+                       outTradeNo, tradeNo, tradeStatus, totalAmount);
+            
+            // 3. 查询订单
+            Order order = orderMapper.selectById(outTradeNo);
+            if (order == null) {
+                logger.warn("支付宝回调: 订单不存在: orderId={}", outTradeNo);
+                return "failure";
+            }
+            
+            // 4. 验证订单状态
+            if (order.getStatus() != Order.STATUS_PENDING_PAYMENT) {
+                logger.warn("支付宝回调: 订单状态不是待付款: orderId={}, status={}", outTradeNo, order.getStatus());
+                // 如果订单已经处理过了，返回success避免支付宝重复回调
+                return "success";
+            }
+            
+            // 5. 验证金额
+            BigDecimal callbackAmount = new BigDecimal(totalAmount);
+            if (order.getTotalAmount().compareTo(callbackAmount) != 0) {
+                logger.warn("支付宝回调: 金额不匹配: orderId={}, orderAmount={}, callbackAmount={}", 
+                           outTradeNo, order.getTotalAmount(), callbackAmount);
+                return "failure";
+            }
+            
+            // 6. 判断交易状态
+            if ("TRADE_SUCCESS".equals(tradeStatus) || "TRADE_FINISHED".equals(tradeStatus)) {
+                // 支付成功，扣减库存
+                if (order.getSpecId() != null) {
+                    // 有规格，更新规格库存
+                    int rows = teaSpecificationMapper.updateStock(order.getSpecId(), order.getQuantity());
+                    if (rows == 0) {
+                        logger.warn("支付宝回调: 库存不足或规格不存在: specId={}, quantity={}", 
+                                   order.getSpecId(), order.getQuantity());
+                        // 库存不足，需要退款处理（这里简化处理）
+                        return "failure";
+                    }
+                    logger.info("已扣减规格库存: specId={}, quantity={}", order.getSpecId(), order.getQuantity());
+                } else {
+                    // 无规格，更新茶叶库存和销量
+                    int rows = teaMapper.updateStockAndSales(order.getTeaId(), order.getQuantity());
+                    if (rows == 0) {
+                        logger.warn("支付宝回调: 库存不足或商品不存在: teaId={}, quantity={}", 
+                                   order.getTeaId(), order.getQuantity());
+                        // 库存不足，需要退款处理（这里简化处理）
+                        return "failure";
+                    }
+                    logger.info("已扣减库存并增加销量: teaId={}, quantity={}", order.getTeaId(), order.getQuantity());
+                }
+                
+                // 更新订单状态为待发货
+                order.setStatus(Order.STATUS_PENDING_SHIPMENT); // 待发货
+                order.setPaymentMethod("alipay");
+                order.setPaymentTime(new Date());
+                order.setUpdateTime(new Date());
+                
+                int rows = orderMapper.updateById(order);
+                if (rows > 0) {
+                    logger.info("支付宝回调处理成功: orderId={}, tradeNo={}", outTradeNo, tradeNo);
+                    return "success";
+                } else {
+                    logger.warn("支付宝回调: 更新订单失败: orderId={}", outTradeNo);
+                    return "failure";
+                }
+            } else {
+                logger.warn("支付宝回调: 交易状态不是成功: tradeStatus={}", tradeStatus);
+                return "failure";
+            }
+            
+        } catch (Exception e) {
+            logger.error("处理支付宝回调失败", e);
+            return "failure";
+        }
+    }
+}
