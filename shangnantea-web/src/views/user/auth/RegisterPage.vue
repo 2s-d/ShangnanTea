@@ -49,20 +49,52 @@
             ></el-input>
           </el-form-item>
           
-          <el-form-item label="手机号" prop="phone">
+          <el-form-item label="联系方式类型" prop="contactType">
+            <el-radio-group v-model="registerForm.contactType">
+              <el-radio value="phone">手机号</el-radio>
+              <el-radio value="email">邮箱</el-radio>
+            </el-radio-group>
+          </el-form-item>
+          
+          <el-form-item 
+            v-if="registerForm.contactType === 'phone'"
+            label="手机号" 
+            prop="phone"
+          >
             <el-input 
               v-model="registerForm.phone" 
-              placeholder="请输入手机号（可选）" 
+              placeholder="请输入手机号" 
               prefix-icon="el-icon-mobile-phone"
             ></el-input>
           </el-form-item>
           
-          <el-form-item label="邮箱" prop="email">
+          <el-form-item 
+            v-if="registerForm.contactType === 'email'"
+            label="邮箱" 
+            prop="email"
+          >
             <el-input 
               v-model="registerForm.email" 
-              placeholder="请输入邮箱（可选）" 
+              placeholder="请输入邮箱" 
               prefix-icon="el-icon-message"
             ></el-input>
+          </el-form-item>
+          
+          <el-form-item label="验证码" prop="verificationCode">
+            <div class="verification-code-input">
+              <el-input 
+                v-model="registerForm.verificationCode" 
+                placeholder="请输入验证码"
+                prefix-icon="el-icon-key"
+              ></el-input>
+              <el-button 
+                type="primary" 
+                :disabled="codeCountdown > 0 || !canSendCode"
+                @click="sendVerificationCode"
+              >
+                {{ codeCountdown > 0 ? `${codeCountdown}秒后重试` : '发送验证码' }}
+              </el-button>
+            </div>
           </el-form-item>
           
           <el-form-item>
@@ -118,7 +150,7 @@
 </template>
 
 <script>
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
@@ -137,8 +169,10 @@ export default {
       nickname: '',
       password: '',
       confirmPassword: '',
+      contactType: 'phone',
       phone: '',
       email: '',
+      verificationCode: '',
       agreement: false
     })
     
@@ -182,14 +216,20 @@ export default {
         { required: true, message: '请再次输入密码', trigger: 'blur' },
         { validator: validateConfirmPassword, trigger: 'blur' }
       ],
+      contactType: [
+        { required: true, message: '请选择联系方式类型', trigger: 'change' }
+      ],
       phone: [
         { 
-          validator: (rule, value, callback) => {
-            // 为空时不验证格式
-            if (!value || value.trim() === '') {
-              callback()
-            } else if (!/^1[3-9]\d{9}$/.test(value)) {
-              callback(new Error('手机号格式不正确'))
+          validator: (_rule, value, callback) => {
+            if (registerForm.contactType === 'phone') {
+              if (!value || value.trim() === '') {
+                callback(new Error('请输入手机号'))
+              } else if (!/^1[3-9]\d{9}$/.test(value)) {
+                callback(new Error('手机号格式不正确'))
+              } else {
+                callback()
+              }
             } else {
               callback()
             }
@@ -199,18 +239,25 @@ export default {
       ],
       email: [
         { 
-          validator: (rule, value, callback) => {
-            // 为空时不验证格式
-            if (!value || value.trim() === '') {
-              callback()
-            } else if (!/^[\w.-]+@[\w.-]+\.\w+$/.test(value)) {
-              callback(new Error('邮箱格式不正确'))
+          validator: (_rule, value, callback) => {
+            if (registerForm.contactType === 'email') {
+              if (!value || value.trim() === '') {
+                callback(new Error('请输入邮箱'))
+              } else if (!/^[\w.-]+@[\w.-]+\.\w+$/.test(value)) {
+                callback(new Error('邮箱格式不正确'))
+              } else {
+                callback()
+              }
             } else {
               callback()
             }
           },
           trigger: 'blur' 
         }
+      ],
+      verificationCode: [
+        { required: true, message: '请输入验证码', trigger: 'blur' },
+        { len: 6, message: '验证码必须为6位', trigger: 'blur' }
       ],
       agreement: [
         { validator: validateAgreement, trigger: 'change' }
@@ -220,6 +267,49 @@ export default {
     const loading = ref(false)
     const agreementVisible = ref(false)
     const privacyVisible = ref(false)
+    const codeCountdown = ref(0)
+    
+    // 计算是否可以发送验证码
+    const canSendCode = computed(() => {
+      if (registerForm.contactType === 'phone') {
+        return registerForm.phone && /^1[3-9]\d{9}$/.test(registerForm.phone)
+      } else {
+        return registerForm.email && /^[\w.-]+@[\w.-]+\.\w+$/.test(registerForm.email)
+      }
+    })
+    
+    // 发送验证码
+    const sendVerificationCode = async () => {
+      if (!canSendCode.value) {
+        userMessages.error.showFormIncomplete()
+        return
+      }
+      
+      try {
+        const contact = registerForm.contactType === 'phone' ? registerForm.phone : registerForm.email
+        const res = await store.dispatch('user/sendVerificationCode', {
+          contact,
+          contactType: registerForm.contactType,
+          sceneType: 'register'
+        })
+        
+        // 显示发送结果
+        showByCode(res.code)
+        
+        // 如果发送成功，启动倒计时
+        if (isSuccess(res.code)) {
+          codeCountdown.value = 60
+          const timer = setInterval(() => {
+            codeCountdown.value--
+            if (codeCountdown.value <= 0) {
+              clearInterval(timer)
+            }
+          }, 1000)
+        }
+      } catch (error) {
+        console.error('发送验证码失败:', error)
+      }
+    }
     
     // 处理注册
     const handleRegister = async () => {
@@ -240,15 +330,17 @@ export default {
       loading.value = true
       
       try {
-        // 准备注册数据，确保正确处理可选字段
+        // 准备注册数据
         const registerData = {
           username: registerForm.username,
           nickname: registerForm.nickname,
           password: registerForm.password,
           confirmPassword: registerForm.confirmPassword,
-          // 确保可选字段为空时正确处理
-          phone: registerForm.phone && registerForm.phone.trim() ? registerForm.phone.trim() : undefined,
-          email: registerForm.email && registerForm.email.trim() ? registerForm.email.trim() : undefined
+          contactType: registerForm.contactType,
+          verificationCode: registerForm.verificationCode,
+          // 根据contactType决定传递哪个字段
+          phone: registerForm.contactType === 'phone' ? registerForm.phone : undefined,
+          email: registerForm.contactType === 'email' ? registerForm.email : undefined
         }
         
         // 调用注册API
@@ -289,6 +381,9 @@ export default {
       loading,
       agreementVisible,
       privacyVisible,
+      codeCountdown,
+      canSendCode,
+      sendVerificationCode,
       handleRegister,
       showAgreement,
       showPrivacy
@@ -362,6 +457,15 @@ export default {
     &:hover {
       text-decoration: underline;
     }
+  }
+}
+
+.verification-code-input {
+  display: flex;
+  gap: 10px;
+  
+  .el-input {
+    flex: 1;
   }
 }
 

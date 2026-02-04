@@ -1248,6 +1248,28 @@ const actions = {
     } finally {
       commit('SET_LOADING', false)
     }
+  },
+  
+  /**
+   * 发送验证码
+   * @param {Object} context Vuex context
+   * @param {Object} data { contact, contactType, sceneType }
+   * - contact: 联系方式(手机号或邮箱)
+   * - contactType: 联系方式类型 (phone/email)
+   * - sceneType: 使用场景 (register/reset_password/change_phone)
+   * @returns {Promise} 发送结果 {code, data}
+   */
+  async sendVerificationCode({ commit }, data) {
+    commit('SET_LOADING', true)
+    try {
+      const res = await sendVerificationCodeApi(data)
+      return res // 返回 {code, data}，组件调用showByCode(res.code)
+    } catch (error) {
+      console.error('发送验证码失败:', error)
+      throw error
+    } finally {
+      commit('SET_LOADING', false)
+    }
   }
 }
 

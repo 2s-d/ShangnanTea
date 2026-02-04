@@ -145,23 +145,58 @@ export default {
     const codeCountdown = ref(0)
     
     // 发送验证码
-    const sendVerificationCode = () => {
+    const sendVerificationCode = async () => {
       // 验证输入
-      if (resetForm.method === 'username' && !resetForm.username) {
-        userPromptMessages.showUsernameInputRequired()
+      let contact = ''
+      let contactType = ''
+      
+      if (resetForm.method === 'username') {
+        if (!resetForm.username) {
+          userPromptMessages.error.showFormIncomplete()
+          return
+        }
+        // 用户名方式暂不支持验证码
+        userPromptMessages.error.showError('用户名方式暂不支持验证码，请使用手机号或邮箱')
         return
-      }
-      if (resetForm.method === 'phone' && !resetForm.phone) {
-        userPromptMessages.showPhoneInputRequired()
-        return
-      }
-      if (resetForm.method === 'email' && !resetForm.email) {
-        userPromptMessages.showEmailInputRequired()
-        return
+      } else if (resetForm.method === 'phone') {
+        if (!resetForm.phone) {
+          userPromptMessages.error.showFormIncomplete()
+          return
+        }
+        contact = resetForm.phone
+        contactType = 'phone'
+      } else if (resetForm.method === 'email') {
+        if (!resetForm.email) {
+          userPromptMessages.error.showFormIncomplete()
+          return
+        }
+        contact = resetForm.email
+        contactType = 'email'
       }
       
-      // 功能未实现：等待后端实现验证码发送接口
-      userPromptMessages.showFeatureNotImplemented()
+      try {
+        const res = await store.dispatch('user/sendVerificationCode', {
+          contact,
+          contactType,
+          sceneType: 'reset_password'
+        })
+        
+        // 显示发送结果
+        showByCode(res.code)
+        
+        // 如果发送成功，启动倒计时
+        if (isSuccess(res.code)) {
+          codeCountdown.value = 60
+          const timer = setInterval(() => {
+            codeCountdown.value--
+            if (codeCountdown.value <= 0) {
+              clearInterval(timer)
+            }
+          }, 1000)
+        }
+      } catch (error) {
+        console.error('发送验证码失败:', error)
+      }
     }
     
     // 处理密码找回
