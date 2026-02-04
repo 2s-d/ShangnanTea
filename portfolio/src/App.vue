@@ -308,6 +308,19 @@ const openProject = (url) => {
   font-weight: var(--font-medium);
   font-size: var(--text-base);
   transition: all var(--transition-fast);
+  /* 添加透明padding作为缓冲区，防止hover抖动 */
+  position: relative;
+}
+
+/* 使用伪元素创建hover区域，防止抖动 */
+.nav-menu .el-menu-item::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: 0;
+  right: 0;
+  bottom: -5px;
+  pointer-events: auto;
 }
 
 .nav-menu .el-menu-item:hover {

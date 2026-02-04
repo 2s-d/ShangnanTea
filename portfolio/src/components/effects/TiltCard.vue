@@ -77,11 +77,5 @@ const handleMouseLeave = () => {
 .tilt-card {
   transform-style: preserve-3d;
   will-change: transform;
-  /* 防止子元素触发事件 */
-  pointer-events: auto;
-}
-
-.tilt-card > :deep(*) {
-  pointer-events: none;
 }
 </style>
