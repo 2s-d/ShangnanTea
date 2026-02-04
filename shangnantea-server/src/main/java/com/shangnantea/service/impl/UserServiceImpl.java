@@ -2399,11 +2399,11 @@ public class UserServiceImpl implements UserService {
             // 配置阿里云SDK
             com.aliyun.dysmsapi20170525.Client client = createAliyunSmsClient();
             
-            // 构建请求
+            // 构建请求（使用阿里云短信认证服务的通用模板）
             com.aliyun.dysmsapi20170525.models.SendSmsRequest sendSmsRequest = new com.aliyun.dysmsapi20170525.models.SendSmsRequest()
                 .setPhoneNumbers(phone)
                 .setSignName(aliyunSignName)
-                .setTemplateCode("SMS_" + code)  // 阿里云短信认证服务会自动处理验证码
+                .setTemplateCode("100001")  // 阿里云短信认证服务通用模板
                 .setTemplateParam("{\"code\":\"" + code + "\"}");
             
             // 发送短信
