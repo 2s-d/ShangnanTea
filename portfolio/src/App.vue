@@ -53,16 +53,22 @@
       <el-row justify="center" align="middle" style="height: 100%">
         <el-col :xs="22" :sm="20" :md="16" :lg="12">
           <div class="hero-content">
-            <el-avatar :size="150" :src="profile.avatar" class="hero-avatar" />
-            <h1 class="hero-title">{{ profile.name }}</h1>
-            <p class="hero-subtitle">{{ profile.title }}</p>
-            <p class="hero-description">{{ profile.description }}</p>
+            <el-avatar :size="150" :src="profile.avatar" class="hero-avatar glow-effect" />
+            <h1 class="hero-title">
+              <TypeWriter :text="profile.name" :speed="150" />
+            </h1>
+            <p class="hero-subtitle">
+              <TypeWriter :text="profile.title" :speed="80" :delay="800" />
+            </p>
+            <p class="hero-description">
+              <TypeWriter :text="profile.description" :speed="50" :delay="1500" />
+            </p>
             <div class="hero-buttons">
-              <el-button type="primary" size="large" @click="scrollTo('projects')">
+              <el-button type="primary" size="large" @click="scrollTo('projects')" class="hero-btn">
                 <el-icon><Document /></el-icon>
                 查看项目
               </el-button>
-              <el-button size="large" @click="scrollTo('contact')">
+              <el-button size="large" @click="scrollTo('contact')" class="hero-btn hero-btn-outline">
                 <el-icon><Message /></el-icon>
                 联系我
               </el-button>
@@ -78,8 +84,8 @@
         <el-main>
           <h2 class="section-title">关于我</h2>
           <el-row :gutter="40" justify="center">
-            <el-col :xs="24" :sm="20" :md="16">
-              <el-card shadow="hover">
+            <el-col :xs="24" :sm="20" :md="16" class="animate-fade-in">
+              <el-card shadow="hover" class="glass-effect">
                 <p class="about-text">{{ profile.about }}</p>
                 <el-divider />
                 <el-row :gutter="20">
@@ -110,23 +116,27 @@
           <h2 class="section-title">技能专长</h2>
           <el-row :gutter="20" justify="center">
             <el-col
-              v-for="skill in skills"
+              v-for="(skill, index) in skills"
               :key="skill.name"
               class="animate-scale-in"
+              :class="`delay-${(index % 6) * 100}`"
               :xs="12"
               :sm="8"
               :md="6"
               :lg="4"
             >
-              <el-card shadow="hover" class="skill-card">
-                <div class="skill-icon">{{ skill.icon }}</div>
-                <h3>{{ skill.name }}</h3>
-                <el-progress
-                  :percentage="skill.level"
-                  :color="skill.color"
-                  :stroke-width="8"
-                />
-              </el-card>
+              <TiltCard :max-tilt="8">
+                <el-card shadow="hover" class="skill-card card-hover glass-effect">
+                  <div class="skill-icon animate-pulse">{{ skill.icon }}</div>
+                  <h3>{{ skill.name }}</h3>
+                  <el-progress
+                    :percentage="skill.level"
+                    :color="skill.color"
+                    :stroke-width="8"
+                    class="animate-number"
+                  />
+                </el-card>
+              </TiltCard>
             </el-col>
           </el-row>
         </el-main>
@@ -140,14 +150,16 @@
           <h2 class="section-title">项目作品</h2>
           <el-row :gutter="30" justify="center">
             <el-col
-              v-for="project in projects"
+              v-for="(project, index) in projects"
               :key="project.id"
               class="animate-slide-in-up"
+              :class="`delay-${index * 200}`"
               :xs="24"
               :sm="12"
               :md="8"
             >
-              <el-card shadow="hover" class="project-card">
+              <TiltCard :max-tilt="5">
+                <el-card shadow="hover" class="project-card card-hover glass-effect">
                 <template #header>
                   <div class="project-header">
                     <span class="project-name">{{ project.name }}</span>
@@ -181,6 +193,7 @@
                   </el-button>
                 </div>
               </el-card>
+              </TiltCard>
             </el-col>
           </el-row>
         </el-main>
@@ -193,8 +206,8 @@
         <el-main>
           <h2 class="section-title">联系我</h2>
           <el-row justify="center">
-            <el-col :xs="24" :sm="20" :md="16" :lg="12">
-              <el-card shadow="hover">
+            <el-col :xs="24" :sm="20" :md="16" :lg="12" class="animate-fade-in">
+              <el-card shadow="hover" class="glass-effect">
                 <el-row :gutter="20" justify="center">
                   <el-col :span="8" class="contact-item">
                     <el-icon :size="40" color="#409EFF"><Message /></el-icon>
@@ -234,6 +247,8 @@ import { ref } from 'vue'
 import ParticlesBackground from './components/effects/ParticlesBackground.vue'
 import CursorGlow from './components/effects/CursorGlow.vue'
 import ScrollProgress from './components/effects/ScrollProgress.vue'
+import TypeWriter from './components/effects/TypeWriter.vue'
+import TiltCard from './components/effects/TiltCard.vue'
 import { useTheme } from './composables/useTheme'
 import { useScroll } from './composables/useScroll'
 import { profile, skills, projects } from './data/portfolio'
@@ -261,6 +276,11 @@ const openProject = (url) => {
 }
 
 /* 导航栏 */
+.nav-wrapper {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
 .nav-menu {
   border-bottom: none !important;
 }
@@ -279,14 +299,32 @@ const openProject = (url) => {
 .hero-section {
   height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-size: 200% 200%;
+  animation: gradientShift 15s ease infinite;
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+              radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+  pointer-events: none;
 }
 
 .hero-content {
   text-align: center;
+  position: relative;
+  z-index: 2;
 }
 
 .hero-avatar {
@@ -297,105 +335,180 @@ const openProject = (url) => {
 }
 
 .hero-title {
-  font-size: 48px;
-  margin-bottom: 10px;
-  font-weight: bold;
+  font-size: var(--text-5xl);
+  margin-bottom: var(--spacing-md);
+  font-weight: var(--font-extrabold);
+  min-height: 60px;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
 }
 
 .hero-subtitle {
-  font-size: 24px;
-  margin-bottom: 20px;
-  opacity: 0.9;
+  font-size: var(--text-2xl);
+  margin-bottom: var(--spacing-lg);
+  opacity: 0.95;
+  min-height: 32px;
+  font-weight: var(--font-medium);
+  letter-spacing: -0.01em;
 }
 
 .hero-description {
-  font-size: 18px;
-  margin-bottom: 40px;
-  opacity: 0.8;
-  max-width: 600px;
+  font-size: var(--text-lg);
+  margin-bottom: var(--spacing-2xl);
+  opacity: 0.9;
+  max-width: 650px;
   margin-left: auto;
   margin-right: auto;
+  min-height: 50px;
+  line-height: 1.7;
+  font-weight: var(--font-normal);
+}
+
+@media (min-width: 768px) {
+  .hero-title {
+    font-size: var(--text-6xl);
+  }
+  
+  .hero-subtitle {
+    font-size: var(--text-3xl);
+  }
 }
 
 .hero-buttons {
   display: flex;
   gap: 20px;
   justify-content: center;
+  animation: slideInUp 0.8s ease-out 2s both;
+}
+
+.hero-btn {
+  padding: 16px 32px;
+  font-size: 16px;
+  border-radius: var(--radius-full);
+  transition: all var(--transition-base);
+}
+
+.hero-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+}
+
+.hero-btn-outline {
+  background: transparent !important;
+  border: 2px solid white !important;
+  color: white !important;
+}
+
+.hero-btn-outline:hover {
+  background: white !important;
+  color: #667eea !important;
 }
 
 /* 通用区域样式 */
 .section {
-  padding: 80px 20px;
+  padding: var(--spacing-5xl) var(--spacing-lg);
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 .section-gray {
-  background: #f5f7fa;
+  background: var(--color-bg-tertiary);
+}
+
+@media (min-width: 768px) {
+  .section {
+    padding: 120px var(--spacing-2xl);
+  }
 }
 
 .section-title {
   text-align: center;
-  font-size: 36px;
-  margin-bottom: 50px;
-  color: #2c3e50;
+  font-size: var(--text-4xl);
+  font-weight: var(--font-bold);
+  margin-bottom: var(--spacing-3xl);
+  color: var(--color-text);
   position: relative;
+  animation: slideInDown 0.6s ease-out;
+  letter-spacing: -0.02em;
 }
 
 .section-title::after {
   content: '';
   display: block;
-  width: 60px;
-  height: 4px;
-  background: #409eff;
-  margin: 20px auto 0;
-  border-radius: 2px;
+  width: 80px;
+  height: 5px;
+  background: var(--gradient-primary);
+  margin: var(--spacing-lg) auto 0;
+  border-radius: var(--radius-full);
+  animation: scaleIn 0.6s ease-out 0.3s both;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+@media (min-width: 768px) {
+  .section-title {
+    font-size: var(--text-5xl);
+  }
 }
 
 /* 关于我 */
 .about-text {
-  font-size: 16px;
+  font-size: var(--text-lg);
   line-height: 1.8;
-  color: #606266;
-  text-align: justify;
+  color: var(--color-text-secondary);
+  text-align: left;
+  margin-bottom: var(--spacing-lg);
+  font-weight: var(--font-normal);
 }
 
 .info-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-top: 10px;
-  font-size: 14px;
-  color: #606266;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+  font-size: var(--text-base);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-medium);
+}
+
+.info-item .el-icon {
+  color: var(--color-primary);
+  font-size: var(--text-lg);
 }
 
 /* 技能卡片 */
 .skill-card {
   text-align: center;
   margin-bottom: 20px;
-  transition: transform 0.3s;
-}
-
-.skill-card:hover {
-  transform: translateY(-10px);
+  transition: all 0.3s;
+  border: none;
 }
 
 .skill-icon {
   font-size: 48px;
   margin-bottom: 15px;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+  transition: all var(--transition-base);
+}
+
+.skill-card:hover .skill-icon {
+  transform: scale(1.2) rotate(10deg);
+  filter: drop-shadow(0 8px 16px rgba(102, 126, 234, 0.3));
 }
 
 .skill-card h3 {
-  margin-bottom: 15px;
-  color: #2c3e50;
+  margin-bottom: var(--spacing-md);
+  color: var(--color-text);
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  letter-spacing: -0.01em;
 }
 
 /* 项目卡片 */
 .project-card {
   margin-bottom: 30px;
-  transition: transform 0.3s;
-}
-
-.project-card:hover {
-  transform: translateY(-10px);
+  transition: all 0.3s;
+  border: none;
+  height: 100%;
 }
 
 .project-header {
@@ -405,9 +518,10 @@ const openProject = (url) => {
 }
 
 .project-name {
-  font-size: 18px;
-  font-weight: bold;
-  color: #2c3e50;
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  color: var(--color-text);
+  letter-spacing: -0.01em;
 }
 
 .project-image {
@@ -422,19 +536,22 @@ const openProject = (url) => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.3s;
+  transition: all 0.5s ease;
+  filter: brightness(0.95);
 }
 
 .project-card:hover .project-image img {
   transform: scale(1.1);
+  filter: brightness(1.05);
 }
 
 .project-desc {
-  font-size: 14px;
-  color: #606266;
-  line-height: 1.6;
-  margin-bottom: 15px;
-  min-height: 60px;
+  font-size: var(--text-base);
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+  margin-bottom: var(--spacing-md);
+  min-height: 70px;
+  font-weight: var(--font-normal);
 }
 
 .project-tags {
@@ -444,6 +561,13 @@ const openProject = (url) => {
 .tech-tag {
   margin-right: 8px;
   margin-bottom: 8px;
+  transition: all var(--transition-fast);
+  cursor: default;
+}
+
+.tech-tag:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
 .project-actions {
@@ -455,6 +579,16 @@ const openProject = (url) => {
 .contact-item {
   text-align: center;
   padding: 20px;
+  transition: all var(--transition-base);
+  cursor: pointer;
+}
+
+.contact-item:hover {
+  transform: translateY(-5px);
+}
+
+.contact-item:hover .el-icon {
+  animation: bounce 0.6s ease-in-out;
 }
 
 .contact-item h3 {
@@ -469,10 +603,32 @@ const openProject = (url) => {
 
 /* 页脚 */
 .footer {
-  background: #2c3e50;
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
   color: white;
   text-align: center;
   padding: 30px;
+  position: relative;
+  overflow: hidden;
+}
+
+.footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #667eea, transparent);
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
 }
 
 .footer p {
@@ -494,3 +650,60 @@ const openProject = (url) => {
   }
 }
 </style>
+
+
+/* 深色模式特殊样式 */
+.dark-mode .section-title {
+  color: #ffffff;
+}
+
+.dark-mode .hero-section {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+}
+
+.dark-mode .section-gray {
+  background: #16213e;
+}
+
+.dark-mode .about-text,
+.dark-mode .project-desc,
+.dark-mode .contact-item p {
+  color: var(--color-text-secondary);
+}
+
+.dark-mode .skill-card h3,
+.dark-mode .project-name,
+.dark-mode .contact-item h3 {
+  color: var(--color-text);
+}
+
+/* 加载动画 */
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.portfolio {
+  animation: fadeInScale 0.5s ease-out;
+}
+
+/* 平滑滚动 */
+html {
+  scroll-behavior: smooth;
+}
+
+/* 选中文本样式 */
+::selection {
+  background: rgba(102, 126, 234, 0.3);
+  color: inherit;
+}
+
+.dark-mode ::selection {
+  background: rgba(102, 126, 234, 0.5);
+}
