@@ -339,15 +339,22 @@ export default {
         item.targetType === 'user' && item.targetId === userId
       )
       if (!followItem) {
+        // 前端验证错误，使用提示消息系统
         apiMessage.error('未找到关注记录')
         return
       }
       
       try {
-        await store.dispatch('user/removeFollow', followItem.id)
-        apiMessage.success('已取消关注')
+        const res = await store.dispatch('user/removeFollow', followItem.id)
+        // 使用状态码消息系统，符合项目规范
+        showByCode(res.code)
+        // 重新加载关注列表以更新状态
+        await loadFollowList()
       } catch (error) {
-        apiMessage.error(error.message || '取消关注失败')
+        // 网络错误等已由响应拦截器处理，这里只记录日志
+        if (process.env.NODE_ENV === 'development') {
+          console.error('取消关注失败:', error)
+        }
       }
     }
     
@@ -369,15 +376,22 @@ export default {
         item.targetType === 'shop' && item.targetId === shopId
       )
       if (!followItem) {
+        // 前端验证错误，使用提示消息系统
         apiMessage.error('未找到关注记录')
         return
       }
       
       try {
-        await store.dispatch('user/removeFollow', followItem.id)
-        apiMessage.success('已取消关注该店铺')
+        const res = await store.dispatch('user/removeFollow', followItem.id)
+        // 使用状态码消息系统，符合项目规范
+        showByCode(res.code)
+        // 重新加载关注列表以更新状态
+        await loadFollowList()
       } catch (error) {
-        apiMessage.error(error.message || '取消关注失败')
+        // 网络错误等已由响应拦截器处理，这里只记录日志
+        if (process.env.NODE_ENV === 'development') {
+          console.error('取消关注失败:', error)
+        }
       }
     }
     

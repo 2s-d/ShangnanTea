@@ -1000,9 +1000,9 @@ const actions = {
   async removeFavorite({ commit }, favoriteId) {
     commit('SET_LOADING', true)
     try {
-      await removeFavoriteApi(favoriteId)
+      const res = await removeFavoriteApi(favoriteId)
       commit('REMOVE_FAVORITE', favoriteId)
-      return true
+      return res // 返回 {code, data}，组件调用showByCode(res.code)
     } catch (error) {
       console.error('取消收藏失败:', error)
       throw error
@@ -1037,14 +1037,14 @@ const actions = {
    * 取消点赞
    * @param {Object} context Vuex context
    * @param {String|Number} likeId 点赞ID
-   * @returns {Promise} 删除结果
+   * @returns {Promise} 删除结果 {code, data}
    */
   async removeLike({ commit }, likeId) {
     commit('SET_LOADING', true)
     try {
-      await removeLikeApi(likeId)
+      const res = await removeLikeApi(likeId)
       commit('REMOVE_LIKE', likeId)
-      return true
+      return res // 返回 {code, data}，组件调用showByCode(res.code)
     } catch (error) {
       console.error('取消点赞失败:', error)
       throw error
