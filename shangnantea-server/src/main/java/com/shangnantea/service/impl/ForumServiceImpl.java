@@ -1214,7 +1214,7 @@ public class ForumServiceImpl implements ForumService {
                         .collect(Collectors.toList());
             }
             
-            // 5. 构造返回数据
+            // 8. 构造返回数据
             Map<String, Object> responseData = new HashMap<>();
             responseData.put("list", postVOList);
             responseData.put("total", total);
