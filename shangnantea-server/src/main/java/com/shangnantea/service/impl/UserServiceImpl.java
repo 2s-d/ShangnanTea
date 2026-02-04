@@ -189,35 +189,66 @@ public class UserServiceImpl implements UserService {
     public Result<UserVO> register(RegisterDTO registerDTO) {
         logger.info("用户注册请求: {}", registerDTO.getUsername());
         
-        // 检查用户名是否已存在
+        // 1. 验证验证码
+        String contact = "phone".equals(registerDTO.getContactType()) ? 
+            registerDTO.getPhone() : registerDTO.getEmail();
+        
+        boolean codeValid = verifyCode(contact, "register", registerDTO.getVerificationCode());
+        if (!codeValid) {
+            logger.warn("注册失败: 验证码错误或已过期, contact: {}", contact);
+            return Result.failure(2102); // 注册失败，用户名已存在或数据格式错误
+        }
+        
+        // 2. 检查用户名是否已存在
         if (isUserExist(registerDTO.getUsername())) {
             logger.warn("注册失败: 用户名已存在, username: {}", registerDTO.getUsername());
             return Result.failure(2102); // 注册失败，用户名已存在或数据格式错误
         }
         
-        // 验证密码和确认密码是否一致
+        // 3. 验证密码和确认密码是否一致
         if (!registerDTO.getPassword().equals(registerDTO.getConfirmPassword())) {
             logger.warn("注册失败: 两次输入的密码不一致, username: {}", registerDTO.getUsername());
             return Result.failure(2102); // 注册失败，用户名已存在或数据格式错误
         }
         
-        // 将RegisterDTO转换为User实体
+        // 4. 将RegisterDTO转换为User实体
         User user = new User();
         user.setUsername(registerDTO.getUsername());
         user.setPassword(registerDTO.getPassword());
         user.setPhone(registerDTO.getPhone());
         user.setEmail(registerDTO.getEmail());
         
-        // 生成用户ID，格式为 'cy' + 6位数字
+        // 5. 生成用户ID，格式为 'cy' + 6位数字
         String userId = generateUserId();
         user.setId(userId);
         
-        // 加密密码
+        // 6. 加密密码
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         
-        // 设置默认值
+        // 7. 设置默认值
         user.setRole(2); // 默认为普通用户
         user.setStatus(1); // 默认为正常状态
+        user.setIsDeleted(0); // 默认为未删除
+        user.setCreateTime(new Date());
+        user.setUpdateTime(new Date());
+        
+        // 8. 保存用户到数据库
+        int result = userMapper.insert(user);
+        if (result <= 0) {
+            logger.error("注册失败: 数据库插入失败, username: {}", registerDTO.getUsername());
+            return Result.failure(2102); // 注册失败，用户名已存在或数据格式错误
+        }
+        
+        // 9. 查询刚注册的用户（获取完整信息）
+        User savedUser = getUserEntityById(userId);
+        if (savedUser == null) {
+            logger.error("注册失败: 无法获取注册后的用户信息, userId: {}", userId);
+            return Result.failure(2102); // 注册失败，用户名已存在或数据格式错误
+        }
+        
+        logger.info("用户注册成功: username: {}, userId: {}", registerDTO.getUsername(), userId);
+        return Result.success(2001, convertToUserVO(savedUser)); // 注册成功，请登录
+    }
         user.setIsDeleted(0); // 默认为未删除
         user.setCreateTime(new Date());
         user.setUpdateTime(new Date());
@@ -563,15 +594,6 @@ public class UserServiceImpl implements UserService {
     /**
      * 密码找回/重置
      * 成功码：2006，失败码：2114
-     * 注意：简化实现，通过用户名+手机号验证身份（实际项目应使用验证码）
-     * TODO: 集成第三方验证码服务（短信验证码或邮箱验证码）
-     *       - 推荐服务：阿里云短信服务、腾讯云短信服务
-     *       - 实现步骤：
-     *         1. 用户输入用户名/手机号，请求发送验证码
-     *         2. 后端调用第三方API发送验证码，并缓存验证码（Redis，5分钟有效期）
-     *         3. 用户输入验证码+新密码
-     *         4. 后端验证验证码是否正确且未过期
-     *         5. 验证通过后重置密码
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -581,8 +603,7 @@ public class UserServiceImpl implements UserService {
             String username = (String) resetData.get("username");
             String phone = (String) resetData.get("phone");
             String newPassword = (String) resetData.get("newPassword");
-            // TODO: 添加验证码参数
-            // String verificationCode = (String) resetData.get("verificationCode");
+            String verificationCode = (String) resetData.get("verificationCode");
             
             // 2. 参数验证
             if (username == null || username.trim().isEmpty()) {
@@ -600,11 +621,10 @@ public class UserServiceImpl implements UserService {
                 return Result.failure(2114); // 密码重置失败
             }
             
-            // TODO: 验证验证码
-            // if (verificationCode == null || verificationCode.trim().isEmpty()) {
-            //     logger.warn("密码重置失败: 验证码不能为空");
-            //     return Result.failure(2114);
-            // }
+            if (verificationCode == null || verificationCode.trim().isEmpty()) {
+                logger.warn("密码重置失败: 验证码不能为空");
+                return Result.failure(2114); // 密码重置失败
+            }
             
             // 3. 验证用户名和手机号是否匹配
             User user = getUserByUsername(username);
@@ -618,14 +638,14 @@ public class UserServiceImpl implements UserService {
                 return Result.failure(2114); // 密码重置失败
             }
             
-            // TODO: 验证验证码是否正确
-            // String cachedCode = redisTemplate.opsForValue().get("reset_pwd:" + phone);
-            // if (cachedCode == null || !cachedCode.equals(verificationCode)) {
-            //     logger.warn("密码重置失败: 验证码错误或已过期, phone: {}", phone);
-            //     return Result.failure(2114);
-            // }
+            // 4. 验证验证码是否正确
+            boolean codeValid = verifyCode(phone, "reset_password", verificationCode);
+            if (!codeValid) {
+                logger.warn("密码重置失败: 验证码错误或已过期, phone: {}", phone);
+                return Result.failure(2114); // 密码重置失败
+            }
             
-            // 4. 加密新密码并更新
+            // 5. 加密新密码并更新
             String encodedPassword = passwordEncoder.encode(newPassword);
             int result = userMapper.updatePassword(user.getId(), encodedPassword);
             
@@ -633,9 +653,6 @@ public class UserServiceImpl implements UserService {
                 logger.error("密码重置失败: 数据库更新失败, username: {}", username);
                 return Result.failure(2114); // 密码重置失败
             }
-            
-            // TODO: 删除已使用的验证码
-            // redisTemplate.delete("reset_pwd:" + phone);
             
             logger.info("密码重置成功: username: {}, userId: {}", username, user.getId());
             return Result.success(2006, "密码重置成功"); // 密码重置成功

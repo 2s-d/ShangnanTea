@@ -42,4 +42,18 @@ public class RegisterDTO {
      */
     @Pattern(regexp = "^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\\.[a-zA-Z0-9_-]+)+$", message = "邮箱格式不正确")
     private String email;
+    
+    /**
+     * 验证码
+     */
+    @NotBlank(message = "验证码不能为空")
+    @Size(min = 6, max = 6, message = "验证码必须为6位")
+    private String verificationCode;
+    
+    /**
+     * 联系方式类型（phone/email）
+     */
+    @NotBlank(message = "联系方式类型不能为空")
+    @Pattern(regexp = "^(phone|email)$", message = "联系方式类型只能是phone或email")
+    private String contactType;
 } 
