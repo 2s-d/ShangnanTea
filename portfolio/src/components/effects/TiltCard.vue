@@ -58,8 +58,4 @@ const handleMouseLeave = () => {
   transform-style: preserve-3d;
   will-change: transform;
 }
-
-.tilt-card > :deep(*) {
-  pointer-events: none;
-}
 </style>
