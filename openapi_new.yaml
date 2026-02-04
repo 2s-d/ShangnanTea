@@ -256,7 +256,7 @@ paths:
                 failure:
                   summary: 获取当前用户信息失败
                   value:
-                    code: 2104
+                    code: 2107
                     data: null
 
   /user/{userId}:
@@ -265,13 +265,16 @@ paths:
       tags:
         - 用户模块
       summary: 获取指定用户信息
-      description: 根据用户ID获取用户公开信息
+      description: 根据用户ID获取用户公开信息（查询其他用户时返回isFollowed字段）
+      security:
+        - BearerAuth: []
       parameters:
         - name: userId
           in: path
           required: true
           schema:
             type: string
+          description: 用户ID
       responses:
         '200':
           description: 获取成功
@@ -285,9 +288,9 @@ paths:
                   value:
                     code: 200
                     data:
-                      id: "cy100002"
-                      username: "user"
-                      nickname: "测试用户"
+                      id: "cy100003"
+                      username: "otheruser"
+                      nickname: "其他用户"
                       avatar: "/images/default-avatar.png"
                       role: 2
                       status: 1
@@ -1507,58 +1510,6 @@ paths:
                   summary: 文件大小超限
                   value:
                     code: 2148
-                    data: null
-
-  /user/verification-code/send:
-    post:
-      operationId: sendVerificationCode
-      tags:
-        - 用户模块
-      summary: 发送验证码
-      description: 发送验证码到用户的手机或邮箱，支持注册、重置密码、更换手机号等场景
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                contact:
-                  type: string
-                  description: 联系方式（手机号或邮箱）
-                contactType:
-                  type: string
-                  description: 联系方式类型（phone/email）
-                sceneType:
-                  type: string
-                  description: 使用场景（register/reset_password/change_phone）
-      responses:
-        '200':
-          description: 发送结果
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BaseResponse'
-              examples:
-                success:
-                  summary: 验证码已发送
-                  value:
-                    code: 2025
-                    data: null
-                failure:
-                  summary: 发送验证码失败
-                  value:
-                    code: 2149
-                    data: null
-                rate_limit:
-                  summary: 发送过于频繁，请稍后再试
-                  value:
-                    code: 2150
-                    data: null
-                expired:
-                  summary: 验证码已过期
-                  value:
-                    code: 2151
                     data: null
 
   # ==================== 茶叶模块 ====================
