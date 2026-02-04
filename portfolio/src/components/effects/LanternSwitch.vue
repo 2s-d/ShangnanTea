@@ -6,7 +6,7 @@
     <!-- 灯笼 -->
     <div 
       class="lantern"
-      :class="{ 'is-tech': currentTheme === 'tech', 'is-dragging': isDragging }"
+      :class="{ 'is-coderain': currentTheme === 'coderain', 'is-dragging': isDragging }"
       :style="lanternStyle"
       @mousedown="startDrag"
       @touchstart="startDrag"
@@ -16,8 +16,8 @@
       
       <!-- 灯笼主体 -->
       <div class="lantern-body">
-        <div class="lantern-light" :class="{ 'glow': currentTheme === 'tech' }"></div>
-        <div class="lantern-text">{{ currentTheme === 'tech' ? '科' : '简' }}</div>
+        <div class="lantern-light" :class="{ 'glow': currentTheme === 'coderain' }"></div>
+        <div class="lantern-text">{{ currentTheme === 'coderain' ? '码' : '粒' }}</div>
         <div class="lantern-pattern pattern-1"></div>
         <div class="lantern-pattern pattern-2"></div>
       </div>
@@ -322,8 +322,8 @@ onUnmounted(() => {
   }
 }
 
-/* 科技模式下的灯笼 */
-.lantern.is-tech .lantern-body {
+/* 代码雨主题下的灯笼 */
+.lantern.is-coderain .lantern-body {
   box-shadow: 
     0 4px 8px rgba(0, 0, 0, 0.3),
     inset 0 -10px 20px rgba(0, 0, 0, 0.2),

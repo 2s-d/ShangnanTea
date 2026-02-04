@@ -1,16 +1,17 @@
 <template>
   <div class="portfolio" :class="{ 'dark-mode': isDark }">
-    <!-- 背景特效层 - 根据主题显示 -->
-    <template v-if="currentTheme === THEMES.TECH">
-      <ParticlesBackground v-if="!isDark" />
-      <CodeRain :show="isDark" />
+    <!-- 背景特效 - 根据主题显示不同背景 -->
+    <template v-if="currentTheme === THEMES.PARTICLE">
+      <ParticlesBackground />
+      <HexagonGrid />
     </template>
+    <CodeRain v-if="currentTheme === THEMES.CODERAIN" :show="true" />
     
     <!-- 通用特效层 -->
     <CursorGlow />
     <ScrollProgress />
     
-    <!-- 红灯笼：切换主题模板 -->
+    <!-- 红灯笼：切换主题 -->
     <LanternSwitch 
       :current-theme="currentTheme" 
       :on-toggle="toggleTheme" 
@@ -136,8 +137,8 @@
               :md="6"
               :lg="4"
             >
-              <!-- 科技模式：3D倾斜卡片 -->
-              <TiltCard v-if="currentTheme === THEMES.TECH" :max-tilt="8">
+              <!-- 所有主题都使用完整特效 -->
+              <TiltCard :max-tilt="8">
                 <el-card shadow="hover" class="skill-card card-hover glass-effect">
                   <div class="skill-icon animate-pulse">{{ skill.icon }}</div>
                   <h3>{{ skill.name }}</h3>
@@ -148,17 +149,6 @@
                   />
                 </el-card>
               </TiltCard>
-              
-              <!-- 简约模式：普通卡片 -->
-              <el-card v-else shadow="hover" class="skill-card card-hover">
-                <div class="skill-icon">{{ skill.icon }}</div>
-                <h3>{{ skill.name }}</h3>
-                <SkillProgress 
-                  :name="skill.name"
-                  :level="skill.level"
-                  :color="skill.color"
-                />
-              </el-card>
             </el-col>
           </el-row>
         </el-main>
@@ -180,8 +170,8 @@
               :sm="12"
               :md="8"
             >
-              <!-- 科技模式：3D倾斜卡片 + 玻璃态 -->
-              <TiltCard v-if="currentTheme === THEMES.TECH" :max-tilt="5">
+              <!-- 所有主题都使用完整特效 -->
+              <TiltCard :max-tilt="5">
                 <el-card shadow="hover" class="project-card card-hover glass-effect">
                 <template #header>
                   <div class="project-header">
@@ -217,42 +207,6 @@
                 </div>
               </el-card>
               </TiltCard>
-              
-              <!-- 简约模式：普通卡片 -->
-              <el-card v-else shadow="hover" class="project-card card-hover">
-                <template #header>
-                  <div class="project-header">
-                    <span class="project-name">{{ project.name }}</span>
-                    <el-tag :type="project.status === 'online' ? 'success' : 'info'">
-                      {{ project.status === 'online' ? '已上线' : '开发中' }}
-                    </el-tag>
-                  </div>
-                </template>
-                <div class="project-image">
-                  <img :src="project.image" :alt="project.name" />
-                </div>
-                <p class="project-desc">{{ project.description }}</p>
-                <div class="project-tags">
-                  <el-tag
-                    v-for="tech in project.tech"
-                    :key="tech"
-                    size="small"
-                    class="tech-tag"
-                  >
-                    {{ tech }}
-                  </el-tag>
-                </div>
-                <div class="project-actions">
-                  <el-button type="primary" link @click="openProject(project.url)">
-                    <el-icon><View /></el-icon>
-                    查看项目
-                  </el-button>
-                  <el-button link v-if="project.github" @click="openProject(project.github)">
-                    <el-icon><Link /></el-icon>
-                    GitHub
-                  </el-button>
-                </div>
-              </el-card>
             </el-col>
           </el-row>
         </el-main>
@@ -304,6 +258,7 @@
 <script setup>
 import { ref } from 'vue'
 import ParticlesBackground from './components/effects/ParticlesBackground.vue'
+import HexagonGrid from './components/effects/HexagonGrid.vue'
 import CursorGlow from './components/effects/CursorGlow.vue'
 import ScrollProgress from './components/effects/ScrollProgress.vue'
 import TypeWriter from './components/effects/TypeWriter.vue'

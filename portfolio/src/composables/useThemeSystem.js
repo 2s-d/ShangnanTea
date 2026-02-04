@@ -1,33 +1,26 @@
 import { ref, watch } from 'vue'
 
-// 主题模板列表
+// 主题列表 - 每个主题都是完整的视觉风格
 export const THEMES = {
-  MINIMAL: 'minimal',    // 主题1：简约模式（粒子背景）
-  TECH: 'tech',          // 主题2：科技模式（代码雨）
+  PARTICLE: 'particle',  // 主题1：粒子主题
+  CODERAIN: 'coderain',  // 主题2：代码雨主题
 }
 
 export function useThemeSystem() {
-  // 深色/浅色模式（独立于主题）
+  // 深色/浅色模式（独立，不属于主题）
   const isDark = ref(localStorage.getItem('darkMode') === 'true')
   
-  // 当前主题模板
-  const currentTheme = ref(localStorage.getItem('theme') || THEMES.MINIMAL)
+  // 当前主题
+  const currentTheme = ref(localStorage.getItem('theme') || THEMES.PARTICLE)
 
   // 切换深色/浅色模式（导航栏月亮/太阳图标）
   const toggleDarkMode = () => {
     isDark.value = !isDark.value
   }
 
-  // 切换主题模板（红灯笼）
+  // 切换主题（红灯笼）
   const toggleTheme = () => {
-    currentTheme.value = currentTheme.value === THEMES.MINIMAL ? THEMES.TECH : THEMES.MINIMAL
-  }
-
-  // 设置指定主题
-  const setTheme = (theme) => {
-    if (Object.values(THEMES).includes(theme)) {
-      currentTheme.value = theme
-    }
+    currentTheme.value = currentTheme.value === THEMES.PARTICLE ? THEMES.CODERAIN : THEMES.PARTICLE
   }
 
   // 监听深色模式变化
@@ -56,7 +49,6 @@ export function useThemeSystem() {
     currentTheme,
     toggleDarkMode,
     toggleTheme,
-    setTheme,
     THEMES
   }
 }
