@@ -62,30 +62,39 @@ class Hexagon {
       const fadeOutDuration = 2500
       
       if (timeSinceActivation < fadeOutDuration) {
-        // 计算衰减进度
+        // 计算衰减进度 (0-1)
         const fadeProgress = timeSinceActivation / fadeOutDuration
         
         // 1. 透明度衰减（变淡）
         this.opacity *= (1 - fadeProgress * fadeProgress * 0.02)
         
-        // 2. 范围衰减（变窄）- 通过降低对远距离的响应来实现
-        // 随着时间推移，只有更靠近原点的六边形才保持亮度
-        const narrowingFactor = 1 - fadeProgress * 0.7 // 范围缩小到30%
-        const effectiveDistance = distToCurrent / narrowingFactor
-        
-        // 如果超出缩小后的范围，加速衰减
-        if (effectiveDistance > 80) {
-          this.opacity *= 0.85 // 快速衰减
+        // 2. 范围逐渐缩小（变窄）- 只在后半段生效
+        // 前50%保持原宽度，后50%逐渐变窄
+        if (fadeProgress > 0.5) {
+          // 计算后半段的进度 (0-1)
+          const narrowProgress = (fadeProgress - 0.5) * 2
+          
+          // 范围从80px逐渐缩小到20px（缩小75%）
+          // 使用平方根函数让变窄更柔和
+          const narrowFactor = 1 - Math.sqrt(narrowProgress) * 0.75
+          const narrowedRadius = 80 * narrowFactor
+          
+          // 如果六边形距离鼠标位置超过缩小后的范围，加速衰减
+          if (distToCurrent > narrowedRadius) {
+            // 距离越远，衰减越快
+            const excessDistance = distToCurrent - narrowedRadius
+            const decayRate = 0.88 - (excessDistance / 100) * 0.1
+            this.opacity *= Math.max(decayRate, 0.7)
+          }
         }
         
-        // 3. 偶尔闪烁（更稀疏，只有2%概率）
+        // 3. 偶尔闪烁（非常稀疏）
         if (this.opacity > 0.1 && this.opacity < 0.5) {
           const sparklePhase = (currentTime + this.sparkleOffset) * this.sparkleSpeed * 0.003
           const sparkle = Math.sin(sparklePhase) * 0.5 + 0.5
           
-          // 只在波峰且随机数满足时才闪烁（更稀疏）
-          if (sparkle > 0.98 && Math.random() > 0.95) {
-            this.opacity = Math.min(this.opacity * 2.5, 0.9) // 短暂高亮
+          if (sparkle > 0.98 && Math.random() > 0.97) {
+            this.opacity = Math.min(this.opacity * 2.5, 0.9)
           }
         }
       } else {
