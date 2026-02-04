@@ -204,6 +204,7 @@
 import { ref, computed, onMounted, reactive } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useStore } from 'vuex'
+import { ElMessage } from 'element-plus'
 
 import { ArrowLeft, Plus } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
@@ -441,6 +442,12 @@ export default {
       
       if (!selectedAddressId.value) {
         orderPromptMessages.showAddressRequired()
+        return
+      }
+      
+      // 检查是否选择了微信支付
+      if (paymentMethod.value === 'wechat') {
+        ElMessage.warning('微信支付功能正在开发中，敬请期待！')
         return
       }
       
