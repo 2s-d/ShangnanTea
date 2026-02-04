@@ -99,11 +99,11 @@
         </dependency>
         
         
-        <!-- Tencent Cloud SMS SDK -->
+        <!-- Aliyun Dysmsapi SDK (短信认证服务) -->
         <dependency>
-            <groupId>com.tencentcloudapi</groupId>
-            <artifactId>tencentcloud-sdk-java-sms</artifactId>
-            <version>3.1.880</version>
+            <groupId>com.aliyun</groupId>
+            <artifactId>dysmsapi20170525</artifactId>
+            <version>2.0.24</version>
         </dependency>
     </dependencies>
 

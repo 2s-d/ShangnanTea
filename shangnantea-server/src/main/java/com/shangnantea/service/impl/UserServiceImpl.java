@@ -129,23 +129,17 @@ public class UserServiceImpl implements UserService {
     @Value("${spring.mail.username}")
     private String mailFrom;
     
-    @Value("${tencent.sms.enabled:false}")
+    @Value("${aliyun.sms.enabled:false}")
     private boolean smsEnabled;  // 是否启用真实短信发送
     
-    @Value("${tencent.sms.secret-id:}")
-    private String tencentSecretId;  // 腾讯云 SecretId
+    @Value("${aliyun.sms.access-key-id:}")
+    private String aliyunAccessKeyId;  // 阿里云 AccessKeyId
     
-    @Value("${tencent.sms.secret-key:}")
-    private String tencentSecretKey;  // 腾讯云 SecretKey
+    @Value("${aliyun.sms.access-key-secret:}")
+    private String aliyunAccessKeySecret;  // 阿里云 AccessKeySecret
     
-    @Value("${tencent.sms.sdk-app-id:}")
-    private String tencentSdkAppId;  // 腾讯云短信应用 SdkAppId
-    
-    @Value("${tencent.sms.sign-name:}")
-    private String tencentSignName;  // 腾讯云短信签名
-    
-    @Value("${tencent.sms.template-id:}")
-    private String tencentTemplateId;  // 腾讯云短信模板ID
+    @Value("${aliyun.sms.sign-name:}")
+    private String aliyunSignName;  // 阿里云短信签名
     
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
@@ -2380,88 +2374,66 @@ public class UserServiceImpl implements UserService {
     }
     
     /**
-     * 发送短信验证码（支持腾讯云短信真实发送 + 模拟发送）
+     * 发送短信验证码（支持阿里云短信认证服务真实发送 + 模拟发送）
      */
     private boolean sendSmsCode(String phone, String code, String sceneType) {
         String sceneName = getSceneName(sceneType);
         
         // 判断是否启用真实短信发送
-        if (smsEnabled && tencentSecretId != null && !tencentSecretId.isEmpty()) {
-            // 真实发送（腾讯云短信）
-            return sendTencentSms(phone, code);
+        if (smsEnabled && aliyunAccessKeyId != null && !aliyunAccessKeyId.isEmpty()) {
+            // 真实发送（阿里云短信认证服务）
+            return sendAliyunSms(phone, code);
         } else {
             // 模拟发送
             logger.info("【模拟发送短信】手机号: {}, 验证码: {}, 场景: {}", phone, code, sceneName);
-            logger.info("短信内容: 【{}】您正在进行{}操作，验证码是：{}，5分钟内有效，请勿泄露。", tencentSignName, sceneName, code);
+            logger.info("短信内容: 【{}】您正在进行{}操作，验证码是：{}，5分钟内有效，请勿泄露。", aliyunSignName, sceneName, code);
             return true; // 模拟发送总是成功
         }
     }
     
     /**
-     * 腾讯云短信真实发送
+     * 阿里云短信认证服务真实发送
      */
-    private boolean sendTencentSms(String phone, String code) {
+    private boolean sendAliyunSms(String phone, String code) {
         try {
-            // 导入腾讯云SDK
-            com.tencentcloudapi.common.Credential cred = new com.tencentcloudapi.common.Credential(tencentSecretId, tencentSecretKey);
+            // 配置阿里云SDK
+            com.aliyun.dysmsapi20170525.Client client = createAliyunSmsClient();
             
-            // 实例化一个http选项，可选
-            com.tencentcloudapi.common.profile.HttpProfile httpProfile = new com.tencentcloudapi.common.profile.HttpProfile();
-            httpProfile.setEndpoint("sms.tencentcloudapi.com");
-            
-            // 实例化一个client选项
-            com.tencentcloudapi.common.profile.ClientProfile clientProfile = new com.tencentcloudapi.common.profile.ClientProfile();
-            clientProfile.setHttpProfile(httpProfile);
-            
-            // 实例化要请求产品的client对象
-            com.tencentcloudapi.sms.v20210111.SmsClient client = new com.tencentcloudapi.sms.v20210111.SmsClient(cred, "ap-guangzhou", clientProfile);
-            
-            // 实例化一个请求对象
-            com.tencentcloudapi.sms.v20210111.models.SendSmsRequest req = new com.tencentcloudapi.sms.v20210111.models.SendSmsRequest();
-            
-            // 设置短信应用ID
-            req.setSmsSdkAppId(tencentSdkAppId);
-            
-            // 设置短信签名内容
-            req.setSignName(tencentSignName);
-            
-            // 设置模板ID
-            req.setTemplateId(tencentTemplateId);
-            
-            // 设置模板参数（验证码）
-            String[] templateParamSet = {code};
-            req.setTemplateParamSet(templateParamSet);
-            
-            // 设置下发手机号码（需要加+86前缀）
-            String[] phoneNumberSet = {"+86" + phone};
-            req.setPhoneNumberSet(phoneNumberSet);
+            // 构建请求
+            com.aliyun.dysmsapi20170525.models.SendSmsRequest sendSmsRequest = new com.aliyun.dysmsapi20170525.models.SendSmsRequest()
+                .setPhoneNumbers(phone)
+                .setSignName(aliyunSignName)
+                .setTemplateCode("SMS_" + code)  // 阿里云短信认证服务会自动处理验证码
+                .setTemplateParam("{\"code\":\"" + code + "\"}");
             
             // 发送短信
-            com.tencentcloudapi.sms.v20210111.models.SendSmsResponse resp = client.SendSms(req);
-            
-            // 输出json格式的字符串回包
-            logger.info("腾讯云短信发送响应: {}", com.tencentcloudapi.sms.v20210111.models.SendSmsResponse.toJsonString(resp));
+            com.aliyun.dysmsapi20170525.models.SendSmsResponse response = client.sendSms(sendSmsRequest);
             
             // 判断是否成功
-            if (resp.getSendStatusSet() != null && resp.getSendStatusSet().length > 0) {
-                String sendStatus = resp.getSendStatusSet()[0].getCode();
-                if ("Ok".equals(sendStatus)) {
-                    logger.info("腾讯云短信发送成功: phone={}", phone);
-                    return true;
-                } else {
-                    logger.error("腾讯云短信发送失败: phone={}, code={}, message={}", 
-                        phone, sendStatus, resp.getSendStatusSet()[0].getMessage());
-                    return false;
-                }
+            if ("OK".equals(response.getBody().getCode())) {
+                logger.info("阿里云短信发送成功: phone={}, code={}", phone, code);
+                return true;
             } else {
-                logger.error("腾讯云短信发送失败: phone={}, 响应为空", phone);
+                logger.error("阿里云短信发送失败: phone={}, code={}, message={}", 
+                    phone, response.getBody().getCode(), response.getBody().getMessage());
                 return false;
             }
             
         } catch (Exception e) {
-            logger.error("腾讯云短信发送异常: phone={}, error={}", phone, e.getMessage(), e);
+            logger.error("阿里云短信发送异常: phone={}, error={}", phone, e.getMessage(), e);
             return false;
         }
+    }
+    
+    /**
+     * 创建阿里云短信客户端
+     */
+    private com.aliyun.dysmsapi20170525.Client createAliyunSmsClient() throws Exception {
+        com.aliyun.teaopenapi.models.Config config = new com.aliyun.teaopenapi.models.Config()
+            .setAccessKeyId(aliyunAccessKeyId)
+            .setAccessKeySecret(aliyunAccessKeySecret)
+            .setEndpoint("dysmsapi.aliyuncs.com");
+        return new com.aliyun.dysmsapi20170525.Client(config);
     }
     
     /**
