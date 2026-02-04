@@ -20,6 +20,8 @@ class Hexagon {
     this.size = size
     this.opacity = 0
     this.lastActivatedTime = 0 // 最后被激活的时间
+    this.activationMouseX = 0 // 激活时鼠标的X位置
+    this.activationMouseY = 0 // 激活时鼠标的Y位置
     this.sparkleOffset = Math.random() * 1000 // 闪烁偏移，让每个六边形闪烁时机不同
     this.sparkleSpeed = 0.5 + Math.random() * 1.5 // 闪烁速度随机
   }
@@ -56,54 +58,61 @@ class Hexagon {
       this.lastActivatedTime = currentTime
     }
     
-    // 随时间自动衰减（点亮后2.5秒内慢慢消失）
-    if (this.lastActivatedTime > 0) {
-      const timeSinceActivation = currentTime - this.lastActivatedTime
-      const fadeOutDuration = 2500
+    // 拖尾衰减逻辑：基于距离而非时间
+    if (this.opacity > 0.01) {
+      // 基础衰减速率
+      let decayRate = 0.985
       
-      if (timeSinceActivation < fadeOutDuration) {
-        // 计算衰减进度 (0-1)
-        const fadeProgress = timeSinceActivation / fadeOutDuration
+      // 根据距离当前鼠标位置调整衰减速率
+      // 距离越远，衰减越快（从后往前消失）
+      if (distToCurrent > 80) {
+        // 距离鼠标80px以外的区域开始加速衰减
+        const excessDistance = distToCurrent - 80
         
-        // 1. 透明度衰减（变淡）
-        this.opacity *= (1 - fadeProgress * fadeProgress * 0.02)
+        // 距离越远，衰减越快
+        // 使用分段函数：近处慢慢消失，远处快速消失
+        if (excessDistance < 100) {
+          // 100px内：轻微加速衰减
+          decayRate = 0.985 - (excessDistance / 100) * 0.02
+        } else if (excessDistance < 200) {
+          // 100-200px：中等加速
+          decayRate = 0.965 - ((excessDistance - 100) / 100) * 0.03
+        } else {
+          // 200px以上：快速消失
+          decayRate = 0.935 - Math.min((excessDistance - 200) / 200, 1) * 0.05
+        }
         
-        // 2. 范围逐渐缩小（变窄）- 只在后半段生效
-        // 前50%保持原宽度，后50%逐渐变窄
-        if (fadeProgress > 0.5) {
-          // 计算后半段的进度 (0-1)
-          const narrowProgress = (fadeProgress - 0.5) * 2
-          
-          // 范围从80px逐渐缩小到20px（缩小75%）
-          // 使用平方根函数让变窄更柔和
+        // 变窄效果：距离越远，宽度越窄
+        // 在80-200px范围内逐渐变窄
+        if (excessDistance > 0 && excessDistance < 120) {
+          const narrowProgress = excessDistance / 120
           const narrowFactor = 1 - Math.sqrt(narrowProgress) * 0.75
-          const narrowedRadius = 80 * narrowFactor
+          const narrowedRadius = 80 + excessDistance * narrowFactor
           
-          // 如果六边形距离鼠标位置超过缩小后的范围，加速衰减
+          // 如果六边形在变窄的边缘区域，额外加速衰减
           if (distToCurrent > narrowedRadius) {
-            // 距离越远，衰减越快
-            const excessDistance = distToCurrent - narrowedRadius
-            const decayRate = 0.88 - (excessDistance / 100) * 0.1
-            this.opacity *= Math.max(decayRate, 0.7)
+            decayRate *= 0.9
           }
         }
+      }
+      
+      // 应用衰减
+      this.opacity *= decayRate
+      
+      // 偶尔闪烁（非常稀疏）
+      if (this.opacity > 0.1 && this.opacity < 0.5 && distToCurrent > 80) {
+        const sparklePhase = (currentTime + this.sparkleOffset) * this.sparkleSpeed * 0.003
+        const sparkle = Math.sin(sparklePhase) * 0.5 + 0.5
         
-        // 3. 偶尔闪烁（非常稀疏）
-        if (this.opacity > 0.1 && this.opacity < 0.5) {
-          const sparklePhase = (currentTime + this.sparkleOffset) * this.sparkleSpeed * 0.003
-          const sparkle = Math.sin(sparklePhase) * 0.5 + 0.5
-          
-          if (sparkle > 0.98 && Math.random() > 0.97) {
-            this.opacity = Math.min(this.opacity * 2.5, 0.9)
-          }
+        if (sparkle > 0.98 && Math.random() > 0.97) {
+          this.opacity = Math.min(this.opacity * 2.5, 0.9)
         }
-      } else {
-        // 完全衰减
-        this.opacity *= 0.95
-        if (this.opacity < 0.01) {
-          this.opacity = 0
-          this.lastActivatedTime = 0
-        }
+      }
+      
+      // 完全消失
+      if (this.opacity < 0.01) {
+        this.opacity = 0
+        this.lastActivatedTime = 0
       }
     }
   }
