@@ -184,4 +184,12 @@ public interface OrderService {
      * @return 文件流
      */
     Result<Object> exportOrders(Map<String, Object> params);
+    
+    /**
+     * 处理支付宝异步回调
+     *
+     * @param params 回调参数
+     * @return 处理结果（返回"success"或"failure"）
+     */
+    String handleAlipayNotify(Map<String, String> params);
 } 

@@ -24,6 +24,7 @@ import com.shangnantea.model.vo.order.OrderDetailVO;
 import com.shangnantea.model.vo.order.OrderVO;
 import com.shangnantea.model.vo.order.RefundDetailVO;
 import com.shangnantea.security.context.UserContext;
+import com.shangnantea.service.AlipayService;
 import com.shangnantea.service.OrderService;
 import com.shangnantea.utils.FileUploadUtils;
 import org.slf4j.Logger;
@@ -70,6 +71,9 @@ public class OrderServiceImpl implements OrderService {
     
     @Autowired
     private ShopMapper shopMapper;
+    
+    @Autowired
+    private AlipayService alipayService;
     
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
@@ -1027,21 +1031,27 @@ public class OrderServiceImpl implements OrderService {
                 return Result.failure(5117);
             }
             
-            // 3. 查询订单
+            // 3. 验证支付方式是否支持
+            if (!"alipay".equals(paymentMethod) && !"wechat".equals(paymentMethod)) {
+                logger.warn("支付订单失败: 不支持的支付方式: paymentMethod={}", paymentMethod);
+                return Result.failure(5118); // 不支持的支付方式
+            }
+            
+            // 4. 查询订单
             Order order = orderMapper.selectById(orderId);
             if (order == null) {
                 logger.warn("支付订单失败: 订单不存在: orderId={}", orderId);
                 return Result.failure(5117);
             }
             
-            // 4. 验证订单是否属于当前用户
+            // 5. 验证订单是否属于当前用户
             if (!userId.equals(order.getUserId())) {
                 logger.warn("支付订单失败: 无权限: orderId={}, userId={}, orderUserId={}", 
                            orderId, userId, order.getUserId());
                 return Result.failure(5117);
             }
             
-            // 5. 验证订单状态是否为待付款
+            // 6. 验证订单状态是否为待付款
             if (order.getStatus() == null || order.getStatus() != Order.STATUS_PENDING_PAYMENT) {
                 logger.warn("支付订单失败: 订单状态不是待付款: orderId={}, status={}", orderId, order.getStatus());
                 // 如果订单已经支付过了，返回5006
@@ -1051,59 +1061,35 @@ public class OrderServiceImpl implements OrderService {
                 return Result.failure(5117);
             }
             
-            // 6. 如果支付方式是余额，验证余额是否充足（这里简化处理，实际需要查询用户余额）
-            if ("balance".equals(paymentMethod)) {
-                // TODO: 实际应该查询用户余额表
-                // 这里简化处理，假设余额不足
-                logger.warn("支付订单失败: 余额不足: orderId={}, userId={}", orderId, userId);
-                return Result.failure(5120); // 余额不足
-            }
-            
-            // 7. 扣减库存和增加销量
-            boolean stockUpdated = false;
-            if (order.getSpecId() != null) {
-                // 有规格，更新规格库存
-                int rows = teaSpecificationMapper.updateStock(order.getSpecId(), order.getQuantity());
-                if (rows == 0) {
-                    logger.warn("支付订单失败: 库存不足或规格不存在: specId={}, quantity={}", 
-                               order.getSpecId(), order.getQuantity());
-                    return Result.failure(5111); // 商品库存不足
+            // 7. 调用支付宝生成支付表单
+            if ("alipay".equals(paymentMethod)) {
+                try {
+                    // 获取订单信息
+                    String subject = "商南茶城订单-" + orderId;
+                    String totalAmount = order.getTotalAmount().toString();
+                    
+                    // 调用支付宝服务生成支付表单
+                    String paymentForm = alipayService.createPaymentForm(orderId, subject, totalAmount);
+                    
+                    // 返回支付表单HTML
+                    Map<String, Object> responseData = new HashMap<>();
+                    responseData.put("formHtml", paymentForm);
+                    responseData.put("orderId", orderId);
+                    
+                    logger.info("生成支付表单成功: orderId={}", orderId);
+                    return Result.success(5007, responseData); // 支付表单生成成功，正在跳转...
+                    
+                } catch (Exception e) {
+                    logger.error("生成支付表单失败: orderId={}, error={}", orderId, e.getMessage());
+                    return Result.failure(5119); // 生成支付表单失败
                 }
-                stockUpdated = true;
-                logger.info("已扣减规格库存: specId={}, quantity={}", order.getSpecId(), order.getQuantity());
-            } else {
-                // 无规格，更新茶叶库存和销量
-                int rows = teaMapper.updateStockAndSales(order.getTeaId(), order.getQuantity());
-                if (rows == 0) {
-                    logger.warn("支付订单失败: 库存不足或商品不存在: teaId={}, quantity={}", 
-                               order.getTeaId(), order.getQuantity());
-                    return Result.failure(5111); // 商品库存不足
-                }
-                stockUpdated = true;
-                logger.info("已扣减库存并增加销量: teaId={}, quantity={}", order.getTeaId(), order.getQuantity());
+            } else if ("wechat".equals(paymentMethod)) {
+                // TODO: 微信支付暂未实现
+                logger.warn("微信支付暂未实现");
+                return Result.failure(5118); // 不支持的支付方式
             }
             
-            // 8. 更新订单状态为待发货
-            order.setStatus(Order.STATUS_PENDING_SHIPMENT); // 待发货
-            order.setPaymentMethod(paymentMethod);
-            order.setPaymentTime(new Date());
-            order.setUpdateTime(new Date());
-            
-            int rows = orderMapper.updateById(order);
-            if (rows > 0) {
-                logger.info("支付订单成功: orderId={}, userId={}, paymentMethod={}", orderId, userId, paymentMethod);
-                
-                // 9. 构建返回数据
-                Map<String, Object> responseData = new HashMap<>();
-                responseData.put("orderId", orderId);
-                responseData.put("status", order.getStatus());
-                responseData.put("paymentTime", order.getPaymentTime());
-                
-                return Result.success(5007, responseData); // 支付成功
-            } else {
-                logger.warn("支付订单失败: 更新订单失败: orderId={}", orderId);
-                return Result.failure(5117);
-            }
+            return Result.failure(5117);
             
         } catch (Exception e) {
             logger.error("支付订单失败: 系统异常", e);

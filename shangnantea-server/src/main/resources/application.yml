@@ -57,4 +57,25 @@ jwt:
 
 # 应用配置
 app:
-  base-url: http://localhost:8080 
+  base-url: http://localhost:8080
+
+# 支付宝配置（沙箱环境）
+alipay:
+  # 应用ID（需要替换成你的沙箱APPID）
+  app-id: 你的沙箱APPID
+  # 商户私钥（需要替换成你的应用私钥）
+  private-key: 你的应用私钥
+  # 支付宝公钥（需要替换成支付宝公钥）
+  public-key: 支付宝公钥
+  # 支付宝网关地址（沙箱环境）
+  gateway-url: https://openapi-sandbox.dl.alipaydev.com/gateway.do
+  # 签名类型
+  sign-type: RSA2
+  # 字符编码
+  charset: UTF-8
+  # 返回格式
+  format: json
+  # 同步回调地址（前端支付结果页面）
+  return-url: http://localhost:5173/order/payment
+  # 异步回调地址（后端接口）
+  notify-url: http://你的公网IP:8080/api/order/alipay/notify
