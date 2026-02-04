@@ -308,9 +308,10 @@ public class ForumController {
      * 获取帖子列表
      * 路径: GET /forum/posts
      * 成功码: 200, 失败码: 6119
+     * 改造说明：返回的帖子列表中，每个帖子对象包含 isLiked 和 isFavorited 字段（当前用户是否已点赞/收藏该帖子）
      *
      * @param params 查询参数 {topicId, keyword, sortBy, page, size}
-     * @return 帖子列表
+     * @return 帖子列表（每个帖子对象包含 isLiked 和 isFavorited 字段）
      */
     @GetMapping("/posts")
     public Result<Object> getForumPosts(@RequestParam Map<String, Object> params) {

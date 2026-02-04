@@ -444,8 +444,40 @@ export default {
     // 点赞评价
     const handleLikeReview = async review => {
       try {
-        const response = await store.dispatch('tea/likeReview', review.id)
-        showByCode(response.code)
+        if (review.isLiked) {
+          // 取消点赞：需要先找到点赞记录ID
+          const likeList = store.state.user.likeList || []
+          const likeItem = likeList.find(item => 
+            item.targetType === 'review' && item.targetId === String(review.id)
+          )
+          if (likeItem) {
+            const response = await store.dispatch('user/removeLike', likeItem.id)
+            showByCode(response.code)
+            // 重新加载评价列表以更新isLiked状态
+            if (tea.value) {
+              await store.dispatch('tea/fetchTeaReviews', {
+                teaId: tea.value.id,
+                page: reviewCurrentPage.value,
+                pageSize: reviewPageSize.value
+              })
+            }
+          }
+        } else {
+          // 添加点赞
+          const response = await store.dispatch('user/addLike', {
+            targetId: String(review.id),
+            targetType: 'review'
+          })
+          showByCode(response.code)
+          // 重新加载评价列表以更新isLiked状态
+          if (tea.value) {
+            await store.dispatch('tea/fetchTeaReviews', {
+              teaId: tea.value.id,
+              page: reviewCurrentPage.value,
+              pageSize: reviewPageSize.value
+            })
+          }
+        }
       } catch (error) {
         console.error('点赞失败:', error)
       }

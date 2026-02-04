@@ -904,13 +904,28 @@ export default {
     // 帖子点赞
     const handleLike = async post => {
       try {
-        let res
         if (post.isLiked) {
-          res = await store.dispatch('forum/unlikePost', post.id)
+          // 取消点赞：需要先找到点赞记录ID
+          const likeList = store.state.user.likeList || []
+          const likeItem = likeList.find(item => 
+            item.targetType === 'post' && item.targetId === String(post.id)
+          )
+          if (likeItem) {
+            const res = await store.dispatch('user/removeLike', likeItem.id)
+            showByCode(res.code)
+            // 重新加载帖子列表以更新isLiked状态
+            await fetchPosts()
+          }
         } else {
-          res = await store.dispatch('forum/likePost', post.id)
+          // 添加点赞
+          const res = await store.dispatch('user/addLike', {
+            targetId: String(post.id),
+            targetType: 'post'
+          })
+          showByCode(res.code)
+          // 重新加载帖子列表以更新isLiked状态
+          await fetchPosts()
         }
-        showByCode(res.code)
       } catch (error) {
         console.error('点赞操作失败:', error)
       }
@@ -919,13 +934,30 @@ export default {
     // 帖子收藏
     const handleFavorite = async post => {
       try {
-        let res
         if (post.isFavorited) {
-          res = await store.dispatch('forum/unfavoritePost', post.id)
+          // 取消收藏：需要先找到收藏记录ID
+          const favoriteList = store.state.user.favoriteList || []
+          const favoriteItem = favoriteList.find(item => 
+            item.itemType === 'post' && item.itemId === String(post.id)
+          )
+          if (favoriteItem) {
+            const res = await store.dispatch('user/removeFavorite', favoriteItem.id)
+            showByCode(res.code)
+            // 重新加载帖子列表以更新isFavorited状态
+            await fetchPosts()
+          }
         } else {
-          res = await store.dispatch('forum/favoritePost', post.id)
+          // 添加收藏
+          const res = await store.dispatch('user/addFavorite', {
+            targetId: String(post.id),
+            targetType: 'post',
+            targetName: post.title || '',
+            targetImage: post.coverImage || ''
+          })
+          showByCode(res.code)
+          // 重新加载帖子列表以更新isFavorited状态
+          await fetchPosts()
         }
-        showByCode(res.code)
       } catch (error) {
         console.error('收藏操作失败:', error)
       }
