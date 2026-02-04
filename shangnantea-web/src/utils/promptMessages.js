@@ -448,7 +448,8 @@ export const MESSAGE_PROMPT = {
   DELETE_SESSION_CONFIRM: '确定要删除此会话吗？历史消息将无法恢复',
   DELETE_NOTIFICATION_CONFIRM: '确定要删除此通知吗？',
   CLEAR_ALL_NOTIFICATIONS_CONFIRM: '确定要清空所有通知吗？',
-  RECALL_CONFIRM: '确定要撤回此消息吗？'
+  RECALL_CONFIRM: '确定要撤回此消息吗？',
+  FOLLOW_NOT_FOUND: '未找到关注记录'
 }
 
 export const messagePromptMessages = {
@@ -481,6 +482,9 @@ export const messagePromptMessages = {
   },
   showPleaseWait() {
     promptMessage.info('请稍候...')
+  },
+  showFollowNotFound() {
+    promptMessage.show(MESSAGE_PROMPT.FOLLOW_NOT_FOUND)
   }
 }
 

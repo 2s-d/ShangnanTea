@@ -157,8 +157,8 @@ import { useStore } from 'vuex'
 import { ElMessage } from 'element-plus'
 import { Search, Male, Female, Message, Service } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-import { apiMessage } from '@/utils/messageManager'
 import { showByCode } from '@/utils/apiMessages'
+import { messagePromptMessages } from '@/utils/promptMessages'
 
 export default {
   name: 'FollowsPage',
@@ -340,7 +340,7 @@ export default {
       )
       if (!followItem) {
         // 前端验证错误，使用提示消息系统
-        apiMessage.error('未找到关注记录')
+        messagePromptMessages.showFollowNotFound()
         return
       }
       
@@ -377,7 +377,7 @@ export default {
       )
       if (!followItem) {
         // 前端验证错误，使用提示消息系统
-        apiMessage.error('未找到关注记录')
+        messagePromptMessages.showFollowNotFound()
         return
       }
       
