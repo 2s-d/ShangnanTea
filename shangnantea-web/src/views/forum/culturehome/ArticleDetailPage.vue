@@ -521,6 +521,15 @@ export default {
               color: #E6A23C;
             }
           }
+          
+          &.is-favorited {
+            color: #F56C6C;
+            border-color: #F56C6C;
+            
+            i {
+              color: #F56C6C;
+            }
+          }
         }
       }
     }

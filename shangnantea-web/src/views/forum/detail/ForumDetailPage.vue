@@ -308,15 +308,28 @@ export default {
       
       likeLoading.value = true
       try {
-        let res
         if (post.value?.isLiked) {
-          // 取消点赞
-          res = await store.dispatch('forum/unlikePost', postId.value)
+          // 取消点赞：需要先找到点赞记录ID
+          const likeList = store.state.user.likeList || []
+          const likeItem = likeList.find(item => 
+            item.targetType === 'post' && item.targetId === postId.value
+          )
+          if (likeItem) {
+            const res = await store.dispatch('user/removeLike', likeItem.id)
+            showByCode(res.code)
+            // 重新加载帖子详情以更新isLiked状态
+            await fetchPostDetail()
+          }
         } else {
           // 添加点赞
-          res = await store.dispatch('forum/likePost', postId.value)
+          const res = await store.dispatch('user/addLike', {
+            targetId: postId.value,
+            targetType: 'post'
+          })
+          showByCode(res.code)
+          // 重新加载帖子详情以更新isLiked状态
+          await fetchPostDetail()
         }
-        showByCode(res.code)
       } catch (error) {
         console.error('点赞操作失败:', error)
       } finally {
@@ -338,15 +351,30 @@ export default {
       
       favoriteLoading.value = true
       try {
-        let res
         if (post.value?.isFavorited) {
-          // 取消收藏
-          res = await store.dispatch('forum/unfavoritePost', postId.value)
+          // 取消收藏：需要先找到收藏记录ID
+          const favoriteList = store.state.user.favoriteList || []
+          const favoriteItem = favoriteList.find(item => 
+            item.itemType === 'post' && item.itemId === postId.value
+          )
+          if (favoriteItem) {
+            const res = await store.dispatch('user/removeFavorite', favoriteItem.id)
+            showByCode(res.code)
+            // 重新加载帖子详情以更新isFavorited状态
+            await fetchPostDetail()
+          }
         } else {
           // 添加收藏
-          res = await store.dispatch('forum/favoritePost', postId.value)
+          const res = await store.dispatch('user/addFavorite', {
+            targetId: postId.value,
+            targetType: 'post',
+            targetName: post.value?.title || '',
+            targetImage: post.value?.coverImage || ''
+          })
+          showByCode(res.code)
+          // 重新加载帖子详情以更新isFavorited状态
+          await fetchPostDetail()
         }
-        showByCode(res.code)
       } catch (error) {
         console.error('收藏操作失败:', error)
       } finally {
@@ -420,13 +448,28 @@ export default {
     // 点赞回复
     const likeReply = async reply => {
       try {
-        let res
         if (reply.isLiked) {
-          res = await store.dispatch('forum/unlikeReply', reply.id)
+          // 取消点赞：需要先找到点赞记录ID
+          const likeList = store.state.user.likeList || []
+          const likeItem = likeList.find(item => 
+            item.targetType === 'reply' && item.targetId === reply.id
+          )
+          if (likeItem) {
+            const res = await store.dispatch('user/removeLike', likeItem.id)
+            showByCode(res.code)
+            // 重新加载回复列表以更新isLiked状态
+            await fetchReplies()
+          }
         } else {
-          res = await store.dispatch('forum/likeReply', reply.id)
+          // 添加点赞
+          const res = await store.dispatch('user/addLike', {
+            targetId: reply.id,
+            targetType: 'reply'
+          })
+          showByCode(res.code)
+          // 重新加载回复列表以更新isLiked状态
+          await fetchReplies()
         }
-        showByCode(res.code)
       } catch (error) {
         console.error('点赞回复失败:', error)
       }
