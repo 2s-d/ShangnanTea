@@ -266,3 +266,24 @@
 .animate-heartbeat {
   animation: heartbeat 1.5s ease-in-out infinite;
 }
+
+
+/* 页脚光带动画 */
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* 优化的渐变动画 */
+@keyframes gradientShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}

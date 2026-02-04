@@ -249,6 +249,7 @@ import CursorGlow from './components/effects/CursorGlow.vue'
 import ScrollProgress from './components/effects/ScrollProgress.vue'
 import TypeWriter from './components/effects/TypeWriter.vue'
 import TiltCard from './components/effects/TiltCard.vue'
+import LanternSwitch from './components/effects/LanternSwitch.vue'
 import { useTheme } from './composables/useTheme'
 import { useScroll } from './composables/useScroll'
 import { profile, skills, projects } from './data/portfolio'
@@ -277,18 +278,35 @@ const openProject = (url) => {
 
 /* 导航栏 */
 .nav-wrapper {
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .nav-menu {
   border-bottom: none !important;
+  padding: 0 var(--spacing-lg);
+}
+
+.nav-menu .el-menu-item {
+  font-weight: var(--font-medium);
+  font-size: var(--text-base);
+  transition: all var(--transition-fast);
+}
+
+.nav-menu .el-menu-item:hover {
+  transform: translateY(-2px);
 }
 
 .logo h2 {
   margin: 0;
-  font-size: 24px;
-  font-weight: bold;
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.02em;
 }
 
 .flex-grow {
@@ -298,9 +316,9 @@ const openProject = (url) => {
 /* Hero 区域 */
 .hero-section {
   height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
   background-size: 200% 200%;
-  animation: gradientShift 15s ease infinite;
+  animation: gradientShift 20s ease infinite;
   color: white;
   display: flex;
   align-items: center;
@@ -316,9 +334,12 @@ const openProject = (url) => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-              radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+  background: 
+    radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.15) 0%, transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.1) 0%, transparent 40%),
+    radial-gradient(circle at 40% 80%, rgba(255, 255, 255, 0.08) 0%, transparent 40%);
   pointer-events: none;
+  animation: float 15s ease-in-out infinite;
 }
 
 .hero-content {
@@ -328,10 +349,11 @@ const openProject = (url) => {
 }
 
 .hero-avatar {
-  margin-bottom: 30px;
-  border: 5px solid white;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  margin-bottom: var(--spacing-2xl);
+  border: 6px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1);
   animation: float 3s ease-in-out infinite;
+  backdrop-filter: blur(10px);
 }
 
 .hero-title {
@@ -376,32 +398,38 @@ const openProject = (url) => {
 
 .hero-buttons {
   display: flex;
-  gap: 20px;
+  gap: var(--spacing-lg);
   justify-content: center;
   animation: slideInUp 0.8s ease-out 2s both;
+  flex-wrap: wrap;
 }
 
 .hero-btn {
-  padding: 16px 32px;
-  font-size: 16px;
+  padding: var(--spacing-md) var(--spacing-2xl);
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
   border-radius: var(--radius-full);
   transition: all var(--transition-base);
+  letter-spacing: -0.01em;
+  box-shadow: 0 4px 14px 0 rgba(0, 0, 0, 0.1);
 }
 
 .hero-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(99, 102, 241, 0.4);
 }
 
 .hero-btn-outline {
-  background: transparent !important;
-  border: 2px solid white !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 2px solid rgba(255, 255, 255, 0.8) !important;
   color: white !important;
+  backdrop-filter: blur(10px);
 }
 
 .hero-btn-outline:hover {
-  background: white !important;
-  color: #667eea !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: #6366f1 !important;
+  border-color: white !important;
 }
 
 /* 通用区域样式 */
@@ -478,9 +506,16 @@ const openProject = (url) => {
 /* 技能卡片 */
 .skill-card {
   text-align: center;
-  margin-bottom: 20px;
-  transition: all 0.3s;
-  border: none;
+  margin-bottom: var(--spacing-lg);
+  transition: all var(--transition-base);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-xl) var(--spacing-lg);
+}
+
+.skill-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-colored);
 }
 
 .skill-icon {
@@ -505,16 +540,28 @@ const openProject = (url) => {
 
 /* 项目卡片 */
 .project-card {
-  margin-bottom: 30px;
-  transition: all 0.3s;
-  border: none;
+  margin-bottom: var(--spacing-xl);
+  transition: all var(--transition-base);
+  border: 1px solid var(--color-border);
   height: 100%;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+
+.project-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-colored);
 }
 
 .project-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--color-bg-tertiary);
+  margin: calc(-1 * var(--spacing-lg));
+  margin-bottom: var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .project-name {
@@ -526,10 +573,11 @@ const openProject = (url) => {
 
 .project-image {
   width: 100%;
-  height: 200px;
+  height: 220px;
   overflow: hidden;
-  border-radius: 4px;
-  margin-bottom: 15px;
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-md);
+  background: var(--color-bg-tertiary);
 }
 
 .project-image img {
@@ -555,60 +603,88 @@ const openProject = (url) => {
 }
 
 .project-tags {
-  margin-bottom: 15px;
+  margin-bottom: var(--spacing-md);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
 }
 
 .tech-tag {
-  margin-right: 8px;
-  margin-bottom: 8px;
+  margin: 0;
   transition: all var(--transition-fast);
   cursor: default;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
 }
 
 .tech-tag:hover {
-  transform: scale(1.1);
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: var(--shadow-md);
 }
 
 .project-actions {
   display: flex;
   justify-content: space-between;
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--color-border);
+}
+
+.project-actions .el-button {
+  font-weight: var(--font-medium);
+  transition: all var(--transition-fast);
+}
+
+.project-actions .el-button:hover {
+  transform: translateX(4px);
 }
 
 /* 联系方式 */
 .contact-item {
   text-align: center;
-  padding: 20px;
+  padding: var(--spacing-xl);
   transition: all var(--transition-base);
   cursor: pointer;
+  border-radius: var(--radius-lg);
 }
 
 .contact-item:hover {
-  transform: translateY(-5px);
+  transform: translateY(-8px);
+  background: var(--color-bg-tertiary);
 }
 
 .contact-item:hover .el-icon {
   animation: bounce 0.6s ease-in-out;
+  transform: scale(1.1);
+}
+
+.contact-item .el-icon {
+  transition: all var(--transition-base);
 }
 
 .contact-item h3 {
-  margin: 15px 0 10px;
-  color: #2c3e50;
+  margin: var(--spacing-md) 0 var(--spacing-sm);
+  color: var(--color-text);
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
 }
 
 .contact-item p {
-  color: #606266;
-  font-size: 14px;
+  color: var(--color-text-secondary);
+  font-size: var(--text-base);
+  font-weight: var(--font-medium);
 }
 
 /* 页脚 */
 .footer {
-  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+  background: var(--gradient-dark);
   color: white;
   text-align: center;
-  padding: 30px;
+  padding: var(--spacing-2xl);
   position: relative;
   overflow: hidden;
+  margin-top: var(--spacing-5xl);
 }
 
 .footer::before {
@@ -617,36 +693,57 @@ const openProject = (url) => {
   top: 0;
   left: -100%;
   width: 100%;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, #667eea, transparent);
-  animation: shimmer 3s infinite;
-}
-
-@keyframes shimmer {
-  0% {
-    left: -100%;
-  }
-  100% {
-    left: 100%;
-  }
+  height: 3px;
+  background: var(--gradient-primary);
+  animation: shimmer 4s infinite;
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.6);
 }
 
 .footer p {
   margin: 0;
+  font-size: var(--text-base);
+  font-weight: var(--font-medium);
+  opacity: 0.9;
+  letter-spacing: 0.01em;
 }
 
 /* 响应式 */
 @media (max-width: 768px) {
   .hero-title {
-    font-size: 32px;
+    font-size: var(--text-4xl);
   }
 
   .hero-subtitle {
-    font-size: 18px;
+    font-size: var(--text-xl);
+  }
+  
+  .hero-description {
+    font-size: var(--text-base);
   }
 
   .section-title {
-    font-size: 28px;
+    font-size: var(--text-3xl);
+  }
+  
+  .section {
+    padding: var(--spacing-4xl) var(--spacing-md);
+  }
+  
+  .hero-buttons {
+    gap: var(--spacing-md);
+  }
+  
+  .hero-btn {
+    padding: var(--spacing-sm) var(--spacing-xl);
+    font-size: var(--text-base);
+  }
+  
+  .skill-icon {
+    font-size: 40px;
+  }
+  
+  .contact-item {
+    padding: var(--spacing-lg);
   }
 }
 </style>
@@ -654,15 +751,15 @@ const openProject = (url) => {
 
 /* 深色模式特殊样式 */
 .dark-mode .section-title {
-  color: #ffffff;
+  color: var(--color-text);
 }
 
 .dark-mode .hero-section {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%);
 }
 
 .dark-mode .section-gray {
-  background: #16213e;
+  background: var(--color-bg-tertiary);
 }
 
 .dark-mode .about-text,
@@ -675,6 +772,18 @@ const openProject = (url) => {
 .dark-mode .project-name,
 .dark-mode .contact-item h3 {
   color: var(--color-text);
+}
+
+.dark-mode .project-card,
+.dark-mode .skill-card {
+  background: var(--color-bg-secondary);
+  border-color: var(--color-border);
+}
+
+.dark-mode .project-card:hover,
+.dark-mode .skill-card:hover {
+  background: var(--color-bg-tertiary);
+  border-color: var(--color-primary);
 }
 
 /* 加载动画 */
