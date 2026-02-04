@@ -20,6 +20,8 @@ class Hexagon {
     this.size = size
     this.opacity = 0
     this.lastActivatedTime = 0 // 最后被激活的时间
+    this.sparkleOffset = Math.random() * 1000 // 闪烁偏移，让每个六边形闪烁时机不同
+    this.sparkleSpeed = 0.5 + Math.random() * 1.5 // 闪烁速度随机
   }
 
   // 计算六边形的顶点
@@ -50,22 +52,45 @@ class Hexagon {
     // 如果在鼠标附近，点亮并记录时间
     if (distToCurrent < 80) {
       const intensity = 1 - (distToCurrent / 80)
-      this.opacity = Math.max(this.opacity, intensity * 0.7) // 提高亮度
+      this.opacity = Math.max(this.opacity, intensity * 0.7)
       this.lastActivatedTime = currentTime
     }
     
-    // 随时间自动衰减（点亮后0.8秒内衰减）
+    // 随时间自动衰减（点亮后2.5秒内慢慢消失）
     if (this.lastActivatedTime > 0) {
       const timeSinceActivation = currentTime - this.lastActivatedTime
-      const fadeOutDuration = 800 // 0.8秒衰减时间，更快显示拖尾
+      const fadeOutDuration = 2500
       
       if (timeSinceActivation < fadeOutDuration) {
-        // 衰减过程
+        // 计算衰减进度
         const fadeProgress = timeSinceActivation / fadeOutDuration
-        this.opacity *= (1 - fadeProgress * 0.08) // 更快衰减
+        
+        // 1. 透明度衰减（变淡）
+        this.opacity *= (1 - fadeProgress * fadeProgress * 0.02)
+        
+        // 2. 范围衰减（变窄）- 通过降低对远距离的响应来实现
+        // 随着时间推移，只有更靠近原点的六边形才保持亮度
+        const narrowingFactor = 1 - fadeProgress * 0.7 // 范围缩小到30%
+        const effectiveDistance = distToCurrent / narrowingFactor
+        
+        // 如果超出缩小后的范围，加速衰减
+        if (effectiveDistance > 80) {
+          this.opacity *= 0.85 // 快速衰减
+        }
+        
+        // 3. 偶尔闪烁（更稀疏，只有2%概率）
+        if (this.opacity > 0.1 && this.opacity < 0.5) {
+          const sparklePhase = (currentTime + this.sparkleOffset) * this.sparkleSpeed * 0.003
+          const sparkle = Math.sin(sparklePhase) * 0.5 + 0.5
+          
+          // 只在波峰且随机数满足时才闪烁（更稀疏）
+          if (sparkle > 0.98 && Math.random() > 0.95) {
+            this.opacity = Math.min(this.opacity * 2.5, 0.9) // 短暂高亮
+          }
+        }
       } else {
         // 完全衰减
-        this.opacity *= 0.88
+        this.opacity *= 0.95
         if (this.opacity < 0.01) {
           this.opacity = 0
           this.lastActivatedTime = 0
