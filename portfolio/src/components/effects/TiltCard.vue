@@ -1,6 +1,8 @@
 <template>
   <div ref="tiltRef" class="tilt-card">
     <slot></slot>
+    <!-- 底部边缘死区 overlay，阻止鼠标事件 -->
+    <div class="edge-deadzone"></div>
   </div>
 </template>
 
@@ -22,74 +24,24 @@ onMounted(() => {
   if (tiltRef.value) {
     const element = tiltRef.value
     
-    // 初始化 VanillaTilt，使用最稳定的配置
+    // 初始化 VanillaTilt，使用标准配置
     VanillaTilt.init(element, {
       max: props.maxTilt,
-      speed: 3000, // 大幅降低响应速度，减少抖动
+      speed: 400,
       glare: false,
-      scale: 1.0, // 移除放大效果
+      scale: 1.0, // 移除放大效果，避免边缘抖动
       perspective: 1000,
-      transition: false, // 禁用过渡动画，避免与实时计算冲突
+      transition: true,
       easing: "cubic-bezier(.03,.98,.52,.99)",
       reset: true,
-      gyroscope: false,
-      reverse: false,
-      maxGlare: 0
+      gyroscope: false
     })
     
     tiltInstance = element.vanillaTilt
-    
-    // 拦截 VanillaTilt 的鼠标移动事件，在底部边缘时完全禁用 tilt
-    const originalOnMouseMove = tiltInstance.onMouseMove.bind(tiltInstance)
-    let isBottomEdge = false
-    
-    tiltInstance.onMouseMove = function(e) {
-      const rect = element.getBoundingClientRect()
-      const y = e.clientY - rect.top
-      const height = rect.height
-      const relY = y / height
-      
-      // 检测是否在底部边缘（最后8%区域）
-      const wasBottomEdge = isBottomEdge
-      isBottomEdge = relY > 0.92
-      
-      if (isBottomEdge) {
-        // 在底部边缘时，完全阻止 tilt 计算
-        // 如果刚从非边缘进入边缘，重置 transform
-        if (!wasBottomEdge) {
-          // 重置到初始状态，避免卡片上弹
-          element.style.transform = 'perspective(1000px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg)'
-        }
-        // 不调用原始的 onMouseMove，完全阻止 tilt
-        return
-      }
-      
-      // 不在底部边缘时，正常调用原始方法
-      originalOnMouseMove(e)
-    }
-    
-    // 鼠标离开时重置状态
-    const handleMouseLeave = () => {
-      isBottomEdge = false
-    }
-    
-    element.addEventListener('mouseleave', handleMouseLeave)
-    
-    // 保存清理函数
-    tiltRef.value._cleanup = () => {
-      element.removeEventListener('mouseleave', handleMouseLeave)
-      // 恢复原始方法
-      if (tiltInstance && originalOnMouseMove) {
-        tiltInstance.onMouseMove = originalOnMouseMove
-      }
-    }
   }
 })
 
 onUnmounted(() => {
-  if (tiltRef.value && tiltRef.value._cleanup) {
-    tiltRef.value._cleanup()
-  }
   if (tiltInstance) {
     tiltInstance.destroy()
   }
@@ -98,9 +50,25 @@ onUnmounted(() => {
 
 <style scoped>
 .tilt-card {
+  position: relative;
   transform-style: preserve-3d;
-  will-change: transform; /* 优化渲染性能 */
-  backface-visibility: hidden; /* 防止背面闪烁 */
-  transform-origin: center center; /* 确保变换原点居中 */
+  will-change: transform;
+  backface-visibility: hidden;
+  transform-origin: center center;
+}
+
+/* 底部边缘死区 - 主流解决方案：用 CSS overlay 阻止鼠标事件 */
+.edge-deadzone {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 20%; /* 底部10%区域为死区 */
+  pointer-events: auto; /* 阻止鼠标事件穿透到底层 */
+  z-index: 10; /* 确保在内容之上 */
+  /* 透明，不影响视觉效果 */
+  background: transparent;
+  /* 可选：添加调试边框（开发时可见，生产环境删除） */
+  /* border-top: 1px solid rgba(255, 0, 0, 0.3); */
 }
 </style>
