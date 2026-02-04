@@ -59,10 +59,15 @@
           <i class="el-icon-back"></i> 返回
         </el-button>
         <div class="action-buttons">
-          <el-button type="default" @click="handleLike" :class="{'is-liked': isLiked}">
+          <el-button type="default" @click="handleLike" :class="{'is-liked': isLiked}" :loading="likeLoading">
             <i class="el-icon-star-off" v-if="!isLiked"></i>
             <i class="el-icon-star-on" v-else></i>
-            收藏 ({{ article.likeCount }})
+            点赞 ({{ article.likeCount }})
+          </el-button>
+          <el-button type="default" @click="handleFavorite" :class="{'is-favorited': isFavorited}" :loading="favoriteLoading">
+            <i class="el-icon-collection" v-if="!isFavorited"></i>
+            <i class="el-icon-collection-tag" v-else></i>
+            收藏
           </el-button>
           <el-button type="default" @click="handleShare">
             <i class="el-icon-share"></i> 分享
@@ -141,8 +146,13 @@ export default {
     const router = useRouter()
     const store = useStore()
     const loading = computed(() => store.state.forum.loading)
-    const isLiked = ref(false)
+    // 点赞状态（从接口返回的isLiked字段获取）
+    const isLiked = computed(() => article.value?.isLiked || false)
+    // 收藏状态（从接口返回的isFavorited字段获取）
+    const isFavorited = computed(() => article.value?.isFavorited || false)
     const shareDialogVisible = ref(false)
+    const likeLoading = ref(false)
+    const favoriteLoading = ref(false)
     
     // 从Vuex获取当前文章
     const article = computed(() => store.state.forum.currentArticle || {
@@ -221,15 +231,75 @@ export default {
       router.back()
     }
 
-    // 处理收藏
+    // 处理点赞
     const handleLike = async () => {
+      if (!article.value?.id) return
+      
+      likeLoading.value = true
       try {
-        // 这里可以调用文章点赞API，目前暂时使用简单的状态切换
-        isLiked.value = !isLiked.value
-        // 收藏状态切换不需要API调用，只是本地状态变化
-        console.log('收藏状态已切换:', isLiked.value)
+        if (isLiked.value) {
+          // 取消点赞：需要先找到点赞记录ID
+          const likeList = store.state.user.likeList || []
+          const likeItem = likeList.find(item => 
+            item.targetType === 'article' && item.targetId === article.value.id
+          )
+          if (likeItem) {
+            const res = await store.dispatch('user/removeLike', likeItem.id)
+            showByCode(res.code)
+            // 重新加载文章详情以更新isLiked状态
+            await loadArticleDetail()
+          }
+        } else {
+          // 添加点赞
+          const res = await store.dispatch('user/addLike', {
+            targetId: article.value.id,
+            targetType: 'article'
+          })
+          showByCode(res.code)
+          // 重新加载文章详情以更新isLiked状态
+          await loadArticleDetail()
+        }
+      } catch (error) {
+        console.error('点赞操作失败:', error)
+      } finally {
+        likeLoading.value = false
+      }
+    }
+    
+    // 处理收藏
+    const handleFavorite = async () => {
+      if (!article.value?.id) return
+      
+      favoriteLoading.value = true
+      try {
+        if (isFavorited.value) {
+          // 取消收藏：需要先找到收藏记录ID
+          const favoriteList = store.state.user.favoriteList || []
+          const favoriteItem = favoriteList.find(item => 
+            item.itemType === 'article' && item.itemId === article.value.id
+          )
+          if (favoriteItem) {
+            const res = await store.dispatch('user/removeFavorite', favoriteItem.id)
+            showByCode(res.code)
+            // 重新加载文章详情以更新isFavorited状态
+            await loadArticleDetail()
+          }
+        } else {
+          // 添加收藏
+          const res = await store.dispatch('user/addFavorite', {
+            targetId: article.value.id,
+            targetType: 'article',
+            targetName: article.value.title,
+            targetImage: article.value.coverImage || ''
+          })
+          showByCode(res.code)
+          // 重新加载文章详情以更新isFavorited状态
+          await loadArticleDetail()
+        }
       } catch (error) {
         console.error('收藏操作失败:', error)
+      } finally {
+        favoriteLoading.value = false
       }
     }
     
@@ -285,10 +355,14 @@ export default {
       relatedArticles,
       loading,
       isLiked,
+      isFavorited,
+      likeLoading,
+      favoriteLoading,
       shareDialogVisible,
       formatDate,
       goBack,
       handleLike,
+      handleFavorite,
       handleShare,
       shareToWeixin,
       shareToWeibo,

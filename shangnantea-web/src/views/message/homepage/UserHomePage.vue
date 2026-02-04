@@ -228,8 +228,8 @@ export default {
       return userId.value === 'current' || !route.params.userId
     })
     
-    // 关注状态（这里简化处理，实际应该从用户模块获取）
-    const isFollowing = ref(false)
+    // 关注状态（从接口返回的isFollowed字段获取）
+    const isFollowing = computed(() => userInfo.value?.isFollowed || false)
     
     // 菜单项和对应组件映射
     const menuOptions = {
@@ -309,19 +309,32 @@ export default {
     
     // 处理关注/取消关注
     const handleFollow = async () => {
+      if (isOwnProfile.value) return // 自己的主页不需要关注
+      
       try {
         if (isFollowing.value) {
-          // 取消关注 - 这里应该调用用户模块的取消关注方法
-          // const res = await store.dispatch('user/removeFollow', userId.value)
-          // showByCode(res.code)
-          isFollowing.value = false
-          commonPromptMessages.showProcessing()
+          // 取消关注：需要先找到关注记录ID
+          const followList = store.state.user.followList || []
+          const followItem = followList.find(item => 
+            item.followType === 'user' && item.followId === userId.value
+          )
+          if (followItem) {
+            const res = await store.dispatch('user/removeFollow', followItem.id)
+            showByCode(res.code)
+            // 重新加载用户信息以更新isFollowed状态
+            await loadUserData()
+          }
         } else {
-          // 添加关注 - 这里应该调用用户模块的添加关注方法
-          // const res = await store.dispatch('user/addFollow', { targetId: userId.value, targetType: 'user' })
-          // showByCode(res.code)
-          isFollowing.value = true
-          commonPromptMessages.showProcessing()
+          // 添加关注
+          const res = await store.dispatch('user/addFollow', {
+            targetId: userId.value,
+            targetType: 'user',
+            targetName: userInfo.value.nickname || userInfo.value.username,
+            targetAvatar: userInfo.value.avatar
+          })
+          showByCode(res.code)
+          // 重新加载用户信息以更新isFollowed状态
+          await loadUserData()
         }
       } catch (error) {
         console.error('关注操作失败:', error)

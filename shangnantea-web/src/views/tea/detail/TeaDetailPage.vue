@@ -367,14 +367,8 @@ export default {
     const selectedSpecId = ref(null)
     const quantity = ref(1)
     const currentImageIndex = ref(0)
-    // 从Vuex获取收藏列表，判断当前茶叶是否已收藏
-    const favoriteList = computed(() => store.state.user.favoriteList || [])
-    const isFavorite = computed(() => {
-      if (!tea.value) return false
-      return favoriteList.value.some(item => 
-        item.targetType === 'tea' && item.targetId === tea.value.id
-      )
-    })
+    // 收藏状态（从接口返回的isFavorited字段获取）
+    const isFavorite = computed(() => tea.value?.isFavorited || false)
     const favoriteLoading = ref(false)
     
     // 回复相关状态
@@ -506,13 +500,16 @@ export default {
       favoriteLoading.value = true
       try {
         if (isFavorite.value) {
-          // 取消收藏：找到收藏记录并删除
-          const favoriteItem = favoriteList.value.find(item => 
-            item.targetType === 'tea' && item.targetId === tea.value.id
+          // 取消收藏：需要先找到收藏记录ID
+          const favoriteList = store.state.user.favoriteList || []
+          const favoriteItem = favoriteList.find(item => 
+            item.itemType === 'tea' && item.itemId === tea.value.id
           )
           if (favoriteItem) {
             const response = await store.dispatch('user/removeFavorite', favoriteItem.id)
             showByCode(response.code)
+            // 重新加载茶叶详情以更新isFavorited状态
+            await store.dispatch('tea/fetchTeaDetail', tea.value.id)
           }
         } else {
           // 添加收藏
@@ -523,6 +520,8 @@ export default {
             targetImage: tea.value.main_image || tea.value.images?.[0] || ''
           })
           showByCode(response.code)
+          // 重新加载茶叶详情以更新isFavorited状态
+          await store.dispatch('tea/fetchTeaDetail', tea.value.id)
         }
       } catch (error) {
         console.error('收藏操作失败:', error)

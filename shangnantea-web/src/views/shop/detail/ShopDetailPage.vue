@@ -299,8 +299,8 @@ export default {
     const shopBanners = computed(() => store.state.shop.shopBanners || [])
     const shopAnnouncements = computed(() => store.state.shop.shopAnnouncements || [])
 
-    // 任务组F：从shop模块获取当前店铺关注状态
-    const isFollowing = computed(() => store.state.shop.isFollowingShop)
+    // 关注状态（从接口返回的isFollowed字段获取）
+    const isFollowing = computed(() => shop.value?.isFollowed || false)
     const followLoading = ref(false)
     const defaultLogo = '/placeholder-shop.jpg'
     const defaultShopLogo = '/images/shops/default.jpg'
@@ -329,8 +329,7 @@ export default {
         // 任务组B：加载Banner和公告
         await store.dispatch('shop/fetchShopBanners', shopId)
         await store.dispatch('shop/fetchShopAnnouncements', shopId)
-        // 任务组F：加载关注状态
-        await store.dispatch('shop/checkFollowStatus', shopId)
+        // 注意：关注状态已由fetchShopDetail接口返回的isFollowed字段提供，无需单独调用checkFollowStatus
         // 加载店铺评价
         await store.dispatch('shop/fetchShopReviews', {
           shopId,
@@ -366,13 +365,28 @@ export default {
       followLoading.value = true
       try {
         if (isFollowing.value) {
-          // 任务组F：通过shop模块取消关注
-          const response = await store.dispatch('shop/unfollowShop', shop.value.id)
-          showByCode(response.code)
+          // 取消关注：需要先找到关注记录ID
+          const followList = store.state.user.followList || []
+          const followItem = followList.find(item => 
+            item.followType === 'shop' && item.followId === shop.value.id
+          )
+          if (followItem) {
+            const response = await store.dispatch('user/removeFollow', followItem.id)
+            showByCode(response.code)
+            // 重新加载店铺详情以更新isFollowed状态
+            await store.dispatch('shop/fetchShopDetail', shop.value.id)
+          }
         } else {
-          // 任务组F：通过shop模块关注
-          const response = await store.dispatch('shop/followShop', shop.value.id)
+          // 添加关注
+          const response = await store.dispatch('user/addFollow', {
+            targetId: shop.value.id,
+            targetType: 'shop',
+            targetName: shop.value.name || shop.value.shop_name,
+            targetAvatar: shop.value.logo || shop.value.shop_logo
+          })
           showByCode(response.code)
+          // 重新加载店铺详情以更新isFollowed状态
+          await store.dispatch('shop/fetchShopDetail', shop.value.id)
         }
       } catch (error) {
         console.error('关注操作失败:', error)
