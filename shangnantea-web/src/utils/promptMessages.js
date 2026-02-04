@@ -387,7 +387,9 @@ export const FORUM_PROMPT = {
   COMMENT_REQUIRED: '回复内容不能为空',
   COMMENT_TOO_LONG: '评论内容不能超过500字',
   IMAGE_SIZE_LIMIT: '图片大小不能超过2MB',
+  IMAGE_SIZE_LIMIT_5MB: '图片大小不能超过5MB',
   IMAGE_FORMAT_INVALID: '只支持JPG、PNG和GIF格式的图片',
+  IMAGE_COUNT_LIMIT: '最多只能上传{count}张图片',
   DELETE_CONFIRM: '确定要删除吗？此操作不可撤销',
   SHARE_DEVELOPING: '分享功能正在开发中',
   AR_DEVELOPING: 'AR虚拟试饮功能正在开发中，敬请期待...',
@@ -415,8 +417,15 @@ export const forumPromptMessages = {
   showImageSizeLimit() {
     promptMessage.show(FORUM_PROMPT.IMAGE_SIZE_LIMIT)
   },
+  showImageSizeLimit5MB() {
+    promptMessage.show(FORUM_PROMPT.IMAGE_SIZE_LIMIT_5MB)
+  },
   showImageFormatInvalid() {
     promptMessage.show(FORUM_PROMPT.IMAGE_FORMAT_INVALID)
+  },
+  showImageCountLimit(count) {
+    const msg = FORUM_PROMPT.IMAGE_COUNT_LIMIT.replace('{count}', count)
+    promptMessage.show(msg)
   },
   showDeleteConfirm() {
     promptMessage.info(FORUM_PROMPT.DELETE_CONFIRM)

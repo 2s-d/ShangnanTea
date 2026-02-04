@@ -256,7 +256,7 @@ import { Refresh, ArrowDown, Grid, EditPen, Delete, Male, Female, Plus } from '@
 import PostCard from '@/components/forum/PostCard.vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 import { showByCode } from '@/utils/apiMessages'
-import { promptMessage } from '@/utils/messageManager'
+import { forumPromptMessages } from '@/utils/promptMessages'
 
 export default {
   name: 'ForumListPage',
@@ -814,14 +814,14 @@ export default {
     
     // 处理图片超出限制
     const handleImageExceed = () => {
-      promptMessage.show('最多只能上传6张图片')
+      forumPromptMessages.showImageCountLimit(6)
     }
     
     // 处理图片变化
     const handleImageChange = (file, fileList) => {
       // 验证文件大小
       if (file.size > 5 * 1024 * 1024) {
-        promptMessage.show('图片大小不能超过5MB')
+        forumPromptMessages.showImageSizeLimit5MB()
         // 移除超大文件
         const index = fileList.indexOf(file)
         if (index > -1) {
@@ -833,7 +833,7 @@ export default {
       // 验证文件类型
       const isImage = file.raw.type.startsWith('image/')
       if (!isImage) {
-        promptMessage.show('只能上传图片文件')
+        forumPromptMessages.showImageFormatInvalid()
         const index = fileList.indexOf(file)
         if (index > -1) {
           fileList.splice(index, 1)
