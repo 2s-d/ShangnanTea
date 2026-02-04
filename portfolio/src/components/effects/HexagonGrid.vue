@@ -58,46 +58,62 @@ class Hexagon {
       this.lastActivatedTime = currentTime
     }
     
-    // 拖尾衰减逻辑：基于距离而非时间
-    if (this.opacity > 0.01) {
-      // 基础衰减速率
-      let decayRate = 0.985
+    // 拖尾衰减逻辑：结合时间和距离
+    if (this.lastActivatedTime > 0 && this.opacity > 0.01) {
+      const timeSinceActivation = currentTime - this.lastActivatedTime
       
-      // 根据距离当前鼠标位置调整衰减速率
-      // 距离越远，衰减越快（从后往前消失）
-      if (distToCurrent > 80) {
-        // 距离鼠标80px以外的区域开始加速衰减
-        const excessDistance = distToCurrent - 80
+      // 基础存活时间：2.5秒
+      const baseLifetime = 2500
+      
+      // 根据距离计算延迟消失时间
+      // 距离越远，越早开始消失；距离越近，延迟越久
+      // 每50px距离增加200ms延迟
+      const distanceDelay = Math.max(0, (300 - distToCurrent) / 50 * 200)
+      
+      // 实际开始消失的时间 = 基础时间 + 距离延迟
+      const effectiveLifetime = baseLifetime + distanceDelay
+      
+      if (timeSinceActivation < effectiveLifetime) {
+        // 还在存活期内
+        // 计算消失进度 (0-1)
+        const fadeProgress = timeSinceActivation / effectiveLifetime
         
-        // 距离越远，衰减越快
-        // 使用分段函数：近处慢慢消失，远处快速消失
-        if (excessDistance < 100) {
-          // 100px内：轻微加速衰减
-          decayRate = 0.985 - (excessDistance / 100) * 0.02
-        } else if (excessDistance < 200) {
-          // 100-200px：中等加速
-          decayRate = 0.965 - ((excessDistance - 100) / 100) * 0.03
-        } else {
-          // 200px以上：快速消失
-          decayRate = 0.935 - Math.min((excessDistance - 200) / 200, 1) * 0.05
+        // 基础衰减（很慢）
+        this.opacity *= 0.998
+        
+        // 根据进度和距离加速衰减
+        if (fadeProgress > 0.3) {
+          // 30%之后开始根据距离加速衰减
+          const distanceFactor = Math.max(0, distToCurrent - 80) / 200
+          const progressFactor = (fadeProgress - 0.3) / 0.7
+          
+          // 距离越远且时间越久，衰减越快
+          const extraDecay = distanceFactor * progressFactor * 0.015
+          this.opacity *= (1 - extraDecay)
         }
         
-        // 变窄效果：距离越远，宽度越窄
-        // 在80-200px范围内逐渐变窄
-        if (excessDistance > 0 && excessDistance < 120) {
-          const narrowProgress = excessDistance / 120
-          const narrowFactor = 1 - Math.sqrt(narrowProgress) * 0.75
-          const narrowedRadius = 80 + excessDistance * narrowFactor
+        // 变窄效果：在后半段且距离较远时
+        if (fadeProgress > 0.5 && distToCurrent > 80) {
+          const narrowProgress = (fadeProgress - 0.5) * 2
+          const excessDistance = distToCurrent - 80
           
-          // 如果六边形在变窄的边缘区域，额外加速衰减
-          if (distToCurrent > narrowedRadius) {
-            decayRate *= 0.9
+          // 距离80-200px范围内逐渐变窄
+          if (excessDistance < 120) {
+            const narrowFactor = 1 - Math.sqrt(narrowProgress) * 0.6
+            const narrowedRadius = 80 + excessDistance * narrowFactor
+            
+            // 在变窄边缘的六边形额外衰减
+            if (distToCurrent > narrowedRadius) {
+              const edgeFactor = (distToCurrent - narrowedRadius) / 30
+              this.opacity *= (1 - Math.min(edgeFactor, 1) * 0.02)
+            }
           }
         }
+        
+      } else {
+        // 超过存活时间，快速消失
+        this.opacity *= 0.92
       }
-      
-      // 应用衰减
-      this.opacity *= decayRate
       
       // 偶尔闪烁（非常稀疏）
       if (this.opacity > 0.1 && this.opacity < 0.5 && distToCurrent > 80) {
