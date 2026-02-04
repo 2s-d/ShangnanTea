@@ -10,6 +10,7 @@ import {
   changePassword,
   refreshToken as refreshTokenApi,
   resetPassword as resetPasswordApi,
+  sendVerificationCode as sendVerificationCodeApi,
   getAddressList,
   addAddress as addAddressApi,
   updateAddress as updateAddressApi,
