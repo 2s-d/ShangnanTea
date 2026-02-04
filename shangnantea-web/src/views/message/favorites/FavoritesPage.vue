@@ -42,7 +42,7 @@
               </div>
             </div>
             <div class="article-actions">
-              <el-button size="small" plain type="danger" @click="cancelFavorite('culture', article.id)">
+              <el-button size="small" plain type="danger" @click="cancelFavorite('tea_article', article.articleId)">
                 取消收藏
               </el-button>
             </div>
@@ -94,7 +94,7 @@
               <el-button size="small" type="primary" @click="addToCart(product.id)">
                 <el-icon><ShoppingCart /></el-icon> 加入购物车
               </el-button>
-              <el-button size="small" plain type="danger" @click="cancelFavorite('product', product.id)">
+              <el-button size="small" plain type="danger" @click="cancelFavorite('tea', product.teaId)">
                 取消收藏
               </el-button>
             </div>
@@ -147,7 +147,7 @@
               </div>
             </div>
             <div class="post-actions">
-              <el-button size="small" plain type="danger" @click="cancelFavorite('post', post.id)">
+              <el-button size="small" plain type="danger" @click="cancelFavorite('post', post.postId)">
                 取消收藏
               </el-button>
             </div>
@@ -185,10 +185,10 @@ export default {
     const cultureSortOption = ref('recent')
     const cultureArticles = computed(() => {
       return favoriteList.value
-        .filter(item => item.targetType === 'article')
+        .filter(item => item.itemType === 'tea_article')
         .map(item => ({
           id: item.id,
-          articleId: item.targetId,
+          articleId: item.itemId,
           title: item.targetName || '未知文章',
           coverImg: item.targetImage || 'https://via.placeholder.com/400x200?text=文章',
           cover_image: item.targetImage || 'https://via.placeholder.com/400x200?text=文章',
@@ -227,10 +227,10 @@ export default {
     const productSortOption = ref('recent')
     const products = computed(() => {
       return favoriteList.value
-        .filter(item => item.targetType === 'tea')
+        .filter(item => item.itemType === 'tea')
         .map(item => ({
           id: item.id,
-          teaId: item.targetId,
+          teaId: item.itemId,
           name: item.targetName || '未知茶叶',
           image: item.targetImage || 'https://via.placeholder.com/200x200?text=茶叶',
           price: 0, // 后端未提供，使用默认值
@@ -271,10 +271,10 @@ export default {
     const postSortOption = ref('recent')
     const posts = computed(() => {
       return favoriteList.value
-        .filter(item => item.targetType === 'post')
+        .filter(item => item.itemType === 'post')
         .map(item => ({
           id: item.id,
-          postId: item.targetId,
+          postId: item.itemId,
           title: item.targetName || '未知帖子',
           content: '', // 后端未提供，使用默认值
           authorId: '', // 后端未提供，使用默认值
@@ -351,9 +351,12 @@ export default {
     }
     
     // 取消收藏
-    const cancelFavorite = async (type, favoriteId) => {
+    const cancelFavorite = async (itemType, itemId) => {
       try {
-        const res = await store.dispatch('user/removeFavorite', favoriteId)
+        const res = await store.dispatch('user/removeFavorite', {
+          itemId: String(itemId),
+          itemType: itemType
+        })
         // 使用状态码消息系统，符合项目规范
         showByCode(res.code)
         // 重新加载收藏列表以更新状态

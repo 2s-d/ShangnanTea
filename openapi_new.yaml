@@ -797,7 +797,7 @@ paths:
                     code: 2123
                     data: null
 
-  /user/follows/{id}:
+  /user/follows:
     delete:
       operationId: removeFollow
       tags:
@@ -806,12 +806,15 @@ paths:
       description: 取消关注用户或店铺
       security:
         - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FollowRequest'
+            example:
+              targetId: "cy100003"
+              targetType: "user"
       responses:
         '200':
           description: 取消成功
@@ -886,8 +889,8 @@ paths:
             schema:
               $ref: '#/components/schemas/FavoriteRequest'
             example:
-              targetId: "1"
-              targetType: "tea"
+              itemId: "1"
+              itemType: "tea"
       responses:
         '200':
           description: 收藏成功
@@ -907,7 +910,7 @@ paths:
                     code: 2126
                     data: null
 
-  /user/favorites/{id}:
+  /user/favorites:
     delete:
       operationId: removeFavorite
       tags:
@@ -916,12 +919,15 @@ paths:
       description: 取消收藏茶叶、帖子或文章
       security:
         - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FavoriteRequest'
+            example:
+              itemId: "1"
+              itemType: "tea"
       responses:
         '200':
           description: 取消成功
@@ -7312,14 +7318,16 @@ components:
     FavoriteRequest:
       type: object
       required:
-        - targetId
-        - targetType
+        - itemId
+        - itemType
       properties:
-        targetId:
+        itemId:
           type: string
-        targetType:
+          description: 收藏项ID（茶叶ID、帖子ID、文章ID等）
+        itemType:
           type: string
-          enum: [tea, post, article]
+          description: 收藏项类型
+          enum: [tea, post, tea_article]
 
     LikeRequest:
       type: object
