@@ -200,10 +200,10 @@ public interface UserService {
     /**
      * 取消关注
      *
-     * @param id 关注ID
+     * @param followDTO 关注信息（targetId, targetType）
      * @return 取消结果
      */
-    Result<Boolean> removeFollow(String id);
+    Result<Boolean> removeFollow(AddFollowDTO followDTO);
     
     /**
      * 获取收藏列表
@@ -224,10 +224,10 @@ public interface UserService {
     /**
      * 取消收藏
      *
-     * @param id 收藏ID
+     * @param favoriteDTO 收藏信息（itemId, itemType）
      * @return 取消结果
      */
-    Result<Boolean> removeFavorite(String id);
+    Result<Boolean> removeFavorite(AddFavoriteDTO favoriteDTO);
     
     /**
      * 点赞

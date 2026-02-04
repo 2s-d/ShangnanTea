@@ -45,4 +45,13 @@ public interface UserFavoriteMapper extends BaseMapper<UserFavorite, Integer> {
      * @return 收藏数
      */
     Integer countByItem(@Param("itemType") String itemType, @Param("itemId") String itemId);
+    
+    /**
+     * 根据用户ID、收藏类型和收藏项ID删除收藏记录
+     * @param userId 用户ID
+     * @param itemType 收藏项类型
+     * @param itemId 收藏项ID
+     * @return 删除的记录数
+     */
+    int deleteByUserIdAndItem(@Param("userId") String userId, @Param("itemType") String itemType, @Param("itemId") String itemId);
 } 

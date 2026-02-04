@@ -7329,9 +7329,11 @@ components:
       properties:
         targetId:
           type: string
+          description: 目标ID（帖子ID、回复ID、评价ID、文章ID等）
         targetType:
           type: string
-          enum: [post, comment, review]
+          description: 目标类型
+          enum: [post, reply, review, article]
 
     PreferencesResponse:
       type: object
