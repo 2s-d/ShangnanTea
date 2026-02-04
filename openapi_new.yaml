@@ -1538,25 +1538,34 @@ paths:
           application/json:
             schema:
               type: object
-              required: [contact, contactType, sceneType]
+              required:
+                - contact
+                - contactType
+                - sceneType
               properties:
                 contact:
                   type: string
                   description: 联系方式（手机号或邮箱）
-                  example: "13800138000"
                 contactType:
                   type: string
-                  enum: [phone, email]
+                  enum:
+                    - phone
+                    - email
                   description: 联系方式类型
-                  example: "phone"
                 sceneType:
                   type: string
-                  enum: [register, reset_password, change_phone]
+                  enum:
+                    - register
+                    - reset_password
+                    - change_phone
                   description: 使用场景
-                  example: "reset_password"
+            example:
+              contact: "13800138000"
+              contactType: "phone"
+              sceneType: "reset_password"
       responses:
         '200':
-          description: 发送结果
+          description: 请求完成，通过 code 判断业务结果
           content:
             application/json:
               schema:
