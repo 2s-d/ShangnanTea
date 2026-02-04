@@ -258,9 +258,9 @@ const initHexagons = () => {
   hexagons = []
   
   // 更小更密集的六边形
-  const sizes = [4, 5, 6, 7]  // 从[5,6,7,8]改为[4,5,6,7]
-  const hexWidth = 14  // 从16改为14，更密集
-  const hexHeight = 12  // 从14改为12，更密集
+  const sizes = [5, 6, 7, 8]
+  const hexWidth = 16 // 更密集
+  const hexHeight = 14
 
   // 创建六边形网格（覆盖整个文档高度）
   for (let row = 0; row < canvas.value.height / hexHeight + 2; row++) {
