@@ -334,13 +334,14 @@ export function addLike(likeData) {
 
 /**
  * 取消点赞
- * @param {String|Number} likeId 点赞ID
+ * @param {Object} likeData 点赞数据 {targetId, targetType}
  * @returns {Promise} 删除结果
  */
-export function removeLike(likeId) {
+export function removeLike(likeData) {
   return request({
-    url: `${API.USER.LIKES}/${likeId}`,
-    method: 'delete'
+    url: API.USER.LIKES,
+    method: 'delete',
+    data: likeData
   })
 }
 

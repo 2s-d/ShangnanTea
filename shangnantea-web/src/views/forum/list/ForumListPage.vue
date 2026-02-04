@@ -905,17 +905,14 @@ export default {
     const handleLike = async post => {
       try {
         if (post.isLiked) {
-          // 取消点赞：需要先找到点赞记录ID
-          const likeList = store.state.user.likeList || []
-          const likeItem = likeList.find(item => 
-            item.targetType === 'post' && item.targetId === String(post.id)
-          )
-          if (likeItem) {
-            const res = await store.dispatch('user/removeLike', likeItem.id)
-            showByCode(res.code)
-            // 重新加载帖子列表以更新isLiked状态
-            await fetchPosts()
-          }
+          // 取消点赞：直接传递targetId和targetType
+          const res = await store.dispatch('user/removeLike', {
+            targetId: String(post.id),
+            targetType: 'post'
+          })
+          showByCode(res.code)
+          // 重新加载帖子列表以更新isLiked状态
+          await fetchPosts()
         } else {
           // 添加点赞
           const res = await store.dispatch('user/addLike', {

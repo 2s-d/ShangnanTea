@@ -240,10 +240,10 @@ public interface UserService {
     /**
      * 取消点赞
      *
-     * @param id 点赞ID
+     * @param likeDTO 点赞信息（targetId, targetType）
      * @return 取消结果
      */
-    Result<Boolean> removeLike(String id);
+    Result<Boolean> removeLike(AddLikeDTO likeDTO);
     
     // ==================== 用户偏好设置 ====================
     

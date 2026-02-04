@@ -396,17 +396,17 @@ public class UserController {
 
     /**
      * 取消点赞
-     * 路径: DELETE /user/likes/{id}
+     * 路径: DELETE /user/likes
      * 成功码: 2017, 失败码: 2129
      *
-     * @param id 点赞ID
+     * @param likeDTO 点赞信息（targetId, targetType）
      * @return 取消结果
      */
-    @DeleteMapping("/likes/{id}")
+    @DeleteMapping("/likes")
     @RequiresLogin
-    public Result<Boolean> removeLike(@PathVariable String id) {
-        logger.info("取消点赞请求: {}", id);
-        return userService.removeLike(id);
+    public Result<Boolean> removeLike(@Valid @RequestBody AddLikeDTO likeDTO) {
+        logger.info("取消点赞请求: targetType={}, targetId={}", likeDTO.getTargetType(), likeDTO.getTargetId());
+        return userService.removeLike(likeDTO);
     }
 
     // ==================== 用户偏好设置 ====================

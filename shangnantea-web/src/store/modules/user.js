@@ -1036,14 +1036,21 @@ const actions = {
   /**
    * 取消点赞
    * @param {Object} context Vuex context
-   * @param {String|Number} likeId 点赞ID
+   * @param {Object} likeData 点赞数据 {targetId, targetType}
    * @returns {Promise} 删除结果 {code, data}
    */
-  async removeLike({ commit }, likeId) {
+  async removeLike({ commit, state }, likeData) {
     commit('SET_LOADING', true)
     try {
-      const res = await removeLikeApi(likeId)
-      commit('REMOVE_LIKE', likeId)
+      const res = await removeLikeApi(likeData)
+      // 从likeList中移除对应的点赞记录
+      const likeList = state.likeList || []
+      const likeItem = likeList.find(item => 
+        item.targetType === likeData.targetType && item.targetId === likeData.targetId
+      )
+      if (likeItem) {
+        commit('REMOVE_LIKE', likeItem.id)
+      }
       return res // 返回 {code, data}，组件调用showByCode(res.code)
     } catch (error) {
       console.error('取消点赞失败:', error)

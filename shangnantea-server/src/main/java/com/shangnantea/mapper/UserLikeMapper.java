@@ -37,4 +37,14 @@ public interface UserLikeMapper extends BaseMapper<UserLike, Integer> {
      * @return 点赞数
      */
     Integer countByTarget(@Param("targetType") String targetType, @Param("targetId") String targetId);
+    
+    /**
+     * 根据用户ID、目标类型和目标ID删除点赞记录
+     *
+     * @param userId 用户ID
+     * @param targetType 目标类型
+     * @param targetId 目标ID
+     * @return 删除的记录数
+     */
+    int deleteByUserIdAndTarget(@Param("userId") String userId, @Param("targetType") String targetType, @Param("targetId") String targetId);
 } 

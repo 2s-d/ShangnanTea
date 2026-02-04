@@ -1494,7 +1494,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Result<Boolean> removeLike(String id) {
+    public Result<Boolean> removeLike(AddLikeDTO likeDTO) {
         try {
             // 1. 获取当前用户ID
             String userId = UserContext.getCurrentUserId();
@@ -1503,37 +1503,27 @@ public class UserServiceImpl implements UserService {
                 return Result.failure(2129); // 操作失败
             }
             
-            // 2. 验证点赞ID
-            Integer likeId;
-            try {
-                likeId = Integer.parseInt(id);
-            } catch (NumberFormatException e) {
-                logger.warn("取消点赞失败: 点赞ID格式错误, id: {}", id);
-                return Result.failure(2129); // 操作失败
-            }
+            // 2. 获取参数
+            String targetType = likeDTO.getTargetType();
+            String targetId = likeDTO.getTargetId();
             
-            // 3. 查询点赞记录是否存在
-            UserLike existingLike = userLikeMapper.selectById(likeId);
+            // 3. 验证点赞记录是否存在（可选，用于日志记录）
+            UserLike existingLike = userLikeMapper.selectByUserIdAndTarget(userId, targetType, targetId);
             if (existingLike == null) {
-                logger.warn("取消点赞失败: 点赞记录不存在, likeId: {}", likeId);
+                logger.warn("取消点赞失败: 点赞记录不存在, userId: {}, targetType: {}, targetId: {}", 
+                    userId, targetType, targetId);
                 return Result.failure(2129); // 操作失败
             }
             
-            // 4. 验证用户是否有权限删除该点赞
-            if (!userId.equals(existingLike.getUserId())) {
-                logger.warn("取消点赞失败: 无权限删除该点赞, userId: {}, likeUserId: {}", 
-                    userId, existingLike.getUserId());
-                return Result.failure(2129); // 操作失败
-            }
-            
-            // 5. 执行删除
-            int result = userLikeMapper.deleteById(likeId);
+            // 4. 执行删除（根据userId + targetType + targetId删除）
+            int result = userLikeMapper.deleteByUserIdAndTarget(userId, targetType, targetId);
             if (result <= 0) {
-                logger.error("取消点赞失败: 数据库删除失败, likeId: {}", likeId);
+                logger.error("取消点赞失败: 数据库删除失败, userId: {}, targetType: {}, targetId: {}", 
+                    userId, targetType, targetId);
                 return Result.failure(2129); // 操作失败
             }
             
-            logger.info("取消点赞成功: userId: {}, likeId: {}", userId, likeId);
+            logger.info("取消点赞成功: userId: {}, targetType: {}, targetId: {}", userId, targetType, targetId);
             return Result.success(2017, true); // 已取消点赞
             
         } catch (Exception e) {
