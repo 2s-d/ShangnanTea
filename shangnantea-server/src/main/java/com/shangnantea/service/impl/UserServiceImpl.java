@@ -129,14 +129,23 @@ public class UserServiceImpl implements UserService {
     @Value("${spring.mail.username}")
     private String mailFrom;
     
-    @Value("${yunpian.sms.enabled:false}")
+    @Value("${tencent.sms.enabled:false}")
     private boolean smsEnabled;  // 是否启用真实短信发送
     
-    @Value("${yunpian.sms.api-key:}")
-    private String yunpianApiKey;  // 云片网络ApiKey
+    @Value("${tencent.sms.secret-id:}")
+    private String tencentSecretId;  // 腾讯云 SecretId
     
-    @Value("${yunpian.sms.api-url:https://sms.yunpian.com/v2/sms/single_send.json}")
-    private String yunpianApiUrl;  // 云片网络API地址
+    @Value("${tencent.sms.secret-key:}")
+    private String tencentSecretKey;  // 腾讯云 SecretKey
+    
+    @Value("${tencent.sms.sdk-app-id:}")
+    private String tencentSdkAppId;  // 腾讯云短信应用 SdkAppId
+    
+    @Value("${tencent.sms.sign-name:}")
+    private String tencentSignName;  // 腾讯云短信签名
+    
+    @Value("${tencent.sms.template-id:}")
+    private String tencentTemplateId;  // 腾讯云短信模板ID
     
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
@@ -2371,60 +2380,86 @@ public class UserServiceImpl implements UserService {
     }
     
     /**
-     * 发送短信验证码（支持云片网络真实发送 + 模拟发送）
+     * 发送短信验证码（支持腾讯云短信真实发送 + 模拟发送）
      */
     private boolean sendSmsCode(String phone, String code, String sceneType) {
         String sceneName = getSceneName(sceneType);
-        String smsContent = String.format("【商南茶城】您正在进行%s操作，验证码是：%s，5分钟内有效，请勿泄露。", sceneName, code);
         
         // 判断是否启用真实短信发送
-        if (smsEnabled && yunpianApiKey != null && !yunpianApiKey.isEmpty()) {
-            // 真实发送（云片网络）
-            return sendYunpianSms(phone, smsContent);
+        if (smsEnabled && tencentSecretId != null && !tencentSecretId.isEmpty()) {
+            // 真实发送（腾讯云短信）
+            return sendTencentSms(phone, code);
         } else {
             // 模拟发送
             logger.info("【模拟发送短信】手机号: {}, 验证码: {}, 场景: {}", phone, code, sceneName);
-            logger.info("短信内容: {}", smsContent);
+            logger.info("短信内容: 【{}】您正在进行{}操作，验证码是：{}，5分钟内有效，请勿泄露。", tencentSignName, sceneName, code);
             return true; // 模拟发送总是成功
         }
     }
     
     /**
-     * 云片网络真实发送短信
+     * 腾讯云短信真实发送
      */
-    private boolean sendYunpianSms(String phone, String content) {
+    private boolean sendTencentSms(String phone, String code) {
         try {
-            RestTemplate restTemplate = new RestTemplate();
+            // 导入腾讯云SDK
+            com.tencentcloudapi.common.Credential cred = new com.tencentcloudapi.common.Credential(tencentSecretId, tencentSecretKey);
             
-            // 构建请求参数
-            MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-            params.add("apikey", yunpianApiKey);
-            params.add("mobile", phone);
-            params.add("text", content);
+            // 实例化一个http选项，可选
+            com.tencentcloudapi.common.profile.HttpProfile httpProfile = new com.tencentcloudapi.common.profile.HttpProfile();
+            httpProfile.setEndpoint("sms.tencentcloudapi.com");
             
-            // 设置请求头
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+            // 实例化一个client选项
+            com.tencentcloudapi.common.profile.ClientProfile clientProfile = new com.tencentcloudapi.common.profile.ClientProfile();
+            clientProfile.setHttpProfile(httpProfile);
             
-            HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
+            // 实例化要请求产品的client对象
+            com.tencentcloudapi.sms.v20210111.SmsClient client = new com.tencentcloudapi.sms.v20210111.SmsClient(cred, "ap-guangzhou", clientProfile);
             
-            // 发送请求
-            String response = restTemplate.postForObject(yunpianApiUrl, request, String.class);
+            // 实例化一个请求对象
+            com.tencentcloudapi.sms.v20210111.models.SendSmsRequest req = new com.tencentcloudapi.sms.v20210111.models.SendSmsRequest();
             
-            logger.info("云片网络短信发送响应: {}", response);
+            // 设置短信应用ID
+            req.setSmsSdkAppId(tencentSdkAppId);
             
-            // 判断是否成功（云片网络返回code=0表示成功）
-            boolean success = response != null && response.contains("\"code\":0");
+            // 设置短信签名内容
+            req.setSignName(tencentSignName);
             
-            if (success) {
-                logger.info("云片网络短信发送成功: phone={}", phone);
+            // 设置模板ID
+            req.setTemplateId(tencentTemplateId);
+            
+            // 设置模板参数（验证码）
+            String[] templateParamSet = {code};
+            req.setTemplateParamSet(templateParamSet);
+            
+            // 设置下发手机号码（需要加+86前缀）
+            String[] phoneNumberSet = {"+86" + phone};
+            req.setPhoneNumberSet(phoneNumberSet);
+            
+            // 发送短信
+            com.tencentcloudapi.sms.v20210111.models.SendSmsResponse resp = client.SendSms(req);
+            
+            // 输出json格式的字符串回包
+            logger.info("腾讯云短信发送响应: {}", com.tencentcloudapi.sms.v20210111.models.SendSmsResponse.toJsonString(resp));
+            
+            // 判断是否成功
+            if (resp.getSendStatusSet() != null && resp.getSendStatusSet().length > 0) {
+                String sendStatus = resp.getSendStatusSet()[0].getCode();
+                if ("Ok".equals(sendStatus)) {
+                    logger.info("腾讯云短信发送成功: phone={}", phone);
+                    return true;
+                } else {
+                    logger.error("腾讯云短信发送失败: phone={}, code={}, message={}", 
+                        phone, sendStatus, resp.getSendStatusSet()[0].getMessage());
+                    return false;
+                }
             } else {
-                logger.error("云片网络短信发送失败: phone={}, response={}", phone, response);
+                logger.error("腾讯云短信发送失败: phone={}, 响应为空", phone);
+                return false;
             }
             
-            return success;
         } catch (Exception e) {
-            logger.error("云片网络短信发送异常: phone={}, error={}", phone, e.getMessage());
+            logger.error("腾讯云短信发送异常: phone={}, error={}", phone, e.getMessage(), e);
             return false;
         }
     }

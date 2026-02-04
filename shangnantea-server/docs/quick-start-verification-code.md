@@ -33,7 +33,7 @@
 **无需任何配置**，默认就是模拟模式：
 
 ```yaml
-yunpian:
+tencent:
   sms:
     enabled: false  # 模拟发送
 ```
@@ -46,18 +46,23 @@ yunpian:
 
 #### 选项B：使用真实短信（生产环境）
 
-1. **申请云片网络**
-   - 注册：https://www.yunpian.com
-   - 实名认证
-   - 获取 API Key
+1. **申请腾讯云短信**
+   - 注册：https://cloud.tencent.com
+   - 个人实名认证
+   - 申请短信签名和模板
+   - 获取 SecretId、SecretKey、SDK AppID、模板ID
 
 2. **填写配置**
    
    ```yaml
-   yunpian:
+   tencent:
      sms:
        enabled: true
-       api-key: 你的ApiKey
+       secret-id: 你的SecretId
+       secret-key: 你的SecretKey
+       sdk-app-id: 你的SdkAppId
+       sign-name: 商南茶城
+       template-id: 你的模板ID
    ```
 
 3. **完成！**
@@ -183,12 +188,15 @@ spring:
     timeout: 3000ms
     database: 0
 
-# 云片网络短信配置
-yunpian:
+# 腾讯云短信配置
+tencent:
   sms:
     enabled: false                        # true=真实发送，false=模拟发送
-    api-key: YOUR_YUNPIAN_API_KEY        # 改成你的ApiKey
-    api-url: https://sms.yunpian.com/v2/sms/single_send.json
+    secret-id: YOUR_SECRET_ID            # 改成你的SecretId
+    secret-key: YOUR_SECRET_KEY          # 改成你的SecretKey
+    sdk-app-id: YOUR_SDK_APP_ID          # 改成你的SdkAppId
+    sign-name: 商南茶城                   # 改成你的签名
+    template-id: YOUR_TEMPLATE_ID        # 改成你的模板ID
 ```
 
 ---
@@ -214,7 +222,7 @@ yunpian:
 ## 📚 更多文档
 
 - `verification-code-implementation-summary.md` - 完整实现总结
-- `yunpian-sms-setup.md` - 云片网络详细配置
+- `tencent-sms-setup.md` - 腾讯云短信详细配置（⭐推荐）
 - `openapi_new.yaml` - API 接口文档
 
 ---

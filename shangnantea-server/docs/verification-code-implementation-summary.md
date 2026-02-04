@@ -123,10 +123,10 @@ POST /api/user/verification-code/send
 
 ### 2. 短信验证码（模拟模式）
 
-未配置云片网络时，短信验证码会自动使用**模拟发送**：
+未配置腾讯云时，短信验证码会自动使用**模拟发送**：
 
 ```yaml
-yunpian:
+tencent:
   sms:
     enabled: false  # 模拟模式
 ```
@@ -154,13 +154,17 @@ POST /api/user/verification-code/send
 
 ### 3. 短信验证码（真实发送）
 
-配置云片网络后，短信验证码会真实发送：
+配置腾讯云后，短信验证码会真实发送：
 
 ```yaml
-yunpian:
+tencent:
   sms:
     enabled: true                          # 启用真实发送
-    api-key: your_actual_api_key_here     # 你的API Key
+    secret-id: your_secret_id_here        # 你的SecretId
+    secret-key: your_secret_key_here      # 你的SecretKey
+    sdk-app-id: your_sdk_app_id_here      # 你的SdkAppId
+    sign-name: 商南茶城                    # 你的签名
+    template-id: your_template_id_here    # 你的模板ID
 ```
 
 ---

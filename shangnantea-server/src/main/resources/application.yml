@@ -32,12 +32,15 @@ spring:
             enable: true
             required: true
 
-# 云片网络短信配置
-yunpian:
+# 腾讯云短信配置
+tencent:
   sms:
     enabled: false  # 是否启用真实短信发送（true=真实发送，false=模拟发送）
-    api-key: YOUR_YUNPIAN_API_KEY  # 替换成你的云片网络ApiKey
-    api-url: https://sms.yunpian.com/v2/sms/single_send.json  # 云片网络API地址
+    secret-id: YOUR_SECRET_ID  # 替换成你的腾讯云 SecretId
+    secret-key: YOUR_SECRET_KEY  # 替换成你的腾讯云 SecretKey
+    sdk-app-id: YOUR_SDK_APP_ID  # 替换成你的短信应用 SdkAppId
+    sign-name: 商南茶城  # 替换成你的短信签名（不含【】）
+    template-id: YOUR_TEMPLATE_ID  # 替换成你的验证码模板ID
 
 mybatis:
   mapper-locations: classpath:mapper/*.xml
