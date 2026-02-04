@@ -723,16 +723,9 @@ const actions = {
       commit('SET_LOADING', true)
       
       // 调用密码找回API
-      const result = await resetPasswordApi(resetData)
+      const res = await resetPasswordApi(resetData)
       
-      // 显示找回成功消息
-      userPromptMessages.success.showPasswordResetSuccess()
-      
-      return result
-    } catch (error) {
-      // 显示找回失败消息
-      userPromptMessages.error.showPasswordResetFailure(error.message)
-      throw error
+      return res // 返回 {code, data}，组件调用showByCode(res.code)
     } finally {
       commit('SET_LOADING', false)
     }

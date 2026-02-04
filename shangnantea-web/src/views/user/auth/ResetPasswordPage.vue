@@ -227,12 +227,17 @@ export default {
         }
         
         // 调用Vuex action
-        await store.dispatch('user/findPassword', resetData)
+        const res = await store.dispatch('user/findPassword', resetData)
         
-        // 延迟跳转到登录页
-        setTimeout(() => {
-          router.push('/login')
-        }, 2000)
+        // 显示API响应消息
+        showByCode(res.code)
+        
+        // 只有成功时才跳转到登录页
+        if (isSuccess(res.code)) {
+          setTimeout(() => {
+            router.push('/login')
+          }, 2000)
+        }
       } catch (error) {
         console.error('密码找回失败:', error)
       } finally {
