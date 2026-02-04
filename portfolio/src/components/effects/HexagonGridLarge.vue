@@ -10,6 +10,7 @@ let ctx = null
 let hexagons = []
 let mouseX = -1000
 let mouseY = -1000
+let mouseTrail = [] // 鼠标拖尾
 let animationId = null
 
 // 六边形类
@@ -19,7 +20,7 @@ class Hexagon {
     this.y = y
     this.size = size
     this.opacity = 0
-    this.lastActivatedTime = 0 // 最后被激活的时间
+    this.targetOpacity = 0
   }
 
   // 计算六边形的顶点
@@ -35,6 +36,13 @@ class Hexagon {
     return vertices
   }
 
+  // 检查点是否在六边形内
+  containsPoint(px, py) {
+    const dx = px - this.x
+    const dy = py - this.y
+    return Math.sqrt(dx * dx + dy * dy) < this.size
+  }
+
   // 计算到鼠标的距离
   distanceToMouse(mx, my) {
     const dx = this.x - mx
@@ -43,35 +51,30 @@ class Hexagon {
   }
 
   // 更新透明度
-  update(mx, my, currentTime) {
+  update(mx, my, trail) {
+    let maxOpacity = 0
+
     // 检查鼠标当前位置
     const distToCurrent = this.distanceToMouse(mx, my)
-    
-    // 如果在鼠标附近，点亮并记录时间
-    if (distToCurrent < 80) {
-      const intensity = 1 - (distToCurrent / 80)
-      this.opacity = Math.max(this.opacity, intensity * 0.7) // 提高亮度
-      this.lastActivatedTime = currentTime
+    if (distToCurrent < 150) {
+      const opacity = 1 - (distToCurrent / 150)
+      maxOpacity = Math.max(maxOpacity, opacity)
     }
-    
-    // 随时间自动衰减（点亮后0.8秒内衰减）
-    if (this.lastActivatedTime > 0) {
-      const timeSinceActivation = currentTime - this.lastActivatedTime
-      const fadeOutDuration = 800 // 0.8秒衰减时间，更快显示拖尾
-      
-      if (timeSinceActivation < fadeOutDuration) {
-        // 衰减过程
-        const fadeProgress = timeSinceActivation / fadeOutDuration
-        this.opacity *= (1 - fadeProgress * 0.08) // 更快衰减
-      } else {
-        // 完全衰减
-        this.opacity *= 0.88
-        if (this.opacity < 0.01) {
-          this.opacity = 0
-          this.lastActivatedTime = 0
-        }
+
+    // 检查鼠标拖尾
+    trail.forEach((point, index) => {
+      const dist = this.distanceToMouse(point.x, point.y)
+      if (dist < 150) {
+        const trailFade = 1 - (index / trail.length) // 拖尾逐渐变淡
+        const opacity = (1 - (dist / 150)) * trailFade * 0.6
+        maxOpacity = Math.max(maxOpacity, opacity)
       }
-    }
+    })
+
+    this.targetOpacity = maxOpacity
+
+    // 平滑过渡
+    this.opacity += (this.targetOpacity - this.opacity) * 0.15
   }
 
   // 绘制六边形
@@ -88,19 +91,25 @@ class Hexagon {
     }
     ctx.closePath()
     
-    // 半透明填充，不遮挡内容
-    ctx.fillStyle = `rgba(99, 102, 241, ${this.opacity * 0.2})`
+    // 渐变填充
+    const gradient = ctx.createRadialGradient(
+      this.x, this.y, 0,
+      this.x, this.y, this.size
+    )
+    gradient.addColorStop(0, `rgba(99, 102, 241, ${this.opacity * 0.3})`)
+    gradient.addColorStop(1, `rgba(99, 102, 241, ${this.opacity * 0.1})`)
+    ctx.fillStyle = gradient
     ctx.fill()
 
     // 绘制边框
-    ctx.strokeStyle = `rgba(99, 102, 241, ${this.opacity * 0.6})`
-    ctx.lineWidth = 0.8
+    ctx.strokeStyle = `rgba(99, 102, 241, ${this.opacity * 0.8})`
+    ctx.lineWidth = 1.5
     ctx.stroke()
 
-    // 高亮时的发光效果
+    // 绘制发光效果
     if (this.opacity > 0.5) {
-      ctx.shadowBlur = 6
-      ctx.shadowColor = `rgba(99, 102, 241, ${this.opacity * 0.7})`
+      ctx.shadowBlur = 15
+      ctx.shadowColor = `rgba(99, 102, 241, ${this.opacity})`
       ctx.stroke()
       ctx.shadowBlur = 0
     }
@@ -117,10 +126,10 @@ const initHexagons = () => {
 
   hexagons = []
   
-  // 更小更密集的六边形
-  const sizes = [5, 6, 7, 8]
-  const hexWidth = 16 // 更密集
-  const hexHeight = 14
+  // 六边形大小（混合大小）
+  const sizes = [20, 25, 30, 35]
+  const hexWidth = 60
+  const hexHeight = 52
 
   // 创建六边形网格
   for (let row = 0; row < canvas.value.height / hexHeight + 2; row++) {
@@ -128,10 +137,10 @@ const initHexagons = () => {
       const x = col * hexWidth + (row % 2) * (hexWidth / 2)
       const y = row * hexHeight
       
-      // 随机选择大小
-      const sizeIndex = Math.random() < 0.95 ? 
-        Math.floor(Math.random() * 2) : // 95%是最小的
-        Math.floor(Math.random() * sizes.length)
+      // 随机选择大小，偶尔出现大的
+      const sizeIndex = Math.random() < 0.85 ? 
+        Math.floor(Math.random() * 2) : // 大部分是小的
+        Math.floor(Math.random() * sizes.length) // 偶尔大的
       
       const size = sizes[sizeIndex]
       
@@ -144,16 +153,19 @@ const initHexagons = () => {
 const animate = () => {
   if (!ctx || !canvas.value) return
 
-  const currentTime = performance.now()
-
   // 清空画布
   ctx.clearRect(0, 0, canvas.value.width, canvas.value.height)
 
   // 更新和绘制六边形
   hexagons.forEach(hex => {
-    hex.update(mouseX, mouseY, currentTime)
+    hex.update(mouseX, mouseY, mouseTrail)
     hex.draw()
   })
+
+  // 更新鼠标拖尾（保留最近20个位置）
+  if (mouseTrail.length > 20) {
+    mouseTrail.shift()
+  }
 
   animationId = requestAnimationFrame(animate)
 }
@@ -162,12 +174,16 @@ const animate = () => {
 const handleMouseMove = (e) => {
   mouseX = e.clientX
   mouseY = e.clientY
+  
+  // 添加到拖尾
+  mouseTrail.push({ x: mouseX, y: mouseY })
 }
 
 // 鼠标离开事件
 const handleMouseLeave = () => {
   mouseX = -1000
   mouseY = -1000
+  mouseTrail = []
 }
 
 // 窗口大小改变
@@ -202,6 +218,6 @@ onUnmounted(() => {
   height: 100%;
   pointer-events: none;
   z-index: 1;
-  opacity: 1;
+  opacity: 0.8;
 }
 </style>
