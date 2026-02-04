@@ -316,7 +316,7 @@ export default {
           // 取消关注：需要先找到关注记录ID
           const followList = store.state.user.followList || []
           const followItem = followList.find(item => 
-            item.followType === 'user' && item.followId === userId.value
+            item.targetType === 'user' && item.targetId === userId.value
           )
           if (followItem) {
             const res = await store.dispatch('user/removeFollow', followItem.id)

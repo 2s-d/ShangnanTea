@@ -276,7 +276,7 @@ export default {
           // 取消收藏：需要先找到收藏记录ID
           const favoriteList = store.state.user.favoriteList || []
           const favoriteItem = favoriteList.find(item => 
-            item.itemType === 'article' && item.itemId === article.value.id
+            item.itemType === 'tea_article' && item.itemId === String(article.value.id)
           )
           if (favoriteItem) {
             const res = await store.dispatch('user/removeFavorite', favoriteItem.id)
