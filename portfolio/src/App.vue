@@ -137,7 +137,6 @@
               :md="6"
               :lg="4"
             >
-              <!-- 所有主题都使用完整特效 -->
               <TiltCard :max-tilt="8">
                 <el-card shadow="hover" class="skill-card card-hover glass-effect">
                   <div class="skill-icon animate-pulse">{{ skill.icon }}</div>
@@ -170,42 +169,41 @@
               :sm="12"
               :md="8"
             >
-              <!-- 所有主题都使用完整特效 -->
               <TiltCard :max-tilt="5">
                 <el-card shadow="hover" class="project-card card-hover glass-effect">
-                <template #header>
-                  <div class="project-header">
-                    <span class="project-name">{{ project.name }}</span>
-                    <el-tag :type="project.status === 'online' ? 'success' : 'info'">
-                      {{ project.status === 'online' ? '已上线' : '开发中' }}
+                  <template #header>
+                    <div class="project-header">
+                      <span class="project-name">{{ project.name }}</span>
+                      <el-tag :type="project.status === 'online' ? 'success' : 'info'">
+                        {{ project.status === 'online' ? '已上线' : '开发中' }}
+                      </el-tag>
+                    </div>
+                  </template>
+                  <div class="project-image">
+                    <img :src="project.image" :alt="project.name" />
+                  </div>
+                  <p class="project-desc">{{ project.description }}</p>
+                  <div class="project-tags">
+                    <el-tag
+                      v-for="tech in project.tech"
+                      :key="tech"
+                      size="small"
+                      class="tech-tag"
+                    >
+                      {{ tech }}
                     </el-tag>
                   </div>
-                </template>
-                <div class="project-image">
-                  <img :src="project.image" :alt="project.name" />
-                </div>
-                <p class="project-desc">{{ project.description }}</p>
-                <div class="project-tags">
-                  <el-tag
-                    v-for="tech in project.tech"
-                    :key="tech"
-                    size="small"
-                    class="tech-tag"
-                  >
-                    {{ tech }}
-                  </el-tag>
-                </div>
-                <div class="project-actions">
-                  <el-button type="primary" link @click="openProject(project.url)">
-                    <el-icon><View /></el-icon>
-                    查看项目
-                  </el-button>
-                  <el-button link v-if="project.github" @click="openProject(project.github)">
-                    <el-icon><Link /></el-icon>
-                    GitHub
-                  </el-button>
-                </div>
-              </el-card>
+                  <div class="project-actions">
+                    <el-button type="primary" link @click="openProject(project.url)">
+                      <el-icon><View /></el-icon>
+                      查看项目
+                    </el-button>
+                    <el-button link v-if="project.github" @click="openProject(project.github)">
+                      <el-icon><Link /></el-icon>
+                      GitHub
+                    </el-button>
+                  </div>
+                </el-card>
               </TiltCard>
             </el-col>
           </el-row>
@@ -259,7 +257,6 @@
 import { ref } from 'vue'
 import ParticlesBackground from './components/effects/ParticlesBackground.vue'
 import HexagonGrid from './components/effects/HexagonGrid.vue'
-import CursorGlow from './components/effects/CursorGlow.vue'
 import ScrollProgress from './components/effects/ScrollProgress.vue'
 import TypeWriter from './components/effects/TypeWriter.vue'
 import TiltCard from './components/effects/TiltCard.vue'
