@@ -1,4 +1,4 @@
-import { getTeas, getTeaDetail, getTeaCategories, createCategory, updateCategory, deleteCategory, addTea, updateTea, deleteTea, getTeaReviews, getReviewStats, replyReview, likeReview, getTeaSpecifications, addSpecification, updateSpecification, deleteSpecification, setDefaultSpecification, uploadTeaImages, deleteTeaImage, updateImageOrder, setMainImage, toggleTeaStatus, batchToggleTeaStatus, getRecommendTeas } from '@/api/tea'
+import { getTeas, getTeaDetail, getTeaCategories, createCategory, updateCategory, deleteCategory, addTea, updateTea, deleteTea, getTeaReviews, getReviewStats, replyReview, /* ⚠️ 已删除：likeReview - 评价点赞功能已统一使用用户模块的通用接口 */ getTeaSpecifications, addSpecification, updateSpecification, deleteSpecification, setDefaultSpecification, uploadTeaImages, deleteTeaImage, updateImageOrder, setMainImage, toggleTeaStatus, batchToggleTeaStatus, getRecommendTeas } from '@/api/tea'
 
 const state = () => ({
   // 茶叶列表
@@ -459,25 +459,10 @@ const actions = {
     }
   },
   
-  // 点赞评价
-  async likeReview({ commit, state }, reviewId) {
-    try {
-      const res = await likeReview(reviewId)
-      
-      // 更新评价列表中的点赞信息
-      const review = state.teaReviews.find(r => r.id === reviewId)
-      if (review) {
-        review.likeCount = res.data?.likeCount
-        review.isLiked = res.data?.isLiked
-        commit('UPDATE_REVIEW', review)
-      }
-      
-      return res // 返回 {code, data}
-    } catch (error) {
-      console.error('点赞评价失败:', error)
-      throw error
-    }
-  },
+  // ⚠️ 已删除：点赞评价action（likeReview）
+  // 说明：评价点赞功能已统一使用用户模块的通用接口（user.js 中的 addLike/removeLike）
+  // 评价列表接口（getTeaReviews）已包含 isLiked 字段，无需单独调用点赞接口
+  // 组件应直接调用 user/addLike, user/removeLike
   
   // ==================== 任务组C：规格管理Actions ====================
   

@@ -548,83 +548,10 @@ const actions = {
     }
   },
 
-  // 任务组F：获取店铺关注状态
-  async checkFollowStatus({ commit }, shopId) {
-    if (!shopId) {
-      throw new Error('店铺ID不能为空')
-    }
-    try {
-      commit('SET_LOADING', true)
-      
-      // 拦截器返回 {code, data}
-      const res = await apiCheckFollowStatus(shopId)
-      
-      commit('SET_FOLLOW_STATUS', res.data?.isFollowing || false)
-      return res // 返回 {code, data}
-    } catch (error) {
-      console.error('获取关注状态失败:', error)
-      commit('SET_FOLLOW_STATUS', false)
-      throw error
-    } finally {
-      commit('SET_LOADING', false)
-    }
-  },
-
-  // 任务组F：关注店铺
-  async followShop({ commit, rootState, dispatch }, shopId) {
-    if (!shopId) {
-      throw new Error('店铺ID不能为空')
-    }
-    try {
-      commit('SET_LOADING', true)
-      
-      const res = await apiFollowShop(shopId)
-      
-      // 同步到用户关注列表
-      const shop = rootState.shop.currentShop || rootState.shop.myShop || { id: shopId }
-      await dispatch('user/addFollow', {
-        targetId: shopId,
-        targetType: 'shop',
-        targetName: shop.name || shop.shop_name || '未知店铺',
-        targetAvatar: shop.logo || shop.shop_logo || ''
-      }, { root: true })
-      commit('SET_FOLLOW_STATUS', true)
-      return res // 返回 {code, data}
-    } catch (error) {
-      console.error('关注店铺失败:', error)
-      throw error
-    } finally {
-      commit('SET_LOADING', false)
-    }
-  },
-
-  // 任务组F：取消关注店铺
-  async unfollowShop({ commit, rootState, dispatch }, shopId) {
-    if (!shopId) {
-      throw new Error('店铺ID不能为空')
-    }
-    try {
-      commit('SET_LOADING', true)
-      
-      const res = await apiUnfollowShop(shopId)
-      
-      // 在用户关注列表中找到该关注记录并删除
-      const followList = rootState.user.followList || []
-      const followItem = followList.find(item =>
-        item.targetType === 'shop' && item.targetId === shopId
-      )
-      if (followItem) {
-        await dispatch('user/removeFollow', followItem.id, { root: true })
-      }
-      commit('SET_FOLLOW_STATUS', false)
-      return res // 返回 {code, data}
-    } catch (error) {
-      console.error('取消关注店铺失败:', error)
-      throw error
-    } finally {
-      commit('SET_LOADING', false)
-    }
-  },
+  // ⚠️ 已删除：获取店铺关注状态、关注店铺、取消关注店铺相关actions
+  // 说明：店铺关注功能已统一使用用户模块的通用接口（user.js 中的 addFollow/removeFollow）
+  // 店铺详情接口（getShopDetail）已包含 isFollowed 字段，无需单独检查关注状态
+  // 组件应直接调用 user/addFollow, user/removeFollow
 
   // 任务组B：获取店铺Banner列表
   async fetchShopBanners({ commit, state }) {

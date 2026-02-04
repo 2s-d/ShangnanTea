@@ -779,105 +779,15 @@ const actions = {
     }
   },
 
-  // 接口#133: 点赞回复 - 成功码6010, 失败码6110
-  async likeReply({ commit }, id) {
-    try {
-      const res = await likeReply(id)
-      commit('UPDATE_REPLY_LIKE', { id, isLiked: true, likeCount: res.data?.likeCount })
-      return res // 返回 {code, data}
-    } catch (error) {
-      commit('SET_ERROR', error.message || '点赞失败')
-      console.error('点赞回复失败:', error)
-      throw error
-    }
-  },
-
-  // 接口#134: 取消点赞回复 - 成功码6011, 失败码6111
-  async unlikeReply({ commit }, id) {
-    try {
-      const res = await unlikeReply(id)
-      commit('UPDATE_REPLY_LIKE', { id, isLiked: false, likeCount: res.data?.likeCount })
-      return res // 返回 {code, data}
-    } catch (error) {
-      commit('SET_ERROR', error.message || '取消点赞失败')
-      console.error('取消点赞回复失败:', error)
-      throw error
-    }
-  },
+  // ⚠️ 已删除：点赞/取消点赞回复、点赞/取消点赞帖子、收藏/取消收藏帖子相关actions
+  // 说明：这些功能已统一使用用户模块的通用接口（user.js 中的 addLike/removeLike, addFavorite/removeFavorite）
+  // 详情接口（getPostDetail, getPostReplies）已包含相应的状态字段，无需单独调用点赞/收藏接口
+  // 组件应直接调用 user/addLike, user/removeLike, user/addFavorite, user/removeFavorite
 
   // 清空回复列表
   clearPostReplies({ commit }) {
     commit('SET_POST_REPLIES', [])
     commit('SET_REPLY_PAGINATION', { current: 1, pageSize: 20, total: 0 })
-  },
-
-  // 帖子点赞收藏相关actions
-  // 接口#135: 点赞帖子 - 成功码6010, 失败码6110
-  async likePost({ commit }, id) {
-    try {
-      const res = await likePost(id)
-      commit('UPDATE_POST_LIKE', { 
-        id, 
-        isLiked: true, 
-        likeCount: res.data?.likeCount 
-      })
-      return res // 返回 {code, data}
-    } catch (error) {
-      commit('SET_ERROR', error.message || '点赞失败')
-      console.error('点赞帖子失败:', error)
-      throw error
-    }
-  },
-
-  // 接口#136: 取消点赞帖子 - 成功码6011, 失败码6111
-  async unlikePost({ commit }, id) {
-    try {
-      const res = await unlikePost(id)
-      commit('UPDATE_POST_LIKE', { 
-        id, 
-        isLiked: false, 
-        likeCount: res.data?.likeCount 
-      })
-      return res // 返回 {code, data}
-    } catch (error) {
-      commit('SET_ERROR', error.message || '取消点赞失败')
-      console.error('取消点赞帖子失败:', error)
-      throw error
-    }
-  },
-
-  // 接口#137: 收藏帖子 - 成功码6012, 失败码6112
-  async favoritePost({ commit }, id) {
-    try {
-      const res = await favoritePost(id)
-      commit('UPDATE_POST_FAVORITE', { 
-        id, 
-        isFavorited: true, 
-        favoriteCount: res.data?.favoriteCount 
-      })
-      return res // 返回 {code, data}
-    } catch (error) {
-      commit('SET_ERROR', error.message || '收藏失败')
-      console.error('收藏帖子失败:', error)
-      throw error
-    }
-  },
-
-  // 接口#138: 取消收藏帖子 - 成功码6013, 失败码6113
-  async unfavoritePost({ commit }, id) {
-    try {
-      const res = await unfavoritePost(id)
-      commit('UPDATE_POST_FAVORITE', { 
-        id, 
-        isFavorited: false, 
-        favoriteCount: res.data?.favoriteCount 
-      })
-      return res // 返回 {code, data}
-    } catch (error) {
-      commit('SET_ERROR', error.message || '取消收藏失败')
-      console.error('取消收藏帖子失败:', error)
-      throw error
-    }
   },
 
   // 任务组F：内容审核相关actions
