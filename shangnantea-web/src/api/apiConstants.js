@@ -88,11 +88,10 @@ export const API = {
     LIST: '/order/list',
     DETAIL: '/order/{id}',
     PAY: '/order/pay',
-    ALIPAY_NOTIFY: '/order/alipay/notify',
     CANCEL: '/order/cancel',
     CONFIRM: '/order/confirm',
     REVIEW: '/order/review',
-    REFUND: '/order/refund',
+    REFUND: '/order/refund',我
     REFUND_PROCESS: '/order/{id}/refund/process',
     REFUND_DETAIL: '/order/{id}/refund',
     SHIP: '/order/{id}/ship',
