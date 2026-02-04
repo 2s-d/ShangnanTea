@@ -1532,10 +1532,6 @@ paths:
                 sceneType:
                   type: string
                   description: 使用场景（register/reset_password/change_phone）
-            example:
-              contact: "13800138000"
-              contactType: "phone"
-              sceneType: "reset_password"
       responses:
         '200':
           description: 发送结果
