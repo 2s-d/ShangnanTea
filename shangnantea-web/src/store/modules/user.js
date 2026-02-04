@@ -2,7 +2,7 @@ import {
   login as loginApi, 
   register, 
   logout, 
-  getCurrentUser, 
+  getCurrentUser as getCurrentUserApi, 
   getUserInfo as getUserInfoApi,
   updateUserInfo, 
   uploadAvatar as uploadAvatarApi,
@@ -559,7 +559,9 @@ const actions = {
       commit('SET_LOADING', true)
       
       // 调用API获取用户信息
-      const res = await getUserInfoApi(userId)
+      // - 未传 userId：获取当前用户（/user/me）
+      // - 传入 userId：获取指定用户（/user/{userId}）
+      const res = userId ? await getUserInfoApi(userId) : await getCurrentUserApi()
       
       // 更新状态（如果获取的是当前用户信息）
       if (!userId) {

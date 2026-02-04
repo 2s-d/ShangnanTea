@@ -70,12 +70,12 @@ export function refreshToken() {
 
 /**
  * 获取用户信息
- * @param {String} userId 用户ID
+ * @param {String} userId 用户ID（必传，用于获取指定用户信息）
  * @returns {Promise} 用户信息，当查询其他用户时，包含 isFollowed 字段（当前用户是否已关注该用户）
  */
 export function getUserInfo(userId) {
   return request({
-I    url: API.USER.INFO.replace('{userId}', userId),
+    url: API.USER.INFO.replace('{userId}', userId),
     method: 'get'
   })
 }
