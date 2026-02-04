@@ -9,6 +9,7 @@ import com.shangnantea.model.dto.CreateAdminDTO;
 import com.shangnantea.model.dto.LoginDTO;
 import com.shangnantea.model.dto.ProcessCertificationDTO;
 import com.shangnantea.model.dto.RegisterDTO;
+import com.shangnantea.model.dto.SendVerificationCodeDTO;
 import com.shangnantea.model.dto.SubmitShopCertificationDTO;
 import com.shangnantea.model.dto.UpdateUserDTO;
 import com.shangnantea.model.dto.UpdateUserPreferencesDTO;
@@ -597,5 +598,20 @@ public class UserController {
             @RequestParam("type") String type) {
         logger.info("上传商家认证图片请求, type: {}, 文件名: {}", type, file.getOriginalFilename());
         return userService.uploadCertificationImage(file, type);
+    }
+
+    /**
+     * 发送验证码
+     * 路径: POST /user/verification-code/send
+     * 成功码: 2025, 失败码: 2149, 2150, 2151
+     *
+     * @param sendCodeDTO 发送验证码请求
+     * @return 发送结果
+     */
+    @PostMapping("/verification-code/send")
+    public Result<Void> sendVerificationCode(@RequestBody @Valid SendVerificationCodeDTO sendCodeDTO) {
+        logger.info("发送验证码请求: contactType={}, sceneType={}, contact={}", 
+                sendCodeDTO.getContactType(), sendCodeDTO.getSceneType(), sendCodeDTO.getContact());
+        return userService.sendVerificationCode(sendCodeDTO);
     }
 }
