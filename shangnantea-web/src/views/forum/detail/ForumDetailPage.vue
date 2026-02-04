@@ -235,8 +235,7 @@ export default {
     // 获取帖子ID
     const postId = computed(() => route.params.id)
     
-    // 从Vuex获取点赞和收藏列表，判断当前帖子状态
-    const likeList = computed(() => store.state.user.likeList || [])
+    // 从Vuex获取收藏列表（点赞列表不再需要，因为取消点赞直接传递targetId和targetType）
     const favoriteList = computed(() => store.state.user.favoriteList || [])
     
     // 点赞状态（从帖子数据判断）
@@ -446,17 +445,14 @@ export default {
     const likeReply = async reply => {
       try {
         if (reply.isLiked) {
-          // 取消点赞：需要先找到点赞记录ID
-          const likeList = store.state.user.likeList || []
-          const likeItem = likeList.find(item => 
-            item.targetType === 'reply' && item.targetId === reply.id
-          )
-          if (likeItem) {
-            const res = await store.dispatch('user/removeLike', likeItem.id)
-            showByCode(res.code)
-            // 重新加载回复列表以更新isLiked状态
-            await fetchReplies()
-          }
+          // 取消点赞：直接传递targetId和targetType
+          const res = await store.dispatch('user/removeLike', {
+            targetId: reply.id,
+            targetType: 'reply'
+          })
+          showByCode(res.code)
+          // 重新加载回复列表以更新isLiked状态
+          await fetchReplies()
         } else {
           // 添加点赞
           const res = await store.dispatch('user/addLike', {

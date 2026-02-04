@@ -1043,12 +1043,12 @@ const actions = {
     commit('SET_LOADING', true)
     try {
       const res = await removeLikeApi(likeData)
-      // 从likeList中移除对应的点赞记录
+      // 从likeList中移除对应的点赞记录（如果存在）
       const likeList = state.likeList || []
       const likeItem = likeList.find(item => 
         item.targetType === likeData.targetType && item.targetId === likeData.targetId
       )
-      if (likeItem) {
+      if (likeItem && likeItem.id) {
         commit('REMOVE_LIKE', likeItem.id)
       }
       return res // 返回 {code, data}，组件调用showByCode(res.code)

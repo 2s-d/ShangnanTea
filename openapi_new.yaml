@@ -978,7 +978,7 @@ paths:
                     code: 2128
                     data: null
 
-  /user/likes/{id}:
+  /user/likes:
     delete:
       operationId: removeLike
       tags:
@@ -987,12 +987,15 @@ paths:
       description: 取消对内容的点赞
       security:
         - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LikeRequest'
+            example:
+              targetId: "1"
+              targetType: "post"
       responses:
         '200':
           description: 取消成功
