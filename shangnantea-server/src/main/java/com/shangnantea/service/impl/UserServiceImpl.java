@@ -20,6 +20,7 @@ import com.shangnantea.model.dto.ChangePasswordDTO;
 import com.shangnantea.model.dto.CreateAdminDTO;
 import com.shangnantea.model.dto.LoginDTO;
 import com.shangnantea.model.dto.RegisterDTO;
+import com.shangnantea.model.dto.SendVerificationCodeDTO;
 import com.shangnantea.model.dto.SubmitShopCertificationDTO;
 import com.shangnantea.model.dto.UpdateUserPreferencesDTO;
 import com.shangnantea.model.entity.shop.ShopCertification;
@@ -46,6 +47,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -57,6 +61,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 用户服务实现类
@@ -108,6 +113,15 @@ public class UserServiceImpl implements UserService {
     
     @Autowired
     private JwtUtil jwtUtil;
+    
+    @Autowired
+    private StringRedisTemplate redisTemplate;
+    
+    @Autowired
+    private JavaMailSender mailSender;
+    
+    @Value("${spring.mail.username}")
+    private String mailFrom;
     
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
@@ -2211,7 +2225,154 @@ public class UserServiceImpl implements UserService {
         logger.info("用户删除结果: {}, 用户名: {}", result > 0, user.getUsername());
         return result > 0;
     }
-} 
+    
+    // ==================== 验证码相关 ====================
+    
+    /**
+     * 发送验证码
+     * 成功码：2025，失败码：2149, 2150, 2151
+     */
+    @Override
+    public Result<Void> sendVerificationCode(SendVerificationCodeDTO sendCodeDTO) {
+        String contact = sendCodeDTO.getContact();
+        String contactType = sendCodeDTO.getContactType();
+        String sceneType = sendCodeDTO.getSceneType();
+        
+        logger.info("发送验证码: contact={}, contactType={}, sceneType={}", contact, contactType, sceneType);
+        
+        // 1. 检查发送频率限制（60秒内只能发送一次）
+        String limitKey = "verification_code_limit:" + contact;
+        Boolean hasLimit = redisTemplate.hasKey(limitKey);
+        if (Boolean.TRUE.equals(hasLimit)) {
+            logger.warn("发送验证码过于频繁: {}", contact);
+            return Result.failure(2150); // 发送过于频繁，请稍后再试
+        }
+        
+        // 2. 检查每日发送次数限制（每天最多10次）
+        String dailyKey = "verification_code_daily:" + contact;
+        String dailyCountStr = redisTemplate.opsForValue().get(dailyKey);
+        int dailyCount = dailyCountStr == null ? 0 : Integer.parseInt(dailyCountStr);
+        if (dailyCount >= 10) {
+            logger.warn("验证码每日发送次数已达上限: {}", contact);
+            return Result.failure(2150); // 发送过于频繁，请稍后再试
+        }
+        
+        // 3. 生成6位随机验证码
+        String code = String.format("%06d", RANDOM.nextInt(1000000));
+        logger.info("生成验证码: contact={}, code={}", contact, code);
+        
+        // 4. 存储验证码到Redis（5分钟有效期）
+        String codeKey = "verification_code:" + sceneType + ":" + contact;
+        redisTemplate.opsForValue().set(codeKey, code, 5, TimeUnit.MINUTES);
+        
+        // 5. 设置发送频率限制（60秒）
+        redisTemplate.opsForValue().set(limitKey, "1", 60, TimeUnit.SECONDS);
+        
+        // 6. 更新每日发送次数（到当天23:59:59过期）
+        long secondsUntilMidnight = getSecondsUntilMidnight();
+        redisTemplate.opsForValue().set(dailyKey, String.valueOf(dailyCount + 1), secondsUntilMidnight, TimeUnit.SECONDS);
+        
+        // 7. 发送验证码
+        boolean sendSuccess;
+        if ("email".equals(contactType)) {
+            // 发送邮件验证码（真实发送）
+            sendSuccess = sendEmailCode(contact, code, sceneType);
+        } else {
+            // 发送短信验证码（模拟发送）
+            sendSuccess = sendSmsCode(contact, code, sceneType);
+        }
+        
+        if (!sendSuccess) {
+            logger.error("验证码发送失败: contact={}", contact);
+            return Result.failure(2149); // 发送验证码失败
+        }
+        
+        logger.info("验证码发送成功: contact={}", contact);
+        return Result.success(2025, null); // 验证码已发送
+    }
+    
+    /**
+     * 验证验证码
+     */
+    @Override
+    public boolean verifyCode(String contact, String sceneType, String code) {
+        String codeKey = "verification_code:" + sceneType + ":" + contact;
+        String storedCode = redisTemplate.opsForValue().get(codeKey);
+        
+        if (storedCode == null) {
+            logger.warn("验证码不存在或已过期: contact={}, sceneType={}", contact, sceneType);
+            return false;
+        }
+        
+        boolean isValid = storedCode.equals(code);
+        if (isValid) {
+            // 验证成功后删除验证码
+            redisTemplate.delete(codeKey);
+            logger.info("验证码验证成功: contact={}", contact);
+        } else {
+            logger.warn("验证码错误: contact={}, input={}, stored={}", contact, code, storedCode);
+        }
+        
+        return isValid;
+    }
+    
+    /**
+     * 发送邮件验证码（真实发送）
+     */
+    private boolean sendEmailCode(String email, String code, String sceneType) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(mailFrom);
+            message.setTo(email);
+            message.setSubject("【商南茶城】验证码");
+            
+            String sceneName = getSceneName(sceneType);
+            message.setText(String.format("您正在进行%s操作，验证码是：%s，5分钟内有效，请勿泄露。", sceneName, code));
+            
+            mailSender.send(message);
+            logger.info("邮件验证码发送成功: email={}, code={}", email, code);
+            return true;
+        } catch (Exception e) {
+            logger.error("邮件验证码发送失败: email={}, error={}", email, e.getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * 发送短信验证码（模拟发送）
+     */
+    private boolean sendSmsCode(String phone, String code, String sceneType) {
+        // TODO: 后续接入真实的短信服务（阿里云SMS/腾讯云SMS）
+        String sceneName = getSceneName(sceneType);
+        logger.info("【模拟发送短信】手机号: {}, 验证码: {}, 场景: {}", phone, code, sceneName);
+        logger.info("短信内容: 【商南茶城】您正在进行{}操作，验证码是：{}，5分钟内有效，请勿泄露。", sceneName, code);
+        return true; // 模拟发送总是成功
+    }
+    
+    /**
+     * 获取场景名称
+     */
+    private String getSceneName(String sceneType) {
+        switch (sceneType) {
+            case "register":
+                return "注册";
+            case "reset_password":
+                return "重置密码";
+            case "change_phone":
+                return "更换手机号";
+            default:
+                return "验证";
+        }
+    }
+    
+    /**
+     * 计算到当天午夜的秒数
+     */
+    private long getSecondsUntilMidnight() {
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        java.time.LocalDateTime midnight = now.toLocalDate().plusDays(1).atStartOfDay();
+        return java.time.Duration.between(now, midnight).getSeconds();
+    }
 
     /**
      * 将UserFavorite实体列表转换为FavoriteVO列表

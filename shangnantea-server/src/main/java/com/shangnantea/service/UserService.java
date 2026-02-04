@@ -9,6 +9,7 @@ import com.shangnantea.model.dto.CreateAdminDTO;
 import com.shangnantea.model.dto.LoginDTO;
 import com.shangnantea.model.dto.ProcessCertificationDTO;
 import com.shangnantea.model.dto.RegisterDTO;
+import com.shangnantea.model.dto.SendVerificationCodeDTO;
 import com.shangnantea.model.dto.SubmitShopCertificationDTO;
 import com.shangnantea.model.dto.UpdateUserDTO;
 import com.shangnantea.model.dto.UpdateUserPreferencesDTO;
@@ -389,4 +390,22 @@ public interface UserService {
      * @return 是否删除成功
      */
     boolean deleteUserEntity(String id);
-} 
+
+    /**
+     * 发送验证码
+     *
+     * @param sendCodeDTO 发送验证码请求
+     * @return 发送结果
+     */
+    Result<Void> sendVerificationCode(SendVerificationCodeDTO sendCodeDTO);
+    
+    /**
+     * 验证验证码
+     *
+     * @param contact 联系方式
+     * @param sceneType 场景类型
+     * @param code 验证码
+     * @return 是否验证通过
+     */
+    boolean verifyCode(String contact, String sceneType, String code);
+}
