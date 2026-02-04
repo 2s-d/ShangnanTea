@@ -546,8 +546,8 @@ export default {
         } else {
           // 添加收藏
           const response = await store.dispatch('user/addFavorite', {
-            targetId: tea.value.id,
-            targetType: 'tea',
+            itemId: tea.value.id,
+            itemType: 'tea',
             targetName: tea.value.name,
             targetImage: tea.value.main_image || tea.value.images?.[0] || ''
           })

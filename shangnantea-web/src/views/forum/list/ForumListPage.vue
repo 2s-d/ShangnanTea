@@ -949,8 +949,8 @@ export default {
         } else {
           // 添加收藏
           const res = await store.dispatch('user/addFavorite', {
-            targetId: String(post.id),
-            targetType: 'post',
+            itemId: String(post.id),
+            itemType: 'post',
             targetName: post.title || '',
             targetImage: post.coverImage || ''
           })

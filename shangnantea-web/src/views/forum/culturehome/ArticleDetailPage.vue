@@ -252,7 +252,7 @@ export default {
         } else {
           // 添加点赞
           const res = await store.dispatch('user/addLike', {
-            targetId: article.value.id,
+            targetId: String(article.value.id),
             targetType: 'article'
           })
           showByCode(res.code)
@@ -287,8 +287,8 @@ export default {
         } else {
           // 添加收藏
           const res = await store.dispatch('user/addFavorite', {
-            targetId: article.value.id,
-            targetType: 'article',
+            itemId: String(article.value.id),
+            itemType: 'tea_article',
             targetName: article.value.title,
             targetImage: article.value.coverImage || ''
           })
