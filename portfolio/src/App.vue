@@ -1,25 +1,52 @@
 <template>
-  <div class="portfolio">
+  <div class="portfolio" :class="{ 'dark-mode': isDark }">
+    <!-- 粒子背景 -->
+    <div class="particles-bg" ref="particlesBg"></div>
+    
+    <!-- 鼠标跟随光标 -->
+    <div class="cursor-glow" :style="cursorStyle"></div>
+
     <!-- 顶部导航 -->
     <el-affix :offset="0">
-      <el-menu
-        mode="horizontal"
-        :ellipsis="false"
-        background-color="#2c3e50"
-        text-color="#fff"
-        active-text-color="#409EFF"
-        class="nav-menu"
-      >
-        <el-menu-item index="0" class="logo">
-          <h2>{{ profile.name }}</h2>
-        </el-menu-item>
-        <div class="flex-grow" />
-        <el-menu-item index="1" @click="scrollTo('hero')">首页</el-menu-item>
-        <el-menu-item index="2" @click="scrollTo('about')">关于</el-menu-item>
-        <el-menu-item index="3" @click="scrollTo('skills')">技能</el-menu-item>
-        <el-menu-item index="4" @click="scrollTo('projects')">项目</el-menu-item>
-        <el-menu-item index="5" @click="scrollTo('contact')">联系</el-menu-item>
-      </el-menu>
+      <div class="nav-wrapper">
+        <el-menu
+          mode="horizontal"
+          :ellipsis="false"
+          :background-color="isDark ? '#1a1a2e' : 'rgba(255,255,255,0.95)'"
+          :text-color="isDark ? '#fff' : '#2c3e50'"
+          active-text-color="#667eea"
+          class="nav-menu glass-effect"
+        >
+          <el-menu-item index="0" class="logo">
+            <h2>{{ profile.name }}</h2>
+          </el-menu-item>
+          <div class="flex-grow" />
+          <el-menu-item index="1" @click="scrollTo('hero')">
+            <el-icon><HomeFilled /></el-icon>
+            首页
+          </el-menu-item>
+          <el-menu-item index="2" @click="scrollTo('about')">
+            <el-icon><User /></el-icon>
+            关于
+          </el-menu-item>
+          <el-menu-item index="3" @click="scrollTo('skills')">
+            <el-icon><TrophyBase /></el-icon>
+            技能
+          </el-menu-item>
+          <el-menu-item index="4" @click="scrollTo('projects')">
+            <el-icon><Briefcase /></el-icon>
+            项目
+          </el-menu-item>
+          <el-menu-item index="5" @click="scrollTo('contact')">
+            <el-icon><Message /></el-icon>
+            联系
+          </el-menu-item>
+          <el-menu-item index="6" @click="toggleTheme">
+            <el-icon v-if="isDark"><Sunny /></el-icon>
+            <el-icon v-else><Moon /></el-icon>
+          </el-menu-item>
+        </el-menu>
+      </div>
     </el-affix>
 
     <!-- Hero 区域 -->
