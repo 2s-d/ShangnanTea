@@ -14,6 +14,7 @@ export const API = {
     AVATAR: '/user/avatar',
     PASSWORD: '/user/password',
     PASSWORD_RESET: '/user/password/reset',
+    SEND_VERIFICATION_CODE: '/user/verification-code/send',
     ADDRESSES: '/user/addresses',
     ADDRESS_DETAIL: '/user/addresses/{id}',
     ADDRESS_DEFAULT: '/user/addresses/{id}/default',

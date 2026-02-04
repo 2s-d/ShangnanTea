@@ -1509,6 +1509,80 @@ paths:
                     code: 2148
                     data: null
 
+  /user/verification-code/send:
+    post:
+      operationId: sendVerificationCode
+      tags:
+        - 用户模块
+      summary: 发送验证码
+      description: |
+        发送验证码到用户的手机或邮箱。
+        
+        支持的场景：
+        - register: 注册
+        - reset_password: 重置密码
+        - change_phone: 更换手机号
+        
+        限流规则：
+        - 同一联系方式60秒内只能发送一次
+        - 同一联系方式每天最多发送10次
+        - 同一IP每天最多发送50次
+        
+        验证码规则：
+        - 6位数字
+        - 有效期5分钟
+        - 存储在Redis中
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [contact, contactType, sceneType]
+              properties:
+                contact:
+                  type: string
+                  description: 联系方式（手机号或邮箱）
+                  example: "13800138000"
+                contactType:
+                  type: string
+                  enum: [phone, email]
+                  description: 联系方式类型
+                  example: "phone"
+                sceneType:
+                  type: string
+                  enum: [register, reset_password, change_phone]
+                  description: 使用场景
+                  example: "reset_password"
+      responses:
+        '200':
+          description: 发送结果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+              examples:
+                success:
+                  summary: 验证码已发送
+                  value:
+                    code: 2025
+                    data: null
+                failure:
+                  summary: 发送验证码失败
+                  value:
+                    code: 2149
+                    data: null
+                rate_limit:
+                  summary: 发送过于频繁，请稍后再试
+                  value:
+                    code: 2150
+                    data: null
+                expired:
+                  summary: 验证码已过期
+                  value:
+                    code: 2151
+                    data: null
+
   # ==================== 茶叶模块 ====================
   /tea/list:
     get:

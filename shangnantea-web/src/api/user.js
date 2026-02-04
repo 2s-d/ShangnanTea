@@ -137,19 +137,21 @@ export function resetPassword(resetData) {
   })
 }
 
-// TODO: 新增发送验证码接口
-// /**
-//  * 发送验证码
-//  * @param {Object} data 验证码数据 {type: 'reset_password', target: username/phone/email}
-//  * @returns {Promise} 发送结果
-//  */
-// export function sendVerificationCode(data) {
-//   return request({
-//     url: API.USER.SEND_VERIFICATION_CODE,
-//     method: 'post',
-//     data: data
-//   })
-// }
+/**
+ * 发送验证码
+ * @param {Object} data 验证码数据 {contact, contactType, sceneType}
+ * - contact: 联系方式(手机号或邮箱)
+ * - contactType: 联系方式类型 (phone/email)
+ * - sceneType: 使用场景 (register/reset_password/change_phone)
+ * @returns {Promise} 发送结果
+ */
+export function sendVerificationCode(data) {
+  return request({
+    url: API.USER.SEND_VERIFICATION_CODE,
+    method: 'post',
+    data: data
+  })
+}
 
 // === 用户地址相关API ===
 
