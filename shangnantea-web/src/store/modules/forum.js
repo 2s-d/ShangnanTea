@@ -25,12 +25,8 @@ import {
   getPostReplies,
   createReply,
   deleteReply,
-  likeReply,
-  unlikeReply,
-  likePost,
-  unlikePost,
-  favoritePost,
-  unfavoritePost,
+  // ⚠️ 已删除：likeReply, unlikeReply, likePost, unlikePost, favoritePost, unfavoritePost
+  // 说明：帖子/回复的点赞和收藏功能已统一使用用户模块的通用接口（user.js 中的 addLike/removeLike, addFavorite/removeFavorite）
   // 任务组F：内容审核相关
   getPendingPosts,
   approvePost,

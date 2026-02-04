@@ -4,9 +4,9 @@ import {
   getShopBanners, uploadBanner, updateBanner, deleteBanner, updateBannerOrder,
   getShopAnnouncements, createAnnouncement, updateAnnouncement, deleteAnnouncement,
   getShopStatistics, uploadShopLogo,
-  followShop as apiFollowShop,
-  unfollowShop as apiUnfollowShop,
-  checkFollowStatus as apiCheckFollowStatus,
+  // ⚠️ 已删除：followShop, unfollowShop, checkFollowStatus
+  // 说明：店铺关注功能已统一使用用户模块的通用接口（user.js 中的 addFollow/removeFollow）
+  // 店铺详情接口（getShopDetail）已包含 isFollowed 字段，无需单独检查关注状态
   getShopReviews as apiGetShopReviews,
   submitShopReview as apiSubmitShopReview
 } from '@/api/shop'
