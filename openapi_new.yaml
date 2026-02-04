@@ -223,6 +223,42 @@ paths:
                     code: 2106
                     data: null
 
+  /user/me:
+    get:
+      operationId: getUserMe
+      tags:
+        - 用户模块
+      summary: 获取当前用户信息
+      description: 获取当前登录用户的详细信息
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfoResponse'
+              examples:
+                success:
+                  summary: 获取当前用户信息成功
+                  value:
+                    code: 200
+                    data:
+                      id: "cy100002"
+                      username: "user"
+                      nickname: "测试用户"
+                      avatar: "/images/default-avatar.png"
+                      email: "user@example.com"
+                      phone: "13800138000"
+                      role: 2
+                      status: 1
+                failure:
+                  summary: 获取当前用户信息失败
+                  value:
+                    code: 2104
+                    data: null
+
   /user/{userId}:
     get:
       operationId: getUserById
