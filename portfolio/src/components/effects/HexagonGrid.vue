@@ -91,12 +91,12 @@ class Hexagon {
   }
 
   // 更新透明度
-  update(mx, my, currentTime, allHexagons) {
+  update(mx, my, currentTime, allHexagons, isMouseMoving) {
     // 检查鼠标当前位置
     const distToCurrent = this.distanceToMouse(mx, my)
     
-    // 如果在鼠标附近，点亮并记录时间
-    if (distToCurrent < 80) {
+    // 只有在鼠标移动时才点亮新的六边形
+    if (isMouseMoving && distToCurrent < 80) {
       const intensity = 1 - (distToCurrent / 80)
       this.opacity = Math.max(this.opacity, intensity * 0.7)
       this.lastActivatedTime = currentTime
@@ -158,6 +158,14 @@ class Hexagon {
           
           const extraDecay = (distanceFactor * progressFactor * 0.015) + densityDecayBoost
           this.opacity *= (1 - extraDecay)
+          
+          // 最后阶段（70%之后）大幅加速消失
+          if (fadeProgress > 0.7) {
+            const finalStageProgress = (fadeProgress - 0.7) / 0.3
+            // 使用平方函数让最后阶段快速消失
+            const finalDecay = finalStageProgress * finalStageProgress * 0.08
+            this.opacity *= (1 - finalDecay)
+          }
         }
         
         // 变窄效果：在后半段且距离较远时
@@ -237,7 +245,12 @@ const initHexagons = () => {
   if (!canvas.value) return
 
   canvas.value.width = window.innerWidth
-  canvas.value.height = window.innerHeight
+  // 使用文档高度而不是视口高度
+  canvas.value.height = Math.max(
+    document.documentElement.scrollHeight,
+    document.body.scrollHeight,
+    window.innerHeight
+  )
   ctx = canvas.value.getContext('2d')
 
   hexagons = []
@@ -247,7 +260,7 @@ const initHexagons = () => {
   const hexWidth = 16 // 更密集
   const hexHeight = 14
 
-  // 创建六边形网格
+  // 创建六边形网格（覆盖整个文档高度）
   for (let row = 0; row < canvas.value.height / hexHeight + 2; row++) {
     for (let col = 0; col < canvas.value.width / hexWidth + 2; col++) {
       const x = col * hexWidth + (row % 2) * (hexWidth / 2)
@@ -270,13 +283,17 @@ const animate = () => {
   if (!ctx || !canvas.value) return
 
   const currentTime = performance.now()
+  
+  // 检测鼠标是否在移动（100ms内有移动视为正在移动）
+  const timeSinceLastMove = currentTime - lastMouseMoveTime
+  const isMouseMoving = timeSinceLastMove < 100
 
   // 清空画布
   ctx.clearRect(0, 0, canvas.value.width, canvas.value.height)
 
   // 更新和绘制六边形
   hexagons.forEach(hex => {
-    hex.update(mouseX, mouseY, currentTime, hexagons)
+    hex.update(mouseX, mouseY, currentTime, hexagons, isMouseMoving)
     hex.draw()
   })
 
@@ -285,8 +302,21 @@ const animate = () => {
 
 // 鼠标移动事件
 const handleMouseMove = (e) => {
-  mouseX = e.clientX
-  mouseY = e.clientY
+  // 考虑页面滚动偏移
+  const scrollY = window.pageYOffset || document.documentElement.scrollTop
+  const scrollX = window.pageXOffset || document.documentElement.scrollLeft
+  
+  const newMouseX = e.clientX + scrollX
+  const newMouseY = e.clientY + scrollY
+  
+  // 检测鼠标位置是否真的改变了
+  if (newMouseX !== lastMouseX || newMouseY !== lastMouseY) {
+    mouseX = newMouseX
+    mouseY = newMouseY
+    lastMouseX = newMouseX
+    lastMouseY = newMouseY
+    lastMouseMoveTime = performance.now()
+  }
 }
 
 // 鼠标离开事件
@@ -320,7 +350,7 @@ onUnmounted(() => {
 
 <style scoped>
 .hexagon-grid-canvas {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   width: 100%;
