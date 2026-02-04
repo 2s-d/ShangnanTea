@@ -338,7 +338,7 @@ export default {
         item.targetType === 'user' && item.targetId === userId
       )
       if (!followItem) {
-        // 异常情况：数据不同步，不应该出现。开发环境记录错误
+        // 异常情况：数据不同步。开发环境记录错误，生产环境静默处理
         if (process.env.NODE_ENV === 'development') {
           console.error('[异常] 未找到关注记录，userId:', userId, 'followList:', followList.value)
         }
@@ -377,7 +377,7 @@ export default {
         item.targetType === 'shop' && item.targetId === shopId
       )
       if (!followItem) {
-        // 异常情况：数据不同步，不应该出现。开发环境记录错误
+        // 异常情况：数据不同步。开发环境记录错误，生产环境静默处理
         if (process.env.NODE_ENV === 'development') {
           console.error('[异常] 未找到关注记录，shopId:', shopId, 'followList:', followList.value)
         }
