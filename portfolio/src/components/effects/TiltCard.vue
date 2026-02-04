@@ -25,7 +25,7 @@ const isHovering = ref(false)
 
 const cardStyle = computed(() => ({
   transform: `perspective(1000px) rotateX(${rotateX.value}deg) rotateY(${rotateY.value}deg) scale(${isHovering.value ? 1.02 : 1})`,
-  transition: isHovering.value ? 'transform 0.1s ease' : 'transform 0.5s ease'
+  transition: isHovering.value ? 'transform 0.15s ease-out' : 'transform 0.5s ease'
 }))
 
 const handleMouseMove = (e) => {
@@ -42,8 +42,18 @@ const handleMouseMove = (e) => {
   const percentX = (x - centerX) / centerX
   const percentY = (y - centerY) / centerY
   
-  rotateY.value = percentX * props.maxTilt
-  rotateX.value = -percentY * props.maxTilt
+  // 添加死区，减少边缘抖动
+  const deadZone = 0.05
+  const clampedPercentX = Math.abs(percentX) < deadZone ? 0 : percentX
+  const clampedPercentY = Math.abs(percentY) < deadZone ? 0 : percentY
+  
+  // 使用缓动函数，让倾斜更平滑
+  const easeOutQuad = (t) => t * (2 - t)
+  const easedX = easeOutQuad(Math.abs(clampedPercentX)) * Math.sign(clampedPercentX)
+  const easedY = easeOutQuad(Math.abs(clampedPercentY)) * Math.sign(clampedPercentY)
+  
+  rotateY.value = easedX * props.maxTilt * 0.7
+  rotateX.value = -easedY * props.maxTilt * 0.7
 }
 
 const handleMouseLeave = () => {

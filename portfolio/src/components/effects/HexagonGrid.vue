@@ -15,6 +15,9 @@ let lastMouseY = -1000
 let lastMouseMoveTime = 0
 let animationId = null
 
+// 光晕透明度（用于淡入淡出）
+let glowOpacity = 0
+
 // 六边形类
 class Hexagon {
   constructor(x, y, size) {
@@ -282,13 +285,23 @@ const initHexagons = () => {
 
 // 绘制鼠标光晕效果
 const drawMouseGlow = (mx, my, isMoving) => {
-  if (!isMoving || mx < 0 || my < 0) return
+  // 平滑调整透明度
+  if (isMoving && mx > 0 && my > 0) {
+    // 淡入：快速增加透明度
+    glowOpacity = Math.min(glowOpacity + 0.15, 1)
+  } else {
+    // 淡出：缓慢减少透明度
+    glowOpacity = Math.max(glowOpacity - 0.08, 0)
+  }
   
-  // 绘制多层渐变光晕
+  // 透明度为0时不绘制
+  if (glowOpacity < 0.01) return
+  
+  // 绘制多层渐变光晕（应用透明度）
   const glowLayers = [
-    { radius: 60, opacity: 0.15 },
-    { radius: 40, opacity: 0.25 },
-    { radius: 20, opacity: 0.35 }
+    { radius: 60, opacity: 0.15 * glowOpacity },
+    { radius: 40, opacity: 0.25 * glowOpacity },
+    { radius: 20, opacity: 0.35 * glowOpacity }
   ]
   
   glowLayers.forEach(layer => {
@@ -304,13 +317,13 @@ const drawMouseGlow = (mx, my, isMoving) => {
   })
   
   // 中心亮点
-  ctx.fillStyle = 'rgba(139, 142, 255, 0.6)'
+  ctx.fillStyle = `rgba(139, 142, 255, ${0.6 * glowOpacity})`
   ctx.beginPath()
   ctx.arc(mx, my, 4, 0, Math.PI * 2)
   ctx.fill()
   
   // 外圈光环
-  ctx.strokeStyle = 'rgba(99, 102, 241, 0.4)'
+  ctx.strokeStyle = `rgba(99, 102, 241, ${0.4 * glowOpacity})`
   ctx.lineWidth = 2
   ctx.beginPath()
   ctx.arc(mx, my, 8, 0, Math.PI * 2)

@@ -8,7 +8,7 @@
     <CodeRain v-if="currentTheme === THEMES.CODERAIN" :show="true" />
     
     <!-- 通用特效层 -->
-    <CursorGlow />
+    <!-- <CursorGlow /> -->
     <ScrollProgress />
     
     <!-- 红灯笼：切换主题 -->
