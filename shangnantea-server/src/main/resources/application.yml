@@ -32,15 +32,13 @@ spring:
             enable: true
             required: true
 
-# 腾讯云短信配置
-tencent:
+# 阿里云短信认证服务配置
+aliyun:
   sms:
     enabled: false  # 是否启用真实短信发送（true=真实发送，false=模拟发送）
-    secret-id: YOUR_SECRET_ID  # 替换成你的腾讯云 SecretId
-    secret-key: YOUR_SECRET_KEY  # 替换成你的腾讯云 SecretKey
-    sdk-app-id: YOUR_SDK_APP_ID  # 替换成你的短信应用 SdkAppId
-    sign-name: 商南茶城  # 替换成你的短信签名（不含【】）
-    template-id: YOUR_TEMPLATE_ID  # 替换成你的验证码模板ID
+    access-key-id: LTAI5tDPN4V6wV44swrMkF6W  # 替换成你的阿里云 AccessKeyId
+    access-key-secret: VZq6ab76HBok09RIvIffum1SViunLP # 替换成你的阿里云 AccessKeySecret
+    sign-name: 商南茶城  # 短信签名
 
 mybatis:
   mapper-locations: classpath:mapper/*.xml
