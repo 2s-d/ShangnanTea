@@ -188,3 +188,22 @@ body {
 .glow-effect:hover {
   box-shadow: 0 0 30px rgba(102, 126, 234, 0.8);
 }
+
+
+/* 主题特定样式 */
+
+/* 简约模式 */
+.theme-minimal .glass-effect {
+  background: var(--color-bg-secondary) !important;
+  backdrop-filter: none !important;
+  border: 1px solid var(--color-border) !important;
+}
+
+.theme-minimal .skill-icon {
+  animation: none !important;
+}
+
+/* 科技模式 */
+.theme-tech .glass-effect {
+  /* 保持玻璃态效果 */
+}

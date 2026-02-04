@@ -1,9 +1,18 @@
 <template>
   <div class="portfolio" :class="{ 'dark-mode': isDark }">
-    <!-- 特效层 -->
-    <ParticlesBackground />
+    <!-- 背景特效层 - 根据主题显示 -->
+    <template v-if="currentTheme === THEMES.TECH">
+      <ParticlesBackground v-if="!isDark" />
+      <CodeRain :show="isDark" />
+    </template>
+    
+    <!-- 通用特效层 -->
     <CursorGlow />
     <ScrollProgress />
+    
+    <!-- 控制器 -->
+    <LanternSwitch :is-dark="isDark" :on-toggle="toggleDarkMode" />
+    <ThemeSwitcher />
 
     <!-- 顶部导航 -->
     <el-affix :offset="0">
@@ -125,18 +134,29 @@
               :md="6"
               :lg="4"
             >
-              <TiltCard :max-tilt="8">
+              <!-- 科技模式：3D倾斜卡片 -->
+              <TiltCard v-if="currentTheme === THEMES.TECH" :max-tilt="8">
                 <el-card shadow="hover" class="skill-card card-hover glass-effect">
                   <div class="skill-icon animate-pulse">{{ skill.icon }}</div>
                   <h3>{{ skill.name }}</h3>
-                  <el-progress
-                    :percentage="skill.level"
+                  <SkillProgress 
+                    :name="skill.name"
+                    :level="skill.level"
                     :color="skill.color"
-                    :stroke-width="8"
-                    class="animate-number"
                   />
                 </el-card>
               </TiltCard>
+              
+              <!-- 简约模式：普通卡片 -->
+              <el-card v-else shadow="hover" class="skill-card card-hover">
+                <div class="skill-icon">{{ skill.icon }}</div>
+                <h3>{{ skill.name }}</h3>
+                <SkillProgress 
+                  :name="skill.name"
+                  :level="skill.level"
+                  :color="skill.color"
+                />
+              </el-card>
             </el-col>
           </el-row>
         </el-main>
@@ -250,12 +270,15 @@ import ScrollProgress from './components/effects/ScrollProgress.vue'
 import TypeWriter from './components/effects/TypeWriter.vue'
 import TiltCard from './components/effects/TiltCard.vue'
 import LanternSwitch from './components/effects/LanternSwitch.vue'
-import { useTheme } from './composables/useTheme'
+import CodeRain from './components/effects/CodeRain.vue'
+import SkillProgress from './components/effects/SkillProgress.vue'
+import ThemeSwitcher from './components/ThemeSwitcher.vue'
+import { useThemeSystem } from './composables/useThemeSystem'
 import { useScroll } from './composables/useScroll'
 import { profile, skills, projects } from './data/portfolio'
 
-// 主题切换
-const { isDark, toggleTheme } = useTheme()
+// 主题系统
+const { isDark, currentTheme, toggleDarkMode, THEMES } = useThemeSystem()
 
 // 滚动功能
 const { scrollTo } = useScroll()
