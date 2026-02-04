@@ -797,7 +797,6 @@ paths:
                     code: 2123
                     data: null
 
-  /user/follows:
     delete:
       operationId: removeFollow
       tags:
@@ -910,7 +909,6 @@ paths:
                     code: 2126
                     data: null
 
-  /user/favorites:
     delete:
       operationId: removeFavorite
       tags:
@@ -984,7 +982,6 @@ paths:
                     code: 2128
                     data: null
 
-  /user/likes:
     delete:
       operationId: removeLike
       tags:
