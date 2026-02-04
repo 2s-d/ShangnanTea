@@ -931,14 +931,14 @@ const actions = {
    * 取消关注
    * @param {Object} context Vuex context
    * @param {String|Number} followId 关注ID
-   * @returns {Promise} 删除结果
+   * @returns {Promise} 删除结果 {code, data}
    */
   async removeFollow({ commit }, followId) {
     commit('SET_LOADING', true)
     try {
-      await removeFollowApi(followId)
+      const res = await removeFollowApi(followId)
       commit('REMOVE_FOLLOW', followId)
-      return true
+      return res // 返回 {code, data}，组件调用showByCode(res.code)
     } catch (error) {
       console.error('取消关注失败:', error)
       throw error
