@@ -99,10 +99,6 @@
                 <SafeImage src="/images/payments/wechat.jpg" type="banner" alt="微信支付" class="payment-logo" style="width:24px;height:24px;object-fit:contain;" />
                 微信支付
               </el-radio>
-              <el-radio value="unionpay">
-                <SafeImage src="/images/payments/unionpay.jpg" type="banner" alt="银联支付" class="payment-logo" style="width:24px;height:24px;object-fit:contain;" />
-                银联支付
-              </el-radio>
             </el-radio-group>
           </div>
         </div>
@@ -419,7 +415,24 @@ export default {
       })
     }
     
-    // 提交订单
+    // 提交支付表单（自动跳转到支付宝）
+    const submitAlipayForm = (formHtml) => {
+      // 创建一个临时div来承载表单HTML
+      const div = document.createElement('div')
+      div.innerHTML = formHtml
+      document.body.appendChild(div)
+      
+      // 查找表单并自动提交
+      const form = div.querySelector('form')
+      if (form) {
+        form.submit()
+      } else {
+        console.error('支付表单格式错误')
+        orderPromptMessages.showPaymentFailed()
+      }
+    }
+    
+    // 提交订单并发起支付
     const submitOrder = async () => {
       if (!canSubmitOrder.value) {
         orderPromptMessages.showOrderInfoIncomplete()
@@ -433,6 +446,7 @@ export default {
       
       submitting.value = true
       try {
+        // 第一步：创建订单
         const orderData = {
           address_id: selectedAddressId.value,
           payment_method: paymentMethod.value,
@@ -448,13 +462,48 @@ export default {
             remark: item.remark || ''
           }))
         }
-        const res = await store.dispatch('order/createOrder', orderData)
-        if (res?.code) showByCode(res.code)
-        router.push(`/order/detail/${res?.data?.order_id || res?.data?.id || ''}`)
+        const createRes = await store.dispatch('order/createOrder', orderData)
+        
+        // 显示创建订单的消息
+        if (createRes?.code) showByCode(createRes.code)
+        
+        const orderId = createRes?.data?.order_id || createRes?.data?.id
+        if (!orderId) {
+          console.error('订单创建失败，未返回订单ID')
+          return
+        }
+        
+        // 第二步：发起支付
+        const payRes = await store.dispatch('order/payOrder', {
+          orderId,
+          paymentMethod: paymentMethod.value
+        })
+        
+        // 检查支付接口返回的状态码
+        if (payRes?.code === 5007) {
+          // 5007 - 支付表单生成成功，正在跳转...
+          showByCode(payRes.code)
+          
+          // 获取支付表单HTML并自动提交
+          const formHtml = payRes?.data?.formHtml || payRes?.data
+          if (formHtml) {
+            submitAlipayForm(formHtml)
+          } else {
+            console.error('未返回支付表单')
+            orderPromptMessages.showPaymentFailed()
+          }
+        } else if (payRes?.code === 5006) {
+          // 5006 - 订单已支付
+          showByCode(payRes.code)
+          router.push(`/order/detail/${orderId}`)
+        } else {
+          // 其他状态码（失败）
+          if (payRes?.code) showByCode(payRes.code)
+        }
       } catch (error) {
         // 网络错误等已由响应拦截器处理，这里只记录日志
         if (process.env.NODE_ENV === 'development') {
-          console.error('提交订单失败:', error)
+          console.error('提交订单或支付失败:', error)
         }
       } finally {
         submitting.value = false

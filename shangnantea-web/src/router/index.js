@@ -176,6 +176,15 @@ const routes = [
     }
   },
   {
+    path: '/payment/result',
+    name: 'PaymentResult',
+    component: () => import('@/views/order/payment/PaymentResultPage.vue'),
+    meta: {
+      title: '支付结果 - 商南茶文化',
+      requireAuth: true
+    }
+  },
+  {
     path: '/order/list',
     name: 'OrderList',
     component: () => import('@/views/order/list/OrderListPage.vue'),
