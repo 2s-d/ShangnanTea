@@ -539,7 +539,6 @@ const openProject = (url) => {
 }
 
 .skill-card:hover .skill-icon {
-  transform: scale(1.2) rotate(10deg);
   filter: drop-shadow(0 8px 16px rgba(102, 126, 234, 0.3));
 }
 
@@ -663,13 +662,12 @@ const openProject = (url) => {
 }
 
 .contact-item:hover {
-  transform: translateY(-8px);
   background: var(--color-bg-tertiary);
+  box-shadow: var(--shadow-lg);
 }
 
 .contact-item:hover .el-icon {
   animation: bounce 0.6s ease-in-out;
-  transform: scale(1.1);
 }
 
 .contact-item .el-icon {
