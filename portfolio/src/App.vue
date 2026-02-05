@@ -177,17 +177,19 @@
               :lg="4"
             >
               <TiltCard :max-tilt="8">
-                <el-card shadow="hover" class="skill-card glass-effect">
-                  <div class="skill-icon">
-                    <Icon :icon="skill.icon" :width="48" :height="48" />
-                  </div>
-                  <h3>{{ skill.name }}</h3>
-                  <SkillProgress 
-                    :name="skill.name"
-                    :level="skill.level"
-                    :color="skill.color"
-                  />
-                </el-card>
+                <BorderGlow :speed="1.2" :glow-size="100">
+                  <el-card shadow="hover" class="skill-card glass-effect">
+                    <div class="skill-icon">
+                      <Icon :icon="skill.icon" :width="48" :height="48" />
+                    </div>
+                    <h3>{{ skill.name }}</h3>
+                    <SkillProgress 
+                      :name="skill.name"
+                      :level="skill.level"
+                      :color="skill.color"
+                    />
+                  </el-card>
+                </BorderGlow>
               </TiltCard>
             </el-col>
           </el-row>
@@ -307,6 +309,7 @@ import CodeRain from './components/effects/CodeRain.vue'
 import SkillProgress from './components/effects/SkillProgress.vue'
 import ClickEffect from './components/effects/ClickEffect.vue'
 import StarryBackground from './components/effects/StarryBackground.vue'
+import BorderGlow from './components/effects/BorderGlow.vue'
 import { useThemeSystem } from './composables/useThemeSystem'
 import { useScroll } from './composables/useScroll'
 import { profile, skills, projects } from './data/portfolio'
