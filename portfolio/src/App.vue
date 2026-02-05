@@ -308,7 +308,8 @@ const openProject = (url) => {
 }
 
 .nav-menu .el-menu-item:hover {
-  transform: translateY(-2px);
+  background-color: rgba(102, 126, 234, 0.1);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
 }
 
 .logo h2 {
@@ -428,8 +429,9 @@ const openProject = (url) => {
 }
 
 .hero-btn:hover {
-  transform: translateY(-4px);
   box-shadow: 0 12px 30px rgba(99, 102, 241, 0.4);
+  filter: brightness(1.1);
+  opacity: 0.95;
 }
 
 .hero-btn-outline {
@@ -531,6 +533,10 @@ const openProject = (url) => {
   box-shadow: var(--shadow-colored);
 }
 
+.skill-card:hover > * {
+  transform: translateY(-2px);
+}
+
 .skill-icon {
   font-size: 48px;
   margin-bottom: 15px;
@@ -539,7 +545,8 @@ const openProject = (url) => {
 }
 
 .skill-card:hover .skill-icon {
-  filter: drop-shadow(0 8px 16px rgba(102, 126, 234, 0.3));
+  filter: drop-shadow(0 8px 16px rgba(102, 126, 234, 0.3)) brightness(1.2);
+  transform: scale(1.15);
 }
 
 .skill-card h3 {
@@ -659,11 +666,17 @@ const openProject = (url) => {
   transition: all var(--transition-base);
   cursor: pointer;
   border-radius: var(--radius-lg);
+  border: 2px solid transparent;
 }
 
 .contact-item:hover {
   background: var(--color-bg-tertiary);
   box-shadow: var(--shadow-lg);
+  border: 2px solid var(--color-primary);
+}
+
+.contact-item:hover > * {
+  transform: translateY(-4px);
 }
 
 .contact-item:hover .el-icon {
