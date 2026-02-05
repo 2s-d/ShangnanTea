@@ -62,8 +62,8 @@ const displayItems = computed(() => {
   const total = props.items.length
   const result = []
   
-  // 显示7个项目：-3, -2, -1, 0(中心), 1, 2, 3
-  for (let i = -3; i <= 3; i++) {
+  // 显示11个项目：-5, -4, -3, -2, -1, 0(中心), 1, 2, 3, 4, 5
+  for (let i = -5; i <= 5; i++) {
     const index = (currentIndex.value + i + total) % total
     result.push(props.items[index])
   }
@@ -113,8 +113,8 @@ const handleArrowClick = (direction) => {
 
 // 计算每个卡片的位置和样式
 const getItemStyle = (displayIndex) => {
-  // displayIndex: 0,1,2,3,4,5,6 对应相对位置 -3,-2,-1,0,1,2,3
-  const relativePosition = displayIndex - 3 + dragOffset.value / props.itemWidth
+  // displayIndex: 0-10 对应相对位置 -5,-4,-3,-2,-1,0,1,2,3,4,5
+  const relativePosition = displayIndex - 5 + dragOffset.value / props.itemWidth
   
   // 弧线参数 - 向下10%弧度
   const arcDepth = 0.1

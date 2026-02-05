@@ -111,5 +111,38 @@ export const projects = [
     url: '#',
     github: '',
     features: []
+  },
+  {
+    id: 9,
+    name: '项目9',
+    description: '这里是项目9的简介，展示更多技术栈',
+    image: 'https://picsum.photos/400/250?random=9',
+    tech: ['Rust', 'WebAssembly', 'Actix'],
+    status: 'dev',
+    url: '#',
+    github: '',
+    features: []
+  },
+  {
+    id: 10,
+    name: '项目10',
+    description: '这里是项目10的简介，丰富作品集',
+    image: 'https://picsum.photos/400/250?random=10',
+    tech: ['Swift', 'SwiftUI', 'CoreData'],
+    status: 'dev',
+    url: '#',
+    github: '',
+    features: []
+  },
+  {
+    id: 11,
+    name: '项目11',
+    description: '这里是项目11的简介，完整展示技术能力',
+    image: 'https://picsum.photos/400/250?random=11',
+    tech: ['Kotlin', 'Jetpack Compose', 'Room'],
+    status: 'dev',
+    url: '#',
+    github: '',
+    features: []
   }
 ]
