@@ -18,7 +18,13 @@ export const skills = [
   { name: 'Vue.js', level: 88, icon: 'devicon:vuejs', color: '#409eff' },
   { name: 'MySQL', level: 80, icon: 'devicon:mysql', color: '#e6a23c' },
   { name: 'Redis', level: 75, icon: 'devicon:redis', color: '#f56c6c' },
-  { name: 'Git', level: 85, icon: 'devicon:git', color: '#909399' }
+  { name: 'Git', level: 85, icon: 'devicon:git', color: '#909399' },
+  { name: 'Docker', level: 70, icon: 'devicon:docker', color: '#409eff' },
+  { name: 'Nginx', level: 75, icon: 'devicon:nginx', color: '#67c23a' },
+  { name: 'Linux', level: 80, icon: 'devicon:linux', color: '#909399' },
+  { name: 'JavaScript', level: 85, icon: 'devicon:javascript', color: '#e6a23c' },
+  { name: 'TypeScript', level: 78, icon: 'devicon:typescript', color: '#409eff' },
+  { name: 'Node.js', level: 75, icon: 'devicon:nodejs', color: '#67c23a' }
 ]
 
 // 项目列表

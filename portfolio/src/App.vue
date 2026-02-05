@@ -170,10 +170,10 @@
           <h2 class="section-title">技能专长</h2>
           <el-row :gutter="20" justify="center">
             <el-col
-              v-for="(skill, index) in skills"
-              :key="skill.name"
+              v-for="skill in displayedSkills"
+              :key="skill.displayIndex"
               class="animate-scale-in"
-              :class="`delay-${(index % 6) * 100}`"
+              :class="`delay-${(skill.displayIndex % 6) * 100}`"
               :xs="12"
               :sm="8"
               :md="6"
@@ -181,12 +181,17 @@
             >
               <TiltCard :max-tilt="8">
                 <BorderGlow 
-                  :speed="1.5 + (index % 6) * 0.2" 
+                  :speed="(1.5 + (skill.displayIndex % 6) * 0.2) * 0.9" 
                   :glow-size="80"
-                  @cycle-complete="handleCycleComplete(index)"
+                  @cycle-complete="handleCycleComplete(skill.displayIndex)"
                 >
-                  <el-card shadow="hover" class="skill-card glass-effect">
-                    <div class="skill-icon" :class="{ 'icon-flash': iconFlash[index] }">
+                  <el-card 
+                    shadow="hover" 
+                    class="skill-card glass-effect"
+                    :class="{ 'flipping': flippingCards[skill.displayIndex] }"
+                    @click.stop="flipCard(skill.displayIndex)"
+                  >
+                    <div class="skill-icon" :class="{ 'icon-flash': iconFlash[skill.displayIndex] }">
                       <Icon :icon="skill.icon" :width="48" :height="48" />
                     </div>
                     <h3>{{ skill.name }}</h3>
@@ -327,6 +332,49 @@ const { isDark, currentTheme, toggleDarkMode, toggleTheme, THEMES } = useThemeSy
 
 // 滚动功能
 const { scrollTo } = useScroll()
+
+// 显示的技能卡片（最多6个）
+const displayedSkills = ref([])
+// 所有技能池
+const allSkills = ref([...skills])
+// 翻转状态
+const flippingCards = ref({})
+
+// 初始化显示前6个技能
+const initDisplayedSkills = () => {
+  displayedSkills.value = allSkills.value.slice(0, 6).map((skill, index) => ({
+    ...skill,
+    displayIndex: index
+  }))
+}
+
+// 翻转卡片并随机替换技能
+const flipCard = (displayIndex) => {
+  if (flippingCards.value[displayIndex]) return // 防止重复点击
+  
+  flippingCards.value[displayIndex] = true
+  
+  setTimeout(() => {
+    // 获取当前未显示的技能
+    const currentSkillNames = displayedSkills.value.map(s => s.name)
+    const hiddenSkills = allSkills.value.filter(s => !currentSkillNames.includes(s.name))
+    
+    if (hiddenSkills.length > 0) {
+      // 随机选择一个未显示的技能
+      const randomSkill = hiddenSkills[Math.floor(Math.random() * hiddenSkills.length)]
+      displayedSkills.value[displayIndex] = {
+        ...randomSkill,
+        displayIndex
+      }
+    }
+    
+    setTimeout(() => {
+      flippingCards.value[displayIndex] = false
+    }, 300)
+  }, 300)
+}
+
+initDisplayedSkills()
 
 // 图标闪亮状态
 const iconFlash = ref({})
@@ -663,6 +711,24 @@ const openProject = (url) => {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
   padding: var(--spacing-xl) var(--spacing-lg);
+  cursor: pointer;
+  transform-style: preserve-3d;
+}
+
+.skill-card.flipping {
+  animation: cardFlip 600ms ease-in-out;
+}
+
+@keyframes cardFlip {
+  0% {
+    transform: rotateY(0deg);
+  }
+  50% {
+    transform: rotateY(90deg);
+  }
+  100% {
+    transform: rotateY(0deg);
+  }
 }
 
 .skill-card:hover {
@@ -988,4 +1054,3 @@ html {
 
 .dark-mode ::selection {
   background: rgba(102, 126, 234, 0.5);
-}
