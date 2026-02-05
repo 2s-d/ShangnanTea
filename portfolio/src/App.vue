@@ -172,15 +172,25 @@
             <el-col
               v-for="skill in displayedSkills"
               :key="skill.displayIndex"
-              class="animate-scale-in"
-              :class="`delay-${(skill.displayIndex % 6) * 100}`"
+              class="animate-scale-in skill-col"
+              :class="[
+                `delay-${(skill.displayIndex % 6) * 100}`,
+                `position-${skill.displayIndex}`
+              ]"
               :xs="12"
               :sm="8"
               :md="6"
               :lg="4"
             >
               <TiltCard :max-tilt="8" @click.native.stop="flipCard(skill.displayIndex)">
-                <div class="flip-container" :class="{ 'flipping': flippingCards[skill.displayIndex] }">
+                <div 
+                  class="flip-container" 
+                  :class="{ 
+                    'flipping': flippingCards[skill.displayIndex],
+                    'push-1': pushingCards[skill.displayIndex] === 1,
+                    'push-2': pushingCards[skill.displayIndex] === 2
+                  }"
+                >
                   <BorderGlow 
                     :speed="(1.5 + (skill.displayIndex % 6) * 0.2) * 0.9" 
                     :glow-size="80"
@@ -339,6 +349,8 @@ const displayedSkills = ref([])
 const allSkills = ref([...skills])
 // 翻转状态
 const flippingCards = ref({})
+// 推挤状态
+const pushingCards = ref({})
 
 // 初始化显示前6个技能
 const initDisplayedSkills = () => {
@@ -353,6 +365,12 @@ const flipCard = (displayIndex) => {
   if (flippingCards.value[displayIndex]) return // 防止重复点击
   
   flippingCards.value[displayIndex] = true
+  
+  // 触发相邻卡片的推挤效果
+  const nextIndex1 = (displayIndex + 1) % 6
+  const nextIndex2 = (displayIndex + 2) % 6
+  pushingCards.value[nextIndex1] = 1
+  pushingCards.value[nextIndex2] = 2
   
   setTimeout(() => {
     // 获取当前未显示的技能
@@ -371,6 +389,8 @@ const flipCard = (displayIndex) => {
     // 在翻转动画的80%时解除锁定（600ms * 0.8 = 480ms）
     setTimeout(() => {
       flippingCards.value[displayIndex] = false
+      pushingCards.value[nextIndex1] = 0
+      pushingCards.value[nextIndex2] = 0
     }, 180) // 300 + 180 = 480ms
   }, 300)
 }
@@ -704,11 +724,41 @@ const openProject = (url) => {
   font-size: var(--text-lg);
 }
 
+/* 技能卡片列位置调整 - 创造景深效果 */
+.skill-col {
+  transition: transform 0.3s ease;
+}
+
 /* 翻转容器 */
 .flip-container {
   perspective: 1000px;
   transform-style: preserve-3d;
   position: relative;
+}
+
+/* BorderGlow wrapper 位置调整 - 让光带和阴影跟随 */
+.skill-col.position-0 .border-glow-wrapper {
+  transform: translateY(0) scale(1);
+}
+
+.skill-col.position-1 .border-glow-wrapper {
+  transform: translateY(8px) scale(1.02);
+}
+
+.skill-col.position-2 .border-glow-wrapper {
+  transform: translateY(15px) scale(1.05);
+}
+
+.skill-col.position-3 .border-glow-wrapper {
+  transform: translateY(15px) scale(1.05);
+}
+
+.skill-col.position-4 .border-glow-wrapper {
+  transform: translateY(8px) scale(1.02);
+}
+
+.skill-col.position-5 .border-glow-wrapper {
+  transform: translateY(0) scale(1);
 }
 
 .flip-container.flipping {
