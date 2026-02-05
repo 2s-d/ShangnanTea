@@ -108,7 +108,10 @@
       <el-row justify="center" align="middle" style="height: 100%">
         <el-col :xs="22" :sm="20" :md="16" :lg="12">
           <div class="hero-content">
-            <el-avatar :size="150" :src="profile.avatar" class="hero-avatar glow-effect" />
+            <div class="avatar-wrapper">
+              <AuraEffect />
+              <el-avatar :size="150" :src="profile.avatar" class="hero-avatar glow-effect" />
+            </div>
             <h1 class="hero-title">
               <TypeWriter :text="profile.name" :speed="150" />
             </h1>
@@ -327,6 +330,7 @@ import StarryBackground from './components/effects/StarryBackground.vue'
 import BorderGlow from './components/effects/BorderGlow.vue'
 import TestShadow from './components/TestShadow.vue'
 import ArcCarousel from './components/effects/ArcCarousel.vue'
+import AuraEffect from './components/effects/AuraEffect.vue'
 import { useThemeSystem } from './composables/useThemeSystem'
 import { useScroll } from './composables/useScroll'
 import { profile, skills, projects } from './data/portfolio'
@@ -568,12 +572,20 @@ const openProject = (url) => {
   z-index: 2;
 }
 
-.hero-avatar {
+.avatar-wrapper {
+  position: relative;
+  display: inline-block;
   margin-bottom: var(--spacing-2xl);
+}
+
+.hero-avatar {
+  margin-bottom: 0;
   border: 6px solid rgba(255, 255, 255, 0.3);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1);
   animation: float 3s ease-in-out infinite;
   backdrop-filter: blur(10px);
+  position: relative;
+  z-index: 2;
 }
 
 .hero-title {
