@@ -80,11 +80,33 @@ export const projects = [
     features: []
   },
   {
-    id: 5,
-    name: '项目5',
-    description: '这里是项目5的简介，完善你的作品集',
-    image: 'https://picsum.photos/400/250?random=5',
-    tech: ['TypeScript', 'Next.js', 'Tailwind'],
+    id: 6,
+    name: '项目6',
+    description: '这里是项目6的简介，展示更多技术能力',
+    image: 'https://picsum.photos/400/250?random=6',
+    tech: ['Angular', 'NestJS', 'GraphQL'],
+    status: 'dev',
+    url: '#',
+    github: '',
+    features: []
+  },
+  {
+    id: 7,
+    name: '项目7',
+    description: '这里是项目7的简介，完善你的作品集',
+    image: 'https://picsum.photos/400/250?random=7',
+    tech: ['Flutter', 'Firebase', 'Dart'],
+    status: 'dev',
+    url: '#',
+    github: '',
+    features: []
+  },
+  {
+    id: 8,
+    name: '项目8',
+    description: '这里是项目8的简介，展示全栈能力',
+    image: 'https://picsum.photos/400/250?random=8',
+    tech: ['Go', 'gRPC', 'Kubernetes'],
     status: 'dev',
     url: '#',
     github: '',

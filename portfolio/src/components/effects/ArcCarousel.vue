@@ -53,15 +53,17 @@ const currentIndex = ref(0) // 当前中心项目的索引
 const isDragging = ref(false)
 const startX = ref(0)
 const dragOffset = ref(0)
+const dragStartTime = ref(0)
+const lastDragX = ref(0)
 let autoPlayTimer = null
 
-// 创建循环显示的项目数组（显示5个用于过渡，但只有3个可见）
+// 创建循环显示的项目数组（显示更多项目用于快速滑动）
 const displayItems = computed(() => {
   const total = props.items.length
   const result = []
   
-  // 显示5个项目：-2, -1, 0(中心), 1, 2
-  for (let i = -2; i <= 2; i++) {
+  // 显示7个项目：-3, -2, -1, 0(中心), 1, 2, 3
+  for (let i = -3; i <= 3; i++) {
     const index = (currentIndex.value + i + total) % total
     result.push(props.items[index])
   }
@@ -111,8 +113,8 @@ const handleArrowClick = (direction) => {
 
 // 计算每个卡片的位置和样式
 const getItemStyle = (displayIndex) => {
-  // displayIndex: 0,1,2,3,4 对应相对位置 -2,-1,0,1,2
-  const relativePosition = displayIndex - 2 + dragOffset.value / props.itemWidth
+  // displayIndex: 0,1,2,3,4,5,6 对应相对位置 -3,-2,-1,0,1,2,3
+  const relativePosition = displayIndex - 3 + dragOffset.value / props.itemWidth
   
   // 弧线参数 - 向下10%弧度
   const arcDepth = 0.1
@@ -163,7 +165,9 @@ const getItemStyle = (displayIndex) => {
 const handleMouseDown = (e) => {
   isDragging.value = true
   startX.value = e.clientX
+  lastDragX.value = e.clientX
   dragOffset.value = 0
+  dragStartTime.value = Date.now()
   stopAutoPlay() // 用户操作时停止自动轮播
   document.addEventListener('mousemove', handleMouseMove)
   document.addEventListener('mouseup', handleMouseUp)
@@ -171,6 +175,7 @@ const handleMouseDown = (e) => {
 
 const handleMouseMove = (e) => {
   if (!isDragging.value) return
+  lastDragX.value = e.clientX
   dragOffset.value = e.clientX - startX.value
 }
 
@@ -179,14 +184,35 @@ const handleMouseUp = () => {
   document.removeEventListener('mousemove', handleMouseMove)
   document.removeEventListener('mouseup', handleMouseUp)
   
-  // 根据拖拽距离决定切换方向
-  const threshold = props.itemWidth * 0.3
-  if (dragOffset.value > threshold) {
-    // 向右拖拽，显示前一个（循环）
-    currentIndex.value = (currentIndex.value - 1 + props.items.length) % props.items.length
-  } else if (dragOffset.value < -threshold) {
-    // 向左拖拽，显示下一个（循环）
-    currentIndex.value = (currentIndex.value + 1) % props.items.length
+  // 计算拖拽速度（像素/毫秒）
+  const dragTime = Date.now() - dragStartTime.value
+  const dragDistance = dragOffset.value
+  const velocity = Math.abs(dragDistance) / Math.max(dragTime, 1)
+  
+  // 根据拖拽距离和速度决定滑动数量
+  let slideCount = 0
+  
+  // 基础滑动：根据拖拽距离
+  const baseThreshold = props.itemWidth * 0.3
+  if (Math.abs(dragDistance) > baseThreshold) {
+    slideCount = Math.round(Math.abs(dragDistance) / props.itemWidth)
+  }
+  
+  // 惯性滑动：根据速度增加滑动数量
+  if (velocity > 0.5) { // 快速滑动
+    slideCount += Math.floor(velocity)
+  }
+  
+  // 限制最大滑动数量
+  slideCount = Math.min(slideCount, props.items.length - 1)
+  
+  // 应用滑动
+  if (dragDistance > 0) {
+    // 向右拖拽，显示前面的项目
+    currentIndex.value = (currentIndex.value - slideCount + props.items.length) % props.items.length
+  } else if (dragDistance < 0) {
+    // 向左拖拽，显示后面的项目
+    currentIndex.value = (currentIndex.value + slideCount) % props.items.length
   }
   
   dragOffset.value = 0
@@ -196,7 +222,9 @@ const handleMouseUp = () => {
 const handleTouchStart = (e) => {
   isDragging.value = true
   startX.value = e.touches[0].clientX
+  lastDragX.value = e.touches[0].clientX
   dragOffset.value = 0
+  dragStartTime.value = Date.now()
   stopAutoPlay() // 用户操作时停止自动轮播
   document.addEventListener('touchmove', handleTouchMove, { passive: false })
   document.addEventListener('touchend', handleTouchEnd)
@@ -205,6 +233,7 @@ const handleTouchStart = (e) => {
 const handleTouchMove = (e) => {
   if (!isDragging.value) return
   e.preventDefault()
+  lastDragX.value = e.touches[0].clientX
   dragOffset.value = e.touches[0].clientX - startX.value
 }
 
@@ -213,11 +242,29 @@ const handleTouchEnd = () => {
   document.removeEventListener('touchmove', handleTouchMove)
   document.removeEventListener('touchend', handleTouchEnd)
   
-  const threshold = props.itemWidth * 0.3
-  if (dragOffset.value > threshold) {
-    currentIndex.value = (currentIndex.value - 1 + props.items.length) % props.items.length
-  } else if (dragOffset.value < -threshold) {
-    currentIndex.value = (currentIndex.value + 1) % props.items.length
+  // 计算拖拽速度
+  const dragTime = Date.now() - dragStartTime.value
+  const dragDistance = dragOffset.value
+  const velocity = Math.abs(dragDistance) / Math.max(dragTime, 1)
+  
+  // 根据拖拽距离和速度决定滑动数量
+  let slideCount = 0
+  
+  const baseThreshold = props.itemWidth * 0.3
+  if (Math.abs(dragDistance) > baseThreshold) {
+    slideCount = Math.round(Math.abs(dragDistance) / props.itemWidth)
+  }
+  
+  if (velocity > 0.5) {
+    slideCount += Math.floor(velocity)
+  }
+  
+  slideCount = Math.min(slideCount, props.items.length - 1)
+  
+  if (dragDistance > 0) {
+    currentIndex.value = (currentIndex.value - slideCount + props.items.length) % props.items.length
+  } else if (dragDistance < 0) {
+    currentIndex.value = (currentIndex.value + slideCount) % props.items.length
   }
   
   dragOffset.value = 0
