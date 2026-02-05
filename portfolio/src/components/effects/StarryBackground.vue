@@ -26,6 +26,7 @@ let lastMouseX = 0
 let lastMouseY = 0
 let mouseSpeed = 0
 let timeScale = 1 // 时间缩放因子
+let usedColors = [] // 记录已使用的颜色索引
 
 // 星云类
 class Nebula {
@@ -70,10 +71,11 @@ class Nebula {
 
 // 行星类
 class Planet {
-  constructor() {
+  constructor(avoidColors = []) {
     this.x = Math.random() * canvas.value.width
     this.y = Math.random() * canvas.value.height
-    this.radius = Math.random() * 30 + 20
+    this.baseRadius = Math.random() * 40 + 35 // 35-75的随机大小
+    this.radius = this.baseRadius
     this.speed = Math.random() * 0.1 + 0.05
     this.angle = Math.random() * Math.PI * 2
     this.orbitRadius = Math.random() * 100 + 50
@@ -86,11 +88,24 @@ class Planet {
       ['#4ecdc4', '#44a8a0'],  // 青色星球
       ['#9b59b6', '#8e44ad'],  // 紫色星球
     ]
-    this.colorPair = this.colors[Math.floor(Math.random() * this.colors.length)]
+    
+    // 选择一个不重复的颜色
+    let colorIndex
+    do {
+      colorIndex = Math.floor(Math.random() * this.colors.length)
+    } while (avoidColors.includes(colorIndex))
+    
+    this.colorIndex = colorIndex
+    this.colorPair = this.colors[colorIndex]
     
     // 光晕闪烁参数
     this.glowPhase = Math.random() * Math.PI * 2
     this.glowSpeed = Math.random() * 0.008 + 0.004 // 慢速闪烁
+    
+    // 呼吸效果参数 - 每个行星独立的呼吸频率
+    this.breathPhase = Math.random() * Math.PI * 2
+    this.breathSpeed = Math.random() * 0.002 + 0.0008 // 更慢且各不相同 (0.0008-0.0028)
+    this.breathAmplitude = this.baseRadius * 0.1 // 呼吸幅度10%
   }
   
   update() {
@@ -100,6 +115,10 @@ class Planet {
     
     // 更新光晕闪烁
     this.glowPhase += this.glowSpeed
+    
+    // 更新呼吸效果
+    this.breathPhase += this.breathSpeed
+    this.radius = this.baseRadius + Math.sin(this.breathPhase) * this.breathAmplitude
     
     // 检查是否超出屏幕边界
     const margin = this.radius * 3
@@ -137,8 +156,20 @@ class Planet {
     this.y = this.centerY
     this.angle = Math.random() * Math.PI * 2
     
-    // 更换颜色
-    this.colorPair = this.colors[Math.floor(Math.random() * this.colors.length)]
+    // 更换颜色（避免与当前场上其他行星重复）
+    const otherColors = planets.filter(p => p !== this).map(p => p.colorIndex)
+    let newColorIndex
+    do {
+      newColorIndex = Math.floor(Math.random() * this.colors.length)
+    } while (otherColors.includes(newColorIndex))
+    
+    this.colorIndex = newColorIndex
+    this.colorPair = this.colors[newColorIndex]
+    
+    // 随机新大小
+    this.baseRadius = Math.random() * 40 + 35
+    this.breathAmplitude = this.baseRadius * 0.1
+    this.breathSpeed = Math.random() * 0.002 + 0.0008 // 重新随机呼吸速度
   }
   
   draw() {
@@ -379,10 +410,13 @@ const initCanvas = () => {
     nebulae.push(new Nebula())
   }
   
-  // 创建行星
+  // 创建行星 - 确保颜色不重复
   planets = []
+  const usedColorIndices = []
   for (let i = 0; i < 3; i++) {
-    planets.push(new Planet())
+    const planet = new Planet(usedColorIndices)
+    usedColorIndices.push(planet.colorIndex)
+    planets.push(planet)
   }
   
   // 创建多层星星
