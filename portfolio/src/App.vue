@@ -180,27 +180,28 @@
               :lg="4"
             >
               <TiltCard :max-tilt="8" @click.native.stop="flipCard(skill.displayIndex)">
-                <BorderGlow 
-                  :speed="(1.5 + (skill.displayIndex % 6) * 0.2) * 0.9" 
-                  :glow-size="80"
-                  @cycle-complete="handleCycleComplete(skill.displayIndex)"
-                >
-                  <el-card 
-                    shadow="hover" 
-                    class="skill-card glass-effect"
-                    :class="{ 'flipping': flippingCards[skill.displayIndex] }"
+                <div class="flip-container" :class="{ 'flipping': flippingCards[skill.displayIndex] }">
+                  <BorderGlow 
+                    :speed="(1.5 + (skill.displayIndex % 6) * 0.2) * 0.9" 
+                    :glow-size="80"
+                    @cycle-complete="handleCycleComplete(skill.displayIndex)"
                   >
-                    <div class="skill-icon" :class="{ 'icon-flash': iconFlash[skill.displayIndex] }">
-                      <Icon :icon="skill.icon" :width="48" :height="48" />
-                    </div>
-                    <h3>{{ skill.name }}</h3>
-                    <SkillProgress 
-                      :name="skill.name"
-                      :level="skill.level"
-                      :color="skill.color"
-                    />
-                  </el-card>
-                </BorderGlow>
+                    <el-card 
+                      shadow="hover" 
+                      class="skill-card glass-effect"
+                    >
+                      <div class="skill-icon" :class="{ 'icon-flash': iconFlash[skill.displayIndex] }">
+                        <Icon :icon="skill.icon" :width="48" :height="48" />
+                      </div>
+                      <h3>{{ skill.name }}</h3>
+                      <SkillProgress 
+                        :name="skill.name"
+                        :level="skill.level"
+                        :color="skill.color"
+                      />
+                    </el-card>
+                  </BorderGlow>
+                </div>
               </TiltCard>
             </el-col>
           </el-row>
@@ -349,31 +350,28 @@ const initDisplayedSkills = () => {
 
 // 翻转卡片并随机替换技能
 const flipCard = (displayIndex) => {
-  console.log('flipCard called, displayIndex:', displayIndex)
+  if (flippingCards.value[displayIndex]) return // 防止重复点击
+  
   flippingCards.value[displayIndex] = true
-  console.log('flippingCards:', flippingCards.value)
   
   setTimeout(() => {
     // 获取当前未显示的技能
     const currentSkillNames = displayedSkills.value.map(s => s.name)
     const hiddenSkills = allSkills.value.filter(s => !currentSkillNames.includes(s.name))
     
-    console.log('currentSkillNames:', currentSkillNames)
-    console.log('hiddenSkills:', hiddenSkills)
-    
     if (hiddenSkills.length > 0) {
       // 随机选择一个未显示的技能
       const randomSkill = hiddenSkills[Math.floor(Math.random() * hiddenSkills.length)]
-      console.log('randomSkill:', randomSkill)
       displayedSkills.value[displayIndex] = {
         ...randomSkill,
         displayIndex
       }
     }
     
+    // 在翻转动画的80%时解除锁定（600ms * 0.8 = 480ms）
     setTimeout(() => {
       flippingCards.value[displayIndex] = false
-    }, 300)
+    }, 180) // 300 + 180 = 480ms
   }, 300)
 }
 
@@ -706,6 +704,17 @@ const openProject = (url) => {
   font-size: var(--text-lg);
 }
 
+/* 翻转容器 */
+.flip-container {
+  perspective: 1000px;
+  transform-style: preserve-3d;
+  position: relative;
+}
+
+.flip-container.flipping {
+  animation: cardFlip3D 600ms cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
 /* 技能卡片 */
 .skill-card {
   text-align: center;
@@ -717,22 +726,80 @@ const openProject = (url) => {
   cursor: pointer;
   transform-style: preserve-3d;
   pointer-events: auto;
+  position: relative;
+  backface-visibility: hidden;
 }
 
-.skill-card.flipping {
-  animation: cardFlip 600ms ease-in-out;
+.skill-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.1) 0%, 
+    rgba(255, 255, 255, 0.05) 50%, 
+    rgba(0, 0, 0, 0.05) 100%
+  );
+  border-radius: var(--radius-xl);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
 }
 
-@keyframes cardFlip {
+.flip-container.flipping .skill-card::before {
+  opacity: 1;
+}
+
+@keyframes cardFlip3D {
   0% {
-    transform: rotateY(0deg);
+    transform: rotateY(0deg) translateZ(0px) translateX(0px) translateY(0px) scale(1);
+    filter: brightness(1) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+  }
+  20% {
+    transform: rotateY(20deg) translateZ(15px) translateX(8px) translateY(-10px) scale(1.03);
+    filter: brightness(1.1) drop-shadow(-5px 8px 15px rgba(0, 0, 0, 0.25));
   }
   50% {
-    transform: rotateY(90deg);
+    transform: rotateY(90deg) translateZ(20px) translateX(10px) translateY(-12px) scale(1.05);
+    filter: brightness(1.2) drop-shadow(-10px 12px 20px rgba(0, 0, 0, 0.35));
+  }
+  80% {
+    transform: rotateY(160deg) translateZ(15px) translateX(8px) translateY(-10px) scale(1.03);
+    filter: brightness(1.1) drop-shadow(-5px 8px 15px rgba(0, 0, 0, 0.25));
   }
   100% {
-    transform: rotateY(0deg);
+    transform: rotateY(180deg) translateZ(0px) translateX(0px) translateY(0px) scale(1);
+    filter: brightness(1) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
   }
+}
+
+/* 相邻卡片推挤效果 */
+@keyframes cardPush1 {
+  0%, 100% {
+    transform: translateX(0px);
+  }
+  50% {
+    transform: translateX(15px);
+  }
+}
+
+@keyframes cardPush2 {
+  0%, 100% {
+    transform: translateX(0px);
+  }
+  50% {
+    transform: translateX(8px);
+  }
+}
+
+.flip-container.push-1 {
+  animation: cardPush1 600ms cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.flip-container.push-2 {
+  animation: cardPush2 600ms cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 
 .skill-card:hover {
