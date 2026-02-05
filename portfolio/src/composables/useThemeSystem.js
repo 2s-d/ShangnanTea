@@ -21,6 +21,11 @@ export function useThemeSystem() {
   // 切换主题（红灯笼）
   const toggleTheme = () => {
     currentTheme.value = currentTheme.value === THEMES.PARTICLE ? THEMES.CODERAIN : THEMES.PARTICLE
+    
+    // 切换到代码雨主题时自动开启黑夜模式
+    if (currentTheme.value === THEMES.CODERAIN) {
+      isDark.value = true
+    }
   }
 
   // 监听深色模式变化
