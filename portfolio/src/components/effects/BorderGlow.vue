@@ -266,6 +266,7 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   transition: all 0.3s;
+  margin-bottom: 24px; /* 从skill-card移到这里 */
 }
 
 /* 把box-shadow放在wrapper上 */

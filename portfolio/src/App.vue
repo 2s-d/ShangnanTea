@@ -644,7 +644,7 @@ const openProject = (url) => {
 /* 技能卡片 */
 .skill-card {
   text-align: center;
-  margin-bottom: var(--spacing-lg);
+  /* margin-bottom移到BorderGlow的wrapper上了 */
   transition: all var(--transition-base);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
