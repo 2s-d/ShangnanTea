@@ -280,16 +280,21 @@ onUnmounted(() => {
   top: 0;
   left: 50%;
   width: 5px;
+  /* 使用 CSS 变量控制颜色，便于在动画中做三种绚烂配色循环切换 */
+  --rb-c1: rgba(255, 162, 200, 0.85);
+  --rb-c2: rgba(167, 139, 250, 0.95);
+  --rb-c3: rgba(45, 212, 191, 0.9);
+  --rb-shadow: rgba(192, 132, 252, 0.8);
   background: linear-gradient(
     to bottom,
     rgba(255, 255, 255, 0.0),
-    rgba(244, 114, 182, 0.75),
-    rgba(129, 140, 248, 0.9),
-    rgba(45, 212, 191, 0.8)
+    var(--rb-c1),
+    var(--rb-c2),
+    var(--rb-c3)
   );
   box-shadow:
-    0 0 10px rgba(244, 114, 182, 0.7),
-    0 0 20px rgba(129, 140, 248, 0.6);
+    0 0 10px var(--rb-shadow),
+    0 0 20px var(--rb-shadow);
   border-radius: 999px;
   overflow: hidden;
   background-size: 100% 200%;
@@ -315,9 +320,31 @@ onUnmounted(() => {
 @keyframes rainbow-flow {
   0% {
     background-position: 0 0;
+    --rb-c1: rgba(255, 162, 200, 0.85);   /* 粉橙渐变 */
+    --rb-c2: rgba(251, 191, 36, 0.95);
+    --rb-c3: rgba(244, 114, 182, 0.9);
+    --rb-shadow: rgba(251, 191, 36, 0.8);
+  }
+  33% {
+    background-position: 0 70%;
+    --rb-c1: rgba(129, 140, 248, 0.9);    /* 蓝紫渐变 */
+    --rb-c2: rgba(196, 181, 253, 0.95);
+    --rb-c3: rgba(56, 189, 248, 0.9);
+    --rb-shadow: rgba(129, 140, 248, 0.85);
+  }
+  66% {
+    background-position: 0 140%;
+    --rb-c1: rgba(45, 212, 191, 0.9);     /* 青绿渐变 */
+    --rb-c2: rgba(74, 222, 128, 0.95);
+    --rb-c3: rgba(250, 204, 21, 0.9);
+    --rb-shadow: rgba(74, 222, 128, 0.85);
   }
   100% {
     background-position: 0 200%;
+    --rb-c1: rgba(255, 162, 200, 0.85);
+    --rb-c2: rgba(251, 191, 36, 0.95);
+    --rb-c3: rgba(244, 114, 182, 0.9);
+    --rb-shadow: rgba(251, 191, 36, 0.8);
   }
 }
 
