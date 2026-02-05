@@ -11,8 +11,16 @@
     <!-- <CursorGlow /> -->
     <ScrollProgress />
     
-    <!-- 红灯笼：切换主题 -->
-    <LanternSwitch 
+    <!-- 红灯笼：切换主题 - 三个版本供选择 -->
+    <LanternSwitch1 
+      :current-theme="currentTheme" 
+      :on-toggle="toggleTheme" 
+    />
+    <LanternSwitch2 
+      :current-theme="currentTheme" 
+      :on-toggle="toggleTheme" 
+    />
+    <LanternSwitch3 
       :current-theme="currentTheme" 
       :on-toggle="toggleTheme" 
     />
@@ -261,6 +269,9 @@ import ScrollProgress from './components/effects/ScrollProgress.vue'
 import TypeWriter from './components/effects/TypeWriter.vue'
 import TiltCard from './components/effects/TiltCard.vue'
 import LanternSwitch from './components/effects/LanternSwitch.vue'
+import LanternSwitch1 from './components/effects/LanternSwitch1.vue'
+import LanternSwitch2 from './components/effects/LanternSwitch2.vue'
+import LanternSwitch3 from './components/effects/LanternSwitch3.vue'
 import CodeRain from './components/effects/CodeRain.vue'
 import SkillProgress from './components/effects/SkillProgress.vue'
 import { useThemeSystem } from './composables/useThemeSystem'

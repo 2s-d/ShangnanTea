@@ -1,39 +1,65 @@
 <template>
   <div class="lantern-container">
-    <!-- 绳子 -->
-    <div class="rope" :style="{ height: ropeLength + 'px' }"></div>
+    <!-- 摆动的绳子 -->
+    <svg class="rope-svg" width="4" :height="ropeLength + 20">
+      <path 
+        :d="ropePath" 
+        stroke="#8b4513" 
+        stroke-width="3" 
+        fill="none"
+        filter="url(#rope-shadow)"
+      />
+      <defs>
+        <filter id="rope-shadow">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="1"/>
+          <feOffset dx="1" dy="1" result="offsetblur"/>
+          <feMerge>
+            <feMergeNode/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+      </defs>
+    </svg>
     
     <!-- 灯笼 -->
     <div 
       class="lantern"
-      :class="{ 'is-coderain': currentTheme === 'coderain', 'is-dragging': isDragging }"
+      :class="{ 'theme-coderain': currentTheme === 'coderain' }"
       :style="lanternStyle"
-      @mousedown="startDrag"
-      @touchstart="startDrag"
+      @click="handleClick"
+      @mouseenter="isHovering = true"
+      @mouseleave="isHovering = false"
     >
-      <!-- 灯笼顶部 -->
-      <div class="lantern-top"></div>
+      <!-- 灯笼顶盖 -->
+      <div class="lantern-cap top-cap"></div>
       
       <!-- 灯笼主体 -->
       <div class="lantern-body">
-        <div class="lantern-light" :class="{ 'glow': currentTheme === 'coderain' }"></div>
-        <div class="lantern-text">{{ currentTheme === 'coderain' ? '码' : '粒' }}</div>
-        <div class="lantern-pattern pattern-1"></div>
-        <div class="lantern-pattern pattern-2"></div>
+        <!-- 内部光晕 -->
+        <div class="inner-glow"></div>
+        
+        <!-- 装饰条纹 -->
+        <div class="stripe stripe-1"></div>
+        <div class="stripe stripe-2"></div>
+        <div class="stripe stripe-3"></div>
+        
+        <!-- 中心装饰 -->
+        <div class="center-ornament">
+          <div class="ornament-circle"></div>
+        </div>
       </div>
       
-      <!-- 灯笼底部 -->
-      <div class="lantern-bottom"></div>
+      <!-- 灯笼底盖 -->
+      <div class="lantern-cap bottom-cap"></div>
       
       <!-- 流苏 -->
-      <div class="tassel">
-        <div class="tassel-line"></div>
-        <div class="tassel-end"></div>
+      <div class="tassel-group">
+        <div class="tassel" v-for="i in 5" :key="i" :style="{ animationDelay: `${i * 0.1}s` }">
+          <div class="tassel-thread"></div>
+          <div class="tassel-bead"></div>
+        </div>
       </div>
     </div>
-    
-    <!-- 提示文字 -->
-    <div class="hint" v-if="showHint">拉动灯笼切换主题</div>
   </div>
 </template>
 
@@ -45,67 +71,60 @@ const props = defineProps({
   onToggle: Function
 })
 
-const ropeLength = ref(60)
-const isDragging = ref(false)
-const startY = ref(0)
-const currentY = ref(0)
-const showHint = ref(true)
+const ropeLength = ref(80)
+const swingAngle = ref(0)
+const isHovering = ref(false)
+let swingInterval = null
 
-const lanternStyle = computed(() => ({
-  transform: `translateY(${currentY.value}px) rotate(${currentY.value * 0.1}deg)`
-}))
+// 绳子路径（贝塞尔曲线模拟摆动）
+const ropePath = computed(() => {
+  const angle = swingAngle.value
+  const controlX = 2 + Math.sin(angle) * 8
+  const endX = 2 + Math.sin(angle) * 15
+  return `M 2 0 Q ${controlX} ${ropeLength.value / 2} ${endX} ${ropeLength.value}`
+})
 
-const startDrag = (e) => {
-  isDragging.value = true
-  showHint.value = false
-  startY.value = e.type === 'mousedown' ? e.clientY : e.touches[0].clientY
+// 灯笼样式（跟随绳子摆动）
+const lanternStyle = computed(() => {
+  const angle = swingAngle.value
+  const translateX = Math.sin(angle) * 15
+  const rotate = angle * (180 / Math.PI) * 0.5
+  const scale = isHovering.value ? 1.05 : 1
   
-  document.addEventListener('mousemove', onDrag)
-  document.addEventListener('mouseup', endDrag)
-  document.addEventListener('touchmove', onDrag)
-  document.addEventListener('touchend', endDrag)
-}
-
-const onDrag = (e) => {
-  if (!isDragging.value) return
-  
-  const clientY = e.type === 'mousemove' ? e.clientY : e.touches[0].clientY
-  const deltaY = clientY - startY.value
-  
-  // 限制拖拽范围 -20 到 80
-  currentY.value = Math.max(-20, Math.min(80, deltaY))
-}
-
-const endDrag = () => {
-  if (!isDragging.value) return
-  
-  // 如果拉动超过 40px，切换主题
-  if (Math.abs(currentY.value) > 40) {
-    props.onToggle?.()
+  return {
+    transform: `translateX(${translateX}px) rotate(${rotate}deg) scale(${scale})`
   }
+})
+
+// 点击切换主题
+const handleClick = () => {
+  props.onToggle?.()
+  // 点击时增加摆动幅度
+  const originalAmplitude = 0.15
+  let clickAmplitude = 0.3
+  const decay = 0.95
   
-  // 重置位置
-  isDragging.value = false
-  currentY.value = 0
-  
-  document.removeEventListener('mousemove', onDrag)
-  document.removeEventListener('mouseup', endDrag)
-  document.removeEventListener('touchmove', onDrag)
-  document.removeEventListener('touchend', endDrag)
+  const clickSwing = setInterval(() => {
+    clickAmplitude *= decay
+    if (clickAmplitude < originalAmplitude) {
+      clearInterval(clickSwing)
+    }
+  }, 50)
 }
 
-// 自动隐藏提示
+// 自然摆动动画
 onMounted(() => {
-  setTimeout(() => {
-    showHint.value = false
-  }, 5000)
+  let time = 0
+  swingInterval = setInterval(() => {
+    time += 0.02
+    swingAngle.value = Math.sin(time) * 0.15 // 小幅度摆动
+  }, 16)
 })
 
 onUnmounted(() => {
-  document.removeEventListener('mousemove', onDrag)
-  document.removeEventListener('mouseup', endDrag)
-  document.removeEventListener('touchmove', onDrag)
-  document.removeEventListener('touchend', endDrag)
+  if (swingInterval) {
+    clearInterval(swingInterval)
+  }
 })
 </script>
 
@@ -118,181 +137,242 @@ onUnmounted(() => {
   user-select: none;
 }
 
-/* 绳子 */
-.rope {
-  width: 2px;
-  background: linear-gradient(to bottom, #8b4513, #654321);
+.rope-svg {
+  display: block;
   margin: 0 auto;
-  box-shadow: 0 0 3px rgba(0, 0, 0, 0.3);
-  transition: height 0.3s ease;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3));
 }
 
-/* 灯笼容器 */
+/* 灯笼 */
 .lantern {
-  width: 60px;
-  height: 80px;
-  cursor: grab;
+  width: 70px;
+  cursor: pointer;
   transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  animation: swing 3s ease-in-out infinite;
   transform-origin: top center;
+  margin-top: -10px;
 }
 
-.lantern:active {
-  cursor: grabbing;
-}
-
-.lantern.is-dragging {
-  animation: none;
-  transition: none;
-}
-
-/* 灯笼顶部 */
-.lantern-top {
-  width: 50px;
-  height: 8px;
-  background: linear-gradient(to bottom, #8b4513, #654321);
-  border-radius: 50% 50% 0 0;
+/* 顶盖和底盖 */
+.lantern-cap {
+  width: 60px;
+  height: 12px;
   margin: 0 auto;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(135deg, #d4af37 0%, #aa8c2c 50%, #d4af37 100%);
+  position: relative;
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.top-cap {
+  border-radius: 50% 50% 20% 20% / 60% 60% 10% 10%;
+}
+
+.top-cap::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 8px;
+  background: linear-gradient(135deg, #d4af37, #aa8c2c);
+  border-radius: 50% 50% 0 0;
+  box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.bottom-cap {
+  border-radius: 20% 20% 50% 50% / 10% 10% 60% 60%;
 }
 
 /* 灯笼主体 */
 .lantern-body {
-  width: 60px;
-  height: 60px;
-  background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
-  border-radius: 50%;
+  width: 70px;
+  height: 85px;
+  background: linear-gradient(135deg, 
+    #ff3333 0%, 
+    #ff5555 25%,
+    #ff3333 50%,
+    #cc0000 75%,
+    #ff3333 100%
+  );
+  border-radius: 45% 45% 50% 50% / 40% 40% 60% 60%;
   position: relative;
+  margin: 2px auto;
   box-shadow: 
-    0 4px 8px rgba(0, 0, 0, 0.3),
-    inset 0 -10px 20px rgba(0, 0, 0, 0.2),
-    inset 0 10px 20px rgba(255, 255, 255, 0.2);
+    0 8px 16px rgba(0, 0, 0, 0.4),
+    inset 0 -15px 30px rgba(0, 0, 0, 0.3),
+    inset 0 15px 30px rgba(255, 255, 255, 0.2),
+    0 0 20px rgba(255, 51, 51, 0.3);
   overflow: hidden;
+  animation: lantern-glow 3s ease-in-out infinite;
 }
 
-/* 灯光效果 */
-.lantern-light {
+/* 内部光晕 */
+.inner-glow {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 40px;
-  height: 40px;
-  background: radial-gradient(circle, rgba(255, 255, 200, 0.8) 0%, transparent 70%);
+  width: 50px;
+  height: 60px;
+  background: radial-gradient(ellipse, 
+    rgba(255, 255, 200, 0.6) 0%, 
+    rgba(255, 255, 150, 0.3) 40%,
+    transparent 70%
+  );
   border-radius: 50%;
-  opacity: 0;
-  transition: opacity 0.5s ease;
+  animation: glow-pulse 2.5s ease-in-out infinite;
 }
 
-.lantern-light.glow {
-  opacity: 1;
-  animation: glow-pulse 2s ease-in-out infinite;
-}
-
-/* 灯笼文字 */
-.lantern-text {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: #ffd700;
-  font-size: 20px;
-  font-weight: bold;
-  text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
-  z-index: 2;
-}
-
-/* 灯笼花纹 */
-.lantern-pattern {
+/* 装饰条纹 */
+.stripe {
   position: absolute;
   width: 100%;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, #ffd700, transparent);
+  height: 1.5px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(212, 175, 55, 0.8) 20%,
+    rgba(212, 175, 55, 1) 50%,
+    rgba(212, 175, 55, 0.8) 80%,
+    transparent 100%
+  );
   left: 0;
+  box-shadow: 0 0 4px rgba(212, 175, 55, 0.6);
 }
 
-.pattern-1 {
-  top: 20px;
+.stripe-1 { top: 25%; }
+.stripe-2 { top: 50%; }
+.stripe-3 { top: 75%; }
+
+/* 中心装饰 */
+.center-ornament {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 24px;
+  height: 24px;
 }
 
-.pattern-2 {
-  bottom: 20px;
+.ornament-circle {
+  width: 100%;
+  height: 100%;
+  border: 2px solid rgba(212, 175, 55, 0.9);
+  border-radius: 50%;
+  box-shadow: 
+    0 0 8px rgba(212, 175, 55, 0.6),
+    inset 0 0 8px rgba(255, 255, 200, 0.3);
+  animation: ornament-spin 8s linear infinite;
 }
 
-/* 灯笼底部 */
-.lantern-bottom {
-  width: 50px;
-  height: 8px;
-  background: linear-gradient(to top, #8b4513, #654321);
-  border-radius: 0 0 50% 50%;
-  margin: 0 auto;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-/* 流苏 */
-.tassel {
-  width: 2px;
-  margin: 0 auto;
-}
-
-.tassel-line {
-  width: 2px;
-  height: 15px;
-  background: linear-gradient(to bottom, #8b4513, #654321);
-  margin: 0 auto;
-}
-
-.tassel-end {
-  width: 20px;
-  height: 20px;
-  background: linear-gradient(135deg, #ff4444, #cc0000);
-  border-radius: 50% 50% 0 0;
-  margin: 0 auto;
-  position: relative;
-  left: -9px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.tassel-end::after {
+.ornament-circle::before,
+.ornament-circle::after {
   content: '';
   position: absolute;
-  bottom: -8px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 0;
-  height: 0;
-  border-left: 8px solid transparent;
-  border-right: 8px solid transparent;
-  border-top: 8px solid #cc0000;
+  background: rgba(212, 175, 55, 0.8);
+  border-radius: 50%;
 }
 
-/* 提示文字 */
-.hint {
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  margin-top: 10px;
-  padding: 8px 12px;
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-  font-size: 12px;
-  border-radius: 4px;
-  white-space: nowrap;
-  animation: fadeInOut 5s ease-in-out;
-  pointer-events: none;
+.ornament-circle::before {
+  width: 4px;
+  height: 4px;
+  top: 50%;
+  left: 2px;
+  transform: translateY(-50%);
+}
+
+.ornament-circle::after {
+  width: 4px;
+  height: 4px;
+  top: 50%;
+  right: 2px;
+  transform: translateY(-50%);
+}
+
+/* 流苏组 */
+.tassel-group {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.tassel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: tassel-swing 2s ease-in-out infinite;
+}
+
+.tassel-thread {
+  width: 1.5px;
+  height: 18px;
+  background: linear-gradient(to bottom, #d4af37, #aa8c2c);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.tassel-bead {
+  width: 6px;
+  height: 8px;
+  background: linear-gradient(135deg, #ff3333, #cc0000);
+  border-radius: 50% 50% 60% 60%;
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* 代码雨主题样式 */
+.theme-coderain .lantern-body {
+  box-shadow: 
+    0 8px 16px rgba(0, 0, 0, 0.4),
+    inset 0 -15px 30px rgba(0, 0, 0, 0.3),
+    inset 0 15px 30px rgba(255, 255, 255, 0.2),
+    0 0 40px rgba(255, 51, 51, 0.8),
+    0 0 60px rgba(255, 51, 51, 0.4);
+  animation: lantern-glow-strong 2s ease-in-out infinite;
+}
+
+.theme-coderain .inner-glow {
+  background: radial-gradient(ellipse, 
+    rgba(255, 255, 200, 0.9) 0%, 
+    rgba(255, 255, 150, 0.6) 40%,
+    transparent 70%
+  );
 }
 
 /* 动画 */
-@keyframes swing {
+@keyframes lantern-glow {
   0%, 100% {
-    transform: rotate(0deg);
+    box-shadow: 
+      0 8px 16px rgba(0, 0, 0, 0.4),
+      inset 0 -15px 30px rgba(0, 0, 0, 0.3),
+      inset 0 15px 30px rgba(255, 255, 255, 0.2),
+      0 0 20px rgba(255, 51, 51, 0.3);
   }
-  25% {
-    transform: rotate(3deg);
+  50% {
+    box-shadow: 
+      0 8px 16px rgba(0, 0, 0, 0.4),
+      inset 0 -15px 30px rgba(0, 0, 0, 0.3),
+      inset 0 15px 30px rgba(255, 255, 255, 0.2),
+      0 0 30px rgba(255, 51, 51, 0.5);
   }
-  75% {
-    transform: rotate(-3deg);
+}
+
+@keyframes lantern-glow-strong {
+  0%, 100% {
+    box-shadow: 
+      0 8px 16px rgba(0, 0, 0, 0.4),
+      inset 0 -15px 30px rgba(0, 0, 0, 0.3),
+      inset 0 15px 30px rgba(255, 255, 255, 0.2),
+      0 0 40px rgba(255, 51, 51, 0.8),
+      0 0 60px rgba(255, 51, 51, 0.4);
+  }
+  50% {
+    box-shadow: 
+      0 8px 16px rgba(0, 0, 0, 0.4),
+      inset 0 -15px 30px rgba(0, 0, 0, 0.3),
+      inset 0 15px 30px rgba(255, 255, 255, 0.2),
+      0 0 50px rgba(255, 51, 51, 1),
+      0 0 80px rgba(255, 51, 51, 0.6);
   }
 }
 
@@ -307,28 +387,15 @@ onUnmounted(() => {
   }
 }
 
-@keyframes fadeInOut {
-  0% {
-    opacity: 0;
-    transform: translateX(-50%) translateY(-10px);
-  }
-  10%, 90% {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-  100% {
-    opacity: 0;
-    transform: translateX(-50%) translateY(-10px);
-  }
+@keyframes ornament-spin {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
-/* 代码雨主题下的灯笼 */
-.lantern.is-coderain .lantern-body {
-  box-shadow: 
-    0 4px 8px rgba(0, 0, 0, 0.3),
-    inset 0 -10px 20px rgba(0, 0, 0, 0.2),
-    inset 0 10px 20px rgba(255, 255, 255, 0.2),
-    0 0 30px rgba(255, 68, 68, 0.6);
+@keyframes tassel-swing {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  25% { transform: translateX(-1px) rotate(-2deg); }
+  75% { transform: translateX(1px) rotate(2deg); }
 }
 
 /* 响应式 */
@@ -338,17 +405,16 @@ onUnmounted(() => {
   }
   
   .lantern {
-    width: 50px;
-    height: 70px;
+    width: 60px;
   }
   
   .lantern-body {
-    width: 50px;
-    height: 50px;
+    width: 60px;
+    height: 75px;
   }
   
-  .lantern-text {
-    font-size: 16px;
+  .lantern-cap {
+    width: 50px;
   }
 }
 </style>
