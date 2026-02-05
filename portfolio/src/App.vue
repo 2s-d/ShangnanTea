@@ -817,68 +817,68 @@ const openProject = (url) => {
     filter: brightness(1) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
   }
   12% {
-    transform: rotateY(28deg) rotateX(-2deg) translateZ(30px) translateX(4px) translateY(-18px) scale(1.06);
-    filter: brightness(1.12) drop-shadow(-7px 12px 22px rgba(0, 0, 0, 0.28));
+    transform: rotateY(20deg) rotateX(-1.2deg) translateZ(18px) translateX(3px) translateY(-10px) scale(1.03);
+    filter: brightness(1.08) drop-shadow(-5px 8px 16px rgba(0, 0, 0, 0.22));
   }
   25% {
-    transform: rotateY(45deg) rotateX(-3deg) translateZ(42px) translateX(7px) translateY(-28px) scale(1.09);
-    filter: brightness(1.16) drop-shadow(-10px 14px 25px rgba(0, 0, 0, 0.3));
+    transform: rotateY(35deg) rotateX(-2deg) translateZ(24px) translateX(5px) translateY(-16px) scale(1.05);
+    filter: brightness(1.1) drop-shadow(-7px 10px 20px rgba(0, 0, 0, 0.24));
   }
   
   /* 空中翻转核心阶段 - 慢速细腻 (25-60%，7个关键帧密集) */
   30% {
-    transform: rotateY(58deg) rotateX(-3.5deg) translateZ(48px) translateX(9px) translateY(-32px) scale(1.10);
-    filter: brightness(1.19) drop-shadow(-11px 16px 28px rgba(0, 0, 0, 0.34));
+    transform: rotateY(50deg) rotateX(-2.2deg) translateZ(28px) translateX(6px) translateY(-20px) scale(1.06);
+    filter: brightness(1.12) drop-shadow(-8px 12px 22px rgba(0, 0, 0, 0.26));
   }
   35% {
-    transform: rotateY(70deg) rotateX(-4deg) translateZ(53px) translateX(10px) translateY(-35px) scale(1.11);
-    filter: brightness(1.21) drop-shadow(-12px 17px 30px rgba(0, 0, 0, 0.37));
+    transform: rotateY(65deg) rotateX(-2.6deg) translateZ(30px) translateX(7px) translateY(-22px) scale(1.07);
+    filter: brightness(1.14) drop-shadow(-9px 13px 24px rgba(0, 0, 0, 0.28));
   }
   40% {
-    transform: rotateY(82deg) rotateX(-4.5deg) translateZ(57px) translateX(10px) translateY(-36px) scale(1.115);
-    filter: brightness(1.23) drop-shadow(-13px 19px 33px rgba(0, 0, 0, 0.39));
+    transform: rotateY(80deg) rotateX(-3deg) translateZ(32px) translateX(7px) translateY(-23px) scale(1.08);
+    filter: brightness(1.16) drop-shadow(-10px 14px 26px rgba(0, 0, 0, 0.3));
   }
   45% {
-    transform: rotateY(90deg) rotateX(-5deg) translateZ(60px) translateX(9px) translateY(-35px) scale(1.12);
-    filter: brightness(1.25) drop-shadow(-15px 20px 35px rgba(0, 0, 0, 0.4));
+    transform: rotateY(90deg) rotateX(-3.2deg) translateZ(34px) translateX(6px) translateY(-22px) scale(1.08);
+    filter: brightness(1.17) drop-shadow(-10px 15px 28px rgba(0, 0, 0, 0.32));
   }
   50% {
-    transform: rotateY(98deg) rotateX(-4.5deg) translateZ(57px) translateX(7px) translateY(-32px) scale(1.115);
-    filter: brightness(1.23) drop-shadow(-13px 19px 33px rgba(0, 0, 0, 0.39));
+    transform: rotateY(100deg) rotateX(-3deg) translateZ(32px) translateX(5px) translateY(-20px) scale(1.07);
+    filter: brightness(1.15) drop-shadow(-9px 14px 25px rgba(0, 0, 0, 0.3));
   }
   55% {
-    transform: rotateY(110deg) rotateX(-4deg) translateZ(53px) translateX(4px) translateY(-28px) scale(1.11);
-    filter: brightness(1.21) drop-shadow(-12px 17px 30px rgba(0, 0, 0, 0.37));
+    transform: rotateY(115deg) rotateX(-2.6deg) translateZ(30px) translateX(3px) translateY(-18px) scale(1.06);
+    filter: brightness(1.13) drop-shadow(-8px 12px 22px rgba(0, 0, 0, 0.28));
   }
   60% {
-    transform: rotateY(122deg) rotateX(-3.5deg) translateZ(48px) translateX(1px) translateY(-22px) scale(1.10);
-    filter: brightness(1.19) drop-shadow(-11px 16px 28px rgba(0, 0, 0, 0.34));
+    transform: rotateY(130deg) rotateX(-2.2deg) translateZ(28px) translateX(1px) translateY(-14px) scale(1.05);
+    filter: brightness(1.11) drop-shadow(-7px 10px 20px rgba(0, 0, 0, 0.26));
   }
   
   /* 开始回落 (60-70%) */
   70% {
-    transform: rotateY(135deg) rotateX(-3deg) translateZ(42px) translateX(-2px) translateY(-16px) scale(1.09);
-    filter: brightness(1.16) drop-shadow(-10px 14px 25px rgba(0, 0, 0, 0.3));
+    transform: rotateY(145deg) rotateX(-2deg) translateZ(24px) translateX(-2px) translateY(-10px) scale(1.04);
+    filter: brightness(1.09) drop-shadow(-6px 9px 18px rgba(0, 0, 0, 0.24));
   }
   
   /* 快速回落阶段 (70-90%) */
   78% {
-    transform: rotateY(148deg) rotateX(-2.2deg) translateZ(34px) translateX(-2.8px) translateY(-10px) scale(1.07);
-    filter: brightness(1.13) drop-shadow(-8px 13px 24px rgba(0, 0, 0, 0.29));
+    transform: rotateY(158deg) rotateX(-1.6deg) translateZ(20px) translateX(-2px) translateY(-7px) scale(1.03);
+    filter: brightness(1.07) drop-shadow(-5px 8px 16px rgba(0, 0, 0, 0.22));
   }
   85% {
-    transform: rotateY(162deg) rotateX(-1.2deg) translateZ(18px) translateX(-1.5px) translateY(-5px) scale(1.035);
-    filter: brightness(1.08) drop-shadow(-4px 8px 16px rgba(0, 0, 0, 0.22));
+    transform: rotateY(170deg) rotateX(-0.8deg) translateZ(12px) translateX(-1px) translateY(-3px) scale(1.015);
+    filter: brightness(1.04) drop-shadow(-3px 6px 12px rgba(0, 0, 0, 0.18));
   }
   90% {
-    transform: rotateY(170deg) rotateX(-0.6deg) translateZ(9px) translateX(-0.8px) translateY(-2.5px) scale(1.018);
-    filter: brightness(1.04) drop-shadow(-2px 5px 10px rgba(0, 0, 0, 0.16));
+    transform: rotateY(176deg) rotateX(-0.3deg) translateZ(6px) translateX(-0.5px) translateY(-1.5px) scale(1.008);
+    filter: brightness(1.02) drop-shadow(-2px 4px 9px rgba(0, 0, 0, 0.15));
   }
   
   /* 最后归位阶段 - 慢速细腻 (90-100%) */
   95% {
-    transform: rotateY(176deg) rotateX(-0.2deg) translateZ(3px) translateX(-0.3px) translateY(-0.8px) scale(1.006);
-    filter: brightness(1.015) drop-shadow(-1px 4px 8px rgba(0, 0, 0, 0.12));
+    transform: rotateY(179deg) rotateX(-0.1deg) translateZ(2px) translateX(-0.2px) translateY(-0.5px) scale(1.003);
+    filter: brightness(1.01) drop-shadow(-1px 3px 7px rgba(0, 0, 0, 0.12));
   }
   100% {
     transform: rotateY(180deg) rotateX(0deg) translateZ(0px) translateX(0px) translateY(0px) scale(1);
