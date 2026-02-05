@@ -33,7 +33,7 @@ const wrapperRef = ref(null)
 // 位置和物理参数（以组件内部坐标为基准）
 // wrapper 宽度是 80px，anchorX 取 40，让物理坐标的 x=0 对应到容器正中
 // 这样彩虹柱（left:50%）和挂件盒子的中心就能在同一条竖线上
-const anchorX = 26
+const anchorX = 25.5
 const anchorY = 10
 // 基础绳长（静止时顶部到骰子中心的距离），适当拉长一点让视觉上更协调
 const ROPE_BASE_LENGTH = 200
@@ -48,7 +48,7 @@ const dragStartOffsetX = ref(0)
 
 // 物理参数
 const TRIGGER_DISTANCE = 80 // 触发切换的距离
-const MAX_STRETCH = 220 // 最大拉伸距离
+const MAX_STRETCH = 250 // 最大拉伸距离
 
 // 挂件当前距离顶部的高度（由物理引擎驱动）
 const ropeLength = ref(ROPE_BASE_LENGTH)
@@ -80,8 +80,10 @@ const rainbowStyle = computed(() => {
   // 线段长度 = 彩虹的高度
   const length = Math.sqrt(dx * dx + dy * dy)
 
-  // 计算旋转角度：DOM 坐标系中 y 向下
-  const angleRad = Math.atan2(dx, dy)
+  // 计算旋转角度：DOM 坐标系中 y 向下，正角度为顺时针
+  // 之前使用 atan2(dx, dy) 导致左右方向相反，这里对 dx 取反保证：
+  // offsetX > 0 (挂件在右侧) 时，彩虹向右倾斜；offsetX < 0 时向左倾斜
+  const angleRad = Math.atan2(-dx, dy)
   const angleDeg = (angleRad * 180) / Math.PI
 
   return {
