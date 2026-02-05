@@ -203,7 +203,6 @@
                       <div class="skill-icon" :class="{ 'icon-flash': iconFlash[skill.displayIndex] }">
                         <Icon :icon="skill.icon" :width="48" :height="48" />
                       </div>
-                      <h3>{{ skill.name }}</h3>
                       <SkillProgress 
                         :name="skill.name"
                         :level="skill.level"
@@ -862,7 +861,7 @@ const openProject = (url) => {
 
 .skill-icon {
   font-size: 48px;
-  margin-bottom: 15px;
+  margin-bottom: 45px; /* 增加margin来补偿删除的h3空间 */
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
   transition: all var(--transition-base);
   position: relative;
