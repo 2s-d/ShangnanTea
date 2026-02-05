@@ -21,8 +21,8 @@ onMounted(() => {
   const canvas = canvasRef.value
   if (!canvas) return
 
-  const width = 70
-  const height = 70
+  const width = 90
+  const height = 90
 
   // 渲染器
   renderer = new THREE.WebGLRenderer({
@@ -35,10 +35,12 @@ onMounted(() => {
 
   // 场景
   scene = new THREE.Scene()
+  scene.background = null
 
   // 相机
-  camera = new THREE.PerspectiveCamera(35, width / height, 0.1, 100)
-  camera.position.set(0, 1.2, 3)
+  camera = new THREE.PerspectiveCamera(32, width / height, 0.1, 100)
+  camera.position.set(0, 1.6, 4.2)
+  camera.lookAt(0, 0.6, 0)
 
   // 灯光
   const ambient = new THREE.AmbientLight(0xffffff, 0.9)
@@ -53,9 +55,25 @@ onMounted(() => {
     '/models/cloud_tea.glb',
     gltf => {
       model = gltf.scene
-      // 轻微缩放并居中
-      model.scale.set(1.2, 1.2, 1.2)
-      model.rotation.set(0, Math.PI / 4, 0)
+
+      // 自动根据包围盒缩放并居中模型，让它刚好塞进这个小画布
+      const box = new THREE.Box3().setFromObject(model)
+      const size = box.getSize(new THREE.Vector3())
+      const center = box.getCenter(new THREE.Vector3())
+      const maxAxis = Math.max(size.x, size.y, size.z) || 1
+
+      // 比之前再缩小一些，让云、茶杯、托盘和粒子都能装下
+      const scale = 1.2 / maxAxis
+      model.scale.setScalar(scale)
+
+      // 居中到原点附近，并稍微上抬一点
+      box.setFromObject(model)
+      box.getCenter(center)
+      model.position.sub(center)
+      model.position.y -= 0.1
+
+      model.rotation.set(0, Math.PI / 6, 0)
+
       scene.add(model)
       animate()
     },
@@ -70,7 +88,7 @@ onMounted(() => {
 const animate = () => {
   animationId = requestAnimationFrame(animate)
   if (model) {
-    model.rotation.y += 0.003
+    model.rotation.y += 0.01
   }
   renderer.render(scene, camera)
 }
@@ -89,17 +107,31 @@ onUnmounted(() => {
 
 <style scoped>
 .cloud-tea-wrapper {
-  width: 70px;
-  height: 70px;
+  position: relative;
+  width: 90px;
+  height: 90px;
   display: flex;
   align-items: center;
   justify-content: center;
   pointer-events: none;
+  /* 让茶杯整体稍微往下挂一点，和绳子末端留出空间 */
+  transform: translateY(10px);
+}
+
+.cloud-tea-wrapper::before {
+  content: '';
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.2), rgba(59, 130, 246, 0));
+  filter: blur(6px);
+  z-index: -1;
 }
 
 .cloud-tea-canvas {
-  width: 70px;
-  height: 70px;
+  width: 90px;
+  height: 90px;
   pointer-events: none;
 }
 </style>
