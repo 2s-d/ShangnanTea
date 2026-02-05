@@ -178,7 +178,9 @@
             >
               <TiltCard :max-tilt="8">
                 <el-card shadow="hover" class="skill-card glass-effect">
-                  <div class="skill-icon">{{ skill.icon }}</div>
+                  <div class="skill-icon">
+                    <Icon :icon="skill.icon" :width="48" :height="48" />
+                  </div>
                   <h3>{{ skill.name }}</h3>
                   <SkillProgress 
                     :name="skill.name"
@@ -294,6 +296,7 @@
 
 <script setup>
 import { ref } from 'vue'
+import { Icon } from '@iconify/vue'
 import ParticlesBackground from './components/effects/ParticlesBackground.vue'
 import HexagonGrid from './components/effects/HexagonGrid.vue'
 import ScrollProgress from './components/effects/ScrollProgress.vue'
@@ -639,6 +642,26 @@ const openProject = (url) => {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
   padding: var(--spacing-xl) var(--spacing-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.skill-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(102, 126, 234, 0.4),
+    transparent
+  );
+  animation: shimmer 3s infinite;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .skill-card:hover {
@@ -646,11 +669,17 @@ const openProject = (url) => {
   box-shadow: var(--shadow-colored);
 }
 
+.skill-card:hover::before {
+  animation: shimmer 1.5s infinite;
+}
+
 .skill-icon {
   font-size: 48px;
   margin-bottom: 15px;
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
   transition: all var(--transition-base);
+  position: relative;
+  z-index: 2;
 }
 
 .skill-card:hover .skill-icon {

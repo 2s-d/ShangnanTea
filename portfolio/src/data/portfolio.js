@@ -13,12 +13,12 @@ export const profile = {
 
 // 技能列表
 export const skills = [
-  { name: 'Java', level: 90, icon: '☕', color: '#f56c6c' },
-  { name: 'Spring Boot', level: 85, icon: '🍃', color: '#67c23a' },
-  { name: 'Vue.js', level: 88, icon: '💚', color: '#409eff' },
-  { name: 'MySQL', level: 80, icon: '🗄️', color: '#e6a23c' },
-  { name: 'Redis', level: 75, icon: '🔴', color: '#f56c6c' },
-  { name: 'Git', level: 85, icon: '📦', color: '#909399' }
+  { name: 'Java', level: 90, icon: 'devicon:java', color: '#f56c6c' },
+  { name: 'Spring Boot', level: 85, icon: 'devicon:spring', color: '#67c23a' },
+  { name: 'Vue.js', level: 88, icon: 'devicon:vuejs', color: '#409eff' },
+  { name: 'MySQL', level: 80, icon: 'devicon:mysql', color: '#e6a23c' },
+  { name: 'Redis', level: 75, icon: 'devicon:redis', color: '#f56c6c' },
+  { name: 'Git', level: 85, icon: 'devicon:git', color: '#909399' }
 ]
 
 // 项目列表

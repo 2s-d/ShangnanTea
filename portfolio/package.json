@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.0",
+    "@iconify/vue": "^5.0.0",
     "element-plus": "^2.5.0",
     "vanilla-tilt": "^1.8.1",
     "vue": "^3.4.0"
