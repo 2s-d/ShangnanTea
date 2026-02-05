@@ -189,9 +189,9 @@ const onDrag = (e) => {
   const deltaY = clientY - dragStartY.value
   const deltaX = clientX - dragStartX.value
   
-  // 计算目标偏移（只限制纵向，横向不再人工夹住，让物理约束自己限制）
+  // 计算目标偏移（只限制纵向，横向通过 0.2 系数控制“手感”和最大幅度）
   const nextOffsetY = Math.max(0, Math.min(MAX_STRETCH, dragStartOffset.value + deltaY))
-  const nextOffsetX = dragStartOffsetX.value + deltaX * 0.2
+  const nextOffsetX = dragStartOffsetX.value + deltaX * 1
 
   if (boxBody) {
     const targetX = anchorX + nextOffsetX
