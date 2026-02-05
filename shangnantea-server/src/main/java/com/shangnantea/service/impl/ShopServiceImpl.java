@@ -362,7 +362,7 @@ public class ShopServiceImpl implements ShopService {
             
             // 6. 构建店铺实体
             Shop shop = new Shop();
-            shop.setId(UUID.randomUUID().toString().replace("-", ""));
+        shop.setId(UUID.randomUUID().toString().replace("-", ""));
             shop.setOwnerId(userId);
             shop.setShopName(shopName);
             
@@ -382,8 +382,8 @@ public class ShopServiceImpl implements ShopService {
             // followCount已从数据库删除，使用动态计算
             
             Date now = new Date();
-            shop.setCreateTime(now);
-            shop.setUpdateTime(now);
+        shop.setCreateTime(now);
+        shop.setUpdateTime(now);
             
             // 7. 插入数据库
             int result = shopMapper.insert(shop);
@@ -563,7 +563,7 @@ public class ShopServiceImpl implements ShopService {
             
             // 6. 如果有更新，则保存到数据库
             if (updated) {
-                shop.setUpdateTime(new Date());
+        shop.setUpdateTime(new Date());
                 int result = shopMapper.updateById(shop);
                 if (result <= 0) {
                     logger.error("更新店铺信息失败: 数据库更新失败, id={}", id);
@@ -868,7 +868,7 @@ public class ShopServiceImpl implements ShopService {
             tea.setStatus(1); // 默认上架
             tea.setIsDeleted(0); // 未删除
             
-            Date now = new Date();
+        Date now = new Date();
             tea.setCreateTime(now);
             tea.setUpdateTime(now);
             
@@ -1789,4 +1789,4 @@ public class ShopServiceImpl implements ShopService {
             return Result.failure(4132);
         }
     }
-}
+} 
