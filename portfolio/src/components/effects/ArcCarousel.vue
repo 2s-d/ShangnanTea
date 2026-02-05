@@ -57,23 +57,33 @@ const getItemStyle = (displayIndex) => {
   const arcDepth = 0.1
   const y = Math.abs(relativePosition) * arcDepth * props.itemWidth
   
-  // 缩放：中间最大(1.0)，两边递减
-  const maxDistance = 2
+  // 缩放：中间最大(1.0)，两边递减，平滑过渡
   const distance = Math.abs(relativePosition)
-  const scale = Math.max(0.7, 1 - (distance / maxDistance) * 0.3)
-  
-  // 透明度和可见性：只显示中间3个（-1, 0, 1）
-  let opacity = 1
-  let visibility = 'visible'
-  
-  if (Math.abs(relativePosition) > 1.2) {
-    // 超出范围的完全隐藏
-    opacity = 0
-    visibility = 'hidden'
-  } else if (Math.abs(relativePosition) > 1.0) {
-    // 边缘的开始淡出
-    opacity = 1 - (Math.abs(relativePosition) - 1.0) / 0.2
+  let scale
+  if (distance <= 1) {
+    // 中间到左右：1.0 -> 0.85
+    scale = 1.0 - distance * 0.15
+  } else {
+    // 继续向外：0.85 -> 0.7
+    scale = 0.85 - (distance - 1) * 0.15
+    scale = Math.max(0.7, scale)
   }
+  
+  // 透明度：平滑过渡，不突然消失
+  let opacity
+  if (distance <= 1) {
+    // 中间3个卡片：完全可见
+    opacity = 1
+  } else if (distance <= 2) {
+    // 从1到2的距离：从1渐变到0
+    opacity = 1 - (distance - 1)
+  } else {
+    // 超出2的距离：完全透明
+    opacity = 0
+  }
+  
+  // 可见性：只有完全透明时才隐藏
+  const visibility = opacity > 0 ? 'visible' : 'hidden'
   
   // Z轴深度
   const z = -Math.abs(relativePosition) * 100

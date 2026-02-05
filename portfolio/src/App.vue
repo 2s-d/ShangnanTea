@@ -1003,6 +1003,9 @@ const openProject = (url) => {
   object-fit: cover;
   transition: all 0.5s ease;
   filter: brightness(0.95);
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
 }
 
 .project-card:hover .project-image img {
