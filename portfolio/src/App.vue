@@ -321,13 +321,15 @@ const updateHighlight = (e) => {
   const rect = target.getBoundingClientRect()
   const parent = target.parentElement.getBoundingClientRect()
   
-  highlightStyle.value = {
-    left: `${rect.left - parent.left}px`,
-    width: `${rect.width}px`,
-    opacity: 1,
-    transform: 'scaleX(1)'
-  }
-  highlightVisible.value = true
+  requestAnimationFrame(() => {
+    highlightStyle.value = {
+      left: `${rect.left - parent.left}px`,
+      width: `${rect.width}px`,
+      opacity: 1,
+      transform: 'scaleX(1)'
+    }
+    highlightVisible.value = true
+  })
 }
 
 const hideHighlight = () => {
@@ -377,10 +379,11 @@ const openProject = (url) => {
   height: 3px;
   background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
   border-radius: 2px 2px 0 0;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   pointer-events: none;
   z-index: 0;
   box-shadow: 0 -2px 8px rgba(102, 126, 234, 0.4);
+  will-change: left, width;
 }
 
 .nav-menu .el-menu-item {
@@ -394,6 +397,25 @@ const openProject = (url) => {
 .nav-menu .el-menu-item:hover {
   background-color: transparent;
   color: #667eea !important;
+}
+
+.nav-menu .el-menu-item .el-icon {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-menu .el-menu-item:hover .el-icon {
+  transform: translateY(-3px) scale(1.15);
+  filter: drop-shadow(0 4px 8px rgba(102, 126, 234, 0.4));
+  color: #667eea;
+}
+
+.nav-menu .el-menu-item:hover h2 {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  transform: scale(1.05);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .logo h2 {
