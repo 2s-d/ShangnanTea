@@ -80,21 +80,71 @@ class Planet {
     this.centerX = this.x
     this.centerY = this.y
     this.colors = [
+      ['#2a2a2a', '#1a1a1a'],  // 黑色星球
+      ['#c0c0c0', '#909090'],  // 月球银灰色
       ['#ff6b6b', '#ee5a6f'],  // 红色星球
       ['#4ecdc4', '#44a8a0'],  // 青色星球
-      ['#ffe66d', '#f9ca24'],  // 黄色星球
-      ['#a8e6cf', '#7fb3d5'],  // 绿蓝星球
+      ['#9b59b6', '#8e44ad'],  // 紫色星球
     ]
     this.colorPair = this.colors[Math.floor(Math.random() * this.colors.length)]
+    
+    // 光晕闪烁参数
+    this.glowPhase = Math.random() * Math.PI * 2
+    this.glowSpeed = Math.random() * 0.008 + 0.004 // 慢速闪烁
   }
   
   update() {
     this.angle += this.speed * 0.01
     this.x = this.centerX + Math.cos(this.angle) * this.orbitRadius
     this.y = this.centerY + Math.sin(this.angle) * this.orbitRadius
+    
+    // 更新光晕闪烁
+    this.glowPhase += this.glowSpeed
+    
+    // 检查是否超出屏幕边界
+    const margin = this.radius * 3
+    if (this.x < -margin || this.x > canvas.value.width + margin ||
+        this.y < -margin || this.y > canvas.value.height + margin) {
+      this.respawn()
+    }
+  }
+  
+  respawn() {
+    // 从随机边界重生
+    const edge = Math.floor(Math.random() * 4) // 0上 1右 2下 3左
+    const margin = this.radius * 2
+    
+    switch(edge) {
+      case 0: // 上边
+        this.centerX = Math.random() * canvas.value.width
+        this.centerY = -margin
+        break
+      case 1: // 右边
+        this.centerX = canvas.value.width + margin
+        this.centerY = Math.random() * canvas.value.height
+        break
+      case 2: // 下边
+        this.centerX = Math.random() * canvas.value.width
+        this.centerY = canvas.value.height + margin
+        break
+      case 3: // 左边
+        this.centerX = -margin
+        this.centerY = Math.random() * canvas.value.height
+        break
+    }
+    
+    this.x = this.centerX
+    this.y = this.centerY
+    this.angle = Math.random() * Math.PI * 2
+    
+    // 更换颜色
+    this.colorPair = this.colors[Math.floor(Math.random() * this.colors.length)]
   }
   
   draw() {
+    // 计算光晕强度（0.6-1.0之间波动）
+    const glowIntensity = 0.6 + Math.sin(this.glowPhase) * 0.4
+    
     // 行星主体
     const gradient = ctx.createRadialGradient(
       this.x - this.radius * 0.3,
@@ -112,17 +162,39 @@ class Planet {
     ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2)
     ctx.fill()
     
-    // 光晕
-    const glowGradient = ctx.createRadialGradient(
+    // 边缘发光 - 让暗色行星也可见
+    ctx.strokeStyle = 'rgba(255, 255, 255, ' + (glowIntensity * 0.3) + ')'
+    ctx.lineWidth = 2
+    ctx.beginPath()
+    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2)
+    ctx.stroke()
+    
+    // 内层光晕 - 较亮
+    const innerGlow = ctx.createRadialGradient(
       this.x, this.y, this.radius,
       this.x, this.y, this.radius * 1.5
     )
-    glowGradient.addColorStop(0, this.colorPair[0] + '40')
-    glowGradient.addColorStop(1, this.colorPair[0] + '00')
+    const innerAlpha = Math.floor(glowIntensity * 100).toString(16).padStart(2, '0')
+    innerGlow.addColorStop(0, this.colorPair[0] + innerAlpha)
+    innerGlow.addColorStop(1, this.colorPair[0] + '00')
     
-    ctx.fillStyle = glowGradient
+    ctx.fillStyle = innerGlow
     ctx.beginPath()
     ctx.arc(this.x, this.y, this.radius * 1.5, 0, Math.PI * 2)
+    ctx.fill()
+    
+    // 外层光晕 - 较淡但范围更大
+    const outerGlow = ctx.createRadialGradient(
+      this.x, this.y, this.radius * 1.2,
+      this.x, this.y, this.radius * 2.5
+    )
+    const outerAlpha = Math.floor(glowIntensity * 50).toString(16).padStart(2, '0')
+    outerGlow.addColorStop(0, this.colorPair[0] + outerAlpha)
+    outerGlow.addColorStop(1, this.colorPair[0] + '00')
+    
+    ctx.fillStyle = outerGlow
+    ctx.beginPath()
+    ctx.arc(this.x, this.y, this.radius * 2.5, 0, Math.PI * 2)
     ctx.fill()
   }
 }
