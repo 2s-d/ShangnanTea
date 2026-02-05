@@ -31,9 +31,10 @@ const props = defineProps({
 const wrapperRef = ref(null)
 
 // 位置和物理参数（以组件内部坐标为基准）
-// anchorX 取 0，让彩虹柱和挂件保持上下居中对齐
-const anchorX = 0
-const anchorY = 0
+// wrapper 宽度是 80px，anchorX 取 40，让物理坐标的 x=0 对应到容器正中
+// 这样彩虹柱（left:50%）和挂件盒子的中心就能在同一条竖线上
+const anchorX = 26
+const anchorY = 10
 // 基础绳长（静止时顶部到骰子中心的距离），适当拉长一点让视觉上更协调
 const ROPE_BASE_LENGTH = 180
 
