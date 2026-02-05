@@ -350,8 +350,6 @@ const initDisplayedSkills = () => {
 
 // 翻转卡片并随机替换技能
 const flipCard = (displayIndex) => {
-  if (flippingCards.value[displayIndex]) return // 防止重复点击
-  
   flippingCards.value[displayIndex] = true
   
   setTimeout(() => {
@@ -713,10 +711,12 @@ const openProject = (url) => {
   padding: var(--spacing-xl) var(--spacing-lg);
   cursor: pointer;
   transform-style: preserve-3d;
+  pointer-events: auto;
 }
 
 .skill-card.flipping {
   animation: cardFlip 600ms ease-in-out;
+  pointer-events: none;
 }
 
 @keyframes cardFlip {
@@ -1054,3 +1054,4 @@ html {
 
 .dark-mode ::selection {
   background: rgba(102, 126, 234, 0.5);
+}

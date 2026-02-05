@@ -148,15 +148,11 @@ const handleClick = (e) => {
   const x = e.clientX - rect.left
   const y = e.clientY - rect.top
   
-  console.log('Click detected at:', x, y)
-  
   // 创建30-45个粒子
   const count = Math.floor(Math.random() * 15) + 30
   for (let i = 0; i < count; i++) {
     particles.push(new Particle(x, y))
   }
-  
-  console.log('Particles created:', particles.length)
 }
 
 const animate = () => {
@@ -184,12 +180,9 @@ const resizeCanvas = () => {
 }
 
 onMounted(() => {
-  console.log('ClickEffect mounted')
   ctx = canvas.value.getContext('2d')
   resizeCanvas()
   animate()
-  
-  console.log('Canvas size:', canvas.value.width, canvas.value.height)
   
   window.addEventListener('click', handleClick)
   window.addEventListener('resize', resizeCanvas)
