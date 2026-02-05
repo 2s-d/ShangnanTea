@@ -2,9 +2,9 @@ import { ref, watch } from 'vue'
 
 // 主题列表 - 每个主题都是完整的视觉风格
 export const THEMES = {
-  PARTICLE: 'particle',  // 主题1：粒子主题
-  CODERAIN: 'coderain',  // 主题2：代码雨主题
-  STARRY: 'starry',      // 主题3：星空主题
+  STARRY: 'starry',      // 主题1：星空主题（原主题3）
+  PARTICLE: 'particle',  // 主题2：粒子主题（原主题1）
+  CODERAIN: 'coderain',  // 主题3：代码雨主题（原主题2）
 }
 
 export function useThemeSystem() {
@@ -12,7 +12,7 @@ export function useThemeSystem() {
   const isDark = ref(localStorage.getItem('darkMode') === 'true')
   
   // 当前主题
-  const currentTheme = ref(localStorage.getItem('theme') || THEMES.PARTICLE)
+  const currentTheme = ref(localStorage.getItem('theme') || THEMES.STARRY)
 
   // 切换深色/浅色模式（导航栏月亮/太阳图标）
   const toggleDarkMode = () => {
@@ -26,16 +26,16 @@ export function useThemeSystem() {
     const nextIndex = (currentIndex + 1) % themes.length
     currentTheme.value = themes[nextIndex]
     
-    // 切换到代码雨主题时自动开启黑夜模式
-    if (currentTheme.value === THEMES.CODERAIN) {
+    // 切换到星空主题时自动开启黑夜模式
+    if (currentTheme.value === THEMES.STARRY) {
       isDark.value = true
     }
     // 切换到粒子主题时自动开启白天模式
     else if (currentTheme.value === THEMES.PARTICLE) {
       isDark.value = false
     }
-    // 切换到星空主题时自动开启黑夜模式
-    else if (currentTheme.value === THEMES.STARRY) {
+    // 切换到代码雨主题时自动开启黑夜模式
+    else if (currentTheme.value === THEMES.CODERAIN) {
       isDark.value = true
     }
   }

@@ -74,7 +74,7 @@ class Planet {
   constructor(avoidColors = []) {
     this.x = Math.random() * canvas.value.width
     this.y = Math.random() * canvas.value.height
-    this.baseRadius = Math.random() * 40 + 35 // 35-75的随机大小
+    this.baseRadius = Math.random() * 45 + 40 // 40-85的随机大小（增大一丁点）
     this.radius = this.baseRadius
     this.speed = Math.random() * 0.1 + 0.05
     this.angle = Math.random() * Math.PI * 2
@@ -109,7 +109,14 @@ class Planet {
   }
   
   update() {
-    this.angle += this.speed * 0.01
+    // 找出当前屏幕上最小的行星，给予速度加成
+    const smallestPlanet = planets.reduce((smallest, planet) => 
+      planet.baseRadius < smallest.baseRadius ? planet : smallest
+    , planets[0])
+    
+    const speedMultiplier = this === smallestPlanet ? 1.15 : 1.0
+    
+    this.angle += this.speed * 0.01 * speedMultiplier
     this.x = this.centerX + Math.cos(this.angle) * this.orbitRadius
     this.y = this.centerY + Math.sin(this.angle) * this.orbitRadius
     
@@ -167,7 +174,7 @@ class Planet {
     this.colorPair = this.colors[newColorIndex]
     
     // 随机新大小
-    this.baseRadius = Math.random() * 40 + 35
+    this.baseRadius = Math.random() * 45 + 40
     this.breathAmplitude = this.baseRadius * 0.1
     this.breathSpeed = Math.random() * 0.002 + 0.0008 // 重新随机呼吸速度
   }
