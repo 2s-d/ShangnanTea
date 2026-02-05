@@ -296,7 +296,8 @@ onUnmounted(() => {
   width: 100%;
   height: 600px;
   perspective: 2000px;
-  overflow: visible;
+  /* 作为轮播视窗：宽度跟随外层容器，超出的卡片一律裁剪，防止撑出额外滚动区域 */
+  overflow: hidden;
   position: relative;
   cursor: grab;
   user-select: none;
