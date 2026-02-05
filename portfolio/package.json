@@ -12,6 +12,7 @@
     "@iconify/vue": "^5.0.0",
     "element-plus": "^2.5.0",
     "matter-js": "^0.20.0",
+    "three": "^0.182.0",
     "vanilla-tilt": "^1.8.1",
     "vue": "^3.4.0"
   },

@@ -79,19 +79,8 @@
       @mousedown="startDrag"
       @touchstart="startDrag"
     >
-      <!-- 全新的 3D 16 面骰子模型，完全替换原来的立方体 -->
-      <div class="d16">
-        <div
-          v-for="n in 16"
-          :key="n"
-          class="d16-face"
-          :style="d16FaceStyle(n)"
-        >
-          <span class="d16-num">{{ n }}</span>
-        </div>
-        <div class="d16-cap d16-cap-top"></div>
-        <div class="d16-cap d16-cap-bottom"></div>
-      </div>
+      <!-- 使用 three.js 渲染的 Cloud Tea 3D 模型 -->
+      <CloudTeaModel />
     </div>
   </div>
 </template>
@@ -99,6 +88,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { Engine, Bodies, Body, Constraint, Composite } from 'matter-js'
+import CloudTeaModel from './CloudTeaModel.vue'
 
 const props = defineProps({
   currentTheme: String,
