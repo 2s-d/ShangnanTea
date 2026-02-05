@@ -454,13 +454,6 @@ const openProject = (url) => {
   -ms-user-select: none;
 }
 
-/* 限制主要内容宽度，避免项目区容器无限变宽产生横向滚动条 */
-.section > .el-container > .el-main {
-  max-width: 1200px;
-  margin: 0 auto;
-  overflow-x: hidden;
-}
-
 /* 导航栏 */
 .nav-wrapper {
   backdrop-filter: blur(12px) saturate(180%);
