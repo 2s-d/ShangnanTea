@@ -63,7 +63,7 @@ onMounted(() => {
       const maxAxis = Math.max(size.x, size.y, size.z) || 1
 
       // 稍微缩小一点，让底部托盘也能完整显示出来
-      const scale = 1.3 / maxAxis
+      const scale = 1.8 / maxAxis
       model.scale.setScalar(scale)
 
       // 居中到原点附近，并稍微上抬一点
@@ -71,7 +71,7 @@ onMounted(() => {
       box.getCenter(center)
       model.position.sub(center)
       // 轻微上移，但保留足够空间给底部托盘
-      model.position.y += 0.04
+      model.position.y += 0.58
 
       model.rotation.set(0, Math.PI / 6, 0)
 
@@ -115,7 +115,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  transform: translateY(-40px);
+  transform: translateY(-25px);
 }
 
 .cloud-tea-wrapper::before {
