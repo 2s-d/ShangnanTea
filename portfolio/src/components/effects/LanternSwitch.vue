@@ -57,15 +57,15 @@ const hasBeenPulled = ref(false)
 const initialY = ref(0)
 
 // 常量
-const CANVAS_WIDTH = 200
-const CANVAS_HEIGHT = 300
-const ANCHOR_X = 100 // 固定点 X
-const ANCHOR_Y = 20  // 固定点 Y
-const ROPE_SEGMENTS = 12 // 绳子段数
-const SEGMENT_LENGTH = 8 // 每段长度
+const CANVAS_WIDTH = 120
+const CANVAS_HEIGHT = 180
+const ANCHOR_X = 60 // 固定点 X
+const ANCHOR_Y = 10  // 固定点 Y
+const ROPE_SEGMENTS = 6 // 绳子段数（减少）
+const SEGMENT_LENGTH = 6 // 每段长度（缩短）
 const SEGMENT_RADIUS = 2 // 绳子粗细
-const LANTERN_SIZE = 40 // 灯笼大小
-const PULL_THRESHOLD = 60 // 拉动阈值触发切换
+const LANTERN_SIZE = 45 // 灯笼大小
+const PULL_THRESHOLD = 40 // 拉动阈值触发切换
 
 // 灯笼样式（跟随物理引擎）
 const lanternStyle = computed(() => {
@@ -130,16 +130,17 @@ const initPhysics = () => {
   lanternBody = Bodies.rectangle(
     ANCHOR_X,
     ANCHOR_Y + (ROPE_SEGMENTS + 1) * SEGMENT_LENGTH,
-    LANTERN_SIZE * 0.6,
-    LANTERN_SIZE * 0.8,
+    LANTERN_SIZE * 0.7,
+    LANTERN_SIZE * 0.9,
     {
-      density: 0.01,
+      density: 0.008,
       friction: 0.3,
-      frictionAir: 0.02,
+      frictionAir: 0.03,
+      restitution: 0.3,
       render: {
-        fillStyle: 'rgba(255, 0, 0, 0.3)',
+        fillStyle: 'rgba(255, 0, 0, 0.2)',
         strokeStyle: '#ff0000',
-        lineWidth: 2
+        lineWidth: 1
       }
     }
   )
@@ -180,13 +181,24 @@ const initPhysics = () => {
     render: { visible: false }
   }))
 
-  // 鼠标控制
+  // 鼠标控制 - 只能拖拽灯笼
   mouse = Mouse.create(canvasRef.value)
   mouseConstraint = MouseConstraint.create(engine, {
     mouse: mouse,
     constraint: {
-      stiffness: 0.2,
+      stiffness: 0.3,
+      damping: 0.1,
       render: { visible: false }
+    },
+    collisionFilter: {
+      mask: 0x0001
+    }
+  })
+
+  // 设置灯笼的碰撞过滤，让它可以被鼠标选中
+  Matter.Body.set(lanternBody, {
+    collisionFilter: {
+      category: 0x0001
     }
   })
 
@@ -230,14 +242,19 @@ const initPhysics = () => {
 // 手动拖拽（用于触摸设备）
 const startDrag = (e) => {
   e.preventDefault()
+  e.stopPropagation()
   isDragging.value = true
 }
 
 // 点击切换主题
-const handleClick = () => {
-  if (!isDragging.value) {
-    props.onToggle?.()
-  }
+const handleClick = (e) => {
+  e.stopPropagation()
+  // 短时间内没有拖拽才算点击
+  setTimeout(() => {
+    if (!isDragging.value) {
+      props.onToggle?.()
+    }
+  }, 50)
 }
 
 // 清理
@@ -271,99 +288,136 @@ onUnmounted(() => {
 .switch-wrapper {
   position: fixed;
   top: 0;
-  right: 40px;
+  right: 30px;
   z-index: 9999;
-  width: 60px;
+  width: 120px;
+  height: 180px;
   pointer-events: none;
 }
 
-.rope-svg {
+.physics-canvas {
   position: absolute;
   top: 0;
   left: 0;
-  width: 60px;
-  transition: height 0.1s ease-out;
-  filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.3));
-}
-
-.switch-box {
-  position: absolute;
-  width: 50px;
-  height: 50px;
-  cursor: grab;
   pointer-events: auto;
-  transform-style: preserve-3d;
-  transition: transform 0.1s ease-out;
 }
 
-.switch-box:active {
+.lantern {
+  position: absolute;
+  pointer-events: auto;
+  cursor: grab;
+  transition: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 10;
+  user-select: none;
+}
+
+.lantern:active {
   cursor: grabbing;
 }
 
-.box-face {
-  position: absolute;
-  width: 50px;
-  height: 50px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border: 2px solid rgba(255,255,255,0.3);
+.lantern-top {
+  width: 60%;
+  height: 8%;
+  background: linear-gradient(to bottom, #8b4513, #654321);
+  border-radius: 4px 4px 0 0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.lantern-body {
+  position: relative;
+  width: 100%;
+  height: 70%;
+  background: linear-gradient(135deg, #ff4444 0%, #cc0000 50%, #ff4444 100%);
   border-radius: 8px;
+  box-shadow: 
+    0 0 20px rgba(255, 68, 68, 0.6),
+    inset 0 0 20px rgba(255, 255, 255, 0.2),
+    0 4px 10px rgba(0,0,0,0.4);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  overflow: hidden;
 }
 
-.front {
-  transform: translateZ(25px);
+.lantern-pattern {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 8px,
+      rgba(139, 0, 0, 0.3) 8px,
+      rgba(139, 0, 0, 0.3) 10px
+    );
+  pointer-events: none;
 }
 
-.back {
-  transform: translateZ(-25px) rotateY(180deg);
-  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+.lantern-text {
+  font-size: 24px;
+  z-index: 1;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+  animation: glow-pulse 2s ease-in-out infinite;
 }
 
-.left {
-  transform: rotateY(-90deg) translateZ(25px);
-  background: linear-gradient(135deg, #5a67d8 0%, #667eea 100%);
+@keyframes glow-pulse {
+  0%, 100% { 
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+  }
+  50% { 
+    filter: drop-shadow(0 0 8px rgba(255, 200, 0, 0.8)) drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+  }
 }
 
-.right {
-  transform: rotateY(90deg) translateZ(25px);
-  background: linear-gradient(135deg, #5a67d8 0%, #667eea 100%);
+.lantern-bottom {
+  width: 60%;
+  height: 8%;
+  background: linear-gradient(to bottom, #654321, #8b4513);
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
-.top {
-  transform: rotateX(90deg) translateZ(25px);
-  background: linear-gradient(135deg, #7c3aed 0%, #667eea 100%);
+.lantern-tassel {
+  width: 2px;
+  height: 14%;
+  background: linear-gradient(to bottom, #ff4444, #ffaa00);
+  position: relative;
 }
 
-.bottom {
-  transform: rotateX(-90deg) translateZ(25px);
-  background: linear-gradient(135deg, #7c3aed 0%, #667eea 100%);
-}
-
-.box-icon {
-  font-size: 28px;
-  animation: float-icon 2s ease-in-out infinite;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
-}
-
-@keyframes float-icon {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-3px); }
+.lantern-tassel::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 8px;
+  height: 8px;
+  background: #ffaa00;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
 /* 悬停效果 */
-.switch-box:hover .box-face {
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+.lantern:hover .lantern-body {
+  box-shadow: 
+    0 0 30px rgba(255, 68, 68, 0.9),
+    inset 0 0 20px rgba(255, 255, 255, 0.3),
+    0 4px 10px rgba(0,0,0,0.4);
 }
 
-.switch-box:hover .box-icon {
-  animation: bounce-icon 0.6s ease-in-out;
+.lantern:hover .lantern-text {
+  animation: swing-text 0.5s ease-in-out;
 }
 
-@keyframes bounce-icon {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.2); }
+@keyframes swing-text {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-5deg); }
+  75% { transform: rotate(5deg); }
 }
 </style>
