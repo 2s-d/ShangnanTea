@@ -796,9 +796,9 @@ const openProject = (url) => {
   right: 0;
   bottom: 0;
   background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.15) 0%, 
-    rgba(255, 255, 255, 0.08) 50%, 
-    rgba(0, 0, 0, 0.08) 100%
+    rgba(255, 255, 255, 0.08) 0%, 
+    rgba(255, 255, 255, 0.04) 50%, 
+    rgba(0, 0, 0, 0.04) 100%
   );
   border-radius: var(--radius-xl);
   pointer-events: none;
