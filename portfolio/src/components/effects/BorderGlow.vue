@@ -42,21 +42,16 @@ const updateSize = () => {
   const card = wrapper.value.querySelector('.el-card')
   if (!card) return
   
-  const rect = card.getBoundingClientRect()
-  const wrapperRect = wrapper.value.getBoundingClientRect()
-  
-  width = rect.width
-  height = rect.height
+  // 获取原始尺寸（不受transform影响）
+  width = card.offsetWidth
+  height = card.offsetHeight
   
   canvas.value.width = width
   canvas.value.height = height
   
-  // 计算Canvas相对于wrapper的偏移
-  const offsetX = rect.left - wrapperRect.left
-  const offsetY = rect.top - wrapperRect.top
-  
-  canvas.value.style.left = `${offsetX}px`
-  canvas.value.style.top = `${offsetY}px`
+  // Canvas不需要设置left/top，因为它是absolute定位在wrapper内
+  canvas.value.style.left = '0px'
+  canvas.value.style.top = '0px'
   
   // 获取实际的 border-radius
   const styles = window.getComputedStyle(card)

@@ -729,36 +729,39 @@ const openProject = (url) => {
   transition: transform 0.3s ease;
 }
 
+.skill-col.position-0 {
+  transform: translateY(0) scale(1);
+}
+
+.skill-col.position-1 {
+  transform: translateY(8px) scale(1.02);
+  z-index: 2;
+}
+
+.skill-col.position-2 {
+  transform: translateY(15px) scale(1.05);
+  z-index: 3;
+}
+
+.skill-col.position-3 {
+  transform: translateY(15px) scale(1.05);
+  z-index: 3;
+}
+
+.skill-col.position-4 {
+  transform: translateY(8px) scale(1.02);
+  z-index: 2;
+}
+
+.skill-col.position-5 {
+  transform: translateY(0) scale(1);
+}
+
 /* 翻转容器 */
 .flip-container {
   perspective: 1000px;
   transform-style: preserve-3d;
   position: relative;
-}
-
-/* BorderGlow wrapper 位置调整 - 让光带和阴影跟随 */
-.skill-col.position-0 .border-glow-wrapper {
-  transform: translateY(0) scale(1);
-}
-
-.skill-col.position-1 .border-glow-wrapper {
-  transform: translateY(8px) scale(1.02);
-}
-
-.skill-col.position-2 .border-glow-wrapper {
-  transform: translateY(15px) scale(1.05);
-}
-
-.skill-col.position-3 .border-glow-wrapper {
-  transform: translateY(15px) scale(1.05);
-}
-
-.skill-col.position-4 .border-glow-wrapper {
-  transform: translateY(8px) scale(1.02);
-}
-
-.skill-col.position-5 .border-glow-wrapper {
-  transform: translateY(0) scale(1);
 }
 
 .flip-container.flipping {
