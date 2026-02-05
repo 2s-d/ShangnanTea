@@ -649,7 +649,8 @@ const openProject = (url) => {
 
 .skill-card:hover {
   border-color: var(--color-primary);
-  box-shadow: var(--shadow-colored);
+  /* box-shadow由Canvas绘制，这里注释掉 */
+  /* box-shadow: var(--shadow-colored); */
 }
 
 .skill-icon {

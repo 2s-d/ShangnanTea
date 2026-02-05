@@ -1,5 +1,10 @@
 <template>
-  <div class="border-glow-wrapper" ref="wrapper">
+  <div 
+    class="border-glow-wrapper" 
+    ref="wrapper"
+    @mouseenter="isHovered = true"
+    @mouseleave="isHovered = false"
+  >
     <slot></slot>
     <canvas ref="canvas" class="border-glow-canvas"></canvas>
   </div>
@@ -21,6 +26,7 @@ const props = defineProps({
 
 const wrapper = ref(null)
 const canvas = ref(null)
+const isHovered = ref(false)
 let ctx = null
 let animationId = null
 let progress = 0 // 0-1 的进度，表示光点在路径上的位置
@@ -141,6 +147,44 @@ const animate = () => {
   if (!ctx || !canvas.value) return
   
   ctx.clearRect(0, 0, width, height)
+  
+  // 如果hover，绘制整圈发光阴影
+  if (isHovered.value) {
+    ctx.save()
+    
+    // 绘制多层阴影模拟box-shadow效果
+    const shadowLayers = [
+      { blur: 30, opacity: 0.15, offset: 0 },
+      { blur: 20, opacity: 0.2, offset: 0 },
+      { blur: 10, opacity: 0.25, offset: 0 }
+    ]
+    
+    shadowLayers.forEach(layer => {
+      ctx.shadowBlur = layer.blur
+      ctx.shadowColor = `rgba(102, 126, 234, ${layer.opacity})`
+      ctx.shadowOffsetX = layer.offset
+      ctx.shadowOffsetY = layer.offset
+      
+      ctx.strokeStyle = `rgba(102, 126, 234, 0.3)`
+      ctx.lineWidth = 1
+      
+      // 绘制圆角矩形路径
+      ctx.beginPath()
+      ctx.moveTo(borderRadius, 0)
+      ctx.lineTo(width - borderRadius, 0)
+      ctx.arcTo(width, 0, width, borderRadius, borderRadius)
+      ctx.lineTo(width, height - borderRadius)
+      ctx.arcTo(width, height, width - borderRadius, height, borderRadius)
+      ctx.lineTo(borderRadius, height)
+      ctx.arcTo(0, height, 0, height - borderRadius, borderRadius)
+      ctx.lineTo(0, borderRadius)
+      ctx.arcTo(0, 0, borderRadius, 0, borderRadius)
+      ctx.closePath()
+      ctx.stroke()
+    })
+    
+    ctx.restore()
+  }
   
   // 光带长度（像素）
   const lineLength = props.glowSize
