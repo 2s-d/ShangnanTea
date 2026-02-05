@@ -15,7 +15,7 @@ const props = defineProps({
   },
   glowSize: {
     type: Number,
-    default: 80 // 光晕长度
+    default: 60 // 光晕长度，从80减少到60
   }
 })
 
@@ -31,7 +31,10 @@ let borderRadius = 12
 const updateSize = () => {
   if (!wrapper.value || !canvas.value) return
   
-  const rect = wrapper.value.getBoundingClientRect()
+  const card = wrapper.value.querySelector('.el-card')
+  if (!card) return
+  
+  const rect = card.getBoundingClientRect()
   width = rect.width
   height = rect.height
   
@@ -39,11 +42,8 @@ const updateSize = () => {
   canvas.value.height = height
   
   // 获取实际的 border-radius
-  const card = wrapper.value.querySelector('.el-card')
-  if (card) {
-    const styles = window.getComputedStyle(card)
-    borderRadius = parseInt(styles.borderRadius) || 12
-  }
+  const styles = window.getComputedStyle(card)
+  borderRadius = parseInt(styles.borderRadius) || 12
 }
 
 // 根据进度获取路径上的点
@@ -142,25 +142,40 @@ const animate = () => {
   
   ctx.clearRect(0, 0, width, height)
   
-  // 绘制光带
+  // 绘制两道均匀的细线光带
   const glowLength = props.glowSize / ((width + height) * 2) // 转换为进度比例
   
-  for (let i = 0; i < 50; i++) {
-    const offset = (i / 50) * glowLength
-    const currentProgress = (progress - offset + 1) % 1
-    const point = getPointOnPath(currentProgress)
+  // 绘制两道光带
+  for (let band = 0; band < 2; band++) {
+    const bandOffset = band * 0.5 // 第二道光带在对面（相隔50%）
     
-    const opacity = (1 - i / 50) * 0.8
-    const size = (1 - i / 50) * 4 + 1
+    // 绘制均匀的细线
+    for (let i = 0; i < 40; i++) {
+      const offset = (i / 40) * glowLength
+      const currentProgress = (progress + bandOffset - offset + 1) % 1
+      const point = getPointOnPath(currentProgress)
+      
+      // 均匀的透明度和大小
+      const opacity = 0.6 - (i / 40) * 0.5 // 从0.6渐变到0.1
+      const size = 1.5 // 固定细线宽度
+      
+      // 炫酷的蓝色亮光
+      ctx.fillStyle = `rgba(100, 200, 255, ${opacity})`
+      ctx.shadowBlur = 12
+      ctx.shadowColor = `rgba(100, 200, 255, ${opacity * 0.8})`
+      
+      ctx.beginPath()
+      ctx.arc(point.x, point.y, size, 0, Math.PI * 2)
+      ctx.fill()
+    }
     
-    // 渐变色
-    const hue = 250 + (i / 50) * 30 // 从紫色到蓝色
-    ctx.fillStyle = `hsla(${hue}, 70%, 65%, ${opacity})`
-    ctx.shadowBlur = 15
-    ctx.shadowColor = `hsla(${hue}, 70%, 65%, ${opacity})`
-    
+    // 在光带头部添加一个亮点
+    const headPoint = getPointOnPath((progress + bandOffset) % 1)
+    ctx.fillStyle = 'rgba(150, 220, 255, 0.9)'
+    ctx.shadowBlur = 20
+    ctx.shadowColor = 'rgba(150, 220, 255, 0.9)'
     ctx.beginPath()
-    ctx.arc(point.x, point.y, size, 0, Math.PI * 2)
+    ctx.arc(headPoint.x, headPoint.y, 3, 0, Math.PI * 2)
     ctx.fill()
   }
   
@@ -205,8 +220,6 @@ onUnmounted(() => {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
   pointer-events: none;
   z-index: 10;
 }

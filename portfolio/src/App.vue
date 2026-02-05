@@ -177,7 +177,7 @@
               :lg="4"
             >
               <TiltCard :max-tilt="8">
-                <BorderGlow :speed="1.2" :glow-size="100">
+                <BorderGlow :speed="1.0" :glow-size="50">
                   <el-card shadow="hover" class="skill-card glass-effect">
                     <div class="skill-icon">
                       <Icon :icon="skill.icon" :width="48" :height="48" />
