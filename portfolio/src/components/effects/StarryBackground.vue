@@ -22,6 +22,10 @@ let planets = []
 let constellations = []
 let mouseX = 0
 let mouseY = 0
+let lastMouseX = 0
+let lastMouseY = 0
+let mouseSpeed = 0
+let timeScale = 1 // 时间缩放因子
 
 // 星云类
 class Nebula {
@@ -214,6 +218,7 @@ class ShootingStar {
     this.length = Math.random() * 100 + 60
     this.speed = Math.random() * 10 + 8
     this.angle = Math.PI / 4 + (Math.random() - 0.5) * 0.8
+    this.angleVelocity = (Math.random() - 0.5) * 0.003 // 角度变化速度，产生弧度
     this.opacity = 1
     this.tail = []
     this.color = [
@@ -233,9 +238,15 @@ class ShootingStar {
       this.tail.pop()
     }
     
-    this.x += Math.cos(this.angle) * this.speed
-    this.y += Math.sin(this.angle) * this.speed
-    this.opacity -= 0.008
+    // 应用时间缩放（鼠标速度影响）
+    const effectiveSpeed = this.speed * timeScale
+    
+    // 角度逐渐变化，产生弧线轨迹
+    this.angle += this.angleVelocity * timeScale
+    
+    this.x += Math.cos(this.angle) * effectiveSpeed
+    this.y += Math.sin(this.angle) * effectiveSpeed
+    this.opacity -= 0.008 * timeScale
     
     if (this.x > canvas.value.width + 100 || this.y > canvas.value.height + 100 || this.opacity <= 0) {
       // 随机决定是否立即重置（控制流星频率）
@@ -321,6 +332,16 @@ const initCanvas = () => {
 const animate = () => {
   if (!ctx || !canvas.value || !props.show) return
   
+  // 计算时间缩放：鼠标速度越快，时间越慢
+  // mouseSpeed范围大约0-50，映射到timeScale 1.0-0.2
+  const maxMouseSpeed = 50
+  const minTimeScale = 0.2
+  const speedFactor = Math.min(mouseSpeed / maxMouseSpeed, 1)
+  timeScale = 1 - speedFactor * (1 - minTimeScale)
+  
+  // 鼠标速度衰减
+  mouseSpeed *= 0.95
+  
   // 渐变背景 - 深空色
   const bgGradient = ctx.createLinearGradient(0, 0, 0, canvas.value.height)
   bgGradient.addColorStop(0, '#000814')
@@ -361,8 +382,21 @@ const handleResize = () => {
 }
 
 const handleMouseMove = (e) => {
-  mouseX = e.clientX
-  mouseY = e.clientY
+  const newMouseX = e.clientX
+  const newMouseY = e.clientY
+  
+  // 计算鼠标移动距离
+  const deltaX = newMouseX - lastMouseX
+  const deltaY = newMouseY - lastMouseY
+  const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
+  
+  // 更新鼠标速度（使用指数移动平均平滑）
+  mouseSpeed = mouseSpeed * 0.8 + distance * 0.2
+  
+  lastMouseX = newMouseX
+  lastMouseY = newMouseY
+  mouseX = newMouseX
+  mouseY = newMouseY
 }
 
 watch(() => props.show, (newValue) => {
