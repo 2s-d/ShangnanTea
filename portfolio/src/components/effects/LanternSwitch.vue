@@ -1,64 +1,31 @@
 <template>
-  <div class="lantern-container">
-    <!-- 摆动的绳子 -->
-    <svg class="rope-svg" width="4" :height="ropeLength + 20">
-      <path 
-        :d="ropePath" 
-        stroke="#8b4513" 
-        stroke-width="3" 
+  <div class="switch-wrapper">
+    <!-- 绳子 - 会根据拖拽伸缩 -->
+    <svg class="rope-svg" :style="{ height: ropeLength + 'px' }">
+      <path
+        :d="ropePath"
+        stroke="#8b4513"
+        stroke-width="3"
         fill="none"
-        filter="url(#rope-shadow)"
+        stroke-linecap="round"
       />
-      <defs>
-        <filter id="rope-shadow">
-          <feGaussianBlur in="SourceAlpha" stdDeviation="1"/>
-          <feOffset dx="1" dy="1" result="offsetblur"/>
-          <feMerge>
-            <feMergeNode/>
-            <feMergeNode in="SourceGraphic"/>
-          </feMerge>
-        </filter>
-      </defs>
     </svg>
     
-    <!-- 灯笼 -->
+    <!-- 可拖拽的小方块 -->
     <div 
-      class="lantern"
-      :class="{ 'theme-coderain': currentTheme === 'coderain' }"
-      :style="lanternStyle"
-      @click="handleClick"
-      @mouseenter="isHovering = true"
-      @mouseleave="isHovering = false"
+      class="switch-box"
+      :style="boxStyle"
+      @mousedown="startDrag"
+      @touchstart="startDrag"
     >
-      <!-- 灯笼顶盖 -->
-      <div class="lantern-cap top-cap"></div>
-      
-      <!-- 灯笼主体 -->
-      <div class="lantern-body">
-        <!-- 内部光晕 -->
-        <div class="inner-glow"></div>
-        
-        <!-- 装饰条纹 -->
-        <div class="stripe stripe-1"></div>
-        <div class="stripe stripe-2"></div>
-        <div class="stripe stripe-3"></div>
-        
-        <!-- 中心装饰 -->
-        <div class="center-ornament">
-          <div class="ornament-circle"></div>
-        </div>
+      <div class="box-face front">
+        <div class="box-icon">🎨</div>
       </div>
-      
-      <!-- 灯笼底盖 -->
-      <div class="lantern-cap bottom-cap"></div>
-      
-      <!-- 流苏 -->
-      <div class="tassel-group">
-        <div class="tassel" v-for="i in 5" :key="i" :style="{ animationDelay: `${i * 0.1}s` }">
-          <div class="tassel-thread"></div>
-          <div class="tassel-bead"></div>
-        </div>
-      </div>
+      <div class="box-face back"></div>
+      <div class="box-face left"></div>
+      <div class="box-face right"></div>
+      <div class="box-face top"></div>
+      <div class="box-face bottom"></div>
     </div>
   </div>
 </template>
@@ -71,350 +38,234 @@ const props = defineProps({
   onToggle: Function
 })
 
-const ropeLength = ref(80)
-const swingAngle = ref(0)
-const isHovering = ref(false)
-let swingInterval = null
+// 位置和物理参数
+const baseY = 80 // 基础Y位置
+const baseX = 40 // 距离右边的距离
+const offsetY = ref(0) // Y轴偏移
+const offsetX = ref(0) // X轴偏移（用于晃动）
+const velocity = ref(0) // 速度
+const isDragging = ref(false)
+const dragStartY = ref(0)
+const dragStartOffset = ref(0)
 
-// 绳子路径（贝塞尔曲线模拟摆动）
-const ropePath = computed(() => {
-  const angle = swingAngle.value
-  const controlX = 2 + Math.sin(angle) * 8
-  const endX = 2 + Math.sin(angle) * 15
-  return `M 2 0 Q ${controlX} ${ropeLength.value / 2} ${endX} ${ropeLength.value}`
+// 物理参数
+const SPRING_STRENGTH = 0.15 // 弹簧强度
+const DAMPING = 0.85 // 阻尼
+const TRIGGER_DISTANCE = 80 // 触发切换的距离
+const MAX_STRETCH = 150 // 最大拉伸距离
+
+// 绳子长度
+const ropeLength = computed(() => {
+  return 60 + Math.abs(offsetY.value)
 })
 
-// 灯笼样式（跟随绳子摆动）
-const lanternStyle = computed(() => {
-  const angle = swingAngle.value
-  const translateX = Math.sin(angle) * 15
-  const rotate = angle * (180 / Math.PI) * 0.5
-  const scale = isHovering.value ? 1.05 : 1
+// 绳子路径 - 贝塞尔曲线模拟弹性
+const ropePath = computed(() => {
+  const startX = 30
+  const startY = 0
+  const endX = 30 + offsetX.value
+  const endY = ropeLength.value
   
+  // 控制点让绳子有弧度
+  const controlX = startX + offsetX.value * 0.5
+  const controlY = endY * 0.4
+  
+  return `M ${startX} ${startY} Q ${controlX} ${controlY} ${endX} ${endY}`
+})
+
+// 方块样式
+const boxStyle = computed(() => {
+  const rotation = offsetX.value * 0.5 // 根据X偏移旋转
   return {
-    transform: `translateX(${translateX}px) rotate(${rotate}deg) scale(${scale})`
+    top: `${baseY + offsetY.value}px`,
+    right: `${baseX - offsetX.value}px`,
+    transform: `rotateY(${rotation}deg) rotateX(${offsetY.value * 0.2}deg)`
   }
 })
 
-// 点击切换主题
-const handleClick = () => {
-  props.onToggle?.()
-  // 点击时增加摆动幅度
-  const originalAmplitude = 0.15
-  let clickAmplitude = 0.3
-  const decay = 0.95
+// 开始拖拽
+const startDrag = (e) => {
+  isDragging.value = true
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY
+  dragStartY.value = clientY
+  dragStartOffset.value = offsetY.value
   
-  const clickSwing = setInterval(() => {
-    clickAmplitude *= decay
-    if (clickAmplitude < originalAmplitude) {
-      clearInterval(clickSwing)
-    }
-  }, 50)
+  document.addEventListener('mousemove', onDrag)
+  document.addEventListener('mouseup', endDrag)
+  document.addEventListener('touchmove', onDrag)
+  document.addEventListener('touchend', endDrag)
 }
 
-// 自然摆动动画
+// 拖拽中
+const onDrag = (e) => {
+  if (!isDragging.value) return
+  
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY
+  const deltaY = clientY - dragStartY.value
+  
+  // 限制最大拉伸
+  offsetY.value = Math.max(0, Math.min(MAX_STRETCH, dragStartOffset.value + deltaY))
+  
+  // 添加一点横向晃动
+  offsetX.value = Math.sin(offsetY.value * 0.1) * 10
+}
+
+// 结束拖拽
+const endDrag = () => {
+  if (!isDragging.value) return
+  
+  isDragging.value = false
+  
+  // 如果拉到足够远，触发切换
+  if (offsetY.value > TRIGGER_DISTANCE) {
+    props.onToggle?.()
+  }
+  
+  // 设置初始速度用于回弹
+  velocity.value = -offsetY.value * 0.3
+  
+  document.removeEventListener('mousemove', onDrag)
+  document.removeEventListener('mouseup', endDrag)
+  document.removeEventListener('touchmove', onDrag)
+  document.removeEventListener('touchend', endDrag)
+}
+
+// 物理模拟循环
+let animationFrame = null
+const physicsLoop = () => {
+  if (!isDragging.value) {
+    // 弹簧力
+    const springForce = -offsetY.value * SPRING_STRENGTH
+    velocity.value += springForce
+    
+    // 阻尼
+    velocity.value *= DAMPING
+    
+    // 更新位置
+    offsetY.value += velocity.value
+    
+    // 横向晃动衰减
+    offsetX.value *= 0.9
+    
+    // 停止条件
+    if (Math.abs(velocity.value) < 0.1 && Math.abs(offsetY.value) < 0.5) {
+      offsetY.value = 0
+      velocity.value = 0
+      offsetX.value = 0
+    }
+  }
+  
+  animationFrame = requestAnimationFrame(physicsLoop)
+}
+
 onMounted(() => {
-  let time = 0
-  swingInterval = setInterval(() => {
-    time += 0.02
-    swingAngle.value = Math.sin(time) * 0.15 // 小幅度摆动
-  }, 16)
+  physicsLoop()
 })
 
 onUnmounted(() => {
-  if (swingInterval) {
-    clearInterval(swingInterval)
+  if (animationFrame) {
+    cancelAnimationFrame(animationFrame)
   }
 })
 </script>
 
 <style scoped>
-.lantern-container {
+.switch-wrapper {
   position: fixed;
   top: 0;
-  right: 80px;
+  right: 40px;
   z-index: 9999;
-  user-select: none;
+  width: 60px;
+  pointer-events: none;
 }
 
 .rope-svg {
-  display: block;
-  margin: 0 auto;
-  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3));
-}
-
-/* 灯笼 */
-.lantern {
-  width: 70px;
-  cursor: pointer;
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  transform-origin: top center;
-  margin-top: -10px;
-}
-
-/* 顶盖和底盖 */
-.lantern-cap {
-  width: 60px;
-  height: 12px;
-  margin: 0 auto;
-  background: linear-gradient(135deg, #d4af37 0%, #aa8c2c 50%, #d4af37 100%);
-  position: relative;
-  box-shadow: 
-    0 2px 4px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-}
-
-.top-cap {
-  border-radius: 50% 50% 20% 20% / 60% 60% 10% 10%;
-}
-
-.top-cap::before {
-  content: '';
   position: absolute;
-  top: -6px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 20px;
-  height: 8px;
-  background: linear-gradient(135deg, #d4af37, #aa8c2c);
-  border-radius: 50% 50% 0 0;
-  box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
-}
-
-.bottom-cap {
-  border-radius: 20% 20% 50% 50% / 10% 10% 60% 60%;
-}
-
-/* 灯笼主体 */
-.lantern-body {
-  width: 70px;
-  height: 85px;
-  background: linear-gradient(135deg, 
-    #ff3333 0%, 
-    #ff5555 25%,
-    #ff3333 50%,
-    #cc0000 75%,
-    #ff3333 100%
-  );
-  border-radius: 45% 45% 50% 50% / 40% 40% 60% 60%;
-  position: relative;
-  margin: 2px auto;
-  box-shadow: 
-    0 8px 16px rgba(0, 0, 0, 0.4),
-    inset 0 -15px 30px rgba(0, 0, 0, 0.3),
-    inset 0 15px 30px rgba(255, 255, 255, 0.2),
-    0 0 20px rgba(255, 51, 51, 0.3);
-  overflow: hidden;
-  animation: lantern-glow 3s ease-in-out infinite;
-}
-
-/* 内部光晕 */
-.inner-glow {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 50px;
-  height: 60px;
-  background: radial-gradient(ellipse, 
-    rgba(255, 255, 200, 0.6) 0%, 
-    rgba(255, 255, 150, 0.3) 40%,
-    transparent 70%
-  );
-  border-radius: 50%;
-  animation: glow-pulse 2.5s ease-in-out infinite;
-}
-
-/* 装饰条纹 */
-.stripe {
-  position: absolute;
-  width: 100%;
-  height: 1.5px;
-  background: linear-gradient(90deg, 
-    transparent 0%, 
-    rgba(212, 175, 55, 0.8) 20%,
-    rgba(212, 175, 55, 1) 50%,
-    rgba(212, 175, 55, 0.8) 80%,
-    transparent 100%
-  );
+  top: 0;
   left: 0;
-  box-shadow: 0 0 4px rgba(212, 175, 55, 0.6);
+  width: 60px;
+  transition: height 0.1s ease-out;
+  filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.3));
 }
 
-.stripe-1 { top: 25%; }
-.stripe-2 { top: 50%; }
-.stripe-3 { top: 75%; }
-
-/* 中心装饰 */
-.center-ornament {
+.switch-box {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 24px;
-  height: 24px;
+  width: 50px;
+  height: 50px;
+  cursor: grab;
+  pointer-events: auto;
+  transform-style: preserve-3d;
+  transition: transform 0.1s ease-out;
 }
 
-.ornament-circle {
-  width: 100%;
-  height: 100%;
-  border: 2px solid rgba(212, 175, 55, 0.9);
-  border-radius: 50%;
-  box-shadow: 
-    0 0 8px rgba(212, 175, 55, 0.6),
-    inset 0 0 8px rgba(255, 255, 200, 0.3);
-  animation: ornament-spin 8s linear infinite;
+.switch-box:active {
+  cursor: grabbing;
 }
 
-.ornament-circle::before,
-.ornament-circle::after {
-  content: '';
+.box-face {
   position: absolute;
-  background: rgba(212, 175, 55, 0.8);
-  border-radius: 50%;
-}
-
-.ornament-circle::before {
-  width: 4px;
-  height: 4px;
-  top: 50%;
-  left: 2px;
-  transform: translateY(-50%);
-}
-
-.ornament-circle::after {
-  width: 4px;
-  height: 4px;
-  top: 50%;
-  right: 2px;
-  transform: translateY(-50%);
-}
-
-/* 流苏组 */
-.tassel-group {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 8px;
   display: flex;
-  justify-content: center;
-  gap: 4px;
-  margin-top: 2px;
-}
-
-.tassel {
-  display: flex;
-  flex-direction: column;
   align-items: center;
-  animation: tassel-swing 2s ease-in-out infinite;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
 
-.tassel-thread {
-  width: 1.5px;
-  height: 18px;
-  background: linear-gradient(to bottom, #d4af37, #aa8c2c);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+.front {
+  transform: translateZ(25px);
 }
 
-.tassel-bead {
-  width: 6px;
-  height: 8px;
-  background: linear-gradient(135deg, #ff3333, #cc0000);
-  border-radius: 50% 50% 60% 60%;
-  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.4);
+.back {
+  transform: translateZ(-25px) rotateY(180deg);
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
 }
 
-/* 代码雨主题样式 */
-.theme-coderain .lantern-body {
-  box-shadow: 
-    0 8px 16px rgba(0, 0, 0, 0.4),
-    inset 0 -15px 30px rgba(0, 0, 0, 0.3),
-    inset 0 15px 30px rgba(255, 255, 255, 0.2),
-    0 0 40px rgba(255, 51, 51, 0.8),
-    0 0 60px rgba(255, 51, 51, 0.4);
-  animation: lantern-glow-strong 2s ease-in-out infinite;
+.left {
+  transform: rotateY(-90deg) translateZ(25px);
+  background: linear-gradient(135deg, #5a67d8 0%, #667eea 100%);
 }
 
-.theme-coderain .inner-glow {
-  background: radial-gradient(ellipse, 
-    rgba(255, 255, 200, 0.9) 0%, 
-    rgba(255, 255, 150, 0.6) 40%,
-    transparent 70%
-  );
+.right {
+  transform: rotateY(90deg) translateZ(25px);
+  background: linear-gradient(135deg, #5a67d8 0%, #667eea 100%);
 }
 
-/* 动画 */
-@keyframes lantern-glow {
-  0%, 100% {
-    box-shadow: 
-      0 8px 16px rgba(0, 0, 0, 0.4),
-      inset 0 -15px 30px rgba(0, 0, 0, 0.3),
-      inset 0 15px 30px rgba(255, 255, 255, 0.2),
-      0 0 20px rgba(255, 51, 51, 0.3);
-  }
-  50% {
-    box-shadow: 
-      0 8px 16px rgba(0, 0, 0, 0.4),
-      inset 0 -15px 30px rgba(0, 0, 0, 0.3),
-      inset 0 15px 30px rgba(255, 255, 255, 0.2),
-      0 0 30px rgba(255, 51, 51, 0.5);
-  }
+.top {
+  transform: rotateX(90deg) translateZ(25px);
+  background: linear-gradient(135deg, #7c3aed 0%, #667eea 100%);
 }
 
-@keyframes lantern-glow-strong {
-  0%, 100% {
-    box-shadow: 
-      0 8px 16px rgba(0, 0, 0, 0.4),
-      inset 0 -15px 30px rgba(0, 0, 0, 0.3),
-      inset 0 15px 30px rgba(255, 255, 255, 0.2),
-      0 0 40px rgba(255, 51, 51, 0.8),
-      0 0 60px rgba(255, 51, 51, 0.4);
-  }
-  50% {
-    box-shadow: 
-      0 8px 16px rgba(0, 0, 0, 0.4),
-      inset 0 -15px 30px rgba(0, 0, 0, 0.3),
-      inset 0 15px 30px rgba(255, 255, 255, 0.2),
-      0 0 50px rgba(255, 51, 51, 1),
-      0 0 80px rgba(255, 51, 51, 0.6);
-  }
+.bottom {
+  transform: rotateX(-90deg) translateZ(25px);
+  background: linear-gradient(135deg, #7c3aed 0%, #667eea 100%);
 }
 
-@keyframes glow-pulse {
-  0%, 100% {
-    opacity: 0.6;
-    transform: translate(-50%, -50%) scale(1);
-  }
-  50% {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1.1);
-  }
+.box-icon {
+  font-size: 28px;
+  animation: float-icon 2s ease-in-out infinite;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
 }
 
-@keyframes ornament-spin {
-  from { transform: translate(-50%, -50%) rotate(0deg); }
-  to { transform: translate(-50%, -50%) rotate(360deg); }
+@keyframes float-icon {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-3px); }
 }
 
-@keyframes tassel-swing {
-  0%, 100% { transform: translateX(0) rotate(0deg); }
-  25% { transform: translateX(-1px) rotate(-2deg); }
-  75% { transform: translateX(1px) rotate(2deg); }
+/* 悬停效果 */
+.switch-box:hover .box-face {
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
 }
 
-/* 响应式 */
-@media (max-width: 768px) {
-  .lantern-container {
-    right: 20px;
-  }
-  
-  .lantern {
-    width: 60px;
-  }
-  
-  .lantern-body {
-    width: 60px;
-    height: 75px;
-  }
-  
-  .lantern-cap {
-    width: 50px;
-  }
+.switch-box:hover .box-icon {
+  animation: bounce-icon 0.6s ease-in-out;
+}
+
+@keyframes bounce-icon {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
 }
 </style>
