@@ -190,7 +190,6 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { Engine, Bodies, Body, Constraint, Composite } from 'matter-js'
-import Dice16 from '../Dice16.vue'
 
 const props = defineProps({
   currentTheme: String,
