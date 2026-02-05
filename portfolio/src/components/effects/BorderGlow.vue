@@ -265,6 +265,12 @@ onUnmounted(() => {
   display: inline-block;
   width: 100%;
   height: 100%;
+  transition: all 0.3s;
+}
+
+/* 把box-shadow放在wrapper上 */
+.border-glow-wrapper:hover {
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.4);
 }
 
 .border-glow-canvas {

@@ -653,7 +653,7 @@ const openProject = (url) => {
 
 .skill-card:hover {
   border-color: var(--color-primary);
-  /* box-shadow移到BorderGlow的wrapper上了 */
+  /* box-shadow已经移到BorderGlow的wrapper上了 */
 }
 
 .skill-icon {
