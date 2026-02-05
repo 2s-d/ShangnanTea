@@ -1,171 +1,269 @@
 <template>
   <div class="switch-wrapper">
-    <!-- 绳子 - 会根据拖拽伸缩 -->
-    <svg class="rope-svg" :style="{ height: ropeLength + 'px' }">
-      <path
-        :d="ropePath"
-        stroke="#8b4513"
-        stroke-width="3"
-        fill="none"
-        stroke-linecap="round"
-      />
-    </svg>
+    <!-- Matter.js Canvas for rope physics -->
+    <canvas ref="canvasRef" class="physics-canvas"></canvas>
     
-    <!-- 可拖拽的小方块 -->
+    <!-- 灯笼 DOM 元素 (跟随物理引擎位置) -->
     <div 
-      class="switch-box"
-      :style="boxStyle"
+      class="lantern"
+      :style="lanternStyle"
       @mousedown="startDrag"
       @touchstart="startDrag"
+      @click="handleClick"
     >
-      <div class="box-face front">
-        <div class="box-icon">🎨</div>
+      <div class="lantern-top"></div>
+      <div class="lantern-body">
+        <div class="lantern-pattern"></div>
+        <div class="lantern-text">🏮</div>
       </div>
-      <div class="box-face back"></div>
-      <div class="box-face left"></div>
-      <div class="box-face right"></div>
-      <div class="box-face top"></div>
-      <div class="box-face bottom"></div>
+      <div class="lantern-bottom"></div>
+      <div class="lantern-tassel"></div>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import Matter from 'matter-js'
 
 const props = defineProps({
   currentTheme: String,
   onToggle: Function
 })
 
-// 位置和物理参数
-const baseY = 80 // 基础Y位置
-const baseX = 40 // 距离右边的距离
-const offsetY = ref(0) // Y轴偏移
-const offsetX = ref(0) // X轴偏移（用于晃动）
-const velocity = ref(0) // 速度
+// Canvas 引用
+const canvasRef = ref(null)
+
+// Matter.js 核心对象
+let engine = null
+let render = null
+let runner = null
+let mouse = null
+let mouseConstraint = null
+
+// 绳子和灯笼的物理体
+let ropeSegments = []
+let lanternBody = null
+let anchorPoint = null
+
+// 灯笼位置（用于 DOM 同步）
+const lanternX = ref(0)
+const lanternY = ref(0)
+const lanternAngle = ref(0)
+
+// 拖拽状态
 const isDragging = ref(false)
-const dragStartY = ref(0)
-const dragStartOffset = ref(0)
+const hasBeenPulled = ref(false)
+const initialY = ref(0)
 
-// 物理参数
-const SPRING_STRENGTH = 0.15 // 弹簧强度
-const DAMPING = 0.85 // 阻尼
-const TRIGGER_DISTANCE = 80 // 触发切换的距离
-const MAX_STRETCH = 150 // 最大拉伸距离
+// 常量
+const CANVAS_WIDTH = 200
+const CANVAS_HEIGHT = 300
+const ANCHOR_X = 100 // 固定点 X
+const ANCHOR_Y = 20  // 固定点 Y
+const ROPE_SEGMENTS = 12 // 绳子段数
+const SEGMENT_LENGTH = 8 // 每段长度
+const SEGMENT_RADIUS = 2 // 绳子粗细
+const LANTERN_SIZE = 40 // 灯笼大小
+const PULL_THRESHOLD = 60 // 拉动阈值触发切换
 
-// 绳子长度
-const ropeLength = computed(() => {
-  return 60 + Math.abs(offsetY.value)
-})
-
-// 绳子路径 - 贝塞尔曲线模拟弹性
-const ropePath = computed(() => {
-  const startX = 30
-  const startY = 0
-  const endX = 30 + offsetX.value
-  const endY = ropeLength.value
-  
-  // 控制点让绳子有弧度
-  const controlX = startX + offsetX.value * 0.5
-  const controlY = endY * 0.4
-  
-  return `M ${startX} ${startY} Q ${controlX} ${controlY} ${endX} ${endY}`
-})
-
-// 方块样式
-const boxStyle = computed(() => {
-  const rotation = offsetX.value * 0.5 // 根据X偏移旋转
+// 灯笼样式（跟随物理引擎）
+const lanternStyle = computed(() => {
   return {
-    top: `${baseY + offsetY.value}px`,
-    right: `${baseX - offsetX.value}px`,
-    transform: `rotateY(${rotation}deg) rotateX(${offsetY.value * 0.2}deg)`
+    left: `${lanternX.value - LANTERN_SIZE / 2}px`,
+    top: `${lanternY.value - LANTERN_SIZE / 2}px`,
+    transform: `rotate(${lanternAngle.value}rad)`,
+    width: `${LANTERN_SIZE}px`,
+    height: `${LANTERN_SIZE}px`
   }
 })
 
-// 开始拖拽
+// 初始化 Matter.js
+const initPhysics = () => {
+  const { Engine, Render, Runner, Bodies, Composite, Constraint, Mouse, MouseConstraint, Events } = Matter
+
+  // 创建引擎
+  engine = Engine.create({
+    gravity: { x: 0, y: 1 }
+  })
+
+  // 创建渲染器
+  render = Render.create({
+    canvas: canvasRef.value,
+    engine: engine,
+    options: {
+      width: CANVAS_WIDTH,
+      height: CANVAS_HEIGHT,
+      wireframes: false,
+      background: 'transparent'
+    }
+  })
+
+  // 创建固定锚点（不可见）
+  anchorPoint = Bodies.circle(ANCHOR_X, ANCHOR_Y, 3, {
+    isStatic: true,
+    render: { visible: false }
+  })
+
+  // 创建绳子段（链式连接的小圆球）
+  ropeSegments = []
+  for (let i = 0; i < ROPE_SEGMENTS; i++) {
+    const segment = Bodies.circle(
+      ANCHOR_X,
+      ANCHOR_Y + (i + 1) * SEGMENT_LENGTH,
+      SEGMENT_RADIUS,
+      {
+        density: 0.001,
+        friction: 0.1,
+        frictionAir: 0.01,
+        render: {
+          fillStyle: '#8b4513',
+          strokeStyle: '#654321',
+          lineWidth: 1
+        }
+      }
+    )
+    ropeSegments.push(segment)
+  }
+
+  // 创建灯笼物理体
+  lanternBody = Bodies.rectangle(
+    ANCHOR_X,
+    ANCHOR_Y + (ROPE_SEGMENTS + 1) * SEGMENT_LENGTH,
+    LANTERN_SIZE * 0.6,
+    LANTERN_SIZE * 0.8,
+    {
+      density: 0.01,
+      friction: 0.3,
+      frictionAir: 0.02,
+      render: {
+        fillStyle: 'rgba(255, 0, 0, 0.3)',
+        strokeStyle: '#ff0000',
+        lineWidth: 2
+      }
+    }
+  )
+
+  // 记录初始Y位置
+  initialY.value = lanternBody.position.y
+
+  // 添加所有物体到世界
+  Composite.add(engine.world, [anchorPoint, ...ropeSegments, lanternBody])
+
+  // 创建约束（连接绳子段）
+  // 锚点到第一段
+  Composite.add(engine.world, Constraint.create({
+    bodyA: anchorPoint,
+    bodyB: ropeSegments[0],
+    length: SEGMENT_LENGTH,
+    stiffness: 0.9,
+    render: { visible: false }
+  }))
+
+  // 绳子段之间
+  for (let i = 0; i < ropeSegments.length - 1; i++) {
+    Composite.add(engine.world, Constraint.create({
+      bodyA: ropeSegments[i],
+      bodyB: ropeSegments[i + 1],
+      length: SEGMENT_LENGTH,
+      stiffness: 0.9,
+      render: { visible: false }
+    }))
+  }
+
+  // 最后一段到灯笼
+  Composite.add(engine.world, Constraint.create({
+    bodyA: ropeSegments[ropeSegments.length - 1],
+    bodyB: lanternBody,
+    length: SEGMENT_LENGTH,
+    stiffness: 0.9,
+    render: { visible: false }
+  }))
+
+  // 鼠标控制
+  mouse = Mouse.create(canvasRef.value)
+  mouseConstraint = MouseConstraint.create(engine, {
+    mouse: mouse,
+    constraint: {
+      stiffness: 0.2,
+      render: { visible: false }
+    }
+  })
+
+  Composite.add(engine.world, mouseConstraint)
+
+  // 监听拖拽事件
+  Events.on(mouseConstraint, 'startdrag', () => {
+    isDragging.value = true
+  })
+
+  Events.on(mouseConstraint, 'enddrag', () => {
+    isDragging.value = false
+    
+    // 检查是否拉动超过阈值
+    const pullDistance = lanternBody.position.y - initialY.value
+    if (pullDistance > PULL_THRESHOLD && hasBeenPulled.value) {
+      props.onToggle?.()
+      hasBeenPulled.value = false
+    }
+  })
+
+  // 更新循环 - 同步物理位置到 DOM
+  Events.on(engine, 'afterUpdate', () => {
+    lanternX.value = lanternBody.position.x
+    lanternY.value = lanternBody.position.y
+    lanternAngle.value = lanternBody.angle
+
+    // 检测拉动
+    const pullDistance = lanternBody.position.y - initialY.value
+    if (pullDistance > PULL_THRESHOLD) {
+      hasBeenPulled.value = true
+    }
+  })
+
+  // 启动引擎和渲染
+  Render.run(render)
+  runner = Runner.create()
+  Runner.run(runner, engine)
+}
+
+// 手动拖拽（用于触摸设备）
 const startDrag = (e) => {
+  e.preventDefault()
   isDragging.value = true
-  const clientY = e.touches ? e.touches[0].clientY : e.clientY
-  dragStartY.value = clientY
-  dragStartOffset.value = offsetY.value
-  
-  document.addEventListener('mousemove', onDrag)
-  document.addEventListener('mouseup', endDrag)
-  document.addEventListener('touchmove', onDrag)
-  document.addEventListener('touchend', endDrag)
 }
 
-// 拖拽中
-const onDrag = (e) => {
-  if (!isDragging.value) return
-  
-  const clientY = e.touches ? e.touches[0].clientY : e.clientY
-  const deltaY = clientY - dragStartY.value
-  
-  // 限制最大拉伸
-  offsetY.value = Math.max(0, Math.min(MAX_STRETCH, dragStartOffset.value + deltaY))
-  
-  // 添加一点横向晃动
-  offsetX.value = Math.sin(offsetY.value * 0.1) * 10
-}
-
-// 结束拖拽
-const endDrag = () => {
-  if (!isDragging.value) return
-  
-  isDragging.value = false
-  
-  // 如果拉到足够远，触发切换
-  if (offsetY.value > TRIGGER_DISTANCE) {
+// 点击切换主题
+const handleClick = () => {
+  if (!isDragging.value) {
     props.onToggle?.()
   }
-  
-  // 设置初始速度用于回弹
-  velocity.value = -offsetY.value * 0.3
-  
-  document.removeEventListener('mousemove', onDrag)
-  document.removeEventListener('mouseup', endDrag)
-  document.removeEventListener('touchmove', onDrag)
-  document.removeEventListener('touchend', endDrag)
 }
 
-// 物理模拟循环
-let animationFrame = null
-const physicsLoop = () => {
-  if (!isDragging.value) {
-    // 弹簧力
-    const springForce = -offsetY.value * SPRING_STRENGTH
-    velocity.value += springForce
-    
-    // 阻尼
-    velocity.value *= DAMPING
-    
-    // 更新位置
-    offsetY.value += velocity.value
-    
-    // 横向晃动衰减
-    offsetX.value *= 0.9
-    
-    // 停止条件
-    if (Math.abs(velocity.value) < 0.1 && Math.abs(offsetY.value) < 0.5) {
-      offsetY.value = 0
-      velocity.value = 0
-      offsetX.value = 0
-    }
+// 清理
+const cleanup = () => {
+  if (render) {
+    Matter.Render.stop(render)
+    render.canvas.remove()
+    render.canvas = null
+    render.context = null
+    render.textures = {}
   }
-  
-  animationFrame = requestAnimationFrame(physicsLoop)
+  if (runner) {
+    Matter.Runner.stop(runner)
+  }
+  if (engine) {
+    Matter.Engine.clear(engine)
+    Matter.World.clear(engine.world, false)
+  }
 }
 
 onMounted(() => {
-  physicsLoop()
+  initPhysics()
 })
 
 onUnmounted(() => {
-  if (animationFrame) {
-    cancelAnimationFrame(animationFrame)
-  }
+  cleanup()
 })
 </script>
 
