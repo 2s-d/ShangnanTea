@@ -1,5 +1,5 @@
 <template>
-  <div class="switch-wrapper">
+  <div ref="wrapperRef" class="switch-wrapper">
     <!-- 绳子 - 会根据拖拽伸缩 -->
     <svg class="rope-svg" :style="{ height: ropeLength + 'px' }">
       <path
@@ -32,16 +32,23 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { Engine, Bodies, Body, Constraint, Composite } from 'matter-js'
 
 const props = defineProps({
   currentTheme: String,
   onToggle: Function
 })
 
-// 位置和物理参数
+// DOM 引用
+const wrapperRef = ref(null)
+
+// 位置和物理参数（以组件内部坐标为基准）
+const anchorX = 40
+const anchorY = 0
+const ROPE_BASE_LENGTH = 80
+
 const offsetY = ref(0) // Y轴偏移
 const offsetX = ref(0) // X轴偏移（用于晃动和左右拉动）
-const velocity = ref(0) // 纵向速度
 const isDragging = ref(false)
 const dragStartY = ref(0)
 const dragStartOffset = ref(0)
@@ -49,22 +56,18 @@ const dragStartX = ref(0)
 const dragStartOffsetX = ref(0)
 
 // 物理参数
-const SPRING_STRENGTH = 0.15 // 弹簧强度
-const DAMPING = 0.85 // 阻尼
 const TRIGGER_DISTANCE = 80 // 触发切换的距离
 const MAX_STRETCH = 150 // 最大拉伸距离
 const MAX_HORIZONTAL = 20 // 最大左右偏移
 
-// 绳子长度
-const ropeLength = computed(() => {
-  return 60 + Math.abs(offsetY.value)
-})
+// 绳子当前长度（由物理引擎驱动）
+const ropeLength = ref(ROPE_BASE_LENGTH)
 
 // 绳子路径 - 贝塞尔曲线模拟弹性
 const ropePath = computed(() => {
-  const startX = 40
-  const startY = 0
-  const endX = 40 + offsetX.value
+  const startX = anchorX
+  const startY = anchorY
+  const endX = anchorX + offsetX.value
   const endY = ropeLength.value
   
   // 控制点让绳子有弧度
@@ -78,7 +81,7 @@ const ropePath = computed(() => {
 const boxStyle = computed(() => {
   const rotation = offsetX.value * 0.5 // 根据X偏移旋转
   const boxSize = 50
-  const centerX = 40 + offsetX.value
+  const centerX = anchorX + offsetX.value
   const centerY = ropeLength.value
   const top = centerY - boxSize / 2
   const left = centerX - boxSize / 2
@@ -89,7 +92,60 @@ const boxStyle = computed(() => {
   }
 })
 
-// 开始拖拽
+// === Matter.js 物理世界 ===
+let engine = null
+let boxBody = null
+let ropeConstraint = null
+let animationFrame = null
+let lastTime = 0
+
+const initPhysics = () => {
+  engine = Engine.create({
+    gravity: { x: 0, y: 1 }
+  })
+
+  // 小方块刚体
+  boxBody = Bodies.circle(anchorX, ROPE_BASE_LENGTH, 25, {
+    mass: 1,
+    frictionAir: 0.02
+  })
+
+  // 绳子约束：将锚点与方块连接
+  ropeConstraint = Constraint.create({
+    pointA: { x: anchorX, y: anchorY },
+    bodyB: boxBody,
+    length: ROPE_BASE_LENGTH,
+    stiffness: 0.02
+  })
+
+  Composite.add(engine.world, [boxBody, ropeConstraint])
+}
+
+const physicsTick = (time) => {
+  if (!engine || !boxBody) {
+    animationFrame = requestAnimationFrame(physicsTick)
+    return
+  }
+
+  if (!lastTime) {
+    lastTime = time
+  }
+  const delta = time - lastTime
+  lastTime = time
+
+  Engine.update(engine, delta)
+
+  // 将物理世界位置映射到组件坐标
+  const { x, y } = boxBody.position
+  ropeLength.value = y
+  offsetX.value = x - anchorX
+  offsetY.value = y - ROPE_BASE_LENGTH
+
+  animationFrame = requestAnimationFrame(physicsTick)
+}
+
+// === 交互逻辑：拖拽时直接设置刚体位置 ===
+
 const startDrag = (e) => {
   isDragging.value = true
   const clientY = e.touches ? e.touches[0].clientY : e.clientY
@@ -114,13 +170,19 @@ const onDrag = (e) => {
   const deltaY = clientY - dragStartY.value
   const deltaX = clientX - dragStartX.value
   
-  // 限制最大拉伸
-  offsetY.value = Math.max(0, Math.min(MAX_STRETCH, dragStartOffset.value + deltaY))
-  // 允许左右拖动，限制最大偏移
-  offsetX.value = Math.max(
+  // 计算目标偏移
+  const nextOffsetY = Math.max(0, Math.min(MAX_STRETCH, dragStartOffset.value + deltaY))
+  const nextOffsetX = Math.max(
     -MAX_HORIZONTAL,
     Math.min(MAX_HORIZONTAL, dragStartOffsetX.value + deltaX * 0.2)
   )
+
+  if (boxBody) {
+    const targetX = anchorX + nextOffsetX
+    const targetY = ROPE_BASE_LENGTH + nextOffsetY
+    Body.setPosition(boxBody, { x: targetX, y: targetY })
+    Body.setVelocity(boxBody, { x: 0, y: 0 })
+  }
 }
 
 // 结束拖拽
@@ -134,51 +196,24 @@ const endDrag = () => {
     props.onToggle?.()
   }
   
-  // 设置初始速度用于回弹
-  velocity.value = -offsetY.value * 0.3
-  
   document.removeEventListener('mousemove', onDrag)
   document.removeEventListener('mouseup', endDrag)
   document.removeEventListener('touchmove', onDrag)
   document.removeEventListener('touchend', endDrag)
 }
 
-// 物理模拟循环
-let animationFrame = null
-const physicsLoop = () => {
-  if (!isDragging.value) {
-    // 弹簧力
-    const springForce = -offsetY.value * SPRING_STRENGTH
-    velocity.value += springForce
-    
-    // 阻尼
-    velocity.value *= DAMPING
-    
-    // 更新位置
-    offsetY.value += velocity.value
-    
-    // 横向晃动衰减
-    offsetX.value *= 0.9
-    
-    // 停止条件
-    if (Math.abs(velocity.value) < 0.1 && Math.abs(offsetY.value) < 0.5) {
-      offsetY.value = 0
-      velocity.value = 0
-      offsetX.value = 0
-    }
-  }
-  
-  animationFrame = requestAnimationFrame(physicsLoop)
-}
-
 onMounted(() => {
-  physicsLoop()
+  initPhysics()
+  animationFrame = requestAnimationFrame(physicsTick)
 })
 
 onUnmounted(() => {
   if (animationFrame) {
     cancelAnimationFrame(animationFrame)
   }
+  engine = null
+  boxBody = null
+  ropeConstraint = null
 })
 </script>
 
