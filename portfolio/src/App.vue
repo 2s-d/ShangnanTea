@@ -138,8 +138,8 @@
               :lg="4"
             >
               <TiltCard :max-tilt="8">
-                <el-card shadow="hover" class="skill-card card-hover glass-effect">
-                  <div class="skill-icon animate-pulse">{{ skill.icon }}</div>
+                <el-card shadow="hover" class="skill-card glass-effect">
+                  <div class="skill-icon">{{ skill.icon }}</div>
                   <h3>{{ skill.name }}</h3>
                   <SkillProgress 
                     :name="skill.name"
@@ -170,7 +170,7 @@
               :md="8"
             >
               <TiltCard :max-tilt="5">
-                <el-card shadow="hover" class="project-card card-hover glass-effect">
+                <el-card shadow="hover" class="project-card glass-effect">
                   <template #header>
                     <div class="project-header">
                       <span class="project-name">{{ project.name }}</span>
