@@ -18,7 +18,7 @@
       </svg>
     </div>
     
-    <div class="carousel-container">
+    <div class="carousel-container" :class="{ dragging: isDragging }">
       <div
         v-for="(item, index) in displayItems"
         :key="`${item.id}-${index}`"
@@ -320,8 +320,12 @@ onUnmounted(() => {
   top: -250px;
   width: 400px;
   transform-style: preserve-3d;
-  transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
   will-change: transform, opacity;
   pointer-events: auto;
+}
+
+/* 只在非拖拽状态下才有过渡动画 */
+.carousel-container:not(.dragging) .carousel-item {
+  transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 </style>
