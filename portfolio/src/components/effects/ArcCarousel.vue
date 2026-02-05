@@ -4,8 +4,7 @@
        @touchstart="handleTouchStart">
     <!-- 左箭头 -->
     <div class="arrow arrow-left" 
-         @mouseenter="handleArrowHover('prev')"
-         @mouseleave="handleArrowLeave">
+         @click="handleArrowClick('prev')">
       <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <polyline points="15 18 9 12 15 6"></polyline>
       </svg>
@@ -13,8 +12,7 @@
     
     <!-- 右箭头 -->
     <div class="arrow arrow-right"
-         @mouseenter="handleArrowHover('next')"
-         @mouseleave="handleArrowLeave">
+         @click="handleArrowClick('next')">
       <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <polyline points="9 18 15 12 9 6"></polyline>
       </svg>
@@ -47,7 +45,7 @@ const props = defineProps({
   },
   autoPlayInterval: {
     type: Number,
-    default: 15000 // 15秒
+    default: 10000 // 10秒
   }
 })
 
@@ -56,7 +54,6 @@ const isDragging = ref(false)
 const startX = ref(0)
 const dragOffset = ref(0)
 let autoPlayTimer = null
-let arrowHoverTimer = null
 
 // 创建循环显示的项目数组（显示5个用于过渡，但只有3个可见）
 const displayItems = computed(() => {
@@ -94,6 +91,22 @@ const stopAutoPlay = () => {
 // 重置自动轮播（用户操作后重新计时）
 const resetAutoPlay = () => {
   startAutoPlay()
+}
+
+// 箭头点击处理
+const handleArrowClick = (direction) => {
+  stopAutoPlay() // 停止自动轮播
+  
+  if (direction === 'prev') {
+    // 向右滑动（显示前一个）
+    currentIndex.value = (currentIndex.value - 1 + props.items.length) % props.items.length
+  } else {
+    // 向左滑动（显示下一个）
+    currentIndex.value = (currentIndex.value + 1) % props.items.length
+  }
+  
+  // 重新启动自动轮播
+  resetAutoPlay()
 }
 
 // 计算每个卡片的位置和样式
@@ -235,6 +248,59 @@ onUnmounted(() => {
 
 .arc-carousel:active {
   cursor: grabbing;
+}
+
+/* 箭头按钮 */
+.arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.3s ease;
+  opacity: 0.4;
+  backdrop-filter: blur(10px);
+}
+
+.arrow:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.arrow-left {
+  left: 10px;
+  animation: arrowPulse 3.5s ease-in-out infinite;
+}
+
+.arrow-right {
+  right: 10px;
+  animation: arrowPulse 3.5s ease-in-out infinite;
+}
+
+/* 若隐若现动画：3秒保持，0.5秒亮一下 */
+@keyframes arrowPulse {
+  0%, 85.7% {
+    opacity: 0.4;
+  }
+  90%, 95% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0.4;
+  }
+}
+
+.arrow svg {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
 .carousel-container {
