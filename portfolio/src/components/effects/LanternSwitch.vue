@@ -25,7 +25,7 @@
       <path
         :d="ropePath"
         stroke="url(#ropeGradient)"
-        stroke-width="3.5"
+        stroke-width="4.5"
         fill="none"
         stroke-linecap="round"
         stroke-linejoin="round"
@@ -40,6 +40,17 @@
         stroke-linejoin="round"
         opacity="0.8"
         transform="translate(-1, 0)"
+      />
+
+      <!-- 轻微外发光，提升在紫色背景下的可见度 -->
+      <path
+        :d="ropePath"
+        stroke="rgba(255,255,255,0.2)"
+        stroke-width="7"
+        fill="none"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        opacity="0.6"
       />
 
       <!-- 末端系结（接近骰子顶部的小结） -->
@@ -93,7 +104,8 @@ const props = defineProps({
 const wrapperRef = ref(null)
 
 // 位置和物理参数（以组件内部坐标为基准）
-const anchorX = 40
+// 将整套绳子 + 骰子在容器内部整体左移约 30px
+const anchorX = -20
 const anchorY = 0
 // 基础绳长（静止时顶部到骰子中心的距离），适当拉长一点让视觉上更协调
 const ROPE_BASE_LENGTH = 180
@@ -108,7 +120,7 @@ const dragStartOffsetX = ref(0)
 
 // 物理参数
 const TRIGGER_DISTANCE = 80 // 触发切换的距离
-const MAX_STRETCH = 150 // 最大拉伸距离
+const MAX_STRETCH = 220 // 最大拉伸距离
 
 // 绳子当前长度（由物理引擎驱动）
 const ropeLength = ref(ROPE_BASE_LENGTH)
