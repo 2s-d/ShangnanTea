@@ -219,15 +219,7 @@ const animate = () => {
     }
     ctx.stroke()
     
-    // 在头部添加一个亮点
-    if (firstPoint) {
-      ctx.fillStyle = 'rgba(150, 220, 255, 1)'
-      ctx.shadowBlur = 20
-      ctx.shadowColor = 'rgba(150, 220, 255, 1)'
-      ctx.beginPath()
-      ctx.arc(firstPoint.x, firstPoint.y, 3, 0, Math.PI * 2)
-      ctx.fill()
-    }
+    // 头部亮点已移除，只保留光带线条
   }
   
   // 更新进度
@@ -266,12 +258,13 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   transition: all 0.3s;
-  margin-bottom: 24px; /* 从skill-card移到这里 */
+  margin-bottom: 24px;
+  border-radius: 16px; /* 和卡片的圆角一致 */
 }
 
-/* 把box-shadow放在wrapper上 */
+/* 把box-shadow放在wrapper上，增强亮度 */
 .border-glow-wrapper:hover {
-  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 8px 40px rgba(102, 126, 234, 0.6);
 }
 
 .border-glow-canvas {
