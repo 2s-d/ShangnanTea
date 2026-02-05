@@ -1,13 +1,46 @@
 <template>
   <div ref="wrapperRef" class="switch-wrapper">
     <!-- 绳子 - 会根据拖拽伸缩 -->
-    <svg class="rope-svg" :style="{ height: ropeLength + 'px' }">
+    <svg
+      class="rope-svg"
+      :style="{ height: ropeLength + 'px' }"
+      viewBox="0 0 80 200"
+      preserveAspectRatio="xMidYMin slice"
+    >
+      <defs>
+        <!-- 主体绳子渐变 -->
+        <linearGradient id="ropeGradient" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#b07a2b" />
+          <stop offset="50%" stop-color="#8b5a1e" />
+          <stop offset="100%" stop-color="#5b3a12" />
+        </linearGradient>
+        <!-- 高光渐变 -->
+        <linearGradient id="ropeHighlight" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="rgba(255,255,255,0.7)" />
+          <stop offset="40%" stop-color="rgba(255,255,255,0.2)" />
+          <stop offset="100%" stop-color="rgba(255,255,255,0)" />
+        </linearGradient>
+      </defs>
+
+      <!-- 主体绳子 -->
       <path
         :d="ropePath"
-        stroke="#8b4513"
-        stroke-width="3"
+        stroke="url(#ropeGradient)"
+        stroke-width="4"
         fill="none"
         stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+      <!-- 侧面高光 -->
+      <path
+        :d="ropePath"
+        stroke="url(#ropeHighlight)"
+        stroke-width="2"
+        fill="none"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        opacity="0.8"
+        transform="translate(-1, 0)"
       />
     </svg>
     
@@ -58,7 +91,6 @@ const dragStartOffsetX = ref(0)
 // 物理参数
 const TRIGGER_DISTANCE = 80 // 触发切换的距离
 const MAX_STRETCH = 150 // 最大拉伸距离
-const MAX_HORIZONTAL = 20 // 最大左右偏移
 
 // 绳子当前长度（由物理引擎驱动）
 const ropeLength = ref(ROPE_BASE_LENGTH)
@@ -170,12 +202,9 @@ const onDrag = (e) => {
   const deltaY = clientY - dragStartY.value
   const deltaX = clientX - dragStartX.value
   
-  // 计算目标偏移
+  // 计算目标偏移（只限制纵向，横向不再人工夹住，让物理约束自己限制）
   const nextOffsetY = Math.max(0, Math.min(MAX_STRETCH, dragStartOffset.value + deltaY))
-  const nextOffsetX = Math.max(
-    -MAX_HORIZONTAL,
-    Math.min(MAX_HORIZONTAL, dragStartOffsetX.value + deltaX * 0.2)
-  )
+  const nextOffsetX = dragStartOffsetX.value + deltaX * 0.2
 
   if (boxBody) {
     const targetX = anchorX + nextOffsetX
@@ -233,7 +262,8 @@ onUnmounted(() => {
   left: 0;
   width: 80px;
   transition: height 0.1s ease-out;
-  filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.3));
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.35));
+  overflow: visible;
 }
 
 .switch-box {
