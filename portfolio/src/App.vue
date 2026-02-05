@@ -180,9 +180,13 @@
               :lg="4"
             >
               <TiltCard :max-tilt="8">
-                <BorderGlow :speed="2.0" :glow-size="80">
+                <BorderGlow 
+                  :speed="1.5 + (index % 6) * 0.2" 
+                  :glow-size="80"
+                  @cycle-complete="handleCycleComplete(index)"
+                >
                   <el-card shadow="hover" class="skill-card glass-effect">
-                    <div class="skill-icon">
+                    <div class="skill-icon" :class="{ 'icon-flash': iconFlash[index] }">
                       <Icon :icon="skill.icon" :width="48" :height="48" />
                     </div>
                     <h3>{{ skill.name }}</h3>
@@ -323,6 +327,16 @@ const { isDark, currentTheme, toggleDarkMode, toggleTheme, THEMES } = useThemeSy
 
 // 滚动功能
 const { scrollTo } = useScroll()
+
+// 图标闪亮状态
+const iconFlash = ref({})
+
+const handleCycleComplete = (index) => {
+  iconFlash.value[index] = true
+  setTimeout(() => {
+    iconFlash.value[index] = false
+  }, 500) // 闪亮持续500ms
+}
 
 // 导航高亮追随
 const highlightStyle = ref({})
@@ -661,10 +675,44 @@ const openProject = (url) => {
   margin-bottom: 15px;
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
   transition: all var(--transition-base);
+  position: relative;
+  overflow: hidden;
 }
 
 .skill-card:hover .skill-icon {
   filter: drop-shadow(0 8px 16px rgba(102, 126, 234, 0.3)) brightness(1.2);
+}
+
+.icon-flash {
+  position: relative;
+}
+
+.icon-flash::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    135deg,
+    transparent 0%,
+    transparent 40%,
+    rgba(255, 255, 255, 0.6) 50%,
+    transparent 60%,
+    transparent 100%
+  );
+  animation: iconShine 600ms ease-out;
+  pointer-events: none;
+}
+
+@keyframes iconShine {
+  0% {
+    transform: translate(-100%, 100%);
+  }
+  100% {
+    transform: translate(100%, -100%);
+  }
 }
 
 .skill-card h3 {

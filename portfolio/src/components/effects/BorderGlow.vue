@@ -11,7 +11,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 
 const props = defineProps({
   speed: {
@@ -23,6 +23,8 @@ const props = defineProps({
     default: 60 // 光晕长度，从80减少到60
   }
 })
+
+const emit = defineEmits(['cycle-complete'])
 
 const wrapper = ref(null)
 const canvas = ref(null)
@@ -61,7 +63,6 @@ const getPointOnPath = (progress) => {
   const r = borderRadius
   
   // 定义四条边和四个圆角的长度
-  const topEdge = width - 2 * r
   const rightEdge = height - 2 * r
   const bottomEdge = width - 2 * r
   const leftEdge = height - 2 * r
@@ -204,14 +205,12 @@ const animate = () => {
     
     // 绘制线段
     const segments = 50
-    let firstPoint = null
     for (let i = 0; i < segments; i++) {
       const offset = (i / segments) * glowLength
       const currentProgress = (progress + bandOffset - offset + 1) % 1
       const point = getPointOnPath(currentProgress)
       
       if (i === 0) {
-        firstPoint = point
         ctx.moveTo(point.x, point.y)
       } else {
         ctx.lineTo(point.x, point.y)
@@ -224,7 +223,11 @@ const animate = () => {
   
   // 更新进度
   progress += props.speed / ((width + height) * 2)
-  if (progress >= 1) progress = 0
+  if (progress >= 1) {
+    progress = 0
+    // 检测到完成一圈，触发事件
+    emit('cycle-complete')
+  }
   
   animationId = requestAnimationFrame(animate)
 }
