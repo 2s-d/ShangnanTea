@@ -676,7 +676,7 @@ const openProject = (url) => {
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
   transition: all var(--transition-base);
   position: relative;
-  overflow: hidden;
+  display: inline-block;
 }
 
 .skill-card:hover .skill-icon {
@@ -684,34 +684,23 @@ const openProject = (url) => {
 }
 
 .icon-flash {
-  position: relative;
+  animation: iconLightSweep 600ms ease-out;
 }
 
-.icon-flash::after {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(
-    135deg,
-    transparent 0%,
-    transparent 40%,
-    rgba(255, 255, 255, 0.6) 50%,
-    transparent 60%,
-    transparent 100%
-  );
-  animation: iconShine 600ms ease-out;
-  pointer-events: none;
-}
-
-@keyframes iconShine {
+@keyframes iconLightSweep {
   0% {
-    transform: translate(-100%, 100%);
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1)) 
+            drop-shadow(-30px 30px 0px rgba(255, 255, 255, 0));
+  }
+  50% {
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1)) 
+            drop-shadow(0 0 0px rgba(255, 255, 255, 1))
+            brightness(1.6)
+            saturate(1.2);
   }
   100% {
-    transform: translate(100%, -100%);
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1)) 
+            drop-shadow(30px -30px 0px rgba(255, 255, 255, 0));
   }
 }
 
