@@ -190,6 +190,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { Engine, Bodies, Body, Constraint, Composite } from 'matter-js'
+import Dice16 from '../Dice16.vue'
 
 const props = defineProps({
   currentTheme: String,
@@ -419,6 +420,7 @@ onUnmounted(() => {
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
 
+/* 恢复 3D 立方体效果，让新骰子图标贴在正前面 */
 .front {
   transform: translateZ(25px);
 }
