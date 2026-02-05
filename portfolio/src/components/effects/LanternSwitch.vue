@@ -1,18 +1,17 @@
 <template>
   <div ref="wrapperRef" class="switch-wrapper">
-    <!-- 绳子 - 会根据拖拽伸缩 -->
+    <!-- 绳子 - 根据物理引擎位置绘制，但高度保持固定，避免静止状态被裁剪看不见 -->
     <svg
       class="rope-svg"
-      :style="{ height: ropeLength + 'px' }"
-      viewBox="0 0 80 200"
+      viewBox="0 0 80 230"
       preserveAspectRatio="xMidYMin slice"
     >
       <defs>
         <!-- 主体绳子渐变 -->
         <linearGradient id="ropeGradient" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#b07a2b" />
-          <stop offset="50%" stop-color="#8b5a1e" />
-          <stop offset="100%" stop-color="#5b3a12" />
+          <stop offset="0%" stop-color="#e2b46a" />
+          <stop offset="45%" stop-color="#b27a36" />
+          <stop offset="100%" stop-color="#7b4a1a" />
         </linearGradient>
         <!-- 高光渐变 -->
         <linearGradient id="ropeHighlight" x1="0" y1="0" x2="1" y2="0">
@@ -26,7 +25,7 @@
       <path
         :d="ropePath"
         stroke="url(#ropeGradient)"
-        stroke-width="4"
+        stroke-width="3.5"
         fill="none"
         stroke-linecap="round"
         stroke-linejoin="round"
@@ -41,6 +40,24 @@
         stroke-linejoin="round"
         opacity="0.8"
         transform="translate(-1, 0)"
+      />
+
+      <!-- 末端系结（接近骰子顶部的小结） -->
+      <circle
+        :cx="anchorX + offsetX"
+        :cy="ropeLength"
+        r="5.5"
+        fill="#f5e1b5"
+        stroke="#7b4a1a"
+        stroke-width="2"
+        opacity="0.95"
+      />
+      <circle
+        :cx="anchorX + offsetX"
+        :cy="ropeLength"
+        r="2.5"
+        fill="#fdf5dd"
+        opacity="0.9"
       />
     </svg>
     
@@ -78,7 +95,8 @@ const wrapperRef = ref(null)
 // 位置和物理参数（以组件内部坐标为基准）
 const anchorX = 40
 const anchorY = 0
-const ROPE_BASE_LENGTH = 80
+// 基础绳长（静止时顶部到骰子中心的距离），适当拉长一点让视觉上更协调
+const ROPE_BASE_LENGTH = 180
 
 const offsetY = ref(0) // Y轴偏移
 const offsetX = ref(0) // X轴偏移（用于晃动和左右拉动）
@@ -261,7 +279,7 @@ onUnmounted(() => {
   top: 0;
   left: 0;
   width: 80px;
-  transition: height 0.1s ease-out;
+  height: 230px;
   filter: drop-shadow(0 2px 4px rgba(0,0,0,0.35));
   overflow: visible;
 }
