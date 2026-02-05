@@ -1,7 +1,7 @@
 <template>
   <div class="portfolio" :class="{ 'dark-mode': isDark }">
     <!-- 测试组件 - 临时添加，改成true查看测试 -->
-    <TestShadow v-if="true" />
+    <TestShadow v-if="false" />
     
     <!-- 背景特效 - 根据主题显示不同背景 -->
     <template v-if="currentTheme === THEMES.PARTICLE">
@@ -653,8 +653,7 @@ const openProject = (url) => {
 
 .skill-card:hover {
   border-color: var(--color-primary);
-  /* box-shadow由Canvas绘制，这里注释掉 */
-  /* box-shadow: var(--shadow-colored); */
+  box-shadow: var(--shadow-colored);
 }
 
 .skill-icon {
