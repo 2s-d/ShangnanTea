@@ -811,58 +811,72 @@ const openProject = (url) => {
 }
 
 @keyframes cardFlip3D {
-  /* 起跳阶段 - 快速加速 (3个关键帧) */
+  /* 起跳阶段 - 快速加速，左下角向前向右上抬起 */
   0% {
     transform: rotateY(0deg) rotateX(0deg) translateZ(0px) translateX(0px) translateY(0px) scale(1);
     filter: brightness(1) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
   }
   15% {
-    transform: rotateY(28deg) rotateX(-2deg) translateZ(30px) translateX(6px) translateY(-22px) scale(1.06);
+    transform: rotateY(28deg) rotateX(-2deg) translateZ(30px) translateX(8px) translateY(-18px) scale(1.06);
     filter: brightness(1.12) drop-shadow(-7px 12px 22px rgba(0, 0, 0, 0.28));
   }
   25% {
-    transform: rotateY(45deg) rotateX(-3deg) translateZ(42px) translateX(8px) translateY(-28px) scale(1.09);
+    transform: rotateY(45deg) rotateX(-3deg) translateZ(42px) translateX(14px) translateY(-28px) scale(1.09);
     filter: brightness(1.16) drop-shadow(-10px 14px 25px rgba(0, 0, 0, 0.3));
   }
   
-  /* 空中翻转核心阶段 - 密集关键帧，慢速细腻 (7个关键帧 - 最密集区域) */
+  /* 空中翻转核心阶段 - 右上角继续向右上，然后开始向后向下画弧 */
   32% {
-    transform: rotateY(58deg) rotateX(-3.5deg) translateZ(48px) translateX(9px) translateY(-31px) scale(1.10);
+    transform: rotateY(58deg) rotateX(-3.5deg) translateZ(48px) translateX(18px) translateY(-32px) scale(1.10);
     filter: brightness(1.19) drop-shadow(-11px 16px 28px rgba(0, 0, 0, 0.34));
   }
   38% {
-    transform: rotateY(70deg) rotateX(-4deg) translateZ(53px) translateX(10px) translateY(-33px) scale(1.11);
+    transform: rotateY(70deg) rotateX(-4deg) translateZ(53px) translateX(20px) translateY(-35px) scale(1.11);
     filter: brightness(1.21) drop-shadow(-12px 17px 30px rgba(0, 0, 0, 0.37));
   }
   44% {
-    transform: rotateY(82deg) rotateX(-4.5deg) translateZ(57px) translateX(10.5px) translateY(-34px) scale(1.115);
+    transform: rotateY(82deg) rotateX(-4.5deg) translateZ(57px) translateX(20px) translateY(-36px) scale(1.115);
     filter: brightness(1.23) drop-shadow(-13px 19px 33px rgba(0, 0, 0, 0.39));
   }
   50% {
-    transform: rotateY(90deg) rotateX(-5deg) translateZ(60px) translateX(11px) translateY(-35px) scale(1.12);
+    transform: rotateY(90deg) rotateX(-5deg) translateZ(60px) translateX(18px) translateY(-35px) scale(1.12);
     filter: brightness(1.25) drop-shadow(-15px 20px 35px rgba(0, 0, 0, 0.4));
   }
   56% {
-    transform: rotateY(98deg) rotateX(-4.5deg) translateZ(57px) translateX(10.5px) translateY(-34px) scale(1.115);
+    transform: rotateY(98deg) rotateX(-4.5deg) translateZ(57px) translateX(14px) translateY(-32px) scale(1.115);
     filter: brightness(1.23) drop-shadow(-13px 19px 33px rgba(0, 0, 0, 0.39));
   }
   62% {
-    transform: rotateY(110deg) rotateX(-4deg) translateZ(53px) translateX(10px) translateY(-33px) scale(1.11);
+    transform: rotateY(110deg) rotateX(-4deg) translateZ(53px) translateX(8px) translateY(-28px) scale(1.11);
     filter: brightness(1.21) drop-shadow(-12px 17px 30px rgba(0, 0, 0, 0.37));
   }
   68% {
-    transform: rotateY(122deg) rotateX(-3.5deg) translateZ(48px) translateX(9px) translateY(-31px) scale(1.10);
+    transform: rotateY(122deg) rotateX(-3.5deg) translateZ(48px) translateX(2px) translateY(-22px) scale(1.10);
     filter: brightness(1.19) drop-shadow(-11px 16px 28px rgba(0, 0, 0, 0.34));
   }
   
-  /* 落回阶段 - 快速减速 (3个关键帧) */
+  /* 落回阶段 - 向后向下完成弧形到左上角 */
   75% {
-    transform: rotateY(135deg) rotateX(-3deg) translateZ(42px) translateX(8px) translateY(-28px) scale(1.09);
+    transform: rotateY(135deg) rotateX(-3deg) translateZ(42px) translateX(-4px) translateY(-16px) scale(1.09);
     filter: brightness(1.16) drop-shadow(-10px 14px 25px rgba(0, 0, 0, 0.3));
   }
-  85% {
-    transform: rotateY(152deg) rotateX(-2deg) translateZ(30px) translateX(6px) translateY(-22px) scale(1.06);
-    filter: brightness(1.12) drop-shadow(-7px 12px 22px rgba(0, 0, 0, 0.28));
+  82% {
+    transform: rotateY(148deg) rotateX(-2.2deg) translateZ(34px) translateX(-5.5px) translateY(-10px) scale(1.07);
+    filter: brightness(1.13) drop-shadow(-8px 13px 24px rgba(0, 0, 0, 0.29));
+  }
+  
+  /* 最后归位阶段 - 细腻减速 (90-100%，增加关键帧) */
+  90% {
+    transform: rotateY(162deg) rotateX(-1.2deg) translateZ(18px) translateX(-3px) translateY(-5px) scale(1.035);
+    filter: brightness(1.08) drop-shadow(-4px 8px 16px rgba(0, 0, 0, 0.22));
+  }
+  94% {
+    transform: rotateY(170deg) rotateX(-0.6deg) translateZ(9px) translateX(-1.5px) translateY(-2.5px) scale(1.018);
+    filter: brightness(1.04) drop-shadow(-2px 5px 10px rgba(0, 0, 0, 0.16));
+  }
+  97% {
+    transform: rotateY(176deg) rotateX(-0.2deg) translateZ(3px) translateX(-0.5px) translateY(-0.8px) scale(1.006);
+    filter: brightness(1.015) drop-shadow(-1px 4px 8px rgba(0, 0, 0, 0.12));
   }
   100% {
     transform: rotateY(180deg) rotateX(0deg) translateZ(0px) translateX(0px) translateY(0px) scale(1);
