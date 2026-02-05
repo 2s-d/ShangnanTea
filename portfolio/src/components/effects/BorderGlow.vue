@@ -1,17 +1,12 @@
 <template>
-  <div 
-    class="border-glow-wrapper" 
-    ref="wrapper"
-    @mouseenter="isHovered = true"
-    @mouseleave="isHovered = false"
-  >
+  <div class="border-glow-wrapper" ref="wrapper">
     <slot></slot>
-    <canvas ref="canvas" class="border-glow-canvas" v-show="!isHovered"></canvas>
+    <canvas ref="canvas" class="border-glow-canvas"></canvas>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 
 const props = defineProps({
   speed: {
@@ -26,7 +21,6 @@ const props = defineProps({
 
 const wrapper = ref(null)
 const canvas = ref(null)
-const isHovered = ref(false)
 let ctx = null
 let animationId = null
 let progress = 0 // 0-1 的进度，表示光点在路径上的位置
