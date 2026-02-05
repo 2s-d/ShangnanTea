@@ -1,77 +1,9 @@
 <template>
   <div ref="wrapperRef" class="switch-wrapper">
-    <!-- 绳子 - 根据物理引擎位置绘制，但高度保持固定，避免静止状态被裁剪看不见 -->
-    <svg
-      class="rope-svg"
-      viewBox="0 0 80 230"
-      preserveAspectRatio="xMidYMin slice"
-    >
-      <defs>
-        <!-- 主体绳子渐变 -->
-        <linearGradient id="ropeGradient" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#e2b46a" />
-          <stop offset="45%" stop-color="#b27a36" />
-          <stop offset="100%" stop-color="#7b4a1a" />
-        </linearGradient>
-        <!-- 高光渐变 -->
-        <linearGradient id="ropeHighlight" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stop-color="rgba(255,255,255,0.7)" />
-          <stop offset="40%" stop-color="rgba(255,255,255,0.2)" />
-          <stop offset="100%" stop-color="rgba(255,255,255,0)" />
-        </linearGradient>
-      </defs>
-
-      <!-- 主体绳子 -->
-      <path
-        :d="ropePath"
-        stroke="url(#ropeGradient)"
-        stroke-width="4.5"
-        fill="none"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      />
-      <!-- 侧面高光 -->
-      <path
-        :d="ropePath"
-        stroke="url(#ropeHighlight)"
-        stroke-width="2"
-        fill="none"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        opacity="0.8"
-        transform="translate(-1, 0)"
-      />
-
-      <!-- 轻微外发光，提升在紫色背景下的可见度 -->
-      <path
-        :d="ropePath"
-        stroke="rgba(255,255,255,0.2)"
-        stroke-width="7"
-        fill="none"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        opacity="0.6"
-      />
-
-      <!-- 末端系结（接近骰子顶部的小结） -->
-      <circle
-        :cx="anchorX + offsetX"
-        :cy="ropeLength"
-        r="5.5"
-        fill="#f5e1b5"
-        stroke="#7b4a1a"
-        stroke-width="2"
-        opacity="0.95"
-      />
-      <circle
-        :cx="anchorX + offsetX"
-        :cy="ropeLength"
-        r="2.5"
-        fill="#fdf5dd"
-        opacity="0.9"
-      />
-    </svg>
-    
+    <!-- 彩虹流光：替代绳子的视觉效果，高度跟随挂件位置 -->
+    <div class="rainbow-beam" :style="rainbowStyle"></div>
+    <!-- 顶部挂点小圆球 -->
+    <div class="beam-head"></div>
     <!-- 可拖拽的小方块 -->
     <div 
       class="switch-box"
@@ -117,22 +49,8 @@ const dragStartOffsetX = ref(0)
 const TRIGGER_DISTANCE = 80 // 触发切换的距离
 const MAX_STRETCH = 220 // 最大拉伸距离
 
-// 绳子当前长度（由物理引擎驱动）
+// 挂件当前距离顶部的高度（由物理引擎驱动）
 const ropeLength = ref(ROPE_BASE_LENGTH)
-
-// 绳子路径 - 贝塞尔曲线模拟弹性
-const ropePath = computed(() => {
-  const startX = anchorX
-  const startY = anchorY
-  const endX = anchorX + offsetX.value
-  const endY = ropeLength.value
-  
-  // 控制点让绳子有弧度
-  const controlX = startX + offsetX.value * 0.5
-  const controlY = endY * 0.4
-  
-  return `M ${startX} ${startY} Q ${controlX} ${controlY} ${endX} ${endY}`
-})
 
 // 方块 / 骰子包裹元素样式
 const boxStyle = computed(() => {
@@ -146,6 +64,15 @@ const boxStyle = computed(() => {
     top: `${top}px`,
     left: `${left}px`,
     transform: `rotateY(${rotation}deg) rotateX(${offsetY.value * 0.2}deg)`
+  }
+})
+
+// 彩虹流光高度样式
+const rainbowStyle = computed(() => {
+  const minHeight = 40
+  const h = Math.max(minHeight, ropeLength.value)
+  return {
+    height: `${h}px`
   }
 })
 
@@ -272,8 +199,15 @@ const endDrag = () => {
 }
 
 onMounted(() => {
-  initPhysics()
-  animationFrame = requestAnimationFrame(physicsTick)
+  // 初始化物理世界，并重置挂件位置，避免路由切换后状态残留
+  offsetX.value = 0
+  offsetY.value = 0
+  ropeLength.value = ROPE_BASE_LENGTH
+
+  if (!engine) {
+    initPhysics()
+    animationFrame = requestAnimationFrame(physicsTick)
+  }
 })
 
 onUnmounted(() => {
@@ -296,16 +230,6 @@ onUnmounted(() => {
   pointer-events: none;
 }
 
-.rope-svg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 80px;
-  height: 230px;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.35));
-  overflow: visible;
-}
-
 .switch-box {
   position: absolute;
   width: 50px;
@@ -314,6 +238,53 @@ onUnmounted(() => {
   pointer-events: auto;
   transform-style: preserve-3d;
   transition: transform 0.1s ease-out;
+}
+
+/* 彩虹流光柱 */
+.rainbow-beam {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 8px;
+  transform: translateX(-50%);
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.0),
+    rgba(244, 114, 182, 0.75),
+    rgba(129, 140, 248, 0.9),
+    rgba(45, 212, 191, 0.8)
+  );
+  box-shadow:
+    0 0 10px rgba(244, 114, 182, 0.7),
+    0 0 20px rgba(129, 140, 248, 0.6);
+  border-radius: 999px;
+  overflow: hidden;
+  background-size: 100% 200%;
+  animation: rainbow-flow 3s linear infinite;
+}
+
+/* 顶部挂点 */
+.beam-head {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  transform: translate(-50%, -8px);
+  border-radius: 50%;
+  background: radial-gradient(circle, #fef3c7 0%, #fbbf24 50%, #b45309 100%);
+  box-shadow:
+    0 0 8px rgba(251, 191, 36, 0.9),
+    0 0 16px rgba(251, 191, 36, 0.7);
+}
+
+@keyframes rainbow-flow {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 0 200%;
+  }
 }
 
 .switch-box:active {
