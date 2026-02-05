@@ -41,7 +41,7 @@
           ></div>
           
           <el-menu-item index="0" class="logo">
-            <el-icon><Reading /></el-icon>
+            <el-icon :size="24"><Reading /></el-icon>
             <h2>个人博客</h2>
           </el-menu-item>
           <div class="flex-grow" />
@@ -514,6 +514,7 @@ const openProject = (url) => {
 
 .logo h2 {
   margin: 0;
+  margin-left: 8px;
   font-size: var(--text-2xl);
   font-weight: var(--font-bold);
   background: var(--gradient-primary);
@@ -521,6 +522,11 @@ const openProject = (url) => {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   letter-spacing: -0.02em;
+}
+
+.logo .el-icon {
+  font-size: 24px;
+  color: #667eea;
 }
 
 .flex-grow {
