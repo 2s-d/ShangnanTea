@@ -689,18 +689,16 @@ const openProject = (url) => {
 
 @keyframes iconLightSweep {
   0% {
-    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1)) 
-            drop-shadow(-30px 30px 0px rgba(255, 255, 255, 0));
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
   }
   50% {
     filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1)) 
-            drop-shadow(0 0 0px rgba(255, 255, 255, 1))
-            brightness(1.6)
-            saturate(1.2);
+            drop-shadow(3px -3px 0px rgba(255, 255, 255, 0.5))
+            brightness(1.2)
+            saturate(1.1);
   }
   100% {
-    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1)) 
-            drop-shadow(30px -30px 0px rgba(255, 255, 255, 0));
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
   }
 }
 
