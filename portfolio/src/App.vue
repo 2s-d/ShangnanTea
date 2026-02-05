@@ -796,13 +796,13 @@ const openProject = (url) => {
   right: 0;
   bottom: 0;
   background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.1) 0%, 
-    rgba(255, 255, 255, 0.05) 50%, 
-    rgba(0, 0, 0, 0.05) 100%
+    rgba(255, 255, 255, 0.15) 0%, 
+    rgba(255, 255, 255, 0.08) 50%, 
+    rgba(0, 0, 0, 0.08) 100%
   );
   border-radius: var(--radius-xl);
   pointer-events: none;
-  opacity: 0;
+  opacity: 1;
   transition: opacity 0.3s;
 }
 
@@ -812,23 +812,39 @@ const openProject = (url) => {
 
 @keyframes cardFlip3D {
   0% {
-    transform: rotateY(0deg) translateZ(0px) translateX(0px) translateY(0px) scale(1);
+    transform: rotateY(0deg) rotateX(0deg) translateZ(0px) translateX(0px) translateY(0px) scale(1);
     filter: brightness(1) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
   }
+  10% {
+    transform: rotateY(10deg) rotateX(-2deg) translateZ(15px) translateX(5px) translateY(-12px) scale(1.04);
+    filter: brightness(1.08) drop-shadow(-5px 8px 15px rgba(0, 0, 0, 0.2));
+  }
   20% {
-    transform: rotateY(20deg) translateZ(15px) translateX(8px) translateY(-10px) scale(1.03);
-    filter: brightness(1.1) drop-shadow(-5px 8px 15px rgba(0, 0, 0, 0.25));
+    transform: rotateY(25deg) rotateX(-3deg) translateZ(25px) translateX(8px) translateY(-20px) scale(1.07);
+    filter: brightness(1.12) drop-shadow(-7px 10px 20px rgba(0, 0, 0, 0.25));
+  }
+  35% {
+    transform: rotateY(50deg) rotateX(-4deg) translateZ(40px) translateX(12px) translateY(-30px) scale(1.10);
+    filter: brightness(1.18) drop-shadow(-12px 15px 28px rgba(0, 0, 0, 0.35));
   }
   50% {
-    transform: rotateY(90deg) translateZ(20px) translateX(10px) translateY(-12px) scale(1.05);
-    filter: brightness(1.2) drop-shadow(-10px 12px 20px rgba(0, 0, 0, 0.35));
+    transform: rotateY(90deg) rotateX(-5deg) translateZ(50px) translateX(15px) translateY(-35px) scale(1.12);
+    filter: brightness(1.25) drop-shadow(-15px 20px 35px rgba(0, 0, 0, 0.4));
+  }
+  65% {
+    transform: rotateY(130deg) rotateX(-4deg) translateZ(40px) translateX(12px) translateY(-30px) scale(1.10);
+    filter: brightness(1.18) drop-shadow(-12px 15px 28px rgba(0, 0, 0, 0.35));
   }
   80% {
-    transform: rotateY(160deg) translateZ(15px) translateX(8px) translateY(-10px) scale(1.03);
-    filter: brightness(1.1) drop-shadow(-5px 8px 15px rgba(0, 0, 0, 0.25));
+    transform: rotateY(155deg) rotateX(-3deg) translateZ(25px) translateX(8px) translateY(-20px) scale(1.07);
+    filter: brightness(1.12) drop-shadow(-7px 10px 20px rgba(0, 0, 0, 0.25));
+  }
+  90% {
+    transform: rotateY(170deg) rotateX(-2deg) translateZ(15px) translateX(5px) translateY(-12px) scale(1.04);
+    filter: brightness(1.08) drop-shadow(-5px 8px 15px rgba(0, 0, 0, 0.2));
   }
   100% {
-    transform: rotateY(180deg) translateZ(0px) translateX(0px) translateY(0px) scale(1);
+    transform: rotateY(180deg) rotateX(0deg) translateZ(0px) translateX(0px) translateY(0px) scale(1);
     filter: brightness(1) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
   }
 }
