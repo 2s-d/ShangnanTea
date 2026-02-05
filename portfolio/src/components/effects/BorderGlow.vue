@@ -1,12 +1,17 @@
 <template>
-  <div class="border-glow-wrapper" ref="wrapper">
+  <div 
+    class="border-glow-wrapper" 
+    ref="wrapper"
+    @mouseenter="isHovered = true"
+    @mouseleave="isHovered = false"
+  >
     <slot></slot>
-    <canvas ref="canvas" class="border-glow-canvas"></canvas>
+    <canvas ref="canvas" class="border-glow-canvas" v-show="!isHovered"></canvas>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 
 const props = defineProps({
   speed: {
@@ -21,6 +26,7 @@ const props = defineProps({
 
 const wrapper = ref(null)
 const canvas = ref(null)
+const isHovered = ref(false)
 let ctx = null
 let animationId = null
 let progress = 0 // 0-1 的进度，表示光点在路径上的位置
@@ -142,41 +148,48 @@ const animate = () => {
   
   ctx.clearRect(0, 0, width, height)
   
-  // 绘制两道均匀的细线光带
-  const glowLength = props.glowSize / ((width + height) * 2) // 转换为进度比例
+  // 光带长度（像素）
+  const lineLength = props.glowSize
+  const glowLength = lineLength / ((width + height) * 2) // 转换为进度比例
   
   // 绘制两道光带
   for (let band = 0; band < 2; band++) {
     const bandOffset = band * 0.5 // 第二道光带在对面（相隔50%）
     
-    // 绘制均匀的细线
-    for (let i = 0; i < 40; i++) {
-      const offset = (i / 40) * glowLength
+    // 绘制一条固定长度的实线
+    ctx.beginPath()
+    ctx.strokeStyle = 'rgba(100, 200, 255, 0.8)'
+    ctx.lineWidth = 2
+    ctx.shadowBlur = 15
+    ctx.shadowColor = 'rgba(100, 200, 255, 0.9)'
+    ctx.lineCap = 'round'
+    
+    // 绘制线段
+    const segments = 50
+    let firstPoint = null
+    for (let i = 0; i < segments; i++) {
+      const offset = (i / segments) * glowLength
       const currentProgress = (progress + bandOffset - offset + 1) % 1
       const point = getPointOnPath(currentProgress)
       
-      // 均匀的透明度和大小
-      const opacity = 0.6 - (i / 40) * 0.5 // 从0.6渐变到0.1
-      const size = 1.5 // 固定细线宽度
-      
-      // 炫酷的蓝色亮光
-      ctx.fillStyle = `rgba(100, 200, 255, ${opacity})`
-      ctx.shadowBlur = 12
-      ctx.shadowColor = `rgba(100, 200, 255, ${opacity * 0.8})`
-      
+      if (i === 0) {
+        firstPoint = point
+        ctx.moveTo(point.x, point.y)
+      } else {
+        ctx.lineTo(point.x, point.y)
+      }
+    }
+    ctx.stroke()
+    
+    // 在头部添加一个亮点
+    if (firstPoint) {
+      ctx.fillStyle = 'rgba(150, 220, 255, 1)'
+      ctx.shadowBlur = 20
+      ctx.shadowColor = 'rgba(150, 220, 255, 1)'
       ctx.beginPath()
-      ctx.arc(point.x, point.y, size, 0, Math.PI * 2)
+      ctx.arc(firstPoint.x, firstPoint.y, 3, 0, Math.PI * 2)
       ctx.fill()
     }
-    
-    // 在光带头部添加一个亮点
-    const headPoint = getPointOnPath((progress + bandOffset) % 1)
-    ctx.fillStyle = 'rgba(150, 220, 255, 0.9)'
-    ctx.shadowBlur = 20
-    ctx.shadowColor = 'rgba(150, 220, 255, 0.9)'
-    ctx.beginPath()
-    ctx.arc(headPoint.x, headPoint.y, 3, 0, Math.PI * 2)
-    ctx.fill()
   }
   
   // 更新进度
