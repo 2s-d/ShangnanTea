@@ -53,7 +53,7 @@ export const projects = [
     image: 'https://picsum.photos/400/250?random=2',
     tech: ['Java', 'Vue', 'MySQL'],
     status: 'dev',
-    url: 'http://96.30.204.197/project2/',
+    url: '#',
     github: '',
     features: []
   },
@@ -63,6 +63,28 @@ export const projects = [
     description: '这里是项目3的简介，展示你的其他作品',
     image: 'https://picsum.photos/400/250?random=3',
     tech: ['React', 'Node.js', 'MongoDB'],
+    status: 'dev',
+    url: '#',
+    github: '',
+    features: []
+  },
+  {
+    id: 4,
+    name: '项目4',
+    description: '这里是项目4的简介，展示更多技术能力',
+    image: 'https://picsum.photos/400/250?random=4',
+    tech: ['Python', 'Django', 'PostgreSQL'],
+    status: 'dev',
+    url: '#',
+    github: '',
+    features: []
+  },
+  {
+    id: 5,
+    name: '项目5',
+    description: '这里是项目5的简介，完善你的作品集',
+    image: 'https://picsum.photos/400/250?random=5',
+    tech: ['TypeScript', 'Next.js', 'Tailwind'],
     status: 'dev',
     url: '#',
     github: '',

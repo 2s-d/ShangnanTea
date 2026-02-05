@@ -224,33 +224,25 @@
       <el-container>
         <el-main>
           <h2 class="section-title">项目作品</h2>
-          <el-row :gutter="30" justify="center">
-            <el-col
-              v-for="(project, index) in projects"
-              :key="project.id"
-              class="animate-slide-in-up"
-              :class="`delay-${index * 200}`"
-              :xs="24"
-              :sm="12"
-              :md="8"
-            >
+          <ArcCarousel :items="projects" :item-width="400">
+            <template #default="{ item }">
               <TiltCard :max-tilt="5">
                 <el-card shadow="hover" class="project-card glass-effect">
                   <template #header>
                     <div class="project-header">
-                      <span class="project-name">{{ project.name }}</span>
-                      <el-tag :type="project.status === 'online' ? 'success' : 'info'">
-                        {{ project.status === 'online' ? '已上线' : '开发中' }}
+                      <span class="project-name">{{ item.name }}</span>
+                      <el-tag :type="item.status === 'online' ? 'success' : 'info'">
+                        {{ item.status === 'online' ? '已上线' : '开发中' }}
                       </el-tag>
                     </div>
                   </template>
                   <div class="project-image">
-                    <img :src="project.image" :alt="project.name" />
+                    <img :src="item.image" :alt="item.name" />
                   </div>
-                  <p class="project-desc">{{ project.description }}</p>
+                  <p class="project-desc">{{ item.description }}</p>
                   <div class="project-tags">
                     <el-tag
-                      v-for="tech in project.tech"
+                      v-for="tech in item.tech"
                       :key="tech"
                       size="small"
                       class="tech-tag"
@@ -259,19 +251,19 @@
                     </el-tag>
                   </div>
                   <div class="project-actions">
-                    <el-button type="primary" link @click="openProject(project.url)">
+                    <el-button type="primary" link @click="openProject(item.url)">
                       <el-icon><View /></el-icon>
                       查看项目
                     </el-button>
-                    <el-button link v-if="project.github" @click="openProject(project.github)">
+                    <el-button link v-if="item.github" @click="openProject(item.github)">
                       <el-icon><Link /></el-icon>
                       GitHub
                     </el-button>
                   </div>
                 </el-card>
               </TiltCard>
-            </el-col>
-          </el-row>
+            </template>
+          </ArcCarousel>
         </el-main>
       </el-container>
     </section>
@@ -333,6 +325,7 @@ import ClickEffect from './components/effects/ClickEffect.vue'
 import StarryBackground from './components/effects/StarryBackground.vue'
 import BorderGlow from './components/effects/BorderGlow.vue'
 import TestShadow from './components/TestShadow.vue'
+import ArcCarousel from './components/effects/ArcCarousel.vue'
 import { useThemeSystem } from './composables/useThemeSystem'
 import { useScroll } from './composables/useScroll'
 import { profile, skills, projects } from './data/portfolio'
