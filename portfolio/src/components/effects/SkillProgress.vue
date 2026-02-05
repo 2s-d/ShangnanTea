@@ -1,7 +1,6 @@
 <template>
   <div class="skill-progress-wrapper">
     <div class="skill-info">
-      <span class="skill-name">{{ name }}</span>
       <span class="skill-percentage">{{ displayPercentage }}%</span>
     </div>
     <div class="progress-bar">
@@ -79,15 +78,9 @@ onMounted(() => {
 
 .skill-info {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   margin-bottom: var(--spacing-sm);
-}
-
-.skill-name {
-  font-size: var(--text-base);
-  font-weight: var(--font-semibold);
-  color: var(--color-text);
 }
 
 .skill-percentage {

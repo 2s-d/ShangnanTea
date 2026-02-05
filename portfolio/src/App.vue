@@ -203,6 +203,7 @@
                       <div class="skill-icon" :class="{ 'icon-flash': iconFlash[skill.displayIndex] }">
                         <Icon :icon="skill.icon" :width="48" :height="48" />
                       </div>
+                      <h3>{{ skill.name }}</h3>
                       <SkillProgress 
                         :name="skill.name"
                         :level="skill.level"
@@ -365,11 +366,16 @@ const flipCard = (displayIndex) => {
   
   flippingCards.value[displayIndex] = true
   
-  // 触发相邻卡片的推挤效果
-  const nextIndex1 = (displayIndex + 1) % 6
-  const nextIndex2 = (displayIndex + 2) % 6
-  pushingCards.value[nextIndex1] = 1
-  pushingCards.value[nextIndex2] = 2
+  // 只推右边的卡片（不循环）
+  const nextIndex1 = displayIndex + 1
+  const nextIndex2 = displayIndex + 2
+  
+  if (nextIndex1 < 6) {
+    pushingCards.value[nextIndex1] = 1
+  }
+  if (nextIndex2 < 6) {
+    pushingCards.value[nextIndex2] = 2
+  }
   
   setTimeout(() => {
     // 获取当前未显示的技能
@@ -388,8 +394,8 @@ const flipCard = (displayIndex) => {
     // 在翻转动画的80%时解除锁定（600ms * 0.8 = 480ms）
     setTimeout(() => {
       flippingCards.value[displayIndex] = false
-      pushingCards.value[nextIndex1] = 0
-      pushingCards.value[nextIndex2] = 0
+      if (nextIndex1 < 6) pushingCards.value[nextIndex1] = 0
+      if (nextIndex2 < 6) pushingCards.value[nextIndex2] = 0
     }, 180) // 300 + 180 = 480ms
   }, 300)
 }
@@ -830,10 +836,10 @@ const openProject = (url) => {
 /* 相邻卡片推挤效果 */
 @keyframes cardPush1 {
   0%, 100% {
-    transform: translateX(0px);
+    transform: translateX(0px) translateY(0px) rotateZ(0deg);
   }
   50% {
-    transform: translateX(15px);
+    transform: translateX(12px) translateY(-8px) rotateZ(3deg);
   }
 }
 
@@ -842,7 +848,7 @@ const openProject = (url) => {
     transform: translateX(0px);
   }
   50% {
-    transform: translateX(8px);
+    transform: translateX(6px);
   }
 }
 
@@ -861,7 +867,7 @@ const openProject = (url) => {
 
 .skill-icon {
   font-size: 48px;
-  margin-bottom: 45px; /* 增加margin来补偿删除的h3空间 */
+  margin-bottom: 15px;
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
   transition: all var(--transition-base);
   position: relative;
