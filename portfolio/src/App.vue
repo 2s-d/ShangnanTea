@@ -796,9 +796,9 @@ const openProject = (url) => {
   right: 0;
   bottom: 0;
   background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.08) 0%, 
-    rgba(255, 255, 255, 0.04) 50%, 
-    rgba(0, 0, 0, 0.04) 100%
+    rgba(255, 255, 255, 0.12) 0%, 
+    rgba(255, 255, 255, 0.07) 50%, 
+    rgba(0, 0, 0, 0.07) 100%
   );
   border-radius: var(--radius-xl);
   pointer-events: none;
@@ -811,37 +811,58 @@ const openProject = (url) => {
 }
 
 @keyframes cardFlip3D {
+  /* 起跳阶段 - 快速 */
   0% {
     transform: rotateY(0deg) rotateX(0deg) translateZ(0px) translateX(0px) translateY(0px) scale(1);
     filter: brightness(1) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
   }
-  10% {
-    transform: rotateY(10deg) rotateX(-2deg) translateZ(15px) translateX(5px) translateY(-12px) scale(1.04);
-    filter: brightness(1.08) drop-shadow(-5px 8px 15px rgba(0, 0, 0, 0.2));
+  15% {
+    transform: rotateY(20deg) rotateX(-2deg) translateZ(25px) translateX(8px) translateY(-22px) scale(1.06);
+    filter: brightness(1.12) drop-shadow(-7px 12px 22px rgba(0, 0, 0, 0.28));
   }
-  20% {
-    transform: rotateY(25deg) rotateX(-3deg) translateZ(25px) translateX(8px) translateY(-20px) scale(1.07);
-    filter: brightness(1.12) drop-shadow(-7px 10px 20px rgba(0, 0, 0, 0.25));
+  25% {
+    transform: rotateY(35deg) rotateX(-3deg) translateZ(35px) translateX(11px) translateY(-28px) scale(1.09);
+    filter: brightness(1.16) drop-shadow(-10px 14px 25px rgba(0, 0, 0, 0.3));
   }
-  35% {
-    transform: rotateY(50deg) rotateX(-4deg) translateZ(40px) translateX(12px) translateY(-30px) scale(1.10);
-    filter: brightness(1.18) drop-shadow(-12px 15px 28px rgba(0, 0, 0, 0.35));
+  
+  /* 空中翻转核心阶段 - 密集关键帧，慢速细腻 */
+  32% {
+    transform: rotateY(50deg) rotateX(-3.5deg) translateZ(40px) translateX(12.5px) translateY(-31px) scale(1.10);
+    filter: brightness(1.19) drop-shadow(-11px 16px 28px rgba(0, 0, 0, 0.34));
+  }
+  38% {
+    transform: rotateY(65deg) rotateX(-4deg) translateZ(44px) translateX(13.5px) translateY(-33px) scale(1.11);
+    filter: brightness(1.21) drop-shadow(-12px 17px 30px rgba(0, 0, 0, 0.37));
+  }
+  44% {
+    transform: rotateY(78deg) rotateX(-4.5deg) translateZ(47px) translateX(14.5px) translateY(-34px) scale(1.115);
+    filter: brightness(1.23) drop-shadow(-13px 19px 33px rgba(0, 0, 0, 0.39));
   }
   50% {
     transform: rotateY(90deg) rotateX(-5deg) translateZ(50px) translateX(15px) translateY(-35px) scale(1.12);
     filter: brightness(1.25) drop-shadow(-15px 20px 35px rgba(0, 0, 0, 0.4));
   }
-  65% {
-    transform: rotateY(130deg) rotateX(-4deg) translateZ(40px) translateX(12px) translateY(-30px) scale(1.10);
-    filter: brightness(1.18) drop-shadow(-12px 15px 28px rgba(0, 0, 0, 0.35));
+  56% {
+    transform: rotateY(102deg) rotateX(-4.5deg) translateZ(47px) translateX(14.5px) translateY(-34px) scale(1.115);
+    filter: brightness(1.23) drop-shadow(-13px 19px 33px rgba(0, 0, 0, 0.39));
   }
-  80% {
-    transform: rotateY(155deg) rotateX(-3deg) translateZ(25px) translateX(8px) translateY(-20px) scale(1.07);
-    filter: brightness(1.12) drop-shadow(-7px 10px 20px rgba(0, 0, 0, 0.25));
+  62% {
+    transform: rotateY(115deg) rotateX(-4deg) translateZ(44px) translateX(13.5px) translateY(-33px) scale(1.11);
+    filter: brightness(1.21) drop-shadow(-12px 17px 30px rgba(0, 0, 0, 0.37));
   }
-  90% {
-    transform: rotateY(170deg) rotateX(-2deg) translateZ(15px) translateX(5px) translateY(-12px) scale(1.04);
-    filter: brightness(1.08) drop-shadow(-5px 8px 15px rgba(0, 0, 0, 0.2));
+  68% {
+    transform: rotateY(130deg) rotateX(-3.5deg) translateZ(40px) translateX(12.5px) translateY(-31px) scale(1.10);
+    filter: brightness(1.19) drop-shadow(-11px 16px 28px rgba(0, 0, 0, 0.34));
+  }
+  
+  /* 落回阶段 - 快速 */
+  75% {
+    transform: rotateY(145deg) rotateX(-3deg) translateZ(35px) translateX(11px) translateY(-28px) scale(1.09);
+    filter: brightness(1.16) drop-shadow(-10px 14px 25px rgba(0, 0, 0, 0.3));
+  }
+  85% {
+    transform: rotateY(160deg) rotateX(-2deg) translateZ(25px) translateX(8px) translateY(-22px) scale(1.06);
+    filter: brightness(1.12) drop-shadow(-7px 12px 22px rgba(0, 0, 0, 0.28));
   }
   100% {
     transform: rotateY(180deg) rotateX(0deg) translateZ(0px) translateX(0px) translateY(0px) scale(1);
