@@ -1,5 +1,8 @@
 <template>
   <div class="portfolio" :class="{ 'dark-mode': isDark }">
+    <!-- 测试组件 - 临时添加，改成true查看测试 -->
+    <TestShadow v-if="true" />
+    
     <!-- 背景特效 - 根据主题显示不同背景 -->
     <template v-if="currentTheme === THEMES.PARTICLE">
       <ParticlesBackground />
@@ -310,6 +313,7 @@ import SkillProgress from './components/effects/SkillProgress.vue'
 import ClickEffect from './components/effects/ClickEffect.vue'
 import StarryBackground from './components/effects/StarryBackground.vue'
 import BorderGlow from './components/effects/BorderGlow.vue'
+import TestShadow from './components/TestShadow.vue'
 import { useThemeSystem } from './composables/useThemeSystem'
 import { useScroll } from './composables/useScroll'
 import { profile, skills, projects } from './data/portfolio'
