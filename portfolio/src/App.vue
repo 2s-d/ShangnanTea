@@ -179,7 +179,7 @@
               :md="6"
               :lg="4"
             >
-              <TiltCard :max-tilt="8">
+              <TiltCard :max-tilt="8" @click.native.stop="flipCard(skill.displayIndex)">
                 <BorderGlow 
                   :speed="(1.5 + (skill.displayIndex % 6) * 0.2) * 0.9" 
                   :glow-size="80"
@@ -189,7 +189,6 @@
                     shadow="hover" 
                     class="skill-card glass-effect"
                     :class="{ 'flipping': flippingCards[skill.displayIndex] }"
-                    @click.stop="flipCard(skill.displayIndex)"
                   >
                     <div class="skill-icon" :class="{ 'icon-flash': iconFlash[skill.displayIndex] }">
                       <Icon :icon="skill.icon" :width="48" :height="48" />
@@ -350,16 +349,22 @@ const initDisplayedSkills = () => {
 
 // 翻转卡片并随机替换技能
 const flipCard = (displayIndex) => {
+  console.log('flipCard called, displayIndex:', displayIndex)
   flippingCards.value[displayIndex] = true
+  console.log('flippingCards:', flippingCards.value)
   
   setTimeout(() => {
     // 获取当前未显示的技能
     const currentSkillNames = displayedSkills.value.map(s => s.name)
     const hiddenSkills = allSkills.value.filter(s => !currentSkillNames.includes(s.name))
     
+    console.log('currentSkillNames:', currentSkillNames)
+    console.log('hiddenSkills:', hiddenSkills)
+    
     if (hiddenSkills.length > 0) {
       // 随机选择一个未显示的技能
       const randomSkill = hiddenSkills[Math.floor(Math.random() * hiddenSkills.length)]
+      console.log('randomSkill:', randomSkill)
       displayedSkills.value[displayIndex] = {
         ...randomSkill,
         displayIndex
@@ -716,7 +721,6 @@ const openProject = (url) => {
 
 .skill-card.flipping {
   animation: cardFlip 600ms ease-in-out;
-  pointer-events: none;
 }
 
 @keyframes cardFlip {
