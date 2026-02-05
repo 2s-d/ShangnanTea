@@ -235,7 +235,7 @@ export function getForumPosts(params = {}) {
 /**
  * 获取帖子详情
  * @param {number} id 帖子ID
- * @returns {Promise} 帖子详情，包含 isLiked 和 isFavorited 字段（当前用户是否已点赞/收藏该帖子）
+Good * @returns {Promise} 帖子详情，包含 isLiked 和 isFavorited 字段（当前用户是否已点赞/收藏该帖子）
  */
 export function getPostDetail(id) {
   return request({
