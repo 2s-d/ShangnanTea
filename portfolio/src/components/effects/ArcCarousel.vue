@@ -240,7 +240,7 @@ onUnmounted(() => {
   width: 100%;
   height: 600px;
   perspective: 2000px;
-  overflow: hidden;
+  overflow: visible;
   position: relative;
   cursor: grab;
   user-select: none;
@@ -255,8 +255,8 @@ onUnmounted(() => {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 60px;
-  height: 60px;
+  width: 70px;
+  height: 70px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -264,7 +264,7 @@ onUnmounted(() => {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 50%;
   cursor: pointer;
-  z-index: 10;
+  z-index: 1000;
   transition: all 0.3s ease;
   opacity: 0.4;
   backdrop-filter: blur(10px);
@@ -277,22 +277,22 @@ onUnmounted(() => {
 }
 
 .arrow-left {
-  left: 10px;
-  animation: arrowPulse 3.5s ease-in-out infinite;
+  left: -20px;
+  animation: arrowPulse 4s ease-in-out infinite;
 }
 
 .arrow-right {
-  right: 10px;
-  animation: arrowPulse 3.5s ease-in-out infinite;
+  right: -20px;
+  animation: arrowPulse 4s ease-in-out infinite;
 }
 
-/* 若隐若现动画：3秒保持，0.5秒亮一下 */
+/* 若隐若现动画：3秒保持，1秒亮一下 */
 @keyframes arrowPulse {
-  0%, 85.7% {
+  0%, 75% {
     opacity: 0.4;
   }
-  90%, 95% {
-    opacity: 0.7;
+  80%, 95% {
+    opacity: 0.9;
   }
   100% {
     opacity: 0.4;
@@ -301,6 +301,8 @@ onUnmounted(() => {
 
 .arrow svg {
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  width: 50px;
+  height: 50px;
 }
 
 .carousel-container {
