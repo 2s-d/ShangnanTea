@@ -79,110 +79,19 @@
       @mousedown="startDrag"
       @touchstart="startDrag"
     >
-      <div class="box-face front">
-        <div class="box-icon">
-          <!-- 16 面骰子风格图标（参考多面骰 / 水晶图标设计） -->
-          <svg
-            class="dice-icon"
-            viewBox="0 0 64 64"
-            aria-hidden="true"
-          >
-            <!-- 外轮廓：略带厚度的 16 边形 -->
-            <defs>
-              <linearGradient id="diceOuterGradient" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stop-color="#8be9ff" />
-                <stop offset="50%" stop-color="#5f7bff" />
-                <stop offset="100%" stop-color="#a855f7" />
-              </linearGradient>
-              <linearGradient id="diceInnerGradient" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stop-color="#fefefe" />
-                <stop offset="40%" stop-color="#dbeafe" />
-                <stop offset="100%" stop-color="#a5b4fc" />
-              </linearGradient>
-            </defs>
-
-            <!-- 外多边形 -->
-            <polygon
-              fill="url(#diceOuterGradient)"
-              stroke="rgba(15,23,42,0.2)"
-              stroke-width="2"
-              points="
-                32 4,
-                42 6,
-                51 11,
-                58 18,
-                60 28,
-                60 36,
-                58 46,
-                51 53,
-                42 58,
-                32 60,
-                22 58,
-                13 53,
-                6 46,
-                4 36,
-                4 28,
-                6 18,
-                13 11,
-                22 6
-              "
-            />
-
-            <!-- 内部高光多边形 -->
-            <polygon
-              fill="url(#diceInnerGradient)"
-              opacity="0.9"
-              points="
-                32 10,
-                40 12,
-                48 17,
-                54 24,
-                56 30,
-                56 34,
-                54 42,
-                48 48,
-                40 52,
-                32 54,
-                24 52,
-                16 48,
-                10 42,
-                8 34,
-                8 30,
-                10 24,
-                16 17,
-                24 12
-              "
-            />
-
-            <!-- 分割线，模拟多面切割 -->
-            <g stroke="rgba(15,23,42,0.18)" stroke-width="1.2">
-              <line x1="32" y1="10" x2="32" y2="54" />
-              <line x1="10" y1="24" x2="54" y2="40" />
-              <line x1="54" y1="24" x2="10" y2="40" />
-              <line x1="24" y1="12" x2="40" y2="52" />
-              <line x1="40" y1="12" x2="24" y2="52" />
-            </g>
-
-            <!-- 数字 16 -->
-            <text
-              x="32"
-              y="36"
-              text-anchor="middle"
-              dominant-baseline="middle"
-              fill="#1e293b"
-              font-size="14"
-              font-weight="700"
-            >
-              16
-            </text>
-          </svg>
+      <!-- 全新的 3D 16 面骰子模型，完全替换原来的立方体 -->
+      <div class="d16">
+        <div
+          v-for="n in 16"
+          :key="n"
+          class="d16-face"
+          :style="d16FaceStyle(n)"
+        >
+          <span class="d16-num">{{ n }}</span>
         </div>
+        <div class="d16-cap d16-cap-top"></div>
+        <div class="d16-cap d16-cap-bottom"></div>
       </div>
-      <div class="box-face back"></div>
-      <div class="box-face left"></div>
-      <div class="box-face right"></div>
-      <div class="box-face top"></div>
-      <div class="box-face bottom"></div>
     </div>
   </div>
 </template>
@@ -235,7 +144,7 @@ const ropePath = computed(() => {
   return `M ${startX} ${startY} Q ${controlX} ${controlY} ${endX} ${endY}`
 })
 
-// 方块样式
+// 方块 / 骰子包裹元素样式
 const boxStyle = computed(() => {
   const rotation = offsetX.value * 0.5 // 根据X偏移旋转
   const boxSize = 50
@@ -249,6 +158,21 @@ const boxStyle = computed(() => {
     transform: `rotateY(${rotation}deg) rotateX(${offsetY.value * 0.2}deg)`
   }
 })
+
+// ===== 16 面骰子：面变换样式 =====
+const D16_RADIUS = 26 // 半径
+const D16_HEIGHT = 40 // 高度
+
+const d16FaceStyle = n => {
+  const angle = (360 / 16) * (n - 1)
+  return {
+    transform: `
+      rotateY(${angle}deg)
+      translateZ(${D16_RADIUS}px)
+      translateY(${D16_HEIGHT / -2}px)
+    `
+  }
+}
 
 // === Matter.js 物理世界 ===
 let engine = null
@@ -406,75 +330,61 @@ onUnmounted(() => {
   cursor: grabbing;
 }
 
-.box-face {
+/* === 3D 16 面骰子样式 === */
+
+.d16 {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  transform-style: preserve-3d;
+  animation: d16-spin 8s linear infinite;
+}
+
+.d16-face {
   position: absolute;
-  width: 50px;
-  height: 50px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border: 2px solid rgba(255,255,255,0.3);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-}
-
-/* 恢复 3D 立方体效果，让新骰子图标贴在正前面 */
-.front {
-  transform: translateZ(25px);
-}
-
-.back {
-  transform: translateZ(-25px) rotateY(180deg);
-  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-}
-
-.left {
-  transform: rotateY(-90deg) translateZ(25px);
-  background: linear-gradient(135deg, #5a67d8 0%, #667eea 100%);
-}
-
-.right {
-  transform: rotateY(90deg) translateZ(25px);
-  background: linear-gradient(135deg, #5a67d8 0%, #667eea 100%);
-}
-
-.top {
-  transform: rotateX(90deg) translateZ(25px);
-  background: linear-gradient(135deg, #7c3aed 0%, #667eea 100%);
-}
-
-.bottom {
-  transform: rotateX(-90deg) translateZ(25px);
-  background: linear-gradient(135deg, #7c3aed 0%, #667eea 100%);
-}
-
-.box-icon {
-  width: 40px;
+  top: 50%;
+  left: 50%;
+  width: 18px;
   height: 40px;
+  margin: -20px -9px;
+  background: linear-gradient(180deg, #8be9ff, #5f7bff 60%, #4338ca);
+  border: 1px solid rgba(15, 23, 42, 0.35);
+  box-shadow: 0 0 6px rgba(37, 99, 235, 0.45);
+  backface-visibility: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: float-icon 2s ease-in-out infinite;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
 }
 
-@keyframes float-icon {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-3px); }
+.d16-num {
+  font-size: 10px;
+  font-weight: 700;
+  color: #e5efff;
+  text-shadow: 0 0 3px rgba(15, 23, 42, 0.9);
 }
 
-/* 悬停效果 */
-.switch-box:hover .box-face {
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+.d16-cap {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 52px;
+  height: 52px;
+  margin: -26px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 20%, #e5f0ff, #4f46e5 70%, #1e1b4b);
+  opacity: 0.9;
 }
 
-.switch-box:hover .box-icon {
-  animation: bounce-icon 0.6s ease-in-out;
+.d16-cap-top {
+  transform: translateY(-22px);
 }
 
-@keyframes bounce-icon {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.2); }
+.d16-cap-bottom {
+  transform: translateY(22px) rotateX(180deg);
+}
+
+@keyframes d16-spin {
+  0%   { transform: rotateX(-18deg) rotateY(0deg); }
+  100% { transform: rotateX(-18deg) rotateY(360deg); }
 }
 </style>
