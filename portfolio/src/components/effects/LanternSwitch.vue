@@ -80,7 +80,103 @@
       @touchstart="startDrag"
     >
       <div class="box-face front">
-        <div class="box-icon"></div>
+        <div class="box-icon">
+          <!-- 16 面骰子风格图标（参考多面骰 / 水晶图标设计） -->
+          <svg
+            class="dice-icon"
+            viewBox="0 0 64 64"
+            aria-hidden="true"
+          >
+            <!-- 外轮廓：略带厚度的 16 边形 -->
+            <defs>
+              <linearGradient id="diceOuterGradient" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#8be9ff" />
+                <stop offset="50%" stop-color="#5f7bff" />
+                <stop offset="100%" stop-color="#a855f7" />
+              </linearGradient>
+              <linearGradient id="diceInnerGradient" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#fefefe" />
+                <stop offset="40%" stop-color="#dbeafe" />
+                <stop offset="100%" stop-color="#a5b4fc" />
+              </linearGradient>
+            </defs>
+
+            <!-- 外多边形 -->
+            <polygon
+              fill="url(#diceOuterGradient)"
+              stroke="rgba(15,23,42,0.2)"
+              stroke-width="2"
+              points="
+                32 4,
+                42 6,
+                51 11,
+                58 18,
+                60 28,
+                60 36,
+                58 46,
+                51 53,
+                42 58,
+                32 60,
+                22 58,
+                13 53,
+                6 46,
+                4 36,
+                4 28,
+                6 18,
+                13 11,
+                22 6
+              "
+            />
+
+            <!-- 内部高光多边形 -->
+            <polygon
+              fill="url(#diceInnerGradient)"
+              opacity="0.9"
+              points="
+                32 10,
+                40 12,
+                48 17,
+                54 24,
+                56 30,
+                56 34,
+                54 42,
+                48 48,
+                40 52,
+                32 54,
+                24 52,
+                16 48,
+                10 42,
+                8 34,
+                8 30,
+                10 24,
+                16 17,
+                24 12
+              "
+            />
+
+            <!-- 分割线，模拟多面切割 -->
+            <g stroke="rgba(15,23,42,0.18)" stroke-width="1.2">
+              <line x1="32" y1="10" x2="32" y2="54" />
+              <line x1="10" y1="24" x2="54" y2="40" />
+              <line x1="54" y1="24" x2="10" y2="40" />
+              <line x1="24" y1="12" x2="40" y2="52" />
+              <line x1="40" y1="12" x2="24" y2="52" />
+            </g>
+
+            <!-- 数字 16 -->
+            <text
+              x="32"
+              y="36"
+              text-anchor="middle"
+              dominant-baseline="middle"
+              fill="#1e293b"
+              font-size="14"
+              font-weight="700"
+            >
+              16
+            </text>
+          </svg>
+        </div>
       </div>
       <div class="box-face back"></div>
       <div class="box-face left"></div>
@@ -353,7 +449,11 @@ onUnmounted(() => {
 }
 
 .box-icon {
-  font-size: 28px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   animation: float-icon 2s ease-in-out infinite;
   filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
 }
