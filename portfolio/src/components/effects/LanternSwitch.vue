@@ -409,4 +409,21 @@ onUnmounted(() => {
   0%   { transform: rotateX(-18deg) rotateY(0deg); }
   100% { transform: rotateX(-18deg) rotateY(360deg); }
 }
+
+/* 手机端：缩小挂件并稍微靠边，避免遮挡内容 */
+@media (max-width: 767px) {
+  .switch-wrapper {
+    right: 16px;
+    width: 64px;
+  }
+
+  .switch-box {
+    width: 40px;
+    height: 40px;
+  }
+
+  .rainbow-beam {
+    width: 4px;
+  }
+}
 </style>
