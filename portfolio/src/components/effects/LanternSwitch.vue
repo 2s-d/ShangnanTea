@@ -19,7 +19,7 @@
       @touchstart="startDrag"
     >
       <div class="box-face front">
-        <div class="box-icon">🎨</div>
+        <div class="box-icon"></div>
       </div>
       <div class="box-face back"></div>
       <div class="box-face left"></div>
@@ -39,20 +39,21 @@ const props = defineProps({
 })
 
 // 位置和物理参数
-const baseY = 80 // 基础Y位置
-const baseX = 40 // 距离右边的距离
 const offsetY = ref(0) // Y轴偏移
-const offsetX = ref(0) // X轴偏移（用于晃动）
-const velocity = ref(0) // 速度
+const offsetX = ref(0) // X轴偏移（用于晃动和左右拉动）
+const velocity = ref(0) // 纵向速度
 const isDragging = ref(false)
 const dragStartY = ref(0)
 const dragStartOffset = ref(0)
+const dragStartX = ref(0)
+const dragStartOffsetX = ref(0)
 
 // 物理参数
 const SPRING_STRENGTH = 0.15 // 弹簧强度
 const DAMPING = 0.85 // 阻尼
 const TRIGGER_DISTANCE = 80 // 触发切换的距离
 const MAX_STRETCH = 150 // 最大拉伸距离
+const MAX_HORIZONTAL = 20 // 最大左右偏移
 
 // 绳子长度
 const ropeLength = computed(() => {
@@ -61,9 +62,9 @@ const ropeLength = computed(() => {
 
 // 绳子路径 - 贝塞尔曲线模拟弹性
 const ropePath = computed(() => {
-  const startX = 30
+  const startX = 40
   const startY = 0
-  const endX = 30 + offsetX.value
+  const endX = 40 + offsetX.value
   const endY = ropeLength.value
   
   // 控制点让绳子有弧度
@@ -76,9 +77,14 @@ const ropePath = computed(() => {
 // 方块样式
 const boxStyle = computed(() => {
   const rotation = offsetX.value * 0.5 // 根据X偏移旋转
+  const boxSize = 50
+  const centerX = 40 + offsetX.value
+  const centerY = ropeLength.value
+  const top = centerY - boxSize / 2
+  const left = centerX - boxSize / 2
   return {
-    top: `${baseY + offsetY.value}px`,
-    right: `${baseX - offsetX.value}px`,
+    top: `${top}px`,
+    left: `${left}px`,
     transform: `rotateY(${rotation}deg) rotateX(${offsetY.value * 0.2}deg)`
   }
 })
@@ -87,8 +93,11 @@ const boxStyle = computed(() => {
 const startDrag = (e) => {
   isDragging.value = true
   const clientY = e.touches ? e.touches[0].clientY : e.clientY
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX
   dragStartY.value = clientY
   dragStartOffset.value = offsetY.value
+  dragStartX.value = clientX
+  dragStartOffsetX.value = offsetX.value
   
   document.addEventListener('mousemove', onDrag)
   document.addEventListener('mouseup', endDrag)
@@ -101,13 +110,17 @@ const onDrag = (e) => {
   if (!isDragging.value) return
   
   const clientY = e.touches ? e.touches[0].clientY : e.clientY
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX
   const deltaY = clientY - dragStartY.value
+  const deltaX = clientX - dragStartX.value
   
   // 限制最大拉伸
   offsetY.value = Math.max(0, Math.min(MAX_STRETCH, dragStartOffset.value + deltaY))
-  
-  // 添加一点横向晃动
-  offsetX.value = Math.sin(offsetY.value * 0.1) * 10
+  // 允许左右拖动，限制最大偏移
+  offsetX.value = Math.max(
+    -MAX_HORIZONTAL,
+    Math.min(MAX_HORIZONTAL, dragStartOffsetX.value + deltaX * 0.2)
+  )
 }
 
 // 结束拖拽
@@ -175,7 +188,7 @@ onUnmounted(() => {
   top: 0;
   right: 40px;
   z-index: 9999;
-  width: 60px;
+  width: 80px;
   pointer-events: none;
 }
 
@@ -183,7 +196,7 @@ onUnmounted(() => {
   position: absolute;
   top: 0;
   left: 0;
-  width: 60px;
+  width: 80px;
   transition: height 0.1s ease-out;
   filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.3));
 }
