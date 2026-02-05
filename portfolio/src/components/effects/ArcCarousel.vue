@@ -2,6 +2,24 @@
   <div class="arc-carousel" 
        @mousedown="handleMouseDown"
        @touchstart="handleTouchStart">
+    <!-- 左箭头 -->
+    <div class="arrow arrow-left" 
+         @mouseenter="handleArrowHover('prev')"
+         @mouseleave="handleArrowLeave">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+    </div>
+    
+    <!-- 右箭头 -->
+    <div class="arrow arrow-right"
+         @mouseenter="handleArrowHover('next')"
+         @mouseleave="handleArrowLeave">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="9 18 15 12 9 6"></polyline>
+      </svg>
+    </div>
+    
     <div class="carousel-container">
       <div
         v-for="(item, index) in displayItems"
@@ -16,7 +34,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 
 const props = defineProps({
   items: {
@@ -26,6 +44,10 @@ const props = defineProps({
   itemWidth: {
     type: Number,
     default: 400
+  },
+  autoPlayInterval: {
+    type: Number,
+    default: 15000 // 15秒
   }
 })
 
@@ -33,6 +55,8 @@ const currentIndex = ref(0) // 当前中心项目的索引
 const isDragging = ref(false)
 const startX = ref(0)
 const dragOffset = ref(0)
+let autoPlayTimer = null
+let arrowHoverTimer = null
 
 // 创建循环显示的项目数组（显示5个用于过渡，但只有3个可见）
 const displayItems = computed(() => {
@@ -47,6 +71,30 @@ const displayItems = computed(() => {
   
   return result
 })
+
+// 自动轮播：向左滑动（下一个）
+const autoPlay = () => {
+  currentIndex.value = (currentIndex.value + 1) % props.items.length
+}
+
+// 启动自动轮播
+const startAutoPlay = () => {
+  stopAutoPlay() // 先清除旧的定时器
+  autoPlayTimer = setInterval(autoPlay, props.autoPlayInterval)
+}
+
+// 停止自动轮播
+const stopAutoPlay = () => {
+  if (autoPlayTimer) {
+    clearInterval(autoPlayTimer)
+    autoPlayTimer = null
+  }
+}
+
+// 重置自动轮播（用户操作后重新计时）
+const resetAutoPlay = () => {
+  startAutoPlay()
+}
 
 // 计算每个卡片的位置和样式
 const getItemStyle = (displayIndex) => {
@@ -103,6 +151,7 @@ const handleMouseDown = (e) => {
   isDragging.value = true
   startX.value = e.clientX
   dragOffset.value = 0
+  stopAutoPlay() // 用户操作时停止自动轮播
   document.addEventListener('mousemove', handleMouseMove)
   document.addEventListener('mouseup', handleMouseUp)
 }
@@ -128,12 +177,14 @@ const handleMouseUp = () => {
   }
   
   dragOffset.value = 0
+  resetAutoPlay() // 用户操作后重新启动自动轮播
 }
 
 const handleTouchStart = (e) => {
   isDragging.value = true
   startX.value = e.touches[0].clientX
   dragOffset.value = 0
+  stopAutoPlay() // 用户操作时停止自动轮播
   document.addEventListener('touchmove', handleTouchMove, { passive: false })
   document.addEventListener('touchend', handleTouchEnd)
 }
@@ -157,7 +208,18 @@ const handleTouchEnd = () => {
   }
   
   dragOffset.value = 0
+  resetAutoPlay() // 用户操作后重新启动自动轮播
 }
+
+// 组件挂载时启动自动轮播
+onMounted(() => {
+  startAutoPlay()
+})
+
+// 组件卸载时清除定时器
+onUnmounted(() => {
+  stopAutoPlay()
+})
 </script>
 
 <style scoped>
