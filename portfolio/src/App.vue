@@ -10,6 +10,7 @@
     <!-- 通用特效层 -->
     <!-- <CursorGlow /> -->
     <ScrollProgress />
+    <ClickEffect />
     
     <!-- 红灯笼：切换主题 -->
     <LanternSwitch 
@@ -28,31 +29,68 @@
           active-text-color="#667eea"
           class="nav-menu glass-effect"
         >
+          <!-- 平滑追随高亮背景 -->
+          <div 
+            class="nav-highlight" 
+            :style="highlightStyle"
+            v-show="highlightVisible"
+          ></div>
+          
           <el-menu-item index="0" class="logo">
             <h2>{{ profile.name }}</h2>
           </el-menu-item>
           <div class="flex-grow" />
-          <el-menu-item index="1" @click="scrollTo('hero')">
+          <el-menu-item 
+            index="1" 
+            @click="scrollTo('hero')"
+            @mouseenter="updateHighlight"
+            @mouseleave="hideHighlight"
+          >
             <el-icon><HomeFilled /></el-icon>
             首页
           </el-menu-item>
-          <el-menu-item index="2" @click="scrollTo('about')">
+          <el-menu-item 
+            index="2" 
+            @click="scrollTo('about')"
+            @mouseenter="updateHighlight"
+            @mouseleave="hideHighlight"
+          >
             <el-icon><User /></el-icon>
             关于
           </el-menu-item>
-          <el-menu-item index="3" @click="scrollTo('skills')">
+          <el-menu-item 
+            index="3" 
+            @click="scrollTo('skills')"
+            @mouseenter="updateHighlight"
+            @mouseleave="hideHighlight"
+          >
             <el-icon><TrophyBase /></el-icon>
             技能
           </el-menu-item>
-          <el-menu-item index="4" @click="scrollTo('projects')">
+          <el-menu-item 
+            index="4" 
+            @click="scrollTo('projects')"
+            @mouseenter="updateHighlight"
+            @mouseleave="hideHighlight"
+          >
             <el-icon><Briefcase /></el-icon>
             项目
           </el-menu-item>
-          <el-menu-item index="5" @click="scrollTo('contact')">
+          <el-menu-item 
+            index="5" 
+            @click="scrollTo('contact')"
+            @mouseenter="updateHighlight"
+            @mouseleave="hideHighlight"
+          >
             <el-icon><Message /></el-icon>
             联系
           </el-menu-item>
-          <el-menu-item index="6" @click="toggleDarkMode()">
+          <el-menu-item 
+            index="6" 
+            @click="toggleDarkMode()"
+            @mouseenter="updateHighlight"
+            @mouseleave="hideHighlight"
+          >
             <el-icon v-if="isDark"><Sunny /></el-icon>
             <el-icon v-else><Moon /></el-icon>
           </el-menu-item>
@@ -263,6 +301,7 @@ import TiltCard from './components/effects/TiltCard.vue'
 import LanternSwitch from './components/effects/LanternSwitch.vue'
 import CodeRain from './components/effects/CodeRain.vue'
 import SkillProgress from './components/effects/SkillProgress.vue'
+import ClickEffect from './components/effects/ClickEffect.vue'
 import { useThemeSystem } from './composables/useThemeSystem'
 import { useScroll } from './composables/useScroll'
 import { profile, skills, projects } from './data/portfolio'
@@ -272,6 +311,32 @@ const { isDark, currentTheme, toggleDarkMode, toggleTheme, THEMES } = useThemeSy
 
 // 滚动功能
 const { scrollTo } = useScroll()
+
+// 导航高亮追随
+const highlightStyle = ref({})
+const highlightVisible = ref(false)
+
+const updateHighlight = (e) => {
+  const target = e.currentTarget
+  const rect = target.getBoundingClientRect()
+  const parent = target.parentElement.getBoundingClientRect()
+  
+  highlightStyle.value = {
+    left: `${rect.left - parent.left}px`,
+    width: `${rect.width}px`,
+    opacity: 1,
+    transform: 'scaleX(1)'
+  }
+  highlightVisible.value = true
+}
+
+const hideHighlight = () => {
+  highlightStyle.value = {
+    ...highlightStyle.value,
+    opacity: 0,
+    transform: 'scaleX(0.8)'
+  }
+}
 
 // 打开项目链接
 const openProject = (url) => {
@@ -303,17 +368,32 @@ const openProject = (url) => {
 .nav-menu {
   border-bottom: none !important;
   padding: 0 var(--spacing-lg);
+  position: relative;
+}
+
+.nav-highlight {
+  position: absolute;
+  bottom: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  border-radius: 2px 2px 0 0;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  z-index: 0;
+  box-shadow: 0 -2px 8px rgba(102, 126, 234, 0.4);
 }
 
 .nav-menu .el-menu-item {
   font-weight: var(--font-medium);
   font-size: var(--text-base);
-  transition: all var(--transition-fast);
+  transition: color var(--transition-fast);
+  position: relative;
+  z-index: 1;
 }
 
 .nav-menu .el-menu-item:hover {
-  background-color: rgba(102, 126, 234, 0.1);
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+  background-color: transparent;
+  color: #667eea !important;
 }
 
 .logo h2 {
