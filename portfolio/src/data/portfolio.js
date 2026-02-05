@@ -1,6 +1,6 @@
 // 个人信息配置
 export const profile = {
-  name: '张三',
+  name: '潘坤',
   title: '全栈开发工程师',
   description: '热爱编程，专注于 Web 全栈开发，擅长 Java、Vue.js 等技术栈',
   about: '我是一名充满热情的全栈开发工程师，拥有丰富的项目经验。擅长使用 Spring Boot、Vue.js 等现代技术栈构建高质量的 Web 应用。注重代码质量和用户体验，持续学习新技术，追求技术卓越。',

@@ -41,7 +41,8 @@
           ></div>
           
           <el-menu-item index="0" class="logo">
-            <h2>{{ profile.name }}</h2>
+            <el-icon><Reading /></el-icon>
+            <h2>个人博客</h2>
           </el-menu-item>
           <div class="flex-grow" />
           <el-menu-item 
