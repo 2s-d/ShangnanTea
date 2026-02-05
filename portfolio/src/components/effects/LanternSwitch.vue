@@ -31,8 +31,8 @@ const props = defineProps({
 const wrapperRef = ref(null)
 
 // 位置和物理参数（以组件内部坐标为基准）
-// 将整套绳子 + 骰子在容器内部整体左移约 30px
-const anchorX = -20
+// anchorX 取 0，让彩虹柱和挂件保持上下居中对齐
+const anchorX = 0
 const anchorY = 0
 // 基础绳长（静止时顶部到骰子中心的距离），适当拉长一点让视觉上更协调
 const ROPE_BASE_LENGTH = 180
@@ -67,10 +67,11 @@ const boxStyle = computed(() => {
   }
 })
 
-// 彩虹流光高度样式
+// 彩虹流光高度样式（底部略收短，让它刚好接到挂件顶部）
 const rainbowStyle = computed(() => {
   const minHeight = 40
-  const h = Math.max(minHeight, ropeLength.value)
+  const offsetToModelCenter = 40 // 估算挂件中心到其顶部的距离
+  const h = Math.max(minHeight, ropeLength.value - offsetToModelCenter)
   return {
     height: `${h}px`
   }
@@ -245,7 +246,7 @@ onUnmounted(() => {
   position: absolute;
   top: 0;
   left: 50%;
-  width: 8px;
+  width: 5px;
   transform: translateX(-50%);
   background: linear-gradient(
     to bottom,

@@ -21,8 +21,8 @@ onMounted(() => {
   const canvas = canvasRef.value
   if (!canvas) return
 
-  const width = 90
-  const height = 90
+  const width = 80
+  const height = 80
 
   // 渲染器
   renderer = new THREE.WebGLRenderer({
@@ -38,9 +38,9 @@ onMounted(() => {
   scene.background = null
 
   // 相机
-  camera = new THREE.PerspectiveCamera(32, width / height, 0.1, 100)
-  camera.position.set(0, 1.6, 4.2)
-  camera.lookAt(0, 0.6, 0)
+  camera = new THREE.PerspectiveCamera(30, width / height, 0.1, 100)
+  camera.position.set(0, 1.6, 4.0)
+  camera.lookAt(0, 0.5, 0)
 
   // 灯光
   const ambient = new THREE.AmbientLight(0xffffff, 0.9)
@@ -62,15 +62,16 @@ onMounted(() => {
       const center = box.getCenter(new THREE.Vector3())
       const maxAxis = Math.max(size.x, size.y, size.z) || 1
 
-      // 比之前再缩小一些，让云、茶杯、托盘和粒子都能装下
-      const scale = 1.2 / maxAxis
+      // 放大一些，让主体更靠近光晕中心但仍完整可见
+      const scale = 1.5 / maxAxis
       model.scale.setScalar(scale)
 
       // 居中到原点附近，并稍微上抬一点
       box.setFromObject(model)
       box.getCenter(center)
       model.position.sub(center)
-      model.position.y -= 0.1
+      // 略微上移模型，让茶杯主体落在光晕中心内部
+      model.position.y += 0.12
 
       model.rotation.set(0, Math.PI / 6, 0)
 
@@ -108,14 +109,13 @@ onUnmounted(() => {
 <style scoped>
 .cloud-tea-wrapper {
   position: relative;
-  width: 90px;
-  height: 90px;
+  width: 80px;
+  height: 80px;
   display: flex;
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  /* 让茶杯整体稍微往下挂一点，和绳子末端留出空间 */
-  transform: translateY(10px);
+  transform: translateY(0);
 }
 
 .cloud-tea-wrapper::before {
@@ -130,8 +130,8 @@ onUnmounted(() => {
 }
 
 .cloud-tea-canvas {
-  width: 90px;
-  height: 90px;
+  width: 80px;
+  height: 80px;
   pointer-events: none;
 }
 </style>
