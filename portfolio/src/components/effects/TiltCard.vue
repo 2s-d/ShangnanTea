@@ -1,12 +1,17 @@
 <template>
-  <div ref="tiltRef" class="tilt-card">
+  <div
+    class="tilt-card"
+    @mouseenter="handleMouseEnter"
+    @mousemove="handleMouseMove"
+    @mouseleave="handleMouseLeave"
+    :style="cardStyle"
+  >
     <slot></slot>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
-import VanillaTilt from 'vanilla-tilt'
+import { ref, computed } from 'vue'
 
 const props = defineProps({
   maxTilt: {
@@ -15,33 +20,59 @@ const props = defineProps({
   }
 })
 
-const tiltRef = ref(null)
-let tiltInstance = null
+const rotateX = ref(0)
+const rotateY = ref(0)
+const isHovering = ref(false)
 
-onMounted(() => {
-  if (tiltRef.value) {
-    VanillaTilt.init(tiltRef.value, {
-      max: props.maxTilt,
-      speed: 400,
-      glare: false,
-      scale: 1.02,
-      perspective: 1000,
-      transition: true,
-      easing: "cubic-bezier(.03,.98,.52,.99)"
-    })
-    tiltInstance = tiltRef.value.vanillaTilt
-  }
-})
+const cardStyle = computed(() => ({
+  transform: `perspective(1000px) rotateX(${rotateX.value}deg) rotateY(${rotateY.value}deg) scale(${isHovering.value ? 1.02 : 1})`,
+  transition: 'transform 0.3s cubic-bezier(0.23, 1, 0.32, 1)'
+}))
 
-onUnmounted(() => {
-  if (tiltInstance) {
-    tiltInstance.destroy()
+let lastUpdateTime = 0
+const throttleDelay = 2000 // 1秒更新一次
+
+const handleMouseEnter = () => {
+  isHovering.value = true
+}
+
+const handleMouseMove = (e) => {
+  const now = Date.now()
+  
+  // 节流：1秒内只更新一次
+  if (now - lastUpdateTime < throttleDelay) {
+    return
   }
-})
+  
+  lastUpdateTime = now
+  
+  const card = e.currentTarget
+  const rect = card.getBoundingClientRect()
+  
+  const x = e.clientX - rect.left
+  const y = e.clientY - rect.top
+  
+  const centerX = rect.width / 2
+  const centerY = rect.height / 2
+  
+  const percentX = (x - centerX) / centerX
+  const percentY = (y - centerY) / centerY
+  
+  rotateY.value = percentX * props.maxTilt
+  rotateX.value = -percentY * props.maxTilt
+}
+
+const handleMouseLeave = () => {
+  isHovering.value = false
+  rotateX.value = 0
+  rotateY.value = 0
+  lastUpdateTime = 0
+}
 </script>
 
 <style scoped>
 .tilt-card {
   transform-style: preserve-3d;
+  will-change: transform;
 }
 </style>
