@@ -6,6 +6,7 @@
       <HexagonGrid />
     </template>
     <CodeRain v-if="currentTheme === THEMES.CODERAIN" :show="true" />
+    <StarryBackground v-if="currentTheme === THEMES.STARRY" :show="true" />
     
     <!-- 通用特效层 -->
     <!-- <CursorGlow /> -->
@@ -302,6 +303,7 @@ import LanternSwitch from './components/effects/LanternSwitch.vue'
 import CodeRain from './components/effects/CodeRain.vue'
 import SkillProgress from './components/effects/SkillProgress.vue'
 import ClickEffect from './components/effects/ClickEffect.vue'
+import StarryBackground from './components/effects/StarryBackground.vue'
 import { useThemeSystem } from './composables/useThemeSystem'
 import { useScroll } from './composables/useScroll'
 import { profile, skills, projects } from './data/portfolio'

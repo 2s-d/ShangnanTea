@@ -4,6 +4,7 @@ import { ref, watch } from 'vue'
 export const THEMES = {
   PARTICLE: 'particle',  // 主题1：粒子主题
   CODERAIN: 'coderain',  // 主题2：代码雨主题
+  STARRY: 'starry',      // 主题3：星空主题
 }
 
 export function useThemeSystem() {
@@ -20,7 +21,10 @@ export function useThemeSystem() {
 
   // 切换主题（红灯笼）
   const toggleTheme = () => {
-    currentTheme.value = currentTheme.value === THEMES.PARTICLE ? THEMES.CODERAIN : THEMES.PARTICLE
+    const themes = Object.values(THEMES)
+    const currentIndex = themes.indexOf(currentTheme.value)
+    const nextIndex = (currentIndex + 1) % themes.length
+    currentTheme.value = themes[nextIndex]
     
     // 切换到代码雨主题时自动开启黑夜模式
     if (currentTheme.value === THEMES.CODERAIN) {
@@ -29,6 +33,10 @@ export function useThemeSystem() {
     // 切换到粒子主题时自动开启白天模式
     else if (currentTheme.value === THEMES.PARTICLE) {
       isDark.value = false
+    }
+    // 切换到星空主题时自动开启黑夜模式
+    else if (currentTheme.value === THEMES.STARRY) {
+      isDark.value = true
     }
   }
 
