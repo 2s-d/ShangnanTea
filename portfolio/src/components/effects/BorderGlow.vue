@@ -43,11 +43,20 @@ const updateSize = () => {
   if (!card) return
   
   const rect = card.getBoundingClientRect()
+  const wrapperRect = wrapper.value.getBoundingClientRect()
+  
   width = rect.width
   height = rect.height
   
   canvas.value.width = width
   canvas.value.height = height
+  
+  // 计算Canvas相对于wrapper的偏移
+  const offsetX = rect.left - wrapperRect.left
+  const offsetY = rect.top - wrapperRect.top
+  
+  canvas.value.style.left = `${offsetX}px`
+  canvas.value.style.top = `${offsetY}px`
   
   // 获取实际的 border-radius
   const styles = window.getComputedStyle(card)
