@@ -14,13 +14,14 @@ class Particle {
   constructor(x, y) {
     this.x = x
     this.y = y
-    this.size = Math.random() * 4 + 2
-    this.speedX = (Math.random() - 0.5) * 4
-    this.speedY = (Math.random() - 0.5) * 4
+    this.size = Math.random() * 5 + 2
+    this.speedX = (Math.random() - 0.5) * 5
+    this.speedY = (Math.random() - 0.5) * 5
     this.life = 1
-    this.decay = Math.random() * 0.015 + 0.01
+    this.decay = Math.random() * 0.008 + 0.005
     this.rotation = Math.random() * Math.PI * 2
-    this.rotationSpeed = (Math.random() - 0.5) * 0.2
+    this.rotationSpeed = (Math.random() - 0.5) * 0.15
+    this.age = 0 // 粒子年龄
     
     // 冰晶形状类型
     this.type = Math.floor(Math.random() * 3)
@@ -37,12 +38,25 @@ class Particle {
   }
   
   update() {
-    this.x += this.speedX
-    this.y += this.speedY
-    this.speedY += 0.1 // 重力
-    this.life -= this.decay
-    this.rotation += this.rotationSpeed
-    this.size *= 0.98
+    this.age += 0.01
+    
+    // 时间膨胀效果：在0.3-0.6生命周期时减速（扩散到最大时）
+    let timeScale = 1
+    if (this.age > 0.3 && this.age < 0.6) {
+      // 在这个区间内，时间流逝变慢（定格帧效果）
+      const peakProgress = (this.age - 0.3) / 0.3 // 0-1
+      // 使用sin函数创建平滑的减速-加速曲线
+      timeScale = 0.3 + Math.sin(peakProgress * Math.PI) * 0.4 // 0.3-0.7之间
+    }
+    
+    this.x += this.speedX * timeScale
+    this.y += this.speedY * timeScale
+    this.speedY += 0.08 * timeScale // 重力也受时间膨胀影响
+    this.speedX *= (1 - 0.01 * timeScale) // 空气阻力
+    this.speedY *= (1 - 0.01 * timeScale)
+    this.life -= this.decay * timeScale
+    this.rotation += this.rotationSpeed * timeScale
+    this.size *= (1 - 0.005 * timeScale)
   }
   
   draw(ctx) {
@@ -136,8 +150,8 @@ const handleClick = (e) => {
   
   console.log('Click detected at:', x, y)
   
-  // 创建15-25个粒子
-  const count = Math.floor(Math.random() * 10) + 15
+  // 创建30-45个粒子
+  const count = Math.floor(Math.random() * 15) + 30
   for (let i = 0; i < count; i++) {
     particles.push(new Particle(x, y))
   }

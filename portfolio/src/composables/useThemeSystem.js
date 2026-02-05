@@ -26,6 +26,10 @@ export function useThemeSystem() {
     if (currentTheme.value === THEMES.CODERAIN) {
       isDark.value = true
     }
+    // 切换到粒子主题时自动开启白天模式
+    else if (currentTheme.value === THEMES.PARTICLE) {
+      isDark.value = false
+    }
   }
 
   // 监听深色模式变化
