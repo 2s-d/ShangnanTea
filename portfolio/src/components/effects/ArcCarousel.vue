@@ -114,7 +114,16 @@ const handleArrowClick = (direction) => {
 // 计算每个卡片的位置和样式
 const getItemStyle = (displayIndex) => {
   // displayIndex: 0-10 对应相对位置 -5,-4,-3,-2,-1,0,1,2,3,4,5
-  const relativePosition = displayIndex - 5 + dragOffset.value / props.itemWidth
+  let relativePosition = displayIndex - 5 + dragOffset.value / props.itemWidth
+
+  // 为了避免最边缘卡片被 translate 到 ±2000px 之外导致页面横向滚动条很长，
+  // 在视觉上我们只需要中间附近的几张卡片参与布局，因此对相对位置做一个上限/下限限制。
+  // 说明：
+  //  - displayItems 仍然保留 11 张，保证拖拽/惯性滑动时有足够预加载的卡片；
+  //  - 这里只是限制它们“能跑多远”，从源头上收紧可见区域的总宽度。
+  const MAX_POS = 2.5
+  if (relativePosition > MAX_POS) relativePosition = MAX_POS
+  if (relativePosition < -MAX_POS) relativePosition = -MAX_POS
   
   // 弧线参数 - 向下10%弧度
   const arcDepth = 0.1
