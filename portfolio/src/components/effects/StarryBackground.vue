@@ -174,7 +174,7 @@ class Planet {
     this.colorPair = this.colors[newColorIndex]
     
     // 随机新大小
-    this.baseRadius = Math.random() * 45 + 40
+    this.baseRadius = Math.random() * 45 + 35
     this.breathAmplitude = this.baseRadius * 0.1
     this.breathSpeed = Math.random() * 0.002 + 0.0008 // 重新随机呼吸速度
   }

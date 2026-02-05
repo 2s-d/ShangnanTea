@@ -30,9 +30,9 @@ export function useThemeSystem() {
     if (currentTheme.value === THEMES.STARRY) {
       isDark.value = true
     }
-    // 切换到粒子主题时自动开启白天模式
+    // 切换到粒子主题时自动开启黑夜模式
     else if (currentTheme.value === THEMES.PARTICLE) {
-      isDark.value = false
+      isDark.value = true
     }
     // 切换到代码雨主题时自动开启黑夜模式
     else if (currentTheme.value === THEMES.CODERAIN) {
