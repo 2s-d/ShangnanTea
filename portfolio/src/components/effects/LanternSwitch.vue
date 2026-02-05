@@ -36,7 +36,7 @@ const wrapperRef = ref(null)
 const anchorX = 26
 const anchorY = 10
 // 基础绳长（静止时顶部到骰子中心的距离），适当拉长一点让视觉上更协调
-const ROPE_BASE_LENGTH = 180
+const ROPE_BASE_LENGTH = 200
 
 const offsetY = ref(0) // Y轴偏移
 const offsetX = ref(0) // X轴偏移（用于晃动和左右拉动）
@@ -68,13 +68,25 @@ const boxStyle = computed(() => {
   }
 })
 
-// 彩虹流光高度样式（底部略收短，让它刚好接到挂件顶部）
+// 彩虹流光样式：根据物理引擎的 offsetX / ropeLength 计算“从顶部锚点到挂件中心”的直线
 const rainbowStyle = computed(() => {
-  const minHeight = 40
   const offsetToModelCenter = 40 // 估算挂件中心到其顶部的距离
-  const h = Math.max(minHeight, ropeLength.value - offsetToModelCenter)
+
+  // 终点相对于顶部锚点的位移
+  const dx = offsetX.value
+  const dyRaw = ropeLength.value - offsetToModelCenter
+  const dy = Math.max(20, dyRaw)
+
+  // 线段长度 = 彩虹的高度
+  const length = Math.sqrt(dx * dx + dy * dy)
+
+  // 计算旋转角度：DOM 坐标系中 y 向下
+  const angleRad = Math.atan2(dx, dy)
+  const angleDeg = (angleRad * 180) / Math.PI
+
   return {
-    height: `${h}px`
+    height: `${length}px`,
+    transform: `translateX(-50%) rotate(${angleDeg}deg)`
   }
 })
 
@@ -99,6 +111,7 @@ let boxBody = null
 let ropeConstraint = null
 let animationFrame = null
 let lastTime = 0
+let visibilityHandler = null
 
 const initPhysics = () => {
   engine = Engine.create({
@@ -131,7 +144,10 @@ const physicsTick = (time) => {
   if (!lastTime) {
     lastTime = time
   }
-  const delta = time - lastTime
+  // rAF 在标签页后台会暂停，恢复时 delta 会非常大：会导致刚体瞬移下坠、约束被拉到极限然后疯狂弹跳
+  // 这里 clamp delta，避免“离开页面再回来就乱蹦”的 bug
+  const rawDelta = time - lastTime
+  const delta = Math.min(rawDelta, 33)
   lastTime = time
 
   Engine.update(engine, delta)
@@ -205,20 +221,34 @@ onMounted(() => {
   offsetX.value = 0
   offsetY.value = 0
   ropeLength.value = ROPE_BASE_LENGTH
+  lastTime = 0
 
   if (!engine) {
     initPhysics()
     animationFrame = requestAnimationFrame(physicsTick)
   }
+
+  // 切走/切回页面时重置计时，避免第一帧 delta 过大
+  visibilityHandler = () => {
+    if (document.visibilityState === 'visible') {
+      lastTime = 0
+    }
+  }
+  document.addEventListener('visibilitychange', visibilityHandler)
 })
 
 onUnmounted(() => {
   if (animationFrame) {
     cancelAnimationFrame(animationFrame)
   }
+  if (visibilityHandler) {
+    document.removeEventListener('visibilitychange', visibilityHandler)
+    visibilityHandler = null
+  }
   engine = null
   boxBody = null
   ropeConstraint = null
+  lastTime = 0
 })
 </script>
 
@@ -248,7 +278,6 @@ onUnmounted(() => {
   top: 0;
   left: 50%;
   width: 5px;
-  transform: translateX(-50%);
   background: linear-gradient(
     to bottom,
     rgba(255, 255, 255, 0.0),
@@ -263,6 +292,7 @@ onUnmounted(() => {
   overflow: hidden;
   background-size: 100% 200%;
   animation: rainbow-flow 3s linear infinite;
+  transform-origin: top center;
 }
 
 /* 顶部挂点 */
