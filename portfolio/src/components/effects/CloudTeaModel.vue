@@ -62,16 +62,16 @@ onMounted(() => {
       const center = box.getCenter(new THREE.Vector3())
       const maxAxis = Math.max(size.x, size.y, size.z) || 1
 
-      // 放大一些，让主体更靠近光晕中心但仍完整可见
-      const scale = 1.5 / maxAxis
+      // 稍微缩小一点，让底部托盘也能完整显示出来
+      const scale = 1.3 / maxAxis
       model.scale.setScalar(scale)
 
       // 居中到原点附近，并稍微上抬一点
       box.setFromObject(model)
       box.getCenter(center)
       model.position.sub(center)
-      // 略微上移模型，让茶杯主体落在光晕中心内部
-      model.position.y += 0.12
+      // 轻微上移，但保留足够空间给底部托盘
+      model.position.y += 0.04
 
       model.rotation.set(0, Math.PI / 6, 0)
 
@@ -115,7 +115,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  transform: translateY(0);
+  transform: translateY(-40px);
 }
 
 .cloud-tea-wrapper::before {
