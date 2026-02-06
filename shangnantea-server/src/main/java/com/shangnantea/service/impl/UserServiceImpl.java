@@ -143,6 +143,14 @@ public class UserServiceImpl implements UserService {
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
     
+    /**
+     * JWT 工具类
+     * 用于在登录等场景下生成和解析 Token。
+     * 注意：此处仅注入 JwtUtil，本身不再被 JwtUtil 反向依赖，已避免循环依赖问题。
+     */
+    @Autowired
+    private JwtUtil jwtUtil;
+    
     // ==================== 认证相关 ====================
     
     /**
