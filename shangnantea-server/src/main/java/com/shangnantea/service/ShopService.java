@@ -242,4 +242,12 @@ public interface ShopService {
      * @return 提交结果
      */
     Result<Boolean> submitShopReview(String shopId, Map<String, Object> reviewData);
+    
+    /**
+     * 上传商家认证图片
+     *
+     * @param file 图片文件
+     * @return 上传结果
+     */
+    Result<Map<String, Object>> uploadCertificationImage(MultipartFile file);
 } 

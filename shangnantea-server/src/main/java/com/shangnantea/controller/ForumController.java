@@ -71,7 +71,7 @@ public class ForumController {
      * @return Banner列表
      */
     @GetMapping("/banners")
-    public Result<Object> getBanners() {
+    public Result<java.util.List<com.shangnantea.model.vo.forum.ForumHomeVO.BannerVO>> getBanners() {
         logger.info("获取Banner列表请求");
         return forumService.getBanners();
     }

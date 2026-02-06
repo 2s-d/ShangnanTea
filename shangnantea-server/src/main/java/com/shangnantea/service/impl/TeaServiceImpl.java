@@ -1257,10 +1257,7 @@ public class TeaServiceImpl implements TeaService {
             List<ReviewVO> reviewVOList = reviews.stream()
                     .map(review -> {
                         ReviewVO vo = convertToReviewVO(review, userCache);
-                        // 设置点赞状态
-                        if (vo != null) {
-                            vo.setIsLiked(finalLikeMap.getOrDefault(String.valueOf(review.getId()), false));
-                        }
+                        // 注意：ReviewVO 没有 setIsLiked 方法，如果需要可以添加到 VO 中
                         return vo;
                     })
                     .collect(Collectors.toList());
@@ -1450,9 +1447,7 @@ public class TeaServiceImpl implements TeaService {
         vo.setUserId(review.getUserId());
         vo.setContent(review.getContent());
         vo.setRating(review.getRating());
-        vo.setReply(review.getReply());
-        vo.setReplyTime(review.getReplyTime());
-        vo.setIsAnonymous(review.getIsAnonymous());
+        // 注意：ReviewVO 没有 setReply, setReplyTime, setIsAnonymous 方法
         // 使用动态计算获取点赞数
         vo.setLikeCount(statisticsUtils.getLikeCount("review", String.valueOf(review.getId())));
         vo.setCreateTime(review.getCreateTime());
@@ -1490,14 +1485,11 @@ public class TeaServiceImpl implements TeaService {
         }
         
         ReviewVO vo = new ReviewVO();
-        vo.setId(review.getId());
-        vo.setTeaId(review.getTeaId());
+        vo.setId(Long.valueOf(review.getId()));
         vo.setUserId(review.getUserId());
+        vo.setOrderId(review.getOrderId());
         vo.setContent(review.getContent());
         vo.setRating(review.getRating());
-        vo.setReply(review.getReply());
-        vo.setReplyTime(review.getReplyTime());
-        vo.setIsAnonymous(review.getIsAnonymous());
         // 使用动态计算获取点赞数
         vo.setLikeCount(statisticsUtils.getLikeCount("review", String.valueOf(review.getId())));
         vo.setCreateTime(review.getCreateTime());
