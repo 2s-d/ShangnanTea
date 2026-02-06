@@ -52,7 +52,8 @@ public class ForumVOConverter {
         vo.setAuthorName(article.getAuthor());
         vo.setCategory(article.getCategory());
         vo.setViewCount(article.getViewCount() != null ? article.getViewCount() : 0);
-        vo.setLikeCount(article.getLikeCount() != null ? article.getLikeCount() : 0);
+        // 点赞数需要通过 StatisticsUtils 动态获取，这里先设为0
+        vo.setLikeCount(0);
         vo.setIsTop(article.getIsTop());
         vo.setIsRecommend(article.getIsRecommend());
         vo.setPublishTime(article.getPublishTime());
@@ -112,8 +113,9 @@ public class ForumVOConverter {
         vo.setCoverImage(generateImageUrl(post.getCoverImage(), baseUrl));
         vo.setViewCount(post.getViewCount());
         vo.setReplyCount(post.getReplyCount());
-        vo.setLikeCount(post.getLikeCount());
-        vo.setFavoriteCount(post.getFavoriteCount());
+        // 点赞数和收藏数需要通过 StatisticsUtils 动态获取，这里先设为0
+        vo.setLikeCount(0);
+        vo.setFavoriteCount(0);
         vo.setIsSticky(post.getIsSticky());
         vo.setIsEssence(post.getIsEssence());
         vo.setStatus(post.getStatus());

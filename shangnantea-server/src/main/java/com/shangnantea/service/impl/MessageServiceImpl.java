@@ -1577,4 +1577,55 @@ public class MessageServiceImpl implements MessageService {
             return Result.failure(7124);
         }
     }
+    
+    /**
+     * 创建或获取会话
+     * 
+     * @param senderId 发送者ID
+     * @param receiverId 接收者ID
+     * @param sessionTypeInt 会话类型（1-私聊，2-客服等）
+     * @return 会话对象
+     */
+    private ChatSession createOrGetSession(String senderId, String receiverId, Integer sessionTypeInt) {
+        try {
+            // 1. 先尝试查找已存在的会话
+            ChatSession existingSession = sessionMapper.selectByUserIds(senderId, receiverId);
+            if (existingSession != null) {
+                logger.debug("找到已存在的会话: sessionId={}", existingSession.getId());
+                return existingSession;
+            }
+            
+            // 2. 创建新会话
+            ChatSession newSession = new ChatSession();
+            String sessionId = UUID.randomUUID().toString().replace("-", "");
+            newSession.setId(sessionId);
+            newSession.setInitiatorId(senderId);
+            newSession.setReceiverId(receiverId);
+            
+            // 转换会话类型：1 -> "private", 2 -> "customer"
+            String sessionType = (sessionTypeInt == 1) ? "private" : "customer";
+            newSession.setSessionType(sessionType);
+            newSession.setStatus(1); // 正常状态
+            newSession.setInitiatorUnread(0);
+            newSession.setReceiverUnread(0);
+            newSession.setIsPinned(0);
+            newSession.setCreateTime(new Date());
+            newSession.setUpdateTime(new Date());
+            
+            // 3. 保存到数据库
+            int result = sessionMapper.insert(newSession);
+            if (result > 0) {
+                logger.info("创建新会话成功: sessionId={}, senderId={}, receiverId={}", 
+                        sessionId, senderId, receiverId);
+                return newSession;
+            } else {
+                logger.error("创建会话失败: 数据库插入失败");
+                return null;
+            }
+            
+        } catch (Exception e) {
+            logger.error("创建或获取会话失败: 系统异常", e);
+            return null;
+        }
+    }
 } 

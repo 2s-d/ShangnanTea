@@ -1966,7 +1966,7 @@ public class TeaServiceImpl implements TeaService {
             }
             
             // 2. 验证图片是否存在
-            TeaImage image = teaImageMapper.selectById(Integer.valueOf(imageId));
+            TeaImage image = teaImageMapper.selectById(Long.valueOf(imageId));
             if (image == null) {
                 logger.warn("删除茶叶图片失败: 图片不存在, imageId: {}", imageId);
                 return Result.failure(3123);
@@ -1997,7 +1997,7 @@ public class TeaServiceImpl implements TeaService {
             }
             
             // 4. 执行删除
-            int deleteCount = teaImageMapper.deleteById(Integer.valueOf(imageId));
+            int deleteCount = teaImageMapper.deleteById(Long.valueOf(imageId));
             if (deleteCount == 0) {
                 logger.warn("删除茶叶图片失败: 数据库删除失败, imageId: {}", imageId);
                 return Result.failure(3123);
@@ -2032,7 +2032,7 @@ public class TeaServiceImpl implements TeaService {
             }
             
             // 2. 验证图片是否存在
-            TeaImage image = teaImageMapper.selectById(Integer.valueOf(imageId));
+            TeaImage image = teaImageMapper.selectById(Long.valueOf(imageId));
             if (image == null) {
                 logger.warn("设置主图失败: 图片不存在, imageId: {}", imageId);
                 return Result.failure(3124);

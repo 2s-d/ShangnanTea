@@ -60,3 +60,6 @@ shangnantea-server/target/
 uploads/
 files/
 
+# ==================== Portfolio 项目（已独立） ====================
+portfolio/
+

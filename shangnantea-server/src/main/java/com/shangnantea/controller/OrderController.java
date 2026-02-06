@@ -133,7 +133,7 @@ public class OrderController {
      */
     @GetMapping("/list")
     @RequiresLogin
-    public Result<Object> getOrders(@RequestParam Map<String, Object> params) {
+    public Result<Map<String, Object>> getOrders(@RequestParam Map<String, Object> params) {
         logger.info("获取订单列表请求, params: {}", params);
         return orderService.getOrders(params);
     }

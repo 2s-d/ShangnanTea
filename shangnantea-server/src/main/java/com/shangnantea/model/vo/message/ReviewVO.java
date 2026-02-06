@@ -55,6 +55,11 @@ public class ReviewVO {
     private java.util.List<String> images;
     
     /**
+     * 点赞数
+     */
+    private Integer likeCount;
+    
+    /**
      * 创建时间
      */
     private Date createTime;
