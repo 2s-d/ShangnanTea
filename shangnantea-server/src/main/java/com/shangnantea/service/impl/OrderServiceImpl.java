@@ -23,6 +23,7 @@ import com.shangnantea.model.vo.order.LogisticsVO;
 import com.shangnantea.model.vo.order.OrderDetailVO;
 import com.shangnantea.model.vo.order.OrderVO;
 import com.shangnantea.model.vo.order.RefundDetailVO;
+import com.shangnantea.model.vo.order.OrderStatisticsVO;
 import com.shangnantea.security.context.UserContext;
 import com.shangnantea.service.AlipayService;
 import com.shangnantea.service.OrderService;
@@ -276,7 +277,7 @@ public class OrderServiceImpl implements OrderService {
             // 2. 验证商品是否存在
             Tea tea = null;
             try {
-                tea = teaMapper.selectById(Long.parseLong(teaId));
+                tea = teaMapper.selectById(teaId);
             } catch (NumberFormatException e) {
                 logger.warn("添加购物车失败: 茶叶ID格式错误: {}", teaId);
                 return Result.failure(5104); // 商品已下架或不可用
@@ -1899,17 +1900,13 @@ public class OrderServiceImpl implements OrderService {
             java.math.BigDecimal totalAmount = orderMapper.sumOrderAmount(userId, shopId, startDate, endDate);
             
             // 统计各状态订单数量
-            List<Map<String, Object>> statusList = orderMapper.countOrdersByStatus(userId, shopId, startDate, endDate);
-            Map<String, Integer> statusDistribution = new java.util.HashMap<>();
-            // 初始化所有状态为0
-            for (int i = 0; i <= 5; i++) {
-                statusDistribution.put(String.valueOf(i), 0);
+            Map<String, Integer> statusDistribution = orderMapper.countOrdersByStatus(userId, shopId, startDate, endDate);
+            // 确保所有状态都有值（初始化为0）
+            if (statusDistribution == null) {
+                statusDistribution = new java.util.HashMap<>();
             }
-            // 填充实际数据
-            for (Map<String, Object> item : statusList) {
-                String status = (String) item.get("status");
-                Integer count = ((Number) item.get("count")).intValue();
-                statusDistribution.put(status, count);
+            for (int i = 0; i <= 5; i++) {
+                statusDistribution.putIfAbsent(String.valueOf(i), 0);
             }
             
             // 查询订单趋势数据
