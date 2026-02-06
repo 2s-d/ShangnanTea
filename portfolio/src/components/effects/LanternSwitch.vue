@@ -279,7 +279,7 @@ onUnmounted(() => {
   position: absolute;
   top: 0;
   left: 50%;
-  width: 5px;
+  width: 3.5px;
   /* 使用 CSS 变量控制颜色，便于在动画中做三种绚烂配色循环切换 */
   --rb-c1: rgba(255, 162, 200, 0.85);
   --rb-c2: rgba(167, 139, 250, 0.95);
