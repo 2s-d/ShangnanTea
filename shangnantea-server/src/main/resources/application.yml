@@ -35,7 +35,7 @@ spring:
 # 阿里云短信认证服务配置
 aliyun:
   sms:
-    enabled: false  # 是否启用真实短信发送（true=真实发送，false=模拟发送）
+    enabled: true  # 是否启用真实短信发送（true=真实发送，false=模拟发送）
     access-key-id: LTAI5tDPN4V6wV44swrMkF6W  # 替换成你的阿里云 AccessKeyId
     access-key-secret: VZq6ab76HBok09RIvIffum1SViunLP # 替换成你的阿里云 AccessKeySecret
     sign-name: 商南茶城  # 短信签名
