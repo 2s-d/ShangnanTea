@@ -347,7 +347,8 @@ export default {
     // 加入购物车
     const addToCart = productId => {
       // 实际项目中调用添加购物车API
-      apiMessage.success('已添加到购物车')
+      // 使用状态码消息系统保持一致（5000: 已加入购物车）
+      showByCode(5000)
     }
     
     // 取消收藏

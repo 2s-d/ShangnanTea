@@ -1381,4 +1381,7 @@ export default {
     background-color: #f7f7f7;
   }
 }
+
+/* 修复 SCSS 大括号未闭合导致的编译失败（SassError: expected "}"） */
+}
 </style> 

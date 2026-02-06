@@ -451,7 +451,8 @@ export default {
           }
         }
       } catch (error) {
-        apiMessage.error(error?.message || '退款申请失败')
+        // 5128: 退款申请提交失败（使用状态码消息系统；customMessage 仅用于补充异常信息）
+        showByCode(5128, error?.message || null)
       } finally {
         refundSubmitting.value = false
       }
@@ -511,7 +512,8 @@ export default {
             })
         })
         .catch(error => {
-          apiMessage.error(error?.message || '获取订单详情失败')
+          // 5116: 获取订单详情失败（使用状态码消息系统；customMessage 仅用于补充异常信息）
+          showByCode(5116, error?.message || null)
           orderDetail.value = null
         })
     }
@@ -522,7 +524,7 @@ export default {
     // 初始化
     onMounted(() => {
       if (!orderId) {
-        apiMessage.error('订单ID不能为空')
+        orderPromptMessages.showOrderNotFound()
         goBack()
         return
       }

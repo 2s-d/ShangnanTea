@@ -806,7 +806,7 @@ export default {
     
     const handleBatchOnShelf = async () => {
       if (selectedTeas.value.length === 0) {
-        teaMessages.prompt.showSelectOnShelf()
+        teaPromptMessages.showSelectOnShelf()
         return
       }
       
@@ -842,7 +842,7 @@ export default {
     
     const handleBatchOffShelf = async () => {
       if (selectedTeas.value.length === 0) {
-        teaMessages.prompt.showSelectOffShelf()
+        teaPromptMessages.showSelectOffShelf()
         return
       }
       
@@ -914,13 +914,13 @@ export default {
       
       teaFormRef.value.validate(async valid => {
         if (!valid) {
-          teaMessages.prompt.showFormInvalid()
+          teaPromptMessages.showFormInvalid()
           return
         }
         
         // 校验规格
         if (!currentTea.value.specifications || currentTea.value.specifications.length === 0) {
-          teaMessages.prompt.showSpecRequired()
+          teaPromptMessages.showSpecRequired()
           return
         }
         
@@ -929,20 +929,20 @@ export default {
           !spec.spec_name || spec.price <= 0
         )
         if (invalidSpec) {
-          teaMessages.prompt.showSpecIncomplete()
+          teaPromptMessages.showSpecIncomplete()
           return
         }
         
         // 校验是否有默认规格
         const hasDefault = currentTea.value.specifications.some(spec => spec.is_default)
         if (!hasDefault) {
-          teaMessages.prompt.showDefaultSpecRequired()
+          teaPromptMessages.showDefaultSpecRequired()
           return
         }
         
         // 校验图片
         if (teaImages.value.length === 0) {
-          teaMessages.prompt.showImageRequired()
+          teaPromptMessages.showImageRequired()
           return
         }
         
@@ -979,7 +979,7 @@ export default {
           
           // 调用Vuex action保存茶叶
           if (isEdit.value) {
-            await store.dispatch('tea/updateTea', formData)
+            const response = await store.dispatch('tea/updateTea', formData)
             
             // 任务组C：同步规格数据到后端
             const teaId = currentTea.value.id
@@ -1165,7 +1165,7 @@ export default {
     // 对话框关闭
     const handleDialogClose = done => {
       if (submitting.value) {
-        teaMessages.prompt.showSubmitting()
+        teaPromptMessages.showSubmitting()
         return
       }
       done()
@@ -1268,7 +1268,7 @@ export default {
     // 分类对话框关闭
     const handleCategoryDialogClose = done => {
       if (categorySubmitting.value) {
-        teaMessages.prompt.showSubmitting()
+        teaPromptMessages.showSubmitting()
         return
       }
       done()
