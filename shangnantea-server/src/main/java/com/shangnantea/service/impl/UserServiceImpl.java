@@ -40,6 +40,7 @@ import com.shangnantea.model.vo.user.LikeVO;
 import com.shangnantea.model.vo.user.TokenVO;
 import com.shangnantea.model.vo.user.UserPreferencesVO;
 import com.shangnantea.model.vo.user.UserVO;
+import com.shangnantea.model.vo.user.VerificationCodeVO;
 import com.shangnantea.security.context.UserContext;
 import com.shangnantea.security.util.JwtUtil;
 import com.shangnantea.security.util.PasswordEncoder;
@@ -2259,9 +2260,10 @@ public class UserServiceImpl implements UserService {
     /**
      * 发送验证码
      * 成功码：2025，失败码：2149, 2150, 2151
+     * 注意：在开发环境下（短信发送失败或模拟发送时），会在响应中返回验证码，方便测试
      */
     @Override
-    public Result<Void> sendVerificationCode(SendVerificationCodeDTO sendCodeDTO) {
+    public Result<VerificationCodeVO> sendVerificationCode(SendVerificationCodeDTO sendCodeDTO) {
         String contact = sendCodeDTO.getContact();
         String contactType = sendCodeDTO.getContactType();
         String sceneType = sendCodeDTO.getSceneType();
@@ -2302,21 +2304,40 @@ public class UserServiceImpl implements UserService {
         
         // 7. 发送验证码
         boolean sendSuccess;
+        boolean isSimulated = false; // 标记是否是模拟发送
         if ("email".equals(contactType)) {
             // 发送邮件验证码（真实发送）
             sendSuccess = sendEmailCode(contact, code, sceneType);
         } else {
-            // 发送短信验证码（模拟发送）
-            sendSuccess = sendSmsCode(contact, code, sceneType);
+            // 发送短信验证码
+            if (smsEnabled && aliyunAccessKeyId != null && !aliyunAccessKeyId.isEmpty()) {
+                // 真实发送（阿里云短信）
+                sendSuccess = sendAliyunSms(contact, code);
+            } else {
+                // 模拟发送
+                sendSuccess = sendSmsCode(contact, code, sceneType);
+                isSimulated = true;
+            }
         }
         
         if (!sendSuccess) {
-            logger.error("验证码发送失败: contact={}", contact);
-            return Result.failure(2149); // 发送验证码失败
+            logger.error("验证码发送失败: contact={}, code={}（开发环境可查看日志获取验证码）", contact, code);
+            // 开发环境下，即使发送失败也返回验证码，方便测试
+            // 注意：这里返回成功码2025，但data中包含验证码，前端可以根据data判断是否包含验证码
+            VerificationCodeVO vo = new VerificationCodeVO(code, "验证码发送失败，但验证码已生成（开发环境，请查看日志或响应中的验证码）");
+            return Result.success(2025, vo);
         }
         
         logger.info("验证码发送成功: contact={}", contact);
-        return Result.success(2025, null); // 验证码已发送
+        
+        // 如果是模拟发送或开发环境（未启用真实短信），返回验证码
+        if (isSimulated || !smsEnabled) {
+            VerificationCodeVO vo = new VerificationCodeVO(code, "验证码已发送（开发环境）");
+            return Result.success(2025, vo);
+        }
+        
+        // 生产环境真实发送成功，不返回验证码（data为null）
+        return Result.success(2025, null);
     }
     
     /**

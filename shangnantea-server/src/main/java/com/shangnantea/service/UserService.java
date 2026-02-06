@@ -395,9 +395,9 @@ public interface UserService {
      * 发送验证码
      *
      * @param sendCodeDTO 发送验证码请求
-     * @return 发送结果
+     * @return 发送结果（开发环境下会在data中返回验证码）
      */
-    Result<Void> sendVerificationCode(SendVerificationCodeDTO sendCodeDTO);
+    Result<com.shangnantea.model.vo.user.VerificationCodeVO> sendVerificationCode(SendVerificationCodeDTO sendCodeDTO);
     
     /**
      * 验证验证码
