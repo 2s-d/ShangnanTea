@@ -8,6 +8,7 @@ import com.shangnantea.security.annotation.RequiresLogin;
 import com.shangnantea.security.annotation.RequiresRoles;
 import com.shangnantea.security.context.UserContext;
 import com.shangnantea.security.util.JwtUtil;
+import com.shangnantea.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,9 @@ public class JwtInterceptor implements HandlerInterceptor {
 
     @Autowired
     private JwtUtil jwtUtil;
+    
+    @Autowired
+    private UserService userService;
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -90,8 +94,8 @@ public class JwtInterceptor implements HandlerInterceptor {
             throw new UnauthorizedException(ResultCode.UNAUTHORIZED, "身份验证信息不完整");
         }
         
-        // 从数据库获取最新的用户信息
-        User user = jwtUtil.getUserFromToken(token);
+        // 从数据库获取最新的用户信息（避免 JwtUtil -> UserService 的循环依赖）
+        User user = userService.getUserEntityById(userId);
         if (user == null) {
             logger.warn("无法找到用户，拒绝访问: {}, 用户ID: {}", requestURI, userId);
             throw new UnauthorizedException(ResultCode.UNAUTHORIZED, "用户不存在");

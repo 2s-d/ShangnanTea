@@ -2,7 +2,6 @@ package com.shangnantea.security.util;
 
 import com.shangnantea.common.constants.Constants;
 import com.shangnantea.model.entity.user.User;
-import com.shangnantea.service.UserService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -35,9 +34,6 @@ public class JwtUtil {
     // 令牌过期时间（毫秒），默认24小时
     @Value("${jwt.expiration:86400000}")
     private long expiration;
-    
-    @Autowired
-    private UserService userService;
     
     /**
      * 从令牌中获取用户ID
@@ -99,13 +95,8 @@ public class JwtUtil {
      * @param token 令牌
      * @return 用户对象
      */
-    public User getUserFromToken(String token) {
-        String userId = getUserIdFromToken(token);
-        if (userId != null) {
-            return userService.getUserEntityById(userId);
-        }
-        return null;
-    }
+    // 注意：JwtUtil 不再依赖 UserService，以避免与 UserServiceImpl 形成循环依赖。
+    // 如需从 token 获取用户实体，请在拦截器/业务层中拿到 userId 后调用 UserService 查询。
     
     /**
      * 验证令牌

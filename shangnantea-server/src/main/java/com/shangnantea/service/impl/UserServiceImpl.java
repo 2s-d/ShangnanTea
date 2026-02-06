@@ -120,9 +120,6 @@ public class UserServiceImpl implements UserService {
     private PasswordEncoder passwordEncoder;
     
     @Autowired
-    private JwtUtil jwtUtil;
-    
-    @Autowired
     private StringRedisTemplate redisTemplate;
     
     @Autowired
