@@ -276,7 +276,13 @@ public class TeaServiceImpl implements TeaService {
             
             // 1. 将Map参数转换为TeaQueryDTO
             TeaQueryDTO queryDTO = convertMapToQueryDTO(params);
-            queryDTO.checkAndFix();
+            // 设置默认值
+            if (queryDTO.getPage() == null || queryDTO.getPage() < 1) {
+                queryDTO.setPage(1);
+            }
+            if (queryDTO.getPageSize() == null || queryDTO.getPageSize() < 1) {
+                queryDTO.setPageSize(10);
+            }
             
             // 2. 构建查询参数Map（用于Mapper）
             Map<String, Object> queryMap = buildQueryMap(queryDTO);
@@ -1082,7 +1088,7 @@ public class TeaServiceImpl implements TeaService {
             }
             
             // 6. 执行更新
-            int updateCount = teaCategoryMapper.update(category);
+            int updateCount = teaCategoryMapper.updateById(category);
             if (updateCount == 0) {
                 logger.warn("更新茶叶分类失败: 数据库更新失败, id: {}", id);
                 return Result.failure(3108);

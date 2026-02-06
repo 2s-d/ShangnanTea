@@ -479,7 +479,7 @@ public class OrderServiceImpl implements OrderService {
             // 4. 查询商品信息
             Tea tea = null;
             try {
-                tea = teaMapper.selectById(Long.parseLong(cart.getTeaId()));
+                tea = teaMapper.selectById(cart.getTeaId());
             } catch (NumberFormatException e) {
                 logger.warn("更新购物车失败: 茶叶ID格式错误: {}", cart.getTeaId());
                 return Result.failure(5105);
@@ -688,7 +688,7 @@ public class OrderServiceImpl implements OrderService {
                 Tea tea = null;
                 if (cart.getTeaId() != null) {
                     try {
-                        tea = teaMapper.selectById(Long.parseLong(cart.getTeaId()));
+                        tea = teaMapper.selectById(cart.getTeaId());
                     } catch (NumberFormatException e) {
                         logger.warn("商品ID格式错误: {}", cart.getTeaId());
                         continue; // 跳过无效商品

@@ -68,4 +68,14 @@ public class TeaQueryDTO {
      * 状态（0-下架，1-上架）
      */
     private Integer status;
+    
+    /**
+     * 计算偏移量（用于分页查询）
+     */
+    public Integer getOffset() {
+        if (page == null || pageSize == null) {
+            return 0;
+        }
+        return (page - 1) * pageSize;
+    }
 }

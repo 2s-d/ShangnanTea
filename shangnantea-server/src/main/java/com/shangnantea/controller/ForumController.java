@@ -43,7 +43,7 @@ public class ForumController {
      * @return 首页数据
      */
     @GetMapping("/home")
-    public Result<Object> getHomeData() {
+    public Result<com.shangnantea.model.vo.forum.ForumHomeVO> getHomeData() {
         logger.info("获取首页数据请求");
         return forumService.getHomeData();
     }

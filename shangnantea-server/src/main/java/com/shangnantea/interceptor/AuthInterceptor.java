@@ -61,7 +61,7 @@ public class AuthInterceptor implements HandlerInterceptor {
         
         // 设置当前用户
             String userId = jwtUtil.getUserIdFromToken(token);
-            User user = userService.getUserById(userId);
+            User user = userService.getUserEntityById(userId);
             if (user == null) {
                 throw new UnauthorizedException(ResultCode.UNAUTHORIZED, "用户不存在");
             }
