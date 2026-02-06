@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="chat-page">
     <!-- 
     聊天功能设计：
