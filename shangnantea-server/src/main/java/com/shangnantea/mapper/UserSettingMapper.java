@@ -28,4 +28,11 @@ public interface UserSettingMapper extends BaseMapper<UserSetting, Long> {
      * @return 用户设置列表
      */
     List<UserSetting> selectByUserId(@Param("userId") String userId);
+    
+    /**
+     * 根据用户ID删除所有设置（用于删除用户时清理数据）
+     * @param userId 用户ID
+     * @return 删除的记录数
+     */
+    int deleteByUserId(@Param("userId") String userId);
 } 

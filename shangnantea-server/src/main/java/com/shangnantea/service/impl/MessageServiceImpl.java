@@ -1374,7 +1374,7 @@ public class MessageServiceImpl implements MessageService {
             // 2. 查询用户最新帖子（作为动态）
             // 查询最近10条帖子
             List<com.shangnantea.model.entity.forum.ForumPost> posts = 
-                forumPostMapper.selectByUserId(userId, 0, 10);
+                forumPostMapper.selectByUserId(userId, 0, 10, "latest");
             
             // 3. 转换为动态VO
             List<Map<String, Object>> dynamicList = new ArrayList<>();
@@ -1471,7 +1471,7 @@ public class MessageServiceImpl implements MessageService {
             
             // 4. 查询用户帖子列表
             List<com.shangnantea.model.entity.forum.ForumPost> posts = 
-                forumPostMapper.selectByUserId(userId, offset, size);
+                forumPostMapper.selectByUserId(userId, offset, size, "latest");
             long total = forumPostMapper.countByUserId(userId);
             
             // 5. 转换为VO

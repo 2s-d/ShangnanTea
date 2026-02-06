@@ -278,7 +278,7 @@ public class UserServiceImpl implements UserService {
             UserContext.clear();
             
             logger.info("用户登出成功: userId: {}, username: {}", userId, username);
-            return Result.success(2002); // 已安全退出系统
+            return Result.success(2002, null); // 已安全退出系统
             
         } catch (Exception e) {
             logger.error("登出失败: 系统异常", e);
@@ -2564,7 +2564,7 @@ public class UserServiceImpl implements UserService {
             // 更新现有设置
             existingSetting.setSettingValue(value);
             existingSetting.setUpdateTime(now);
-            userSettingMapper.update(existingSetting);
+            userSettingMapper.updateById(existingSetting);
         } else {
             // 插入新设置
             UserSetting newSetting = new UserSetting();

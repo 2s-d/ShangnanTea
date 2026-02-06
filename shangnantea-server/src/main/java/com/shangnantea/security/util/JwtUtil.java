@@ -102,7 +102,7 @@ public class JwtUtil {
     public User getUserFromToken(String token) {
         String userId = getUserIdFromToken(token);
         if (userId != null) {
-            return userService.getUserById(userId);
+            return userService.getUserEntityById(userId);
         }
         return null;
     }

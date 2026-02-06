@@ -148,7 +148,7 @@ public class OrderServiceImpl implements OrderService {
                 // 验证商品是否存在
                 Tea tea = null;
                 try {
-                    tea = teaMapper.selectById(Long.parseLong(teaId));
+                    tea = teaMapper.selectById(teaId);
                 } catch (NumberFormatException e) {
                     logger.warn("创建订单失败: 茶叶ID格式错误: {}", teaId);
                     return Result.failure(5112); // 商品已下架或不可用
