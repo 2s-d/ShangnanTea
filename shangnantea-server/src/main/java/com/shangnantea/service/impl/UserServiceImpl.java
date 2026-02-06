@@ -141,6 +141,9 @@ public class UserServiceImpl implements UserService {
     @Value("${aliyun.sms.sign-name:}")
     private String aliyunSignName;  // 阿里云短信签名
     
+    @Value("${aliyun.sms.template-code:}")
+    private String aliyunTemplateCode;  // 阿里云短信模板代码
+    
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
     
@@ -2260,7 +2263,6 @@ public class UserServiceImpl implements UserService {
     /**
      * 发送验证码
      * 成功码：2025，失败码：2149, 2150, 2151
-     * 注意：在开发环境下（短信发送失败或模拟发送时），会在响应中返回验证码，方便测试
      */
     @Override
     public Result<VerificationCodeVO> sendVerificationCode(SendVerificationCodeDTO sendCodeDTO) {
@@ -2304,39 +2306,24 @@ public class UserServiceImpl implements UserService {
         
         // 7. 发送验证码
         boolean sendSuccess;
-        boolean isSimulated = false; // 标记是否是模拟发送
         if ("email".equals(contactType)) {
-            // 发送邮件验证码（真实发送）
+            // 发送邮件验证码
             sendSuccess = sendEmailCode(contact, code, sceneType);
         } else {
-            // 发送短信验证码
-            if (smsEnabled && aliyunAccessKeyId != null && !aliyunAccessKeyId.isEmpty()) {
-                // 真实发送（阿里云短信）
-                sendSuccess = sendAliyunSms(contact, code);
-            } else {
-                // 模拟发送
-                sendSuccess = sendSmsCode(contact, code, sceneType);
-                isSimulated = true;
+            // 发送短信验证码（必须启用真实短信发送）
+            if (!smsEnabled || aliyunAccessKeyId == null || aliyunAccessKeyId.isEmpty()) {
+                logger.error("短信服务未配置: smsEnabled={}, accessKeyId={}", smsEnabled, aliyunAccessKeyId != null);
+                return Result.failure(2149); // 发送验证码失败
             }
+            sendSuccess = sendAliyunSms(contact, code);
         }
         
         if (!sendSuccess) {
-            logger.error("验证码发送失败: contact={}, code={}（开发环境可查看日志获取验证码）", contact, code);
-            // 开发环境下，即使发送失败也返回验证码，方便测试
-            // 注意：这里返回成功码2025，但data中包含验证码，前端可以根据data判断是否包含验证码
-            VerificationCodeVO vo = new VerificationCodeVO(code, "验证码发送失败，但验证码已生成（开发环境，请查看日志或响应中的验证码）");
-            return Result.success(2025, vo);
+            logger.error("验证码发送失败: contact={}", contact);
+            return Result.failure(2149); // 发送验证码失败
         }
         
         logger.info("验证码发送成功: contact={}", contact);
-        
-        // 如果是模拟发送或开发环境（未启用真实短信），返回验证码
-        if (isSimulated || !smsEnabled) {
-            VerificationCodeVO vo = new VerificationCodeVO(code, "验证码已发送（开发环境）");
-            return Result.success(2025, vo);
-        }
-        
-        // 生产环境真实发送成功，不返回验证码（data为null）
         return Result.success(2025, null);
     }
     
@@ -2413,11 +2400,17 @@ public class UserServiceImpl implements UserService {
             // 配置阿里云SDK
             com.aliyun.dysmsapi20170525.Client client = createAliyunSmsClient();
             
-            // 构建请求（使用阿里云短信认证服务的通用模板）
+            // 检查模板代码配置
+            if (aliyunTemplateCode == null || aliyunTemplateCode.isEmpty()) {
+                logger.error("阿里云短信模板代码未配置");
+                return false;
+            }
+            
+            // 构建请求
             com.aliyun.dysmsapi20170525.models.SendSmsRequest sendSmsRequest = new com.aliyun.dysmsapi20170525.models.SendSmsRequest()
                 .setPhoneNumbers(phone)
                 .setSignName(aliyunSignName)
-                .setTemplateCode("100001")  // 阿里云短信认证服务通用模板
+                .setTemplateCode(aliyunTemplateCode)  // 使用配置的模板代码
                 .setTemplateParam("{\"code\":\"" + code + "\"}");
             
             // 发送短信
