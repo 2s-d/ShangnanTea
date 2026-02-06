@@ -2,7 +2,7 @@ package com.shangnantea.model.dto.order;
 
 import lombok.Data;
 
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 
 /**
  * 支付订单DTO

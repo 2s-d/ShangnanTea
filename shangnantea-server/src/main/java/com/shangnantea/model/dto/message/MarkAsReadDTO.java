@@ -1,6 +1,6 @@
 package com.shangnantea.model.dto.message;
 
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotEmpty;
 import java.io.Serializable;
 import java.util.List;
 

@@ -252,7 +252,7 @@ public class UserServiceImpl implements UserService {
         logger.info("用户注册成功: username: {}, userId: {}", registerDTO.getUsername(), userId);
         return Result.success(2001, convertToUserVO(savedUser)); // 注册成功，请登录
     }
-    
+嗯    
     /**
      * 用户登出
      * 成功码：2002，失败码：2103

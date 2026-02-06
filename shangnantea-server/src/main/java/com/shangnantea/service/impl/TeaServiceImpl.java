@@ -26,7 +26,7 @@ import com.shangnantea.model.entity.user.UserFavorite;
 import com.shangnantea.model.entity.user.UserLike;
 import com.shangnantea.model.vo.TeaVO;
 import com.shangnantea.model.vo.CategoryVO;
-import com.shangnantea.model.vo.ReviewVO;
+import com.shangnantea.model.vo.message.ReviewVO;
 import com.shangnantea.model.vo.ReviewStatsVO;
 import com.shangnantea.security.context.UserContext;
 import com.shangnantea.service.TeaService;
