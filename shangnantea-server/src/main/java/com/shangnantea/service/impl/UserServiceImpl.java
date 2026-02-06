@@ -2388,13 +2388,18 @@ public class UserServiceImpl implements UserService {
                 return false;
             }
             
+            logger.info("使用短信模板: templateCode={}, signName={}, phone={}", 
+                aliyunTemplateCode, aliyunSignName, phone);
+            
             // 构建请求（短信认证服务模板需要 code 和 min 两个参数）
             // 验证码有效期5分钟
             String templateParam = String.format("{\"code\":\"%s\",\"min\":\"%d\"}", code, 5);
+            logger.debug("模板参数: {}", templateParam);
+            
             com.aliyun.dysmsapi20170525.models.SendSmsRequest sendSmsRequest = new com.aliyun.dysmsapi20170525.models.SendSmsRequest()
                 .setPhoneNumbers(phone)
                 .setSignName(aliyunSignName)
-                .setTemplateCode(aliyunTemplateCode)  // 使用配置的模板代码（100001）
+                .setTemplateCode(aliyunTemplateCode)  // 使用配置的模板代码
                 .setTemplateParam(templateParam);
             
             // 发送短信
@@ -2405,8 +2410,15 @@ public class UserServiceImpl implements UserService {
                 logger.info("阿里云短信发送成功: phone={}, code={}", phone, code);
                 return true;
             } else {
-                logger.error("阿里云短信发送失败: phone={}, code={}, message={}", 
-                    phone, response.getBody().getCode(), response.getBody().getMessage());
+                String errorCode = response.getBody().getCode();
+                String errorMessage = response.getBody().getMessage();
+                logger.error("阿里云短信发送失败: phone={}, templateCode={}, errorCode={}, errorMessage={}", 
+                    phone, aliyunTemplateCode, errorCode, errorMessage);
+                
+                // 如果是模板不存在错误，给出更明确的提示
+                if ("isv.SMS_TEMPLATE_ILLEGAL".equals(errorCode)) {
+                    logger.error("模板代码不存在！请检查：1) 模板代码是否正确 2) 是否在'自定义模版配置'中创建了模板 3) 模板是否已审核通过");
+                }
                 return false;
             }
             
