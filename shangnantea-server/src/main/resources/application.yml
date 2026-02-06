@@ -39,7 +39,7 @@ aliyun:
     access-key-id: LTAI5tDPN4V6wV44swrMkF6W  # 替换成你的阿里云 AccessKeyId
     access-key-secret: VZq6ab76HBok09RIvIffum1SViunLP # 替换成你的阿里云 AccessKeySecret
     sign-name: 商南茶城  # 短信签名
-    template-code: SMS_123456789  # 短信模板代码（需要在阿里云控制台创建并获取）
+    template-code: 100001  # 短信认证服务模板代码（登录/注册模板）
 
 mybatis:
   mapper-locations: classpath:mapper/*.xml

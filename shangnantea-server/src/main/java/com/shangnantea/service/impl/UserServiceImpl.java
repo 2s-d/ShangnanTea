@@ -2388,12 +2388,14 @@ public class UserServiceImpl implements UserService {
                 return false;
             }
             
-            // 构建请求
+            // 构建请求（短信认证服务模板需要 code 和 min 两个参数）
+            // 验证码有效期5分钟
+            String templateParam = String.format("{\"code\":\"%s\",\"min\":\"%d\"}", code, 5);
             com.aliyun.dysmsapi20170525.models.SendSmsRequest sendSmsRequest = new com.aliyun.dysmsapi20170525.models.SendSmsRequest()
                 .setPhoneNumbers(phone)
                 .setSignName(aliyunSignName)
-                .setTemplateCode(aliyunTemplateCode)  // 使用配置的模板代码
-                .setTemplateParam("{\"code\":\"" + code + "\"}");
+                .setTemplateCode(aliyunTemplateCode)  // 使用配置的模板代码（100001）
+                .setTemplateParam(templateParam);
             
             // 发送短信
             com.aliyun.dysmsapi20170525.models.SendSmsResponse response = client.sendSms(sendSmsRequest);
