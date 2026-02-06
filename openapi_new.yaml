@@ -107,6 +107,15 @@ paths:
                     code: 2000
                     data:
                       token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjeTEwMDAwMiIsInJvbGUiOjIsInVzZXJuYW1lIjoidGVzdHVzZXIiLCJpYXQiOjE3MzcwMDAwMDAsImV4cCI6MTg5MzQ1NjAwMCwiaXNzIjoic2hhbmduYW50ZWEifQ.mock_signature_for_testing"
+                      userInfo:
+                        id: "cy100002"
+                        username: "testuser"
+                        nickname: "测试用户"
+                        avatar: "/images/default-avatar.png"
+                        email: "user@example.com"
+                        phone: "13800138000"
+                        role: 2
+                        status: 1
                 failure_wrong_password:
                   summary: 登录失败，请检查用户名和密码
                   value:
@@ -7047,7 +7056,7 @@ components:
         data:
           type: object
           nullable: true
-          description: 登录成功时返回token对象，失败时为null
+          description: 登录成功时返回token和用户信息，失败时为null
           properties:
             token:
               type: string
@@ -7062,6 +7071,9 @@ components:
                 - exp: 过期时间 (Unix时间戳，秒)
                 - iss: 签发者 ("shangnantea")
               example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjeTEwMDAwMiIsInJvbGUiOjIsInVzZXJuYW1lIjoidGVzdHVzZXIiLCJpYXQiOjE3MzcwMDAwMDAsImV4cCI6MTg5MzQ1NjAwMCwiaXNzIjoic2hhbmduYW50ZWEifQ.mock_signature_for_testing"
+            userInfo:
+              $ref: '#/components/schemas/UserInfo'
+              description: 用户信息（登录成功后返回，避免前端再次请求）
 
     RegisterRequest:
       type: object
