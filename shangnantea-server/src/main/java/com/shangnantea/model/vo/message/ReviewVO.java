@@ -30,6 +30,31 @@ public class ReviewVO {
     private String content;
     
     /**
+     * 用户ID
+     */
+    private String userId;
+    
+    /**
+     * 用户名
+     */
+    private String username;
+    
+    /**
+     * 用户昵称
+     */
+    private String nickname;
+    
+    /**
+     * 用户头像
+     */
+    private String avatar;
+    
+    /**
+     * 评价图片列表
+     */
+    private java.util.List<String> images;
+    
+    /**
      * 创建时间
      */
     private Date createTime;

@@ -19,6 +19,12 @@ public class CreateAdminDTO {
     private String username;
     
     /**
+     * 昵称
+     */
+    @Size(max = 50, message = "昵称长度不能超过50个字符")
+    private String nickname;
+    
+    /**
      * 密码
      */
     @NotBlank(message = "密码不能为空")

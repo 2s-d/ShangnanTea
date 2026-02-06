@@ -23,6 +23,8 @@ import com.shangnantea.model.dto.RegisterDTO;
 import com.shangnantea.model.dto.SendVerificationCodeDTO;
 import com.shangnantea.model.dto.SubmitShopCertificationDTO;
 import com.shangnantea.model.dto.UpdateUserPreferencesDTO;
+import com.shangnantea.model.dto.UpdateUserDTO;
+import com.shangnantea.model.dto.ProcessCertificationDTO;
 import com.shangnantea.model.entity.shop.ShopCertification;
 import com.shangnantea.model.entity.user.User;
 import com.shangnantea.model.entity.user.UserAddress;
@@ -252,7 +254,7 @@ public class UserServiceImpl implements UserService {
         logger.info("用户注册成功: username: {}, userId: {}", registerDTO.getUsername(), userId);
         return Result.success(2001, convertToUserVO(savedUser)); // 注册成功，请登录
     }
-嗯    
+    
     /**
      * 用户登出
      * 成功码：2002，失败码：2103
