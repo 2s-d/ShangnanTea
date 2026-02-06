@@ -149,26 +149,6 @@
         <if test="status != null">
             AND status = #{status,jdbcType=INTEGER}
         </if>
-        ORDER BY create_time DESC
-        LIMIT #{offset,jdbcType=INTEGER}, #{pageSize,jdbcType=INTEGER}
-    </select>
-
-    <!-- 统计用户数量 -->
-    <select id="countByCondition" resultType="java.lang.Integer">
-        SELECT COUNT(*)
-        FROM users
-        WHERE is_deleted = 0
-        <if test="keyword != null and keyword != ''">
-            AND (username LIKE CONCAT('%', #{keyword}, '%') 
-                OR nickname LIKE CONCAT('%', #{keyword}, '%') 
-                OR phone LIKE CONCAT('%', #{keyword}, '%'))
-        </if>
-        <if test="role != null">
-            AND role = #{role,jdbcType=INTEGER}
-        </if>
-        <if test="status != null">
-            AND status = #{status,jdbcType=INTEGER}
-        </if>
     </select>
     
     <!-- 批量查询用户 -->

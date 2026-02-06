@@ -1442,8 +1442,7 @@ public class TeaServiceImpl implements TeaService {
         }
         
         ReviewVO vo = new ReviewVO();
-        vo.setId(review.getId());
-        vo.setTeaId(review.getTeaId());
+        vo.setId(Long.valueOf(review.getId()));
         vo.setUserId(review.getUserId());
         vo.setContent(review.getContent());
         vo.setRating(review.getRating());

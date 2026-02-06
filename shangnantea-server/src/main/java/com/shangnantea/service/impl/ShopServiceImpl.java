@@ -1789,4 +1789,39 @@ public class ShopServiceImpl implements ShopService {
             return Result.failure(4132);
         }
     }
+
+    /**
+     * 上传商家认证图片
+     *
+     * @param file 图片文件
+     * @return 上传结果
+     */
+    @Override
+    public Result<Map<String, Object>> uploadCertificationImage(MultipartFile file) {
+        try {
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("上传商家认证图片失败: 用户未登录");
+                return Result.failure(4101);
+            }
+            if (file == null || file.isEmpty()) {
+                logger.warn("上传商家认证图片失败: 文件为空, userId={}", userId);
+                return Result.failure(4101);
+            }
+
+            // 统一走工具类上传（type: shop-certification）
+            String relativePath = FileUploadUtils.uploadImage(file, "shop-certification");
+            String accessUrl = FileUploadUtils.generateAccessUrl(relativePath, baseUrl);
+
+            Map<String, Object> data = new HashMap<>();
+            data.put("url", accessUrl);
+            data.put("path", relativePath);
+
+            logger.info("上传商家认证图片成功: userId={}, path={}", userId, relativePath);
+            return Result.success(200, data);
+        } catch (Exception e) {
+            logger.error("上传商家认证图片失败: 系统异常", e);
+            return Result.failure(4101);
+        }
+    }
 } 
