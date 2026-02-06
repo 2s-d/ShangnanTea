@@ -1,4 +1,4 @@
-package com.shangnantea.model.vo/message;
+package com.shangnantea.model.vo.message;
 
 import lombok.Data;
 

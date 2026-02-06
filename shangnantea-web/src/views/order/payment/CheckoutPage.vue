@@ -417,7 +417,7 @@ export default {
     }
     
     // 提交支付表单（自动跳转到支付宝）
-    const submitAlipayForm = (formHtml) => {
+    const submitAlipayForm = formHtml => {
       // 创建一个临时div来承载表单HTML
       const div = document.createElement('div')
       div.innerHTML = formHtml

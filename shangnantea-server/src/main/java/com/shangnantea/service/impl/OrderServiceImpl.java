@@ -1998,8 +1998,6 @@ public class OrderServiceImpl implements OrderService {
             return Result.failure(5143);
         }
     }
-} 
-
     
     @Override
     @Transactional

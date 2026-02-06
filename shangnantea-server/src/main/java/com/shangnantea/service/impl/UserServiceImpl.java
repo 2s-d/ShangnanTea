@@ -252,27 +252,6 @@ public class UserServiceImpl implements UserService {
         logger.info("用户注册成功: username: {}, userId: {}", registerDTO.getUsername(), userId);
         return Result.success(2001, convertToUserVO(savedUser)); // 注册成功，请登录
     }
-        user.setIsDeleted(0); // 默认为未删除
-        user.setCreateTime(new Date());
-        user.setUpdateTime(new Date());
-        
-        // 保存用户到数据库
-        int result = userMapper.insert(user);
-        if (result <= 0) {
-            logger.error("注册失败: 数据库插入失败, username: {}", registerDTO.getUsername());
-            return Result.failure(2102); // 注册失败，用户名已存在或数据格式错误
-        }
-        
-        // 查询刚注册的用户（获取完整信息）
-        User savedUser = getUserEntityById(userId);
-        if (savedUser == null) {
-            logger.error("注册失败: 无法获取注册后的用户信息, userId: {}", userId);
-            return Result.failure(2102); // 注册失败，用户名已存在或数据格式错误
-        }
-        
-        logger.info("用户注册成功: username: {}, userId: {}", registerDTO.getUsername(), userId);
-        return Result.success(2001, convertToUserVO(savedUser)); // 注册成功，请登录
-    }
     
     /**
      * 用户登出

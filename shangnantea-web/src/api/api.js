@@ -19,7 +19,7 @@ export {
   shopApi,
   orderApi,
   forumApi,
-  messageApi,
+  messageApi
 }
 
 export default {
@@ -28,7 +28,7 @@ export default {
   shop: shopApi,
   order: orderApi,
   forum: forumApi,
-  message: messageApi,} 
+  message: messageApi} 
 
 // 如果需要分别单独引入各 API 模块也可用按需导出：
 // export { userApi, teaApi, shopApi, orderApi, forumApi, messageApi, uploadApi }

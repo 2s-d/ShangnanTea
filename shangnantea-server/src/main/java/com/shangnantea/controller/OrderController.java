@@ -355,8 +355,6 @@ public class OrderController {
         logger.info("上传订单评价图片请求, 文件名: {}", file.getOriginalFilename());
         return orderService.uploadReviewImage(file);
     }
-}
-
     
     /**
      * 支付宝异步回调接口

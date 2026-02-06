@@ -91,7 +91,7 @@ export const API = {
     CANCEL: '/order/cancel',
     CONFIRM: '/order/confirm',
     REVIEW: '/order/review',
-    REFUND: '/order/refund',我
+    REFUND: '/order/refund',
     REFUND_PROCESS: '/order/{id}/refund/process',
     REFUND_DETAIL: '/order/{id}/refund',
     SHIP: '/order/{id}/ship',
