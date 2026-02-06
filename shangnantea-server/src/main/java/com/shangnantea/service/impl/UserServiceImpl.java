@@ -2375,24 +2375,6 @@ public class UserServiceImpl implements UserService {
     }
     
     /**
-     * 发送短信验证码（支持阿里云短信认证服务真实发送 + 模拟发送）
-     */
-    private boolean sendSmsCode(String phone, String code, String sceneType) {
-        String sceneName = getSceneName(sceneType);
-        
-        // 判断是否启用真实短信发送
-        if (smsEnabled && aliyunAccessKeyId != null && !aliyunAccessKeyId.isEmpty()) {
-            // 真实发送（阿里云短信认证服务）
-            return sendAliyunSms(phone, code);
-        } else {
-            // 模拟发送
-            logger.info("【模拟发送短信】手机号: {}, 验证码: {}, 场景: {}", phone, code, sceneName);
-            logger.info("短信内容: 【{}】您正在进行{}操作，验证码是：{}，5分钟内有效，请勿泄露。", aliyunSignName, sceneName, code);
-            return true; // 模拟发送总是成功
-        }
-    }
-    
-    /**
      * 阿里云短信认证服务真实发送
      */
     private boolean sendAliyunSms(String phone, String code) {
