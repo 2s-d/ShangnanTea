@@ -33,4 +33,12 @@ public interface UserAddressMapper extends BaseMapper<UserAddress, Integer> {
      * @return 影响行数
      */
     int updateById(UserAddress address);
+    
+    /**
+     * 根据用户ID删除所有地址
+     *
+     * @param userId 用户ID
+     * @return 影响行数
+     */
+    int deleteByUserId(@Param("userId") String userId);
 } 

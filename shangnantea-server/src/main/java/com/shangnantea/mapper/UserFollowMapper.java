@@ -73,4 +73,11 @@ public interface UserFollowMapper extends BaseMapper<UserFollow, Integer> {
      * @return 删除的记录数
      */
     int deleteByUserIdAndFollow(@Param("userId") String userId, @Param("followType") String followType, @Param("followId") String followId);
+    
+    /**
+     * 根据用户ID删除所有关注记录（用于删除用户时清理数据）
+     * @param userId 用户ID
+     * @return 删除的记录数
+     */
+    int deleteByUserId(@Param("userId") String userId);
 } 
