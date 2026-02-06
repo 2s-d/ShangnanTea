@@ -240,7 +240,7 @@
                       @click="handleLikeReview(review)"
                       :class="{ 'liked': review.isLiked }"
                     >
-                      <el-icon><Like /></el-icon> {{ review.likeCount || 0 }}
+                      <el-icon><StarFilled /></el-icon> {{ review.likeCount || 0 }}
                     </el-button>
                   </div>
                   <div class="review-reply" v-if="review.reply">
@@ -341,7 +341,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useStore } from 'vuex'
 import { ElMessageBox } from 'element-plus'
-import { Back, ShoppingCart, Star, ChatLineRound, Like } from '@element-plus/icons-vue'
+import { Back, ShoppingCart, Star, ChatLineRound, StarFilled } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
 import teaMessages from '@/utils/promptMessages'
@@ -353,7 +353,7 @@ export default {
     ShoppingCart,
     Star,
     ChatLineRound,
-    Like,
+    StarFilled,
     SafeImage
   },
   setup() {

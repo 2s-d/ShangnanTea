@@ -221,7 +221,7 @@
                 type="text" 
                 @click="toggleEmojiPicker"
                 class="toolbar-button">
-                <el-icon><Smile /></el-icon>
+                <el-icon><Star /></el-icon>
                 表情
               </el-button>
             </el-tooltip>
@@ -281,7 +281,7 @@ import { useStore } from 'vuex'
 import { message } from '@/components/common'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { 
-  Check, CircleCheck, Warning, Picture, Smile, Loading, 
+  Check, CircleCheck, Warning, Picture, Star, Loading,
   MoreFilled, Top
 } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
@@ -294,7 +294,7 @@ export default {
     CircleCheck,
     Warning,
     Picture,
-    Smile,
+    Star,
     Loading,
     MoreFilled,
     Top,

@@ -344,11 +344,26 @@ export default {
       router.push(`/profile/${userId}`)
     }
     
-    // 加入购物车
-    const addToCart = productId => {
-      // 实际项目中调用添加购物车API
-      // 使用状态码消息系统保持一致（5000: 已加入购物车）
-      showByCode(5000)
+    /**
+     * 加入购物车
+     * - 必须走真实 API / Vuex Action，返回 code 再用状态码消息系统提示
+     * - 禁止在未调用接口时伪造成功码
+     */
+    const addToCart = async teaId => {
+      try {
+        // Favorites 列表目前只拿到了 teaId，规格/数量这里先用默认值
+        const res = await store.dispatch('order/addToCart', {
+          teaId: String(teaId),
+          quantity: 1,
+          specificationId: null
+        })
+        showByCode(res.code)
+      } catch (error) {
+        // 网络错误等由拦截器处理，这里仅保留开发日志
+        if (process.env.NODE_ENV === 'development') {
+          console.error('加入购物车失败:', error)
+        }
+      }
     }
     
     // 取消收藏
