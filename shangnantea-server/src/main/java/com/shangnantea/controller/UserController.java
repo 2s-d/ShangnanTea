@@ -606,10 +606,10 @@ public class UserController {
      * 成功码: 2025, 失败码: 2149, 2150, 2151
      *
      * @param sendCodeDTO 发送验证码请求
-     * @return 发送结果
+     * @return 发送结果（生产环境data为null，开发环境可能包含验证码）
      */
     @PostMapping("/verification-code/send")
-    public Result<Void> sendVerificationCode(@RequestBody @Valid SendVerificationCodeDTO sendCodeDTO) {
+    public Result<com.shangnantea.model.vo.user.VerificationCodeVO> sendVerificationCode(@RequestBody @Valid SendVerificationCodeDTO sendCodeDTO) {
         logger.info("发送验证码请求: contactType={}, sceneType={}, contact={}", 
                 sendCodeDTO.getContactType(), sendCodeDTO.getSceneType(), sendCodeDTO.getContact());
         return userService.sendVerificationCode(sendCodeDTO);
