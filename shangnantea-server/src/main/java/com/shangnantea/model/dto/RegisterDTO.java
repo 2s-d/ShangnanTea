@@ -56,4 +56,10 @@ public class RegisterDTO {
     @NotBlank(message = "联系方式类型不能为空")
     @Pattern(regexp = "^(phone|email)$", message = "联系方式类型只能是phone或email")
     private String contactType;
+    
+    /**
+     * 昵称（可选）
+     */
+    @Size(max = 20, message = "昵称长度不能超过20个字符")
+    private String nickname;
 } 

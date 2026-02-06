@@ -227,6 +227,13 @@ public class UserServiceImpl implements UserService {
         user.setPassword(registerDTO.getPassword());
         user.setPhone(registerDTO.getPhone());
         user.setEmail(registerDTO.getEmail());
+        // 设置昵称（如果提供）
+        if (registerDTO.getNickname() != null && !registerDTO.getNickname().trim().isEmpty()) {
+            user.setNickname(registerDTO.getNickname().trim());
+        } else {
+            // 如果没有提供昵称，默认使用用户名
+            user.setNickname(registerDTO.getUsername());
+        }
         
         // 5. 生成用户ID，格式为 'cy' + 6位数字
         String userId = generateUserId();
