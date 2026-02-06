@@ -511,6 +511,7 @@ export default {
     margin-bottom: 10px;
           line-height: 1.5;
           display: -webkit-box;
+          line-clamp: 2;
           -webkit-line-clamp: 2;
           -webkit-box-orient: vertical;
           overflow: hidden;
@@ -666,6 +667,7 @@ export default {
           margin-bottom: 15px;
           line-height: 1.6;
           display: -webkit-box;
+          line-clamp: 2;
           -webkit-line-clamp: 2;
           -webkit-box-orient: vertical;
           overflow: hidden;

@@ -10,7 +10,7 @@
       
       <el-tooltip content="表情" placement="top">
         <el-button type="text" @click="toggleEmojiPicker" class="toolbar-button">
-          <el-icon><Smile /></el-icon>
+          <el-icon><Star /></el-icon>
           表情
         </el-button>
       </el-tooltip>
@@ -54,13 +54,13 @@
 
 <script>
 import { ref, computed, watch } from 'vue'
-import { Picture, Smile } from '@element-plus/icons-vue'
+import { Picture, Star } from '@element-plus/icons-vue'
 import { message } from '@/components/common'
 import EmojiPicker from './EmojiPicker.vue'
 
 export default {
   name: 'ChatInputArea',
-  components: { Picture, Smile, EmojiPicker },
+  components: { Picture, Star, EmojiPicker },
   props: {
     visible: { type: Boolean, default: true },
     messageInput: { type: String, default: '' }

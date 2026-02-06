@@ -960,6 +960,7 @@ export default {
             font-size: 14px;
             color: var(--el-text-color-secondary);
             display: -webkit-box;
+            line-clamp: 2;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
