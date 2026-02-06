@@ -250,6 +250,7 @@ public class UserServiceImpl implements UserService {
         user.setRole(2); // 默认为普通用户
         user.setStatus(1); // 默认为正常状态
         user.setIsDeleted(0); // 默认为未删除
+        user.setAvatar("/images/default-avatar.png"); // 设置默认头像
         user.setCreateTime(new Date());
         user.setUpdateTime(new Date());
         

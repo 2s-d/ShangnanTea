@@ -7132,7 +7132,8 @@ components:
               description: 昵称
             avatar:
               type: string
-              description: 头像URL
+              nullable: true
+              description: 头像URL（可为null，默认使用默认头像）
             role:
               type: integer
               description: 角色
@@ -7194,7 +7195,8 @@ components:
           description: 昵称
         avatar:
           type: string
-          description: 头像URL
+          nullable: true
+          description: 头像URL（可为null，默认使用默认头像）
         email:
           type: string
           format: email
