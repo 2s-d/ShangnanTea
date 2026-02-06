@@ -34,7 +34,7 @@ import { apiMessage } from './messageManager'
 
 // 静默状态码列表
 // 这些状态码不会显示消息给用户，但会在开发环境记录日志
-// ⚠️ 必须与 docs/code-message-mapping.md 中的 [静默] 标注完全一致
+// ⚠️ 必须与 docs/tasks/code-message-mapping.md 中的 [静默] 标注完全一致
 const SILENT_CODES = [
   200,  // HTTP成功 - 静默
   2013, // 用户模块-接口20: removeFollow - 已取消关注

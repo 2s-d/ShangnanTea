@@ -1,22 +1,52 @@
 /**
  * 消息管理器 - 双轨制消息系统的底层显示引擎
- * 
+ *
  * 本文件是双轨制消息系统的底层实现，提供基础的消息显示功能：
  * - apiMessage: 供 apiMessages.js 使用，用于API响应消息显示
  * - promptMessage: 供 promptMessages.js 使用，用于前端提示消息显示
- * 
- * 注意：本文件只提供底层消息显示功能，不包含业务消息定义
- * 业务消息定义请参考：
- * - promptMessages.js: 提示消息定义（表单验证、用户确认等）
- * - apiMessages.js: API状态码消息映射（后端响应消息）
+ *
+ * 注意：
+ * - 本文件只提供底层消息显示功能，不包含业务消息定义
+ * - 业务消息定义请参考：
+ *   - promptMessages.js: 提示消息定义（表单验证、用户确认等）
+ *   - apiMessages.js: API状态码消息映射（后端响应消息）
+ *
+ * ⚠️ 重要：避免在 utils 层静态依赖 UI 组件/Element Plus，防止循环依赖与打包抖动
+ * - message 显示能力通过动态 import('@/components/common') 获取
+ * - 开发环境消息监控面板通过动态 import('@/components/common/feedback/MessageMonitor.vue') 获取
  */
 
-import { message } from '@/components/common'
-import { addMessageRecord } from '@/components/common/feedback/MessageMonitor.vue'
-
 // 开发环境中的消息日志
-const isDev = process.env.NODE_ENV === 'development' || 
-             (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.DEV)
+const isDev = process.env.NODE_ENV === 'development' ||
+    (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.DEV)
+
+/**
+ * 动态获取 message 能力（内部封装了 Element Plus 的 ElMessage）
+ * @returns {Promise<any>} message API
+ */
+let messageApi = null
+let messageApiPromise = null
+async function getMessageApi() {
+    if (messageApi) return messageApi
+    if (!messageApiPromise) {
+        messageApiPromise = import('@/components/common').then(module => module.message)
+    }
+    messageApi = await messageApiPromise
+    return messageApi
+}
+
+/**
+ * 动态获取消息监控面板模块（仅开发环境）
+ * @returns {Promise<any|null>}
+ */
+let monitorModulePromise = null
+function getMonitorModule() {
+    if (!isDev) return Promise.resolve(null)
+    if (!monitorModulePromise) {
+        monitorModulePromise = import('@/components/common/feedback/MessageMonitor.vue')
+    }
+    return monitorModulePromise
+}
 
 // 消息类型
 export const MESSAGE_TYPE = {
@@ -60,51 +90,61 @@ const PRIORITY = {
  * @param {string} layer 消息层级
  */
 function logMessage(content, type, layer) {
-  // 添加到监控面板
-  if (process.env.NODE_ENV === 'development') {
-    addMessageRecord(content, type, layer)
-    
+    if (!isDev) return
+
+    // 添加到监控面板（异步，不阻塞正常消息显示）
+    getMonitorModule().then(module => {
+        if (module && typeof module.addMessageRecord === 'function') {
+            module.addMessageRecord(content, type, layer)
+        }
+    }).catch(() => {
+        // 忽略监控面板加载失败，避免影响业务逻辑
+    })
+
     // 控制台彩色日志
     const styles = {
-      [MESSAGE_TYPE.SUCCESS]: 'color: #4caf50; background: #e8f5e9; padding: 2px 4px; border-radius: 2px;',
-      [MESSAGE_TYPE.ERROR]: 'color: #f44336; background: #ffebee; padding: 2px 4px; border-radius: 2px;',
-      [MESSAGE_TYPE.WARNING]: 'color: #ff9800; background: #fff3e0; padding: 2px 4px; border-radius: 2px;',
-      [MESSAGE_TYPE.INFO]: 'color: #2196f3; background: #e3f2fd; padding: 2px 4px; border-radius: 2px;'
+        [MESSAGE_TYPE.SUCCESS]: 'color: #4caf50; background: #e8f5e9; padding: 2px 4px; border-radius: 2px;',
+        [MESSAGE_TYPE.ERROR]: 'color: #f44336; background: #ffebee; padding: 2px 4px; border-radius: 2px;',
+        [MESSAGE_TYPE.WARNING]: 'color: #ff9800; background: #fff3e0; padding: 2px 4px; border-radius: 2px;',
+        [MESSAGE_TYPE.INFO]: 'color: #2196f3; background: #e3f2fd; padding: 2px 4px; border-radius: 2px;'
     }
-    
+
     console.log(
-      `%c${type.toUpperCase()}%c [${layer}] ${content}`, 
-      styles[type] || '', 
-      'color: gray;'
+        `%c${type.toUpperCase()}%c [${layer}] ${content}`,
+        styles[type] || '',
+        'color: gray;'
     )
-  }
 }
 
 /**
  * 处理消息队列
  */
-function processMessageQueue() {
-  if (MESSAGE_QUEUE.active || MESSAGE_QUEUE.messages.length === 0) {
-    return
-  }
-  
-  // 按优先级排序
-  MESSAGE_QUEUE.messages.sort((a, b) => 
-    PRIORITY[a.type] - PRIORITY[b.type]
-  )
-  
-  // 激活队列，显示第一条消息
-  MESSAGE_QUEUE.active = true
-  const { content, type, duration } = MESSAGE_QUEUE.messages.shift()
-  
-  // 显示消息
-  message[type](content, duration)
-  
-  // 设置间隔，处理下一条消息
-  setTimeout(() => {
-    MESSAGE_QUEUE.active = false
-    processMessageQueue()
-  }, MESSAGE_QUEUE.interval)
+async function processMessageQueue() {
+    if (MESSAGE_QUEUE.active || MESSAGE_QUEUE.messages.length === 0) {
+        return
+    }
+
+    // 按优先级排序
+    MESSAGE_QUEUE.messages.sort((a, b) => PRIORITY[a.type] - PRIORITY[b.type])
+
+    // 激活队列，显示第一条消息
+    MESSAGE_QUEUE.active = true
+    const { content, type, duration } = MESSAGE_QUEUE.messages.shift()
+
+    try {
+        const msg = await getMessageApi()
+        msg[type](content, duration)
+    } catch (e) {
+        // 兜底：message 模块加载失败时，至少输出到控制台（避免吞掉关键信息）
+        // eslint-disable-next-line no-console
+        console.warn('[messageManager] message API 加载失败，已降级为 console 输出：', content, e)
+    }
+
+    // 设置间隔，处理下一条消息
+    setTimeout(() => {
+        MESSAGE_QUEUE.active = false
+        processMessageQueue()
+    }, MESSAGE_QUEUE.interval)
 }
 
 /**

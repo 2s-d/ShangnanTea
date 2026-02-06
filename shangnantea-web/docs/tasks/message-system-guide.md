@@ -77,7 +77,7 @@ apiMessages.js 检查静默列表
 |---------|------|------|
 | `src/utils/promptMessages.js` | 提示消息定义 | 包含所有模块的前端提示消息 |
 | `src/utils/apiMessages.js` | API消息映射 | 状态码到消息的映射和显示函数 |
-| `docs/code-message-mapping.md` | 状态码映射文档 | 完整的状态码规则和消息定义 |
+| `docs/tasks/code-message-mapping.md` | 状态码映射文档 | 完整的状态码规则和消息定义 |
 
 ### 文件位置
 
@@ -89,8 +89,10 @@ shangnantea-web/
 │       └── apiMessages.js        # API消息系统
 │
 └── docs/
-    ├── code-message-mapping.md   # 状态码映射文档
-    └── message-system-guide.md   # 本文档
+    └── tasks/
+        ├── code-message-mapping.md    # 状态码映射文档（权威数据源）
+        ├── message-system-guide.md    # 本文档
+        └── message-system-usage.md    # 快速使用说明
 ```
 
 ---
@@ -125,15 +127,13 @@ if (!username) {
 }
 
 // 文件上传验证
-if (file.size > 2 * 1024 * 1024) {
-  commonPromptMessages.showFileSizeExceeded(2)
+if (file.size > 5 * 1024 * 1024) {
+  commonPromptMessages.showImageSizeExceeded()
   return
 }
 
-// 用户确认
-if (!userPromptMessages.showConfirmLogout()) {
-  return
-}
+// 用户提示（重要操作前提示用户）
+userPromptMessages.showConfirmLogout()
 ```
 
 ### 2. API消息（API Messages）
@@ -538,7 +538,7 @@ const CODE_MAP = {
 
 ### 查看完整映射
 
-详细的状态码映射请参考：`docs/code-message-mapping.md`
+详细的状态码映射请参考：`docs/tasks/code-message-mapping.md`
 
 ---
 
@@ -698,9 +698,9 @@ if (isSuccess(response.code)) {
 
 ## 相关文档
 
-- [状态码映射文档](./code-message-mapping.md) - 完整的状态码规则和映射
+- [状态码映射文档](./code-message-mapping.md) - 完整的状态码规则和映射（权威数据源）
 - [消息系统使用说明](./message-system-usage.md) - 快速使用指南
-- [API拦截器配置](../src/api/index.js) - API响应拦截逻辑
+- [API拦截器配置](../../src/api/index.js) - API响应拦截逻辑
 
 ---
 
