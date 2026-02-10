@@ -103,7 +103,7 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
@@ -114,16 +114,10 @@ import { useShopStore } from '@/stores/shop'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { messagePromptMessages } from '@/utils/promptMessages'
 
-export default {
-  name: 'SystemNotificationsPage',
-  components: {
-    Bell, ChatDotRound, Star, User, Check, Delete
-  },
-  setup() {
-    const router = useRouter()
-    const messageStore = useMessageStore()
-    const userStore = useUserStore()
-    const shopStore = useShopStore()
+const router = useRouter()
+const messageStore = useMessageStore()
+const userStore = useUserStore()
+const shopStore = useShopStore()
     
     // 分页参数
     const currentPage = ref(1)
@@ -383,33 +377,11 @@ export default {
       fetchNotifications()
     })
 
-    // 筛选变化自动刷新（回到第一页）
-    watch([readStatus, typeFilter], () => {
-      currentPage.value = 1
-      fetchNotifications()
-    })
-    
-    return {
-      notifications,
-      filteredNotifications,
-      hasUnread,
-      readStatus,
-      typeFilter,
-      currentPage,
-      pageSize,
-      totalNotifications,
-      loading,
-      markAsRead,
-      markAllAsRead,
-      deleteNotification,
-      confirmDeleteAll,
-      openNotification,
-      handlePageChange,
-      formatDate,
-      getNotificationIconClass
-    }
-  }
-}
+// 筛选变化自动刷新（回到第一页）
+watch([readStatus, typeFilter], () => {
+  currentPage.value = 1
+  fetchNotifications()
+})
 </script>
 
 <style lang="scss" scoped>

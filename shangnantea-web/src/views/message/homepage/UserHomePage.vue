@@ -157,7 +157,7 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, markRaw, watch, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useMessageStore } from '@/stores/message'
@@ -174,21 +174,10 @@ import SafeImage from '@/components/common/form/SafeImage.vue'
 import { showByCode } from '@/utils/apiMessages'
 import { commonPromptMessages } from '@/utils/promptMessages'
 
-export default {
-  name: 'UserHomePage',
-  components: {
-    ProfilePage,
-    FollowsPage,
-    FavoritesPage,
-    PublishedContentPage,
-    User, UserFilled, Star, Document, Male, Female, Edit, Plus, Shop, Clock, ChatDotRound,
-    SafeImage
-  },
-  setup() {
-    const router = useRouter()
-    const route = useRoute()
-    const messageStore = useMessageStore()
-    const userStore = useUserStore()
+const router = useRouter()
+const route = useRoute()
+const messageStore = useMessageStore()
+const userStore = useUserStore()
     
     // 从路由参数获取用户ID，如果没有则使用当前登录用户ID
     const userId = computed(() => route.params.userId || 'current')
@@ -370,29 +359,8 @@ export default {
       return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`
     }
 
-    // 默认图片
-    const defaultImage = ''
-    
-    return {
-      activeMenu,
-      currentComponent,
-      menuOptions,
-      handleMenuSelect,
-      hasComponent,
-      userInfo,
-      userDynamic,
-      userStatistics,
-      loading,
-      isOwnProfile,
-      isFollowing,
-      defaultImage,
-      handleEditProfile,
-      handleFollow,
-      goToShop,
-      formatDate
-    }
-  }
-}
+// 默认图片
+const defaultImage = ''
 </script>
 
 <style lang="scss" scoped>

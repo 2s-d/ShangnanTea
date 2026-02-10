@@ -150,7 +150,7 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
@@ -159,14 +159,8 @@ import { Search, Male, Female, Message, Service } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 import { showByCode } from '@/utils/apiMessages'
 
-export default {
-  name: 'FollowsPage',
-  components: {
-    Search, Male, Female, Message, Service, SafeImage
-  },
-  setup() {
-    const router = useRouter()
-    const userStore = useUserStore()
+const router = useRouter()
+const userStore = useUserStore()
     
     // 筛选类型：all（全部）、user（用户）、shop（店铺）
     const filterType = ref('all')
@@ -413,34 +407,10 @@ export default {
       }
     }
     
-    // 组件挂载时加载数据
-    onMounted(() => {
-      loadFollowList()
-    })
-    
-    return {
-      filterType,
-      searchKeyword,
-      sortOption,
-      followedUsers,
-      followedShops,
-      totalCount,
-      filteredAllFollows,
-      filteredUsers,
-      filteredShops,
-      handleFilterChange,
-      formatDate,
-      goToUserProfile,
-      sendMessage,
-      unfollowUser,
-      goToShopDetail,
-      contactShop,
-      unfollowShop,
-      goHome,
-      loadFollowList
-    }
-  }
-}
+// 组件挂载时加载数据
+onMounted(() => {
+  loadFollowList()
+})
 </script>
 
 <style lang="scss" scoped>

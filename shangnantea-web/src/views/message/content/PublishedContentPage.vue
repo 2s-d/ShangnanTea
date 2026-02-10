@@ -152,7 +152,7 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMessageStore } from '@/stores/message'
@@ -161,16 +161,10 @@ import { Timer, View, ChatDotRound, Star, Edit, Delete } from '@element-plus/ico
 import { showByCode } from '@/utils/apiMessages'
 import { commonPromptMessages } from '@/utils/promptMessages'
 
-export default {
-  name: 'PublishedContentPage',
-  components: {
-    Timer, View, ChatDotRound, Star, Edit, Delete
-  },
-  setup() {
-    const router = useRouter()
-    const messageStore = useMessageStore()
-    const activeTab = ref('posts')
-    const sortOption = ref('newest')
+const router = useRouter()
+const messageStore = useMessageStore()
+const activeTab = ref('posts')
+const sortOption = ref('newest')
     
     // 从Pinia获取数据
     const posts = computed(() => messageStore.userPosts || [])
@@ -319,34 +313,10 @@ export default {
       }
     }
     
-    // 组件挂载时加载数据
-    onMounted(() => {
-      loadData()
-    })
-    
-    return {
-      activeTab,
-      posts,
-      reviews,
-      sortOption,
-      sortedPosts,
-      sortedReviews,
-      loading,
-      postsPagination,
-      reviewsPagination,
-      formatDate,
-      viewPostDetail,
-      editPost,
-      deletePost,
-      viewTeaDetail,
-      deleteReview,
-      goHome,
-      loadData,
-      handleTabChange,
-      handleSortChange
-    }
-  }
-}
+// 组件挂载时加载数据
+onMounted(() => {
+  loadData()
+})
 </script>
 
 <style lang="scss" scoped>

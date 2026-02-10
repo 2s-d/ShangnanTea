@@ -158,7 +158,7 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
@@ -168,16 +168,10 @@ import { Search, View, ChatDotRound, Star, ShoppingCart } from '@element-plus/ic
 import SafeImage from '@/components/common/form/SafeImage.vue'
 import { showByCode } from '@/utils/apiMessages'
 
-export default {
-  name: 'FavoritesPage',
-  components: {
-    Search, View, ChatDotRound, Star, ShoppingCart, SafeImage
-  },
-  setup() {
-    const router = useRouter()
-    const userStore = useUserStore()
-    const orderStore = useOrderStore()
-    const activeTab = ref('culture')
+const router = useRouter()
+const userStore = useUserStore()
+const orderStore = useOrderStore()
+const activeTab = ref('culture')
     
     // 从Pinia获取收藏列表
     const favoriteList = computed(() => userStore.favoriteList || [])
@@ -403,41 +397,10 @@ export default {
       }
     }
     
-    // 组件挂载时加载数据
-    onMounted(() => {
-      loadFavoriteList()
-    })
-    
-    return {
-      activeTab,
-      // 茶文化文章
-      cultureSearchKeyword,
-      cultureSortOption,
-      cultureArticles,
-      filteredCultureArticles,
-      // 茶叶商品
-      productSearchKeyword,
-      productSortOption,
-      products,
-      filteredProducts,
-      // 论坛帖子
-      postSearchKeyword,
-      postSortOption,
-      posts,
-      filteredPosts,
-      // 方法
-      formatDate,
-      goToArticleDetail,
-      goToProductDetail,
-      goToShopDetail,
-      goToPostDetail,
-      goToUserProfile,
-      addToCart,
-      cancelFavorite,
-      loadFavoriteList
-    }
-  }
-}
+// 组件挂载时加载数据
+onMounted(() => {
+  loadFavoriteList()
+})
 </script>
 
 <style lang="scss" scoped>

@@ -273,7 +273,7 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, reactive, computed, nextTick, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
@@ -288,24 +288,10 @@ import {
 import SafeImage from '@/components/common/form/SafeImage.vue'
 import { timeFormat } from '@/utils/timeFormat'
 
-export default {
-  name: 'ChatPage',
-  components: {
-    Check,
-    CircleCheck,
-    Warning,
-    Picture,
-    Star,
-    Loading,
-    MoreFilled,
-    Top,
-    SafeImage
-  },
-  setup() {
-    const route = useRoute()
-    const router = useRouter()
-    const messageStore = useMessageStore()
-    const userStore = useUserStore()
+const route = useRoute()
+const router = useRouter()
+const messageStore = useMessageStore()
+const userStore = useUserStore()
     
     // DOM引用
     const messagesContainer = ref(null)
@@ -853,57 +839,12 @@ export default {
       }
     })
     
-    // 监听userId路由参数变化
-    watch(() => route.query.userId, newUserId => {
-      if (newUserId) {
-        initializeChatFromRouteParams()
-      }
-    })
-    
-    return {
-      // 引用
-      messagesContainer,
-      imageInput,
-      
-      // 状态
-      searchQuery,
-      messageInput,
-      mockSessions,
-      currentSessionId,
-      loadingMessages,
-      hasMoreMessages,
-      showEmojiPicker,
-      defaultAvatar,
-      currentUserAvatar,
-      emojiList,
-      
-      // 计算属性
-      filteredSessions,
-      currentSession,
-      currentMessages,
-      
-      // 方法
-      fetchSessions,
-      fetchMessages,
-      markSessionAsRead,
-      loadMoreMessages,
-      selectSession,
-      deleteSession,
-      togglePinSession,
-      sendMessage,
-      triggerImageUpload,
-      handleImageUpload,
-      toggleEmojiPicker,
-      insertEmoji,
-      stopPropagation,
-      formatTime,
-      formatMessageTime,
-      initializeChatFromRouteParams,
-      createShopServiceSession,
-      createUserChatSession
-    }
+// 监听userId路由参数变化
+watch(() => route.query.userId, newUserId => {
+  if (newUserId) {
+    initializeChatFromRouteParams()
   }
-}
+})
 </script>
 
 <style lang="scss" scoped>
