@@ -1,6 +1,7 @@
 package com.shangnantea.service.impl;
 
 import com.shangnantea.common.api.Result;
+import com.shangnantea.exception.BusinessException;
 import com.shangnantea.mapper.ShopCertificationMapper;
 import com.shangnantea.mapper.ShopMapper;
 import com.shangnantea.mapper.TeaMapper;
@@ -531,20 +532,42 @@ public class UserServiceImpl implements UserService {
             int result = userMapper.updateAvatar(userId, relativePath);
             if (result <= 0) {
                 logger.error("头像上传失败: 数据库更新失败, userId: {}", userId);
-                return Result.failure(2110); // 头像更新失败
+                return Result.failure(2109); // 头像更新失败
             }
             
             // 6. 构造返回数据
             Map<String, Object> responseData = new HashMap<>();
             responseData.put("url", accessUrl);
             responseData.put("path", relativePath);
+            // 与 OpenAPI 文档保持一致，提供 avatarUrl 字段
+            responseData.put("avatarUrl", accessUrl);
             
             logger.info("头像上传成功: userId: {}, path: {}", userId, relativePath);
             return Result.success(2004, responseData); // 头像更新成功
             
+        } catch (BusinessException e) {
+            String msg = e.getMessage();
+            logger.warn("头像上传失败: {}", msg, e);
+            if (msg != null) {
+                // 文件大小超限 -> 2111
+                if (msg.contains("文件大小不能超过")) {
+                    return Result.failure(2111);
+                }
+                // 文件类型 / 扩展名不支持 -> 2110
+                if (msg.contains("不支持的文件类型") || msg.contains("文件扩展名")) {
+                    return Result.failure(2110);
+                }
+                // 未选择文件 / 文件名为空 -> 2109
+                if (msg.contains("文件不能为空") || msg.contains("文件名不能为空")) {
+                    return Result.failure(2109);
+                }
+            }
+            // 兜底：统一视为上传失败
+            return Result.failure(2109);
         } catch (Exception e) {
             logger.error("头像上传失败: 系统异常", e);
-            return Result.failure(2111); // 头像更新失败
+            // 系统异常同样归为上传失败（2109），前端只展示统一错误信息
+            return Result.failure(2109);
         }
     }
     
@@ -833,7 +856,8 @@ public class UserServiceImpl implements UserService {
             }
             
             logger.info("更新地址成功: userId: {}, addressId: {}", userId, addressId);
-            return Result.success(2008, true); // 更新成功
+            // 返回 code=2008，data=null
+            return Result.success(2008);
             
         } catch (Exception e) {
             logger.error("更新地址失败: 系统异常", e);
@@ -887,7 +911,8 @@ public class UserServiceImpl implements UserService {
             }
             
             logger.info("删除地址成功: userId: {}, addressId: {}", userId, addressId);
-            return Result.success(2009, true); // 删除成功
+            // 返回 code=2009，data=null
+            return Result.success(2009);
             
         } catch (Exception e) {
             logger.error("删除地址失败: 系统异常", e);
@@ -936,7 +961,8 @@ public class UserServiceImpl implements UserService {
             // 5. 如果该地址已经是默认地址，直接返回成功
             if (existingAddress.getIsDefault() != null && existingAddress.getIsDefault() == 1) {
                 logger.info("地址已是默认地址: userId: {}, addressId: {}", userId, addressId);
-                return Result.success(2010, true); // 更新成功
+                // 返回 code=2010，data=null
+                return Result.success(2010);
             }
             
             // 6. 先将该用户的所有地址设为非默认
@@ -953,7 +979,8 @@ public class UserServiceImpl implements UserService {
             }
             
             logger.info("设置默认地址成功: userId: {}, addressId: {}", userId, addressId);
-            return Result.success(2010, true); // 更新成功
+            // 返回 code=2010，data=null
+            return Result.success(2010);
             
         } catch (Exception e) {
             logger.error("设置默认地址失败: 系统异常", e);
@@ -1061,8 +1088,9 @@ public class UserServiceImpl implements UserService {
                         return Result.failure(2120); // 操作失败
                     }
                     
-                    logger.info("重新提交认证成功: userId: {}, certificationId: {}", userId, existingCert.getId());
-                    return Result.success(2011, true); // 操作成功
+                logger.info("重新提交认证成功: userId: {}, certificationId: {}", userId, existingCert.getId());
+                // 返回 code=2011，data=null
+                return Result.success(2011);
                 }
             }
             
@@ -1095,7 +1123,8 @@ public class UserServiceImpl implements UserService {
             }
             
             logger.info("提交认证成功: userId: {}, certificationId: {}", userId, certification.getId());
-            return Result.success(2011, true); // 操作成功
+            // 返回 code=2011，data=null
+            return Result.success(2011);
             
         } catch (Exception e) {
             logger.error("提交认证失败: 系统异常", e);
@@ -1110,19 +1139,19 @@ public class UserServiceImpl implements UserService {
             String userId = UserContext.getCurrentUserId();
             if (userId == null) {
                 logger.warn("上传认证图片失败: 用户未登录");
-                return Result.failure(2146); // 操作失败
+                return Result.failure(2146); // 图片上传失败
             }
             
             // 2. 验证文件类型参数
             if (type == null || type.trim().isEmpty()) {
                 logger.warn("上传认证图片失败: 图片类型参数为空, userId: {}", userId);
-                return Result.failure(2147); // 操作失败
+                return Result.failure(2147); // 图片类型错误
             }
             
             // 3. 验证type参数值
             if (!type.equals("id_front") && !type.equals("id_back") && !type.equals("business_license")) {
                 logger.warn("上传认证图片失败: 图片类型参数不正确, userId: {}, type: {}", userId, type);
-                return Result.failure(2147); // 操作失败
+                return Result.failure(2147); // 图片类型错误
             }
             
             // 4. 调用工具类上传文件
@@ -1139,9 +1168,29 @@ public class UserServiceImpl implements UserService {
             logger.info("上传认证图片成功: userId: {}, type: {}, path: {}", userId, type, relativePath);
             return Result.success(2024, responseData); // 图片上传成功
             
+        } catch (BusinessException e) {
+            String msg = e.getMessage();
+            logger.warn("上传认证图片失败: {}", msg, e);
+            if (msg != null) {
+                // 文件大小超限 -> 2148
+                if (msg.contains("文件大小不能超过")) {
+                    return Result.failure(2148);
+                }
+                // 文件类型 / 扩展名不支持 -> 2147
+                if (msg.contains("不支持的文件类型") || msg.contains("文件扩展名")) {
+                    return Result.failure(2147);
+                }
+                // 未选择文件 / 文件名为空 -> 2146
+                if (msg.contains("文件不能为空") || msg.contains("文件名不能为空")) {
+                    return Result.failure(2146);
+                }
+            }
+            // 兜底：统一视为上传失败（2146）
+            return Result.failure(2146);
         } catch (Exception e) {
             logger.error("上传认证图片失败: 系统异常", e);
-            return Result.failure(2148); // 操作失败
+            // 系统异常统一按上传失败处理
+            return Result.failure(2146);
         }
     }
     
@@ -1237,7 +1286,8 @@ public class UserServiceImpl implements UserService {
             }
             
             logger.info("添加关注成功: userId: {}, targetId: {}, targetType: {}", userId, targetId, targetType);
-            return Result.success(2012, true); // 已关注店铺
+            // 返回 code=2012，data=null，保持与接口文档 & 前端映射一致
+            return Result.success(2012);
             
         } catch (Exception e) {
             logger.error("添加关注失败: 系统异常", e);
@@ -1278,7 +1328,8 @@ public class UserServiceImpl implements UserService {
             }
             
             logger.info("取消关注成功: userId: {}, targetType: {}, targetId: {}", userId, targetType, targetId);
-            return Result.success(2013, true); // 已取消关注
+            // 返回 code=2013，data=null
+            return Result.success(2013);
             
         } catch (Exception e) {
             logger.error("取消关注失败: 系统异常", e);
@@ -1387,7 +1438,8 @@ public class UserServiceImpl implements UserService {
             }
             
             logger.info("添加收藏成功: userId: {}, itemId: {}, itemType: {}", userId, itemId, itemType);
-            return Result.success(2014, true); // 已收藏
+            // 返回 code=2014，data=null
+            return Result.success(2014);
             
         } catch (Exception e) {
             logger.error("添加收藏失败: 系统异常", e);
@@ -1428,7 +1480,8 @@ public class UserServiceImpl implements UserService {
             }
             
             logger.info("取消收藏成功: userId: {}, itemType: {}, itemId: {}", userId, itemType, itemId);
-            return Result.success(2015, true); // 已取消收藏
+            // 返回 code=2015，data=null
+            return Result.success(2015);
             
         } catch (Exception e) {
             logger.error("取消收藏失败: 系统异常", e);
@@ -1501,7 +1554,8 @@ public class UserServiceImpl implements UserService {
             }
             
             logger.info("点赞成功: userId: {}, targetId: {}, targetType: {}", userId, targetId, targetType);
-            return Result.success(2016, true); // 已点赞
+            // 返回 code=2016，data=null
+            return Result.success(2016);
             
         } catch (Exception e) {
             logger.error("点赞失败: 系统异常", e);
@@ -1545,7 +1599,8 @@ public class UserServiceImpl implements UserService {
             }
             
             logger.info("取消点赞成功: userId: {}, targetType: {}, targetId: {}", userId, targetType, targetId);
-            return Result.success(2017, true); // 已取消点赞
+            // 返回 code=2017，data=null
+            return Result.success(2017);
             
         } catch (Exception e) {
             logger.error("取消点赞失败: 系统异常", e);
@@ -1673,7 +1728,8 @@ public class UserServiceImpl implements UserService {
             
             logger.info("获取用户列表成功(管理员): keyword: {}, role: {}, status: {}, page: {}, total: {}", 
                 keyword, role, status, page, total);
-            return Result.success(200, result); // 操作成功（静默）
+            // 按 OpenAPI：code=200，data 为分页结果对象
+            return Result.success(200, result);
             
         } catch (Exception e) {
             logger.error("获取用户列表失败(管理员): 系统异常", e);
@@ -1719,7 +1775,8 @@ public class UserServiceImpl implements UserService {
             
             logger.info("创建管理员成功: username: {}, userId: {}, role: {}", 
                 adminDTO.getUsername(), userId, user.getRole());
-            return Result.success(2019, true); // 管理员账号创建成功
+            // 返回 code=2019，data=null
+            return Result.success(2019);
             
         } catch (Exception e) {
             logger.error("创建管理员失败: 系统异常", e);
@@ -1765,7 +1822,8 @@ public class UserServiceImpl implements UserService {
             // 4. 如果没有任何更新，直接返回成功
             if (!hasUpdate) {
                 logger.info("更新用户(管理员): 无需更新, userId: {}", userId);
-                return Result.success(2020, true); // 用户信息更新成功
+                // 返回 code=2020，data=null
+                return Result.success(2020);
             }
             
             // 5. 执行更新
@@ -1776,7 +1834,8 @@ public class UserServiceImpl implements UserService {
             }
             
             logger.info("更新用户成功(管理员): userId: {}", userId);
-            return Result.success(2020, true); // 用户信息更新成功
+            // 返回 code=2020，data=null
+            return Result.success(2020);
             
         } catch (Exception e) {
             logger.error("更新用户失败(管理员): 系统异常", e);
@@ -1867,7 +1926,8 @@ public class UserServiceImpl implements UserService {
             }
             
             logger.info("删除用户成功(管理员): userId: {}, adminId: {}", userId, adminId);
-            return Result.success(2021, true); // 用户删除成功
+            // 返回 code=2021，data=null
+            return Result.success(2021);
             
         } catch (Exception e) {
             logger.error("删除用户失败(管理员): 系统异常", e);
@@ -1913,7 +1973,8 @@ public class UserServiceImpl implements UserService {
             }
             
             logger.info("切换用户状态成功(管理员): userId: {}, newStatus: {}", userId, newStatus);
-            return Result.success(2022, true); // 用户状态更新成功
+            // 返回 code=2022，data=null
+            return Result.success(2022);
             
         } catch (Exception e) {
             logger.error("切换用户状态失败(管理员): 系统异常", e);
@@ -2040,7 +2101,8 @@ public class UserServiceImpl implements UserService {
             }
             
             logger.info("审核认证成功(管理员): certificationId: {}, status: {}, adminId: {}", id, auditStatus, adminId);
-            return Result.success(2023, true); // 审核操作成功
+            // 返回 code=2023，data=null
+            return Result.success(2023);
             
         } catch (Exception e) {
             logger.error("审核认证失败(管理员): 系统异常", e);

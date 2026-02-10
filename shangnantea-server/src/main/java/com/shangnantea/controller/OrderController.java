@@ -222,7 +222,7 @@ public class OrderController {
      * @return 发货结果
      */
     @PostMapping("/batch-ship")
-    @RequiresLogin
+    @RequiresRoles({1, 3}) // 仅管理员和商家可批量发货
     public Result<Boolean> batchShipOrders(@RequestBody Map<String, Object> data) {
         logger.info("批量发货请求");
         return orderService.batchShipOrders(data);
@@ -285,7 +285,7 @@ public class OrderController {
      * @return 审批结果
      */
     @PostMapping("/{id}/refund/process")
-    @RequiresLogin
+    @RequiresRoles({1, 3}) // 仅管理员和商家可审批退款
     public Result<Boolean> processRefund(@PathVariable String id, @RequestBody Map<String, Object> data) {
         logger.info("审批退款请求: {}", id);
         return orderService.processRefund(id, data);
@@ -302,7 +302,7 @@ public class OrderController {
      * @return 发货结果
      */
     @PostMapping("/{id}/ship")
-    @RequiresLogin
+    @RequiresRoles({1, 3}) // 仅管理员和商家可发货
     public Result<Boolean> shipOrder(@PathVariable String id,
                                      @RequestParam String logisticsCompany,
                                      @RequestParam String logisticsNumber) {

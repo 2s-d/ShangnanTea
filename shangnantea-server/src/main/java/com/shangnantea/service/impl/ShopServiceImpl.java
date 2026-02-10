@@ -90,6 +90,16 @@ public class ShopServiceImpl implements ShopService {
     }
     
     /**
+     * 从参数中安全获取去掉首尾空格的字符串，null 或全空白时返回空串
+     */
+    private String getTrimmed(Object value) {
+        if (value == null) {
+            return "";
+        }
+        return value.toString().trim();
+    }
+    
+    /**
      * 根据用户ID获取店铺（内部辅助方法）
      */
     private Shop getShopByUserId(String userId) {
@@ -242,20 +252,23 @@ public class ShopServiceImpl implements ShopService {
         try {
             logger.info("获取店铺列表请求, params: {}", params);
             
-            // 1. 解析查询参数
+            // 1. 解析查询参数（兼容空串）
             ShopQueryDTO queryDTO = new ShopQueryDTO();
             if (params != null) {
-                if (params.get("page") != null) {
-                    queryDTO.setPage(Integer.parseInt(params.get("page").toString()));
+                String pageStr = getTrimmed(params.get("page"));
+                if (!pageStr.isEmpty()) {
+                    queryDTO.setPage(Integer.parseInt(pageStr));
                 }
-                if (params.get("size") != null) {
-                    queryDTO.setSize(Integer.parseInt(params.get("size").toString()));
+                String sizeStr = getTrimmed(params.get("size"));
+                if (!sizeStr.isEmpty()) {
+                    queryDTO.setSize(Integer.parseInt(sizeStr));
                 }
                 if (params.get("keyword") != null) {
                     queryDTO.setKeyword(params.get("keyword").toString());
                 }
-                if (params.get("rating") != null) {
-                    queryDTO.setRating(Double.parseDouble(params.get("rating").toString()));
+                String ratingStr = getTrimmed(params.get("rating"));
+                if (!ratingStr.isEmpty()) {
+                    queryDTO.setRating(Double.parseDouble(ratingStr));
                 }
                 if (params.get("sortBy") != null) {
                     queryDTO.setSortBy(params.get("sortBy").toString());
@@ -576,7 +589,8 @@ public class ShopServiceImpl implements ShopService {
             }
             
             // 7. 返回成功（根据code-message-mapping.md，成功码是4001）
-            return Result.success(4001, true);
+            // 返回 code=4001，data=null
+            return Result.success(4001);
             
         } catch (Exception e) {
             logger.error("更新店铺信息失败: 系统异常, id={}", id, e);
@@ -989,7 +1003,8 @@ public class ShopServiceImpl implements ShopService {
             }
             
             // 8. 返回成功（根据code-message-mapping.md，成功码是4003）
-            return Result.success(4003, true);
+            // 返回 code=4003，data=null
+            return Result.success(4003);
             
         } catch (Exception e) {
             logger.error("更新店铺茶叶失败: 系统异常, teaId={}", teaId, e);
@@ -1312,7 +1327,8 @@ public class ShopServiceImpl implements ShopService {
             logger.info("删除Banner成功: bannerId={}, title={}", bannerId, banner.getTitle());
             
             // 7. 返回成功（根据code-message-mapping.md，成功码是4010）
-            return Result.success(4010, true);
+            // 返回 code=4010，data=null
+            return Result.success(4010);
             
         } catch (Exception e) {
             logger.error("删除Banner失败: 系统异常, bannerId={}", bannerId, e);
@@ -1373,7 +1389,8 @@ public class ShopServiceImpl implements ShopService {
             logger.info("更新Banner顺序成功: 更新数量={}", orders.size());
             
             // 4. 返回成功（根据code-message-mapping.md，成功码是4011）
-            return Result.success(4011, true);
+            // 返回 code=4011，data=null
+            return Result.success(4011);
             
         } catch (Exception e) {
             logger.error("更新Banner顺序失败: 系统异常", e);
@@ -1638,7 +1655,8 @@ public class ShopServiceImpl implements ShopService {
             logger.info("删除公告成功: announcementId={}, title={}", announcementId, announcement.getTitle());
             
             // 7. 返回成功（根据code-message-mapping.md，成功码是4014）
-            return Result.success(4014, true);
+            // 返回 code=4014，data=null
+            return Result.success(4014);
             
         } catch (Exception e) {
             logger.error("删除公告失败: 系统异常, announcementId={}", announcementId, e);
@@ -1781,8 +1799,8 @@ public class ShopServiceImpl implements ShopService {
             logger.info("提交评分成功: userId={}, shopId={}, rating={}, newAvgRating={}", 
                     userId, shopId, rating, newRating);
             
-            // 7. 返回成功（根据code-message-mapping.md，成功码是4017）
-            return Result.success(4017, true);
+            // 7. 返回成功（根据code-message-mapping.md，成功码是4017，data 为空）
+            return Result.success(4017);
             
         } catch (Exception e) {
             logger.error("提交评分失败: 系统异常, shopId={}", shopId, e);

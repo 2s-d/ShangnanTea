@@ -428,7 +428,8 @@ public class ForumServiceImpl implements ForumService {
             }
             
             logger.info("删除Banner成功: id={}", id);
-            return Result.success(6003, true); // 删除成功
+            // 返回 code=6003，data=null
+            return Result.success(6003); // 删除成功
             
         } catch (NumberFormatException e) {
             logger.error("删除Banner失败: ID格式错误, id: {}", id, e);
@@ -864,7 +865,8 @@ public class ForumServiceImpl implements ForumService {
             }
             
             logger.info("删除文章成功: id={}", id);
-            return Result.success(6007, true); // 文章已删除
+            // 返回 code=6007，data=null（文章已删除）
+            return Result.success(6007);
             
         } catch (NumberFormatException e) {
             logger.error("删除文章失败: ID格式错误, id: {}", id, e);
@@ -1123,7 +1125,8 @@ public class ForumServiceImpl implements ForumService {
             }
             
             logger.info("删除版块成功: id={}", id);
-            return Result.success(6010, true); // 删除版块成功
+            // 返回 code=6010，data=null（删除版块成功）
+            return Result.success(6010);
             
         } catch (NumberFormatException e) {
             logger.error("删除版块失败: ID格式错误, id: {}", id, e);
@@ -1582,7 +1585,8 @@ public class ForumServiceImpl implements ForumService {
             }
             
             logger.info("删除帖子成功: id={}, userId={}", id, userId);
-            return Result.success(6013, true); // 帖子删除成功
+            // 返回 code=6013，data=null（帖子删除成功）
+            return Result.success(6013);
             
         } catch (NumberFormatException e) {
             logger.error("删除帖子失败: ID格式错误, id: {}", id, e);
@@ -1843,7 +1847,8 @@ public class ForumServiceImpl implements ForumService {
             }
             
             logger.info("删除回复成功: id={}, userId={}", id, userId);
-            return Result.success(6019, true); // 评论已删除
+            // 返回 code=6019，data=null（评论已删除）
+            return Result.success(6019);
             
         } catch (NumberFormatException e) {
             logger.error("删除回复失败: ID格式错误, id: {}", id, e);

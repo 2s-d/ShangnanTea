@@ -168,10 +168,16 @@ public class TeaServiceImpl implements TeaService {
             logger.info("获取推荐茶叶请求, params: {}", params);
             
             // 1. 提取参数
-            String type = params.get("type") != null ? params.get("type").toString() : "random";
-            String teaId = params.get("teaId") != null ? params.get("teaId").toString() : null;
-            int count = params.get("count") != null ? 
-                    Integer.parseInt(params.get("count").toString()) : 6;
+            String type = getTrimmed(params.get("type"));
+            if (type.isEmpty()) {
+                type = "random";
+            }
+            String teaId = getTrimmed(params.get("teaId"));
+            if (teaId.isEmpty()) {
+                teaId = null;
+            }
+            String countStr = getTrimmed(params.get("count"));
+            int count = countStr.isEmpty() ? 6 : Integer.parseInt(countStr);
             
             // 2. 验证count范围
             if (count <= 0) {
@@ -709,14 +715,17 @@ public class TeaServiceImpl implements TeaService {
     private TeaQueryDTO convertMapToQueryDTO(Map<String, Object> params) {
         TeaQueryDTO dto = new TeaQueryDTO();
         
-        if (params.get("page") != null) {
-            dto.setPage(Integer.valueOf(params.get("page").toString()));
+        String pageStr = getTrimmed(params.get("page"));
+        if (!pageStr.isEmpty()) {
+            dto.setPage(Integer.valueOf(pageStr));
         }
-        if (params.get("pageSize") != null) {
-            dto.setPageSize(Integer.valueOf(params.get("pageSize").toString()));
+        String pageSizeStr = getTrimmed(params.get("pageSize"));
+        if (!pageSizeStr.isEmpty()) {
+            dto.setPageSize(Integer.valueOf(pageSizeStr));
         }
-        if (params.get("categoryId") != null) {
-            dto.setCategoryId(Integer.valueOf(params.get("categoryId").toString()));
+        String categoryIdStr = getTrimmed(params.get("categoryId"));
+        if (!categoryIdStr.isEmpty()) {
+            dto.setCategoryId(Integer.valueOf(categoryIdStr));
         }
         if (params.get("keyword") != null) {
             dto.setKeyword(params.get("keyword").toString());
@@ -730,23 +739,38 @@ public class TeaServiceImpl implements TeaService {
         if (params.get("sortOrder") != null) {
             dto.setSortOrder(params.get("sortOrder").toString());
         }
-        if (params.get("priceMin") != null) {
-            dto.setPriceMin(new BigDecimal(params.get("priceMin").toString()));
+        String priceMinStr = getTrimmed(params.get("priceMin"));
+        if (!priceMinStr.isEmpty()) {
+            dto.setPriceMin(new BigDecimal(priceMinStr));
         }
-        if (params.get("priceMax") != null) {
-            dto.setPriceMax(new BigDecimal(params.get("priceMax").toString()));
+        String priceMaxStr = getTrimmed(params.get("priceMax"));
+        if (!priceMaxStr.isEmpty()) {
+            dto.setPriceMax(new BigDecimal(priceMaxStr));
         }
         if (params.get("origin") != null) {
             dto.setOrigin(params.get("origin").toString());
         }
-        if (params.get("rating") != null) {
-            dto.setRating(new BigDecimal(params.get("rating").toString()));
+        String ratingStr = getTrimmed(params.get("rating"));
+        if (!ratingStr.isEmpty()) {
+            dto.setRating(new BigDecimal(ratingStr));
         }
-        if (params.get("status") != null) {
-            dto.setStatus(Integer.valueOf(params.get("status").toString()));
+        String statusStr = getTrimmed(params.get("status"));
+        if (!statusStr.isEmpty()) {
+            dto.setStatus(Integer.valueOf(statusStr));
         }
         
         return dto;
+    }
+    
+    /**
+     * 从参数中安全获取去掉首尾空格的字符串，null 或全空白时返回空串
+     */
+    private String getTrimmed(Object value) {
+        if (value == null) {
+            return "";
+        }
+        String str = value.toString().trim();
+        return str;
     }
     
     /**
@@ -1166,7 +1190,8 @@ public class TeaServiceImpl implements TeaService {
             }
             
             logger.info("删除茶叶分类成功, id: {}, name: {}", id, category.getName());
-            return Result.success(3006, true);
+            // 返回 code=3006，data=null
+            return Result.success(3006);
             
         } catch (Exception e) {
             logger.error("删除茶叶分类失败: 系统异常, id: {}", id, e);
@@ -1422,7 +1447,8 @@ public class TeaServiceImpl implements TeaService {
             }
             
             logger.info("商家回复评价成功, reviewId: {}, shopId: {}", reviewId, shop.getId());
-            return Result.success(3008, true);
+            // 返回 code=3008，data=null
+            return Result.success(3008);
             
         } catch (NumberFormatException e) {
             logger.error("商家回复评价失败: 数字格式错误, reviewId: {}", reviewId, e);
@@ -1779,7 +1805,8 @@ public class TeaServiceImpl implements TeaService {
             }
             
             logger.info("更新茶叶规格成功, specId: {}", specId);
-            return Result.success(3011, true);
+            // 返回 code=3011，data=null
+            return Result.success(3011);
             
         } catch (NumberFormatException e) {
             logger.error("更新茶叶规格失败: 数字格式错误, specId: {}", specId, e);
@@ -1866,7 +1893,8 @@ public class TeaServiceImpl implements TeaService {
             }
             
             logger.info("删除茶叶规格成功, specId: {}", specId);
-            return Result.success(3012, true);
+            // 返回 code=3012，data=null
+            return Result.success(3012);
             
         } catch (NumberFormatException e) {
             logger.error("删除茶叶规格失败: 规格ID格式错误, specId: {}", specId, e);
@@ -1935,7 +1963,8 @@ public class TeaServiceImpl implements TeaService {
             }
             
             logger.info("设置默认规格成功, specId: {}, teaId: {}", specId, specification.getTeaId());
-            return Result.success(3013, true);
+            // 返回 code=3013，data=null
+            return Result.success(3013);
             
         } catch (NumberFormatException e) {
             logger.error("设置默认规格失败: 规格ID格式错误, specId: {}", specId, e);
@@ -2001,7 +2030,8 @@ public class TeaServiceImpl implements TeaService {
             }
             
             logger.info("删除茶叶图片成功, imageId: {}, teaId: {}", imageId, image.getTeaId());
-            return Result.success(3015, true);
+            // 返回 code=3015，data=null
+            return Result.success(3015);
             
         } catch (NumberFormatException e) {
             logger.error("删除茶叶图片失败: 图片ID格式错误, imageId: {}", imageId, e);
@@ -2069,7 +2099,8 @@ public class TeaServiceImpl implements TeaService {
             teaMapper.updateById(updateTea);
             
             logger.info("设置主图成功, imageId: {}, teaId: {}", imageId, image.getTeaId());
-            return Result.success(3016, true);
+            // 返回 code=3016，data=null
+            return Result.success(3016);
             
         } catch (NumberFormatException e) {
             logger.error("设置主图失败: 图片ID格式错误, imageId: {}", imageId, e);
@@ -2145,7 +2176,8 @@ public class TeaServiceImpl implements TeaService {
             }
             
             logger.info("更新图片顺序成功, teaId: {}, 更新数量: {}", teaId, orders.size());
-            return Result.success(3017, true);
+            // 返回 code=3017，data=null
+            return Result.success(3017);
             
         } catch (NumberFormatException e) {
             logger.error("更新图片顺序失败: 数据格式错误", e);
@@ -2223,7 +2255,8 @@ public class TeaServiceImpl implements TeaService {
             // 6. 根据状态返回不同的成功码
             int successCode = status == 1 ? 3018 : 3019;
             logger.info("切换茶叶状态成功, teaId: {}, status: {}, code: {}", teaId, status, successCode);
-            return Result.success(successCode, true);
+            // 返回对应成功码，data=null
+            return Result.success(successCode);
             
         } catch (NumberFormatException e) {
             logger.error("切换茶叶状态失败: 数据格式错误, teaId: {}", teaId, e);
@@ -2309,7 +2342,8 @@ public class TeaServiceImpl implements TeaService {
             // 4. 根据状态返回不同的成功码
             int successCode = status == 1 ? 3020 : 3021;
             logger.info("批量切换茶叶状态成功, 更新数量: {}, status: {}, code: {}", updateCount, status, successCode);
-            return Result.success(successCode, true);
+            // 返回对应成功码，data=null
+            return Result.success(successCode);
             
         } catch (NumberFormatException e) {
             logger.error("批量切换茶叶状态失败: 数据格式错误", e);

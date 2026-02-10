@@ -812,7 +812,8 @@ public class MessageServiceImpl implements MessageService {
             }
             
             logger.info("删除通知成功, userId: {}, notificationId: {}", userId, notificationId);
-            return Result.success(7003, true);
+            // 返回 code=7003，data=null
+            return Result.success(7003);
             
         } catch (Exception e) {
             logger.error("删除通知失败，系统异常", e);
@@ -888,7 +889,8 @@ public class MessageServiceImpl implements MessageService {
             }
             
             logger.info("批量标记通知已读成功, userId: {}, 成功数量: {}/{}", userId, successCount, ids.size());
-            return Result.success(7004, true);
+            // 返回 code=7004，data=null
+            return Result.success(7004);
             
         } catch (Exception e) {
             logger.error("批量标记通知已读失败，系统异常", e);
@@ -945,7 +947,8 @@ public class MessageServiceImpl implements MessageService {
             }
             
             logger.info("批量删除通知成功, userId: {}, 成功数量: {}/{}", userId, successCount, ids.size());
-            return Result.success(7005, true);
+            // 返回 code=7005，data=null
+            return Result.success(7005);
             
         } catch (Exception e) {
             logger.error("批量删除通知失败，系统异常", e);
@@ -1237,7 +1240,8 @@ public class MessageServiceImpl implements MessageService {
             }
             
             logger.info("置顶聊天会话成功, userId: {}, sessionId: {}, isPinned: {}", userId, sessionId, newPinned);
-            return Result.success(7007, true);
+            // 返回 code=7007，data=null
+            return Result.success(7007);
             
         } catch (Exception e) {
             logger.error("置顶聊天会话失败，系统异常", e);
@@ -1287,7 +1291,8 @@ public class MessageServiceImpl implements MessageService {
             }
             
             logger.info("删除聊天会话成功, userId: {}, sessionId: {}", userId, sessionId);
-            return Result.success(7008, true);
+            // 返回 code=7008，data=null
+            return Result.success(7008);
             
         } catch (Exception e) {
             logger.error("删除聊天会话失败，系统异常", e);

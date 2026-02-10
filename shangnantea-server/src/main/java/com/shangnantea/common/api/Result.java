@@ -55,6 +55,13 @@ public class Result<T> {
     }
     
     /**
+     * 成功结果（自定义状态码，无数据）
+     */
+    public static <T> Result<T> success(int code) {
+        return new Result<>(code, null, null);
+    }
+    
+    /**
      * 失败结果（使用通用失败码）
      */
     public static <T> Result<T> failure() {

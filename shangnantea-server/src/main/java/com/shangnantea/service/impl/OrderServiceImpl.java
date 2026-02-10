@@ -644,7 +644,8 @@ public class OrderServiceImpl implements OrderService {
             int rows = cartMapper.deleteById(id);
             if (rows > 0) {
                 logger.info("购物车商品已移除: cartId={}, userId={}", id, userId);
-                return Result.success(5003, true);
+                // 返回 code=5003，data=null
+                return Result.success(5003);
             } else {
                 logger.warn("移除购物车失败: 删除操作未影响任何行: id={}", id);
                 return Result.failure(5108);
@@ -790,7 +791,8 @@ public class OrderServiceImpl implements OrderService {
             if (cartList == null || cartList.isEmpty()) {
                 // 购物车已经是空的，直接返回成功
                 logger.info("清空购物车成功: 购物车已为空, userId={}", userId);
-                return Result.success(5004, true);
+                // 返回 code=5004，data=null
+                return Result.success(5004);
             }
             
             // 3. 提取所有购物车项ID
@@ -804,7 +806,8 @@ public class OrderServiceImpl implements OrderService {
             
             if (deletedCount > 0) {
                 logger.info("清空购物车成功: userId={}, deletedCount={}", userId, deletedCount);
-                return Result.success(5004, true);
+                // 返回 code=5004，data=null
+                return Result.success(5004);
             } else {
                 logger.warn("清空购物车失败: 删除操作未影响任何行, userId={}", userId);
                 return Result.failure(5109);
@@ -1168,7 +1171,8 @@ public class OrderServiceImpl implements OrderService {
             int rows = orderMapper.updateById(order);
             if (rows > 0) {
                 logger.info("取消订单成功: orderId={}, userId={}, reason={}", orderId, userId, cancelReason);
-                return Result.success(5008, true); // 订单已取消
+                // 返回 code=5008，data=null（订单已取消）
+                return Result.success(5008);
             } else {
                 logger.warn("取消订单失败: 更新订单失败: orderId={}", orderId);
                 return Result.failure(5121);
@@ -1230,7 +1234,8 @@ public class OrderServiceImpl implements OrderService {
             int rows = orderMapper.updateById(order);
             if (rows > 0) {
                 logger.info("确认收货成功: orderId={}, userId={}", orderId, userId);
-                return Result.success(5009, true); // 确认收货成功
+                // 返回 code=5009，data=null（确认收货成功）
+                return Result.success(5009);
             } else {
                 logger.warn("确认收货失败: 更新订单失败: orderId={}", orderId);
                 return Result.failure(5124);
@@ -1358,7 +1363,8 @@ public class OrderServiceImpl implements OrderService {
             int rows = orderMapper.updateById(order);
             if (rows > 0) {
                 logger.info("评价订单成功: orderId={}, userId={}, rating={}", orderId, userId, rating);
-                return Result.success(5010, true); // 评价提交成功，感谢您的反馈
+                // 返回 code=5010，data=null（评价提交成功）
+                return Result.success(5010);
             } else {
                 logger.warn("评价订单失败: 更新订单失败: orderId={}", orderId);
                 return Result.failure(5127);
@@ -1435,7 +1441,8 @@ public class OrderServiceImpl implements OrderService {
             int rows = orderMapper.updateById(order);
             if (rows > 0) {
                 logger.info("申请退款成功: orderId={}, userId={}, reason={}", orderId, userId, reason);
-                return Result.success(5011, true); // 退款申请已提交，等待商家审核
+                // 返回 code=5011，data=null（退款申请已提交）
+                return Result.success(5011);
             } else {
                 logger.warn("申请退款失败: 更新订单失败: orderId={}", orderId);
                 return Result.failure(5128);
@@ -1533,7 +1540,8 @@ public class OrderServiceImpl implements OrderService {
                 if (rows > 0) {
                     // TODO: 这里应该执行实际的退款操作（调用支付接口）
                     logger.info("同意退款成功: orderId={}, userId={}", id, userId);
-                    return Result.success(5012, true); // 已同意退款申请
+                    // 返回 code=5012，data=null（已同意退款申请）
+                    return Result.success(5012);
                 } else {
                     logger.warn("同意退款失败: 更新订单失败: orderId={}", id);
                     return Result.failure(5131);
@@ -1548,7 +1556,8 @@ public class OrderServiceImpl implements OrderService {
                 int rows = orderMapper.updateById(order);
                 if (rows > 0) {
                     logger.info("拒绝退款成功: orderId={}, userId={}, reason={}", id, userId, rejectReason);
-                    return Result.success(5013, true); // 已拒绝退款申请
+                    // 返回 code=5013，data=null（已拒绝退款申请）
+                    return Result.success(5013);
                 } else {
                     logger.warn("拒绝退款失败: 更新订单失败: orderId={}", id);
                     return Result.failure(5131);
@@ -1672,7 +1681,8 @@ public class OrderServiceImpl implements OrderService {
             if (rows > 0) {
                 logger.info("发货成功: orderId={}, userId={}, logisticsCompany={}, logisticsNumber={}", 
                            id, userId, logisticsCompany, logisticsNumber);
-                return Result.success(5014, true); // 订单已发货
+                // 返回 code=5014，data=null（订单已发货）
+                return Result.success(5014);
             } else {
                 logger.warn("发货失败: 更新订单失败: orderId={}", id);
                 return Result.failure(5135);
@@ -1792,7 +1802,8 @@ public class OrderServiceImpl implements OrderService {
                        userId, orderIds.size(), successCount, failCount);
             
             if (successCount > 0) {
-                return Result.success(5015, true); // 批量发货操作已完成
+                // 返回 code=5015，data=null（批量发货完成）
+                return Result.success(5015);
             } else {
                 return Result.failure(5138);
             }

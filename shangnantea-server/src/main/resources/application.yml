@@ -9,7 +9,7 @@ spring:
   main:
     allow-bean-definition-overriding: true
   datasource:
-    url: jdbc:mysql://localhost:3306/teasystem?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://localhost:3306/teasystem.sql?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
     username: root
     password: ${DB_PASSWORD:your-db-password}  # 使用环境变量
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -37,7 +37,7 @@ spring:
 # 阿里云短信认证服务配置
 aliyun:
   sms:
-    enabled: false  # 是否启用真实短信发送（true=真实发送，false=模拟发送）
+    enabled: ture  # 是否启用真实短信发送（true=真实发送，false=模拟发送）
     access-key-id: ${ALIYUN_ACCESS_KEY_ID:your-aliyun-access-key-id}  # 使用环境变量
     access-key-secret: ${ALIYUN_ACCESS_KEY_SECRET:your-aliyun-access-key-secret}  # 使用环境变量
     sign-name: 商南茶城  # 短信签名
@@ -51,6 +51,14 @@ mybatis:
 logging:
   level:
     com.shangnantea: debug
+  pattern:
+    # 控制台日志输出格式，带上 requestId 便于从 APIFox 的 X-Request-Id 反查对应日志
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [requestId:%X{requestId}] - %msg%n"
+    # 文件日志输出格式，同样带上 requestId，方便脚本和人工筛选
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [requestId:%X{requestId}] - %msg%n"
+  file:
+    # 后端日志落盘位置（与现有 shangnantea-server.log 保持一致）
+    name: logs/shangnantea-server.log
 
 # JWT配置
 jwt:

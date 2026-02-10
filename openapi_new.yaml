@@ -272,7 +272,7 @@ paths:
                     code: 2104
                     data: null
 
-  /user/{userId}:
+  /user/{{userId}}:
     get:
       operationId: getUserById
       tags:
@@ -555,7 +555,7 @@ paths:
                     code: 2116
                     data: null
 
-  /user/addresses/{id}:
+  /user/addresses/{{id}}:
     put:
       operationId: updateAddress
       tags:
@@ -627,7 +627,7 @@ paths:
                     code: 2118
                     data: null
 
-  /user/addresses/{id}/default:
+  /user/addresses/{{id}}/default:
     put:
       operationId: setDefaultAddress
       tags:
@@ -1216,7 +1216,7 @@ paths:
                     code: 2135
                     data: null
 
-  /user/admin/users/{userId}:
+  /user/admin/users/{{userId}}:
     put:
       operationId: adminUpdateUser
       tags:
@@ -1302,7 +1302,7 @@ paths:
                     code: 2139
                     data: null
 
-  /user/admin/users/{userId}/status:
+  /user/admin/users/{{userId}}/status:
     put:
       operationId: adminUpdateUserStatus
       tags:
@@ -1410,7 +1410,7 @@ paths:
                     code: 2143
                     data: null
 
-  /user/admin/certifications/{id}:
+  /user/admin/certifications/{{id}}:
     put:
       operationId: adminReviewCertification
       tags:
@@ -1721,7 +1721,7 @@ paths:
                     code: 3101
                     data: null
 
-  /tea/{id}:
+  /tea/{{id}}:
     get:
       operationId: getTeaDetail
       tags:
@@ -1908,7 +1908,7 @@ paths:
                     code: 3107
                     data: null
 
-  /tea/categories/{id}:
+  /tea/categories/{{id}}:
     put:
       operationId: updateTeaCategory
       tags:
@@ -1980,7 +1980,7 @@ paths:
                     code: 3109
                     data: null
 
-  /tea/{teaId}/reviews:
+  /tea/{{teaId}}/reviews:
     get:
       operationId: getTeaReviews
       tags:
@@ -2033,7 +2033,7 @@ paths:
                     code: 3110
                     data: null
 
-  /tea/{teaId}/reviews/stats:
+  /tea/{{teaId}}/reviews/stats:
     get:
       operationId: getTeaReviewStats
       tags:
@@ -2073,7 +2073,7 @@ paths:
                     code: 3111
                     data: null
 
-  /tea/reviews/{reviewId}/reply:
+  /tea/reviews/{{reviewId}}/reply:
     post:
       operationId: replyTeaReview
       tags:
@@ -2118,7 +2118,7 @@ paths:
                     code: 3113
                     data: null
 
-  /tea/{teaId}/specifications:
+  /tea/{{teaId}}/specifications:
     get:
       operationId: getTeaSpecifications
       tags:
@@ -2199,7 +2199,7 @@ paths:
                     code: 3116
                     data: null
 
-  /tea/specifications/{specId}:
+  /tea/specifications/{{specId}}:
     put:
       operationId: updateTeaSpecification
       tags:
@@ -2271,7 +2271,7 @@ paths:
                     code: 3118
                     data: null
 
-  /tea/specifications/{specId}/default:
+  /tea/specifications/{{specId}}/default:
     put:
       operationId: setDefaultSpecification
       tags:
@@ -2305,7 +2305,7 @@ paths:
                     code: 3119
                     data: null
 
-  /tea/{teaId}/images:
+  /tea/{{teaId}}/images:
     post:
       operationId: uploadTeaImages
       tags:
@@ -2364,7 +2364,7 @@ paths:
                     code: 3122
                     data: null
 
-  /tea/images/{imageId}:
+  /tea/images/{{imageId}}:
     delete:
       operationId: deleteTeaImage
       tags:
@@ -2398,7 +2398,7 @@ paths:
                     code: 3123
                     data: null
 
-  /tea/images/{imageId}/main:
+  /tea/images/{{imageId}}/main:
     put:
       operationId: setMainTeaImage
       tags:
@@ -2479,7 +2479,7 @@ paths:
                     code: 3125
                     data: null
 
-  /tea/{teaId}/status:
+  /tea/{{teaId}}/status:
     put:
       operationId: updateTeaStatus
       tags:
@@ -2745,7 +2745,7 @@ paths:
                     code: 4101
                     data: null
 
-  /shop/{id}:
+  /shop/{{id}}:
     get:
       operationId: getShopDetail
       tags:
@@ -2865,7 +2865,7 @@ paths:
                     code: 4105
                     data: null
 
-  /shop/{shopId}/teas:
+  /shop/{{shopId}}/teas:
     get:
       operationId: getShopTeas
       tags:
@@ -2951,7 +2951,7 @@ paths:
                     code: 4108
                     data: null
 
-  /shop/teas/{teaId}:
+  /shop/teas/{{teaId}}:
     put:
       operationId: updateShopTea
       tags:
@@ -3023,7 +3023,7 @@ paths:
                     code: 4110
                     data: null
 
-  /shop/teas/{teaId}/status:
+  /shop/teas/{{teaId}}/status:
     put:
       operationId: updateShopTeaStatus
       tags:
@@ -3078,7 +3078,7 @@ paths:
                     code: 4112
                     data: null
 
-  /shop/{shopId}/statistics:
+  /shop/{{shopId}}/statistics:
     get:
       operationId: getShopStatistics
       tags:
@@ -3128,7 +3128,7 @@ paths:
                     code: 4106
                     data: null
 
-  /shop/{shopId}/logo:
+  /shop/{{shopId}}/logo:
     post:
       operationId: uploadShopLogo
       tags:
@@ -3184,7 +3184,7 @@ paths:
                     code: 4115
                     data: null
 
-  /shop/{shopId}/banners:
+  /shop/{{shopId}}/banners:
     get:
       operationId: getShopBanners
       tags:
@@ -3280,7 +3280,7 @@ paths:
                     code: 4119
                     data: null
 
-  /shop/banners/{bannerId}:
+  /shop/banners/{{bannerId}}:
     put:
       operationId: updateShopBanner
       tags:
@@ -3403,7 +3403,7 @@ paths:
                     code: 4122
                     data: null
 
-  /shop/{shopId}/announcements:
+  /shop/{{shopId}}/announcements:
     get:
       operationId: getShopAnnouncements
       tags:
@@ -3483,7 +3483,7 @@ paths:
                     code: 4124
                     data: null
 
-  /shop/announcements/{announcementId}:
+  /shop/announcements/{{announcementId}}:
     put:
       operationId: updateShopAnnouncement
       tags:
@@ -3556,7 +3556,7 @@ paths:
                     code: 4126
                     data: null
 
-  /shop/{shopId}/reviews:
+  /shop/{{shopId}}/reviews:
     get:
       operationId: getShopReviews
       tags:
@@ -3771,7 +3771,7 @@ paths:
                     code: 5113
                     data: null
 
-  /order/{id}:
+  /order/{{id}}:
     get:
       operationId: getOrderDetail
       tags:
@@ -3994,7 +3994,7 @@ paths:
                     code: 5126
                     data: null
 
-  /order/{id}/ship:
+  /order/{{id}}/ship:
     post:
       operationId: shipOrder
       tags:
@@ -4207,7 +4207,7 @@ paths:
                     code: 5130
                     data: null
 
-  /order/{id}/refund:
+  /order/{{id}}/refund:
     get:
       operationId: getRefundDetail
       tags:
@@ -4251,7 +4251,7 @@ paths:
                     code: 5134
                     data: null
 
-  /order/{id}/refund/process:
+  /order/{{id}}/refund/process:
     post:
       operationId: processRefund
       tags:
@@ -4310,7 +4310,7 @@ paths:
                     code: 5132
                     data: null
 
-  /order/{id}/logistics:
+  /order/{{id}}/logistics:
     get:
       operationId: getOrderExpress
       tags:
@@ -4900,7 +4900,7 @@ paths:
                     code: 6105
                     data: null
 
-  /forum/banners/{id}:
+  /forum/banners/{{id}}:
     put:
       operationId: updateForumBanner
       tags:
@@ -5104,7 +5104,7 @@ paths:
                     code: 6116
                     data: null
 
-  /forum/topics/{id}:
+  /forum/topics/{{id}}:
     get:
       operationId: getForumTopic
       tags:
@@ -5442,7 +5442,7 @@ paths:
                     code: 6121
                     data: null
 
-  /forum/posts/{id}:
+  /forum/posts/{{id}}:
     get:
       operationId: getForumPostDetail
       tags:
@@ -5559,7 +5559,7 @@ paths:
                     code: 6124
                     data: null
 
-  /forum/posts/{id}/replies:
+  /forum/posts/{{id}}/replies:
     get:
       operationId: getPostComments
       tags:
@@ -5660,7 +5660,7 @@ paths:
                     code: 6130
                     data: null
 
-  /forum/replies/{id}:
+  /forum/replies/{{id}}:
     delete:
       operationId: deleteComment
       tags:
@@ -5694,7 +5694,7 @@ paths:
                     code: 6131
                     data: null
 
-  /forum/posts/{id}/approve:
+  /forum/posts/{{id}}/approve:
     post:
       operationId: approvePost
       tags:
@@ -5728,7 +5728,7 @@ paths:
                     code: 6134
                     data: null
 
-  /forum/posts/{id}/reject:
+  /forum/posts/{{id}}/reject:
     post:
       operationId: rejectPost
       tags:
@@ -5774,7 +5774,7 @@ paths:
                     code: 6135
                     data: null
 
-  /forum/posts/{id}/sticky:
+  /forum/posts/{{id}}/sticky:
     put:
       operationId: stickyPost
       tags:
@@ -5823,7 +5823,7 @@ paths:
                     code: 6137
                     data: null
 
-  /forum/posts/{id}/essence:
+  /forum/posts/{{id}}/essence:
     put:
       operationId: essencePost
       tags:
@@ -5965,7 +5965,7 @@ paths:
                     code: 6111
                     data: null
 
-  /forum/articles/{id}:
+  /forum/articles/{{id}}:
     get:
       operationId: getArticleDetail
       tags:
@@ -6130,7 +6130,7 @@ paths:
                     code: 7100
                     data: null
 
-  /message/{id}:
+  /message/{{id}}:
     get:
       operationId: getMessageDetail
       tags:
@@ -6459,7 +6459,7 @@ paths:
                     code: 7113
                     data: null
 
-  /message/sessions/{sessionId}:
+  /message/sessions/{{sessionId}}:
     delete:
       operationId: deleteChatSession
       tags:
@@ -6493,7 +6493,7 @@ paths:
                     code: 7115
                     data: null
 
-  /message/sessions/{sessionId}/pin:
+  /message/sessions/{{sessionId}}/pin:
     put:
       operationId: pinChatSession
       tags:
@@ -6580,7 +6580,7 @@ paths:
                     code: 7118
                     data: null
 
-  /message/user/{userId}:
+  /message/user/{{userId}}:
     get:
       operationId: getUserProfile
       tags:
@@ -6628,7 +6628,7 @@ paths:
                     code: 7120
                     data: null
 
-  /message/user/{userId}/dynamic:
+  /message/user/{{userId}}/dynamic:
     get:
       operationId: getUserDynamic
       tags:
@@ -6675,7 +6675,7 @@ paths:
                     code: 7121
                     data: null
 
-  /message/user/{userId}/statistics:
+  /message/user/{{userId}}/statistics:
     get:
       operationId: getUserStatistics
       tags:
@@ -6854,7 +6854,7 @@ paths:
                     code: 7100
                     data: null
 
-  /message/notifications/{id}:
+  /message/notifications/{{id}}:
     get:
       operationId: getNotificationDetail
       tags:
