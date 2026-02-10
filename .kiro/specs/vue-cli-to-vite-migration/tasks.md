@@ -90,14 +90,14 @@
   - 验证 SCSS 样式正确渲染
   - _Requirements: 8.4_
 
-- [-] 9. 清理 Vue CLI 相关文件
+- [x] 9. 清理 Vue CLI 相关文件
   - [x] 9.1 删除配置文件
     - 删除 vue.config.js
     - 删除 babel.config.js
     - 删除 public/index.html（已移到根目录）
     - _Requirements: 10.1, 10.3_
 
-  - [-] 9.2 移除 Vue CLI 依赖
+  - [x] 9.2 移除 Vue CLI 依赖
     - 从 package.json 移除 @vue/cli-service
     - 从 package.json 移除 @vue/cli-plugin-babel
     - 从 package.json 移除 @vue/cli-plugin-eslint
@@ -106,7 +106,7 @@
     - 运行 `npm install` 清理依赖
     - _Requirements: 10.2_
 
-  - [ ] 9.3 更新 .gitignore
+  - [x] 9.3 更新 .gitignore
     - 确保 dist 目录在 .gitignore 中
     - 添加 Vite 相关的临时文件（如果需要）
     - _Requirements: 10.4_
