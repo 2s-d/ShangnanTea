@@ -4,12 +4,14 @@ server:
     context-path: /api
 
 spring:
+  profiles:
+    active: local  # 默认使用 local 配置（本地开发）2
   main:
     allow-bean-definition-overriding: true
   datasource:
-    url: jdbc:mysql://localhost:3306/teasystem.sql?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://localhost:3306/teasystem?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
     username: root
-    password: 123456
+    password: ${DB_PASSWORD:your-db-password}  # 使用环境变量
     driver-class-name: com.mysql.cj.jdbc.Driver
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
@@ -22,8 +24,8 @@ spring:
   mail:
     host: smtp.qq.com
     port: 587
-    username: 2109382180@qq.com  # 替换成你的QQ邮箱
-    password: vdqspjzvfzvndicc  # 替换成你的授权码
+    username: ${MAIL_USERNAME:your-email@qq.com}  # 使用环境变量
+    password: ${MAIL_PASSWORD:your-mail-auth-code}  # 使用环境变量
     properties:
       mail:
         smtp:
@@ -35,11 +37,10 @@ spring:
 # 阿里云短信认证服务配置
 aliyun:
   sms:
-    enabled: true  # 是否启用真实短信发送
-    access-key-id: LTAI5tDPN4V6wV44swrMkF6W  # 替换成你的阿里云 AccessKeyId
-    access-key-secret: VZq6ab76HBok09RIvIffum1SViunLP # 替换成你的阿里云 AccessKeySecret
+    enabled: false  # 是否启用真实短信发送（true=真实发送，false=模拟发送）
+    access-key-id: ${ALIYUN_ACCESS_KEY_ID:your-aliyun-access-key-id}  # 使用环境变量
+    access-key-secret: ${ALIYUN_ACCESS_KEY_SECRET:your-aliyun-access-key-secret}  # 使用环境变量
     sign-name: 商南茶城  # 短信签名
-    template-code: 100001  # 短信认证服务模板代码（登录/注册模板）
 
 mybatis:
   mapper-locations: classpath:mapper/*.xml
@@ -62,12 +63,12 @@ app:
 
 # 支付宝配置（沙箱环境）
 alipay:
-  # 应用ID（需要替换成你的沙箱APPID）
-  app-id: 你的沙箱APPID
-  # 商户私钥（需要替换成你的应用私钥）
-  private-key: 你的应用私钥
-  # 支付宝公钥（需要替换成支付宝公钥）
-  public-key: 支付宝公钥
+  # 应用ID
+  app-id: ${ALIPAY_APP_ID:your-alipay-app-id}  # 使用环境变量
+  # 应用私钥
+  private-key: ${ALIPAY_PRIVATE_KEY:your-alipay-private-key}  # 使用环境变量
+  # 支付宝公钥
+  public-key: ${ALIPAY_PUBLIC_KEY:your-alipay-public-key}  # 使用环境变量
   # 支付宝网关地址（沙箱环境）
   gateway-url: https://openapi-sandbox.dl.alipaydev.com/gateway.do
   # 签名类型
@@ -77,6 +78,6 @@ alipay:
   # 返回格式
   format: json
   # 同步回调地址（前端支付结果页面）
-  return-url: http://localhost:5173/order/payment
-  # 异步回调地址（后端接口）
-  notify-url: http://你的公网IP:8080/api/order/alipay/notify
+  return-url: http://96.30.204.197/？shangnantea/order/payment
+  # 异步回调地址（后端接口 - 需要公网地址）
+  notify-url: http://96.30.204.197:8080/api/order/alipay/notify
