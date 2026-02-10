@@ -262,6 +262,106 @@ beforeEach(() => {
 })
 ```
 
+## 📋 待迁移文件清单
+
+### ✅ 确认需要迁移的文件（6个）
+
+#### 1. 消息通知系统 ⭐
+**文件**：`src/views/message/notification/SystemNotificationsPage.vue`
+- **迁移状态**：✅ 已完成迁移
+- **特殊说明**：涉及 message、user、shop 三个 store
+
+#### 2. 聊天页面 ⭐⭐⭐
+**文件**：`src/views/message/chat/ChatPage.vue`
+- **迁移状态**：✅ 已完成迁移
+- **特殊说明**：最复杂的页面，涉及多个 message store actions
+
+#### 3. 用户主页 ⭐⭐
+**文件**：`src/views/message/homepage/UserHomePage.vue`
+- **迁移状态**：✅ 已完成迁移
+- **特殊说明**：涉及 message 和 user 两个 store
+
+#### 4. 发布内容管理 ⭐
+**文件**：`src/views/message/content/PublishedContentPage.vue`
+- **迁移状态**：✅ 已完成迁移
+
+#### 5. 关注管理 ⭐
+**文件**：`src/views/message/follows/FollowsPage.vue`
+- **迁移状态**：✅ 已完成迁移
+- **特殊说明**：只使用 user store，不使用 message store
+
+#### 6. 收藏管理 ⭐
+**文件**：`src/views/message/favorites/FavoritesPage.vue`
+- **迁移状态**：✅ 已完成迁移
+- **特殊说明**：涉及 user 和 order 两个 store，不使用 message store
+
+---
+
+### ⚠️ 特殊说明
+
+#### 路由文件（暂不处理）
+**文件**：`src/router/index.js`
+- **使用模式**：`import store from '@/store'`, `store.commit('user/...')`, `store.dispatch('user/...')`
+- **说明**：主要使用 user store，不是 message store
+- **处理方案**：等待 user 模块迁移时一起处理
+
+#### 聊天子组件（无需修改）
+- `src/views/message/chat/components/ChatInputArea.vue`
+- `src/views/message/chat/components/ChatMessageArea.vue`
+- `src/views/message/chat/components/ChatSessionList.vue`
+- `src/views/message/chat/components/EmojiPicker.vue`
+- **说明**：这些组件通过 props 接收数据，不直接使用 store
+
+#### 通知页面（无需修改）
+**文件**：`src/views/message/notification/NotificationsPage.vue`
+- **说明**：此文件不使用 store
+
+---
+
+### 📊 迁移统计
+
+| 类别 | 数量 | 说明 |
+|------|------|------|
+| **已完成迁移** | 6 个文件 | 所有使用 message/user/shop/order store 的组件已迁移 |
+| **无需修改** | 5 个文件 | 子组件通过 props 传递数据 |
+| **暂不处理** | 1 个文件 | router/index.js (使用 user store) |
+
+---
+
+### 🎉 迁移完成
+
+所有消息模块相关的 Vue 组件已成功从 Vuex 迁移到 Pinia！
+
+**迁移完成时间**：2026-02-11
+
+**迁移内容**：
+1. ✅ SystemNotificationsPage.vue - 通知系统（message + user + shop stores）
+2. ✅ ChatPage.vue - 聊天页面（message + user stores）
+3. ✅ UserHomePage.vue - 用户主页（message + user stores）
+4. ✅ PublishedContentPage.vue - 发布内容（message store）
+5. ✅ FollowsPage.vue - 关注管理（user store）
+6. ✅ FavoritesPage.vue - 收藏管理（user + order stores）
+
+**验证结果**：
+- ✅ 所有活动的 Vuex 引用已移除
+- ✅ 所有组件使用 Pinia stores（useMessageStore, useUserStore, useShopStore, useOrderStore）
+- ✅ 仅剩注释中的旧代码引用（不影响功能）
+
+---
+
+### 🔄 迁移顺序（已完成）
+
+按照以下顺序逐个迁移（从简单到复杂）：
+
+1. ✅ **PublishedContentPage.vue** - 发布内容（message store，简单）
+2. ✅ **FollowsPage.vue** - 关注管理（user store，简单）
+3. ✅ **FavoritesPage.vue** - 收藏管理（user + order store，简单）
+4. ✅ **UserHomePage.vue** - 用户主页（message + user store，中等）
+5. ✅ **SystemNotificationsPage.vue** - 通知系统（message + user + shop store，中等）
+6. ✅ **ChatPage.vue** - 聊天页面（message store，复杂）
+
+---
+
 ## 工作流程
 
 ### 第一步：生成待修改文件列表

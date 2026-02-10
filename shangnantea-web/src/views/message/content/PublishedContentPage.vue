@@ -155,7 +155,7 @@
 <script>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useStore } from 'vuex'
+import { useMessageStore } from '@/stores/message'
 import { ElMessageBox } from 'element-plus'
 import { Timer, View, ChatDotRound, Star, Edit, Delete } from '@element-plus/icons-vue'
 import { showByCode } from '@/utils/apiMessages'
@@ -168,16 +168,16 @@ export default {
   },
   setup() {
     const router = useRouter()
-    const store = useStore()
+    const messageStore = useMessageStore()
     const activeTab = ref('posts')
     const sortOption = ref('newest')
     
-    // 从Vuex获取数据
-    const posts = computed(() => store.state.message.userPosts || [])
-    const reviews = computed(() => store.state.message.userReviews || [])
-    const loading = computed(() => store.state.message.loading)
-    const postsPagination = computed(() => store.state.message.postsPagination)
-    const reviewsPagination = computed(() => store.state.message.reviewsPagination)
+    // 从Pinia获取数据
+    const posts = computed(() => messageStore.userPosts || [])
+    const reviews = computed(() => messageStore.userReviews || [])
+    const loading = computed(() => messageStore.loading)
+    const postsPagination = computed(() => messageStore.postsPagination)
+    const reviewsPagination = computed(() => messageStore.reviewsPagination)
     
     // 根据排序选项对帖子进行排序
     const sortedPosts = computed(() => {
@@ -296,9 +296,9 @@ export default {
       try {
         let res
         if (activeTab.value === 'posts') {
-          res = await store.dispatch('message/fetchUserPosts', { sortBy: sortOption.value })
+          res = await messageStore.fetchUserPosts({ sortBy: sortOption.value })
         } else if (activeTab.value === 'reviews') {
-          res = await store.dispatch('message/fetchUserReviews')
+          res = await messageStore.fetchUserReviews()
         }
         if (res) showByCode(res.code)
       } catch (error) {
