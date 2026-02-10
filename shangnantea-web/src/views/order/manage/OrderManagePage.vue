@@ -409,7 +409,7 @@
 <script>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useStore } from 'vuex'
+import { useOrderStore } from '@/stores/order'
 import { ElMessageBox } from 'element-plus'
 import { Refresh } from '@element-plus/icons-vue'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
@@ -447,7 +447,7 @@ export default {
   setup() {
     const router = useRouter()
     const route = useRoute()
-    const store = useStore()
+    const orderStore = useOrderStore()
     const loading = ref(false)
     const submitting = ref(false)
     
@@ -491,7 +491,7 @@ export default {
     
     // 任务组D：订单统计数据相关
     const statisticsDateRange = ref([])
-    const orderStatistics = computed(() => store.state.order.orderStatistics)
+    const orderStatistics = computed(() => orderStore.orderStatistics)
     
     // 任务组E：导出订单相关
     const exportDialogVisible = ref(false)
@@ -541,13 +541,13 @@ export default {
           sortBy,
           sortOrder
         }
-        await store.dispatch('order/updateFilters', filters)
-        const data = await store.dispatch('order/fetchOrders', {
+        await orderStore.updateFilters(filters)
+        const data = await orderStore.fetchOrders({
           page: currentPage.value,
           size: pageSize.value
         })
-        orderList.value = data.list || store.state.order.orderList || []
-        const p = store.state.order.pagination
+        orderList.value = data.list || orderStore.orderList || []
+        const p = orderStore.pagination
         total.value = p.total
         currentPage.value = p.currentPage
         pageSize.value = p.pageSize
@@ -672,7 +672,7 @@ export default {
       
       // 从后端获取退款详情
       try {
-        const res = await store.dispatch('order/fetchRefundDetail', order.id)
+        const res = await orderStore.fetchRefundDetail(order.id)
         showByCode(res?.code)
         refundDetail.value = res?.data || res
       } catch (e) {
@@ -711,7 +711,7 @@ export default {
       
       submitting.value = true
       try {
-        const res = await store.dispatch('order/shipOrder', {
+        const res = await orderStore.shipOrder({
           id: currentOrder.value.id,
           logisticsCompany: shipForm.company,
           logisticsNumber: shipForm.trackingNumber
@@ -755,7 +755,7 @@ export default {
       
       submitting.value = true
       try {
-        const res = await store.dispatch('order/batchShipOrders', {
+        const res = await orderStore.batchShipOrders({
           orderIds: selectedOrderIds.value,
           logisticsCompany: batchShipForm.company,
           logisticsNumber: batchShipForm.trackingNumber
@@ -788,7 +788,7 @@ export default {
       ).then(async () => {
         submitting.value = true
         try {
-          const res = await store.dispatch('order/processRefund', {
+          const res = await orderStore.processRefund({
             orderId: order.id,
             approve: isApproved,
             reason: refundDetail.value?.reason || order.refund_reason || ''
@@ -822,7 +822,7 @@ export default {
           params.startDate = statisticsDateRange.value[0]
           params.endDate = statisticsDateRange.value[1]
         }
-        const res = await store.dispatch('order/fetchOrderStatistics', params)
+        const res = await orderStore.fetchOrderStatistics(params)
         showByCode(res?.code)
       } catch (error) {
         console.error('加载统计数据失败:', error)
@@ -865,7 +865,7 @@ export default {
           params.status = exportForm.status
         }
         
-        const res = await store.dispatch('order/exportOrders', params)
+        const res = await orderStore.exportOrders(params)
         showByCode(res?.code)
         exportDialogVisible.value = false
       } catch (error) {

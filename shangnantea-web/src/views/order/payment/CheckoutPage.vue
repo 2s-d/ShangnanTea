@@ -203,7 +203,7 @@
 <script>
 import { ref, computed, onMounted, reactive } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useStore } from 'vuex'
+import { useOrderStore } from '@/stores/order'
 import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
 
@@ -222,7 +222,7 @@ export default {
   setup() {
     const router = useRouter()
     const route = useRoute()
-    const store = useStore()
+    const orderStore = useOrderStore()
     const userStore = useUserStore()
     
     /**
@@ -297,7 +297,7 @@ export default {
       try {
         loading.value = true
         await userStore.fetchAddresses()
-        addresses.value = userStore.addressList || []
+        addresses.value = userStore.addresses || []
         
         // 默认选中默认地址
         const defaultAddress = addresses.value.find(addr => addr.isDefault)
@@ -323,7 +323,7 @@ export default {
         
         if (isDirect) {
           // 直接购买的情况，从缓存获取直接购买的商品
-          const directBuyItem = store.state.order.directBuyItem
+          const directBuyItem = orderStore.directBuyItem
           if (!directBuyItem) {
             orderPromptMessages.showOrderInfoInvalid()
             router.push('/tea/mall')
@@ -332,12 +332,12 @@ export default {
           orderItems.value = [directBuyItem]
         } else {
           // 购物车结算的情况
-          await store.dispatch('order/fetchCartItems')
+          await orderStore.fetchCartItems()
           const selectedIdsStr = route.query.selectedIds || ''
           const selectedIds = selectedIdsStr
             ? selectedIdsStr.split(',').filter(Boolean)
             : []
-          const items = await store.dispatch('order/getSelectedCartItems', selectedIds)
+          const items = await orderStore.getSelectedCartItems(selectedIds)
           if (!items || items.length === 0) {
             orderPromptMessages.showSelectionRequired()
             router.push('/order/cart')
@@ -471,7 +471,7 @@ export default {
             remark: item.remark || ''
           }))
         }
-        const createRes = await store.dispatch('order/createOrder', orderData)
+        const createRes = await orderStore.createOrder(orderData)
         
         // 显示创建订单的消息
         if (createRes?.code) showByCode(createRes.code)
@@ -483,7 +483,7 @@ export default {
         }
         
         // 第二步：发起支付
-        const payRes = await store.dispatch('order/payOrder', {
+        const payRes = await orderStore.payOrder({
           orderId,
           paymentMethod: paymentMethod.value
         })

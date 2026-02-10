@@ -76,7 +76,7 @@
 <script>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useStore } from 'vuex'
+import { useOrderStore } from '@/stores/order'
 import { CircleCheck, CircleClose, Loading } from '@element-plus/icons-vue'
 
 export default {
@@ -89,7 +89,7 @@ export default {
   setup() {
     const router = useRouter()
     const route = useRoute()
-    const store = useStore()
+    const orderStore = useOrderStore()
 
     const loading = ref(true)
     const paymentSuccess = ref(false)
@@ -99,7 +99,7 @@ export default {
     const orderId = ref(route.query.orderId || route.query.out_trade_no || '')
     
     // 当前订单数据
-    const currentOrder = computed(() => store.state.order.currentOrder || {})
+    const currentOrder = computed(() => orderStore.currentOrder || {})
     
     const orderAmount = computed(() => {
       return currentOrder.value.totalAmount || 0
@@ -130,7 +130,7 @@ export default {
 
       try {
         // 获取订单详情
-        await store.dispatch('order/fetchOrderDetail', orderId.value)
+        await orderStore.fetchOrderDetail(orderId.value)
         
         const order = currentOrder.value
         

@@ -206,7 +206,7 @@
 <script>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useStore } from 'vuex'
+import { useOrderStore } from '@/stores/order'
 import { ElMessageBox } from 'element-plus'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { orderPromptMessages } from '@/utils/promptMessages'
@@ -219,8 +219,8 @@ export default {
   setup() {
     const router = useRouter()
     const route = useRoute()
-    const store = useStore()
-    const loading = computed(() => store.state.order.loading)
+    const orderStore = useOrderStore()
+    const loading = computed(() => orderStore.loading)
     
     // 从路由参数获取订单ID
     const orderId = route.params.id
@@ -331,7 +331,7 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        store.dispatch('order/cancelOrder', orderId)
+        orderStore.cancelOrder(orderId)
           .then(res => {
             // res = {code, data}
             if (res && res.code !== 200) {
@@ -357,7 +357,7 @@ export default {
         cancelButtonText: '取消',
         type: 'info'
       }).then(() => {
-        store.dispatch('order/confirmReceipt', orderId)
+        orderStore.confirmReceipt(orderId)
           .then(res => {
             // res = {code, data}
             if (res && res.code !== 200) {
@@ -379,7 +379,7 @@ export default {
     // 查看物流：调用 Vuex action 获取最新物流信息并刷新本地展示
     const viewLogistics = async () => {
       try {
-        const res = await store.dispatch('order/fetchOrderLogistics', orderId)
+        const res = await orderStore.fetchOrderLogistics(orderId)
         showByCode(res?.code)
         const data = res?.data || res
         if (data) {
@@ -431,7 +431,7 @@ export default {
       }
       refundSubmitting.value = true
       try {
-        const res = await store.dispatch('order/applyRefund', {
+        const res = await orderStore.applyRefund({
           orderId,
           reason: refundReason.value.trim()
         })
@@ -441,7 +441,7 @@ export default {
         }
         refundDialogVisible.value = false
         // 重新获取退款详情
-        const detailRes = await store.dispatch('order/fetchRefundDetail', orderId)
+        const detailRes = await orderStore.fetchRefundDetail(orderId)
         const detail = detailRes?.data || detailRes
         if (detail) {
           refundInfo.value = {
@@ -476,7 +476,7 @@ export default {
     
     // 加载订单详情
     const loadOrderDetail = () => {
-      store.dispatch('order/fetchOrderDetail', orderId)
+      orderStore.fetchOrderDetail(orderId)
         .then(res => {
           // res = {code, data}
           const data = res?.data || res
@@ -499,7 +499,7 @@ export default {
             traces: logi.traces || []
           }
           // 拉取退款详情（如果有）
-          store.dispatch('order/fetchRefundDetail', orderId)
+          orderStore.fetchRefundDetail(orderId)
             .then(detailRes => {
               const detail = detailRes?.data || detailRes
               if (detail) {

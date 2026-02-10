@@ -187,7 +187,7 @@
 <script>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useStore } from 'vuex'
+import { useOrderStore } from '@/stores/order'
 import { ElMessageBox } from 'element-plus'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 import { showByCode } from '@/utils/apiMessages'
@@ -212,7 +212,7 @@ export default {
      * 路由权限：meta.roles: [ROLES.USER, ROLES.SHOP]
      * 后端验证：API根据token中的userId/shopId自动过滤数据
      */
-    const store = useStore()
+    const orderStore = useOrderStore()
     const router = useRouter()
     const searchText = ref('')
     const activeTab = ref('all')
@@ -224,10 +224,10 @@ export default {
     const refundReason = ref('')
     const refundOrderId = ref('')
 
-    const loading = computed(() => store.state.order.loading)
-    const pageSize = computed(() => store.state.order.pagination.pageSize)
-    const total = computed(() => store.state.order.pagination.total)
-    const orders = computed(() => store.state.order.orderList || [])
+    const loading = computed(() => orderStore.loading)
+    const pageSize = computed(() => orderStore.pagination.pageSize)
+    const total = computed(() => orderStore.pagination.total)
+    const orders = computed(() => orderStore.orderList || [])
 
 
     
@@ -253,7 +253,7 @@ export default {
 
       try {
         refundSubmitting.value = true
-        const { code } = await store.dispatch('order/applyRefund', {
+        const { code } = await orderStore.applyRefund({
           orderId: refundOrderId.value,
           reason: refundReason.value.trim()
         })
@@ -308,10 +308,10 @@ export default {
     // 处理搜索
     const handleSearch = () => {
       currentPage.value = 1 // 重置到第一页
-      store.dispatch('order/updateFilters', {
+      orderStore.updateFilters({
         keyword: searchText.value
       })
-      store.dispatch('order/fetchOrders', {
+      orderStore.fetchOrders({
         page: currentPage.value,
         size: pageSize.value
       })
@@ -320,7 +320,7 @@ export default {
     // 处理分页变化
     const handleCurrentChange = page => {
       currentPage.value = page
-      store.dispatch('order/setPage', { page })
+      orderStore.setPage({ page })
     }
     
     // 处理标签页切换
@@ -332,10 +332,10 @@ export default {
       else if (activeTab.value === 'unshipped') status = 1
       else if (activeTab.value === 'shipped') status = 2
       else if (activeTab.value === 'to-review') status = 3
-      store.dispatch('order/updateFilters', {
+      orderStore.updateFilters({
         status
       })
-      store.dispatch('order/fetchOrders', {
+      orderStore.fetchOrders({
         page: currentPage.value,
         size: pageSize.value
       })
@@ -360,9 +360,9 @@ export default {
           type: 'warning'
         })
       
-        const { code } = await store.dispatch('order/cancelOrder', orderId)
+        const { code } = await orderStore.cancelOrder(orderId)
         showByCode(code)
-        store.dispatch('order/fetchOrders', { page: currentPage.value, size: pageSize.value, keyword: searchText.value })
+        orderStore.fetchOrders({ page: currentPage.value, size: pageSize.value, keyword: searchText.value })
       } catch (error) {
         if (error !== 'cancel') {
           showByCode(4102) // 取消订单失败
@@ -379,9 +379,9 @@ export default {
           type: 'info'
         })
       
-        const { code } = await store.dispatch('order/confirmReceipt', orderId)
+        const { code } = await orderStore.confirmReceipt(orderId)
         showByCode(code)
-        store.dispatch('order/fetchOrders', { page: currentPage.value, size: pageSize.value, keyword: searchText.value })
+        orderStore.fetchOrders({ page: currentPage.value, size: pageSize.value, keyword: searchText.value })
       } catch (error) {
         if (error !== 'cancel') {
           showByCode(4103) // 确认收货失败
@@ -417,11 +417,11 @@ export default {
     
     // 初始化
     onMounted(() => {
-      store.dispatch('order/updateFilters', {
+      orderStore.updateFilters({
         keyword: '',
         status: ''
       })
-      store.dispatch('order/fetchOrders', { page: currentPage.value, size: pageSize.value })
+      orderStore.fetchOrders({ page: currentPage.value, size: pageSize.value })
     })
     
 

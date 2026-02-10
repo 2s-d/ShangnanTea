@@ -179,7 +179,8 @@
 <script>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { useStore } from 'vuex'
+import { useOrderStore } from '@/stores/order'
+import { useTeaStore } from '@/stores/tea'
 import { ElMessageBox } from 'element-plus'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { orderPromptMessages } from '@/utils/promptMessages'
@@ -190,7 +191,8 @@ export default {
     SafeImage
   },
   setup() {
-    const store = useStore()
+    const orderStore = useOrderStore()
+    const teaStore = useTeaStore()
     const router = useRouter()
     const loading = ref(false)
     const cartItems = ref([])
@@ -207,7 +209,7 @@ export default {
     const initCartData = async () => {
       loading.value = true
       try {
-        const res = await store.dispatch('order/fetchCartItems')
+        const res = await orderStore.fetchCartItems()
         // res = {code, data}
         if (res) {
           // 显示API响应消息（成功或失败都通过状态码映射显示）
@@ -297,7 +299,7 @@ export default {
       }
       
       try {
-        const res = await store.dispatch('order/updateCartItem', {
+        const res = await orderStore.updateCartItem({
           id: item.id,
           quantity: item.quantity
         })
@@ -324,7 +326,7 @@ export default {
       // 获取茶叶的规格列表
       try {
         loading.value = true
-        const res = await store.dispatch('tea/fetchTeaSpecifications', item.teaId)
+        const res = await teaStore.fetchTeaSpecifications(item.teaId)
         availableSpecs.value = res?.data || res || []
         
         // 如果没有规格，提示用户
@@ -361,7 +363,7 @@ export default {
       try {
         loading.value = true
         // 更新购物车商品的规格
-        const res = await store.dispatch('order/updateCartItem', {
+        const res = await orderStore.updateCartItem({
           id: currentCartItemId.value,
           specificationId: tempSelectedSpecId.value
         })
@@ -389,7 +391,7 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        store.dispatch('order/removeFromCart', id).then(async res => {
+        orderStore.removeFromCart(id).then(async res => {
           // res = {code, data}
           if (res && res.code !== 200) {
             showByCode(res.code)
@@ -423,7 +425,7 @@ export default {
           .filter(item => item.selected)
           .map(item => item.id)
 
-        Promise.all(selectedIds.map(id => store.dispatch('order/removeFromCart', id))).then(async results => {
+        Promise.all(selectedIds.map(id => orderStore.removeFromCart(id))).then(async results => {
           // 检查是否有失败的
           const failedRes = results.find(res => res && res.code !== 200 && res.code !== 4013)
           if (failedRes) {
