@@ -110,7 +110,7 @@
 <script>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useStore } from 'vuex'
+import { useShopStore } from '@/stores/shop'
 
 import { Mug } from '@element-plus/icons-vue'
 import ShopCard from '@/components/shop/card/ShopCard.vue'
@@ -127,7 +127,7 @@ export default {
     SearchBar
   },
   setup() {
-    const store = useStore()
+    const shopStore = useShopStore()
     const router = useRouter()
     const route = useRoute()
 
@@ -140,12 +140,12 @@ export default {
     const currentPage = ref(1)
 
     // 从store获取店铺列表/分页/加载态/筛选条件
-    const shops = computed(() => store.state.shop.shopList || [])
-    const totalCount = computed(() => store.state.shop.pagination.total || 0)
-    const pageSize = computed(() => store.state.shop.pagination.pageSize || 10)
-    const loading = computed(() => store.state.shop.loading || false)
-    const currentPageFromStore = computed(() => store.state.shop.pagination.currentPage || 1)
-    const filters = computed(() => store.state.shop.filters || {})
+    const shops = computed(() => shopStore.shopList || [])
+    const totalCount = computed(() => shopStore.pagination.total || 0)
+    const pageSize = computed(() => shopStore.pagination.pageSize || 10)
+    const loading = computed(() => shopStore.loading || false)
+    const currentPageFromStore = computed(() => shopStore.pagination.currentPage || 1)
+    const filters = computed(() => shopStore.filters || {})
     
     // 同步Vuex分页到本地
     watch(currentPageFromStore, newPage => {
@@ -185,10 +185,10 @@ export default {
       return []
     }
     
-    // 任务组A：加载店铺列表（使用Vuex filters）
+    // 任务组A：加载店铺列表（使用Pinia）
     const loadShops = async () => {
       try {
-        await store.dispatch('shop/fetchShops', {})
+        await shopStore.fetchShops({})
       } catch (error) {
         console.error('加载店铺列表失败:', error)
       }
@@ -201,7 +201,7 @@ export default {
         // 从URL参数更新筛选条件
         if (query.search) {
           searchQuery.value = query.search
-          store.dispatch('shop/updateFilters', { keyword: query.search })
+          shopStore.updateFilters({ keyword: query.search })
         }
         if (query.sort) {
           sortOption.value = query.sort
@@ -209,24 +209,24 @@ export default {
           let sortBy = 'default'
           if (query.sort === 'rating') sortBy = 'rating'
           else if (query.sort === 'sales') sortBy = 'salesCount'
-          store.dispatch('shop/updateFilters', { sortBy })
+          shopStore.updateFilters({ sortBy })
         }
         if (query.rating) {
           ratingFilter.value = parseFloat(query.rating)
-          store.dispatch('shop/updateFilters', { rating: parseFloat(query.rating) })
+          shopStore.updateFilters({ rating: parseFloat(query.rating) })
         }
         if (query.sales) {
           salesFilter.value = parseInt(query.sales)
-          store.dispatch('shop/updateFilters', { salesCount: parseInt(query.sales) })
+          shopStore.updateFilters({ salesCount: parseInt(query.sales) })
         }
         if (query.region) {
           regionFilter.value = query.region
-          store.dispatch('shop/updateFilters', { region: query.region })
+          shopStore.updateFilters({ region: query.region })
         }
         if (query.page) {
           const page = parseInt(query.page)
           currentPage.value = page
-          store.dispatch('shop/setPage', { page, extraParams: {} })
+          shopStore.setPage({ page, extraParams: {} })
         } else {
           loadShops()
         }
@@ -252,7 +252,7 @@ export default {
     // 任务组A：搜索处理（原有方法，保留用于兼容）
     const handleSearch = async () => {
       currentPage.value = 1
-      await store.dispatch('shop/updateFilters', { keyword: searchQuery.value })
+      await shopStore.updateFilters({ keyword: searchQuery.value })
       updateQueryParams()
     }
     
@@ -271,7 +271,7 @@ export default {
       if (sortOption.value === 'rating') sortBy = 'rating'
       else if (sortOption.value === 'sales') sortBy = 'salesCount'
       
-      await store.dispatch('shop/updateFilters', { 
+      await shopStore.updateFilters({ 
         sortBy,
         sortOrder: 'desc' // 默认降序
       })
@@ -281,7 +281,7 @@ export default {
     // 任务组A：筛选变更处理
     const handleFilterChange = async () => {
       currentPage.value = 1
-      await store.dispatch('shop/updateFilters', {
+      await shopStore.updateFilters({
         rating: ratingFilter.value,
         salesCount: salesFilter.value,
         region: regionFilter.value
@@ -298,14 +298,14 @@ export default {
       regionFilter.value = ''
       currentPage.value = 1
       
-      await store.dispatch('shop/resetFilters')
+      await shopStore.resetFilters()
       router.replace({ query: {} })
     }
     
     // 页面变化
     const handlePageChange = page => {
       currentPage.value = page
-      store.dispatch('shop/setPage', { page, extraParams: { search: searchQuery.value, sort: sortOption.value } })
+      shopStore.setPage({ page, extraParams: { search: searchQuery.value, sort: sortOption.value } })
       updateQueryParams()
     }
     

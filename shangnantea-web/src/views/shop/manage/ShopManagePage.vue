@@ -624,7 +624,7 @@
 <script>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useStore } from 'vuex'
+import { useShopStore } from '@/stores/shop'
 import { ElMessageBox } from 'element-plus'
 import { Setting, Plus, Search } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
@@ -643,11 +643,11 @@ export default {
   },
   setup() {
     const router = useRouter()
-    const store = useStore()
+    const shopStore = useShopStore()
     
-    // 从Vuex获取店铺信息
-    const loading = computed(() => store.state.shop.loading)
-    const shop = computed(() => store.state.shop.myShop)
+    // 从Pinia获取店铺信息
+    const loading = computed(() => shopStore.loading)
+    const shop = computed(() => shopStore.myShop)
     const defaultLogo = '/mock-images/shop-default.jpg'
     const defaultTeaImage = '/mock-images/tea-default.jpg'
     
@@ -658,7 +658,7 @@ export default {
     const categoryFilter = ref('')
     const currentPage = ref(1)
     const pageSize = ref(10)
-    const shopTeas = computed(() => store.state.shop.shopTeas || [])
+    const shopTeas = computed(() => shopStore.shopTeas || [])
     const totalCount = computed(() => shopTeas.value.length) // 暂时使用列表长度，后续可添加分页
     
     // 对话框相关状态
@@ -679,16 +679,16 @@ export default {
       { id: 7, name: '花茶' }
     ]
     
-    // 任务组0：使用Vuex加载店铺信息
+    // 任务组0：使用Pinia加载店铺信息
     const loadShopInfo = async () => {
       try {
-        await store.dispatch('shop/fetchMyShop')
+        await shopStore.fetchMyShop()
       } catch (error) {
         console.error('加载店铺信息失败:', error)
       }
     }
     
-    // 任务组0：使用Vuex加载店铺茶叶列表
+    // 任务组0：使用Pinia加载店铺茶叶列表
     const loadShopTeas = async () => {
       if (!shop.value || !shop.value.id) {
         shopPromptMessages.showShopInfoLoadFirst()
@@ -714,7 +714,7 @@ export default {
           params.keyword = searchQuery.value
         }
         
-        await store.dispatch('shop/fetchShopTeas', {
+        await shopStore.fetchShopTeas({
           shopId: shop.value.id,
           params
         })
@@ -733,7 +733,7 @@ export default {
     }
     
     // 处理状态切换
-    // 任务组C：处理状态切换（使用Vuex）
+    // 任务组C：处理状态切换（使用Pinia）
     const handleToggleStatus = async tea => {
       const action = tea.status === 1 ? '下架' : '上架'
       const newStatus = tea.status === 1 ? 0 : 1
@@ -750,7 +750,7 @@ export default {
         )
         
         teaLoading.value = true
-        const response = await store.dispatch('shop/toggleShopTeaStatus', {
+        const response = await shopStore.toggleShopTeaStatus({
           teaId: tea.id,
           status: newStatus
         })
@@ -764,7 +764,7 @@ export default {
       }
     }
     
-    // 任务组C：处理删除（使用Vuex）
+    // 任务组C：处理删除（使用Pinia）
     const handleDelete = async tea => {
       try {
         await ElMessageBox.confirm(
@@ -778,7 +778,7 @@ export default {
         )
         
         teaLoading.value = true
-        const response = await store.dispatch('shop/deleteShopTea', {
+        const response = await shopStore.deleteShopTea({
           teaId: tea.id,
           shopId: shop.value?.id
         })
@@ -807,7 +807,7 @@ export default {
       done()
     }
     
-    // 任务组C：保存处理（使用Vuex）
+    // 任务组C：保存处理（使用Pinia）
     const handleSave = async () => {
       if (!shop.value || !shop.value.id) {
         console.error('店铺信息不存在')
@@ -823,14 +823,14 @@ export default {
         
         if (isEdit.value) {
           // 更新茶叶
-          const response = await store.dispatch('shop/updateShopTea', {
+          const response = await shopStore.updateShopTea({
             teaId: currentTea.value.id,
             teaData
           })
           showByCode(response.code)
         } else {
           // 添加茶叶
-          const response = await store.dispatch('shop/addShopTea', {
+          const response = await shopStore.addShopTea({
             shopId: shop.value.id,
             teaData
           })
@@ -966,7 +966,7 @@ export default {
     
     // 任务组B：Banner管理相关
     const bannerLoading = ref(false)
-    const shopBanners = computed(() => store.state.shop.shopBanners || [])
+    const shopBanners = computed(() => shopStore.shopBanners || [])
     const bannerDialogVisible = ref(false)
     const currentBanner = ref(null)
     const isEditBanner = ref(false)
@@ -978,7 +978,7 @@ export default {
       
       bannerLoading.value = true
       try {
-        const response = await store.dispatch('shop/fetchShopBanners', shop.value.id)
+        const response = await shopStore.fetchShopBanners(shop.value.id)
         if (response && !isSuccess(response.code)) {
           showByCode(response.code)
         }
@@ -1027,12 +1027,12 @@ export default {
         
         let response
         if (isEditBanner.value) {
-          response = await store.dispatch('shop/updateBanner', {
+          response = await shopStore.updateBanner({
             bannerId: currentBanner.value.id,
             bannerData
           })
         } else {
-          response = await store.dispatch('shop/uploadBanner', {
+          response = await shopStore.uploadBanner({
             shopId: shop.value.id,
             bannerData
           })
@@ -1062,7 +1062,7 @@ export default {
           }
         )
         
-        const response = await store.dispatch('shop/deleteBanner', {
+        const response = await shopStore.deleteBanner({
           bannerId: banner.id,
           shopId: shop.value.id
         })
@@ -1093,7 +1093,7 @@ export default {
       }))
       
       try {
-        const response = await store.dispatch('shop/updateBannerOrder', {
+        const response = await shopStore.updateBannerOrder({
           orderData,
           shopId: shop.value.id
         })
@@ -1105,7 +1105,7 @@ export default {
     
     // 任务组B：公告管理相关
     const announcementLoading = ref(false)
-    const shopAnnouncements = computed(() => store.state.shop.shopAnnouncements || [])
+    const shopAnnouncements = computed(() => shopStore.shopAnnouncements || [])
     const announcementDialogVisible = ref(false)
     const currentAnnouncement = ref(null)
     const isEditAnnouncement = ref(false)
@@ -1117,7 +1117,7 @@ export default {
       
       announcementLoading.value = true
       try {
-        const response = await store.dispatch('shop/fetchShopAnnouncements', shop.value.id)
+        const response = await shopStore.fetchShopAnnouncements(shop.value.id)
         if (response && !isSuccess(response.code)) {
           showByCode(response.code)
         }
@@ -1162,12 +1162,12 @@ export default {
         
         let response
         if (isEditAnnouncement.value) {
-          response = await store.dispatch('shop/updateAnnouncement', {
+          response = await shopStore.updateAnnouncement({
             announcementId: currentAnnouncement.value.id,
             announcementData
           })
         } else {
-          response = await store.dispatch('shop/createAnnouncement', {
+          response = await shopStore.createAnnouncement({
             shopId: shop.value.id,
             announcementData
           })
@@ -1197,7 +1197,7 @@ export default {
           }
         )
         
-        const response = await store.dispatch('shop/deleteAnnouncement', announcement.id)
+        const response = await shopStore.deleteAnnouncement(announcement.id)
         showByCode(response.code)
       } catch (error) {
         if (error !== 'cancel') {
@@ -1215,7 +1215,7 @@ export default {
     
     // 任务组D：统计数据相关
     const statisticsLoading = ref(false)
-    const shopStatistics = computed(() => store.state.shop.shopStatistics)
+    const shopStatistics = computed(() => shopStore.shopStatistics)
     const dateRange = ref([])
     
     // 加载统计数据
@@ -1230,7 +1230,7 @@ export default {
           startDate = dateRange.value[0]
           endDate = dateRange.value[1]
         }
-        const response = await store.dispatch('shop/fetchShopStatistics', {
+        const response = await shopStore.fetchShopStatistics({
           shopId: shop.value.id,
           startDate,
           endDate
@@ -1277,13 +1277,13 @@ export default {
       if (response.code === 200 && response.data) {
         showByCode(4007) // Logo上传成功
         // 更新店铺信息
-        await store.dispatch('shop/fetchMyShop')
+        await shopStore.fetchMyShop()
       } else {
         showByCode(response.code || 4113) // Logo上传失败
       }
     }
 
-    // 任务组E：通过Vuex Action处理Logo上传，遵循组件 → Vuex → API 数据流
+    // 任务组E：通过Pinia Action处理Logo上传，遵循组件 → Pinia → API 数据流
     const handleLogoUploadRequest = async param => {
       if (!shop.value || !shop.value.id) {
         showByCode(4103) // 店铺信息不存在
@@ -1291,7 +1291,7 @@ export default {
         return
       }
       try {
-        const res = await store.dispatch('shop/uploadShopLogo', {
+        const res = await shopStore.uploadShopLogo({
           shopId: shop.value.id,
           file: param.file
         })
