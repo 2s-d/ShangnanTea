@@ -50,6 +50,14 @@ mybatis:
 logging:
   level:
     com.shangnantea: debug
+  pattern:
+    # 在控制台日志中输出 requestId，方便从 APIFox 的响应头 X-Request-Id 快速定位到对应后端日志
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [requestId:%X{requestId}] - %msg%n"
+    # 文件日志也输出 requestId，便于脚本按 requestId 检索
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [requestId:%X{requestId}] - %msg%n"
+  file:
+    # 额外落盘一份日志，便于批量测试后按 requestId/时间窗口汇总筛选
+    name: logs/shangnantea-server.log
 
 # JWT配置
 jwt:

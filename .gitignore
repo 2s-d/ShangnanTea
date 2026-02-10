@@ -63,3 +63,5 @@ files/
 # ==================== Portfolio 项目（已独立） ====================
 portfolio/
 
+
+**/application-local.yml
