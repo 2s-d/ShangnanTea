@@ -149,246 +149,226 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, reactive, computed } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { useRouter } from 'vue-router'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { userPromptMessages as userMessages } from '@/utils/promptMessages'
 
-export default {
-  name: 'RegisterPage',
-  setup() {
-    const userStore = useUserStore()
-    const router = useRouter()
-    const registerFormRef = ref(null)
-    
-    // 注册表单
-    const registerForm = reactive({
-      username: '',
-      nickname: '',
-      password: '',
-      confirmPassword: '',
-      contactType: 'phone',
-      phone: '',
-      email: '',
-      verificationCode: '',
-      agreement: false
-    })
-    
-    // 确认密码验证
-    const validateConfirmPassword = (rule, value, callback) => {
-      if (!value) {
-        callback(new Error('请再次输入密码'))
-      } else if (value !== registerForm.password) {
-        callback(new Error('两次输入的密码不一致'))
-      } else {
-        callback()
-      }
-    }
-    
-    // 协议验证
-    const validateAgreement = (rule, value, callback) => {
-      if (!value) {
-        callback(new Error('请阅读并同意用户协议和隐私政策'))
-      } else {
-        callback()
-      }
-    }
-    
-    // 表单验证规则
-    const registerRules = {
-      username: [
-        { required: true, message: '请输入用户名', trigger: 'blur' },
-        { min: 3, max: 20, message: '用户名长度在3到20个字符之间', trigger: 'blur' },
-        { pattern: /^[a-zA-Z0-9_]+$/, message: '用户名只能包含字母、数字和下划线', trigger: 'blur' }
-      ],
-      nickname: [
-        { required: true, message: '请输入昵称', trigger: 'blur' },
-        { min: 2, max: 20, message: '昵称长度在2到20个字符之间', trigger: 'blur' }
-      ],
-      password: [
-        { required: true, message: '请输入密码', trigger: 'blur' },
-        { min: 6, max: 20, message: '密码长度在6到20个字符之间', trigger: 'blur' },
-        { pattern: /^(?=.*[a-zA-Z])(?=.*[0-9])[a-zA-Z0-9]+$/, message: '密码必须同时包含字母和数字', trigger: 'blur' }
-      ],
-      confirmPassword: [
-        { required: true, message: '请再次输入密码', trigger: 'blur' },
-        { validator: validateConfirmPassword, trigger: 'blur' }
-      ],
-      contactType: [
-        { required: true, message: '请选择联系方式类型', trigger: 'change' }
-      ],
-      phone: [
-        { 
-          validator: (_rule, value, callback) => {
-            if (registerForm.contactType === 'phone') {
-              if (!value || value.trim() === '') {
-                callback(new Error('请输入手机号'))
-              } else if (!/^1[3-9]\d{9}$/.test(value)) {
-                callback(new Error('手机号格式不正确'))
-              } else {
-                callback()
-              }
-            } else {
-              callback()
-            }
-          },
-          trigger: 'blur' 
-        }
-      ],
-      email: [
-        { 
-          validator: (_rule, value, callback) => {
-            if (registerForm.contactType === 'email') {
-              if (!value || value.trim() === '') {
-                callback(new Error('请输入邮箱'))
-              } else if (!/^[\w.-]+@[\w.-]+\.\w+$/.test(value)) {
-                callback(new Error('邮箱格式不正确'))
-              } else {
-                callback()
-              }
-            } else {
-              callback()
-            }
-          },
-          trigger: 'blur' 
-        }
-      ],
-      verificationCode: [
-        { required: true, message: '请输入验证码', trigger: 'blur' },
-        { len: 6, message: '验证码必须为6位', trigger: 'blur' }
-      ],
-      agreement: [
-        { validator: validateAgreement, trigger: 'change' }
-      ]
-    }
-    
-    const loading = ref(false)
-    const agreementVisible = ref(false)
-    const privacyVisible = ref(false)
-    const codeCountdown = ref(0)
-    
-    // 计算是否可以发送验证码
-    const canSendCode = computed(() => {
-      if (registerForm.contactType === 'phone') {
-        return registerForm.phone && /^1[3-9]\d{9}$/.test(registerForm.phone)
-      } else {
-        return registerForm.email && /^[\w.-]+@[\w.-]+\.\w+$/.test(registerForm.email)
-      }
-    })
-    
-    // 发送验证码
-    const sendVerificationCode = async () => {
-      if (!canSendCode.value) {
-        userMessages.error.showFormIncomplete()
-        return
-      }
-      
-      try {
-        const contact = registerForm.contactType === 'phone' ? registerForm.phone : registerForm.email
-        const res = await userStore.sendVerificationCode({
-          contact,
-          contactType: registerForm.contactType,
-          sceneType: 'register'
-        })
-        
-        // 显示发送结果
-        showByCode(res.code)
-        
-        // 如果发送成功，启动倒计时
-        if (isSuccess(res.code)) {
-          codeCountdown.value = 60
-          const timer = setInterval(() => {
-            codeCountdown.value--
-            if (codeCountdown.value <= 0) {
-              clearInterval(timer)
-            }
-          }, 1000)
-        }
-      } catch (error) {
-        console.error('发送验证码失败:', error)
-      }
-    }
-    
-    // 处理注册
-    const handleRegister = async () => {
-      if (!registerFormRef.value) return
-      
-      try {
-        await registerFormRef.value.validate()
-      } catch (error) {
-        return false
-      }
-      
-      if (!registerForm.agreement) {
-        // 使用userMessages处理提示消息
-        userMessages.prompt.showAgreementRequired()
-        return false
-      }
-      
-      loading.value = true
-      
-      try {
-        // 准备注册数据
-        const registerData = {
-          username: registerForm.username,
-          nickname: registerForm.nickname,
-          password: registerForm.password,
-          confirmPassword: registerForm.confirmPassword,
-          contactType: registerForm.contactType,
-          verificationCode: registerForm.verificationCode,
-          // 根据contactType决定传递哪个字段
-          phone: registerForm.contactType === 'phone' ? registerForm.phone : undefined,
-          email: registerForm.contactType === 'email' ? registerForm.email : undefined
-        }
-        
-        // 调用注册API
-        const response = await userStore.register(registerData)
-        
-        // 显示API响应消息（成功或失败都通过状态码映射显示）
-        showByCode(response.code)
-        
-        // 只有成功时才跳转到登录页
-        if (isSuccess(response.code)) {
-          router.push('/login')
-        }
-      } catch (error) {
-        // 捕获意外的运行时错误（非API业务错误）
-        // API业务失败已通过 showByCode 显示，网络错误已在响应拦截器显示
-        loading.value = false
-        if (process.env.NODE_ENV === 'development') {
-          console.error('[开发调试] 注册时发生意外错误：', error)
-        }
-        return false
-      }
-    }
-    
-    // 显示用户协议
-    const showAgreement = () => {
-      agreementVisible.value = true
-    }
-    
-    // 显示隐私政策
-    const showPrivacy = () => {
-      privacyVisible.value = true
-    }
-    
-    return {
-      registerForm,
-      registerRules,
-      registerFormRef,
-      loading,
-      agreementVisible,
-      privacyVisible,
-      codeCountdown,
-      canSendCode,
-      sendVerificationCode,
-      handleRegister,
-      showAgreement,
-      showPrivacy
-    }
+const userStore = useUserStore()
+const router = useRouter()
+const registerFormRef = ref(null)
+
+// 注册表单
+const registerForm = reactive({
+  username: '',
+  nickname: '',
+  password: '',
+  confirmPassword: '',
+  contactType: 'phone',
+  phone: '',
+  email: '',
+  verificationCode: '',
+  agreement: false
+})
+
+// 确认密码验证
+const validateConfirmPassword = (_rule, value, callback) => {
+  if (!value) {
+    callback(new Error('请再次输入密码'))
+  } else if (value !== registerForm.password) {
+    callback(new Error('两次输入的密码不一致'))
+  } else {
+    callback()
   }
+}
+
+// 协议验证
+const validateAgreement = (_rule, value, callback) => {
+  if (!value) {
+    callback(new Error('请阅读并同意用户协议和隐私政策'))
+  } else {
+    callback()
+  }
+}
+
+// 表单验证规则
+const registerRules = {
+  username: [
+    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { min: 3, max: 20, message: '用户名长度在3到20个字符之间', trigger: 'blur' },
+    { pattern: /^[a-zA-Z0-9_]+$/, message: '用户名只能包含字母、数字和下划线', trigger: 'blur' }
+  ],
+  nickname: [
+    { required: true, message: '请输入昵称', trigger: 'blur' },
+    { min: 2, max: 20, message: '昵称长度在2到20个字符之间', trigger: 'blur' }
+  ],
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    { min: 6, max: 20, message: '密码长度在6到20个字符之间', trigger: 'blur' },
+    { pattern: /^(?=.*[a-zA-Z])(?=.*[0-9])[a-zA-Z0-9]+$/, message: '密码必须同时包含字母和数字', trigger: 'blur' }
+  ],
+  confirmPassword: [
+    { required: true, message: '请再次输入密码', trigger: 'blur' },
+    { validator: validateConfirmPassword, trigger: 'blur' }
+  ],
+  contactType: [
+    { required: true, message: '请选择联系方式类型', trigger: 'change' }
+  ],
+  phone: [
+    { 
+      validator: (_rule, value, callback) => {
+        if (registerForm.contactType === 'phone') {
+          if (!value || value.trim() === '') {
+            callback(new Error('请输入手机号'))
+          } else if (!/^1[3-9]\d{9}$/.test(value)) {
+            callback(new Error('手机号格式不正确'))
+          } else {
+            callback()
+          }
+        } else {
+          callback()
+        }
+      },
+      trigger: 'blur' 
+    }
+  ],
+  email: [
+    { 
+      validator: (_rule, value, callback) => {
+        if (registerForm.contactType === 'email') {
+          if (!value || value.trim() === '') {
+            callback(new Error('请输入邮箱'))
+          } else if (!/^[\w.-]+@[\w.-]+\.\w+$/.test(value)) {
+            callback(new Error('邮箱格式不正确'))
+          } else {
+            callback()
+          }
+        } else {
+          callback()
+        }
+      },
+      trigger: 'blur' 
+    }
+  ],
+  verificationCode: [
+    { required: true, message: '请输入验证码', trigger: 'blur' },
+    { len: 6, message: '验证码必须为6位', trigger: 'blur' }
+  ],
+  agreement: [
+    { validator: validateAgreement, trigger: 'change' }
+  ]
+}
+
+const loading = ref(false)
+const agreementVisible = ref(false)
+const privacyVisible = ref(false)
+const codeCountdown = ref(0)
+
+// 计算是否可以发送验证码
+const canSendCode = computed(() => {
+  if (registerForm.contactType === 'phone') {
+    return registerForm.phone && /^1[3-9]\d{9}$/.test(registerForm.phone)
+  } else {
+    return registerForm.email && /^[\w.-]+@[\w.-]+\.\w+$/.test(registerForm.email)
+  }
+})
+
+// 发送验证码
+const sendVerificationCode = async () => {
+  if (!canSendCode.value) {
+    userMessages.error.showFormIncomplete()
+    return
+  }
+  
+  try {
+    const contact = registerForm.contactType === 'phone' ? registerForm.phone : registerForm.email
+    const res = await userStore.sendVerificationCode({
+      contact,
+      contactType: registerForm.contactType,
+      sceneType: 'register'
+    })
+    
+    // 显示发送结果
+    showByCode(res.code)
+    
+    // 如果发送成功，启动倒计时
+    if (isSuccess(res.code)) {
+      codeCountdown.value = 60
+      const timer = setInterval(() => {
+        codeCountdown.value--
+        if (codeCountdown.value <= 0) {
+          clearInterval(timer)
+        }
+      }, 1000)
+    }
+  } catch (error) {
+    console.error('发送验证码失败:', error)
+  }
+}
+
+// 处理注册
+const handleRegister = async () => {
+  if (!registerFormRef.value) return
+  
+  try {
+    await registerFormRef.value.validate()
+  } catch (error) {
+    return false
+  }
+  
+  if (!registerForm.agreement) {
+    // 使用userMessages处理提示消息
+    userMessages.prompt.showAgreementRequired()
+    return false
+  }
+  
+  loading.value = true
+  
+  try {
+    // 准备注册数据
+    const registerData = {
+      username: registerForm.username,
+      nickname: registerForm.nickname,
+      password: registerForm.password,
+      confirmPassword: registerForm.confirmPassword,
+      contactType: registerForm.contactType,
+      verificationCode: registerForm.verificationCode,
+      // 根据contactType决定传递哪个字段
+      phone: registerForm.contactType === 'phone' ? registerForm.phone : undefined,
+      email: registerForm.contactType === 'email' ? registerForm.email : undefined
+    }
+    
+    // 调用注册API
+    const response = await userStore.register(registerData)
+    
+    // 显示API响应消息（成功或失败都通过状态码映射显示）
+    showByCode(response.code)
+    
+    // 只有成功时才跳转到登录页
+    if (isSuccess(response.code)) {
+      router.push('/login')
+    }
+  } catch (error) {
+    // 捕获意外的运行时错误（非API业务错误）
+    // API业务失败已通过 showByCode 显示，网络错误已在响应拦截器显示
+    loading.value = false
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[开发调试] 注册时发生意外错误：', error)
+    }
+    return false
+  }
+}
+
+// 显示用户协议
+const showAgreement = () => {
+  agreementVisible.value = true
+}
+
+// 显示隐私政策
+const showPrivacy = () => {
+  privacyVisible.value = true
 }
 </script>
 

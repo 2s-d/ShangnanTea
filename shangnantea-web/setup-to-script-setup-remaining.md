@@ -9,6 +9,19 @@
 
 ---
 
+## 额外发现的文件（6个）
+
+在转换过程中发现还有6个文件也需要转换：
+
+1. `src/views/user/auth/RegisterPage.vue`
+2. `src/views/user/auth/MerchantApplication.vue`
+3. `src/App.vue`
+4. `src/components/common/layout/NavBar.vue`
+5. `src/components/common/feedback/MessageMonitor.vue`
+6. `src/components/dev/ErrorMonitor.vue`
+
+---
+
 ## 第一组：user-auth-module（7个文件）
 
 **状态：** ✅ 已完成
@@ -93,33 +106,23 @@
 
 ## 第六组：common-user-components（6个文件）
 
-**状态：** 待转换
+**状态：** ✅ 已完成
+
+**提交信息：** `refactor: 转换第六组（common-user-components）6个文件从 setup() 到 <script setup> 语法糖`
 
 **文件列表：**
-1. `src/views/order/cart/CartPage.vue`
-2. `src/views/user/settings/ProfileEditPage.vue`
-3. `src/views/user/settings/SettingsPage.vue`
-4. `src/views/user/profile/ProfilePage.vue`
-5. `src/views/user/manage/UserManagePage.vue`
-6. `src/views/user/auth/ResetPasswordPage.vue`
+1. ✅ `src/views/order/cart/CartPage.vue`
+2. ✅ `src/views/user/settings/ProfileEditPage.vue`
+3. ✅ `src/views/user/settings/SettingsPage.vue`
+4. ✅ `src/views/user/profile/ProfilePage.vue`
+5. ✅ `src/views/user/manage/UserManagePage.vue`
+6. ✅ `src/views/user/auth/ResetPasswordPage.vue`
+
+
 
 ---
 
-## 第七组：remaining-components（5个文件）
-
-**状态：** 待转换
-
-**文件列表：**
-1. `src/views/user/auth/RegisterPage.vue`
-2. `src/views/user/auth/MerchantApplication.vue`
-3. `src/App.vue`
-4. `src/components/common/layout/NavBar.vue`
-5. `src/components/common/feedback/MessageMonitor.vue`
-6. `src/components/dev/ErrorMonitor.vue`
-
----
-
-## 总计：38个文件
+## 总计：38个文件（已全部完成）+ 6个额外文件（待转换）
 
 ## 转换说明
 
