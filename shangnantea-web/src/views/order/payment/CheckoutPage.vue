@@ -227,7 +227,7 @@ export default {
     
     /**
      * 纯 UI 占位数据（生产形态：不在 UI 层造数据）
-     * TODO-SCRIPT: 结算页需要接入 Vuex（user 地址、order 购物车/下单、common 地区数据）
+     * TODO-SCRIPT: 结算页需要接入 Pinia（user 地址、order 购物车/下单、common 地区数据）
      */
     const loading = ref(false)
     const submitting = ref(false)

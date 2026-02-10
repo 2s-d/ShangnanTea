@@ -1,7 +1,7 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
-// import store from './store'  // Vuex (已迁移到 Pinia)
+// import store from './store'  // Pinia (已从 Vuex 迁移)
 import { createPinia } from 'pinia'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
@@ -15,7 +15,6 @@ import Directives from './directives'
 import { checkAndMigrateData } from './utils/versionManager'
 // 导入全局样式
 import './assets/styles/global.scss'
-import { message } from '@/components/common'
 import messageManager from '@/utils/messageManager'
 // 导入认证 composable
 import { useTokenStorage } from '@/composables/useStorage'
@@ -59,7 +58,7 @@ app.mount('#app')
 // 初始化用户认证状态（在应用挂载后）
 // 注意：不能在这里使用 useAuth()，因为它必须在 Vue 组件上下文中调用
 // 改为直接使用 tokenStorage 和 Pinia store
-const initAuthState = () => {
+const initAuthState = async () => {
   try {
     const tokenStorage = useTokenStorage()
     const user = tokenStorage.verifyToken()

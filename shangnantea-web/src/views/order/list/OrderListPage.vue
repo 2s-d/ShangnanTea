@@ -231,7 +231,7 @@ export default {
 
 
     
-    // 列表直接来自 Vuex，筛选交给后端
+    // 列表直接来自 Pinia，筛选交给后端
     const filteredOrders = computed(() => orders.value)
 
     const openRefundDialog = orderId => {

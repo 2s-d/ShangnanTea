@@ -573,7 +573,7 @@ export default {
       ]
     }
     
-    // 分类数据从Vuex获取（已在computed中定义）
+    // 分类数据从Pinia获取（已在computed中定义）
     
     // 图片上传相关
     const handleImageChange = (file, fileList) => {

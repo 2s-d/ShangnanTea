@@ -182,7 +182,7 @@ export default {
     // 从Pinia获取收藏列表
     const favoriteList = computed(() => userStore.favoriteList || [])
     
-    // 茶文化文章相关数据（从Vuex筛选）
+    // 茶文化文章相关数据（从Pinia筛选）
     const cultureSearchKeyword = ref('')
     const cultureSortOption = ref('recent')
     const cultureArticles = computed(() => {
@@ -224,7 +224,7 @@ export default {
       return result
     })
     
-    // 茶叶商品相关数据（从Vuex筛选）
+    // 茶叶商品相关数据（从Pinia筛选）
     const productSearchKeyword = ref('')
     const productSortOption = ref('recent')
     const products = computed(() => {
@@ -268,7 +268,7 @@ export default {
       return result
     })
     
-    // 论坛帖子相关数据（从Vuex筛选）
+    // 论坛帖子相关数据（从Pinia筛选）
     const postSearchKeyword = ref('')
     const postSortOption = ref('recent')
     const posts = computed(() => {
@@ -348,7 +348,7 @@ export default {
     
     /**
      * 加入购物车
-     * - 必须走真实 API / Vuex Action，返回 code 再用状态码消息系统提示
+     * - 必须走真实 API / Pinia Action，返回 code 再用状态码消息系统提示
      * - 禁止在未调用接口时伪造成功码
      */
     const addToCart = async teaId => {

@@ -428,7 +428,7 @@ import { orderPromptMessages } from '@/utils/promptMessages'
  *    - 只能查看自己店铺的订单（后端通过shopId过滤）
  *    - 只能管理自己店铺的订单（发货、退款处理等）
  *    - 路由权限：meta.roles: [ROLES.ADMIN, ROLES.SHOP]
- *    - 前端需要从Vuex获取当前商家的shopId，并在API请求中附加
+ *    - 前端需要从Pinia获取当前商家的shopId，并在API请求中附加
  * 
  * 3. 普通用户(role=2)：
  *    - 不能访问订单管理页面（路由守卫已拦截）
@@ -451,7 +451,7 @@ export default {
     const loading = ref(false)
     const submitting = ref(false)
     
-    // 分页相关（由 Vuex 维护）
+    // 分页相关（由 Pinia 维护）
     const currentPage = ref(1)
     const pageSize = ref(10)
     const total = ref(0)
@@ -502,10 +502,10 @@ export default {
       format: 'csv'
     })
     
-    // 列表数据来自 Vuex
+    // 列表数据来自 Pinia
     const orderList = ref([])
     
-    // 从后端获取订单列表（同步 Vuex filters）
+    // 从后端获取订单列表（同步 Pinia filters）
     const fetchOrders = async () => {
       loading.value = true
       try {
@@ -532,7 +532,7 @@ export default {
           sortBy = 'total_amount'
           sortOrder = 'asc'
         }
-        // 更新 Vuex中的筛选条件
+        // 更新 Pinia中的筛选条件
         const filters = {
           status: searchForm.status,
           startDate,
@@ -691,7 +691,7 @@ export default {
       return currentRefundOrder.value.update_time || ''
     }
     
-    // 确认发货（走 Vuex + API）
+    // 确认发货（走 Pinia + API）
     const confirmShip = async () => {
       if (!currentOrder.value) {
         orderPromptMessages.showOrderNotFound()
@@ -771,7 +771,7 @@ export default {
       }
     }
     
-    // 处理退款申请（走 Vuex + API）
+    // 处理退款申请（走 Pinia + API）
     const handleRefund = (order, isApproved) => {
       if (!order) return
       

@@ -137,7 +137,7 @@ export default {
     // 默认主题色
     const DEFAULT_PRIMARY_COLOR = '#409EFF'
     
-    // 个性化偏好设置（页面内编辑用副本；保存时统一走 Vuex）
+    // 个性化偏好设置（页面内编辑用副本；保存时统一走 Pinia）
     const preferences = reactive({
       theme: 'light',
       primaryColor: DEFAULT_PRIMARY_COLOR,
@@ -217,7 +217,7 @@ export default {
         //    → 不会抛出异常，不会进入 catch
         // 
         // 2. 网络错误等：响应拦截器会显示错误消息并 reject
-        //    → Vuex action 没有 catch，会抛出异常
+        //    → Pinia action 没有 catch，会抛出异常
         //    → 但响应拦截器已经显示了错误消息，这里不应该重复显示
         // 
         // 3. 真正的意外错误：如 DOM 操作失败、消息显示错误等

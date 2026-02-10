@@ -176,7 +176,7 @@ export default {
     // 从Pinia获取关注列表
     const followList = computed(() => userStore.followList || [])
     
-    // 关注的用户（从Vuex筛选）
+    // 关注的用户（从Pinia筛选）
     const followedUsers = computed(() => {
       return followList.value
         .filter(item => item.targetType === 'user')
@@ -192,7 +192,7 @@ export default {
         }))
     })
     
-    // 关注的店铺（从Vuex筛选）
+    // 关注的店铺（从Pinia筛选）
     const followedShops = computed(() => {
       return followList.value
         .filter(item => item.targetType === 'shop')

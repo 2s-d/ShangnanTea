@@ -226,7 +226,7 @@ export default {
     const orderId = route.params.id
     
     /**
-     * 生产形态：不在 UI 层造假数据；通过 Vuex -> API -> 后端返回数据
+     * 生产形态：不在 UI 层造假数据；通过 Pinia -> API -> 后端返回数据
      * TODO-SCRIPT: 订单详情页需对接 order/fetchOrderDetail，并补齐地址/物流等接口
      */
     const orderDetail = ref(null)
@@ -376,7 +376,7 @@ export default {
       })
     }
     
-    // 查看物流：调用 Vuex action 获取最新物流信息并刷新本地展示
+    // 查看物流：调用 Pinia action 获取最新物流信息并刷新本地展示
     const viewLogistics = async () => {
       try {
         const res = await orderStore.fetchOrderLogistics(orderId)

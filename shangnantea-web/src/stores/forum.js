@@ -38,6 +38,7 @@ export const useForumStore = defineStore('forum', () => {
   // ========== State ==========
   
   // 茶文化首页数据
+  const homeData = ref({})
   const banners = ref([])
   const cultureFeatures = ref([])
   const teaCategories = ref([])

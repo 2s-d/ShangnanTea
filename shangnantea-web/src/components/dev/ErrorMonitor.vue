@@ -346,9 +346,9 @@ export default {
         const errorObj = args.find(a => a instanceof Error)
         const stack = errorObj?.stack || new Error().stack
         
-        // 特殊处理 Vuex 错误
+        // 特殊处理 Pinia 错误
         if (content.includes('[vuex]')) {
-          addMessage(content, 'error', 'Vuex错误', stack)
+          addMessage(content, 'error', 'Pinia错误', stack)
         } else {
           addMessage(content, 'error', '错误', stack)
         }

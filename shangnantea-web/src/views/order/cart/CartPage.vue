@@ -450,7 +450,7 @@ export default {
         return
       }
 
-      // TODO-SCRIPT: 结算页需要支持从购物车选择的项（建议通过 query 传 selectedIds，或在 Vuex 中存储临时选择）
+      // TODO-SCRIPT: 结算页需要支持从购物车选择的项（建议通过 query 传 selectedIds，或在 Pinia 中存储临时选择）
       const selectedIds = cartItems.value.filter(item => item.selected).map(item => item.id)
       router.push({ path: '/order/checkout', query: { selectedIds: selectedIds.join(',') } })
     }

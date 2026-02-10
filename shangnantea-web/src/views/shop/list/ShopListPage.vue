@@ -147,14 +147,14 @@ export default {
     const currentPageFromStore = computed(() => shopStore.pagination.currentPage || 1)
     const filters = computed(() => shopStore.filters || {})
     
-    // 同步Vuex分页到本地
+    // 同步Pinia分页到本地
     watch(currentPageFromStore, newPage => {
       if (newPage !== currentPage.value) {
         currentPage.value = newPage
       }
     })
     
-    // 任务组A：同步Vuex filters到本地
+    // 任务组A：同步Pinia filters到本地
     watch(filters, newFilters => {
       if (newFilters.keyword !== searchQuery.value) {
         searchQuery.value = newFilters.keyword || ''
@@ -181,7 +181,7 @@ export default {
     // 获取指定店铺的茶叶
     const getShopTeas = shopId => {
       // 生产结构下：列表页不再本地造"店铺下的茶叶预览数据"
-      // 后续对接后端后，可在此处实现"按店铺加载预览茶叶"的逻辑（通过 Vuex action）
+      // 后续对接后端后，可在此处实现"按店铺加载预览茶叶"的逻辑（通过 Pinia action）
       return []
     }
     

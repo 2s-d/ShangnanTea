@@ -290,7 +290,7 @@ export default {
     }
     
     // 头像上传处理
-    // 任务A-5：使用Vuex uploadAvatar action
+    // 任务A-5：使用Pinia uploadAvatar action
     const handleAvatarUpload = async options => {
       const file = options.file
       if (!file) return
