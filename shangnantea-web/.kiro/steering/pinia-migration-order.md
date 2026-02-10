@@ -263,9 +263,90 @@ beforeEach(() => {
 ```
 
 
+## 📋 待迁移文件清单
+
+### ✅ 确认需要迁移的文件（7个）
+
+#### 1. 购物车页面
+**文件**：`src/views/order/cart/CartPage.vue`
+- **使用模式**：`useStore()`, `store.dispatch('order/fetchCartItems')`, `store.dispatch('order/updateCartItem')`, `store.dispatch('order/removeFromCart')`, `store.dispatch('tea/fetchTeaSpecifications')`
+- **涉及功能**：购物车列表、商品数量修改、规格选择、删除商品、结算
+- **涉及 store**：order store, tea store
+- **迁移状态**：⏳ 待迁移
+
+#### 2. 订单列表页面
+**文件**：`src/views/order/list/OrderListPage.vue`
+- **使用模式**：`useStore()`, `store.state.order.loading`, `store.state.order.pagination`, `store.state.order.orderList`, `store.dispatch('order/...')`
+- **涉及功能**：订单列表、搜索筛选、取消订单、确认收货、申请退款
+- **涉及 store**：order store
+- **迁移状态**：⏳ 待迁移
+
+#### 3. 订单详情页面
+**文件**：`src/views/order/detail/OrderDetailPage.vue`
+- **使用模式**：`useStore()`, `store.state.order.loading`, `store.state.order.currentOrder`, `store.dispatch('order/...')`
+- **涉及功能**：订单详情、物流信息、退款申请、确认收货
+- **涉及 store**：order store
+- **迁移状态**：⏳ 待迁移
+
+#### 4. 订单结算页面
+**文件**：`src/views/order/payment/CheckoutPage.vue`
+- **使用模式**：`useStore()`, `store.state.user.addresses`, `store.state.order.directBuyItem`, `store.dispatch('order/...')`, `store.dispatch('user/...')`
+- **涉及功能**：收货地址选择、订单商品确认、支付方式选择、创建订单
+- **涉及 store**：order store, user store
+- **特殊说明**：同时使用 order 和 user 两个 store
+- **迁移状态**：⏳ 待迁移
+
+#### 5. 支付结果页面
+**文件**：`src/views/order/payment/PaymentPage.vue`
+- **使用模式**：`useStore()`, `store.state.order.currentOrder`, `store.dispatch('order/fetchOrderDetail')`
+- **涉及功能**：支付结果轮询、订单状态确认
+- **涉及 store**：order store
+- **迁移状态**：⏳ 待迁移
+
+#### 6. 订单管理页面
+**文件**：`src/views/order/manage/OrderManagePage.vue`
+- **使用模式**：`useStore()`, `store.state.order.orderList`, `store.state.order.pagination`, `store.state.order.orderStatistics`, `store.dispatch('order/...')`
+- **涉及功能**：订单管理、发货、批量发货、退款处理、订单统计、导出订单
+- **涉及 store**：order store
+- **特殊说明**：功能最复杂，包含统计和导出功能
+- **迁移状态**：⏳ 待迁移
+
+#### 7. 订单评价页面
+**文件**：`src/views/order/review/OrderReviewPage.vue`
+- **使用模式**：`useStore()`, `store.state.order.loading`, `store.dispatch('order/...')`
+- **涉及功能**：订单评价、图片上传、评分提交
+- **涉及 store**：order store
+- **迁移状态**：⏳ 待迁移
+
+---
+
+### 📊 迁移统计
+
+| 类别 | 数量 | 说明 |
+|------|------|------|
+| **需要迁移** | 7 个文件 | 使用 order/user/tea store 的组件 |
+| **主要 store** | order (7个) | 所有文件都使用 order store |
+| **辅助 store** | user (1个), tea (1个) | CheckoutPage 使用 user, CartPage 使用 tea |
+
+---
+
+### 🔄 迁移顺序
+
+按照以下顺序逐个迁移（从简单到复杂）：
+
+1. ⏳ **PaymentPage.vue** - 支付结果页面（最简单，只读取状态）
+2. ⏳ **OrderReviewPage.vue** - 订单评价页面（简单，单一功能）
+3. ⏳ **OrderDetailPage.vue** - 订单详情页面（中等复杂度）
+4. ⏳ **OrderListPage.vue** - 订单列表页面（中等复杂度）
+5. ⏳ **CartPage.vue** - 购物车页面（复杂，涉及 tea store）
+6. ⏳ **CheckoutPage.vue** - 结算页面（复杂，涉及 user store）
+7. ⏳ **OrderManagePage.vue** - 订单管理页面（最复杂，功能最多）
+
+---
+
 ## 工作流程
 
-### 第一步：生成待修改文件列表
+### 第一步：生成待修改文件列表 ✅ 已完成
 
 使用以下命令在工作目录中搜索所有使用 order store 的文件：
 
@@ -281,20 +362,21 @@ grep -r -l "\$store\.commit('order/" src/ --include="*.vue" --include="*.js"
 grep -r -l "\$store\.getters\['order/" src/ --include="*.vue" --include="*.js"
 ```
 
-### 第二步：多重验证和交叉检查
+### 第二步：多重验证和交叉检查 ✅ 已完成
 
-```bash
-# 检查特殊目录
-grep -r -l "\$store" src/views/order/ --include="*.vue"
-grep -r -l "\$store" src/components/order/ --include="*.vue"
-grep -r -l "\$store" src/layout/ --include="*.vue"
+#### 验证1：目录枚举验证 ✅
+- 检查 `src/views/order/` 目录下所有 Vue 文件
+- 结果：找到 7 个文件，全部使用 `useStore()` 导入
 
-# 检查路由文件
-grep -n "store\|order" src/router/index.js
+#### 验证2：逐个文件检查 ✅
+- 逐个检查每个文件的 Vuex 使用模式
+- 结果：7 个文件全部确认使用 `store.state.order` 或 `store.dispatch('order/...)`
 
-# 检查 App.vue
-grep -n "\$store\|mapState\|mapGetters" src/App.vue
-```
+#### 验证3：交叉关键词验证 ✅
+- 搜索 `from 'vuex'`：确认 7 个 order 文件全部导入 Vuex
+- 搜索 `store.state.order`：确认 6 个文件使用状态访问
+- 搜索 `store.dispatch('order`：确认 7 个文件使用 dispatch
+- **结论**：文件清单完整，无遗漏
 
 ### 第三步：整理并展示文件列表
 

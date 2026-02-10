@@ -103,7 +103,7 @@
 <script>
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useStore } from 'vuex'
+import { useOrderStore } from '@/stores/order'
 import { Plus } from '@element-plus/icons-vue'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { orderPromptMessages } from '@/utils/promptMessages'
@@ -118,10 +118,10 @@ export default {
   setup() {
     const router = useRouter()
     const route = useRoute()
-    const store = useStore()
+    const orderStore = useOrderStore()
     
     const orderId = route.params.id
-    const loading = computed(() => store.state.order.loading)
+    const loading = computed(() => orderStore.loading)
     const submitting = ref(false)
     
     const orderDetail = ref(null)
@@ -145,7 +145,7 @@ export default {
     // 加载订单详情
     const loadOrderDetail = async () => {
       try {
-        const res = await store.dispatch('order/fetchOrderDetail', orderId)
+        const res = await orderStore.fetchOrderDetail(orderId)
         showByCode(res?.code)
         const data = res?.data || res
         orderDetail.value = data
@@ -186,7 +186,7 @@ export default {
       for (const file of imageList.value) {
         if (file.raw) {
           try {
-            const res = await store.dispatch('order/uploadReviewImage', file.raw)
+            const res = await orderStore.uploadReviewImage(file.raw)
             if (res && res.data && res.data.url) {
               uploadedUrls.push(res.data.url)
             }
@@ -218,7 +218,7 @@ export default {
         const imageUrls = await uploadImages()
         
         // 提交评价
-        const res = await store.dispatch('order/submitOrderReview', {
+        const res = await orderStore.submitOrderReview({
           orderId: orderId,
           teaId: orderDetail.value.teaId,
           rating: reviewForm.rating,
