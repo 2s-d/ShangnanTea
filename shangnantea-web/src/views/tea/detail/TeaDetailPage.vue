@@ -339,8 +339,9 @@
 <script>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useStore } from 'vuex'
+import { useTeaStore } from '@/stores/tea'
 import { useUserStore } from '@/stores/user'
+import { useOrderStore } from '@/stores/order'
 import { ElMessageBox } from 'element-plus'
 import { Back, ShoppingCart, Star, ChatLineRound, StarFilled } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
@@ -358,13 +359,14 @@ export default {
     SafeImage
   },
   setup() {
-    const store = useStore()
+    const teaStore = useTeaStore()
     const userStore = useUserStore()
+    const orderStore = useOrderStore()
     const router = useRouter()
     const route = useRoute()
-    const loading = computed(() => store.state.tea.loading)
+    const loading = computed(() => teaStore.loading)
     const submitting = ref(false)
-    const tea = computed(() => store.state.tea.currentTea)
+    const tea = computed(() => teaStore.currentTea)
     const activeTab = ref('detail')
     const selectedSpecId = ref(null)
     const quantity = ref(1)
@@ -385,11 +387,11 @@ export default {
     })
     
     // 任务组B：评价相关数据
-    const teaReviews = computed(() => store.state.tea.teaReviews || [])
-    const reviewStats = computed(() => store.state.tea.reviewStats)
-    const reviewTotalCount = computed(() => store.state.tea.reviewPagination?.total || 0)
-    const reviewCurrentPage = computed(() => store.state.tea.reviewPagination?.currentPage || 1)
-    const reviewPageSize = computed(() => store.state.tea.reviewPagination?.pageSize || 10)
+    const teaReviews = computed(() => teaStore.teaReviews || [])
+    const reviewStats = computed(() => teaStore.reviewStats)
+    const reviewTotalCount = computed(() => teaStore.reviewPagination?.total || 0)
+    const reviewCurrentPage = computed(() => teaStore.reviewPagination?.currentPage || 1)
+    const reviewPageSize = computed(() => teaStore.reviewPagination?.pageSize || 10)
     const averageRatingNumber = computed(() => {
       if (reviewStats.value && reviewStats.value.averageRating) {
         return parseFloat(reviewStats.value.averageRating)
@@ -399,8 +401,8 @@ export default {
     
     // 任务组C：规格相关数据
     const teaSpecifications = computed(() => {
-      // 优先使用Vuex中的规格列表，如果没有则使用currentTea中的规格
-      const specs = store.state.tea.currentTeaSpecs || []
+      // 优先使用Pinia中的规格列表，如果没有则使用currentTea中的规格
+      const specs = teaStore.currentTeaSpecs || []
       if (specs.length > 0) {
         return specs
       }
@@ -429,7 +431,7 @@ export default {
       submittingReply.value = true
       
       try {
-        const response = await store.dispatch('tea/replyReview', {
+        const response = await teaStore.replyReview({
           reviewId: review.id,
           reply: replyContent.value
         })
@@ -455,7 +457,7 @@ export default {
           showByCode(response.code)
           // 重新加载评价列表以更新isLiked状态
           if (tea.value) {
-            await store.dispatch('tea/fetchTeaReviews', {
+            await teaStore.fetchTeaReviews({
               teaId: tea.value.id,
               page: reviewCurrentPage.value,
               pageSize: reviewPageSize.value
@@ -470,7 +472,7 @@ export default {
           showByCode(response.code)
           // 重新加载评价列表以更新isLiked状态
           if (tea.value) {
-            await store.dispatch('tea/fetchTeaReviews', {
+            await teaStore.fetchTeaReviews({
               teaId: tea.value.id,
               page: reviewCurrentPage.value,
               pageSize: reviewPageSize.value
@@ -485,7 +487,7 @@ export default {
     // 评价分页变化
     const handleReviewPageChange = page => {
       if (tea.value) {
-        store.dispatch('tea/fetchTeaReviews', {
+        teaStore.fetchTeaReviews({
           teaId: tea.value.id,
           page,
           pageSize: reviewPageSize.value
@@ -515,8 +517,8 @@ export default {
       }
     }
     
-    // 茶叶分类（从 Vuex 获取）
-    const categories = computed(() => store.state.tea.categories || [])
+    // 茶叶分类（从 Pinia 获取）
+    const categories = computed(() => teaStore.categories || [])
     
     // 获取茶叶类别名称
     const getCategoryName = categoryId => {
@@ -538,7 +540,7 @@ export default {
           })
           showByCode(response.code)
           // 重新加载茶叶详情以更新isFavorited状态
-          await store.dispatch('tea/fetchTeaDetail', tea.value.id)
+          await teaStore.fetchTeaDetail(tea.value.id)
         } else {
           // 添加收藏
           const response = await userStore.addFavorite({
@@ -549,7 +551,7 @@ export default {
           })
           showByCode(response.code)
           // 重新加载茶叶详情以更新isFavorited状态
-          await store.dispatch('tea/fetchTeaDetail', tea.value.id)
+          await teaStore.fetchTeaDetail(tea.value.id)
         }
       } catch (error) {
         console.error('收藏操作失败:', error)
@@ -558,31 +560,31 @@ export default {
       }
     }
     
-    // 加载茶叶详情（生产版：走 Vuex）
+    // 加载茶叶详情（生产版：走 Pinia）
     const loadTeaDetail = async () => {
       try {
         const teaId = route.params.id
-        await store.dispatch('tea/fetchTeaDetail', teaId)
+        await teaStore.fetchTeaDetail(teaId)
         
         // 任务组B：同时加载评价列表和统计数据
         // 任务组C：同时加载规格列表
-        // 任务组D：加载图片列表（如果后端返回的tea.images为空，则从Vuex获取）
+        // 任务组D：加载图片列表（如果后端返回的tea.images为空，则从Pinia获取）
         // 任务组F：加载相似推荐
         await Promise.all([
-          store.dispatch('tea/fetchTeaReviews', { teaId, page: 1, pageSize: 10 }),
-          store.dispatch('tea/fetchReviewStats', teaId),
-          store.dispatch('tea/fetchTeaSpecifications', teaId),
-          store.dispatch('tea/fetchRecommendTeas', { type: 'similar', teaId, count: 6 })
+          teaStore.fetchTeaReviews({ teaId, page: 1, pageSize: 10 }),
+          teaStore.fetchReviewStats(teaId),
+          teaStore.fetchTeaSpecifications(teaId),
+          teaStore.fetchRecommendTeas({ type: 'similar', teaId, count: 6 })
         ])
         
-        // 任务组D：如果当前茶叶的images为空，尝试从Vuex获取
-        if ((!store.state.tea.currentTea?.images || store.state.tea.currentTea.images.length === 0) && 
-            store.state.tea.teaImages && store.state.tea.teaImages.length > 0) {
-          store.state.tea.currentTea.images = store.state.tea.teaImages
+        // 任务组D：如果当前茶叶的images为空，尝试从Pinia获取
+        if ((!teaStore.currentTea?.images || teaStore.currentTea.images.length === 0) && 
+            teaStore.teaImages && teaStore.teaImages.length > 0) {
+          teaStore.currentTea.images = teaStore.teaImages
         }
         
-        // 任务组C：设置默认规格（从Vuex的currentTeaSpecs获取）
-        const specs = store.state.tea.currentTeaSpecs || []
+        // 任务组C：设置默认规格（从Pinia的currentTeaSpecs获取）
+        const specs = teaStore.currentTeaSpecs || []
         const defaultSpec = specs.find(spec => spec.is_default === 1)
         if (defaultSpec) {
           selectedSpecId.value = defaultSpec.id
@@ -600,19 +602,19 @@ export default {
     })
 
     // 兼容后端返回的图片结构（可能是 string[] 或 {url}[]）
-    // 任务组D：图片列表（优先使用Vuex中的teaImages，如果没有则使用currentTea中的images）
+    // 任务组D：图片列表（优先使用Pinia中的teaImages，如果没有则使用currentTea中的images）
     const teaImages = computed(() => {
-      // 优先使用Vuex中的teaImages
-      const vuexImages = store.state.tea.teaImages || []
-      if (vuexImages.length > 0) {
+      // 优先使用Pinia中的teaImages
+      const piniaImages = teaStore.teaImages || []
+      if (piniaImages.length > 0) {
         // 按order排序，然后提取url
-        return vuexImages
+        return piniaImages
           .sort((a, b) => (a.order || 0) - (b.order || 0))
           .map(img => img.url)
           .filter(Boolean)
       }
       
-      // 如果没有Vuex数据，使用currentTea中的images
+      // 如果没有Pinia数据，使用currentTea中的images
       const imgs = tea.value?.images || []
       if (!Array.isArray(imgs)) return []
       if (imgs.length === 0) return []
@@ -640,12 +642,12 @@ export default {
     const handleSpecChange = specId => {
       const spec = teaSpecifications.value.find(s => s.id === specId)
       if (spec) {
-        store.commit('tea/SET_SELECTED_SPEC', spec)
+        teaStore.selectedSpec = spec
       }
     }
     
     // 任务组F：相似推荐数据
-    const similarTeas = computed(() => store.state.tea.recommendTeas || [])
+    const similarTeas = computed(() => teaStore.recommendTeas || [])
     
     // 任务组F：跳转到茶叶详情页
     const goToTeaDetail = teaId => {
@@ -680,7 +682,7 @@ export default {
       submitting.value = true
       try {
         // 生产版：通过 order 模块 action 走后端，传递规格ID
-        const response = await store.dispatch('order/addToCart', { 
+        const response = await orderStore.addToCart({ 
           teaId: tea.value.id, 
           quantity: quantity.value,
           specificationId: selectedSpecId.value
@@ -759,7 +761,7 @@ export default {
     const defaultAvatar = '@/assets/images/avatars/default.jpg'
     
     onMounted(() => {
-      store.dispatch('tea/fetchCategories')
+      teaStore.fetchCategories()
       loadTeaDetail()
     })
 
@@ -804,7 +806,20 @@ export default {
       contactShop,
       // 任务组F：相似推荐
       similarTeas,
-      goToTeaDetail
+      goToTeaDetail,
+      // 新增评价相关
+      teaReviews,
+      reviewStats,
+      reviewTotalCount,
+      reviewCurrentPage,
+      reviewPageSize,
+      averageRatingNumber,
+      handleLikeReview,
+      handleReviewPageChange,
+      formatTime,
+      // 新增规格相关
+      teaSpecifications,
+      handleSpecChange
     }
   }
 }

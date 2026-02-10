@@ -466,7 +466,7 @@
 <script>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { useStore } from 'vuex'
+import { useTeaStore } from '@/stores/tea'
 import { ElMessageBox } from 'element-plus'
 import { Search, Plus } from '@element-plus/icons-vue'
 import { useImageUpload } from '@/composables/useImageUpload'
@@ -484,17 +484,17 @@ export default {
   },
   setup() {
     const router = useRouter()
-    const store = useStore()
+    const teaStore = useTeaStore()
     const teaFormRef = ref(null)
     
-    // 从Vuex获取状态
-    const loading = computed(() => store.state.tea.loading)
-    const teas = computed(() => store.state.tea.teaList)
-    const totalCount = computed(() => store.state.tea.pagination.total)
-    const currentPage = computed(() => store.state.tea.pagination.currentPage)
-    const pageSize = computed(() => store.state.tea.pagination.pageSize)
-    const categoryOptions = computed(() => store.state.tea.categories)
-    const categories = computed(() => store.state.tea.categories)
+    // 从Pinia获取状态
+    const loading = computed(() => teaStore.loading)
+    const teas = computed(() => teaStore.teaList)
+    const totalCount = computed(() => teaStore.pagination.total)
+    const currentPage = computed(() => teaStore.pagination.currentPage)
+    const pageSize = computed(() => teaStore.pagination.pageSize)
+    const categoryOptions = computed(() => teaStore.categories)
+    const categories = computed(() => teaStore.categories)
     
     // 标签页状态
     const activeTab = ref('tea')
@@ -707,9 +707,9 @@ export default {
       
       // 任务组C：加载规格列表
       try {
-        await store.dispatch('tea/fetchTeaSpecifications', tea.id)
-        // 如果Vuex中有规格数据，使用Vuex的数据
-        const specs = store.state.tea.currentTeaSpecs
+        await teaStore.fetchTeaSpecifications(tea.id)
+        // 如果Pinia中有规格数据，使用Pinia的数据
+        const specs = teaStore.currentTeaSpecs
         if (specs && specs.length > 0) {
           currentTea.value.specifications = specs.map(spec => ({
             id: spec.id,
@@ -780,7 +780,7 @@ export default {
           }
         )
         
-        const response = await store.dispatch('tea/toggleTeaStatus', {
+        const response = await teaStore.toggleTeaStatus({
           teaId: tea.id,
           status: newStatus
         })
@@ -822,7 +822,7 @@ export default {
         )
         
         const teaIds = selectedTeas.value.map(tea => tea.id)
-        const response = await store.dispatch('tea/batchToggleTeaStatus', {
+        const response = await teaStore.batchToggleTeaStatus({
           teaIds,
           status: 1
         })
@@ -858,7 +858,7 @@ export default {
         )
         
         const teaIds = selectedTeas.value.map(tea => tea.id)
-        const response = await store.dispatch('tea/batchToggleTeaStatus', {
+        const response = await teaStore.batchToggleTeaStatus({
           teaIds,
           status: 0
         })
