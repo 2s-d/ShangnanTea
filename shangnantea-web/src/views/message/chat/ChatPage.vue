@@ -277,7 +277,7 @@
 import { ref, reactive, computed, nextTick, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
-import { useStore } from 'vuex'
+import { useMessageStore } from '@/stores/message'
 import { useUserStore } from '@/stores/user'
 import { message } from '@/components/common'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
@@ -304,7 +304,7 @@ export default {
   setup() {
     const route = useRoute()
     const router = useRouter()
-    const store = useStore()
+    const messageStore = useMessageStore()
     const userStore = useUserStore()
     
     // DOM引用
@@ -341,7 +341,7 @@ export default {
     // 获取所有会话列表
     const fetchSessions = async () => {
       try {
-        const response = await store.dispatch('message/fetchChatSessions')
+        const response = await messageStore.fetchChatSessions()
         
         // 显示API响应消息（成功或失败都通过状态码映射显示）
         showByCode(response.code)
@@ -351,8 +351,8 @@ export default {
           return
         }
 
-        // 从Vuex获取会话列表数据
-        const sessions = store.state.message.chatSessions || []
+        // 从Pinia获取会话列表数据
+        const sessions = messageStore.chatSessions || []
         
         // 转换数据格式以匹配UI组件的期望格式
         mockSessions.value = sessions.map(session => ({
@@ -393,8 +393,8 @@ export default {
       try {
         loadingMessages.value = true
 
-        // 通过Vuex调用后端API获取聊天记录
-        const response = await store.dispatch('message/fetchChatHistory', {
+        // 通过Pinia调用后端API获取聊天记录
+        const response = await messageStore.fetchChatHistory({
           sessionId: sessionId,
           params: {
             page: 1,
@@ -478,8 +478,8 @@ export default {
           type: 'warning'
         })
         
-        // 调用Vuex action删除会话
-        const response = await store.dispatch('message/deleteChatSession', sessionId)
+        // 调用Pinia action删除会话
+        const response = await messageStore.deleteChatSession(sessionId)
         
         // 显示API响应消息（成功或失败都通过状态码映射显示）
         showByCode(response.code)
@@ -505,7 +505,7 @@ export default {
     // 置顶/取消置顶会话
     const togglePinSession = async sessionId => {
       try {
-        const response = await store.dispatch('message/pinChatSession', sessionId)
+        const response = await messageStore.pinChatSession(sessionId)
         
         // 显示API响应消息（成功或失败都通过状态码映射显示）
         showByCode(response.code)
@@ -534,12 +534,12 @@ export default {
         let messageType = 'text'
         let messageContent = messageInput.value.trim()
         
-        // 如果有图片文件，则调用图片上传API
+        // 如果有图片文件,则调用图片上传API
         if (imageFile.value) {
           messageType = 'image'
           
           // 调用图片上传API
-          const uploadResponse = await store.dispatch('message/sendImageMessage', {
+          const uploadResponse = await messageStore.sendImageMessage({
             sessionId: currentSessionId.value,
             receiverId: currentTargetUserId.value,
             image: imageFile.value
@@ -567,7 +567,7 @@ export default {
           return
         }
 
-        const sendResponse = await store.dispatch('message/sendMessage', {
+        const sendResponse = await messageStore.sendMessage({
           receiverId: currentTargetUserId.value,
           content: messageContent,
           type: messageType

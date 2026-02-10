@@ -108,8 +108,9 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
 import { Bell, ChatDotRound, Star, User, Check, Delete } from '@element-plus/icons-vue'
-import { useStore } from 'vuex'
+import { useMessageStore } from '@/stores/message'
 import { useUserStore } from '@/stores/user'
+import { useShopStore } from '@/stores/shop'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { messagePromptMessages } from '@/utils/promptMessages'
 
@@ -120,8 +121,9 @@ export default {
   },
   setup() {
     const router = useRouter()
-    const store = useStore()
+    const messageStore = useMessageStore()
     const userStore = useUserStore()
+    const shopStore = useShopStore()
     
     // 分页参数
     const currentPage = ref(1)
@@ -132,20 +134,20 @@ export default {
     const readStatus = ref('all')
     const typeFilter = ref('')
     
-    // 通知列表数据（以 Vuex 为单一数据源）
-    const notifications = computed(() => store.state.message.messages || [])
-    const loading = computed(() => store.state.message.loading)
+    // 通知列表数据（以 Pinia 为单一数据源）
+    const notifications = computed(() => messageStore.messages || [])
+    const loading = computed(() => messageStore.loading)
     
     // 获取通知列表
     const fetchNotifications = async () => {
-      // 同步分页参数到 Vuex
-      store.commit('message/SET_PAGINATION', {
-        total: store.state.message.pagination.total,
+      // 同步分页参数到 Pinia
+      messageStore.pagination = {
+        total: messageStore.pagination.total,
         currentPage: currentPage.value,
         pageSize: pageSize.value
-      })
+      }
 
-      const response = await store.dispatch('message/fetchNotifications', {
+      const response = await messageStore.fetchNotifications({
         readStatus: readStatus.value,
         type: typeFilter.value
       })
@@ -186,7 +188,7 @@ export default {
     // 标记单条通知为已读
     const markAsRead = async id => {
       try {
-        const response = await store.dispatch('message/markNotificationAsRead', id)
+        const response = await messageStore.markNotificationAsRead(id)
         showByCode(response.code)
       } catch (error) {
         console.error(error)
@@ -201,7 +203,7 @@ export default {
           return
         }
 
-        const response = await store.dispatch('message/batchMarkAsRead', unreadIds)
+        const response = await messageStore.batchMarkAsRead(unreadIds)
         showByCode(response.code)
       } catch (error) {
         console.error(error)
@@ -211,7 +213,7 @@ export default {
     // 删除单条通知
     const deleteNotification = async id => {
       try {
-        const response = await store.dispatch('message/deleteNotification', id)
+        const response = await messageStore.deleteNotification(id)
         showByCode(response.code)
       } catch (error) {
         console.error(error)
@@ -239,7 +241,7 @@ export default {
           return
         }
 
-        const response = await store.dispatch('message/batchDeleteNotifications', allIds)
+        const response = await messageStore.batchDeleteNotifications(allIds)
         showByCode(response.code)
       } catch (error) {
         console.error(error)
@@ -295,26 +297,26 @@ export default {
     const handleMerchantCertificationConfirm = async notification => {
       try {
         // 1. 标记通知为已读
-        await store.dispatch('message/markNotificationAsRead', notification.id)
+        await messageStore.markNotificationAsRead(notification.id)
         
         // 2. 确认通知（触发后端角色变更）
         // 注意：实际项目中，角色变更应该由后端在审核通过时自动完成
         // 这里只是确认通知，刷新用户信息以获取最新角色
-        await userStore.getUserInfo()
+        await userStore.fetchUserInfo()
         
         // 3. 检查用户角色是否已变更为商家（role === 3）
         const userInfo = userStore.userInfo
         if (userInfo && userInfo.role === 3) {
           // 4. 检查是否已有店铺，如果没有则自动创建
           try {
-            await store.dispatch('shop/fetchMyShop')
+            await shopStore.fetchMyShop()
             // 商家认证已确认
             router.push('/shop/my')
           } catch (error) {
             // 如果没有店铺，自动创建
             if (error.message && error.message.includes('获取我的店铺失败')) {
               try {
-                await store.dispatch('shop/createShop', {
+                await shopStore.createShop({
                   name: '我的商南茶叶店',
                   desc: '专业经营商南优质茶叶'
                 })

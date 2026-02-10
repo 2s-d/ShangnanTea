@@ -162,6 +162,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import { useOrderStore } from '@/stores/order'
 
 import { Search, View, ChatDotRound, Star, ShoppingCart } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
@@ -175,6 +176,7 @@ export default {
   setup() {
     const router = useRouter()
     const userStore = useUserStore()
+    const orderStore = useOrderStore()
     const activeTab = ref('culture')
     
     // 从Pinia获取收藏列表
@@ -352,7 +354,7 @@ export default {
     const addToCart = async teaId => {
       try {
         // Favorites 列表目前只拿到了 teaId，规格/数量这里先用默认值
-        const res = await store.dispatch('order/addToCart', {
+        const res = await orderStore.addToCart({
           teaId: String(teaId),
           quantity: 1,
           specificationId: null

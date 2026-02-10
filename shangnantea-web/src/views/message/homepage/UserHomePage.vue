@@ -160,7 +160,7 @@
 <script>
 import { ref, markRaw, watch, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useStore } from 'vuex'
+import { useMessageStore } from '@/stores/message'
 import { useUserStore } from '@/stores/user'
 
 import ProfilePage from '@/views/user/profile/ProfilePage.vue'
@@ -187,14 +187,14 @@ export default {
   setup() {
     const router = useRouter()
     const route = useRoute()
-    const store = useStore()
+    const messageStore = useMessageStore()
     const userStore = useUserStore()
     
     // 从路由参数获取用户ID，如果没有则使用当前登录用户ID
     const userId = computed(() => route.params.userId || 'current')
     
-    // 从Vuex获取用户信息
-    const userInfo = computed(() => store.state.message.userProfile || {
+    // 从Pinia获取用户信息
+    const userInfo = computed(() => messageStore.userProfile || {
       username: '',
       nickname: '',
       avatar: '',
@@ -206,14 +206,14 @@ export default {
       shopName: null
     })
     
-    // 从Vuex获取用户动态
-    const userDynamic = computed(() => store.state.message.userDynamic || {
+    // 从Pinia获取用户动态
+    const userDynamic = computed(() => messageStore.userDynamic || {
       recentPosts: [],
       recentComments: []
     })
     
-    // 从Vuex获取用户统计数据
-    const userStatistics = computed(() => store.state.message.userStatistics || {
+    // 从Pinia获取用户统计数据
+    const userStatistics = computed(() => messageStore.userStatistics || {
       postCount: 0,
       likeCount: 0,
       favoriteCount: 0,
@@ -223,7 +223,7 @@ export default {
     })
     
     // 加载状态
-    const loading = computed(() => store.state.message.loading)
+    const loading = computed(() => messageStore.loading)
     
     // 判断是否是查看自己的主页
     const isOwnProfile = computed(() => {
@@ -354,9 +354,9 @@ export default {
         
         // 并行加载用户信息、动态和统计数据
         await Promise.all([
-          store.dispatch('message/fetchUserProfile', targetUserId),
-          store.dispatch('message/fetchUserDynamic', targetUserId),
-          store.dispatch('message/fetchUserStatistics', targetUserId)
+          messageStore.fetchUserProfile(targetUserId),
+          messageStore.fetchUserDynamic(targetUserId),
+          messageStore.fetchUserStatistics(targetUserId)
         ])
       } catch (error) {
         console.error('加载用户数据失败：', error)
