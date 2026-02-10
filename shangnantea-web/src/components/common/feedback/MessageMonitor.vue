@@ -27,7 +27,7 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue'
 import { ElMessage } from 'element-plus'
 
@@ -38,178 +38,162 @@ const messages = reactive([])
 let originalConsoleError = null
 let originalConsoleWarn = null
 
-export default {
-  name: 'MessageMonitor',
-  setup() {
-    const visible = ref(process.env.NODE_ENV === 'development')
-    const isCollapsed = ref(false)
+const visible = ref(process.env.NODE_ENV === 'development')
+const isCollapsed = ref(false)
 
-    // 错误数量（包含运行时错误）
-    const errorCount = computed(() => messages.filter(m => 
-      m.type === 'error' || m.type === 'console-error' || m.type === 'runtime-error'
-    ).length)
+// 错误数量（包含运行时错误）
+const errorCount = computed(() => messages.filter(m => 
+  m.type === 'error' || m.type === 'console-error' || m.type === 'runtime-error'
+).length)
 
-    const toggleCollapse = () => {
-      isCollapsed.value = !isCollapsed.value
-    }
+const toggleCollapse = () => {
+  isCollapsed.value = !isCollapsed.value
+}
 
-    const clearMessages = () => {
-      messages.splice(0, messages.length)
-    }
+const clearMessages = () => {
+  messages.splice(0, messages.length)
+}
 
-    // 复制错误日志（去重+按来源分组）
-    const copyErrors = () => {
-      const errors = messages.filter(m => 
-        m.type === 'error' || m.type === 'console-error' || 
-        m.type === 'warning' || m.type === 'console-warn' || 
-        m.type === 'runtime-error'
-      )
-      if (errors.length === 0) {
-        ElMessage.info('没有错误日志')
-        return
-      }
-      // 去重：相同来源+内容只保留一条
-      const seen = new Set()
-      const unique = errors.filter(m => {
-        const key = `${m.source}|${m.content}`
-        if (seen.has(key)) return false
-        seen.add(key)
-        return true
-      })
-      // 按来源分组输出
-      const grouped = {}
-      unique.forEach(m => {
-        if (!grouped[m.source]) grouped[m.source] = []
-        grouped[m.source].push(m.content)
-      })
-      let text = '=== 错误日志 ===\n'
-      for (const [source, contents] of Object.entries(grouped)) {
-        text += `\n【${source}】\n`
-        contents.forEach(c => { text += `  - ${c}\n` })
-      }
-      navigator.clipboard.writeText(text).then(() => {
-        ElMessage.success(`已复制 ${unique.length} 条错误（去重后）`)
-      }).catch(() => {
-        ElMessage.error('复制失败')
-      })
-    }
+// 复制错误日志（去重+按来源分组）
+const copyErrors = () => {
+  const errors = messages.filter(m => 
+    m.type === 'error' || m.type === 'console-error' || 
+    m.type === 'warning' || m.type === 'console-warn' || 
+    m.type === 'runtime-error'
+  )
+  if (errors.length === 0) {
+    ElMessage.info('没有错误日志')
+    return
+  }
+  // 去重：相同来源+内容只保留一条
+  const seen = new Set()
+  const unique = errors.filter(m => {
+    const key = `${m.source}|${m.content}`
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+  // 按来源分组输出
+  const grouped = {}
+  unique.forEach(m => {
+    if (!grouped[m.source]) grouped[m.source] = []
+    grouped[m.source].push(m.content)
+  })
+  let text = '=== 错误日志 ===\n'
+  for (const [source, contents] of Object.entries(grouped)) {
+    text += `\n【${source}】\n`
+    contents.forEach(c => { text += `  - ${c}\n` })
+  }
+  navigator.clipboard.writeText(text).then(() => {
+    ElMessage.success(`已复制 ${unique.length} 条错误（去重后）`)
+  }).catch(() => {
+    ElMessage.error('复制失败')
+  })
+}
 
-    // 复制全部日志
-    const copyAll = () => {
-      if (messages.length === 0) {
-        ElMessage.info('没有日志')
-        return
-      }
-      const text = messages.map(m => `[${m.time}] [${m.type}] [${m.source}] ${m.content}`).join('\n')
-      navigator.clipboard.writeText(text).then(() => {
-        ElMessage.success(`已复制 ${messages.length} 条日志`)
-      }).catch(() => {
-        ElMessage.error('复制失败')
-      })
-    }
+// 复制全部日志
+const copyAll = () => {
+  if (messages.length === 0) {
+    ElMessage.info('没有日志')
+    return
+  }
+  const text = messages.map(m => `[${m.time}] [${m.type}] [${m.source}] ${m.content}`).join('\n')
+  navigator.clipboard.writeText(text).then(() => {
+    ElMessage.success(`已复制 ${messages.length} 条日志`)
+  }).catch(() => {
+    ElMessage.error('复制失败')
+  })
+}
 
-    // 从调用栈提取来源文件
-    const extractSource = () => {
-      try {
-        const stack = new Error().stack || ''
-        const lines = stack.split('\n')
-        // 跳过前几行(Error, interceptConsole, console.xxx)，找到真正的调用者
-        for (let i = 3; i < lines.length; i++) {
-          const line = lines[i]
-          // 匹配 .vue 或 .js 文件
-          const match = line.match(/([a-zA-Z0-9_-]+\.(vue|js|ts))[:)]/)
-          if (match && !line.includes('MessageMonitor') && !line.includes('chunk-vendors')) {
-            return match[1]
-          }
-        }
-        return 'unknown'
-      } catch { return 'unknown' }
-    }
-
-    // 拦截控制台
-    const interceptConsole = () => {
-      originalConsoleError = console.error
-      originalConsoleWarn = console.warn
-
-      console.error = function(...args) {
-        const content = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ')
-        const source = extractSource()
-        addMessageRecord(content, 'console-error', source)
-        originalConsoleError.apply(console, args)
-      }
-
-      console.warn = function(...args) {
-        const content = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ')
-        // 尝试从 Vue warn 内容中提取组件名
-        let source = extractSource()
-        const vueMatch = content.match(/<(\w+Page|\w+View|\w+Component)/)
-        if (vueMatch) source = vueMatch[1] + '.vue'
-        addMessageRecord(content, 'console-warn', source)
-        originalConsoleWarn.apply(console, args)
+// 从调用栈提取来源文件
+const extractSource = () => {
+  try {
+    const stack = new Error().stack || ''
+    const lines = stack.split('\n')
+    // 跳过前几行(Error, interceptConsole, console.xxx)，找到真正的调用者
+    for (let i = 3; i < lines.length; i++) {
+      const line = lines[i]
+      // 匹配 .vue 或 .js 文件
+      const match = line.match(/([a-zA-Z0-9_-]+\.(vue|js|ts))[:)]/)
+      if (match && !line.includes('MessageMonitor') && !line.includes('chunk-vendors')) {
+        return match[1]
       }
     }
+    return 'unknown'
+  } catch { return 'unknown' }
+}
 
-    // 恢复控制台
-    const restoreConsole = () => {
-      if (originalConsoleError) console.error = originalConsoleError
-      if (originalConsoleWarn) console.warn = originalConsoleWarn
-    }
+// 拦截控制台
+const interceptConsole = () => {
+  originalConsoleError = console.error
+  originalConsoleWarn = console.warn
 
-    // 全局错误处理
-    const handleGlobalError = event => {
-      const { message, filename, lineno, colno } = event
-      const file = filename ? filename.split('/').pop() : 'unknown'
-      addMessageRecord(`${message} (${file}:${lineno}:${colno})`, 'runtime-error', '运行时错误')
-    }
+  console.error = function(...args) {
+    const content = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ')
+    const source = extractSource()
+    addMessageRecord(content, 'console-error', source)
+    originalConsoleError.apply(console, args)
+  }
 
-    // Promise 未捕获错误
-    const handleUnhandledRejection = event => {
-      const reason = event.reason
-      let msg = ''
-      let source = 'Promise错误'
-      if (reason instanceof Error) {
-        msg = `${reason.name}: ${reason.message}`
-        // 尝试从调用栈提取 .vue 文件名
-        const stack = reason.stack || ''
-        const vueMatch = stack.match(/([A-Z][a-zA-Z]+Page|[A-Z][a-zA-Z]+View)\.vue/)
-        if (vueMatch) {
-          source = vueMatch[1] + '.vue'
-        } else {
-          const jsMatch = stack.match(/\/([a-zA-Z0-9_-]+\.(vue|js|ts)):\d+/)
-          if (jsMatch) source = jsMatch[1]
-        }
-      } else {
-        msg = String(reason)
-      }
-      addMessageRecord(msg, 'runtime-error', source)
-    }
-
-    onMounted(() => {
-      if (visible.value) {
-        interceptConsole()
-        window.addEventListener('error', handleGlobalError)
-        window.addEventListener('unhandledrejection', handleUnhandledRejection)
-      }
-    })
-
-    onBeforeUnmount(() => {
-      restoreConsole()
-      window.removeEventListener('error', handleGlobalError)
-      window.removeEventListener('unhandledrejection', handleUnhandledRejection)
-    })
-
-    return {
-      visible,
-      isCollapsed,
-      messages,
-      errorCount,
-      toggleCollapse,
-      clearMessages,
-      copyErrors,
-      copyAll
-    }
+  console.warn = function(...args) {
+    const content = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ')
+    // 尝试从 Vue warn 内容中提取组件名
+    let source = extractSource()
+    const vueMatch = content.match(/<(\w+Page|\w+View|\w+Component)/)
+    if (vueMatch) source = vueMatch[1] + '.vue'
+    addMessageRecord(content, 'console-warn', source)
+    originalConsoleWarn.apply(console, args)
   }
 }
+
+// 恢复控制台
+const restoreConsole = () => {
+  if (originalConsoleError) console.error = originalConsoleError
+  if (originalConsoleWarn) console.warn = originalConsoleWarn
+}
+
+// 全局错误处理
+const handleGlobalError = event => {
+  const { message, filename, lineno, colno } = event
+  const file = filename ? filename.split('/').pop() : 'unknown'
+  addMessageRecord(`${message} (${file}:${lineno}:${colno})`, 'runtime-error', '运行时错误')
+}
+
+// Promise 未捕获错误
+const handleUnhandledRejection = event => {
+  const reason = event.reason
+  let msg = ''
+  let source = 'Promise错误'
+  if (reason instanceof Error) {
+    msg = `${reason.name}: ${reason.message}`
+    // 尝试从调用栈提取 .vue 文件名
+    const stack = reason.stack || ''
+    const vueMatch = stack.match(/([A-Z][a-zA-Z]+Page|[A-Z][a-zA-Z]+View)\.vue/)
+    if (vueMatch) {
+      source = vueMatch[1] + '.vue'
+    } else {
+      const jsMatch = stack.match(/\/([a-zA-Z0-9_-]+\.(vue|js|ts)):\d+/)
+      if (jsMatch) source = jsMatch[1]
+    }
+  } else {
+    msg = String(reason)
+  }
+  addMessageRecord(msg, 'runtime-error', source)
+}
+
+onMounted(() => {
+  if (visible.value) {
+    interceptConsole()
+    window.addEventListener('error', handleGlobalError)
+    window.addEventListener('unhandledrejection', handleUnhandledRejection)
+  }
+})
+
+onBeforeUnmount(() => {
+  restoreConsole()
+  window.removeEventListener('error', handleGlobalError)
+  window.removeEventListener('unhandledrejection', handleUnhandledRejection)
+})
 
 // 导出添加消息记录的函数
 export function addMessageRecord(content, type, source) {

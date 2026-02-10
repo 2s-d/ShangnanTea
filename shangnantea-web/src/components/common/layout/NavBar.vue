@@ -70,7 +70,7 @@
   </div>
 </template>
 
-<script>
+<script setup>
 // 调整导入顺序，确保 vue 核心工具先导入
 import { computed, ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
@@ -83,70 +83,48 @@ import { useAuth } from '@/composables/useAuth'
 // 引入SafeImage通用图片组件
 import SafeImage from '@/components/common/form/SafeImage.vue'
 
-export default {
-  name: 'NavBar',
-  components: {
-    SafeImage
-  },
-  setup() {
-    const userStore = useUserStore()
-    const router = useRouter()
-    const route = useRoute()
-    
-    // 使用useAuth
-    const { isAdmin, isShop, isUser, isLoggedIn, ROLES } = useAuth()
-    
-    // 当前激活的导航项
-    const activeIndex = ref('/')
-    
-    // 当路由变化时更新激活项
-    onMounted(() => {
-      activeIndex.value = route.path
-    })
-    
-    // 用户角色
-    const userRole = computed(() => {
-      return userStore.userInfo?.role || 0
-    })
-    
-    // 用户信息
-    const username = computed(() => userStore.userInfo?.username || '用户')
-    const userAvatar = computed(() => {
-      return userStore.userInfo?.avatar || ''
-    })
-    
-    // 退出登录
-    const handleLogout = async () => {
-      try {
-        await userStore.logout()
-        router.push('/login')
-      } catch (error) {
-        console.error('退出登录失败:', error)
-      }
-    }
-    
-    // 处理下拉菜单点击
-    const handleCommand = command => {
-      if (command === 'logout') {
-        handleLogout()
-      } else {
-        router.push(command)
-      }
-    }
-    
-    return {
-      activeIndex,
-      userRole,
-      isAdmin,
-      isShop,
-      isUser,
-      isLoggedIn,
-      username,
-      userAvatar,
-      handleLogout,
-      handleCommand,
-      ROLES
-    }
+const userStore = useUserStore()
+const router = useRouter()
+const route = useRoute()
+
+// 使用useAuth
+const { isAdmin, isShop, isUser, isLoggedIn, ROLES } = useAuth()
+
+// 当前激活的导航项
+const activeIndex = ref('/')
+
+// 当路由变化时更新激活项
+onMounted(() => {
+  activeIndex.value = route.path
+})
+
+// 用户角色
+const userRole = computed(() => {
+  return userStore.userInfo?.role || 0
+})
+
+// 用户信息
+const username = computed(() => userStore.userInfo?.username || '用户')
+const userAvatar = computed(() => {
+  return userStore.userInfo?.avatar || ''
+})
+
+// 退出登录
+const handleLogout = async () => {
+  try {
+    await userStore.logout()
+    router.push('/login')
+  } catch (error) {
+    console.error('退出登录失败:', error)
+  }
+}
+
+// 处理下拉菜单点击
+const handleCommand = command => {
+  if (command === 'logout') {
+    handleLogout()
+  } else {
+    router.push(command)
   }
 }
 </script>
