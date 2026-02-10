@@ -211,7 +211,8 @@
 <script>
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useStore } from 'vuex'
+import { useForumStore } from '@/stores/forum'
+import { useUserStore } from '@/stores/user'
 
 import { View, ChatDotRound, Star, StarFilled, Share, Back, ChatLineRound, ArrowDown } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
@@ -226,7 +227,8 @@ export default {
   setup() {
     const route = useRoute()
     const router = useRouter()
-    const store = useStore()
+    const forumStore = useForumStore()
+    const userStore = useUserStore()
     
     // 默认图片（生产形态：不使用 mock-images）
     const defaultAvatar = ''
@@ -235,8 +237,8 @@ export default {
     // 获取帖子ID
     const postId = computed(() => route.params.id)
     
-    // 从Vuex获取收藏列表（点赞列表不再需要，因为取消点赞直接传递targetId和targetType）
-    const favoriteList = computed(() => store.state.user.favoriteList || [])
+    // 从Pinia获取收藏列表
+    const favoriteList = computed(() => userStore.favoriteList || [])
     
     // 点赞状态（从帖子数据判断）
     const liked = computed(() => {
@@ -251,14 +253,14 @@ export default {
     const likeLoading = ref(false)
     const favoriteLoading = ref(false)
     
-    // 从Vuex获取帖子数据
-    const post = computed(() => store.state.forum.currentPost)
-    const loading = computed(() => store.state.forum.loading)
+    // 从Pinia获取帖子数据
+    const post = computed(() => forumStore.currentPost)
+    const loading = computed(() => forumStore.loading)
     
     // 获取帖子详情
     const fetchPostDetail = async () => {
       try {
-        const res = await store.dispatch('forum/fetchPostDetail', postId.value)
+        const res = await forumStore.fetchPostDetail(postId.value)
         showByCode(res.code)
       } catch (error) {
         console.error('获取帖子详情失败:', error)
@@ -275,7 +277,7 @@ export default {
           size: pagination.pageSize,
           sortBy: currentSort.value
         }
-        await store.dispatch('forum/fetchPostReplies', { postId: postId.value, params })
+        await forumStore.fetchPostReplies({ postId: postId.value, params })
         updateReplyPagination()
       } catch (error) {
         console.error('获取回复列表失败:', error)
@@ -284,10 +286,10 @@ export default {
     
     // 更新回复分页信息
     const updateReplyPagination = () => {
-      const vuexPagination = store.state.forum.replyPagination
-      pagination.currentPage = vuexPagination.current
-      pagination.pageSize = vuexPagination.pageSize
-      pagination.total = vuexPagination.total
+      const piniaPagination = forumStore.replyPagination
+      pagination.currentPage = piniaPagination.current
+      pagination.pageSize = piniaPagination.pageSize
+      pagination.total = piniaPagination.total
     }
     
     // 页面初始化
@@ -309,7 +311,7 @@ export default {
       try {
         if (post.value?.isLiked) {
           // 取消点赞：直接传递targetId和targetType
-          const res = await store.dispatch('user/removeLike', {
+          const res = await userStore.removeLike({
             targetId: postId.value,
             targetType: 'post'
           })
@@ -318,7 +320,7 @@ export default {
           await fetchPostDetail()
         } else {
           // 添加点赞
-          const res = await store.dispatch('user/addLike', {
+          const res = await userStore.addLike({
             targetId: postId.value,
             targetType: 'post'
           })
@@ -349,7 +351,7 @@ export default {
       try {
         if (post.value?.isFavorited) {
           // 取消收藏：直接传递 itemId 和 itemType
-          const res = await store.dispatch('user/removeFavorite', {
+          const res = await userStore.removeFavorite({
             itemId: postId.value,
             itemType: 'post'
           })
@@ -358,7 +360,7 @@ export default {
           await fetchPostDetail()
         } else {
           // 添加收藏
-          const res = await store.dispatch('user/addFavorite', {
+          const res = await userStore.addFavorite({
             itemId: postId.value,
             itemType: 'post',
             targetName: post.value?.title || '',
@@ -415,8 +417,8 @@ export default {
     const mentionSelectedIndex = ref(0)
     const mentionStartPos = ref(-1) // @符号的位置
 
-    // 从Vuex获取回复数据
-    const replyList = computed(() => store.state.forum.postReplies)
+    // 从Pinia获取回复数据
+    const replyList = computed(() => forumStore.postReplies)
     const recommendList = ref([])
     // 处理排序变更
     const handleSortChange = async sort => {
@@ -443,7 +445,7 @@ export default {
       try {
         if (reply.isLiked) {
           // 取消点赞：直接传递targetId和targetType
-          const res = await store.dispatch('user/removeLike', {
+          const res = await userStore.removeLike({
             targetId: reply.id,
             targetType: 'reply'
           })
@@ -452,7 +454,7 @@ export default {
           await fetchReplies()
         } else {
           // 添加点赞
-          const res = await store.dispatch('user/addLike', {
+          const res = await userStore.addLike({
             targetId: reply.id,
             targetType: 'reply'
           })
@@ -626,7 +628,7 @@ export default {
           mentionedUserIds: mentionedUserIds.length > 0 ? mentionedUserIds : undefined
         }
         
-        const res = await store.dispatch('forum/createReply', { postId: postId.value, data: replyData })
+        const res = await forumStore.createReply({ postId: postId.value, data: replyData })
         showByCode(res.code)
         
         // 清空输入框和当前回复

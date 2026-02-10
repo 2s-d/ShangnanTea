@@ -250,7 +250,7 @@
 /* eslint-disable vue/no-ref-as-operand */
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useStore } from 'vuex'
+import { useForumStore } from '@/stores/forum'
 
 import { Refresh, ArrowDown, Grid, EditPen, Delete, Male, Female, Plus } from '@element-plus/icons-vue'
 import PostCard from '@/components/forum/PostCard.vue'
@@ -267,7 +267,7 @@ export default {
   },
   setup() {
     const router = useRouter()
-    const store = useStore()
+    const forumStore = useForumStore()
     
     // 默认图片常量（生产形态：不使用 mock-images）
     const defaultAvatar = ''
@@ -340,14 +340,14 @@ export default {
       total: 0
     })
     
-    // 从Vuex获取数据
-    const topicList = computed(() => store.state.forum.forumTopics)
-    const postList = computed(() => store.state.forum.forumPosts)
-    const loading = computed(() => store.state.forum.loading)
-    const error = computed(() => store.state.forum.error)
+    // 从Pinia获取数据
+    const topicList = computed(() => forumStore.forumTopics)
+    const postList = computed(() => forumStore.forumPosts)
+    const loading = computed(() => forumStore.loading)
+    const error = computed(() => forumStore.error)
     
-    // 分页数据从Vuex获取
-    const paginationData = computed(() => store.state.forum.postPagination)
+    // 分页数据从Pinia获取
+    const paginationData = computed(() => forumStore.postPagination)
     
     // 我的帖子（暂时使用空数组，后续可以添加相关API）
     const myPosts = ref([])
@@ -726,7 +726,7 @@ export default {
     // 获取版块列表
     const fetchTopics = async () => {
       try {
-        const res = await store.dispatch('forum/fetchForumTopics')
+        const res = await forumStore.fetchForumTopics()
         showByCode(res.code)
       } catch (error) {
         console.error('获取版块列表失败:', error)
@@ -742,7 +742,7 @@ export default {
           sortBy: currentSort.value,
           topicId: currentTopicId.value === 'all' ? null : currentTopicId.value
         }
-        const res = await store.dispatch('forum/fetchForumPosts', params)
+        const res = await forumStore.fetchForumPosts(params)
         showByCode(res.code)
         updatePagination()
       } catch (error) {
@@ -876,7 +876,7 @@ export default {
         }
         
         // 调用API
-        const res = await store.dispatch('forum/createPost', submitData)
+        const res = await forumStore.createPost(submitData)
         showByCode(res.code)
         
         // 发布成功
@@ -906,7 +906,7 @@ export default {
       try {
         if (post.isLiked) {
           // 取消点赞：直接传递targetId和targetType
-          const res = await store.dispatch('user/removeLike', {
+          const res = await forumStore.removeLike({
             targetId: String(post.id),
             targetType: 'post'
           })
@@ -915,7 +915,7 @@ export default {
           await fetchPosts()
         } else {
           // 添加点赞
-          const res = await store.dispatch('user/addLike', {
+          const res = await forumStore.addLike({
             targetId: String(post.id),
             targetType: 'post'
           })
@@ -933,7 +933,7 @@ export default {
       try {
         if (post.isFavorited) {
           // 取消收藏：直接传递 itemId 和 itemType
-          const res = await store.dispatch('user/removeFavorite', {
+          const res = await forumStore.removeFavorite({
             itemId: String(post.id),
             itemType: 'post'
           })
@@ -942,7 +942,7 @@ export default {
           await fetchPosts()
         } else {
           // 添加收藏
-          const res = await store.dispatch('user/addFavorite', {
+          const res = await forumStore.addFavorite({
             itemId: String(post.id),
             itemType: 'post',
             targetName: post.title || '',
@@ -970,7 +970,7 @@ export default {
       localLoading.delete = true
       
       try {
-        const res = await store.dispatch('forum/deletePost', postToDelete.value.id)
+        const res = await forumStore.deletePost(postToDelete.value.id)
         // 从我的帖子列表中移除
         myPosts.value = myPosts.value.filter(item => item.id !== postToDelete.value.id)
         
