@@ -504,9 +504,6 @@ const tempSelectedSpecId = ref(null)
       // 更新购物车数量标识
       updateCartCountBadge(itemCount)
     }, { deep: true })
-    
-// 添加默认图片常量
-const defaultTeaImage = '@/assets/images/teas/default.jpg'
 </script>
 
 <style lang="scss" scoped>

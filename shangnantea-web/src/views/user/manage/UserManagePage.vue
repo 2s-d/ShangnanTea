@@ -652,9 +652,6 @@ const userFormRef = ref(null)
     onMounted(() => {
       fetchUserList()
     })
-
-// 默认头像
-const defaultAvatar = '/mock-images/avatar-default.jpg'
 </script>
 
 <style lang="scss" scoped>

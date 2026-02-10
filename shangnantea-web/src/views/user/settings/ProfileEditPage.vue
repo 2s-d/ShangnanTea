@@ -283,12 +283,6 @@ const preferences = reactive({
       
       fetchPreferences()
     })
-
-// 路由
-const router = useRouter()
-const goBack = () => {
-  router.back()
-}
 </script>
 
 <style lang="scss" scoped>
