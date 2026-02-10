@@ -12,8 +12,8 @@
   - 安装 sass 依赖（Vite 需要）
   - _Requirements: 1.2_
 
-- [-] 2. 创建 Vite 配置文件
-  - [-] 2.1 创建 vite.config.js
+- [x] 2. 创建 Vite 配置文件
+  - [x] 2.1 创建 vite.config.js
     - 配置 @vitejs/plugin-vue 插件
     - 配置路径别名 @ 指向 src 目录
     - 配置开发服务器端口 8082
@@ -22,16 +22,16 @@
     - 配置生产构建选项（输出目录、代码分割等）
     - _Requirements: 1.1, 3.1, 5.1, 5.2, 6.1, 6.2, 7.1_
 
-- [ ] 3. 迁移环境变量
-  - [ ] 3.1 更新 .env.local 文件
+- [-] 3. 迁移环境变量
+  - [x] 3.1 更新 .env.local 文件
     - 将 VUE_APP_API_BASE_URL 改为 VITE_API_BASE_URL
     - _Requirements: 2.1_
 
-  - [ ] 3.2 更新 .env.production 文件
+  - [x] 3.2 更新 .env.production 文件
     - 将 VUE_APP_API_BASE_URL 改为 VITE_API_BASE_URL
     - _Requirements: 2.1_
 
-  - [ ] 3.3 更新代码中的环境变量引用
+  - [-] 3.3 更新代码中的环境变量引用
     - 在所有源文件中将 process.env.VUE_APP_ 替换为 import.meta.env.VITE_
     - 重点检查 src/api/ 目录下的文件
     - 检查 src/utils/ 目录下的文件

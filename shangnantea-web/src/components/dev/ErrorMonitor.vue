@@ -189,7 +189,7 @@ export default {
       
       try {
         // 使用环境变量中的 baseURL，如果没有则使用默认的 /api
-        const baseURL = process.env.VUE_APP_API_BASE_URL || '/api'
+        const baseURL = import.meta.env.VITE_API_BASE_URL || '/api'
         // 构建完整的请求 URL
         const apiUrl = baseURL.startsWith('http') 
           ? `${baseURL}/user/me`  // 云端 Mock 地址

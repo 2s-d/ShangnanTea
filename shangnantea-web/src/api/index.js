@@ -21,10 +21,10 @@ import { apiMessage } from '@/utils/messageManager'
 // 创建token存储实例
 const tokenStorage = useTokenStorage()
 
-// 获取API基础URL（Vue CLI项目使用VUE_APP_前缀）
+// 获取API基础URL（Vite项目使用VITE_前缀）
 const getApiBaseUrl = () => {
-  // Vue CLI环境变量
-  const baseUrl = process.env.VUE_APP_API_BASE_URL
+  // Vite环境变量
+  const baseUrl = import.meta.env.VITE_API_BASE_URL
   console.log('[API] Base URL:', baseUrl || '/api (default)')
   return baseUrl || '/api'
 }
@@ -47,7 +47,7 @@ const activeRequests = new Map()
 
 // 在开发环境中记录API调用
 const logApiCall = (config, status, response = null, error = null) => {
-  if (process.env.NODE_ENV !== 'development') return
+  if (import.meta.env.MODE !== 'development') return
   
   // 确保config有requestId
   if (!config.requestId) {
@@ -202,7 +202,7 @@ service.interceptors.response.use(
       } else if (errorCode === 'ECONNREFUSED' || errorMessage.includes('ECONNREFUSED')) {
         // 连接被拒绝（后端服务器未运行），不显示错误消息，避免干扰用户
         // 只在开发环境显示提示
-        if (process.env.NODE_ENV === 'development') {
+        if (import.meta.env.MODE === 'development') {
           console.warn('后端服务器未运行或无法连接，请检查后端服务状态')
         }
       } else {
