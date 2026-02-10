@@ -22,7 +22,7 @@
     - 配置生产构建选项（输出目录、代码分割等）
     - _Requirements: 1.1, 3.1, 5.1, 5.2, 6.1, 6.2, 7.1_
 
-- [-] 3. 迁移环境变量
+- [x] 3. 迁移环境变量
   - [x] 3.1 更新 .env.local 文件
     - 将 VUE_APP_API_BASE_URL 改为 VITE_API_BASE_URL
     - _Requirements: 2.1_
@@ -31,29 +31,29 @@
     - 将 VUE_APP_API_BASE_URL 改为 VITE_API_BASE_URL
     - _Requirements: 2.1_
 
-  - [-] 3.3 更新代码中的环境变量引用
+  - [x] 3.3 更新代码中的环境变量引用
     - 在所有源文件中将 process.env.VUE_APP_ 替换为 import.meta.env.VITE_
     - 重点检查 src/api/ 目录下的文件
     - 检查 src/utils/ 目录下的文件
     - 检查 vue.config.js 中的环境变量使用
     - _Requirements: 2.2_
 
-- [ ] 4. 处理 HTML 入口文件
-  - [ ] 4.1 移动和修改 index.html
+- [x] 4. 处理 HTML 入口文件
+  - [x] 4.1 移动和修改 index.html
     - 将 public/index.html 复制到项目根目录 shangnantea-web/index.html
     - 将 <%= BASE_URL %> 替换为 /
     - 添加主入口脚本标签：`<script type="module" src="/src/main.js"></script>`
     - _Requirements: 4.1, 4.2, 4.3_
 
-- [ ] 5. 更新 package.json 脚本
-  - [ ] 5.1 更新构建脚本
+- [x] 5. 更新 package.json 脚本
+  - [x] 5.1 更新构建脚本
     - 将 "serve" 改为 "dev": "vite"
     - 将 "build" 改为 "build": "vite build"
     - 添加 "preview": "vite preview"
     - 保留 "lint" 脚本但移除 vue-cli-service 依赖
     - _Requirements: 1.3_
 
-- [ ] 6. Checkpoint - 测试开发环境
+- [x] 6. Checkpoint - 测试开发环境
   - 运行 `npm run dev` 启动开发服务器
   - 验证服务器在 3 秒内启动
   - 访问 http://localhost:8082 检查首页加载
@@ -63,8 +63,8 @@
   - 检查浏览器控制台是否有错误
   - _Requirements: 6.1, 6.2, 6.3, 8.1, 8.4_
 
-- [ ] 7. 测试生产构建
-  - [ ] 7.1 执行生产构建
+- [-] 7. 测试生产构建
+  - [-] 7.1 执行生产构建
     - 运行 `npm run build`
     - 验证构建成功完成且无错误
     - 检查 dist 目录结构
