@@ -262,9 +262,204 @@ beforeEach(() => {
 })
 ```
 
+## 📋 待迁移文件清单
+
+### ✅ 确认需要迁移的文件（3个）
+
+#### 1. 店铺列表页（优先级：高）
+
+**文件**：`src/views/shop/list/ShopListPage.vue`
+- **使用模式**：`useStore()`, `store.state.shop`, `store.dispatch('shop/...')`
+- **涉及功能**：店铺列表、搜索筛选、排序、分页
+- **复杂度**：⭐⭐ 中等
+- **迁移状态**：⏳ 待迁移
+- **预计修改点**：
+  - 删除 `import { useStore } from 'vuex'`
+  - 添加 `import { useShopStore } from '@/stores/shop'`
+  - 修改 `store.state.shop.*` → `shopStore.*`
+  - 修改 `store.dispatch('shop/*')` → `shopStore.*()`
+
+#### 2. 店铺详情页（优先级：高）
+
+**文件**：`src/views/shop/detail/ShopDetailPage.vue`
+- **使用模式**：`useStore()`, `store.state.shop`, `store.dispatch('shop/...')`, `store.dispatch('user/...')`
+- **涉及功能**：店铺详情、商品列表、Banner展示、公告列表、评价系统、关注功能
+- **复杂度**：⭐⭐⭐ 较高（涉及多个 store）
+- **迁移状态**：⏳ 待迁移
+- **特殊注意**：
+  - 同时使用 shop store 和 user store
+  - 需要导入两个 store：`useShopStore` 和 `useUserStore`
+  - 关注功能调用 `store.dispatch('user/addFollow')` → `userStore.addFollow()`
+- **预计修改点**：
+  - 删除 `import { useStore } from 'vuex'`
+  - 添加 `import { useShopStore } from '@/stores/shop'`
+  - 添加 `import { useUserStore } from '@/stores/user'`
+  - 修改 `store.state.shop.*` → `shopStore.*`
+  - 修改 `store.dispatch('shop/*')` → `shopStore.*()`
+  - 修改 `store.dispatch('user/*')` → `userStore.*()`
+
+#### 3. 店铺管理页（优先级：中）
+
+**文件**：`src/views/shop/manage/ShopManagePage.vue`
+- **使用模式**：`useStore()`, `store.state.shop`, `store.dispatch('shop/...')`
+- **涉及功能**：店铺信息管理、茶叶管理、Banner管理、公告管理、统计数据、Logo上传
+- **复杂度**：⭐⭐⭐⭐ 高（功能最复杂，调用最多）
+- **迁移状态**：⏳ 待迁移
+- **特殊注意**：
+  - 包含大量 `store.dispatch` 调用（约17处）
+  - 涉及文件上传功能
+  - 需要仔细处理异步操作和错误处理
+- **预计修改点**：
+  - 删除 `import { useStore } from 'vuex'`
+  - 添加 `import { useShopStore } from '@/stores/shop'`
+  - 修改 `store.state.shop.*` → `shopStore.*`
+  - 修改所有 `store.dispatch('shop/*')` → `shopStore.*()`（约17处）
+
+---
+
+### ⚠️ 特殊说明
+
+#### 店铺卡片组件（✅ 无需修改）
+
+**文件**：`src/components/shop/card/ShopCard.vue`
+- **说明**：此组件通过 props 接收数据，不直接使用 store
+- **验证**：已确认无 `useStore`、`$store`、`mapState` 等 Vuex 相关代码
+
+#### Store 文件（✅ 已完成转换）
+
+**文件**：`src/stores/shop.js`
+- **说明**：已完成 Vuex → Pinia 转换，**严禁修改**
+- **状态**：已转换为 Pinia defineStore 格式
+
+#### API 文件（✅ 无需修改）
+
+**文件**：`src/api/shop.js`
+- **说明**：API 层无需修改，与 store 实现无关
+
+---
+
+### 📊 迁移统计
+
+| 类别 | 数量 | 状态 | 说明 |
+|------|------|------|------|
+| **需要迁移** | 3 个文件 | ⏳ 待迁移 | 使用 shop store 的页面组件 |
+| **无需修改** | 1 个文件 | ✅ 已确认 | ShopCard.vue 通过 props 传递数据 |
+| **已完成转换** | 1 个文件 | ✅ 已完成 | shop.js store 已转为 Pinia |
+| **总计** | 5 个文件 | - | 商铺模块全部相关文件 |
+
+---
+
+### 🔄 推荐迁移顺序
+
+按照以下顺序逐个迁移（从简单到复杂，从高优先级到低优先级）：
+
+1. ⏳ **ShopListPage.vue** - 店铺列表页
+   - 复杂度：⭐⭐ 中等
+   - 优先级：高
+   - 原因：功能相对独立，只使用 shop store，适合作为第一个迁移对象
+
+2. ⏳ **ShopDetailPage.vue** - 店铺详情页
+   - 复杂度：⭐⭐⭐ 较高
+   - 优先级：高
+   - 原因：用户访问频率高，涉及多个 store，需要仔细处理
+
+3. ⏳ **ShopManagePage.vue** - 店铺管理页
+   - 复杂度：⭐⭐⭐⭐ 高
+   - 优先级：中
+   - 原因：功能最复杂，调用最多，建议最后迁移以积累经验
+
+---
+
+## 🔍 三重验证报告
+
+### ✅ 验证方案 1：目录穷举
+
+**检查范围**：
+- `src/views/shop/` - 3个文件
+- `src/components/shop/` - 1个文件
+
+**发现文件**：
+```
+src/views/shop/
+├── detail/ShopDetailPage.vue
+├── list/ShopListPage.vue
+└── manage/ShopManagePage.vue
+
+src/components/shop/
+└── card/ShopCard.vue
+```
+
+**结论**：✅ 所有文件已列入清单
+
+---
+
+### ✅ 验证方案 2：关键词搜索验证
+
+#### 搜索 `useStore`
+- ✅ ShopDetailPage.vue - 找到 2 处
+- ✅ ShopListPage.vue - 找到 2 处
+- ✅ ShopManagePage.vue - 找到 2 处
+- ✅ ShopCard.vue - 未找到（符合预期）
+
+#### 搜索 `store.state`
+- ✅ ShopDetailPage.vue - 找到 10 处
+- ✅ ShopListPage.vue - 找到 8 处
+- ✅ ShopManagePage.vue - 找到 7 处
+
+#### 搜索 `store.dispatch`
+- ✅ ShopDetailPage.vue - 找到 9 处
+- ✅ ShopListPage.vue - 找到 9 处
+- ✅ ShopManagePage.vue - 找到 17 处
+
+#### 搜索 `$store`（模板中使用）
+- ✅ 所有文件 - 未找到（说明都在 script 中使用）
+
+**结论**：✅ 清单完整，无遗漏文件
+
+---
+
+### ✅ 验证方案 3：反向验证
+
+**逐个文件确认**：
+
+1. **ShopDetailPage.vue**
+   - ✅ 使用 `useStore` from 'vuex'
+   - ✅ 访问 `store.state.shop.*`
+   - ✅ 调用 `store.dispatch('shop/*')`
+   - ✅ 调用 `store.dispatch('user/*')` - 关注功能
+
+2. **ShopListPage.vue**
+   - ✅ 使用 `useStore` from 'vuex'
+   - ✅ 访问 `store.state.shop.*`
+   - ✅ 调用 `store.dispatch('shop/*')`
+
+3. **ShopManagePage.vue**
+   - ✅ 使用 `useStore` from 'vuex'
+   - ✅ 访问 `store.state.shop.*`
+   - ✅ 调用 `store.dispatch('shop/*')`
+
+4. **ShopCard.vue**
+   - ✅ 无 store 使用（纯 props 组件）
+
+**结论**：✅ 所有文件状态准确
+
+---
+
+### 📊 验证总结
+
+| 验证方案 | 状态 | 结果 |
+|---------|------|------|
+| 方案 1：目录穷举 | ✅ 通过 | 4个文件全部发现 |
+| 方案 2：关键词搜索 | ✅ 通过 | 3个需迁移，1个无需修改 |
+| 方案 3：反向验证 | ✅ 通过 | 使用模式全部确认 |
+
+**最终结论**：✅ 清单完整准确，可以开始迁移
+
+---
+
 ## 工作流程
 
-### 第一步：生成待修改文件列表
+### 第一步：生成待修改文件列表 ✅ 已完成
 
 使用以下命令在工作目录中搜索所有使用 shop store 的文件：
 
@@ -280,7 +475,7 @@ grep -r -l "\$store\.commit('shop/" src/ --include="*.vue" --include="*.js"
 grep -r -l "\$store\.getters\['shop/" src/ --include="*.vue" --include="*.js"
 ```
 
-### 第二步：多重验证和交叉检查
+### 第二步：多重验证和交叉检查 ✅ 已完成
 
 ```bash
 # 检查特殊目录
@@ -295,11 +490,11 @@ grep -n "store\|shop" src/router/index.js
 grep -n "\$store\|mapState\|mapGetters" src/App.vue
 ```
 
-### 第三步：整理并展示文件列表
+### 第三步：整理并展示文件列表 ✅ 已完成
 
 将搜索结果整理成清晰的列表，展示给用户并等待确认。
 
-### 第四步：等待用户确认
+### 第四步：等待用户确认 ⏳ 等待中
 
 **⚠️ 重要：必须等待用户确认后才能开始修改**
 

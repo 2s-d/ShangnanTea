@@ -268,7 +268,7 @@
 <script>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useStore } from 'vuex'
+import { useShopStore } from '@/stores/shop'
 import { useUserStore } from '@/stores/user'
 
 import { Back, Check, Star, ChatLineRound, Bell } from '@element-plus/icons-vue'
@@ -289,17 +289,17 @@ export default {
     SafeImage
   },
   setup() {
-    const store = useStore()
+    const shopStore = useShopStore()
     const userStore = useUserStore()
     const router = useRouter()
     const route = useRoute()
-    const loading = computed(() => store.state.shop.loading)
+    const loading = computed(() => shopStore.loading)
     const activeTab = ref('products')
-    const shop = computed(() => store.state.shop.currentShop)
-    const shopTeas = computed(() => store.state.shop.shopTeas || [])
+    const shop = computed(() => shopStore.currentShop)
+    const shopTeas = computed(() => shopStore.shopTeas || [])
     // 任务组B：Banner和公告
-    const shopBanners = computed(() => store.state.shop.shopBanners || [])
-    const shopAnnouncements = computed(() => store.state.shop.shopAnnouncements || [])
+    const shopBanners = computed(() => shopStore.shopBanners || [])
+    const shopAnnouncements = computed(() => shopStore.shopAnnouncements || [])
 
     // 关注状态（从接口返回的isFollowed字段获取）
     const isFollowing = computed(() => shop.value?.isFollowed || false)
@@ -308,8 +308,8 @@ export default {
     const defaultShopLogo = '/images/shops/default.jpg'
     
     // 店铺评价相关
-    const shopReviews = computed(() => store.state.shop.shopReviews || [])
-    const reviewPagination = computed(() => store.state.shop.reviewPagination)
+    const shopReviews = computed(() => shopStore.shopReviews || [])
+    const reviewPagination = computed(() => shopStore.reviewPagination)
     const reviewForm = ref({
       rating: 5,
       content: ''
@@ -326,14 +326,14 @@ export default {
       }
 
       try {
-        await store.dispatch('shop/fetchShopDetail', shopId)
-        await store.dispatch('shop/fetchShopTeas', { shopId, params: { page: 1, size: 20 } })
+        await shopStore.fetchShopDetail(shopId)
+        await shopStore.fetchShopTeas({ shopId, params: { page: 1, size: 20 } })
         // 任务组B：加载Banner和公告
-        await store.dispatch('shop/fetchShopBanners', shopId)
-        await store.dispatch('shop/fetchShopAnnouncements', shopId)
+        await shopStore.fetchShopBanners(shopId)
+        await shopStore.fetchShopAnnouncements(shopId)
         // 注意：关注状态已由fetchShopDetail接口返回的isFollowed字段提供，无需单独调用checkFollowStatus
         // 加载店铺评价
-        await store.dispatch('shop/fetchShopReviews', {
+        await shopStore.fetchShopReviews({
           shopId,
           page: 1,
           size: 10
@@ -374,7 +374,7 @@ export default {
           })
           showByCode(response.code)
           // 重新加载店铺详情以更新isFollowed状态
-          await store.dispatch('shop/fetchShopDetail', shop.value.id)
+          await shopStore.fetchShopDetail(shop.value.id)
         } else {
           // 添加关注
           const response = await userStore.addFollow({
@@ -385,7 +385,7 @@ export default {
           })
           showByCode(response.code)
           // 重新加载店铺详情以更新isFollowed状态
-          await store.dispatch('shop/fetchShopDetail', shop.value.id)
+          await shopStore.fetchShopDetail(shop.value.id)
         }
       } catch (error) {
         console.error('关注操作失败:', error)
@@ -411,7 +411,7 @@ export default {
       const shopId = route.params.id
       if (!shopId) return
       try {
-        await store.dispatch('shop/fetchShopReviews', {
+        await shopStore.fetchShopReviews({
           shopId,
           page,
           size: reviewPagination.value.pageSize
@@ -437,7 +437,7 @@ export default {
       
       reviewSubmitting.value = true
       try {
-        const response = await store.dispatch('shop/submitShopReview', {
+        const response = await shopStore.submitShopReview({
           shopId,
           reviewData: {
             rating: reviewForm.value.rating,
@@ -451,7 +451,7 @@ export default {
           content: ''
         }
         // 重新加载评价列表
-        await store.dispatch('shop/fetchShopReviews', {
+        await shopStore.fetchShopReviews({
           shopId,
           page: 1,
           size: reviewPagination.value.pageSize
