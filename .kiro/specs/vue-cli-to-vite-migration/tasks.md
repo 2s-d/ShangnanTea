@@ -63,15 +63,15 @@
   - 检查浏览器控制台是否有错误
   - _Requirements: 6.1, 6.2, 6.3, 8.1, 8.4_
 
-- [-] 7. 测试生产构建
-  - [-] 7.1 执行生产构建
+- [x] 7. 测试生产构建
+  - [x] 7.1 执行生产构建
     - 运行 `npm run build`
     - 验证构建成功完成且无错误
     - 检查 dist 目录结构
     - 验证静态资源有哈希命名
     - _Requirements: 7.1, 7.3, 8.2_
 
-  - [ ] 7.2 预览生产构建
+  - [x] 7.2 预览生产构建
     - 运行 `npm run preview`
     - 访问预览服务器测试所有功能
     - 验证所有路由正常工作
@@ -90,14 +90,14 @@
   - 验证 SCSS 样式正确渲染
   - _Requirements: 8.4_
 
-- [ ] 9. 清理 Vue CLI 相关文件
-  - [ ] 9.1 删除配置文件
+- [-] 9. 清理 Vue CLI 相关文件
+  - [x] 9.1 删除配置文件
     - 删除 vue.config.js
     - 删除 babel.config.js
     - 删除 public/index.html（已移到根目录）
     - _Requirements: 10.1, 10.3_
 
-  - [ ] 9.2 移除 Vue CLI 依赖
+  - [-] 9.2 移除 Vue CLI 依赖
     - 从 package.json 移除 @vue/cli-service
     - 从 package.json 移除 @vue/cli-plugin-babel
     - 从 package.json 移除 @vue/cli-plugin-eslint
