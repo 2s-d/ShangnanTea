@@ -5,6 +5,7 @@ import com.shangnantea.model.dto.order.AddToCartDTO;
 import com.shangnantea.model.dto.order.UpdateCartItemDTO;
 import com.shangnantea.model.vo.order.CartItemVO;
 import com.shangnantea.security.annotation.RequiresLogin;
+import com.shangnantea.security.annotation.RequiresRoles;
 import com.shangnantea.service.OrderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
