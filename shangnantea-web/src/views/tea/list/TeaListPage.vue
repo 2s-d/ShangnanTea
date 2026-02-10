@@ -173,7 +173,7 @@
 <script>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useStore } from 'vuex'
+import { useTeaStore } from '@/stores/tea'
 
 import { Search, Shop } from '@element-plus/icons-vue'
 import TeaCard from '@/components/tea/card/TeaCard.vue'
@@ -189,7 +189,7 @@ export default {
     SearchBar
   },
   setup() {
-    const store = useStore()
+    const teaStore = useTeaStore()
     const router = useRouter()
     const route = useRoute()
 
@@ -207,13 +207,13 @@ export default {
     })
     
     // 从store获取分类数据
-    const categoryOptions = computed(() => store.state.tea.categories)
+    const categoryOptions = computed(() => teaStore.categories)
     
     // 从store获取茶叶列表
-    const teas = computed(() => store.state.tea.teaList)
-    const totalCount = computed(() => store.state.tea.pagination.total)
-    const pageSize = computed(() => store.state.tea.pagination.pageSize)
-    const loading = computed(() => store.state.tea.loading)
+    const teas = computed(() => teaStore.teaList)
+    const totalCount = computed(() => teaStore.pagination.total)
+    const pageSize = computed(() => teaStore.pagination.pageSize)
+    const loading = computed(() => teaStore.loading)
     
     // 加载茶叶数据（提前定义，避免 watch 中调用时未定义）
     const loadTeas = async () => {
@@ -237,7 +237,7 @@ export default {
         
         // 将UI筛选条件映射到 store.filters
         // 任务组E：只显示上架茶叶（status=1）
-        await store.dispatch('tea/updateFilters', {
+        await teaStore.updateFilters({
           keyword: searchQuery.value,
           // 当前 store 只支持单个 category 字段，这里用"第一个选中分类"作为查询条件
           category: filters.categories.length > 0 ? filters.categories[0] : '',
@@ -342,8 +342,8 @@ export default {
       sortOption.value = 'default'
       currentPage.value = 1
       
-      // 重置Vuex筛选条件
-      await store.dispatch('tea/resetFilters')
+      // 重置Pinia筛选条件
+      await teaStore.resetFilters()
       
       // 清空URL参数
       router.replace({ query: {} })
@@ -353,7 +353,7 @@ export default {
     const handlePageChange = page => {
       currentPage.value = page
       updateQueryParams()
-      store.dispatch('tea/setPage', page)
+      teaStore.setPage(page)
     }
     
     // 处理排序变更
@@ -364,7 +364,7 @@ export default {
     }
     
     // 任务组F：热门推荐数据
-    const popularTeas = computed(() => store.state.tea.recommendTeas || [])
+    const popularTeas = computed(() => teaStore.recommendTeas || [])
     
     // 任务组F：跳转到茶叶详情页
     const goToTeaDetail = teaId => {
@@ -374,7 +374,7 @@ export default {
     // 任务组F：加载热门推荐
     const loadPopularTeas = async () => {
       try {
-        await store.dispatch('tea/fetchRecommendTeas', { type: 'popular', count: 6 })
+        await teaStore.fetchRecommendTeas({ type: 'popular', count: 6 })
       } catch (error) {
         // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
         if (process.env.NODE_ENV === 'development') {
@@ -385,7 +385,7 @@ export default {
     
     // 初始化
     onMounted(async () => {
-      await store.dispatch('tea/fetchCategories')
+      await teaStore.fetchCategories()
       // 如果URL中有查询参数，会触发watch自动加载
       // 如果没有查询参数，需要手动加载一次
       if (!route.query.page && !route.query.search && !route.query.categories) {
