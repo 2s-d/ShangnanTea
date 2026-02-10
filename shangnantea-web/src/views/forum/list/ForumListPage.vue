@@ -1020,54 +1020,7 @@ const updatePagination = () => {
         fetchPosts()
       ])
     })
-    
-    return {
-      topicList,
-      postList,
-      myPosts,
-      currentUser,
-      currentTopicId,
-      loading,
-      localLoading,
-      dialogVisible,
-      currentSort,
-      sortOptions,
-      pagination,
-      defaultAvatar,
-      defaultCover,
-      defaultIcon,
-      postFormRef,
-      postForm,
-      postRules,
-      getTopicName,
-      getCurrentTopicName,
-      getCurrentTopicDesc,
-      switchTopic,
-      refreshTopics,
-      refreshPosts,
-      handleSortChange,
-      handleSizeChange,
-      handleCurrentChange,
-      viewTopic,
-      viewPost,
-      showPostDialog,
-      handleImageExceed,
-      handleImageChange,
-      handleImageRemove,
-      cancelPost,
-      submitPost,
-      handleReply,
-      handleLike,
-      handleFavorite,
-      confirmDeletePost,
-      deletePost,
-      formatDate,
-      goHome,
-      fetchTopics,
-      fetchPosts,
-      Refresh,
-      ArrowDown,
-
+</script>
 
 <style lang="scss" scoped>
 .forum-list-page {
