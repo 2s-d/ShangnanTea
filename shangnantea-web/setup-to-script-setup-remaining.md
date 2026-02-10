@@ -3,9 +3,9 @@
 ## 进度统计
 
 - **总文件数：** 38
-- **已完成：** 20
-- **剩余：** 18
-- **完成度：** 52.6%
+- **已完成：** 26
+- **剩余：** 12
+- **完成度：** 68.4%
 
 ---
 
@@ -61,15 +61,17 @@
 
 ## 第四组：message-module（6个文件）
 
-**状态：** 待转换
+**状态：** ✅ 已完成
+
+**提交信息：** `refactor: 转换第四组（message-module）6个文件从 setup() 到 <script setup> 语法糖`
 
 **文件列表：**
-1. `src/views/message/notification/SystemNotificationsPage.vue`
-2. `src/views/message/homepage/UserHomePage.vue`
-3. `src/views/message/follows/FollowsPage.vue`
-4. `src/views/message/content/PublishedContentPage.vue`
-5. `src/views/message/favorites/FavoritesPage.vue`
-6. `src/views/message/chat/ChatPage.vue`
+1. ✅ `src/views/message/notification/SystemNotificationsPage.vue`
+2. ✅ `src/views/message/homepage/UserHomePage.vue`
+3. ✅ `src/views/message/follows/FollowsPage.vue`
+4. ✅ `src/views/message/content/PublishedContentPage.vue`
+5. ✅ `src/views/message/favorites/FavoritesPage.vue`
+6. ✅ `src/views/message/chat/ChatPage.vue`
 
 ---
 
