@@ -1067,17 +1067,7 @@ const updatePagination = () => {
       fetchPosts,
       Refresh,
       ArrowDown,
-      Grid,
-      EditPen,
-      Delete,
-      Male,
-      Female,
-      Plus,
-      SafeImage
-    }
-  }
-}
-</script>
+
 
 <style lang="scss" scoped>
 .forum-list-page {

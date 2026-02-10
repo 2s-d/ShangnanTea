@@ -208,7 +208,7 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useForumStore } from '@/stores/forum'
@@ -219,506 +219,447 @@ import SafeImage from '@/components/common/form/SafeImage.vue'
 import { showByCode } from '@/utils/apiMessages'
 import { forumPromptMessages } from '@/utils/promptMessages'
 
-export default {
-  name: 'ForumDetailPage',
-  components: {
-    View, ChatDotRound, Star, StarFilled, Share, Back, ChatLineRound, ArrowDown, SafeImage
-  },
-  setup() {
-    const route = useRouter()
-    const router = useRouter()
-    const forumStore = useForumStore()
-    const userStore = useUserStore()
+const route = useRoute()
+const router = useRouter()
+const forumStore = useForumStore()
+const userStore = useUserStore()
     
-    // 默认图片（生产形态：不使用 mock-images）
-    const defaultAvatar = ''
-    const defaultCover = ''
-    
-    // 获取帖子ID
-    const postId = computed(() => route.params.id)
-    
-    // 从Pinia获取收藏列表
-    const favoriteList = computed(() => userStore.favoriteList || [])
-    
-    // 点赞状态（从帖子数据判断）
-    const liked = computed(() => {
-      return post.value?.isLiked || false
-    })
-    
-    // 收藏状态（从帖子数据判断）
-    const favorited = computed(() => {
-      return post.value?.isFavorited || false
-    })
-    
-    const likeLoading = ref(false)
-    const favoriteLoading = ref(false)
-    
-    // 从Pinia获取帖子数据
-    const post = computed(() => forumStore.currentPost)
-    const loading = computed(() => forumStore.loading)
-    
-    // 获取帖子详情
-    const fetchPostDetail = async () => {
-      try {
-        const res = await forumStore.fetchPostDetail(postId.value)
-        showByCode(res.code)
-      } catch (error) {
-        console.error('获取帖子详情失败:', error)
-      }
-    }
-    
-    // 获取回复列表
-    const fetchReplies = async () => {
-      if (!postId.value) return
-      
-      try {
-        const params = {
-          page: pagination.currentPage,
-          size: pagination.pageSize,
-          sortBy: currentSort.value
-        }
-        await forumStore.fetchPostReplies({ postId: postId.value, params })
-        updateReplyPagination()
-      } catch (error) {
-        console.error('获取回复列表失败:', error)
-      }
-    }
-    
-    // 更新回复分页信息
-    const updateReplyPagination = () => {
-      const piniaPagination = forumStore.replyPagination
-      pagination.currentPage = piniaPagination.current
-      pagination.pageSize = piniaPagination.pageSize
-      pagination.total = piniaPagination.total
-    }
-    
-    // 页面初始化
-    onMounted(async () => {
-      await fetchPostDetail()
-      await fetchReplies()
-    })
-    
-    // 返回帖子列表
-    const goBack = () => {
-      router.back()
-    }
-    
-    // 点赞帖子
-    const likePost = async () => {
-      if (!postId.value) return
-      
-      likeLoading.value = true
-      try {
-        if (post.value?.isLiked) {
-          // 取消点赞：直接传递targetId和targetType
-          const res = await userStore.removeLike({
-            targetId: postId.value,
-            targetType: 'post'
-          })
-          showByCode(res.code)
-          // 重新加载帖子详情以更新isLiked状态
-          await fetchPostDetail()
-        } else {
-          // 添加点赞
-          const res = await userStore.addLike({
-            targetId: postId.value,
-            targetType: 'post'
-          })
-          showByCode(res.code)
-          // 重新加载帖子详情以更新isLiked状态
-          await fetchPostDetail()
-        }
-      } catch (error) {
-        console.error('点赞操作失败:', error)
-      } finally {
-        likeLoading.value = false
-      }
-    }
-    
-    // 滚动到回复区域
-    const scrollToReply = () => {
-      const replySection = document.getElementById('reply-section')
-      if (replySection) {
-        replySection.scrollIntoView({ behavior: 'smooth' })
-      }
-    }
-    
-    // 收藏/取消收藏
-    const toggleFavorite = async () => {
-      if (!postId.value) return
-      
-      favoriteLoading.value = true
-      try {
-        if (post.value?.isFavorited) {
-          // 取消收藏：直接传递 itemId 和 itemType
-          const res = await userStore.removeFavorite({
-            itemId: postId.value,
-            itemType: 'post'
-          })
-          showByCode(res.code)
-          // 重新加载帖子详情以更新isFavorited状态
-          await fetchPostDetail()
-        } else {
-          // 添加收藏
-          const res = await userStore.addFavorite({
-            itemId: postId.value,
-            itemType: 'post',
-            targetName: post.value?.title || '',
-            targetImage: post.value?.coverImage || ''
-          })
-          showByCode(res.code)
-          // 重新加载帖子详情以更新isFavorited状态
-          await fetchPostDetail()
-        }
-      } catch (error) {
-        console.error('收藏操作失败:', error)
-      } finally {
-        favoriteLoading.value = false
-      }
-    }
-    
-    // 显示分享对话框
-    const showShareDialog = () => {
-      forumPromptMessages.showShareDeveloping()
-    }
-    
-    // 格式化日期
-    const formatDate = dateString => {
-      if (!dateString) return ''
-      const date = new Date(dateString)
-      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
-    }
-    
-    // 排序选项
-    const currentSort = ref('default')
-    const sortOptions = {
-      default: '默认排序',
-      time: '按时间正序',
-      timeDesc: '按时间倒序',
-      hot: '按热度排序'
-    }
-    
-    // 分页数据
-    const pagination = reactive({
-      currentPage: 1,
-      pageSize: 10,
-      total: 0
-    })
-    
-    // 回复相关状态
-    const replyContent = ref('')
-    const currentReply = ref(null)
-    const submitting = ref(false)
-    const replyTextareaRef = ref(null)
-    
-    // @用户相关状态
-    const showMentionList = ref(false)
-    const mentionUsers = ref([])
-    const mentionSelectedIndex = ref(0)
-    const mentionStartPos = ref(-1) // @符号的位置
+// 默认图片（生产形态：不使用 mock-images）
+const defaultAvatar = ''
+const defaultCover = ''
 
-    // 从Pinia获取回复数据
-    const replyList = computed(() => forumStore.postReplies)
-    const recommendList = ref([])
-    // 处理排序变更
-    const handleSortChange = async sort => {
-      currentSort.value = sort
-      pagination.currentPage = 1 // 重置到第一页
+// 获取帖子ID
+const postId = computed(() => route.params.id)
+
+// 从Pinia获取收藏列表
+const favoriteList = computed(() => userStore.favoriteList || [])
+
+// 点赞状态（从帖子数据判断）
+const liked = computed(() => {
+  return post.value?.isLiked || false
+})
+
+// 收藏状态（从帖子数据判断）
+const favorited = computed(() => {
+  return post.value?.isFavorited || false
+})
+
+const likeLoading = ref(false)
+const favoriteLoading = ref(false)
+
+// 从Pinia获取帖子数据
+const post = computed(() => forumStore.currentPost)
+const loading = computed(() => forumStore.loading)
+    
+// 获取帖子详情
+const fetchPostDetail = async () => {
+  try {
+    const res = await forumStore.fetchPostDetail(postId.value)
+    showByCode(res.code)
+  } catch (error) {
+    console.error('获取帖子详情失败:', error)
+  }
+}
+
+// 获取回复列表
+const fetchReplies = async () => {
+  if (!postId.value) return
+  
+  try {
+    const params = {
+      page: pagination.currentPage,
+      size: pagination.pageSize,
+      sortBy: currentSort.value
+    }
+    await forumStore.fetchPostReplies({ postId: postId.value, params })
+    updateReplyPagination()
+  } catch (error) {
+    console.error('获取回复列表失败:', error)
+  }
+}
+
+// 更新回复分页信息
+const updateReplyPagination = () => {
+  const piniaPagination = forumStore.replyPagination
+  pagination.currentPage = piniaPagination.current
+  pagination.pageSize = piniaPagination.pageSize
+  pagination.total = piniaPagination.total
+}
+
+// 页面初始化
+onMounted(async () => {
+  await fetchPostDetail()
+  await fetchReplies()
+})
+
+// 返回帖子列表
+const goBack = () => {
+  router.back()
+}
+    
+// 点赞帖子
+const likePost = async () => {
+  if (!postId.value) return
+  
+  likeLoading.value = true
+  try {
+    if (post.value?.isLiked) {
+      // 取消点赞：直接传递targetId和targetType
+      const res = await userStore.removeLike({
+        targetId: postId.value,
+        targetType: 'post'
+      })
+      showByCode(res.code)
+      // 重新加载帖子详情以更新isLiked状态
+      await fetchPostDetail()
+    } else {
+      // 添加点赞
+      const res = await userStore.addLike({
+        targetId: postId.value,
+        targetType: 'post'
+      })
+      showByCode(res.code)
+      // 重新加载帖子详情以更新isLiked状态
+      await fetchPostDetail()
+    }
+  } catch (error) {
+    console.error('点赞操作失败:', error)
+  } finally {
+    likeLoading.value = false
+  }
+}
+
+// 滚动到回复区域
+const scrollToReply = () => {
+  const replySection = document.getElementById('reply-section')
+  if (replySection) {
+    replySection.scrollIntoView({ behavior: 'smooth' })
+  }
+}
+
+// 收藏/取消收藏
+const toggleFavorite = async () => {
+  if (!postId.value) return
+  
+  favoriteLoading.value = true
+  try {
+    if (post.value?.isFavorited) {
+      // 取消收藏：直接传递 itemId 和 itemType
+      const res = await userStore.removeFavorite({
+        itemId: postId.value,
+        itemType: 'post'
+      })
+      showByCode(res.code)
+      // 重新加载帖子详情以更新isFavorited状态
+      await fetchPostDetail()
+    } else {
+      // 添加收藏
+      const res = await userStore.addFavorite({
+        itemId: postId.value,
+        itemType: 'post',
+        targetName: post.value?.title || '',
+        targetImage: post.value?.coverImage || ''
+      })
+      showByCode(res.code)
+      // 重新加载帖子详情以更新isFavorited状态
+      await fetchPostDetail()
+    }
+  } catch (error) {
+    console.error('收藏操作失败:', error)
+  } finally {
+    favoriteLoading.value = false
+  }
+}
+
+// 显示分享对话框
+const showShareDialog = () => {
+  forumPromptMessages.showShareDeveloping()
+}
+
+// 格式化日期
+const formatDate = dateString => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+}
+
+// 排序选项
+const currentSort = ref('default')
+const sortOptions = {
+  default: '默认排序',
+  time: '按时间正序',
+  timeDesc: '按时间倒序',
+  hot: '按热度排序'
+}
+
+// 分页数据
+const pagination = reactive({
+  currentPage: 1,
+  pageSize: 10,
+  total: 0
+})
+
+// 回复相关状态
+const replyContent = ref('')
+const currentReply = ref(null)
+const submitting = ref(false)
+const replyTextareaRef = ref(null)
+
+// @用户相关状态
+const showMentionList = ref(false)
+const mentionUsers = ref([])
+const mentionSelectedIndex = ref(0)
+const mentionStartPos = ref(-1) // @符号的位置
+
+// 从Pinia获取回复数据
+const replyList = computed(() => forumStore.postReplies)
+const recommendList = ref([])
+// 处理排序变更
+const handleSortChange = async sort => {
+  currentSort.value = sort
+  pagination.currentPage = 1 // 重置到第一页
+  await fetchReplies()
+}
+
+// 处理分页大小变更
+const handleSizeChange = async size => {
+  pagination.pageSize = size
+  pagination.currentPage = 1 // 重置到第一页
+  await fetchReplies()
+}
+
+// 处理页码变更
+const handleCurrentChange = async page => {
+  pagination.currentPage = page
+  await fetchReplies()
+}
+
+// 点赞回复
+const likeReply = async reply => {
+  try {
+    if (reply.isLiked) {
+      // 取消点赞：直接传递targetId和targetType
+      const res = await userStore.removeLike({
+        targetId: reply.id,
+        targetType: 'reply'
+      })
+      showByCode(res.code)
+      // 重新加载回复列表以更新isLiked状态
+      await fetchReplies()
+    } else {
+      // 添加点赞
+      const res = await userStore.addLike({
+        targetId: reply.id,
+        targetType: 'reply'
+      })
+      showByCode(res.code)
+      // 重新加载回复列表以更新isLiked状态
       await fetchReplies()
     }
-    
-    // 处理分页大小变更
-    const handleSizeChange = async size => {
-      pagination.pageSize = size
-      pagination.currentPage = 1 // 重置到第一页
-      await fetchReplies()
+  } catch (error) {
+    console.error('点赞回复失败:', error)
+  }
+}
+
+// 显示回复输入框
+const showReplyInput = reply => {
+  currentReply.value = reply
+  // 聚焦到输入框
+  setTimeout(() => {
+    const textarea = document.querySelector('.reply-form textarea')
+    if (textarea) {
+      textarea.focus()
     }
+  }, 100)
+}
+
+// 取消回复
+const cancelReply = () => {
+  currentReply.value = null
+}
     
-    // 处理页码变更
-    const handleCurrentChange = async page => {
-      pagination.currentPage = page
-      await fetchReplies()
-    }
-    
-    // 点赞回复
-    const likeReply = async reply => {
-      try {
-        if (reply.isLiked) {
-          // 取消点赞：直接传递targetId和targetType
-          const res = await userStore.removeLike({
-            targetId: reply.id,
-            targetType: 'reply'
+// 处理回复输入
+const handleReplyInput = value => {
+  // 检测@符号
+  if (!replyTextareaRef.value || !replyTextareaRef.value.textarea) return
+  
+  const textarea = replyTextareaRef.value.textarea
+  const cursorPos = textarea.selectionStart || value.length
+  const textBeforeCursor = value.substring(0, cursorPos)
+  const lastAtIndex = textBeforeCursor.lastIndexOf('@')
+  
+  if (lastAtIndex !== -1) {
+    // 检查@后面是否有空格或其他分隔符
+    const textAfterAt = textBeforeCursor.substring(lastAtIndex + 1)
+    if (!textAfterAt.includes(' ') && !textAfterAt.includes('\n')) {
+      // 正在输入用户名
+      const searchKeyword = textAfterAt.toLowerCase()
+      mentionStartPos.value = lastAtIndex
+      // 从回复列表中搜索用户（简单实现：从当前回复列表的用户中搜索）
+      const allUsers = new Map()
+      replyList.value.forEach(reply => {
+        if (!allUsers.has(reply.userId)) {
+          allUsers.set(reply.userId, {
+            id: reply.userId,
+            username: reply.userName,
+            avatar: reply.userAvatar
           })
-          showByCode(res.code)
-          // 重新加载回复列表以更新isLiked状态
-          await fetchReplies()
-        } else {
-          // 添加点赞
-          const res = await userStore.addLike({
-            targetId: reply.id,
-            targetType: 'reply'
-          })
-          showByCode(res.code)
-          // 重新加载回复列表以更新isLiked状态
-          await fetchReplies()
         }
-      } catch (error) {
-        console.error('点赞回复失败:', error)
-      }
-    }
-    
-    // 显示回复输入框
-    const showReplyInput = reply => {
-      currentReply.value = reply
-      // 聚焦到输入框
-      setTimeout(() => {
-        const textarea = document.querySelector('.reply-form textarea')
-        if (textarea) {
-          textarea.focus()
-        }
-      }, 100)
-    }
-    
-    // 取消回复
-    const cancelReply = () => {
-      currentReply.value = null
-    }
-    
-    // 处理回复输入
-    const handleReplyInput = value => {
-      // 检测@符号
-      if (!replyTextareaRef.value || !replyTextareaRef.value.textarea) return
-      
-      const textarea = replyTextareaRef.value.textarea
-      const cursorPos = textarea.selectionStart || value.length
-      const textBeforeCursor = value.substring(0, cursorPos)
-      const lastAtIndex = textBeforeCursor.lastIndexOf('@')
-      
-      if (lastAtIndex !== -1) {
-        // 检查@后面是否有空格或其他分隔符
-        const textAfterAt = textBeforeCursor.substring(lastAtIndex + 1)
-        if (!textAfterAt.includes(' ') && !textAfterAt.includes('\n')) {
-          // 正在输入用户名
-          const searchKeyword = textAfterAt.toLowerCase()
-          mentionStartPos.value = lastAtIndex
-          // 从回复列表中搜索用户（简单实现：从当前回复列表的用户中搜索）
-          const allUsers = new Map()
-          replyList.value.forEach(reply => {
-            if (!allUsers.has(reply.userId)) {
-              allUsers.set(reply.userId, {
-                id: reply.userId,
-                username: reply.userName,
-                avatar: reply.userAvatar
-              })
-            }
-          })
-          // 添加帖子作者
-          if (post.value?.authorId) {
-            allUsers.set(post.value.authorId, {
-              id: post.value.authorId,
-              username: post.value.authorName,
-              avatar: post.value.authorAvatar
-            })
-          }
-          
-          mentionUsers.value = Array.from(allUsers.values())
-            .filter(user => user.username.toLowerCase().includes(searchKeyword))
-            .slice(0, 5) // 最多显示5个
-          
-          if (mentionUsers.value.length > 0) {
-            showMentionList.value = true
-            mentionSelectedIndex.value = 0
-          } else {
-            showMentionList.value = false
-          }
-          return
-        }
+      })
+      // 添加帖子作者
+      if (post.value?.authorId) {
+        allUsers.set(post.value.authorId, {
+          id: post.value.authorId,
+          username: post.value.authorName,
+          avatar: post.value.authorAvatar
+        })
       }
       
-      // 没有@或@后面有空格，隐藏下拉列表
-      showMentionList.value = false
-    }
-    
-    // 处理键盘事件
-    const handleReplyKeydown = event => {
-      if (showMentionList.value && mentionUsers.value.length > 0) {
-        if (event.key === 'ArrowDown') {
-          event.preventDefault()
-          mentionSelectedIndex.value = Math.min(mentionSelectedIndex.value + 1, mentionUsers.value.length - 1)
-        } else if (event.key === 'ArrowUp') {
-          event.preventDefault()
-          mentionSelectedIndex.value = Math.max(mentionSelectedIndex.value - 1, 0)
-        } else if (event.key === 'Enter' && !event.shiftKey) {
-          event.preventDefault()
-          if (mentionUsers.value[mentionSelectedIndex.value]) {
-            selectMentionUser(mentionUsers.value[mentionSelectedIndex.value])
-          }
-        } else if (event.key === 'Escape') {
-          showMentionList.value = false
-        }
-      }
-    }
-    
-    // 选择@用户
-    const selectMentionUser = user => {
-      if (mentionStartPos.value === -1) return
+      mentionUsers.value = Array.from(allUsers.values())
+        .filter(user => user.username.toLowerCase().includes(searchKeyword))
+        .slice(0, 5) // 最多显示5个
       
-      const textBefore = replyContent.value.substring(0, mentionStartPos.value)
-      const textAfter = replyContent.value.substring(mentionStartPos.value)
-      const textAfterAt = textAfter.substring(1) // 去掉@符号
-      const spaceIndex = textAfterAt.indexOf(' ')
-      const newlineIndex = textAfterAt.indexOf('\n')
-      let endIndex = textAfterAt.length
-      
-      if (spaceIndex !== -1 && newlineIndex !== -1) {
-        endIndex = Math.min(spaceIndex, newlineIndex)
-      } else if (spaceIndex !== -1) {
-        endIndex = spaceIndex
-      } else if (newlineIndex !== -1) {
-        endIndex = newlineIndex
-      }
-      
-      const replaceText = textAfter.substring(0, endIndex + 1)
-      const remainingText = textAfter.substring(endIndex + 1)
-      
-      replyContent.value = textBefore + '@' + user.username + ' ' + remainingText
-      showMentionList.value = false
-      mentionStartPos.value = -1
-      
-      // 聚焦到输入框
-      setTimeout(() => {
-        const textarea = replyTextareaRef.value?.textarea
-        if (textarea) {
-          const newPos = textBefore.length + user.username.length + 2 // @ + 用户名 + 空格
-          textarea.setSelectionRange(newPos, newPos)
-          textarea.focus()
-        }
-      }, 0)
-    }
-    
-    // 提交回复
-    const submitReply = async () => {
-      if (!replyContent.value.trim()) {
-        forumPromptMessages.showCommentRequired()
-        return
-      }
-      
-      submitting.value = true
-      try {
-        // 解析@的用户ID列表
-        const mentionedUserIds = []
-        const mentionRegex = /@(\w+)/g
-        let match
-        while ((match = mentionRegex.exec(replyContent.value)) !== null) {
-          // 从回复列表和帖子作者中查找用户ID
-          const username = match[1]
-          const user = replyList.value.find(r => r.userName === username) ||
-                      (post.value?.authorName === username ? {
-                        userId: post.value.authorId,
-                        userName: post.value.authorName
-                      } : null)
-          if (user) {
-            mentionedUserIds.push(user.userId || user.id)
-          }
-        }
-        
-        const replyData = {
-          content: replyContent.value.trim(),
-          parentId: currentReply.value ? currentReply.value.id : null,
-          mentionedUserIds: mentionedUserIds.length > 0 ? mentionedUserIds : undefined
-        }
-        
-        const res = await forumStore.createReply({ postId: postId.value, data: replyData })
-        showByCode(res.code)
-        
-        // 清空输入框和当前回复
-        replyContent.value = ''
-        currentReply.value = null
+      if (mentionUsers.value.length > 0) {
+        showMentionList.value = true
+        mentionSelectedIndex.value = 0
+      } else {
         showMentionList.value = false
-        
-        // 刷新回复列表
-        await fetchReplies()
-      } catch (error) {
-        console.error('创建回复失败:', error)
-      } finally {
-        submitting.value = false
       }
+      return
     }
-    
-    // 查看帖子详情
-    const viewPost = postId => {
-      router.push(`/forum/${postId}`)
-    }
-    
-    // 获取回复用户名
-    const getReplyUserName = replyId => {
-      const reply = replyList.value.find(item => item.id === replyId)
-      return reply ? reply.userName : '未知用户'
-    }
-    
-    // 获取回复内容
-    const getReplyContent = replyId => {
-      const reply = replyList.value.find(item => item.id === replyId)
-      if (!reply) return '该回复已被删除'
-      
-      // 截断过长的内容
-      const content = reply.content
-      return content.length > 50 ? content.substring(0, 50) + '...' : content
-    }
-    
-    return {
-      post,
-      loading,
-      liked,
-      favorited,
-      likeLoading,
-      favoriteLoading,
-      defaultAvatar,
-      defaultCover,
-      goBack,
-      likePost,
-      scrollToReply,
-      toggleFavorite,
-      showShareDialog,
-      formatDate,
-      fetchPostDetail,
-      View,
-      ChatDotRound,
-      Star,
-      StarFilled,
-      Share,
-      Back,
-      replyList,
-      recommendList,
-      currentSort,
-      sortOptions,
-      pagination,
-      replyContent,
-      currentReply,
-      submitting,
-      replyTextareaRef,
-      showMentionList,
-      mentionUsers,
-      mentionSelectedIndex,
-      handleReplyInput,
-      handleReplyKeydown,
-      selectMentionUser,
-      handleSortChange,
-      handleSizeChange,
-      handleCurrentChange,
-      likeReply,
-      showReplyInput,
-      cancelReply,
-      submitReply,
-      viewPost,
-      getReplyUserName,
-      getReplyContent,
-      ChatLineRound,
-      ArrowDown
+  }
+  
+  // 没有@或@后面有空格，隐藏下拉列表
+  showMentionList.value = false
+}
+
+// 处理键盘事件
+const handleReplyKeydown = event => {
+  if (showMentionList.value && mentionUsers.value.length > 0) {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault()
+      mentionSelectedIndex.value = Math.min(mentionSelectedIndex.value + 1, mentionUsers.value.length - 1)
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault()
+      mentionSelectedIndex.value = Math.max(mentionSelectedIndex.value - 1, 0)
+    } else if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault()
+      if (mentionUsers.value[mentionSelectedIndex.value]) {
+        selectMentionUser(mentionUsers.value[mentionSelectedIndex.value])
+      }
+    } else if (event.key === 'Escape') {
+      showMentionList.value = false
     }
   }
 }
-</script>
+
+// 选择@用户
+const selectMentionUser = user => {
+  if (mentionStartPos.value === -1) return
+  
+  const textBefore = replyContent.value.substring(0, mentionStartPos.value)
+  const textAfter = replyContent.value.substring(mentionStartPos.value)
+  const textAfterAt = textAfter.substring(1) // 去掉@符号
+  const spaceIndex = textAfterAt.indexOf(' ')
+  const newlineIndex = textAfterAt.indexOf('\n')
+  let endIndex = textAfterAt.length
+  
+  if (spaceIndex !== -1 && newlineIndex !== -1) {
+    endIndex = Math.min(spaceIndex, newlineIndex)
+  } else if (spaceIndex !== -1) {
+    endIndex = spaceIndex
+  } else if (newlineIndex !== -1) {
+    endIndex = newlineIndex
+  }
+  
+  const replaceText = textAfter.substring(0, endIndex + 1)
+  const remainingText = textAfter.substring(endIndex + 1)
+  
+  replyContent.value = textBefore + '@' + user.username + ' ' + remainingText
+  showMentionList.value = false
+  mentionStartPos.value = -1
+  
+  // 聚焦到输入框
+  setTimeout(() => {
+    const textarea = replyTextareaRef.value?.textarea
+    if (textarea) {
+      const newPos = textBefore.length + user.username.length + 2 // @ + 用户名 + 空格
+      textarea.setSelectionRange(newPos, newPos)
+      textarea.focus()
+    }
+  }, 0)
+}
+    
+// 提交回复
+const submitReply = async () => {
+  if (!replyContent.value.trim()) {
+    forumPromptMessages.showCommentRequired()
+    return
+  }
+  
+  submitting.value = true
+  try {
+    // 解析@的用户ID列表
+    const mentionedUserIds = []
+    const mentionRegex = /@(\w+)/g
+    let match
+    while ((match = mentionRegex.exec(replyContent.value)) !== null) {
+      // 从回复列表和帖子作者中查找用户ID
+      const username = match[1]
+      const user = replyList.value.find(r => r.userName === username) ||
+                  (post.value?.authorName === username ? {
+                    userId: post.value.authorId,
+                    userName: post.value.authorName
+                  } : null)
+      if (user) {
+        mentionedUserIds.push(user.userId || user.id)
+      }
+    }
+    
+    const replyData = {
+      content: replyContent.value.trim(),
+      parentId: currentReply.value ? currentReply.value.id : null,
+      mentionedUserIds: mentionedUserIds.length > 0 ? mentionedUserIds : undefined
+    }
+    
+    const res = await forumStore.createReply({ postId: postId.value, data: replyData })
+    showByCode(res.code)
+    
+    // 清空输入框和当前回复
+    replyContent.value = ''
+    currentReply.value = null
+    showMentionList.value = false
+    
+    // 刷新回复列表
+    await fetchReplies()
+  } catch (error) {
+    console.error('创建回复失败:', error)
+  } finally {
+    submitting.value = false
+  }
+}
+
+// 查看帖子详情
+const viewPost = postId => {
+  router.push(`/forum/${postId}`)
+}
+
+// 获取回复用户名
+const getReplyUserName = replyId => {
+  const reply = replyList.value.find(item => item.id === replyId)
+  return reply ? reply.userName : '未知用户'
+}
+
+// 获取回复内容
+const getReplyContent = replyId => {
+  const reply = replyList.value.find(item => item.id === replyId)
+  if (!reply) return '该回复已被删除'
+  
+  // 截断过长的内容
+  const content = reply.content
+  return content.length > 50 ? content.substring(0, 50) + '...' : content
+}
+
 
 <style lang="scss" scoped>
 .forum-detail-page {
