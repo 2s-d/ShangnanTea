@@ -851,174 +851,114 @@ const loadPendingPosts = async () => {
 
 // 处理待审核帖子分页大小变化
 const handlePendingPostsSizeChange = val => {
-      pendingPostsPageSize.value = val
-      loadPendingPosts()
-    }
-    
-    // 处理待审核帖子分页页码变化
-    const handlePendingPostsCurrentChange = val => {
-      pendingPostsCurrentPage.value = val
-      loadPendingPosts()
-    }
-    
-    // 查看待审核帖子详情
-    const viewPendingPost = post => {
-      router.push(`/forum/detail/${post.id}`)
-    }
-    
-    // 显示审核通过对话框
-    const showApproveDialog = post => {
-      currentAuditPost.value = post
-      approveForm.value = {
-        comment: ''
+  pendingPostsPageSize.value = val
+  loadPendingPosts()
+}
+
+// 处理待审核帖子分页页码变化
+const handlePendingPostsCurrentChange = val => {
+  pendingPostsCurrentPage.value = val
+  loadPendingPosts()
+}
+
+// 查看待审核帖子详情
+const viewPendingPost = post => {
+  router.push(`/forum/detail/${post.id}`)
+}
+
+// 显示审核通过对话框
+const showApproveDialog = post => {
+  currentAuditPost.value = post
+  approveForm.value = {
+    comment: ''
+  }
+  approveDialogVisible.value = true
+}
+
+// 显示审核拒绝对话框
+const showRejectDialog = post => {
+  currentAuditPost.value = post
+  rejectForm.value = {
+    reason: '',
+    comment: ''
+  }
+  rejectDialogVisible.value = true
+}
+
+// 确认审核通过
+const confirmApprove = async () => {
+  try {
+    const res = await forumStore.approvePost({
+      id: currentAuditPost.value.id,
+      data: {
+        comment: approveForm.value.comment
       }
-      approveDialogVisible.value = true
-    }
-    
-    // 显示审核拒绝对话框
-    const showRejectDialog = post => {
-      currentAuditPost.value = post
-      rejectForm.value = {
-        reason: '',
-        comment: ''
-      }
-      rejectDialogVisible.value = true
-    }
-    
-    // 确认审核通过
-    const confirmApprove = async () => {
+    })
+    showByCode(res.code)
+    approveDialogVisible.value = false
+    await loadPendingPosts()
+  } catch (error) {
+    console.error('审核通过失败:', error)
+  }
+}
+
+// 确认审核拒绝
+const confirmReject = async () => {
+  if (!rejectFormRef.value) return
+  
+  await rejectFormRef.value.validate(async valid => {
+    if (valid) {
       try {
-        const res = await forumStore.approvePost({
+        const res = await forumStore.rejectPost({
           id: currentAuditPost.value.id,
           data: {
-            comment: approveForm.value.comment
+            reason: rejectForm.value.reason,
+            comment: rejectForm.value.comment
           }
         })
         showByCode(res.code)
-        approveDialogVisible.value = false
+        rejectDialogVisible.value = false
         await loadPendingPosts()
       } catch (error) {
-        console.error('审核通过失败:', error)
+        console.error('审核拒绝失败:', error)
       }
     }
-    
-    // 确认审核拒绝
-    const confirmReject = async () => {
-      if (!rejectFormRef.value) return
-      
-      await rejectFormRef.value.validate(async valid => {
-        if (valid) {
-          try {
-            const res = await forumStore.rejectPost({
-              id: currentAuditPost.value.id,
-              data: {
-                reason: rejectForm.value.reason,
-                comment: rejectForm.value.comment
-              }
-            })
-            showByCode(res.code)
-            rejectDialogVisible.value = false
-            await loadPendingPosts()
-          } catch (error) {
-            console.error('审核拒绝失败:', error)
-          }
-        }
-      })
-    }
-    
-    // 格式化日期时间
-    const formatDateTime = dateTime => {
-      if (!dateTime) return ''
-      const date = new Date(dateTime)
-      return date.toLocaleString('zh-CN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit'
-      })
-    }
-    
-    // 监听标签页变化，加载相应数据
-    watch(activeTab, newVal => {
-      if (newVal === 'posts') {
-        loadPosts()
-      } else if (newVal === 'audit') {
-        loadPendingPosts()
-      }
-    })
-    
-    // 组件加载时获取数据
-    onMounted(() => {
-      loadTopics()
-      
-      // 默认加载审核标签页数据
-      if (activeTab.value === 'audit') {
-        loadPendingPosts()
-      } else if (activeTab.value === 'posts') {
-        loadPosts()
-      }
-    })
-    
-    return {
-      activeTab,
-      postSearchText,
-      goToCultureManage,
-      showAddTopicDialog,
-      showEditTopicDialog,
-      saveTopic,
-      changeTopicStatus,
-      deleteTopic,
-      topicsList,
-      topicLoading,
-      addTopicDialogVisible,
-      editTopicMode,
-      currentTopic,
-      topicForm,
-      topicFormRules,
-      topicFormRef,
-      searchPosts,
-      // 帖子相关
-      postsList,
-      postsLoading,
-      postsTotalCount,
-      postCurrentPage,
-      postPageSize,
-      handlePostsSizeChange,
-      handlePostsCurrentChange,
-      getPostStatusType,
-      getPostStatusText,
-      viewPost,
-      approvePost,
-      toggleTopPost,
-      toggleEssencePost,
-      deletePost,
-      // 内容审核相关
-      pendingPostsList,
-      pendingPostsLoading,
-      pendingPostsTotalCount,
-      pendingPostsCurrentPage,
-      pendingPostsPageSize,
-      handlePendingPostsSizeChange,
-      handlePendingPostsCurrentChange,
-      viewPendingPost,
-      showApproveDialog,
-      showRejectDialog,
-      confirmApprove,
-      confirmReject,
-      formatDateTime,
-      // 审核对话框相关
-      approveDialogVisible,
-      rejectDialogVisible,
-      currentAuditPost,
-      approveForm,
-      rejectForm,
-      rejectFormRules,
-      approveFormRef,
-      rejectFormRef
-    }
-  }
+  })
 }
+
+// 格式化日期时间
+const formatDateTime = dateTime => {
+  if (!dateTime) return ''
+  const date = new Date(dateTime)
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+// 监听标签页变化，加载相应数据
+watch(activeTab, newVal => {
+  if (newVal === 'posts') {
+    loadPosts()
+  } else if (newVal === 'audit') {
+    loadPendingPosts()
+  }
+})
+
+// 组件加载时获取数据
+onMounted(() => {
+  loadTopics()
+  
+  // 默认加载审核标签页数据
+  if (activeTab.value === 'audit') {
+    loadPendingPosts()
+  } else if (activeTab.value === 'posts') {
+    loadPosts()
+  }
+})
 </script>
 
 <style lang="scss" scoped>

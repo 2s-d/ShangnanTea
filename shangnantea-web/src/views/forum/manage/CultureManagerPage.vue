@@ -440,7 +440,7 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useForumStore } from '@/stores/forum'
@@ -450,497 +450,431 @@ import SafeImage from '@/components/common/form/SafeImage.vue'
 import { forumPromptMessages } from '@/utils/promptMessages'
 import { showByCode } from '@/utils/apiMessages'
 
-export default {
-  name: 'CultureManagerPage',
-  components: {
-    DocumentCopy,
-    Plus,
-    Search,
-    SafeImage
-  },
-  setup() {
-    const router = useRouter()
-    const forumStore = useForumStore()
-    const activeTab = ref('articles')
+const router = useRouter()
+const forumStore = useForumStore()
+const activeTab = ref('articles')
+
+// 默认封面图片
+const defaultCover = ''
+
+// 跳转到论坛管理页面
+const goToForumManage = () => {
+  router.push('/forum/manage')
+}
     
-    // 默认封面图片
-    const defaultCover = ''
+// ============ 文章管理 ============
+const articleSearch = ref('')
+const articleCategory = ref('')
+const articleStatus = ref('')
+const articlesLoading = ref(false)
+const articleFormRef = ref(null)
+const articleFormVisible = ref(false)
+const articleSubmitting = ref(false)
     
-    // 跳转到论坛管理页面
-    const goToForumManage = () => {
-      router.push('/forum/manage')
+// 文章表单数据
+const articleForm = ref({
+  id: null,
+  title: '',
+  subtitle: '',
+  author: '',
+  category: '',
+  content: '',
+  summary: '',
+  cover_image: '',
+  images: '',
+  video_url: '',
+  tags: '',
+  source: '',
+  status: 1,
+  is_top: 0,
+  is_recommend: 0
+})
+
+// 文章表单验证规则
+const articleRules = {
+  title: [{ required: true, message: '请输入文章标题', trigger: 'blur' }],
+  category: [{ required: true, message: '请选择文章分类', trigger: 'change' }],
+  content: [{ required: true, message: '请输入文章内容', trigger: 'blur' }]
+}
+
+// 从Pinia获取数据
+const articles = computed(() => forumStore.articles || [])
+const loading = computed(() => forumStore.loading)
+
+const articlePagination = reactive({
+  currentPage: 1,
+  pageSize: 10,
+  total: 0
+})
+    
+// 筛选后的文章列表
+const filteredArticles = computed(() => {
+  return articles.value.filter(article => {
+    let match = true
+    
+    // 搜索标题
+    if (articleSearch.value && !article.title.includes(articleSearch.value)) {
+      match = false
     }
     
-    // ============ 文章管理 ============
-    const articleSearch = ref('')
-    const articleCategory = ref('')
-    const articleStatus = ref('')
-    const articlesLoading = ref(false)
-    const articleFormRef = ref(null)
-    const articleFormVisible = ref(false)
-    const articleSubmitting = ref(false)
-    
-    // 文章表单数据
-    const articleForm = ref({
-      id: null,
-      title: '',
-      subtitle: '',
-      author: '',
-      category: '',
-      content: '',
-      summary: '',
-      cover_image: '',
-      images: '',
-      video_url: '',
-      tags: '',
-      source: '',
-      status: 1,
-      is_top: 0,
-      is_recommend: 0
-    })
-    
-    // 文章表单验证规则
-    const articleRules = {
-      title: [{ required: true, message: '请输入文章标题', trigger: 'blur' }],
-      category: [{ required: true, message: '请选择文章分类', trigger: 'change' }],
-      content: [{ required: true, message: '请输入文章内容', trigger: 'blur' }]
+    // 筛选分类
+    if (articleCategory.value && article.category !== articleCategory.value) {
+      match = false
     }
     
-    // 从Pinia获取数据
-    const articles = computed(() => forumStore.articles || [])
-    const loading = computed(() => forumStore.loading)
-    
-    const articlePagination = reactive({
-      currentPage: 1,
-      pageSize: 10,
-      total: 0
-    })
-    
-    // 筛选后的文章列表
-    const filteredArticles = computed(() => {
-      return articles.value.filter(article => {
-        let match = true
-        
-        // 搜索标题
-        if (articleSearch.value && !article.title.includes(articleSearch.value)) {
-          match = false
-        }
-        
-        // 筛选分类
-        if (articleCategory.value && article.category !== articleCategory.value) {
-          match = false
-        }
-        
-        // 筛选状态
-        if (articleStatus.value !== '' && article.status !== articleStatus.value) {
-          match = false
-        }
-        
-        return match
-      })
-    })
-    
-    // 根据状态获取标签类型
-    const getStatusType = status => {
-      switch (status) {
-      case 1: return 'success'
-      case 0: return 'warning'
-      case 2: return 'info'
-      default: return 'info'
-      }
+    // 筛选状态
+    if (articleStatus.value !== '' && article.status !== articleStatus.value) {
+      match = false
     }
     
-    // 根据状态获取文本
-    const getStatusText = status => {
-      switch (status) {
-      case 1: return '已发布'
-      case 0: return '草稿'
-      case 2: return '已删除'
-      default: return '未知'
-      }
-    }
+    return match
+  })
+})
     
-    // 创建文章
-    const handleCreateArticle = () => {
-      articleForm.value = {
-        id: null,
-        title: '',
-        subtitle: '',
-        author: '',
-        category: '',
-        content: '',
-        summary: '',
-        cover_image: '',
-        images: '',
-        video_url: '',
-        tags: '',
-        source: '',
-        status: 1,
-        is_top: 0,
-        is_recommend: 0
-      }
-      articleFormVisible.value = true
-    }
-    
-    // 编辑文章
-    const handleEditArticle = article => {
-      articleForm.value = { ...article }
-      // 如果tags是数组，转换为字符串
-      if (Array.isArray(articleForm.value.tags)) {
-        articleForm.value.tags = articleForm.value.tags.join(',')
-      }
-      articleFormVisible.value = true
-    }
-    
-    // 切换推荐状态
-    const toggleRecommend = async article => {
-      try {
-        const newRecommendStatus = article.is_recommend === 1 ? 0 : 1
-        const res = await forumStore.updateArticle({ 
-          id: article.id, 
-          data: { ...article, is_recommend: newRecommendStatus }
-        })
-        showByCode(res.code)
-      } catch (error) {
-        console.error('切换推荐状态失败:', error)
-      }
-    }
-    
-    // 删除文章
-    const handleDeleteArticle = article => {
-      ElMessageBox.confirm(
-        `确定要删除文章 "${article.title}" 吗？`,
-        '警告',
-        {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }
-      ).then(async () => {
-        try {
-          const res = await forumStore.deleteArticle(article.id)
-          showByCode(res.code)
-        } catch (error) {
-          console.error('删除文章失败:', error)
-        }
-      }).catch(() => {
-        // 取消删除
-      })
-    }
-    
-    // 提交文章表单
-    const submitArticleForm = () => {
-      if (!articleFormRef.value) return
-      
-      articleFormRef.value.validate(async valid => {
-        if (!valid) {
-          return false
-        }
-        
-        articleSubmitting.value = true
-        
-        try {
-          const formData = { ...articleForm.value }
-          
-          // 处理标签：如果是字符串，转换为数组
-          if (typeof formData.tags === 'string') {
-            formData.tags = formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag)
-          }
-          
-          if (formData.id) {
-            // 更新文章
-            const res = await forumStore.updateArticle({ id: formData.id, data: formData })
-            showByCode(res.code)
-          } else {
-            // 创建文章
-            const res = await forumStore.createArticle(formData)
-            showByCode(res.code)
-          }
-          
-          articleFormVisible.value = false
-          // 刷新文章列表
-          await fetchArticles()
-        } catch (error) {
-          console.error('提交文章失败:', error)
-        } finally {
-          articleSubmitting.value = false
-        }
-      })
-    }
-    
-    // ============ 区块管理 ============
-    const blocksLoading = ref(false)
-    const blockFormRef = ref(null)
-    const blockFormVisible = ref(false)
-    const blockSubmitting = ref(false)
-    const currentBlock = ref(null)
-    
-    // 区块表单数据
-    const blockForm = ref({
-      title: '',
-      sub_title: '',
-      sort_order: 1,
-      status: 1
-    })
-    
-    // 轮播图项目
-    const bannerItems = ref([])
-    
-    // 推荐项目
-    const recommendItems = ref([])
-    
-    // 原始区块内容
-    const rawBlockContent = ref('')
-    
-    // 从Pinia获取首页数据
-    const homeBlocks = computed(() => {
-      // 将首页数据转换为区块格式
-      const blocks = []
-      const homeData = forumStore
-      
-      // Banner区块
-      if (homeData.banners && homeData.banners.length > 0) {
-        blocks.push({
-          section: 'banner',
-          title: '顶部轮播图',
-          sub_title: '首页轮播展示',
-          content: JSON.stringify(homeData.banners),
-          status: 1,
-          sort_order: 1,
-          update_time: new Date().toISOString()
-        })
-      }
-      
-      // 推荐茶叶区块
-      if (homeData.cultureFeatures && homeData.cultureFeatures.length > 0) {
-        blocks.push({
-          section: 'recommend',
-          title: '推荐茶叶',
-          sub_title: '精选茶叶推荐',
-          content: JSON.stringify(homeData.cultureFeatures),
-          status: 1,
-          sort_order: 2,
-          update_time: new Date().toISOString()
-        })
-      }
-      
-      return blocks
-    })
-    
-    // 获取区块友好名称
-    const getBlockName = section => {
-      const blockNames = {
-        'banner': '顶部轮播图',
-        'recommend': '推荐茶叶',
-        'culture_intro': '文化简介',
-        'feature': '特色功能',
-        'news': '新闻动态'
-      }
-      return blockNames[section] || section
-    }
-    
-    // 切换区块状态
-    const toggleBlockStatus = async block => {
-      try {
-        const res = await forumStore.updateHomeData({ ...block, status: block.status === 1 ? 0 : 1 })
-        showByCode(res.code)
-      } catch (error) {
-        console.error('切换区块状态失败:', error)
-      }
-    }
-    
-    // 编辑区块
-    const handleEditBlock = block => {
-      currentBlock.value = block
-      blockForm.value = {
-        title: block.title,
-        sub_title: block.sub_title,
-        sort_order: block.sort_order,
-        status: block.status
-      }
-      
-      // 解析内容
-      if (block.section === 'banner') {
-        try {
-          bannerItems.value = JSON.parse(block.content)
-        } catch (e) {
-          bannerItems.value = []
-          forumPromptMessages.showBannerDataError()
-        }
-      } else if (block.section === 'recommend') {
-        try {
-          recommendItems.value = JSON.parse(block.content)
-        } catch (e) {
-          recommendItems.value = []
-          forumPromptMessages.showRecommendDataError()
-        }
-      } else {
-        rawBlockContent.value = block.content
-      }
-      
-      blockFormVisible.value = true
-    }
-    
-    // 添加轮播图项目
-    const addBannerItem = () => {
-      bannerItems.value.push({
-        url: '',
-        link: '',
-        title: '',
-        subtitle: ''
-      })
-    }
-    
-    // 移除轮播图项目
-    const removeBannerItem = index => {
-      bannerItems.value.splice(index, 1)
-    }
-    
-    // 添加推荐茶叶项目
-    const addRecommendItem = () => {
-      recommendItems.value.push({
-        id: '',
-        title: '',
-        image: '',
-        price: ''
-      })
-    }
-    
-    // 移除推荐茶叶项目
-    const removeRecommendItem = index => {
-      recommendItems.value.splice(index, 1)
-    }
-    
-    // 提交区块表单
-    const submitBlockForm = async () => {
-      if (!currentBlock.value) return
-      
-      blockSubmitting.value = true
-      
-      try {
-        let content = ''
-        
-        // 根据区块类型构造内容
-        if (currentBlock.value.section === 'banner') {
-          content = JSON.stringify(bannerItems.value)
-        } else if (currentBlock.value.section === 'recommend') {
-          content = JSON.stringify(recommendItems.value)
-        } else {
-          content = rawBlockContent.value
-        }
-        
-        const updateData = {
-          ...blockForm.value,
-          content
-        }
-        
-        // 更新首页数据
-        const res = await forumStore.updateHomeData(updateData)
-        showByCode(res.code)
-        blockFormVisible.value = false
-        
-        // 刷新首页数据
-        await fetchHomeData()
-      } catch (error) {
-        console.error('保存区块失败:', error)
-      } finally {
-        blockSubmitting.value = false
-      }
-    }
-    
-    // ============ 共用函数 ============
-    // 格式化日期
-    const formatDate = dateString => {
-      if (!dateString) return ''
-      const date = new Date(dateString)
-      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
-    }
-    
-    // 去论坛管理
-    // 获取文章列表
-    const fetchArticles = async () => {
-      try {
-        const res = await forumStore.fetchArticles()
-        showByCode(res.code)
-      } catch (error) {
-        console.error('获取文章列表失败:', error)
-      }
-    }
-    
-    // 获取首页数据
-    const fetchHomeData = async () => {
-      try {
-        const res = await forumStore.fetchHomeData()
-        showByCode(res.code)
-      } catch (error) {
-        console.error('获取首页数据失败:', error)
-      }
-    }
-    
-    // 加载页面数据
-    onMounted(async () => {
-      await Promise.all([
-        fetchArticles(),
-        fetchHomeData()
-      ])
-    })
-    
-    return {
-      activeTab,
-      articleSearch,
-      articleCategory,
-      articleStatus,
-      articles,
-      filteredArticles,
-      articlesLoading: loading,
-      articlePagination,
-      homeBlocks,
-      blocksLoading: loading,
-      
-      getStatusType,
-      getStatusText,
-      handleCreateArticle,
-      handleEditArticle,
-      toggleRecommend,
-      handleDeleteArticle,
-      getBlockName,
-      toggleBlockStatus,
-      handleEditBlock,
-      formatDate,
-      goToForumManage,
-      
-      // 文章表单相关
-      submitArticleForm,
-      articleFormRef,
-      articleFormVisible,
-      articleSubmitting,
-      articleForm,
-      articleRules,
-      
-      // 区块表单相关
-      blockFormRef,
-      blockFormVisible,
-      blockSubmitting,
-      currentBlock,
-      blockForm,
-      bannerItems,
-      recommendItems,
-      rawBlockContent,
-      submitBlockForm,
-      addBannerItem,
-      removeBannerItem,
-      addRecommendItem,
-      removeRecommendItem,
-      
-      // 添加默认图片常量
-      defaultCover,
-      
-      // 数据获取方法
-      fetchArticles,
-      fetchHomeData
-    }
+// 根据状态获取标签类型
+const getStatusType = status => {
+  switch (status) {
+  case 1: return 'success'
+  case 0: return 'warning'
+  case 2: return 'info'
+  default: return 'info'
   }
 }
+
+// 根据状态获取文本
+const getStatusText = status => {
+  switch (status) {
+  case 1: return '已发布'
+  case 0: return '草稿'
+  case 2: return '已删除'
+  default: return '未知'
+  }
+}
+    
+// 创建文章
+const handleCreateArticle = () => {
+  articleForm.value = {
+    id: null,
+    title: '',
+    subtitle: '',
+    author: '',
+    category: '',
+    content: '',
+    summary: '',
+    cover_image: '',
+    images: '',
+    video_url: '',
+    tags: '',
+    source: '',
+    status: 1,
+    is_top: 0,
+    is_recommend: 0
+  }
+  articleFormVisible.value = true
+}
+
+// 编辑文章
+const handleEditArticle = article => {
+  articleForm.value = { ...article }
+  // 如果tags是数组，转换为字符串
+  if (Array.isArray(articleForm.value.tags)) {
+    articleForm.value.tags = articleForm.value.tags.join(',')
+  }
+  articleFormVisible.value = true
+}
+    
+// 切换推荐状态
+const toggleRecommend = async article => {
+  try {
+    const newRecommendStatus = article.is_recommend === 1 ? 0 : 1
+    const res = await forumStore.updateArticle({ 
+      id: article.id, 
+      data: { ...article, is_recommend: newRecommendStatus }
+    })
+    showByCode(res.code)
+  } catch (error) {
+    console.error('切换推荐状态失败:', error)
+  }
+}
+    
+// 删除文章
+const handleDeleteArticle = article => {
+  ElMessageBox.confirm(
+    `确定要删除文章 "${article.title}" 吗？`,
+    '警告',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }
+  ).then(async () => {
+    try {
+      const res = await forumStore.deleteArticle(article.id)
+      showByCode(res.code)
+    } catch (error) {
+      console.error('删除文章失败:', error)
+    }
+  }).catch(() => {
+    // 取消删除
+  })
+}
+    
+// 提交文章表单
+const submitArticleForm = () => {
+  if (!articleFormRef.value) return
+  
+  articleFormRef.value.validate(async valid => {
+    if (!valid) {
+      return false
+    }
+    
+    articleSubmitting.value = true
+    
+    try {
+      const formData = { ...articleForm.value }
+      
+      // 处理标签：如果是字符串，转换为数组
+      if (typeof formData.tags === 'string') {
+        formData.tags = formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag)
+      }
+      
+      if (formData.id) {
+        // 更新文章
+        const res = await forumStore.updateArticle({ id: formData.id, data: formData })
+        showByCode(res.code)
+      } else {
+        // 创建文章
+        const res = await forumStore.createArticle(formData)
+        showByCode(res.code)
+      }
+      
+      articleFormVisible.value = false
+      // 刷新文章列表
+      await fetchArticles()
+    } catch (error) {
+      console.error('提交文章失败:', error)
+    } finally {
+      articleSubmitting.value = false
+    }
+  })
+}
+    
+// ============ 区块管理 ============
+const blocksLoading = ref(false)
+const blockFormRef = ref(null)
+const blockFormVisible = ref(false)
+const blockSubmitting = ref(false)
+const currentBlock = ref(null)
+
+// 区块表单数据
+const blockForm = ref({
+  title: '',
+  sub_title: '',
+  sort_order: 1,
+  status: 1
+})
+
+// 轮播图项目
+const bannerItems = ref([])
+
+// 推荐项目
+const recommendItems = ref([])
+
+// 原始区块内容
+const rawBlockContent = ref('')
+    
+// 从Pinia获取首页数据
+const homeBlocks = computed(() => {
+  // 将首页数据转换为区块格式
+  const blocks = []
+  const homeData = forumStore
+  
+  // Banner区块
+  if (homeData.banners && homeData.banners.length > 0) {
+    blocks.push({
+      section: 'banner',
+      title: '顶部轮播图',
+      sub_title: '首页轮播展示',
+      content: JSON.stringify(homeData.banners),
+      status: 1,
+      sort_order: 1,
+      update_time: new Date().toISOString()
+    })
+  }
+  
+  // 推荐茶叶区块
+  if (homeData.cultureFeatures && homeData.cultureFeatures.length > 0) {
+    blocks.push({
+      section: 'recommend',
+      title: '推荐茶叶',
+      sub_title: '精选茶叶推荐',
+      content: JSON.stringify(homeData.cultureFeatures),
+      status: 1,
+      sort_order: 2,
+      update_time: new Date().toISOString()
+    })
+  }
+  
+  return blocks
+})
+    
+// 获取区块友好名称
+const getBlockName = section => {
+  const blockNames = {
+    'banner': '顶部轮播图',
+    'recommend': '推荐茶叶',
+    'culture_intro': '文化简介',
+    'feature': '特色功能',
+    'news': '新闻动态'
+  }
+  return blockNames[section] || section
+}
+
+// 切换区块状态
+const toggleBlockStatus = async block => {
+  try {
+    const res = await forumStore.updateHomeData({ ...block, status: block.status === 1 ? 0 : 1 })
+    showByCode(res.code)
+  } catch (error) {
+    console.error('切换区块状态失败:', error)
+  }
+}
+
+// 编辑区块
+const handleEditBlock = block => {
+  currentBlock.value = block
+  blockForm.value = {
+    title: block.title,
+    sub_title: block.sub_title,
+    sort_order: block.sort_order,
+    status: block.status
+  }
+  
+  // 解析内容
+  if (block.section === 'banner') {
+    try {
+      bannerItems.value = JSON.parse(block.content)
+    } catch (e) {
+      bannerItems.value = []
+      forumPromptMessages.showBannerDataError()
+    }
+  } else if (block.section === 'recommend') {
+    try {
+      recommendItems.value = JSON.parse(block.content)
+    } catch (e) {
+      recommendItems.value = []
+      forumPromptMessages.showRecommendDataError()
+    }
+  } else {
+    rawBlockContent.value = block.content
+  }
+  
+  blockFormVisible.value = true
+}
+
+// 添加轮播图项目
+const addBannerItem = () => {
+  bannerItems.value.push({
+    url: '',
+    link: '',
+    title: '',
+    subtitle: ''
+  })
+}
+
+// 移除轮播图项目
+const removeBannerItem = index => {
+  bannerItems.value.splice(index, 1)
+}
+
+// 添加推荐茶叶项目
+const addRecommendItem = () => {
+  recommendItems.value.push({
+    id: '',
+    title: '',
+    image: '',
+    price: ''
+  })
+}
+
+// 移除推荐茶叶项目
+const removeRecommendItem = index => {
+  recommendItems.value.splice(index, 1)
+}
+
+// 提交区块表单
+const submitBlockForm = async () => {
+  if (!currentBlock.value) return
+  
+  blockSubmitting.value = true
+  
+  try {
+    let content = ''
+    
+    // 根据区块类型构造内容
+    if (currentBlock.value.section === 'banner') {
+      content = JSON.stringify(bannerItems.value)
+    } else if (currentBlock.value.section === 'recommend') {
+      content = JSON.stringify(recommendItems.value)
+    } else {
+      content = rawBlockContent.value
+    }
+    
+    const updateData = {
+      ...blockForm.value,
+      content
+    }
+    
+    // 更新首页数据
+    const res = await forumStore.updateHomeData(updateData)
+    showByCode(res.code)
+    blockFormVisible.value = false
+    
+    // 刷新首页数据
+    await fetchHomeData()
+  } catch (error) {
+    console.error('保存区块失败:', error)
+  } finally {
+    blockSubmitting.value = false
+  }
+}
+
+// ============ 共用函数 ============
+// 格式化日期
+const formatDate = dateString => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+}
+
+// 去论坛管理
+// 获取文章列表
+const fetchArticles = async () => {
+  try {
+    const res = await forumStore.fetchArticles()
+    showByCode(res.code)
+  } catch (error) {
+    console.error('获取文章列表失败:', error)
+  }
+}
+
+// 获取首页数据
+const fetchHomeData = async () => {
+  try {
+    const res = await forumStore.fetchHomeData()
+    showByCode(res.code)
+  } catch (error) {
+    console.error('获取首页数据失败:', error)
+  }
+}
+
+// 加载页面数据
+onMounted(async () => {
+  await Promise.all([
+    fetchArticles(),
+    fetchHomeData()
+  ])
+})
 </script>
 
 <style lang="scss" scoped>

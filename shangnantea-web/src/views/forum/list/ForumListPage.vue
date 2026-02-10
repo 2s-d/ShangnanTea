@@ -246,7 +246,7 @@
   </div>
 </template>
 
-<script>
+<script setup>
 /* eslint-disable vue/no-ref-as-operand */
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
@@ -259,107 +259,99 @@ import SafeImage from '@/components/common/form/SafeImage.vue'
 import { showByCode } from '@/utils/apiMessages'
 import { forumPromptMessages } from '@/utils/promptMessages'
 
-export default {
-  name: 'ForumListPage',
-  components: {
-    PostCard,
-    Refresh, ArrowDown, Grid, EditPen, Delete, Male, Female, Plus,
-    SafeImage
-  },
-  setup() {
-    const router = useRouter()
-    const forumStore = useForumStore()
-    const userStore = useUserStore()
+const router = useRouter()
+const forumStore = useForumStore()
+const userStore = useUserStore()
+
+// 默认图片常量（生产形态：不使用 mock-images）
+const defaultAvatar = ''
+const defaultCover = ''
+const defaultIcon = ''
+
+// 当前选中的版块ID
+const currentTopicId = ref('all')
+
+// 当前用户信息
+const currentUser = ref({
+  id: 'user123',
+  username: '茶韵悠长',
+  avatar: 'https://via.placeholder.com/80x80?text=茶韵',
+  gender: 1, // 1-男，2-女
+  level: 3
+})
+
+// 待删除的帖子
+const postToDelete = ref(null)
+
+// 本地加载状态
+const localLoading = reactive({
+  delete: false,
+  submit: false
+})
+
+// 对话框状态
+const dialogVisible = reactive({
+  post: false,
+  delete: false
+})
+
+// 发帖表单
+const postFormRef = ref(null)
+const postForm = reactive({
+  title: '',
+  categoryId: '',
+  content: '',
+  images: []
+})
+
+// 发帖表单验证规则
+const postRules = {
+  title: [
+    { required: true, message: '请输入帖子标题', trigger: 'blur' },
+    { min: 5, max: 100, message: '标题长度在 5 到 100 个字符', trigger: 'blur' }
+  ],
+  categoryId: [
+    { required: true, message: '请选择分类', trigger: 'change' }
+  ],
+  content: [
+    { required: true, message: '请输入帖子内容', trigger: 'blur' },
+    { min: 10, message: '内容至少10个字符', trigger: 'blur' }
+  ]
+}
+
+// 排序选项
+const currentSort = ref('latest')
+const sortOptions = {
+  latest: '最新发布',
+  popular: '最多浏览',
+  hot: '热门讨论'
+}
+
+// 分页数据
+const pagination = reactive({
+  currentPage: 1,
+  pageSize: 10,
+  total: 0
+})
+
+// 从Pinia获取数据
+const topicList = computed(() => forumStore.forumTopics)
+const postList = computed(() => forumStore.forumPosts)
+const loading = computed(() => forumStore.loading)
+const error = computed(() => forumStore.error)
+
+// 分页数据从Pinia获取
+const paginationData = computed(() => forumStore.postPagination)
+
+// 我的帖子（暂时使用空数组，后续可以添加相关API）
+const myPosts = ref([])
     
-    // 默认图片常量（生产形态：不使用 mock-images）
-    const defaultAvatar = ''
-    const defaultCover = ''
-    const defaultIcon = ''
-    
-    // 当前选中的版块ID
-    const currentTopicId = ref('all')
-    
-    // 当前用户信息
-    const currentUser = ref({
-      id: 'user123',
-      username: '茶韵悠长',
-      avatar: 'https://via.placeholder.com/80x80?text=茶韵',
-      gender: 1, // 1-男，2-女
-      level: 3
-    })
-    
-    // 待删除的帖子
-    const postToDelete = ref(null)
-    
-    // 本地加载状态
-    const localLoading = reactive({
-      delete: false,
-      submit: false
-    })
-    
-    // 对话框状态
-    const dialogVisible = reactive({
-      post: false,
-      delete: false
-    })
-    
-    // 发帖表单
-    const postFormRef = ref(null)
-    const postForm = reactive({
-      title: '',
-      categoryId: '',
-      content: '',
-      images: []
-    })
-    
-    // 发帖表单验证规则
-    const postRules = {
-      title: [
-        { required: true, message: '请输入帖子标题', trigger: 'blur' },
-        { min: 5, max: 100, message: '标题长度在 5 到 100 个字符', trigger: 'blur' }
-      ],
-      categoryId: [
-        { required: true, message: '请选择分类', trigger: 'change' }
-      ],
-      content: [
-        { required: true, message: '请输入帖子内容', trigger: 'blur' },
-        { min: 10, message: '内容至少10个字符', trigger: 'blur' }
-      ]
-    }
-    
-    // 排序选项
-    const currentSort = ref('latest')
-    const sortOptions = {
-      latest: '最新发布',
-      popular: '最多浏览',
-      hot: '热门讨论'
-    }
-    
-    // 分页数据
-    const pagination = reactive({
-      currentPage: 1,
-      pageSize: 10,
-      total: 0
-    })
-    
-    // 从Pinia获取数据
-    const topicList = computed(() => forumStore.forumTopics)
-    const postList = computed(() => forumStore.forumPosts)
-    const loading = computed(() => forumStore.loading)
-    const error = computed(() => forumStore.error)
-    
-    // 分页数据从Pinia获取
-    const paginationData = computed(() => forumStore.postPagination)
-    
-    // 我的帖子（暂时使用空数组，后续可以添加相关API）
-    const myPosts = ref([])
-    
-    // 更新本地分页状态
-    const updatePagination = () => {
-      pagination.currentPage = paginationData.value.current
-      pagination.pageSize = paginationData.value.pageSize
-      pagination.total = paginationData.value.total
-    }
+// 更新本地分页状态
+const updatePagination = () => {
+  pagination.currentPage = paginationData.value.current
+  pagination.pageSize = paginationData.value.pageSize
+  pagination.total = paginationData.value.total
+}
 
     /*
     // 模拟数据 - 版块列表
@@ -1001,7 +993,7 @@ export default {
       }
       
       // 一天内显示"x小时前"
-      if (diff < 24 * 60 * 60 * 1000) {
+      if (diff < 24 * 60 * 1000) {
         const hours = Math.floor(diff / (60 * 60 * 1000))
         return `${hours}小时前`
       }

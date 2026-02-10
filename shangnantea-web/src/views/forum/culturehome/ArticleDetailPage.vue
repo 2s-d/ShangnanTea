@@ -127,7 +127,7 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, onMounted, nextTick, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useForumStore } from '@/stores/forum'
@@ -137,238 +137,208 @@ import SafeImage from '@/components/common/form/SafeImage.vue'
 import { showByCode } from '@/utils/apiMessages'
 import { forumPromptMessages } from '@/utils/promptMessages'
 
-export default {
-  name: 'ArticleDetailPage',
-  components: {
-    SafeImage
-  },
-  setup() {
-    const route = useRoute()
-    const router = useRouter()
-    const forumStore = useForumStore()
-    const userStore = useUserStore()
-    const loading = computed(() => forumStore.loading)
-    // 点赞状态（从接口返回的isLiked字段获取）
-    const isLiked = computed(() => article.value?.isLiked || false)
-    // 收藏状态（从接口返回的isFavorited字段获取）
-    const isFavorited = computed(() => article.value?.isFavorited || false)
-    const shareDialogVisible = ref(false)
-    const likeLoading = ref(false)
-    const favoriteLoading = ref(false)
+const route = useRoute()
+const router = useRouter()
+const forumStore = useForumStore()
+const userStore = useUserStore()
+const loading = computed(() => forumStore.loading)
+// 点赞状态（从接口返回的isLiked字段获取）
+const isLiked = computed(() => article.value?.isLiked || false)
+// 收藏状态（从接口返回的isFavorited字段获取）
+const isFavorited = computed(() => article.value?.isFavorited || false)
+const shareDialogVisible = ref(false)
+const likeLoading = ref(false)
+const favoriteLoading = ref(false)
     
-    // 从Pinia获取当前文章
-    const article = computed(() => forumStore.currentArticle || {
-      id: 0,
-      title: '文章标题加载中...',
-      subtitle: '',
-      content: '内容加载中...',
-      author: '未知',
-      publishTime: new Date(),
-      viewCount: 0,
-      likeCount: 0,
-      tags: [],
-      source: '',
-      coverImage: ''
-    })
+// 从Pinia获取当前文章
+const article = computed(() => forumStore.currentArticle || {
+  id: 0,
+  title: '文章标题加载中...',
+  subtitle: '',
+  content: '内容加载中...',
+  author: '未知',
+  publishTime: new Date(),
+  viewCount: 0,
+  likeCount: 0,
+  tags: [],
+  source: '',
+  coverImage: ''
+})
+
+// 相关文章（从文章列表中筛选同分类的其他文章）
+const relatedArticles = computed(() => {
+  const articles = forumStore.articles || []
+  const currentId = article.value.id
+  const currentCategory = article.value.category
+  
+  return articles
+    .filter(item => item.id !== currentId && item.category === currentCategory)
+    .slice(0, 6) // 最多显示6篇相关文章
+})
+
+// 添加默认图片常量（生产形态：不使用 mock-images）
+const defaultImage = ''
+
+// 格式化日期
+const formatDate = date => {
+  if (!date) return ''
+  const d = new Date(date)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+// 加载文章详情
+const loadArticleDetail = async () => {
+  try {
+    const articleId = route.params.id
+    const res = await forumStore.fetchArticleDetail(articleId)
+    showByCode(res.code)
     
-    // 相关文章（从文章列表中筛选同分类的其他文章）
-    const relatedArticles = computed(() => {
-      const articles = forumStore.articles || []
-      const currentId = article.value.id
-      const currentCategory = article.value.category
-      
-      return articles
-        .filter(item => item.id !== currentId && item.category === currentCategory)
-        .slice(0, 6) // 最多显示6篇相关文章
-    })
-
-    // 添加默认图片常量（生产形态：不使用 mock-images）
-    const defaultImage = ''
-
-    // 格式化日期
-    const formatDate = date => {
-      if (!date) return ''
-      const d = new Date(date)
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    // 如果文章列表为空，也加载文章列表用于相关文章推荐
+    if (!forumStore.articles || forumStore.articles.length === 0) {
+      await forumStore.fetchArticles()
     }
+    
+    // 防止ResizeObserver错误，延迟处理DOM更新
+    await nextTick()
+    suppressResizeObserverError()
+  } catch (error) {
+    console.error('获取文章详情失败:', error)
+  }
+}
 
-    // 加载文章详情
-    const loadArticleDetail = async () => {
-      try {
-        const articleId = route.params.id
-        const res = await forumStore.fetchArticleDetail(articleId)
-        showByCode(res.code)
-        
-        // 如果文章列表为空，也加载文章列表用于相关文章推荐
-        if (!forumStore.articles || forumStore.articles.length === 0) {
-          await forumStore.fetchArticles()
-        }
-        
-        // 防止ResizeObserver错误，延迟处理DOM更新
-        await nextTick()
-        suppressResizeObserverError()
-      } catch (error) {
-        console.error('获取文章详情失败:', error)
+// 防止ResizeObserver循环错误
+const suppressResizeObserverError = () => {
+  const resizeObserverError = window.ResizeObserver.prototype.observe
+  window.ResizeObserver.prototype.observe = function (target, options) {
+    try {
+      return resizeObserverError.apply(this, [target, options])
+    } catch (error) {
+      if (error.message.includes('ResizeObserver loop limit exceeded')) {
+        console.warn('ResizeObserver loop limit exceeded')
+        return null
       }
-    }
-
-    // 防止ResizeObserver循环错误
-    const suppressResizeObserverError = () => {
-      const resizeObserverError = window.ResizeObserver.prototype.observe
-      window.ResizeObserver.prototype.observe = function (target, options) {
-        try {
-          return resizeObserverError.apply(this, [target, options])
-        } catch (error) {
-          if (error.message.includes('ResizeObserver loop limit exceeded')) {
-            console.warn('ResizeObserver loop limit exceeded')
-            return null
-          }
-          throw error
-        }
-      }
-    }
-
-    // 返回上一页
-    const goBack = () => {
-      router.back()
-    }
-
-    // 处理点赞
-    const handleLike = async () => {
-      if (!article.value?.id) return
-      
-      likeLoading.value = true
-      try {
-        if (isLiked.value) {
-          // 取消点赞：直接传递targetId和targetType
-          const res = await userStore.removeLike({
-            targetId: String(article.value.id),
-            targetType: 'article'
-          })
-          showByCode(res.code)
-          // 重新加载文章详情以更新isLiked状态
-          await loadArticleDetail()
-        } else {
-          // 添加点赞
-          const res = await userStore.addLike({
-            targetId: String(article.value.id),
-            targetType: 'article'
-          })
-          showByCode(res.code)
-          // 重新加载文章详情以更新isLiked状态
-          await loadArticleDetail()
-        }
-      } catch (error) {
-        console.error('点赞操作失败:', error)
-      } finally {
-        likeLoading.value = false
-      }
-    }
-    
-    // 处理收藏
-    const handleFavorite = async () => {
-      if (!article.value?.id) return
-      
-      favoriteLoading.value = true
-      try {
-        if (isFavorited.value) {
-          // 取消收藏：直接传递 itemId 和 itemType
-          const res = await userStore.removeFavorite({
-            itemId: String(article.value.id),
-            itemType: 'tea_article'
-          })
-          showByCode(res.code)
-          // 重新加载文章详情以更新isFavorited状态
-          await loadArticleDetail()
-        } else {
-          // 添加收藏
-          const res = await userStore.addFavorite({
-            itemId: String(article.value.id),
-            itemType: 'tea_article',
-            targetName: article.value.title,
-            targetImage: article.value.coverImage || ''
-          })
-          showByCode(res.code)
-          // 重新加载文章详情以更新isFavorited状态
-          await loadArticleDetail()
-        }
-      } catch (error) {
-        console.error('收藏操作失败:', error)
-      } finally {
-        favoriteLoading.value = false
-      }
-    }
-    
-    // 处理分享
-    const handleShare = () => {
-      shareDialogVisible.value = true
-    }
-    
-    // 分享到微信
-    const shareToWeixin = () => {
-      // 复制链接成功提示
-      forumPromptMessages.showShareDeveloping()
-      shareDialogVisible.value = false
-    }
-    
-    // 分享到微博
-    const shareToWeibo = () => {
-      forumPromptMessages.showShareDeveloping()
-      shareDialogVisible.value = false
-    }
-    
-    // 分享到QQ
-    const shareToQQ = () => {
-      forumPromptMessages.showShareDeveloping()
-      shareDialogVisible.value = false
-    }
-    
-    // 复制链接
-    const copyLink = () => {
-      // 复制链接成功提示
-      forumPromptMessages.showShareDeveloping()
-      shareDialogVisible.value = false
-    }
-    
-    // 查看其他文章
-    const viewArticle = id => {
-      router.push(`/article/${id}`)
-    }
-
-    onMounted(() => {
-      loadArticleDetail()
-      
-      // 全局捕获ResizeObserver错误
-      window.addEventListener('error', event => {
-        if (event && event.message && event.message.includes('ResizeObserver loop limit exceeded')) {
-          event.stopImmediatePropagation()
-        }
-      })
-    })
-
-    return {
-      article,
-      relatedArticles,
-      loading,
-      isLiked,
-      isFavorited,
-      likeLoading,
-      favoriteLoading,
-      shareDialogVisible,
-      formatDate,
-      goBack,
-      handleLike,
-      handleFavorite,
-      handleShare,
-      shareToWeixin,
-      shareToWeibo,
-      shareToQQ,
-      copyLink,
-      viewArticle,
-      defaultImage
+      throw error
     }
   }
 }
+
+// 返回上一页
+const goBack = () => {
+  router.back()
+}
+
+// 处理点赞
+const handleLike = async () => {
+  if (!article.value?.id) return
+  
+  likeLoading.value = true
+  try {
+    if (isLiked.value) {
+      // 取消点赞：直接传递targetId和targetType
+      const res = await userStore.removeLike({
+        targetId: String(article.value.id),
+        targetType: 'article'
+      })
+      showByCode(res.code)
+      // 重新加载文章详情以更新isLiked状态
+      await loadArticleDetail()
+    } else {
+      // 添加点赞
+      const res = await userStore.addLike({
+        targetId: String(article.value.id),
+        targetType: 'article'
+      })
+      showByCode(res.code)
+      // 重新加载文章详情以更新isLiked状态
+      await loadArticleDetail()
+    }
+  } catch (error) {
+    console.error('点赞操作失败:', error)
+  } finally {
+    likeLoading.value = false
+  }
+}
+
+// 处理收藏
+const handleFavorite = async () => {
+  if (!article.value?.id) return
+  
+  favoriteLoading.value = true
+  try {
+    if (isFavorited.value) {
+      // 取消收藏：直接传递 itemId 和 itemType
+      const res = await userStore.removeFavorite({
+        itemId: String(article.value.id),
+        itemType: 'tea_article'
+      })
+      showByCode(res.code)
+      // 重新加载文章详情以更新isFavorited状态
+      await loadArticleDetail()
+    } else {
+      // 添加收藏
+      const res = await userStore.addFavorite({
+        itemId: String(article.value.id),
+        itemType: 'tea_article',
+        targetName: article.value.title,
+        targetImage: article.value.coverImage || ''
+      })
+      showByCode(res.code)
+      // 重新加载文章详情以更新isFavorited状态
+      await loadArticleDetail()
+    }
+  } catch (error) {
+    console.error('收藏操作失败:', error)
+  } finally {
+    favoriteLoading.value = false
+  }
+}
+
+// 处理分享
+const handleShare = () => {
+  shareDialogVisible.value = true
+}
+
+// 分享到微信
+const shareToWeixin = () => {
+  // 复制链接成功提示
+  forumPromptMessages.showShareDeveloping()
+  shareDialogVisible.value = false
+}
+
+// 分享到微博
+const shareToWeibo = () => {
+  forumPromptMessages.showShareDeveloping()
+  shareDialogVisible.value = false
+}
+
+// 分享到QQ
+const shareToQQ = () => {
+  forumPromptMessages.showShareDeveloping()
+  shareDialogVisible.value = false
+}
+
+// 复制链接
+const copyLink = () => {
+  // 复制链接成功提示
+  forumPromptMessages.showShareDeveloping()
+  shareDialogVisible.value = false
+}
+
+// 查看其他文章
+const viewArticle = id => {
+  router.push(`/article/${id}`)
+}
+
+onMounted(() => {
+  loadArticleDetail()
+  
+  // 全局捕获ResizeObserver错误
+  window.addEventListener('error', event => {
+    if (event && event.message && event.message.includes('ResizeObserver loop limit exceeded')) {
+      event.stopImmediatePropagation()
+    }
+  })
+})
 </script>
 
 <style lang="scss" scoped>

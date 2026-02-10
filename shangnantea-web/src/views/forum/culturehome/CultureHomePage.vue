@@ -128,7 +128,7 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useForumStore } from '@/stores/forum'
@@ -138,147 +138,119 @@ import SafeImage from '@/components/common/form/SafeImage.vue'
 import { showByCode } from '@/utils/apiMessages'
 import { forumPromptMessages } from '@/utils/promptMessages'
 
-export default {
-  name: 'CultureHomePage',
-  components: {
-    RefreshRight, VideoPlay, SafeImage
-  },
-  setup() {
-    const router = useRouter()
-    const forumStore = useForumStore()
-    const refreshing = ref(false)
+const router = useRouter()
+const forumStore = useForumStore()
+const refreshing = ref(false)
     
-    // 从Pinia获取数据
-    const bannerData = computed(() => forumStore.banners)
-    const cultureFeatures = computed(() => forumStore.cultureFeatures)
-    const teaCategories = computed(() => forumStore.teaCategories)
-    const latestNews = computed(() => forumStore.latestNews)
-    const partners = computed(() => forumStore.partners)
-    const loading = computed(() => forumStore.loading)
+// 从Pinia获取数据
+const bannerData = computed(() => forumStore.banners)
+const cultureFeatures = computed(() => forumStore.cultureFeatures)
+const teaCategories = computed(() => forumStore.teaCategories)
+const latestNews = computed(() => forumStore.latestNews)
+const partners = computed(() => forumStore.partners)
+const loading = computed(() => forumStore.loading)
     
-    // 组织文章数据结构
-    const articleData = computed(() => {
-      const articles = forumStore.articles || []
-      return {
-        history: articles.filter(article => article.category === 'history').slice(0, 5),
-        art: articles.filter(article => article.category === 'art').slice(0, 5),
-        encyclopedia: articles.filter(article => article.category === 'encyclopedia').slice(0, 5),
-        heritage: articles.filter(article => article.category === 'heritage').slice(0, 5)
-      }
-    })
-    
-    // 推荐茶叶（从茶叶模块获取）
-    // TODO: 需要从茶叶 store 获取，暂时使用空数组
-    const recommendTeas = computed(() => [])
-    
-    // 获取首页数据
-    const fetchHomeData = async () => {
-      try {
-        const res = await forumStore.fetchHomeData()
-        showByCode(res.code)
-      } catch (error) {
-        console.error('获取首页数据失败:', error)
-      }
-    }
-    
-    // 获取Banner数据
-    const fetchBanners = async () => {
-      try {
-        const res = await forumStore.fetchBanners()
-        showByCode(res.code)
-      } catch (error) {
-        console.error('获取轮播图数据失败:', error)
-      }
-    }
-    
-    // 获取文章数据
-    const fetchArticles = async () => {
-      try {
-        const res = await forumStore.fetchArticles()
-        showByCode(res.code)
-      } catch (error) {
-        console.error('获取文章数据失败:', error)
-      }
-    }
-    
-    // 获取推荐茶叶
-    const fetchRecommendTeas = async () => {
-      try {
-        // TODO: 需要从茶叶 store 调用
-        // const res = await teaStore.fetchRecommendTeas({ type: 'random', count: 6 })
-        // showByCode(res.code)
-      } catch (error) {
-        console.error('获取推荐茶叶失败:', error)
-      }
-    }
-    
-    // 页面加载时获取数据
-    onMounted(async () => {
-      await Promise.all([
-        fetchHomeData(),
-        fetchBanners(),
-        fetchArticles(),
-        fetchRecommendTeas()
-      ])
-    })
-    
-    // 查看文章详情
-    const viewArticle = id => {
-      router.push(`/article/${id}`)
-    }
-    
-    // 查看茶叶详情
-    const viewTeaDetail = id => {
-      router.push(`/tea/${id}`)
-    }
-    
-    // 刷新文章列表
-    const refreshArticles = async () => {
-      refreshing.value = true
-      try {
-        const res = await fetchArticles()
-        showByCode(res?.code)
-      } catch (error) {
-        console.error('刷新文章失败:', error)
-      } finally {
-        refreshing.value = false
-      }
-    }
-    
-    // AR虚拟试饮功能
-    const startARTasting = () => {
-      forumPromptMessages.showARDeveloping()
-    }
-    
-    // 默认图片（生产形态：不使用 mock-images）
-    const defaultTeaImage = ''
-    const defaultCover = ''
-    const defaultAvatar = ''
+// 组织文章数据结构
+const articleData = computed(() => {
+  const articles = forumStore.articles || []
+  return {
+    history: articles.filter(article => article.category === 'history').slice(0, 5),
+    art: articles.filter(article => article.category === 'art').slice(0, 5),
+    encyclopedia: articles.filter(article => article.category === 'encyclopedia').slice(0, 5),
+    heritage: articles.filter(article => article.category === 'heritage').slice(0, 5)
+  }
+})
 
-    // 文章列表占位（待后端接入）
-    const articleList = ref([])
-    
-    return {
-      bannerData,
-      articleData,
-      recommendTeas,
-      cultureFeatures,
-      teaCategories,
-      latestNews,
-      partners,
-      loading,
-      refreshing,
-      viewArticle,
-      viewTeaDetail,
-      refreshArticles,
-      RefreshRight,
-      startARTasting,
-      defaultTeaImage,
-      defaultCover,
-      defaultAvatar
-    }
+// 推荐茶叶（从茶叶模块获取）
+// TODO: 需要从茶叶 store 获取，暂时使用空数组
+const recommendTeas = computed(() => [])
+
+// 获取首页数据
+const fetchHomeData = async () => {
+  try {
+    const res = await forumStore.fetchHomeData()
+    showByCode(res.code)
+  } catch (error) {
+    console.error('获取首页数据失败:', error)
   }
 }
+
+// 获取Banner数据
+const fetchBanners = async () => {
+  try {
+    const res = await forumStore.fetchBanners()
+    showByCode(res.code)
+  } catch (error) {
+    console.error('获取轮播图数据失败:', error)
+  }
+}
+
+// 获取文章数据
+const fetchArticles = async () => {
+  try {
+    const res = await forumStore.fetchArticles()
+    showByCode(res.code)
+  } catch (error) {
+    console.error('获取文章数据失败:', error)
+  }
+}
+
+// 获取推荐茶叶
+const fetchRecommendTeas = async () => {
+  try {
+    // TODO: 需要从茶叶 store 调用
+    // const res = await teaStore.fetchRecommendTeas({ type: 'random', count: 6 })
+    // showByCode(res.code)
+  } catch (error) {
+    console.error('获取推荐茶叶失败:', error)
+  }
+}
+
+// 页面加载时获取数据
+onMounted(async () => {
+  await Promise.all([
+    fetchHomeData(),
+    fetchBanners(),
+    fetchArticles(),
+    fetchRecommendTeas()
+  ])
+})
+
+// 查看文章详情
+const viewArticle = id => {
+  router.push(`/article/${id}`)
+}
+
+// 查看茶叶详情
+const viewTeaDetail = id => {
+  router.push(`/tea/${id}`)
+}
+
+// 刷新文章列表
+const refreshArticles = async () => {
+  refreshing.value = true
+  try {
+    const res = await fetchArticles()
+    showByCode(res?.code)
+  } catch (error) {
+    console.error('刷新文章失败:', error)
+  } finally {
+    refreshing.value = false
+  }
+}
+
+// AR虚拟试饮功能
+const startARTasting = () => {
+  forumPromptMessages.showARDeveloping()
+}
+
+// 默认图片（生产形态：不使用 mock-images）
+const defaultTeaImage = ''
+const defaultCover = ''
+const defaultAvatar = ''
+
+// 文章列表占位（待后端接入）
+const articleList = ref([])
 </script>
 
 <style lang="scss" scoped>
