@@ -443,7 +443,7 @@
 <script>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useStore } from 'vuex'
+import { useForumStore } from '@/stores/forum'
 import { DocumentCopy, Plus, Search } from '@element-plus/icons-vue'
 import { ElMessageBox } from 'element-plus'
 import SafeImage from '@/components/common/form/SafeImage.vue'
@@ -460,7 +460,7 @@ export default {
   },
   setup() {
     const router = useRouter()
-    const store = useStore()
+    const forumStore = useForumStore()
     const activeTab = ref('articles')
     
     // 默认封面图片
@@ -506,9 +506,9 @@ export default {
       content: [{ required: true, message: '请输入文章内容', trigger: 'blur' }]
     }
     
-    // 从Vuex获取数据
-    const articles = computed(() => store.state.forum.articles || [])
-    const loading = computed(() => store.state.forum.loading)
+    // 从Pinia获取数据
+    const articles = computed(() => forumStore.articles || [])
+    const loading = computed(() => forumStore.loading)
     
     const articlePagination = reactive({
       currentPage: 1,
@@ -596,7 +596,7 @@ export default {
     const toggleRecommend = async article => {
       try {
         const newRecommendStatus = article.is_recommend === 1 ? 0 : 1
-        const res = await store.dispatch('forum/updateArticle', { 
+        const res = await forumStore.updateArticle({ 
           id: article.id, 
           data: { ...article, is_recommend: newRecommendStatus }
         })
@@ -618,7 +618,7 @@ export default {
         }
       ).then(async () => {
         try {
-          const res = await store.dispatch('forum/deleteArticle', article.id)
+          const res = await forumStore.deleteArticle(article.id)
           showByCode(res.code)
         } catch (error) {
           console.error('删除文章失败:', error)
@@ -649,11 +649,11 @@ export default {
           
           if (formData.id) {
             // 更新文章
-            const res = await store.dispatch('forum/updateArticle', { id: formData.id, data: formData })
+            const res = await forumStore.updateArticle({ id: formData.id, data: formData })
             showByCode(res.code)
           } else {
             // 创建文章
-            const res = await store.dispatch('forum/createArticle', formData)
+            const res = await forumStore.createArticle(formData)
             showByCode(res.code)
           }
           
@@ -692,11 +692,11 @@ export default {
     // 原始区块内容
     const rawBlockContent = ref('')
     
-    // 从Vuex获取首页数据
+    // 从Pinia获取首页数据
     const homeBlocks = computed(() => {
       // 将首页数据转换为区块格式
       const blocks = []
-      const homeData = store.state.forum
+      const homeData = forumStore
       
       // Banner区块
       if (homeData.banners && homeData.banners.length > 0) {
@@ -742,7 +742,7 @@ export default {
     // 切换区块状态
     const toggleBlockStatus = async block => {
       try {
-        const res = await store.dispatch('forum/updateHomeData', { ...block, status: block.status === 1 ? 0 : 1 })
+        const res = await forumStore.updateHomeData({ ...block, status: block.status === 1 ? 0 : 1 })
         showByCode(res.code)
       } catch (error) {
         console.error('切换区块状态失败:', error)
@@ -835,7 +835,7 @@ export default {
         }
         
         // 更新首页数据
-        const res = await store.dispatch('forum/updateHomeData', updateData)
+        const res = await forumStore.updateHomeData(updateData)
         showByCode(res.code)
         blockFormVisible.value = false
         
@@ -860,7 +860,7 @@ export default {
     // 获取文章列表
     const fetchArticles = async () => {
       try {
-        const res = await store.dispatch('forum/fetchArticles')
+        const res = await forumStore.fetchArticles()
         showByCode(res.code)
       } catch (error) {
         console.error('获取文章列表失败:', error)
@@ -870,7 +870,7 @@ export default {
     // 获取首页数据
     const fetchHomeData = async () => {
       try {
-        const res = await store.dispatch('forum/fetchHomeData')
+        const res = await forumStore.fetchHomeData()
         showByCode(res.code)
       } catch (error) {
         console.error('获取首页数据失败:', error)

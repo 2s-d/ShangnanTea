@@ -262,6 +262,95 @@ beforeEach(() => {
 })
 ```
 
+## 📋 待迁移文件清单
+
+### ✅ 确认需要迁移的文件（6个）
+
+#### 1. 论坛列表页 ✅ 准备就绪
+**文件**：`src/views/forum/list/ForumListPage.vue`
+- **使用模式**：`useStore()`, `store.state.forum`, `store.dispatch('forum/...')`
+- **涉及功能**：版块列表、帖子列表、发帖、删帖、点赞、收藏、分页
+- **主要状态**：`forumTopics`, `forumPosts`, `loading`, `postPagination`
+- **主要方法**：`fetchForumTopics()`, `fetchForumPosts()`, `createPost()`, `deletePost()`
+- **迁移状态**：🚀 准备开始正式迁移
+
+#### 2. 帖子详情页 ✅ 准备就绪
+**文件**：`src/views/forum/detail/ForumDetailPage.vue`
+- **使用模式**：`useStore()`, `store.state.forum`, `store.dispatch('forum/...')`
+- **涉及功能**：帖子详情、回复列表、发表回复、点赞、收藏、@用户
+- **主要状态**：`currentPost`, `postReplies`, `loading`, `replyPagination`
+- **主要方法**：`fetchPostDetail()`, `fetchPostReplies()`, `createReply()`
+- **迁移状态**：🚀 准备开始正式迁移
+
+#### 3. 论坛管理页 ✅ 准备就绪
+**文件**：`src/views/forum/manage/ForumManagePage.vue`
+- **使用模式**：`useStore()`, `store.state.forum`, `store.dispatch('forum/...')`
+- **涉及功能**：版块管理、内容审核、帖子管理、置顶加精
+- **主要状态**：`forumTopics`, `pendingPosts`, `loading`, `pendingPostsPagination`
+- **主要方法**：`fetchForumTopics()`, `createTopic()`, `updateTopic()`, `deleteTopic()`, `fetchPendingPosts()`, `approvePost()`, `rejectPost()`, `togglePostSticky()`, `togglePostEssence()`
+- **迁移状态**：🚀 准备开始正式迁移
+
+#### 4. 茶文化管理页 ✅ 准备就绪
+**文件**：`src/views/forum/manage/CultureManagerPage.vue`
+- **使用模式**：`useStore()`, `store.state.forum`, `store.dispatch('forum/...')`
+- **涉及功能**：文章管理、主页区块管理、轮播图、推荐茶叶
+- **主要状态**：`articles`, `loading`, `banners`, `cultureFeatures`
+- **主要方法**：`fetchArticles()`, `createArticle()`, `updateArticle()`, `deleteArticle()`, `fetchHomeData()`, `updateHomeData()`
+- **迁移状态**：🚀 准备开始正式迁移
+
+#### 5. 茶文化首页 ✅ 准备就绪
+**文件**：`src/views/forum/culturehome/CultureHomePage.vue`
+- **使用模式**：`useStore()`, `store.state.forum`, `store.dispatch('forum/...')`
+- **涉及功能**：茶文化首页展示、轮播图、推荐内容、文章列表
+- **主要状态**：`banners`, `cultureFeatures`, `articles`, `loading`
+- **主要方法**：`fetchHomeData()`, `fetchBanners()`, `fetchArticles()`
+- **迁移状态**：🚀 准备开始正式迁移
+
+#### 6. 文章详情页 ✅ 准备就绪
+**文件**：`src/views/forum/culturehome/ArticleDetailPage.vue`
+- **使用模式**：`useStore()`, `store.state.forum`, `store.dispatch('forum/...')`
+- **涉及功能**：文章详情展示、点赞、收藏、相关文章推荐
+- **主要状态**：`currentArticle`, `articles`, `loading`
+- **主要方法**：`fetchArticleDetail()`, `fetchArticles()`
+- **迁移状态**：🚀 准备开始正式迁移
+
+---
+
+### ⚠️ 特殊说明
+
+#### 帖子卡片组件（无需修改）
+**文件**：`src/components/forum/PostCard.vue`
+- **说明**：此组件通过 props 接收数据，通过 emit 触发事件，不直接使用 store
+- **处理方案**：无需修改
+
+---
+
+### 📊 迁移统计
+
+| 类别 | 数量 | 说明 |
+|------|------|------|
+| **需要迁移** | 6 个文件 | 使用 forum store 的页面组件 |
+| **无需修改** | 1 个文件 | PostCard.vue 通过 props 传递数据 |
+
+---
+
+### 🔄 迁移顺序
+
+按照以下顺序逐个迁移（从简单到复杂）：
+
+1. 🚀 **ForumListPage.vue** - 论坛列表页（forum store）- 准备就绪
+2. 🚀 **ForumDetailPage.vue** - 帖子详情页（forum store）- 准备就绪
+3. 🚀 **CultureHomePage.vue** - 茶文化首页（forum store）- 准备就绪
+4. 🚀 **ArticleDetailPage.vue** - 文章详情页（forum store）- 准备就绪
+5. 🚀 **ForumManagePage.vue** - 论坛管理页（forum store，复杂）- 准备就绪
+6. 🚀 **CultureManagerPage.vue** - 茶文化管理页（forum store，复杂）- 准备就绪
+
+**✅ 所有文件已确认，可以开始正式迁移工作**
+
+---
+
+---
+
 ## 工作流程
 
 ### 第一步：生成待修改文件列表

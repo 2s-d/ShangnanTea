@@ -456,7 +456,7 @@
 <script>
 import { ref, onMounted, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useStore } from 'vuex'
+import { useForumStore } from '@/stores/forum'
 import { Reading, Plus, Search } from '@element-plus/icons-vue'
 import { ElMessageBox } from 'element-plus'
 import { forumPromptMessages } from '@/utils/promptMessages'
@@ -471,18 +471,18 @@ export default {
   },
   setup() {
     const router = useRouter()
-    const store = useStore()
+    const forumStore = useForumStore()
     const activeTab = ref('audit')  // 默认显示审核标签页
     const postSearchText = ref('')
     
     // 版块相关数据
-    const topicsList = computed(() => store.state.forum.forumTopics)
-    const topicLoading = computed(() => store.state.forum.loading)
+    const topicsList = computed(() => forumStore.forumTopics)
+    const topicLoading = computed(() => forumStore.loading)
     
     // 内容审核相关数据
-    const pendingPostsList = computed(() => store.state.forum.pendingPosts)
-    const pendingPostsLoading = computed(() => store.state.forum.loading)
-    const pendingPostsTotalCount = computed(() => store.state.forum.pendingPostsPagination.total)
+    const pendingPostsList = computed(() => forumStore.pendingPosts)
+    const pendingPostsLoading = computed(() => forumStore.loading)
+    const pendingPostsTotalCount = computed(() => forumStore.pendingPostsPagination.total)
     const pendingPostsCurrentPage = ref(1)
     const pendingPostsPageSize = ref(10)
     
@@ -550,7 +550,7 @@ export default {
     // 加载版块列表
     const loadTopics = async () => {
       try {
-        const res = await store.dispatch('forum/fetchForumTopics')
+        const res = await forumStore.fetchForumTopics()
         showByCode(res.code)
       } catch (error) {
         console.error('获取版块列表失败:', error)
@@ -594,13 +594,13 @@ export default {
           
           try {
             if (editTopicMode.value) {
-              const res = await store.dispatch('forum/updateTopic', {
+              const res = await forumStore.updateTopic({
                 id: currentTopic.value.id,
                 data: topicForm.value
               })
               showByCode(res.code)
             } else {
-              const res = await store.dispatch('forum/createTopic', topicForm.value)
+              const res = await forumStore.createTopic(topicForm.value)
               showByCode(res.code)
             }
             
@@ -618,7 +618,7 @@ export default {
       const newStatus = topic.status === 1 ? 0 : 1
       
       try {
-        const res = await store.dispatch('forum/updateTopic', {
+        const res = await forumStore.updateTopic({
           id: topic.id,
           data: { ...topic, status: newStatus }
         })
@@ -642,7 +642,7 @@ export default {
       )
         .then(async () => {
           try {
-            const res = await store.dispatch('forum/deleteTopic', topic.id)
+            const res = await forumStore.deleteTopic(topic.id)
             showByCode(res.code)
             await loadTopics()
           } catch (error) {
@@ -796,7 +796,7 @@ export default {
       const newTopStatus = !post.is_top
       
       try {
-        const res = await store.dispatch('forum/togglePostSticky', {
+        const res = await forumStore.togglePostSticky({
           id: post.id,
           isSticky: newTopStatus
         })
@@ -813,7 +813,7 @@ export default {
       const newEssenceStatus = !post.is_essence
       
       try {
-        const res = await store.dispatch('forum/togglePostEssence', {
+        const res = await forumStore.togglePostEssence({
           id: post.id,
           isEssence: newEssenceStatus
         })
@@ -848,7 +848,7 @@ export default {
     // 加载待审核帖子列表
     const loadPendingPosts = async () => {
       try {
-        const res = await store.dispatch('forum/fetchPendingPosts', {
+        const res = await forumStore.fetchPendingPosts({
           page: pendingPostsCurrentPage.value,
           size: pendingPostsPageSize.value
         })
@@ -897,7 +897,7 @@ export default {
     // 确认审核通过
     const confirmApprove = async () => {
       try {
-        const res = await store.dispatch('forum/approvePost', {
+        const res = await forumStore.approvePost({
           id: currentAuditPost.value.id,
           data: {
             comment: approveForm.value.comment
@@ -918,7 +918,7 @@ export default {
       await rejectFormRef.value.validate(async valid => {
         if (valid) {
           try {
-            const res = await store.dispatch('forum/rejectPost', {
+            const res = await forumStore.rejectPost({
               id: currentAuditPost.value.id,
               data: {
                 reason: rejectForm.value.reason,

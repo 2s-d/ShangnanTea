@@ -130,7 +130,7 @@
 <script>
 import { ref, onMounted, nextTick, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useStore } from 'vuex'
+import { useForumStore } from '@/stores/forum'
 import { useUserStore } from '@/stores/user'
 
 import SafeImage from '@/components/common/form/SafeImage.vue'
@@ -145,9 +145,9 @@ export default {
   setup() {
     const route = useRoute()
     const router = useRouter()
-    const store = useStore()
+    const forumStore = useForumStore()
     const userStore = useUserStore()
-    const loading = computed(() => store.state.forum.loading)
+    const loading = computed(() => forumStore.loading)
     // 点赞状态（从接口返回的isLiked字段获取）
     const isLiked = computed(() => article.value?.isLiked || false)
     // 收藏状态（从接口返回的isFavorited字段获取）
@@ -156,8 +156,8 @@ export default {
     const likeLoading = ref(false)
     const favoriteLoading = ref(false)
     
-    // 从Vuex获取当前文章
-    const article = computed(() => store.state.forum.currentArticle || {
+    // 从Pinia获取当前文章
+    const article = computed(() => forumStore.currentArticle || {
       id: 0,
       title: '文章标题加载中...',
       subtitle: '',
@@ -173,7 +173,7 @@ export default {
     
     // 相关文章（从文章列表中筛选同分类的其他文章）
     const relatedArticles = computed(() => {
-      const articles = store.state.forum.articles || []
+      const articles = forumStore.articles || []
       const currentId = article.value.id
       const currentCategory = article.value.category
       
@@ -196,12 +196,12 @@ export default {
     const loadArticleDetail = async () => {
       try {
         const articleId = route.params.id
-        const res = await store.dispatch('forum/fetchArticleDetail', articleId)
+        const res = await forumStore.fetchArticleDetail(articleId)
         showByCode(res.code)
         
         // 如果文章列表为空，也加载文章列表用于相关文章推荐
-        if (!store.state.forum.articles || store.state.forum.articles.length === 0) {
-          await store.dispatch('forum/fetchArticles')
+        if (!forumStore.articles || forumStore.articles.length === 0) {
+          await forumStore.fetchArticles()
         }
         
         // 防止ResizeObserver错误，延迟处理DOM更新

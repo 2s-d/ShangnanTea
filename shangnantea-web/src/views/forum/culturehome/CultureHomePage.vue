@@ -131,7 +131,7 @@
 <script>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useStore } from 'vuex'
+import { useForumStore } from '@/stores/forum'
 
 import { RefreshRight, VideoPlay } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
@@ -145,20 +145,20 @@ export default {
   },
   setup() {
     const router = useRouter()
-    const store = useStore()
+    const forumStore = useForumStore()
     const refreshing = ref(false)
     
-    // 从Vuex获取数据
-    const bannerData = computed(() => store.state.forum.banners)
-    const cultureFeatures = computed(() => store.state.forum.cultureFeatures)
-    const teaCategories = computed(() => store.state.forum.teaCategories)
-    const latestNews = computed(() => store.state.forum.latestNews)
-    const partners = computed(() => store.state.forum.partners)
-    const loading = computed(() => store.state.forum.loading)
+    // 从Pinia获取数据
+    const bannerData = computed(() => forumStore.banners)
+    const cultureFeatures = computed(() => forumStore.cultureFeatures)
+    const teaCategories = computed(() => forumStore.teaCategories)
+    const latestNews = computed(() => forumStore.latestNews)
+    const partners = computed(() => forumStore.partners)
+    const loading = computed(() => forumStore.loading)
     
     // 组织文章数据结构
     const articleData = computed(() => {
-      const articles = store.state.forum.articles || []
+      const articles = forumStore.articles || []
       return {
         history: articles.filter(article => article.category === 'history').slice(0, 5),
         art: articles.filter(article => article.category === 'art').slice(0, 5),
@@ -168,12 +168,13 @@ export default {
     })
     
     // 推荐茶叶（从茶叶模块获取）
-    const recommendTeas = computed(() => store.state.tea?.recommendTeas || [])
+    // TODO: 需要从茶叶 store 获取，暂时使用空数组
+    const recommendTeas = computed(() => [])
     
     // 获取首页数据
     const fetchHomeData = async () => {
       try {
-        const res = await store.dispatch('forum/fetchHomeData')
+        const res = await forumStore.fetchHomeData()
         showByCode(res.code)
       } catch (error) {
         console.error('获取首页数据失败:', error)
@@ -183,7 +184,7 @@ export default {
     // 获取Banner数据
     const fetchBanners = async () => {
       try {
-        const res = await store.dispatch('forum/fetchBanners')
+        const res = await forumStore.fetchBanners()
         showByCode(res.code)
       } catch (error) {
         console.error('获取轮播图数据失败:', error)
@@ -193,7 +194,7 @@ export default {
     // 获取文章数据
     const fetchArticles = async () => {
       try {
-        const res = await store.dispatch('forum/fetchArticles')
+        const res = await forumStore.fetchArticles()
         showByCode(res.code)
       } catch (error) {
         console.error('获取文章数据失败:', error)
@@ -203,8 +204,9 @@ export default {
     // 获取推荐茶叶
     const fetchRecommendTeas = async () => {
       try {
-        const res = await store.dispatch('tea/fetchRecommendTeas', { type: 'random', count: 6 })
-        showByCode(res.code)
+        // TODO: 需要从茶叶 store 调用
+        // const res = await teaStore.fetchRecommendTeas({ type: 'random', count: 6 })
+        // showByCode(res.code)
       } catch (error) {
         console.error('获取推荐茶叶失败:', error)
       }
