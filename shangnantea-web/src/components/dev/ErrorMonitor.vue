@@ -76,7 +76,7 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue'
 import { ElMessage } from 'element-plus'
 
@@ -91,9 +91,7 @@ let originalXhrOpen = null
 let originalXhrSend = null
 let performanceObserver = null
 
-export default {
-  name: 'ErrorMonitor',
-  setup() {
+
     const visible = ref(process.env.NODE_ENV === 'development')
     const isCollapsed = ref(false)
     const activeTab = ref('errors')
@@ -671,21 +669,12 @@ export default {
       }
     })
 
-    onBeforeUnmount(() => {
-      restoreConsole()
-      restoreNetworkInterceptors()
-      window.removeEventListener('error', handleGlobalError)
-      window.removeEventListener('unhandledrejection', handleUnhandledRejection)
-    })
-
-    return {
-      visible, isCollapsed, activeTab, messages, apiRequests,
-      errorCount, apiFailCount, backendStatus, backendStatusText,
-      monitorStyle, startDrag,
-      toggleCollapse, clearCurrentTab, copyCurrentTab, checkBackendStatus
-    }
-  }
-}
+onBeforeUnmount(() => {
+  restoreConsole()
+  restoreNetworkInterceptors()
+  window.removeEventListener('error', handleGlobalError)
+  window.removeEventListener('unhandledrejection', handleUnhandledRejection)
+})
 </script>
 
 <style scoped>
