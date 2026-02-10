@@ -3,9 +3,9 @@
 ## 进度统计
 
 - **总文件数：** 38
-- **已完成：** 14
-- **剩余：** 24
-- **完成度：** 36.8%
+- **已完成：** 20
+- **剩余：** 18
+- **完成度：** 52.6%
 
 ---
 
@@ -45,15 +45,17 @@
 
 ## 第三组：order-module（6个文件）
 
-**状态：** 待转换
+**状态：** ✅ 已完成
+
+**提交信息：** `refactor: 转换第三组（order-module）6个文件从 setup() 到 <script setup> 语法糖`
 
 **文件列表：**
-1. `src/views/order/payment/PaymentPage.vue`
-2. `src/views/order/review/OrderReviewPage.vue`
-3. `src/views/order/payment/CheckoutPage.vue`
-4. `src/views/order/manage/OrderManagePage.vue`
-5. `src/views/order/list/OrderListPage.vue`
-6. `src/views/order/detail/OrderDetailPage.vue`
+1. ✅ `src/views/order/payment/PaymentPage.vue`
+2. ✅ `src/views/order/review/OrderReviewPage.vue`
+3. ✅ `src/views/order/payment/CheckoutPage.vue`
+4. ✅ `src/views/order/manage/OrderManagePage.vue`
+5. ✅ `src/views/order/list/OrderListPage.vue`
+6. ✅ `src/views/order/detail/OrderDetailPage.vue`
 
 ---
 
