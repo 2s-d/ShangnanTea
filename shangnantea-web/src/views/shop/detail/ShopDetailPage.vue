@@ -265,7 +265,7 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useShopStore } from '@/stores/shop'
@@ -274,21 +274,12 @@ import { useUserStore } from '@/stores/user'
 import { Back, Check, Star, ChatLineRound, Bell } from '@element-plus/icons-vue'
 import TeaCard from '@/components/tea/card/TeaCard.vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-import { showByCode, isSuccess } from '@/utils/apiMessages'
+import { showByCode } from '@/utils/apiMessages'
 import { shopPromptMessages } from '@/utils/promptMessages'
 
-export default {
-  name: 'ShopDetailPage',
-  components: {
-    Back,
-    Check,
-    Star,
-    ChatLineRound,
-    Bell,
-    TeaCard,
-    SafeImage
-  },
-  setup() {
+defineOptions({
+  name: 'ShopDetailPage'
+})
     const shopStore = useShopStore()
     const userStore = useUserStore()
     const router = useRouter()
@@ -489,35 +480,6 @@ export default {
         loadShopDetail(shopId)
       }
     )
-    
-    return {
-      shop,
-      shopTeas,
-      loading,
-      activeTab,
-      defaultLogo,
-      defaultShopLogo,
-      isFollowing,
-      followLoading,
-      // 任务组B：Banner和公告
-      shopBanners,
-      shopAnnouncements,
-      handleBannerClick,
-      formatTime,
-      toggleFollow,
-      goBack,
-      goToShopList,
-      contactShop,
-      shopReviews,
-      reviewPagination,
-      reviewForm,
-      reviewSubmitting,
-      handleReviewPageChange,
-      handleSubmitReview,
-      handleImagePreview
-    }
-  }
-}
 </script>
 
 <style lang="scss" scoped>

@@ -463,7 +463,7 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useTeaStore } from '@/stores/tea'
@@ -472,17 +472,12 @@ import { Search, Plus } from '@element-plus/icons-vue'
 import { useImageUpload } from '@/composables/useImageUpload'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 
-import { showByCode, isSuccess } from '@/utils/apiMessages'
+import { showByCode } from '@/utils/apiMessages'
 import { teaPromptMessages } from '@/utils/promptMessages'
 
-export default {
-  name: 'TeaManagePage',
-  components: {
-    Search,
-    Plus,
-    SafeImage
-  },
-  setup() {
+defineOptions({
+  name: 'TeaManagePage'
+})
     const router = useRouter()
     const teaStore = useTeaStore()
     const teaFormRef = ref(null)
@@ -1330,72 +1325,6 @@ export default {
       // 加载茶叶列表
       await loadTeas()
     })
-    
-    return {
-      teaFormRef,
-      loading, 
-      searchQuery, 
-      statusFilter, 
-      categoryFilter, 
-      currentPage, 
-      pageSize, 
-      totalCount, 
-      teas, 
-      categoryOptions, 
-      dialogVisible, 
-      isEdit, 
-      currentTea, 
-      submitting,
-      teaImages,
-      previewVisible,
-      previewImage,
-      mainImageIndex,
-      teaStatus,
-      teaRules,
-      handleSearch, 
-      handleFilterChange, 
-      handlePageChange, 
-      handleSizeChange, 
-      handleEdit, 
-      handlePreview, 
-      handleToggleStatus, 
-      showAddTeaDialog,
-      handleSave, 
-      handleDialogClose, 
-      formatDate, 
-      getCategoryName, 
-      getMinPrice,
-      handleImageChange,
-      handleImageRemove,
-      handleImagePreview,
-      addSpec,
-      removeSpec,
-      handleDefaultChange,
-      handleDelete,
-      // 任务组E：批量操作
-      selectedTeas,
-      handleSelectionChange,
-      handleBatchOnShelf,
-      handleBatchOffShelf,
-      loadTeas,
-      // 分类管理相关
-      categories,
-      activeTab,
-      categoryLoading,
-      categoryDialogVisible,
-      isEditCategory,
-      currentCategory,
-      categorySubmitting,
-      categoryFormRef,
-      categoryRules,
-      showAddCategoryDialog,
-      handleEditCategory,
-      handleDeleteCategory,
-      submitCategoryForm,
-      handleCategoryDialogClose
-    }
-  }
-}
 </script>
 
 <style lang="scss" scoped>

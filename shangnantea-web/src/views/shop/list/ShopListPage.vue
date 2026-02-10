@@ -107,7 +107,7 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useShopStore } from '@/stores/shop'
@@ -116,17 +116,11 @@ import { Mug } from '@element-plus/icons-vue'
 import ShopCard from '@/components/shop/card/ShopCard.vue'
 
 import SearchBar from '@/components/common/SearchBar.vue'
-import { showByCode, isSuccess } from '@/utils/apiMessages'
-import shopMessages from '@/utils/promptMessages'
+import { showByCode } from '@/utils/apiMessages'
 
-export default {
-  name: 'ShopListPage',
-  components: {
-    Mug,
-    ShopCard,
-    SearchBar
-  },
-  setup() {
+defineOptions({
+  name: 'ShopListPage'
+})
     const shopStore = useShopStore()
     const router = useRouter()
     const route = useRoute()
@@ -318,29 +312,6 @@ export default {
     onMounted(() => {
       // loadShops 会由 route.query watch 触发（immediate: true）
     })
-    
-    return {
-      searchQuery,
-      sortOption,
-      ratingFilter,
-      salesFilter,
-      regionFilter,
-      shops,
-      loading,
-      currentPage,
-      pageSize,
-      totalCount,
-      handleSearch,
-      handleSearchFromBar,
-      handleSortChange,
-      handleFilterChange,
-      handleResetFilters,
-      handlePageChange,
-      goToTeaList,
-      getShopTeas
-    }
-  }
-}
 </script>
 
 <style lang="scss" scoped>
