@@ -889,14 +889,14 @@ export default {
           }
         )
         
-        // 调用Vuex action删除茶叶
-        const response = await store.dispatch('tea/deleteTea', tea.id)
+        // 调用 Pinia action 删除茶叶
+        const response = await teaStore.deleteTea(tea.id)
         
         showByCode(response.code)
         
         // 如果当前页没有数据了，回到前一页
         if (teas.value.length === 0 && currentPage.value > 1) {
-          await store.dispatch('tea/setPage', currentPage.value - 1)
+          await teaStore.setPage(currentPage.value - 1)
         }
       } catch (error) {
         if (error !== 'cancel') {
@@ -977,16 +977,16 @@ export default {
             formData.price = defaultSpec.price
           }
           
-          // 调用Vuex action保存茶叶
+          // 调用 Pinia action 保存茶叶
           if (isEdit.value) {
-            const response = await store.dispatch('tea/updateTea', formData)
+            const response = await teaStore.updateTea(formData)
             
             // 任务组C：同步规格数据到后端
             const teaId = currentTea.value.id
             try {
               // 获取当前规格列表
-              await store.dispatch('tea/fetchTeaSpecifications', teaId)
-              const existingSpecs = store.state.tea.currentTeaSpecs || []
+              await teaStore.fetchTeaSpecifications(teaId)
+              const existingSpecs = teaStore.currentTeaSpecs || []
               
               // 处理规格的增删改
               for (const spec of formData.specifications) {
@@ -994,7 +994,7 @@ export default {
                 
                 if (existingSpec) {
                   // 更新现有规格
-                  await store.dispatch('tea/updateSpecification', {
+                  await teaStore.updateSpecification({
                     teaId,
                     specId: spec.id,
                     specData: {
@@ -1007,11 +1007,11 @@ export default {
                   
                   // 如果设置为默认规格
                   if (spec.is_default === 1 || spec.is_default === true) {
-                    await store.dispatch('tea/setDefaultSpecification', { teaId, specId: spec.id })
+                    await teaStore.setDefaultSpecification({ teaId, specId: spec.id })
                   }
                 } else {
                   // 添加新规格
-                  await store.dispatch('tea/addSpecification', {
+                  await teaStore.addSpecification({
                     teaId,
                     specData: {
                       spec_name: spec.spec_name,
@@ -1027,7 +1027,7 @@ export default {
               const currentSpecIds = formData.specifications.map(s => s.id)
               for (const existingSpec of existingSpecs) {
                 if (!currentSpecIds.includes(existingSpec.id)) {
-                  await store.dispatch('tea/deleteSpecification', { teaId, specId: existingSpec.id })
+                  await teaStore.deleteSpecification({ teaId, specId: existingSpec.id })
                 }
               }
             } catch (error) {
@@ -1043,7 +1043,7 @@ export default {
               // 找出新上传的图片（File对象）
               const newFiles = teaImages.value.filter(img => img.raw instanceof File).map(img => img.raw)
               if (newFiles.length > 0) {
-                await store.dispatch('tea/uploadTeaImages', { teaId, files: newFiles })
+                await teaStore.uploadTeaImages({ teaId, files: newFiles })
               }
               
               // 找出已删除的图片（有id但不在当前列表中的）
@@ -1051,7 +1051,7 @@ export default {
               const currentImageIds = teaImages.value.filter(img => img.id).map(img => img.id)
               for (const originalImg of originalImages) {
                 if (originalImg.id && !currentImageIds.includes(originalImg.id)) {
-                  await store.dispatch('tea/deleteTeaImage', { teaId, imageId: originalImg.id })
+                  await teaStore.deleteTeaImage({ teaId, imageId: originalImg.id })
                 }
               }
               
@@ -1061,14 +1061,14 @@ export default {
                 order: index + 1
               }))
               if (orders.length > 0) {
-                await store.dispatch('tea/updateImageOrder', { teaId, orders })
+                await teaStore.updateImageOrder({ teaId, orders })
               }
               
               // 设置主图
               if (mainImageIndex.value >= 0 && teaImages.value[mainImageIndex.value]) {
                 const mainImageId = teaImages.value[mainImageIndex.value].id || teaImages.value[mainImageIndex.value].uid
                 if (mainImageId) {
-                  await store.dispatch('tea/setMainImage', { teaId, imageId: mainImageId })
+                  await teaStore.setMainImage({ teaId, imageId: mainImageId })
                 }
               }
             } catch (error) {
@@ -1082,14 +1082,14 @@ export default {
             // 权限规则：只有管理员(role=1)可以管理平台直售茶叶
             // shopId='PLATFORM'表示平台直售，区别于商家店铺茶叶(shopId为店铺ID)
             formData.shopId = 'PLATFORM'
-            const result = await store.dispatch('tea/addTea', formData)
+            const result = await teaStore.addTea(formData)
             const newTeaId = result.id || result.data?.id
             
             // 任务组C：添加新茶叶的规格
             if (newTeaId && formData.specifications) {
               try {
                 for (const spec of formData.specifications) {
-                  await store.dispatch('tea/addSpecification', {
+                  await teaStore.addSpecification({
                     teaId: newTeaId,
                     specData: {
                       spec_name: spec.spec_name,
@@ -1102,11 +1102,11 @@ export default {
                   // 如果设置为默认规格
                   if (spec.is_default === 1 || spec.is_default === true) {
                     // 需要先获取规格ID，这里简化处理，假设后端返回的规格包含ID
-                    await store.dispatch('tea/fetchTeaSpecifications', newTeaId)
-                    const specs = store.state.tea.currentTeaSpecs || []
+                    await teaStore.fetchTeaSpecifications(newTeaId)
+                    const specs = teaStore.currentTeaSpecs || []
                     const addedSpec = specs.find(s => s.spec_name === spec.spec_name)
                     if (addedSpec) {
-                      await store.dispatch('tea/setDefaultSpecification', { teaId: newTeaId, specId: addedSpec.id })
+                      await teaStore.setDefaultSpecification({ teaId: newTeaId, specId: addedSpec.id })
                     }
                   }
                 }
@@ -1124,15 +1124,15 @@ export default {
               try {
                 const newFiles = teaImages.value.filter(img => img.raw instanceof File).map(img => img.raw)
                 if (newFiles.length > 0) {
-                  await store.dispatch('tea/uploadTeaImages', { teaId: newTeaId, files: newFiles })
+                  await teaStore.uploadTeaImages({ teaId: newTeaId, files: newFiles })
                   
                   // 设置主图
                   if (mainImageIndex.value >= 0 && teaImages.value[mainImageIndex.value]) {
-                    const uploadedImages = store.state.tea.teaImages || []
+                    const uploadedImages = teaStore.teaImages || []
                     if (uploadedImages.length > 0 && mainImageIndex.value < uploadedImages.length) {
                       const mainImageId = uploadedImages[mainImageIndex.value].id
                       if (mainImageId) {
-                        await store.dispatch('tea/setMainImage', { teaId: newTeaId, imageId: mainImageId })
+                        await teaStore.setMainImage({ teaId: newTeaId, imageId: mainImageId })
                       }
                     }
                   }
@@ -1212,7 +1212,7 @@ export default {
         )
         
         categoryLoading.value = true
-        const response = await store.dispatch('tea/deleteCategory', category.id)
+        const response = await teaStore.deleteCategory(category.id)
         showByCode(response.code)
       } catch (error) {
         if (error !== 'cancel') {
@@ -1243,13 +1243,13 @@ export default {
           }
           
           if (isEditCategory.value) {
-            const response = await store.dispatch('tea/updateCategory', {
+            const response = await teaStore.updateCategory({
               id: currentCategory.value.id,
               categoryData
             })
             showByCode(response.code)
           } else {
-            const response = await store.dispatch('tea/createCategory', categoryData)
+            const response = await teaStore.createCategory(categoryData)
             showByCode(response.code)
           }
           
@@ -1289,8 +1289,8 @@ export default {
           filters.category = parseInt(categoryFilter.value)
         }
         
-        // 更新Vuex filters并获取数据
-        await store.dispatch('tea/updateFilters', filters)
+        // 更新 Pinia filters 并获取数据
+        await teaStore.updateFilters(filters)
       } catch (error) {
         // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
         if (process.env.NODE_ENV === 'development') {
@@ -1301,35 +1301,32 @@ export default {
     
     // 搜索处理
     const handleSearch = async () => {
-      await store.dispatch('tea/setPage', 1)
+      await teaStore.setPage(1)
       await loadTeas()
     }
     
     // 筛选变更处理
     const handleFilterChange = async () => {
-      await store.dispatch('tea/setPage', 1)
+      await teaStore.setPage(1)
       await loadTeas()
     }
     
     // 页码变更
     const handlePageChange = async page => {
-      await store.dispatch('tea/setPage', page)
+      await teaStore.setPage(page)
     }
     
     // 每页条数变更
     const handleSizeChange = async size => {
-      store.commit('tea/SET_PAGINATION', {
-        ...store.state.tea.pagination,
-        pageSize: size,
-        currentPage: 1
-      })
-      await store.dispatch('tea/fetchTeas')
+      teaStore.pagination.pageSize = size
+      teaStore.pagination.currentPage = 1
+      await teaStore.fetchTeas()
     }
     
     // 初始化
     onMounted(async () => {
       // 加载分类数据
-      await store.dispatch('tea/fetchCategories')
+      await teaStore.fetchCategories()
       // 加载茶叶列表
       await loadTeas()
     })

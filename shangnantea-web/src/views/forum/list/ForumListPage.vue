@@ -643,7 +643,7 @@ export default {
     // 获取当前用户信息
     const fetchCurrentUser = async () => {
       try {
-        const result = await store.dispatch('user/getUserInfo')
+        const result = await userStore.getUserInfo()
         currentUser.value = result
       } catch (error) {
         console.error('获取用户信息失败', error)
@@ -653,7 +653,7 @@ export default {
     // 获取我的帖子
     const fetchMyPosts = async () => {
       try {
-        const result = await store.dispatch('forum/getMyPosts', { limit: 3 })
+        const result = await forumStore.getMyPosts({ limit: 3 })
         myPosts.value = result
       } catch (error) {
         console.error('获取我的帖子失败', error)
@@ -664,7 +664,7 @@ export default {
     const fetchTopics = async () => {
       try {
         loading.topics = true
-        const result = await store.dispatch('forum/getTopics')
+        const result = await forumStore.getTopics()
         topicList.value = result
       } catch (error) {
         message.error('获取版块列表失败')
@@ -683,7 +683,7 @@ export default {
           sort: currentSort.value,
           topicId: currentTopicId.value === 'all' ? null : currentTopicId.value
         }
-        const result = await store.dispatch('forum/getPosts', params)
+        const result = await forumStore.getPosts(params)
         postList.value = result.list
         pagination.total = result.total
       } catch (error) {
