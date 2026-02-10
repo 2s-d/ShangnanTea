@@ -251,6 +251,7 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
+import { useUserStore } from '@/stores/user'
 
 import { Refresh, ArrowDown, Grid, EditPen, Delete, Male, Female, Plus } from '@element-plus/icons-vue'
 import PostCard from '@/components/forum/PostCard.vue'
@@ -268,6 +269,7 @@ export default {
   setup() {
     const router = useRouter()
     const store = useStore()
+    const userStore = useUserStore()
     
     // 默认图片常量（生产形态：不使用 mock-images）
     const defaultAvatar = ''
@@ -906,7 +908,7 @@ export default {
       try {
         if (post.isLiked) {
           // 取消点赞：直接传递targetId和targetType
-          const res = await store.dispatch('user/removeLike', {
+          const res = await userStore.removeLike({
             targetId: String(post.id),
             targetType: 'post'
           })
@@ -915,7 +917,7 @@ export default {
           await fetchPosts()
         } else {
           // 添加点赞
-          const res = await store.dispatch('user/addLike', {
+          const res = await userStore.addLike({
             targetId: String(post.id),
             targetType: 'post'
           })
@@ -933,7 +935,7 @@ export default {
       try {
         if (post.isFavorited) {
           // 取消收藏：直接传递 itemId 和 itemType
-          const res = await store.dispatch('user/removeFavorite', {
+          const res = await userStore.removeFavorite({
             itemId: String(post.id),
             itemType: 'post'
           })
@@ -942,7 +944,7 @@ export default {
           await fetchPosts()
         } else {
           // 添加收藏
-          const res = await store.dispatch('user/addFavorite', {
+          const res = await userStore.addFavorite({
             itemId: String(post.id),
             itemType: 'post',
             targetName: post.title || '',

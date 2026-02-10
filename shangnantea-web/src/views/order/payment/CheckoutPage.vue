@@ -204,6 +204,7 @@
 import { ref, computed, onMounted, reactive } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useStore } from 'vuex'
+import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
 
 import { ArrowLeft, Plus } from '@element-plus/icons-vue'
@@ -222,6 +223,7 @@ export default {
     const router = useRouter()
     const route = useRoute()
     const store = useStore()
+    const userStore = useUserStore()
     
     /**
      * 纯 UI 占位数据（生产形态：不在 UI 层造数据）
@@ -294,8 +296,8 @@ export default {
     const loadAddresses = async () => {
       try {
         loading.value = true
-        await store.dispatch('user/fetchAddresses')
-        addresses.value = store.state.user.addresses || []
+        await userStore.fetchAddresses()
+        addresses.value = userStore.addressList || []
         
         // 默认选中默认地址
         const defaultAddress = addresses.value.find(addr => addr.isDefault)
@@ -396,7 +398,7 @@ export default {
           }
           
           // 添加地址
-          await store.dispatch('user/addAddress', addressData)
+          await userStore.addAddress(addressData)
           
           // 刷新地址列表
           await loadAddresses()

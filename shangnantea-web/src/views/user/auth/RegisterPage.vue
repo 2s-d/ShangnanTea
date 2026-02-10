@@ -151,7 +151,7 @@
 
 <script>
 import { ref, reactive, computed } from 'vue'
-import { useStore } from 'vuex'
+import { useUserStore } from '@/stores/user'
 import { useRouter } from 'vue-router'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { userPromptMessages as userMessages } from '@/utils/promptMessages'
@@ -159,7 +159,7 @@ import { userPromptMessages as userMessages } from '@/utils/promptMessages'
 export default {
   name: 'RegisterPage',
   setup() {
-    const store = useStore()
+    const userStore = useUserStore()
     const router = useRouter()
     const registerFormRef = ref(null)
     
@@ -287,7 +287,7 @@ export default {
       
       try {
         const contact = registerForm.contactType === 'phone' ? registerForm.phone : registerForm.email
-        const res = await store.dispatch('user/sendVerificationCode', {
+        const res = await userStore.sendVerificationCode({
           contact,
           contactType: registerForm.contactType,
           sceneType: 'register'
@@ -344,7 +344,7 @@ export default {
         }
         
         // 调用注册API
-        const response = await store.dispatch('user/register', registerData)
+        const response = await userStore.register(registerData)
         
         // 显示API响应消息（成功或失败都通过状态码映射显示）
         showByCode(response.code)

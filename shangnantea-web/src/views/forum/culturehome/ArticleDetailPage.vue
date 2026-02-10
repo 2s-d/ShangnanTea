@@ -131,6 +131,7 @@
 import { ref, onMounted, nextTick, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
+import { useUserStore } from '@/stores/user'
 
 import SafeImage from '@/components/common/form/SafeImage.vue'
 import { showByCode } from '@/utils/apiMessages'
@@ -145,6 +146,7 @@ export default {
     const route = useRoute()
     const router = useRouter()
     const store = useStore()
+    const userStore = useUserStore()
     const loading = computed(() => store.state.forum.loading)
     // 点赞状态（从接口返回的isLiked字段获取）
     const isLiked = computed(() => article.value?.isLiked || false)
@@ -239,7 +241,7 @@ export default {
       try {
         if (isLiked.value) {
           // 取消点赞：直接传递targetId和targetType
-          const res = await store.dispatch('user/removeLike', {
+          const res = await userStore.removeLike({
             targetId: String(article.value.id),
             targetType: 'article'
           })
@@ -248,7 +250,7 @@ export default {
           await loadArticleDetail()
         } else {
           // 添加点赞
-          const res = await store.dispatch('user/addLike', {
+          const res = await userStore.addLike({
             targetId: String(article.value.id),
             targetType: 'article'
           })
@@ -271,7 +273,7 @@ export default {
       try {
         if (isFavorited.value) {
           // 取消收藏：直接传递 itemId 和 itemType
-          const res = await store.dispatch('user/removeFavorite', {
+          const res = await userStore.removeFavorite({
             itemId: String(article.value.id),
             itemType: 'tea_article'
           })
@@ -280,7 +282,7 @@ export default {
           await loadArticleDetail()
         } else {
           // 添加收藏
-          const res = await store.dispatch('user/addFavorite', {
+          const res = await userStore.addFavorite({
             itemId: String(article.value.id),
             itemType: 'tea_article',
             targetName: article.value.title,

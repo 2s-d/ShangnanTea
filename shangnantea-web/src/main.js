@@ -57,26 +57,27 @@ app.use(router)
 app.mount('#app')
 
 // 初始化用户认证状态（在应用挂载后）
-// TODO: 等 Pinia user store 迁移完成后，这里需要改用 Pinia
 // 注意：不能在这里使用 useAuth()，因为它必须在 Vue 组件上下文中调用
-// 改为直接使用 tokenStorage 和 store
+// 改为直接使用 tokenStorage 和 Pinia store
 const initAuthState = () => {
   try {
     const tokenStorage = useTokenStorage()
     const user = tokenStorage.verifyToken()
     
     if (user) {
-      // TODO: 改用 Pinia user store
-      // const userStore = useUserStore()
-      // userStore.userInfo = user
-      // userStore.isLoggedIn = true
-      console.log('用户认证状态初始化完成（待 Pinia 迁移）')
+      // 使用 Pinia user store
+      const { useUserStore } = await import('@/stores/user')
+      const userStore = useUserStore()
+      userStore.userInfo = user
+      userStore.isLoggedIn = true
+      console.log('用户认证状态初始化完成')
     } else {
       // 确保清除无效状态
       tokenStorage.removeToken()
-      // TODO: 改用 Pinia user store
-      // const userStore = useUserStore()
-      // userStore.$reset()
+      const { useUserStore } = await import('@/stores/user')
+      const userStore = useUserStore()
+      userStore.userInfo = null
+      userStore.isLoggedIn = false
       console.log('未检测到有效登录状态')
     }
   } catch (error) {

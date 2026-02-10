@@ -116,7 +116,7 @@
 
 <script>
 import { ref, reactive, onMounted } from 'vue'
-import { useStore } from 'vuex'
+import { useUserStore } from '@/stores/user'
 import { useRouter } from 'vue-router'
 import { Sunny, Moon, MagicStick, Grid, List } from '@element-plus/icons-vue'
 
@@ -132,7 +132,7 @@ export default {
     const formRef = ref(null)
     const loading = ref(false)
     const submitting = ref(false)
-    const store = useStore()
+    const userStore = useUserStore()
     
     // 默认主题色
     const DEFAULT_PRIMARY_COLOR = '#409EFF'
@@ -186,7 +186,7 @@ export default {
       try {
         submitting.value = true
         const payload = { ...preferences }
-        const response = await store.dispatch('user/saveUserPreferences', payload)
+        const response = await userStore.saveUserPreferences(payload)
         
         // 显示API响应消息（成功或失败都通过状态码映射显示）
         showByCode(response.code)
@@ -263,10 +263,10 @@ export default {
       loading.value = true
       const fetchPreferences = async () => {
         try {
-          const response = await store.dispatch('user/fetchUserPreferences')
+          const response = await userStore.fetchUserPreferences()
           
           if (isSuccess(response.code)) {
-            const source = response.data || store.state.user.preferences
+            const source = response.data || userStore.preferences
             Object.assign(preferences, source || {})
             // 初始化时应用主题设置
             applyThemeSettings(preferences.theme)

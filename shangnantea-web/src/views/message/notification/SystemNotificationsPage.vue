@@ -109,6 +109,7 @@ import { useRouter } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
 import { Bell, ChatDotRound, Star, User, Check, Delete } from '@element-plus/icons-vue'
 import { useStore } from 'vuex'
+import { useUserStore } from '@/stores/user'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { messagePromptMessages } from '@/utils/promptMessages'
 
@@ -120,6 +121,7 @@ export default {
   setup() {
     const router = useRouter()
     const store = useStore()
+    const userStore = useUserStore()
     
     // 分页参数
     const currentPage = ref(1)
@@ -298,10 +300,10 @@ export default {
         // 2. 确认通知（触发后端角色变更）
         // 注意：实际项目中，角色变更应该由后端在审核通过时自动完成
         // 这里只是确认通知，刷新用户信息以获取最新角色
-        await store.dispatch('user/fetchUserInfo')
+        await userStore.getUserInfo()
         
         // 3. 检查用户角色是否已变更为商家（role === 3）
-        const userInfo = store.state.user.userInfo
+        const userInfo = userStore.userInfo
         if (userInfo && userInfo.role === 3) {
           // 4. 检查是否已有店铺，如果没有则自动创建
           try {

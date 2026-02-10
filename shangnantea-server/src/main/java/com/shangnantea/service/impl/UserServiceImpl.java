@@ -401,8 +401,8 @@ public class UserServiceImpl implements UserService {
             }
             
             // 查询用户信息
-            User user = getUserEntityById(userId);
-            if (user == null) {
+        User user = getUserEntityById(userId);
+        if (user == null) {
                 logger.warn("获取用户信息失败: 用户不存在, userId: {}", userId);
                 return Result.failure(2107); // 获取用户信息失败
             }

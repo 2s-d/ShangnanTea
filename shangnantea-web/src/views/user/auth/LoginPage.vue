@@ -77,7 +77,7 @@
 <script>
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useStore } from 'vuex'
+import { useUserStore } from '@/stores/user'
 
 import { checkAndMigrateData } from '@/utils/versionManager'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
@@ -86,7 +86,7 @@ import { userPromptMessages as userMessages } from '@/utils/promptMessages'
 export default {
   name: 'LoginPage',
   setup() {
-    const store = useStore()
+    const userStore = useUserStore()
     const router = useRouter()
     const route = useRoute()
     
@@ -134,7 +134,7 @@ export default {
       try {
         loading.value = true
 
-        await store.dispatch('user/login', {
+        await userStore.login({
           username: loginForm.username,
           password: loginForm.password,
           role: loginForm.role

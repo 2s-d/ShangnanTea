@@ -105,7 +105,7 @@
 
 <script>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
-import { useStore } from 'vuex'
+import { useUserStore } from '@/stores/user'
 import { useRoute, useRouter } from 'vue-router'
 
 import { useFormValidation } from '@/composables/useFormValidation'
@@ -119,7 +119,7 @@ export default {
     SafeImage
   },
   setup() {
-    const store = useStore()
+    const userStore = useUserStore()
     const route = useRoute()
     const router = useRouter()
     const userForm = ref(null)
@@ -180,12 +180,12 @@ export default {
     }
     
     const userInfo = computed(() => {
-      return store.state.user.userInfo
+      return userStore.userInfo
     })
     
     // 任务C-4：判断是否是管理员
     const isAdmin = computed(() => {
-      return store.getters['user/isAdmin']
+      return userStore.isAdmin
     })
     
     // 任务C-4：获取认证状态文本
@@ -219,7 +219,7 @@ export default {
       }
       
       try {
-        const result = await store.dispatch('user/fetchShopCertificationStatus')
+        const result = await userStore.fetchShopCertificationStatus()
         if (result && result.data) {
           certificationStatus.value = result.data.status
         } else {
@@ -249,7 +249,7 @@ export default {
       try {
         loading.value = true
         
-        const response = await store.dispatch('user/getUserInfo')
+        const response = await userStore.getUserInfo()
         
         // 显示API响应消息（成功或失败都通过状态码映射显示）
         showByCode(response.code)
@@ -299,14 +299,14 @@ export default {
         loading.value = true
         
         // 上传头像
-        const uploadResponse = await store.dispatch('user/uploadAvatar', file)
+        const uploadResponse = await userStore.uploadAvatar(file)
         
         // 显示API响应消息（成功或失败都通过状态码映射显示）
         showByCode(uploadResponse.code)
         
         // 只有成功时才刷新用户信息
         if (isSuccess(uploadResponse.code)) {
-          const userInfoResponse = await store.dispatch('user/getUserInfo')
+          const userInfoResponse = await userStore.getUserInfo()
           if (isSuccess(userInfoResponse.code)) {
             handleInitForm()
           }
@@ -336,14 +336,14 @@ export default {
           }
           
           // 更新用户信息
-          const updateResponse = await store.dispatch('user/updateUserInfo', userData)
+          const updateResponse = await userStore.updateUserInfo(userData)
           
           // 显示API响应消息（成功或失败都通过状态码映射显示）
           showByCode(updateResponse.code)
           
           // 只有成功时才刷新用户信息
           if (isSuccess(updateResponse.code)) {
-            const userInfoResponse = await store.dispatch('user/getUserInfo')
+            const userInfoResponse = await userStore.getUserInfo()
             if (isSuccess(userInfoResponse.code)) {
               handleInitForm()
             }
