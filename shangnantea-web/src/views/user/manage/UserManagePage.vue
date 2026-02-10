@@ -257,7 +257,7 @@
 <script>
 import { ref, reactive, computed, onMounted, getCurrentInstance } from 'vue'
 import { useRouter } from 'vue-router'
-import { useStore } from 'vuex'
+import { useUserStore } from '@/stores/user'
 import { ElMessageBox } from 'element-plus'
 import { 
   Search, Plus, Edit, Delete, Download, RefreshRight, WarningFilled, Check, View
@@ -273,27 +273,27 @@ export default {
   },
   setup() {
     const router = useRouter()
-    const store = useStore()
+    const userStore = useUserStore()
     const userFormRef = ref(null)
     
-    // 从Vuex获取用户列表数据
-    const loading = computed(() => store.state.user.loading)
-    const userList = computed(() => store.state.user.userList || [])
-    const userPagination = computed(() => store.state.user.userPagination || { page: 1, pageSize: 20, total: 0 })
+    // 从Pinia获取用户列表数据
+    const loading = computed(() => userStore.loading)
+    const userList = computed(() => userStore.userList || [])
+    const userPagination = computed(() => userStore.userPagination || { page: 1, pageSize: 20, total: 0 })
     const total = computed(() => userPagination.value.total)
     const currentPage = computed({
       get: () => userPagination.value.page,
       set: val => {
-        store.commit('user/SET_USER_PAGINATION', { page: val })
+        userStore.userPagination = { ...userStore.userPagination, page: val }
       }
     })
     const pageSize = computed({
       get: () => userPagination.value.pageSize,
       set: val => {
-        store.commit('user/SET_USER_PAGINATION', { pageSize: val })
+        userStore.userPagination = { ...userStore.userPagination, pageSize: val }
       }
     })
-    const userFilters = computed(() => store.state.user.userFilters || {})
+    const userFilters = computed(() => userStore.userFilters || {})
     const searchQuery = ref('')
     const roleFilter = ref('')
     const statusFilter = ref('')
@@ -378,7 +378,7 @@ export default {
       ]
     }
     
-    // 获取用户列表（使用Vuex）
+    // 获取用户列表（使用Pinia）
     const fetchUserList = async () => {
       try {
         const params = {
@@ -388,7 +388,7 @@ export default {
           role: roleFilter.value ? Number(roleFilter.value) : undefined,
           status: statusFilter.value !== '' ? Number(statusFilter.value) : undefined
         }
-        const res = await store.dispatch('user/fetchUserList', params)
+        const res = await userStore.fetchUserList(params)
         showByCode(res.code)
       } catch (error) {
         console.error('获取用户列表失败：', error)
@@ -537,7 +537,7 @@ export default {
     // 确认删除
     const confirmDelete = async () => {
       try {
-        const res = await store.dispatch('user/deleteUser', selectedUser.value.id)
+        const res = await userStore.deleteUser(selectedUser.value.id)
         showByCode(res.code)
         deleteDialogVisible.value = false
       } catch (error) {
@@ -549,7 +549,7 @@ export default {
     const handleStatusChange = async user => {
       try {
         const newStatus = user.status === 1 ? 0 : 1
-        const res = await store.dispatch('user/toggleUserStatus', {
+        const res = await userStore.toggleUserStatus({
           userId: user.id,
           status: newStatus
         })
@@ -578,7 +578,7 @@ export default {
                 avatar: userForm.avatar
               }
               
-              const res = await store.dispatch('user/updateUser', {
+              const res = await userStore.updateUser({
                 userId: userForm.id,
                 userData
               })
@@ -596,7 +596,7 @@ export default {
                 role: 1 // 固定为管理员
               }
               
-              const res = await store.dispatch('user/createAdmin', adminData)
+              const res = await userStore.createAdmin(adminData)
               
               showByCode(res.code)
             }

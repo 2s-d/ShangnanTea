@@ -153,7 +153,7 @@
 <script>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useStore } from 'vuex'
+import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
 import { Search, Male, Female, Message, Service } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
@@ -166,15 +166,15 @@ export default {
   },
   setup() {
     const router = useRouter()
-    const store = useStore()
+    const userStore = useUserStore()
     
     // 筛选类型：all（全部）、user（用户）、shop（店铺）
     const filterType = ref('all')
     const searchKeyword = ref('')
     const sortOption = ref('recent')
     
-    // 从Vuex获取关注列表
-    const followList = computed(() => store.state.user.followList || [])
+    // 从Pinia获取关注列表
+    const followList = computed(() => userStore.followList || [])
     
     // 关注的用户（从Vuex筛选）
     const followedUsers = computed(() => {
@@ -346,7 +346,7 @@ export default {
       }
       
       try {
-        const res = await store.dispatch('user/removeFollow', {
+        const res = await userStore.removeFollow({
           targetId: userId,
           targetType: 'user'
         })
@@ -376,7 +376,7 @@ export default {
     // 取消关注店铺
     const unfollowShop = async shopId => {
       try {
-        const res = await store.dispatch('user/removeFollow', {
+        const res = await userStore.removeFollow({
           targetId: shopId,
           targetType: 'shop'
         })
@@ -400,7 +400,7 @@ export default {
     // 加载关注列表
     const loadFollowList = async () => {
       try {
-        const response = await store.dispatch('user/fetchFollowList')
+        const response = await userStore.fetchFollowList()
         // 显示API响应消息（成功或失败都通过状态码映射显示）
         showByCode(response.code)
       } catch (error) {

@@ -1,4 +1,4 @@
-import { useStore } from 'vuex'
+import { useUserStore } from '@/stores/user'
 import { ROLES } from '@/composables/useAuth'
 import { useTokenStorage } from '@/composables/useStorage'
 
@@ -24,8 +24,8 @@ const permissionDirective = {
     const { value } = binding
     const options = value || { requireLogin: true }
     
-    // 直接使用 store 和 tokenStorage，避免在指令中调用 useAuth()
-    const store = useStore()
+    // 直接使用 userStore 和 tokenStorage，避免在指令中调用 useAuth()
+    const userStore = useUserStore()
     const tokenStorage = useTokenStorage()
     
     // 检查登录状态

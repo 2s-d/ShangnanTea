@@ -11,7 +11,7 @@
  */
 
 import axios from 'axios'
-import store from '@/store'
+import { useUserStore } from '@/stores/user'
 import router from '@/router'
 // 使用composable代替直接导入tokenUtils
 import { useTokenStorage } from '@/composables/useStorage'
@@ -142,7 +142,9 @@ service.interceptors.response.use(
     if (res.code === 401 || res.code === 403) {
       // 清除token和用户信息
       tokenStorage.removeToken()
-      store.commit('user/CLEAR_USER')
+      const userStore = useUserStore()
+      userStore.userInfo = null
+      userStore.isLoggedIn = false
       
       // 显示错误信息
       apiMessage.error(res.message || '认证失败，请重新登录')
@@ -175,7 +177,9 @@ service.interceptors.response.use(
       if ([401, 403].includes(status)) {
         // 清除token和用户信息
         tokenStorage.removeToken()
-        store.commit('user/CLEAR_USER')
+        const userStore = useUserStore()
+        userStore.userInfo = null
+        userStore.isLoggedIn = false
         
         // 跳转到登录页
         if (router.currentRoute.value.path !== '/login') {

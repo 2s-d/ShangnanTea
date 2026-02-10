@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useTokenStorage } from '@/composables/useStorage'
 import { message } from '@/components/common'
 import { ROLES } from '@/composables/useAuth'
-import store from '@/store'
+import { useUserStore } from '@/stores/user'
 
 // 导入组件 - 使用实际存在的路径
 import CultureHomePage from '@/views/forum/culturehome/CultureHomePage.vue'
@@ -405,8 +405,10 @@ router.beforeEach(async (to, from, next) => {
     if (!userInfo) {
       // 如果token无效，进行清理并提示
       removeToken()
-      store.commit('user/CLEAR_USER')
-      store.dispatch('user/handleSessionExpired')
+      const userStore = useUserStore()
+      userStore.userInfo = null
+      userStore.isLoggedIn = false
+      userStore.handleSessionExpired()
       
       // 重定向到登录页
       if (to.path !== '/login') {
@@ -429,7 +431,8 @@ router.beforeEach(async (to, from, next) => {
       
       if (!hasRole) {
         // 没有权限访问
-        store.dispatch('user/handlePermissionDenied')
+        const userStore = useUserStore()
+        userStore.handlePermissionDenied()
         
         // 重定向到403页面
         return next({ path: '/403' })

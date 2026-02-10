@@ -161,6 +161,7 @@
 import { ref, markRaw, watch, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
+import { useUserStore } from '@/stores/user'
 
 import ProfilePage from '@/views/user/profile/ProfilePage.vue'
 import FollowsPage from '@/views/message/follows/FollowsPage.vue'
@@ -187,6 +188,7 @@ export default {
     const router = useRouter()
     const route = useRoute()
     const store = useStore()
+    const userStore = useUserStore()
     
     // 从路由参数获取用户ID，如果没有则使用当前登录用户ID
     const userId = computed(() => route.params.userId || 'current')
@@ -314,7 +316,7 @@ export default {
       try {
         if (isFollowing.value) {
           // 取消关注：直接传递 targetId 和 targetType
-          const res = await store.dispatch('user/removeFollow', {
+          const res = await userStore.removeFollow({
             targetId: userId.value,
             targetType: 'user'
           })
@@ -323,7 +325,7 @@ export default {
           await loadUserData()
         } else {
           // 添加关注
-          const res = await store.dispatch('user/addFollow', {
+          const res = await userStore.addFollow({
             targetId: userId.value,
             targetType: 'user',
             targetName: userInfo.value.nickname || userInfo.value.username,

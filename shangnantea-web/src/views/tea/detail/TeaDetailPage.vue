@@ -340,6 +340,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useStore } from 'vuex'
+import { useUserStore } from '@/stores/user'
 import { ElMessageBox } from 'element-plus'
 import { Back, ShoppingCart, Star, ChatLineRound, StarFilled } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
@@ -358,6 +359,7 @@ export default {
   },
   setup() {
     const store = useStore()
+    const userStore = useUserStore()
     const router = useRouter()
     const route = useRoute()
     const loading = computed(() => store.state.tea.loading)
@@ -378,7 +380,7 @@ export default {
     
     // 判断当前用户是否为商店所有者
     const isShopOwner = computed(() => {
-      const currentUserId = store.state.user.userInfo?.id
+      const currentUserId = userStore.userInfo?.id
       return currentUserId && tea.value && currentUserId === tea.value.shopOwnerId
     })
     
@@ -446,7 +448,7 @@ export default {
       try {
         if (review.isLiked) {
           // 取消点赞：直接传递targetId和targetType
-          const response = await store.dispatch('user/removeLike', {
+          const response = await userStore.removeLike({
             targetId: String(review.id),
             targetType: 'review'
           })
@@ -461,7 +463,7 @@ export default {
           }
         } else {
           // 添加点赞
-          const response = await store.dispatch('user/addLike', {
+          const response = await userStore.addLike({
             targetId: String(review.id),
             targetType: 'review'
           })
@@ -530,7 +532,7 @@ export default {
       try {
         if (isFavorite.value) {
           // 取消收藏：直接传递 itemId 和 itemType
-          const response = await store.dispatch('user/removeFavorite', {
+          const response = await userStore.removeFavorite({
             itemId: tea.value.id,
             itemType: 'tea'
           })
@@ -539,7 +541,7 @@ export default {
           await store.dispatch('tea/fetchTeaDetail', tea.value.id)
         } else {
           // 添加收藏
-          const response = await store.dispatch('user/addFavorite', {
+          const response = await userStore.addFavorite({
             itemId: tea.value.id,
             itemType: 'tea',
             targetName: tea.value.name,

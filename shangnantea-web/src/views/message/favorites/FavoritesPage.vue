@@ -161,7 +161,7 @@
 <script>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useStore } from 'vuex'
+import { useUserStore } from '@/stores/user'
 
 import { Search, View, ChatDotRound, Star, ShoppingCart } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
@@ -174,11 +174,11 @@ export default {
   },
   setup() {
     const router = useRouter()
-    const store = useStore()
+    const userStore = useUserStore()
     const activeTab = ref('culture')
     
-    // 从Vuex获取收藏列表
-    const favoriteList = computed(() => store.state.user.favoriteList || [])
+    // 从Pinia获取收藏列表
+    const favoriteList = computed(() => userStore.favoriteList || [])
     
     // 茶文化文章相关数据（从Vuex筛选）
     const cultureSearchKeyword = ref('')
@@ -369,7 +369,7 @@ export default {
     // 取消收藏
     const cancelFavorite = async (itemType, itemId) => {
       try {
-        const res = await store.dispatch('user/removeFavorite', {
+        const res = await userStore.removeFavorite({
           itemId: String(itemId),
           itemType: itemType
         })
@@ -388,7 +388,7 @@ export default {
     // 加载收藏列表
     const loadFavoriteList = async () => {
       try {
-        const response = await store.dispatch('user/fetchFavoriteList')
+        const response = await userStore.fetchFavoriteList()
         // 显示API响应消息（成功或失败都通过状态码映射显示）
         showByCode(response.code)
       } catch (error) {

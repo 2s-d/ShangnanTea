@@ -269,6 +269,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useStore } from 'vuex'
+import { useUserStore } from '@/stores/user'
 
 import { Back, Check, Star, ChatLineRound, Bell } from '@element-plus/icons-vue'
 import TeaCard from '@/components/tea/card/TeaCard.vue'
@@ -289,6 +290,7 @@ export default {
   },
   setup() {
     const store = useStore()
+    const userStore = useUserStore()
     const router = useRouter()
     const route = useRoute()
     const loading = computed(() => store.state.shop.loading)
@@ -366,7 +368,7 @@ export default {
       try {
         if (isFollowing.value) {
           // 取消关注：直接传递 targetId 和 targetType
-          const response = await store.dispatch('user/removeFollow', {
+          const response = await userStore.removeFollow({
             targetId: shop.value.id,
             targetType: 'shop'
           })
@@ -375,7 +377,7 @@ export default {
           await store.dispatch('shop/fetchShopDetail', shop.value.id)
         } else {
           // 添加关注
-          const response = await store.dispatch('user/addFollow', {
+          const response = await userStore.addFollow({
             targetId: shop.value.id,
             targetType: 'shop',
             targetName: shop.value.name || shop.value.shop_name,

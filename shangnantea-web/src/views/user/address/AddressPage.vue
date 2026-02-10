@@ -111,7 +111,7 @@ import { ref, onMounted, reactive, toRaw, computed } from 'vue'
 
 import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { regionData, getStaticRegionData } from '@/utils/region'
-import { useStore } from 'vuex'
+import { useUserStore } from '@/stores/user'
 import { userPromptMessages as userMessages } from '@/utils/promptMessages'
 
 export default {
@@ -120,8 +120,8 @@ export default {
     Plus
   },
   setup() {
-    // 使用Vuex store
-    const store = useStore()
+    // 使用Pinia store
+    const userStore = useUserStore()
     
     // 地址列表数据
     const addresses = ref([])
@@ -166,18 +166,18 @@ export default {
       ]
     }
     
-    // 获取地址列表 - 使用Vuex
+    // 获取地址列表 - 使用Pinia
     const handleFetchAddressList = async () => {
       loading.value = true
       try {
-        const response = await store.dispatch('user/fetchAddresses')
+        const response = await userStore.fetchAddresses()
         
         // 显示API响应消息（成功或失败都通过状态码映射显示）
         showByCode(response.code)
         
         // 只有成功时才更新地址列表
         if (isSuccess(response.code)) {
-          addresses.value = store.state.user.addressList || []
+          addresses.value = userStore.addressList || []
         } else {
           addresses.value = []
         }
@@ -214,9 +214,9 @@ export default {
       addressModalVisible.value = true
     }
     
-    // 删除地址 - 使用Vuex
+    // 删除地址 - 使用Pinia
     const handleDeleteAddress = async id => {
-      const response = await store.dispatch('user/deleteAddress', id)
+      const response = await userStore.deleteAddress(id)
       
       // 显示API响应消息（成功或失败都通过状态码映射显示）
       showByCode(response.code)
@@ -227,9 +227,9 @@ export default {
       }
     }
     
-    // 设置默认地址 - 使用Vuex
+    // 设置默认地址 - 使用Pinia
     const handleSetDefaultAddress = async id => {
-      const response = await store.dispatch('user/setDefaultAddress', id)
+      const response = await userStore.setDefaultAddress(id)
       
       // 显示API响应消息（成功或失败都通过状态码映射显示）
       showByCode(response.code)
@@ -240,7 +240,7 @@ export default {
       }
     }
     
-    // 保存地址（新增或更新）- 使用Vuex
+    // 保存地址（新增或更新）- 使用Pinia
     const handleSaveAddress = async () => {
       await addressFormRef.value.validate(async valid => {
         if (!valid) return
@@ -262,7 +262,7 @@ export default {
         try {
           if (isEditing.value) {
             // 更新地址
-            const updateResponse = await store.dispatch('user/updateAddress', addressData)
+            const updateResponse = await userStore.updateAddress(addressData)
             
             // 显示API响应消息（成功或失败都通过状态码映射显示）
             showByCode(updateResponse.code)
@@ -275,7 +275,7 @@ export default {
           } else {
             // 新增地址
             delete addressData.id // 新增时不需要ID
-            const addResponse = await store.dispatch('user/addAddress', addressData)
+            const addResponse = await userStore.addAddress(addressData)
             
             // 显示API响应消息（成功或失败都通过状态码映射显示）
             showByCode(addResponse.code)

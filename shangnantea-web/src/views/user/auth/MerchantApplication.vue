@@ -123,7 +123,7 @@
 
 <script>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { useStore } from 'vuex'
+import { useUserStore } from '@/stores/user'
 import { Plus } from '@element-plus/icons-vue'
 
 import { regionData, getStaticRegionData } from '@/utils/region'
@@ -139,7 +139,7 @@ export default {
     SafeImage
   },
   setup() {
-    const store = useStore()
+    const userStore = useUserStore()
     const applicationFormRef = ref(null)
     const submitting = ref(false)
     
@@ -270,7 +270,7 @@ export default {
     // 上传身份证正面
     const uploadIdCardFront = async ({ file }) => {
       try {
-        const result = await store.dispatch('user/uploadCertificationImage', { file, type: 'id_front' })
+        const result = await userStore.uploadCertificationImage({ file, type: 'id_front' })
         // 显示API响应消息（成功或失败都通过状态码映射显示）
         showByCode(result.code)
         
@@ -289,7 +289,7 @@ export default {
     // 上传身份证背面
     const uploadIdCardBack = async ({ file }) => {
       try {
-        const result = await store.dispatch('user/uploadCertificationImage', { file, type: 'id_back' })
+        const result = await userStore.uploadCertificationImage({ file, type: 'id_back' })
         // 显示API响应消息（成功或失败都通过状态码映射显示）
         showByCode(result.code)
         
@@ -308,7 +308,7 @@ export default {
     // 上传营业执照
     const uploadBusinessLicense = async ({ file }) => {
       try {
-        const result = await store.dispatch('user/uploadCertificationImage', { file, type: 'business_license' })
+        const result = await userStore.uploadCertificationImage({ file, type: 'business_license' })
         // 显示API响应消息（成功或失败都通过状态码映射显示）
         showByCode(result.code)
         
@@ -335,7 +335,7 @@ export default {
         submitting.value = true
         
         try {
-          const response = await store.dispatch('user/submitShopCertification', applicationForm)
+          const response = await userStore.submitShopCertification(applicationForm)
           
           // 显示API响应消息（成功或失败都通过状态码映射显示）
           showByCode(response.code)
@@ -367,7 +367,7 @@ export default {
     // 获取认证状态
     const fetchCertificationStatus = async () => {
       try {
-        const response = await store.dispatch('user/fetchShopCertificationStatus')
+        const response = await userStore.fetchShopCertificationStatus()
         
         // 显示API响应消息（成功或失败都通过状态码映射显示）
         showByCode(response.code)

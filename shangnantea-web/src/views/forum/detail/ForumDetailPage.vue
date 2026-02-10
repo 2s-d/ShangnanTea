@@ -212,6 +212,7 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
+import { useUserStore } from '@/stores/user'
 
 import { View, ChatDotRound, Star, StarFilled, Share, Back, ChatLineRound, ArrowDown } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
@@ -227,6 +228,7 @@ export default {
     const route = useRoute()
     const router = useRouter()
     const store = useStore()
+    const userStore = useUserStore()
     
     // 默认图片（生产形态：不使用 mock-images）
     const defaultAvatar = ''
@@ -234,9 +236,6 @@ export default {
     
     // 获取帖子ID
     const postId = computed(() => route.params.id)
-    
-    // 从Vuex获取收藏列表（点赞列表不再需要，因为取消点赞直接传递targetId和targetType）
-    const favoriteList = computed(() => store.state.user.favoriteList || [])
     
     // 点赞状态（从帖子数据判断）
     const liked = computed(() => {
@@ -309,7 +308,7 @@ export default {
       try {
         if (post.value?.isLiked) {
           // 取消点赞：直接传递targetId和targetType
-          const res = await store.dispatch('user/removeLike', {
+          const res = await userStore.removeLike({
             targetId: postId.value,
             targetType: 'post'
           })
@@ -318,7 +317,7 @@ export default {
           await fetchPostDetail()
         } else {
           // 添加点赞
-          const res = await store.dispatch('user/addLike', {
+          const res = await userStore.addLike({
             targetId: postId.value,
             targetType: 'post'
           })
@@ -349,7 +348,7 @@ export default {
       try {
         if (post.value?.isFavorited) {
           // 取消收藏：直接传递 itemId 和 itemType
-          const res = await store.dispatch('user/removeFavorite', {
+          const res = await userStore.removeFavorite({
             itemId: postId.value,
             itemType: 'post'
           })
@@ -358,7 +357,7 @@ export default {
           await fetchPostDetail()
         } else {
           // 添加收藏
-          const res = await store.dispatch('user/addFavorite', {
+          const res = await userStore.addFavorite({
             itemId: postId.value,
             itemType: 'post',
             targetName: post.value?.title || '',
@@ -443,7 +442,7 @@ export default {
       try {
         if (reply.isLiked) {
           // 取消点赞：直接传递targetId和targetType
-          const res = await store.dispatch('user/removeLike', {
+          const res = await userStore.removeLike({
             targetId: reply.id,
             targetType: 'reply'
           })
@@ -452,7 +451,7 @@ export default {
           await fetchReplies()
         } else {
           // 添加点赞
-          const res = await store.dispatch('user/addLike', {
+          const res = await userStore.addLike({
             targetId: reply.id,
             targetType: 'reply'
           })

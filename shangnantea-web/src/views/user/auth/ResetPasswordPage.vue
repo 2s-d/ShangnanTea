@@ -98,14 +98,14 @@
 <script>
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import { useStore } from 'vuex'
+import { useUserStore } from '@/stores/user'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { userPromptMessages } from '@/utils/promptMessages'
 
 export default {
   name: 'ResetPasswordPage',
   setup() {
-    const store = useStore()
+    const userStore = useUserStore()
     const router = useRouter()
     const resetFormRef = ref(null)
     
@@ -175,7 +175,7 @@ export default {
       }
       
       try {
-        const res = await store.dispatch('user/sendVerificationCode', {
+        const res = await userStore.sendVerificationCode({
           contact,
           contactType,
           sceneType: 'reset_password'
@@ -226,8 +226,8 @@ export default {
           resetData.email = resetForm.email
         }
         
-        // 调用Vuex action
-        const res = await store.dispatch('user/findPassword', resetData)
+        // 调用Pinia action
+        const res = await userStore.findPassword(resetData)
         
         // 显示API响应消息
         showByCode(res.code)

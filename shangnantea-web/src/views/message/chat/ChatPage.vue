@@ -278,6 +278,7 @@ import { ref, reactive, computed, nextTick, onMounted, onBeforeUnmount, watch } 
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
 import { useStore } from 'vuex'
+import { useUserStore } from '@/stores/user'
 import { message } from '@/components/common'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { 
@@ -304,6 +305,7 @@ export default {
     const route = useRoute()
     const router = useRouter()
     const store = useStore()
+    const userStore = useUserStore()
     
     // DOM引用
     const messagesContainer = ref(null)
@@ -413,7 +415,7 @@ export default {
             type: msg.contentType || 'text',
             createTime: msg.createTime,
             status: msg.isRead ? 'read' : 'sent',
-            isSelf: msg.senderId === store.state.user?.userInfo?.id,
+            isSelf: msg.senderId === userStore.userInfo?.id,
             showTimeDivider: false
           }))
         }

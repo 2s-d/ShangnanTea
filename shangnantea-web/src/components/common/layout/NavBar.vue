@@ -73,8 +73,10 @@
 <script>
 // 调整导入顺序，确保 vue 核心工具先导入
 import { computed, ref, onMounted } from 'vue'
-import { useStore } from 'vuex'
 import { useRouter, useRoute } from 'vue-router'
+
+// 导入 Pinia store
+import { useUserStore } from '@/stores/user'
 
 // 然后导入工具类
 import { useAuth } from '@/composables/useAuth'
@@ -87,7 +89,7 @@ export default {
     SafeImage
   },
   setup() {
-    const store = useStore()
+    const userStore = useUserStore()
     const router = useRouter()
     const route = useRoute()
     
@@ -104,19 +106,19 @@ export default {
     
     // 用户角色
     const userRole = computed(() => {
-      return store.state.user.userInfo?.role || 0
+      return userStore.userInfo?.role || 0
     })
     
     // 用户信息
-    const username = computed(() => store.state.user.userInfo?.username || '用户')
+    const username = computed(() => userStore.userInfo?.username || '用户')
     const userAvatar = computed(() => {
-      return store.state.user.userInfo?.avatar || ''
+      return userStore.userInfo?.avatar || ''
     })
     
     // 退出登录
     const handleLogout = async () => {
       try {
-        await store.dispatch('user/logout')
+        await userStore.logout()
         router.push('/login')
       } catch (error) {
         console.error('退出登录失败:', error)

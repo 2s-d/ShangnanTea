@@ -2,11 +2,10 @@
  * 用户认证与权限相关操作的组合式函数 - 整合前后端认证
  */
 import { computed, ref } from 'vue'
-import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
-// 避免直接导入UI组件，改为使用封装的message组件
+import { useUserStore } from '@/stores/user'
 
-import { useTokenStorage } from '@/composables/useStorage' // 直接使用useTokenStorage
+import { useTokenStorage } from '@/composables/useStorage'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { userPromptMessages } from '@/utils/promptMessages'
 
@@ -22,9 +21,9 @@ export const ROLES = {
  * @returns {Object} 认证与权限相关方法和状态
  */
 export function useAuth() {
-  const store = useStore()
+  const userStore = useUserStore()
   const router = useRouter()
-  const tokenStorage = useTokenStorage() // 使用Token存储hooks
+  const tokenStorage = useTokenStorage()
   
   // 加载状态
   const loading = ref(false)
@@ -63,7 +62,7 @@ export function useAuth() {
   }
   
   // 构建角色相关计算属性
-  const userInfo = computed(() => store.state.user.userInfo)
+  const userInfo = computed(() => userStore.userInfo)
   const userRole = computed(() => getCurrentUserRole())
   const isAdmin = computed(() => getCurrentUserRole() === ROLES.ADMIN)
   const isShop = computed(() => getCurrentUserRole() === ROLES.SHOP)
@@ -123,7 +122,7 @@ export function useAuth() {
     loading.value = true
     
     try {
-      const response = await store.dispatch('user/login', credentials)
+      const response = await userStore.login(credentials)
       
       if (isSuccess(response.code)) {
         showByCode(response.code)
@@ -132,7 +131,7 @@ export function useAuth() {
         const validUser = verifyToken()
         if (!validUser) {
           userPromptMessages.showTokenInvalid()
-          await store.dispatch('user/logout')
+          await userStore.logout()
           router.push('/login')
           throw new Error('无效的Token')
         }
@@ -159,7 +158,7 @@ export function useAuth() {
     loading.value = true
     
     try {
-      const response = await store.dispatch('user/register', userData)
+      const response = await userStore.register(userData)
       
       if (isSuccess(response.code)) {
         showByCode(response.code)
@@ -186,7 +185,7 @@ export function useAuth() {
     loading.value = true
     
     try {
-      const response = await store.dispatch('user/logout')
+      const response = await userStore.logout()
       
       if (isSuccess(response.code)) {
         showByCode(response.code)
@@ -196,7 +195,8 @@ export function useAuth() {
       
       // 无论API调用是否成功，都要清除本地状态
       removeToken()
-      store.commit('user/CLEAR_USER')
+      userStore.userInfo = null
+      userStore.isLoggedIn = false
       
       if (redirect) {
         router.push('/login')
@@ -207,7 +207,8 @@ export function useAuth() {
       console.error('退出登录失败:', error)
       // 即便API调用失败，也要清除本地状态
       removeToken()
-      store.commit('user/CLEAR_USER')
+      userStore.userInfo = null
+      userStore.isLoggedIn = false
       if (redirect) {
         router.push('/login')
       }
@@ -226,7 +227,7 @@ export function useAuth() {
     loading.value = true
     
     try {
-      const response = await store.dispatch('user/updateUserInfo', userData)
+      const response = await userStore.updateUserInfo(userData)
       
       if (isSuccess(response.code)) {
         showByCode(response.code)
@@ -252,7 +253,7 @@ export function useAuth() {
     loading.value = true
     
     try {
-      const response = await store.dispatch('user/changePassword', passwordData)
+      const response = await userStore.changePassword(passwordData)
       
       if (isSuccess(response.code)) {
         showByCode(response.code)
@@ -276,14 +277,15 @@ export function useAuth() {
     // 验证token是否有效
     const user = verifyToken()
     if (user) {
-      // 更新Vuex中的用户信息
-      store.commit('user/SET_USER_INFO', user)
-      store.commit('user/SET_LOGGED_IN', true)
+      // 更新Pinia中的用户信息
+      userStore.userInfo = user
+      userStore.isLoggedIn = true
       return user
     } else {
       // 确保清除无效状态
       removeToken()
-      store.commit('user/CLEAR_USER')
+      userStore.userInfo = null
+      userStore.isLoggedIn = false
       return null
     }
   }
