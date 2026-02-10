@@ -103,7 +103,7 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { useRoute, useRouter } from 'vue-router'
@@ -113,34 +113,28 @@ import SafeImage from '@/components/common/form/SafeImage.vue'
 import { userPromptMessages as userMessages, messagePromptMessages as messageMessages } from '@/utils/promptMessages'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
 
-export default {
-  name: 'ProfilePage',
-  components: {
-    SafeImage
-  },
-  setup() {
-    const userStore = useUserStore()
-    const route = useRoute()
-    const router = useRouter()
-    const userForm = ref(null)
-    
-    const loading = ref(false)
-    const saving = ref(false)
-    const certificationStatus = ref(null) // 任务C-4：认证状态 -1未申请 0待审核 1已拒绝 2已通过
-    
-    const pageTitle = computed(() => {
-      return '个人中心'
-    })
-    
-    const formData = reactive({
-      username: '',
-      nickname: '',
-      email: '',
-      phone: '',
-      gender: 0,  // 0-保密 1-男 2-女
-      birthday: '',
-      bio: ''
-    })
+const userStore = useUserStore()
+const route = useRoute()
+const router = useRouter()
+const userForm = ref(null)
+
+const loading = ref(false)
+const saving = ref(false)
+const certificationStatus = ref(null) // 任务C-4：认证状态 -1未申请 0待审核 1已拒绝 2已通过
+
+const pageTitle = computed(() => {
+  return '个人中心'
+})
+
+const formData = reactive({
+  username: '',
+  nickname: '',
+  email: '',
+  phone: '',
+  gender: 0,  // 0-保密 1-男 2-女
+  birthday: '',
+  bio: ''
+})
     
     const { rules: validationRules } = useFormValidation()
     
@@ -371,29 +365,6 @@ export default {
       handleFetchUserInfo()
       fetchCertificationStatus() // 任务C-4：获取认证状态
     })
-    
-    return {
-      userFormRef: userForm,
-      loading,
-      saving,
-      userInfo,
-      userForm: formData,
-      rules,
-      disabledDate,
-      pageTitle,
-      handleResetForm,
-      handleSaveUserInfo,
-      beforeAvatarUpload,
-      handleAvatarUpload,
-      // 任务C-4：认证相关
-      isAdmin,
-      certificationStatus,
-      getCertificationStatusText,
-      getCertificationTagType,
-      goToMerchantApplication
-    }
-  }
-}
 </script>
 
 <style lang="scss" scoped>

@@ -95,28 +95,25 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { userPromptMessages } from '@/utils/promptMessages'
 
-export default {
-  name: 'ResetPasswordPage',
-  setup() {
-    const userStore = useUserStore()
-    const router = useRouter()
-    const resetFormRef = ref(null)
-    
-    // 表单数据
-    const resetForm = reactive({
-      method: 'username',
-      username: '',
-      phone: '',
-      email: '',
-      verificationCode: ''
-    })
+const userStore = useUserStore()
+const router = useRouter()
+const resetFormRef = ref(null)
+
+// 表单数据
+const resetForm = reactive({
+  method: 'username',
+  username: '',
+  phone: '',
+  email: '',
+  verificationCode: ''
+})
     
     // 表单验证规则
     const resetRules = reactive({
@@ -249,19 +246,6 @@ export default {
     const goBack = () => {
       router.push('/login')
     }
-    
-    return {
-      resetForm,
-      resetRules,
-      resetFormRef,
-      loading,
-      codeCountdown,
-      sendVerificationCode,
-      handleReset,
-      goBack
-    }
-  }
-}
 </script>
 
 <style lang="scss" scoped>

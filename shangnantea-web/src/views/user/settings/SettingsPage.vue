@@ -51,7 +51,7 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, markRaw, watch, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import ProfileEditPage from './ProfileEditPage.vue'
@@ -60,42 +60,32 @@ import MerchantApplication from '../auth/MerchantApplication.vue'
 import { User, Lock, Shop } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 
-export default {
-  name: 'SettingsPage',
-  components: {
-    ProfileEditPage,
-    ChangePasswordPage,
-    MerchantApplication,
-    User, Lock, Shop,
-    SafeImage
-  },
-  setup() {
-    const router = useRouter()
-    const route = useRoute()
-    
-    // 菜单项和对应组件映射
-    const menuOptions = {
-      profile: '个人编辑',
-      password: '密码修改',
-      merchant: '商家认证'
-    }
-    
-    // 组件映射
-    const componentMap = {
-      profile: markRaw(ProfileEditPage),
-      password: markRaw(ChangePasswordPage),
-      merchant: markRaw(MerchantApplication)
-    }
-    
-    // 活动菜单
-    const activeMenu = ref('profile')
-    // 当前显示的组件
-    const currentComponent = ref(componentMap.profile)
-    
-    // 判断当前菜单是否有对应组件
-    const hasComponent = computed(() => {
-      return componentMap[activeMenu.value] !== undefined
-    })
+const router = useRouter()
+const route = useRoute()
+
+// 菜单项和对应组件映射
+const menuOptions = {
+  profile: '个人编辑',
+  password: '密码修改',
+  merchant: '商家认证'
+}
+
+// 组件映射
+const componentMap = {
+  profile: markRaw(ProfileEditPage),
+  password: markRaw(ChangePasswordPage),
+  merchant: markRaw(MerchantApplication)
+}
+
+// 活动菜单
+const activeMenu = ref('profile')
+// 当前显示的组件
+const currentComponent = ref(componentMap.profile)
+
+// 判断当前菜单是否有对应组件
+const hasComponent = computed(() => {
+  return componentMap[activeMenu.value] !== undefined
+})
     
     // 从路由参数初始化activeMenu
     onMounted(() => {
@@ -130,16 +120,22 @@ export default {
         replace: true
       })
     }
-    
-    return {
-      activeMenu,
-      currentComponent,
-      menuOptions,
-      handleMenuSelect,
-      hasComponent
-    }
+
+// 从路由参数初始化activeMenu
+onMounted(() => {
+  if (route.params.tab && componentMap[route.params.tab]) {
+    activeMenu.value = route.params.tab
+    currentComponent.value = componentMap[route.params.tab]
   }
-}
+})
+
+// 监听路由参数变化
+watch(() => route.params.tab, newTab => {
+  if (newTab && componentMap[newTab]) {
+    activeMenu.value = newTab
+    currentComponent.value = componentMap[newTab]
+  }
+})
 </script>
 
 <style lang="scss" scoped>

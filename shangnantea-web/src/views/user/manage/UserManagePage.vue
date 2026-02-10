@@ -254,7 +254,7 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, reactive, computed, onMounted, getCurrentInstance } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
@@ -266,15 +266,9 @@ import SafeImage from '@/components/common/form/SafeImage.vue'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { userPromptMessages as userMessages } from '@/utils/promptMessages'
 
-export default {
-  name: 'UserManagePage',
-  components: {
-    Search, Plus, Edit, Delete, Download, RefreshRight, WarningFilled, Check, SafeImage
-  },
-  setup() {
-    const router = useRouter()
-    const userStore = useUserStore()
-    const userFormRef = ref(null)
+const router = useRouter()
+const userStore = useUserStore()
+const userFormRef = ref(null)
     
     // 从Pinia获取用户列表数据
     const loading = computed(() => userStore.loading)
@@ -658,48 +652,9 @@ export default {
     onMounted(() => {
       fetchUserList()
     })
-    
-    return {
-      // 数据
-      loading,
-      userList,
-      total,
-      currentPage,
-      pageSize,
-      searchQuery,
-      roleFilter,
-      statusFilter,
-      roleOptions,
-      defaultAvatar,
-      dialogVisible,
-      deleteDialogVisible,
-      isEdit,
-      userForm,
-      userRules,
-      selectedUser,
-      currentUser,
-      userFormRef,
-      
-      // 方法
-      formatDate,
-      getRoleTagType,
-      handleSearch,
-      resetFilters,
-      handleSizeChange,
-      handleCurrentChange,
-      handleEdit,
-      handleDelete,
-      confirmDelete,
-      handleStatusChange,
-      submitUserForm,
-      beforeAvatarUpload,
-      uploadAvatar,
-      handleExportUsers,
-      handleMerchantRequests,
-      showAddAdminDialog
-    }
-  }
-}
+
+// 默认头像
+const defaultAvatar = '/mock-images/avatar-default.jpg'
 </script>
 
 <style lang="scss" scoped>
