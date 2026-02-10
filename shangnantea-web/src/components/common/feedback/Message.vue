@@ -16,6 +16,8 @@
 </template>
 
 <script>
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+
 export default {
   name: 'Message',
   props: {
@@ -61,52 +63,64 @@ export default {
       default: ''
     }
   },
-  data() {
-    return {
-      visible: false,
-      timer: null
-    }
-  },
-  computed: {
-    iconClass() {
+  setup(props) {
+    // 响应式数据
+    const visible = ref(false)
+    const timer = ref(null)
+
+    // 计算属性
+    const iconClass = computed(() => {
       const iconMap = {
         success: 'el-icon-success',
         warning: 'el-icon-warning',
         info: 'el-icon-info',
         error: 'el-icon-error'
       }
-      return iconMap[this.type] || 'el-icon-info'
+      return iconMap[props.type] || 'el-icon-info'
+    })
+
+    // 方法
+    const show = () => {
+      visible.value = true
+      startTimer()
     }
-  },
-  mounted() {
-    this.show()
-  },
-  beforeUnmount() {
-    this.clearTimer()
-  },
-  methods: {
-    show() {
-      this.visible = true
-      this.startTimer()
-    },
-    close() {
-      this.visible = false
-      if (typeof this.onClose === 'function') {
-        this.onClose(this.id)
+
+    const close = () => {
+      visible.value = false
+      if (typeof props.onClose === 'function') {
+        props.onClose(props.id)
       }
-    },
-    startTimer() {
-      if (this.duration > 0) {
-        this.timer = setTimeout(() => {
-          this.close()
-        }, this.duration)
+    }
+
+    const startTimer = () => {
+      if (props.duration > 0) {
+        timer.value = setTimeout(() => {
+          close()
+        }, props.duration)
       }
-    },
-    clearTimer() {
-      if (this.timer) {
-        clearTimeout(this.timer)
-        this.timer = null
+    }
+
+    const clearTimer = () => {
+      if (timer.value) {
+        clearTimeout(timer.value)
+        timer.value = null
       }
+    }
+
+    // 生命周期钩子
+    onMounted(() => {
+      show()
+    })
+
+    onBeforeUnmount(() => {
+      clearTimer()
+    })
+
+    // 返回给模板使用的数据和方法
+    return {
+      visible,
+      iconClass,
+      close
     }
   }
 }
