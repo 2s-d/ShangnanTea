@@ -453,7 +453,7 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, onMounted, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useForumStore } from '@/stores/forum'
@@ -461,209 +461,200 @@ import { Reading, Plus, Search } from '@element-plus/icons-vue'
 import { ElMessageBox } from 'element-plus'
 import { forumPromptMessages } from '@/utils/promptMessages'
 import { showByCode } from '@/utils/apiMessages'
+const router = useRouter()
+const forumStore = useForumStore()
+const activeTab = ref('audit')  // 默认显示审核标签页
+const postSearchText = ref('')
+    
+// 版块相关数据
+const topicsList = computed(() => forumStore.forumTopics)
+const topicLoading = computed(() => forumStore.loading)
+    
+// 内容审核相关数据
+const pendingPostsList = computed(() => forumStore.pendingPosts)
+const pendingPostsLoading = computed(() => forumStore.loading)
+const pendingPostsTotalCount = computed(() => forumStore.pendingPostsPagination.total)
+const pendingPostsCurrentPage = ref(1)
+const pendingPostsPageSize = ref(10)
+    
+// 审核对话框相关
+const approveDialogVisible = ref(false)
+const rejectDialogVisible = ref(false)
+const currentAuditPost = ref(null)
+    
+const approveForm = ref({
+  comment: ''
+})
 
-export default {
-  name: 'ForumManagePage',
-  components: {
-    Reading,
-    Plus,
-    Search
-  },
-  setup() {
-    const router = useRouter()
-    const forumStore = useForumStore()
-    const activeTab = ref('audit')  // 默认显示审核标签页
-    const postSearchText = ref('')
+const rejectForm = ref({
+  reason: '',
+  comment: ''
+})
+
+const rejectFormRules = {
+  reason: [
+    { required: true, message: '请选择拒绝原因', trigger: 'change' }
+  ],
+  comment: [
+    { required: true, message: '请详细说明拒绝原因', trigger: 'blur' },
+    { min: 10, message: '详细说明至少10个字符', trigger: 'blur' }
+  ]
+}
+
+const approveFormRef = ref(null)
+const rejectFormRef = ref(null)
+const addTopicDialogVisible = ref(false)
+const editTopicMode = ref(false)
+const currentTopic = ref(null)
     
-    // 版块相关数据
-    const topicsList = computed(() => forumStore.forumTopics)
-    const topicLoading = computed(() => forumStore.loading)
+// 帖子相关数据
+const postsList = ref([])
+const postsLoading = ref(false)
+const postsTotalCount = ref(0)
+const postCurrentPage = ref(1)
+const postPageSize = ref(10)
+
+const topicForm = ref({
+  name: '',
+  description: '',
+  icon: '',
+  cover: '',
+  sort_order: 0
+})
+
+const topicFormRules = {
+  name: [
+    { required: true, message: '请输入版块名称', trigger: 'blur' },
+    { min: 2, max: 50, message: '版块名称长度应为2-50个字符', trigger: 'blur' }
+  ],
+  description: [
+    { max: 200, message: '描述不能超过200个字符', trigger: 'blur' }
+  ]
+}
+
+const topicFormRef = ref(null)
+
+const goToCultureManage = () => {
+  router.push('/culture/manage')
+}
     
-    // 内容审核相关数据
-    const pendingPostsList = computed(() => forumStore.pendingPosts)
-    const pendingPostsLoading = computed(() => forumStore.loading)
-    const pendingPostsTotalCount = computed(() => forumStore.pendingPostsPagination.total)
-    const pendingPostsCurrentPage = ref(1)
-    const pendingPostsPageSize = ref(10)
-    
-    // 审核对话框相关
-    const approveDialogVisible = ref(false)
-    const rejectDialogVisible = ref(false)
-    const currentAuditPost = ref(null)
-    
-    const approveForm = ref({
-      comment: ''
-    })
-    
-    const rejectForm = ref({
-      reason: '',
-      comment: ''
-    })
-    
-    const rejectFormRules = {
-      reason: [
-        { required: true, message: '请选择拒绝原因', trigger: 'change' }
-      ],
-      comment: [
-        { required: true, message: '请详细说明拒绝原因', trigger: 'blur' },
-        { min: 10, message: '详细说明至少10个字符', trigger: 'blur' }
-      ]
-    }
-    
-    const approveFormRef = ref(null)
-    const rejectFormRef = ref(null)
-    const addTopicDialogVisible = ref(false)
-    const editTopicMode = ref(false)
-    const currentTopic = ref(null)
-    
-    // 帖子相关数据
-    const postsList = ref([])
-    const postsLoading = ref(false)
-    const postsTotalCount = ref(0)
-    const postCurrentPage = ref(1)
-    const postPageSize = ref(10)
-    
-    const topicForm = ref({
-      name: '',
-      description: '',
-      icon: '',
-      cover: '',
-      sort_order: 0
-    })
-    
-    const topicFormRules = {
-      name: [
-        { required: true, message: '请输入版块名称', trigger: 'blur' },
-        { min: 2, max: 50, message: '版块名称长度应为2-50个字符', trigger: 'blur' }
-      ],
-      description: [
-        { max: 200, message: '描述不能超过200个字符', trigger: 'blur' }
-      ]
-    }
-    
-    const topicFormRef = ref(null)
-    
-    const goToCultureManage = () => {
-      router.push('/culture/manage')
-    }
-    
-    // 加载版块列表
-    const loadTopics = async () => {
-      try {
-        const res = await forumStore.fetchForumTopics()
-        showByCode(res.code)
-      } catch (error) {
-        console.error('获取版块列表失败:', error)
-      }
-    }
-    
-    // 显示添加版块对话框
-    const showAddTopicDialog = () => {
-      editTopicMode.value = false
-      topicForm.value = {
-        name: '',
-        description: '',
-        icon: '',
-        cover: '',
-        sort_order: topicsList.value.length + 1
-      }
-      addTopicDialogVisible.value = true
-    }
-    
-    // 显示编辑版块对话框
-    const showEditTopicDialog = topic => {
-      editTopicMode.value = true
-      currentTopic.value = topic
-      topicForm.value = {
-        name: topic.name,
-        description: topic.description,
-        icon: topic.icon,
-        cover: topic.cover,
-        sort_order: topic.sort_order
-      }
-      addTopicDialogVisible.value = true
-    }
-    
-    // 保存版块（添加或更新）
-    const saveTopic = async () => {
-      if (!topicFormRef.value) return
+// 加载版块列表
+const loadTopics = async () => {
+  try {
+    const res = await forumStore.fetchForumTopics()
+    showByCode(res.code)
+  } catch (error) {
+    console.error('获取版块列表失败:', error)
+  }
+}
+
+// 显示添加版块对话框
+const showAddTopicDialog = () => {
+  editTopicMode.value = false
+  topicForm.value = {
+    name: '',
+    description: '',
+    icon: '',
+    cover: '',
+    sort_order: topicsList.value.length + 1
+  }
+  addTopicDialogVisible.value = true
+}
+
+// 显示编辑版块对话框
+const showEditTopicDialog = topic => {
+  editTopicMode.value = true
+  currentTopic.value = topic
+  topicForm.value = {
+    name: topic.name,
+    description: topic.description,
+    icon: topic.icon,
+    cover: topic.cover,
+    sort_order: topic.sort_order
+  }
+  addTopicDialogVisible.value = true
+}
+
+// 保存版块（添加或更新）
+const saveTopic = async () => {
+  if (!topicFormRef.value) return
+  
+  await topicFormRef.value.validate(async valid => {
+    if (valid) {
+      const actionType = editTopicMode.value ? '更新' : '添加'
       
-      await topicFormRef.value.validate(async valid => {
-        if (valid) {
-          const actionType = editTopicMode.value ? '更新' : '添加'
-          
-          try {
-            if (editTopicMode.value) {
-              const res = await forumStore.updateTopic({
-                id: currentTopic.value.id,
-                data: topicForm.value
-              })
-              showByCode(res.code)
-            } else {
-              const res = await forumStore.createTopic(topicForm.value)
-              showByCode(res.code)
-            }
-            
-            addTopicDialogVisible.value = false
-            await loadTopics()
-          } catch (error) {
-            console.error(`${actionType}版块失败:`, error)
-          }
+      try {
+        if (editTopicMode.value) {
+          const res = await forumStore.updateTopic({
+            id: currentTopic.value.id,
+            data: topicForm.value
+          })
+          showByCode(res.code)
+        } else {
+          const res = await forumStore.createTopic(topicForm.value)
+          showByCode(res.code)
         }
-      })
+        
+        addTopicDialogVisible.value = false
+        await loadTopics()
+      } catch (error) {
+        console.error(`${actionType}版块失败:`, error)
+      }
     }
-    
-    // 更改版块状态
-    const changeTopicStatus = async topic => {
-      const newStatus = topic.status === 1 ? 0 : 1
-      
+  })
+}
+
+// 更改版块状态
+const changeTopicStatus = async topic => {
+  const newStatus = topic.status === 1 ? 0 : 1
+  
+  try {
+    const res = await forumStore.updateTopic({
+      id: topic.id,
+      data: { ...topic, status: newStatus }
+    })
+    showByCode(res.code)
+    await loadTopics()
+  } catch (error) {
+    console.error('更改版块状态失败:', error)
+  }
+}
+
+// 删除版块
+const deleteTopic = async topic => {
+  ElMessageBox.confirm(
+    `确定要删除版块"${topic.name}"吗？此操作将无法恢复，且可能影响已发布的帖子。`,
+    '删除确认',
+    {
+      confirmButtonText: '确定删除',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }
+  )
+    .then(async () => {
       try {
-        const res = await forumStore.updateTopic({
-          id: topic.id,
-          data: { ...topic, status: newStatus }
-        })
+        const res = await forumStore.deleteTopic(topic.id)
         showByCode(res.code)
         await loadTopics()
       } catch (error) {
-        console.error('更改版块状态失败:', error)
+        console.error('删除版块失败:', error)
       }
-    }
-    
-    // 删除版块
-    const deleteTopic = async topic => {
-      ElMessageBox.confirm(
-        `确定要删除版块"${topic.name}"吗？此操作将无法恢复，且可能影响已发布的帖子。`,
-        '删除确认',
-        {
-          confirmButtonText: '确定删除',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }
-      )
-        .then(async () => {
-          try {
-            const res = await forumStore.deleteTopic(topic.id)
-            showByCode(res.code)
-            await loadTopics()
-          } catch (error) {
-            console.error('删除版块失败:', error)
-          }
-        })
-        .catch(() => {
-          // 用户取消
-        })
-    }
-    
-    // 加载帖子列表
-    const loadPosts = async () => {
-      postsLoading.value = true
-      
-      postsList.value = []
-      postsTotalCount.value = 0
+    })
+    .catch(() => {
+      // 用户取消
+    })
+}
 
-      /*
-      // 模拟帖子数据
-      const mockPosts = [
+// 加载帖子列表
+const loadPosts = async () => {
+  postsLoading.value = true
+  
+  postsList.value = []
+  postsTotalCount.value = 0
+
+  /*
+  // 模拟帖子数据
+  const mockPosts = [
         {
           id: 1,
           title: '分享我最近喝过的好茶',
@@ -734,132 +725,132 @@ export default {
         }
       ]
       
-      postsList.value = mockPosts
-      postsTotalCount.value = 28 // 模拟总数
-      */
-      postsLoading.value = false
+  postsList.value = mockPosts
+  postsTotalCount.value = 28 // 模拟总数
+  */
+  postsLoading.value = false
+}
+
+// 搜索帖子
+const searchPosts = () => {
+  postCurrentPage.value = 1
+  loadPosts()
+}
+
+// 处理分页大小变化
+const handlePostsSizeChange = val => {
+  postPageSize.value = val
+  loadPosts()
+}
+
+// 处理分页页码变化
+const handlePostsCurrentChange = val => {
+  postCurrentPage.value = val
+  loadPosts()
+}
+
+// 获取帖子状态类型
+const getPostStatusType = status => {
+  switch (status) {
+  case 0: return 'warning' // 待审核
+  case 1: return 'success' // 已发布
+  case 2: return 'info'    // 已下架
+  case -1: return 'danger' // 已删除
+  default: return 'info'
+  }
+}
+
+// 获取帖子状态文本
+const getPostStatusText = status => {
+  switch (status) {
+  case 0: return '待审核'
+  case 1: return '已发布'
+  case 2: return '已下架'
+  case -1: return '已删除'
+  default: return '未知'
+  }
+}
+
+// 查看帖子
+const viewPost = post => {
+  router.push(`/forum/detail/${post.id}`)
+}
+
+// 审核通过帖子
+const approvePost = async post => {
+  forumPromptMessages.showFeatureDeveloping()
+  return
+}
+
+// 切换帖子置顶状态
+const toggleTopPost = async post => {
+  const newTopStatus = !post.is_top
+  
+  try {
+    const res = await forumStore.togglePostSticky({
+      id: post.id,
+      isSticky: newTopStatus
+    })
+    showByCode(res.code)
+    // 更新本地数据
+    post.is_top = newTopStatus
+  } catch (error) {
+    console.error('切换置顶状态失败:', error)
+  }
+}
+
+// 切换帖子精华状态
+const toggleEssencePost = async post => {
+  const newEssenceStatus = !post.is_essence
+  
+  try {
+    const res = await forumStore.togglePostEssence({
+      id: post.id,
+      isEssence: newEssenceStatus
+    })
+    showByCode(res.code)
+    // 更新本地数据
+    post.is_essence = newEssenceStatus
+  } catch (error) {
+    console.error('切换精华状态失败:', error)
+  }
+}
+
+// 删除帖子
+const deletePost = async post => {
+  ElMessageBox.confirm(
+    `确定要删除帖子"${post.title}"吗？此操作将无法恢复。`,
+    '删除确认',
+    {
+      confirmButtonText: '确定删除',
+      cancelButtonText: '取消',
+      type: 'warning'
     }
-    
-    // 搜索帖子
-    const searchPosts = () => {
-      postCurrentPage.value = 1
-      loadPosts()
-    }
-    
-    // 处理分页大小变化
-    const handlePostsSizeChange = val => {
-      postPageSize.value = val
-      loadPosts()
-    }
-    
-    // 处理分页页码变化
-    const handlePostsCurrentChange = val => {
-      postCurrentPage.value = val
-      loadPosts()
-    }
-    
-    // 获取帖子状态类型
-    const getPostStatusType = status => {
-      switch (status) {
-      case 0: return 'warning' // 待审核
-      case 1: return 'success' // 已发布
-      case 2: return 'info'    // 已下架
-      case -1: return 'danger' // 已删除
-      default: return 'info'
-      }
-    }
-    
-    // 获取帖子状态文本
-    const getPostStatusText = status => {
-      switch (status) {
-      case 0: return '待审核'
-      case 1: return '已发布'
-      case 2: return '已下架'
-      case -1: return '已删除'
-      default: return '未知'
-      }
-    }
-    
-    // 查看帖子
-    const viewPost = post => {
-      router.push(`/forum/detail/${post.id}`)
-    }
-    
-    // 审核通过帖子
-    const approvePost = async post => {
+  )
+    .then(async () => {
       forumPromptMessages.showFeatureDeveloping()
       return
-    }
-    
-    // 切换帖子置顶状态
-    const toggleTopPost = async post => {
-      const newTopStatus = !post.is_top
-      
-      try {
-        const res = await forumStore.togglePostSticky({
-          id: post.id,
-          isSticky: newTopStatus
-        })
-        showByCode(res.code)
-        // 更新本地数据
-        post.is_top = newTopStatus
-      } catch (error) {
-        console.error('切换置顶状态失败:', error)
-      }
-    }
-    
-    // 切换帖子精华状态
-    const toggleEssencePost = async post => {
-      const newEssenceStatus = !post.is_essence
-      
-      try {
-        const res = await forumStore.togglePostEssence({
-          id: post.id,
-          isEssence: newEssenceStatus
-        })
-        showByCode(res.code)
-        // 更新本地数据
-        post.is_essence = newEssenceStatus
-      } catch (error) {
-        console.error('切换精华状态失败:', error)
-      }
-    }
-    
-    // 删除帖子
-    const deletePost = async post => {
-      ElMessageBox.confirm(
-        `确定要删除帖子"${post.title}"吗？此操作将无法恢复。`,
-        '删除确认',
-        {
-          confirmButtonText: '确定删除',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }
-      )
-        .then(async () => {
-          forumPromptMessages.showFeatureDeveloping()
-          return
-        })
-        .catch(() => {
-          // 用户取消
-        })
-    }
-    
-    // 加载待审核帖子列表
-    const loadPendingPosts = async () => {
-      try {
-        const res = await forumStore.fetchPendingPosts({
-          page: pendingPostsCurrentPage.value,
-          size: pendingPostsPageSize.value
-        })
-        showByCode(res.code)
-      } catch (error) {
-        console.error('获取待审核帖子列表失败:', error)
-      }
-    }
-    
-    // 处理待审核帖子分页大小变化
-    const handlePendingPostsSizeChange = val => {
+    })
+    .catch(() => {
+      // 用户取消
+    })
+}
+
+// 加载待审核帖子列表
+const loadPendingPosts = async () => {
+  try {
+    const res = await forumStore.fetchPendingPosts({
+      page: pendingPostsCurrentPage.value,
+      size: pendingPostsPageSize.value
+    })
+    showByCode(res.code)
+  } catch (error) {
+    console.error('获取待审核帖子列表失败:', error)
+  }
+}
+
+// 处理待审核帖子分页大小变化
+const handlePendingPostsSizeChange = val => {
       pendingPostsPageSize.value = val
       loadPendingPosts()
     }
