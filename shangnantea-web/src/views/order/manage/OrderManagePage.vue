@@ -406,13 +406,13 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useOrderStore } from '@/stores/order'
 import { ElMessageBox } from 'element-plus'
 import { Refresh } from '@element-plus/icons-vue'
-import { showByCode, isSuccess } from '@/utils/apiMessages'
+import { showByCode } from '@/utils/apiMessages'
 import { orderPromptMessages } from '@/utils/promptMessages'
 
 /**
@@ -442,68 +442,69 @@ import { orderPromptMessages } from '@/utils/promptMessages'
  * - 后端Controller：必须验证token中的用户信息，确保数据安全
  */
 
-export default {
-  name: 'OrderManagePage',
-  setup() {
-    const router = useRouter()
-    const route = useRoute()
-    const orderStore = useOrderStore()
-    const loading = ref(false)
-    const submitting = ref(false)
-    
-    // 分页相关（由 Pinia 维护）
-    const currentPage = ref(1)
-    const pageSize = ref(10)
-    const total = ref(0)
-    
-    // 搜索表单
-    const searchForm = reactive({
-      orderId: '',
-      teaName: '',
-      status: '',
-      dateRange: []
-    })
-    
-    // 发货表单
-    const shipDialogVisible = ref(false)
-    const currentOrder = ref(null)
-    const shipForm = reactive({
-      company: '',
-      trackingNumber: ''
-    })
-    
-    // 批量发货
-    const batchShipDialogVisible = ref(false)
-    const selectedOrderIds = ref([])
-    const batchShipForm = reactive({
-      company: '',
-      trackingNumber: ''
-    })
-    const hasBatchSelection = ref(false)
-    
-    // 排序
-    const sortKey = ref('')
-    
-    // 退款申请处理相关
-    const refundDialogVisible = ref(false)
-    const currentRefundOrder = ref(null)
-    const refundDetail = ref(null)
-    
-    // 任务组D：订单统计数据相关
-    const statisticsDateRange = ref([])
-    const orderStatistics = computed(() => orderStore.orderStatistics)
-    
-    // 任务组E：导出订单相关
-    const exportDialogVisible = ref(false)
-    const exporting = ref(false)
-    const exportForm = reactive({
-      dateRange: [],
-      status: '',
-      format: 'csv'
-    })
-    
-    // 列表数据来自 Pinia
-    const orderList = ref([])
+defineOptions({
+  name: 'OrderManagePage'
+})
+
+const router = useRouter()
+const route = useRoute()
+const orderStore = useOrderStore()
+const loading = ref(false)
+const submitting = ref(false)
+
+// 分页相关（由 Pinia 维护）
+const currentPage = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
+
+// 搜索表单
+const searchForm = reactive({
+  orderId: '',
+  teaName: '',
+  status: '',
+  dateRange: []
+})
+
+// 发货表单
+const shipDialogVisible = ref(false)
+const currentOrder = ref(null)
+const shipForm = reactive({
+  company: '',
+  trackingNumber: ''
+})
+
+// 批量发货
+const batchShipDialogVisible = ref(false)
+const selectedOrderIds = ref([])
+const batchShipForm = reactive({
+  company: '',
+  trackingNumber: ''
+})
+const hasBatchSelection = ref(false)
+
+// 排序
+const sortKey = ref('')
+
+// 退款申请处理相关
+const refundDialogVisible = ref(false)
+const currentRefundOrder = ref(null)
+const refundDetail = ref(null)
+
+// 任务组D：订单统计数据相关
+const statisticsDateRange = ref([])
+const orderStatistics = computed(() => orderStore.orderStatistics)
+
+// 任务组E：导出订单相关
+const exportDialogVisible = ref(false)
+const exporting = ref(false)
+const exportForm = reactive({
+  dateRange: [],
+  status: '',
+  format: 'csv'
+})
+
+// 列表数据来自 Pinia
+const orderList = ref([])
     
     // 从后端获取订单列表（同步 Pinia filters）
     const fetchOrders = async () => {
@@ -875,85 +876,32 @@ export default {
       }
     }
     
-    // 初始化：从 URL 恢复筛选条件
-    onMounted(() => {
-      const { page, orderId, teaName, status, startDate, endDate, sort } = route.query
-      if (page) {
-        currentPage.value = Number(page) || 1
-      }
-      if (orderId) {
-        searchForm.orderId = String(orderId)
-      }
-      if (teaName) {
-        searchForm.teaName = String(teaName)
-      }
-      if (status !== undefined) {
-        const s = Number(status)
-        searchForm.status = Number.isNaN(s) ? '' : s
-      }
-      if (startDate && endDate) {
-        searchForm.dateRange = [String(startDate), String(endDate)]
-      }
-      if (sort) {
-        sortKey.value = String(sort)
-      }
-      fetchOrders()
-      // 任务组D：加载统计数据
-      loadStatistics()
-    })
-    
-    return {
-      loading,
-      submitting,
-      orderList,
-      currentPage,
-      pageSize,
-      total,
-      searchForm,
-      shipDialogVisible,
-      currentOrder,
-      shipForm,
-      batchShipDialogVisible,
-      batchShipForm,
-      selectedOrderIds,
-      hasBatchSelection,
-      refundDialogVisible,
-      currentRefundOrder,
-      Refresh,
-      handleSelectionChange,
-      openBatchShipDialog,
-      confirmBatchShip,
-      refreshOrders,
-      handleSearch,
-      resetSearch,
-      handleSizeChange,
-      handleCurrentChange,
-      getStatusText,
-      getStatusType,
-      viewOrderDetail,
-      shipOrder,
-      confirmShip,
-      handleRefund,
-      openRefundDetail,
-      formatRefundApplyTime,
-      getReceiverInfo,
-      // 任务组D：统计数据相关
-      statisticsDateRange,
-      orderStatistics,
-      loadStatistics,
-      handleStatisticsDateChange,
-      // 任务组E：导出相关
-      exportDialogVisible,
-      exportForm,
-      exporting,
-      openExportDialog,
-      confirmExport,
-      // 排序
-      sortKey,
-      refundDetail
-    }
+// 初始化：从 URL 恢复筛选条件
+onMounted(() => {
+  const { page, orderId, teaName, status, startDate, endDate, sort } = route.query
+  if (page) {
+    currentPage.value = Number(page) || 1
   }
-}
+  if (orderId) {
+    searchForm.orderId = String(orderId)
+  }
+  if (teaName) {
+    searchForm.teaName = String(teaName)
+  }
+  if (status !== undefined) {
+    const s = Number(status)
+    searchForm.status = Number.isNaN(s) ? '' : s
+  }
+  if (startDate && endDate) {
+    searchForm.dateRange = [String(startDate), String(endDate)]
+  }
+  if (sort) {
+    sortKey.value = String(sort)
+  }
+  fetchOrders()
+  // 任务组D：加载统计数据
+  loadStatistics()
+})
 </script>
 
 <style lang="scss" scoped>

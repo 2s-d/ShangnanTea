@@ -184,7 +184,7 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useOrderStore } from '@/stores/order'
@@ -195,44 +195,40 @@ import { orderPromptMessages } from '@/utils/promptMessages'
 
 // TODO: 退款申请功能需后端提供接口与数据结构支持（前端不在UI层模拟退款流程）
 
-export default {
-  name: 'OrderListPage',
-  components: {
-    SafeImage
-  },
-  setup() {
-    /**
-     * 订单列表页面权限控制说明（P2-6：订单权限控制的完整性）
-     * 
-     * 权限规则：
-     * - 普通用户(role=2)：只能查看自己的订单（后端通过userId过滤）
-     * - 商家(role=3)：可以查看自己店铺的订单（后端通过shopId过滤）
-     * - 管理员(role=1)：应访问 /order/manage 查看所有订单
-     * 
-     * 路由权限：meta.roles: [ROLES.USER, ROLES.SHOP]
-     * 后端验证：API根据token中的userId/shopId自动过滤数据
-     */
-    const orderStore = useOrderStore()
-    const router = useRouter()
-    const searchText = ref('')
-    const activeTab = ref('all')
-    const currentPage = ref(1)
+defineOptions({
+  name: 'OrderListPage'
+})
 
-    // 退款相关（生产版：只负责收集输入并请求后端）
-    const refundDialogVisible = ref(false)
-    const refundSubmitting = ref(false)
-    const refundReason = ref('')
-    const refundOrderId = ref('')
+/**
+ * 订单列表页面权限控制说明（P2-6：订单权限控制的完整性）
+ * 
+ * 权限规则：
+ * - 普通用户(role=2)：只能查看自己的订单（后端通过userId过滤）
+ * - 商家(role=3)：可以查看自己店铺的订单（后端通过shopId过滤）
+ * - 管理员(role=1)：应访问 /order/manage 查看所有订单
+ * 
+ * 路由权限：meta.roles: [ROLES.USER, ROLES.SHOP]
+ * 后端验证：API根据token中的userId/shopId自动过滤数据
+ */
+const orderStore = useOrderStore()
+const router = useRouter()
+const searchText = ref('')
+const activeTab = ref('all')
+const currentPage = ref(1)
 
-    const loading = computed(() => orderStore.loading)
-    const pageSize = computed(() => orderStore.pagination.pageSize)
-    const total = computed(() => orderStore.pagination.total)
-    const orders = computed(() => orderStore.orderList || [])
+// 退款相关（生产版：只负责收集输入并请求后端）
+const refundDialogVisible = ref(false)
+const refundSubmitting = ref(false)
+const refundReason = ref('')
+const refundOrderId = ref('')
 
+const loading = computed(() => orderStore.loading)
+const pageSize = computed(() => orderStore.pagination.pageSize)
+const total = computed(() => orderStore.pagination.total)
+const orders = computed(() => orderStore.orderList || [])
 
-    
-    // 列表直接来自 Pinia，筛选交给后端
-    const filteredOrders = computed(() => orders.value)
+// 列表直接来自 Pinia，筛选交给后端
+const filteredOrders = computed(() => orders.value)
 
     const openRefundDialog = orderId => {
       refundOrderId.value = orderId
@@ -415,50 +411,14 @@ export default {
       orderPromptMessages.showContactShopDev()
     }
     
-    // 初始化
-    onMounted(() => {
-      orderStore.updateFilters({
-        keyword: '',
-        status: ''
-      })
-      orderStore.fetchOrders({ page: currentPage.value, size: pageSize.value })
-    })
-    
-
-    
-    return {
-      loading,
-      searchText,
-      activeTab,
-      currentPage,
-      pageSize,
-      total,
-      filteredOrders,
-      getStatusText,
-      getStatusClass,
-      formatTime,
-      handleSearch,
-      handleCurrentChange,
-      handleTabChange,
-      viewOrderDetail,
-      continuePay,
-      cancelOrder,
-      confirmReceipt,
-      viewLogistics,
-      writeReview,
-      deleteOrder,
-      modifyAddress,
-      contactShop,
-
-      // 退款
-      refundDialogVisible,
-      refundSubmitting,
-      refundReason,
-      openRefundDialog,
-      submitRefund
-    }
-  }
-}
+// 初始化
+onMounted(() => {
+  orderStore.updateFilters({
+    keyword: '',
+    status: ''
+  })
+  orderStore.fetchOrders({ page: currentPage.value, size: pageSize.value })
+})
 </script>
 
 <style lang="scss" scoped>

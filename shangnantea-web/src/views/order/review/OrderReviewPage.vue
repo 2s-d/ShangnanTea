@@ -100,171 +100,151 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useOrderStore } from '@/stores/order'
 import { Plus } from '@element-plus/icons-vue'
-import { showByCode, isSuccess } from '@/utils/apiMessages'
+import { showByCode } from '@/utils/apiMessages'
 import { orderPromptMessages } from '@/utils/promptMessages'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 
-export default {
-  name: 'OrderReviewPage',
-  components: {
-    SafeImage,
-    Plus
-  },
-  setup() {
-    const router = useRouter()
-    const route = useRoute()
-    const orderStore = useOrderStore()
+defineOptions({
+  name: 'OrderReviewPage'
+})
+
+const router = useRouter()
+const route = useRoute()
+const orderStore = useOrderStore()
+
+const orderId = route.params.id
+const loading = computed(() => orderStore.loading)
+const submitting = ref(false)
+
+const orderDetail = ref(null)
+const imageList = ref([])
+const previewVisible = ref(false)
+const previewUrl = ref('')
+
+const ratingTexts = ['很差', '较差', '一般', '满意', '非常满意']
+
+const reviewForm = reactive({
+  rating: 5,
+  content: '',
+  isAnonymous: false
+})
+
+// 返回订单详情
+const goBack = () => {
+  router.push(`/order/detail/${orderId}`)
+}
+
+// 加载订单详情
+const loadOrderDetail = async () => {
+  try {
+    const res = await orderStore.fetchOrderDetail(orderId)
+    showByCode(res?.code)
+    const data = res?.data || res
+    orderDetail.value = data
     
-    const orderId = route.params.id
-    const loading = computed(() => orderStore.loading)
-    const submitting = ref(false)
-    
-    const orderDetail = ref(null)
-    const imageList = ref([])
-    const previewVisible = ref(false)
-    const previewUrl = ref('')
-    
-    const ratingTexts = ['很差', '较差', '一般', '满意', '非常满意']
-    
-    const reviewForm = reactive({
-      rating: 5,
-      content: '',
-      isAnonymous: false
-    })
-    
-    // 返回订单详情
-    const goBack = () => {
-      router.push(`/order/detail/${orderId}`)
+    // 检查订单状态是否可以评价
+    if (data && data.status !== 3) {
+      orderPromptMessages.showReviewNotAllowed()
+      goBack()
     }
     
-    // 加载订单详情
-    const loadOrderDetail = async () => {
-      try {
-        const res = await orderStore.fetchOrderDetail(orderId)
-        showByCode(res?.code)
-        const data = res?.data || res
-        orderDetail.value = data
-        
-        // 检查订单状态是否可以评价
-        if (data && data.status !== 3) {
-          orderPromptMessages.showReviewNotAllowed()
-          goBack()
-        }
-        
-        // 检查是否已评价
-        if (data && data.isReviewed === 1) {
-          orderPromptMessages.showAlreadyReviewed()
-          goBack()
-        }
-      } catch (error) {
-        console.error('加载订单详情失败:', error)
-        orderDetail.value = null
-      }
+    // 检查是否已评价
+    if (data && data.isReviewed === 1) {
+      orderPromptMessages.showAlreadyReviewed()
+      goBack()
     }
-    
-    // 图片超出限制
-    const handleExceed = () => {
-      orderPromptMessages.showImageLimitExceeded()
-    }
-    
-    // 预览图片
-    const handlePreview = file => {
-      previewUrl.value = file.url
-      previewVisible.value = true
-    }
-    
-    // 上传图片到服务器
-    const uploadImages = async () => {
-      if (imageList.value.length === 0) return []
-      
-      const uploadedUrls = []
-      for (const file of imageList.value) {
-        if (file.raw) {
-          try {
-            const res = await orderStore.uploadReviewImage(file.raw)
-            if (res && res.data && res.data.url) {
-              uploadedUrls.push(res.data.url)
-            }
-          } catch (error) {
-            console.error('图片上传失败:', error)
-          }
-        }
-      }
-      return uploadedUrls
-    }
-    
-    // 提交评价
-    const submitReview = async () => {
-      // 验证
-      if (reviewForm.rating === 0) {
-        orderPromptMessages.showRatingRequired()
-        return
-      }
-      
-      if (!reviewForm.content || reviewForm.content.trim().length < 5) {
-        orderPromptMessages.showReviewContentTooShort()
-        return
-      }
-      
-      submitting.value = true
-      
-      try {
-        // 先上传图片
-        const imageUrls = await uploadImages()
-        
-        // 提交评价
-        const res = await orderStore.submitOrderReview({
-          orderId: orderId,
-          teaId: orderDetail.value.teaId,
-          rating: reviewForm.rating,
-          content: reviewForm.content.trim(),
-          images: imageUrls,
-          isAnonymous: reviewForm.isAnonymous ? 1 : 0
-        })
-        
-        showByCode(res?.code)
-        
-        // 返回订单详情
-        setTimeout(() => {
-          router.push(`/order/detail/${orderId}`)
-        }, 1500)
-      } catch (error) {
-        console.error('提交评价失败:', error)
-      } finally {
-        submitting.value = false
-      }
-    }
-    
-    onMounted(() => {
-      if (!orderId) {
-        orderPromptMessages.showOrderIdRequired()
-        router.push('/order/list')
-        return
-      }
-      loadOrderDetail()
-    })
-    
-    return {
-      loading,
-      submitting,
-      orderDetail,
-      reviewForm,
-      imageList,
-      ratingTexts,
-      previewVisible,
-      previewUrl,
-      goBack,
-      handleExceed,
-      handlePreview,
-      submitReview
-    }
+  } catch (error) {
+    console.error('加载订单详情失败:', error)
+    orderDetail.value = null
   }
 }
+
+// 图片超出限制
+const handleExceed = () => {
+  orderPromptMessages.showImageLimitExceeded()
+}
+
+// 预览图片
+const handlePreview = file => {
+  previewUrl.value = file.url
+  previewVisible.value = true
+}
+
+// 上传图片到服务器
+const uploadImages = async () => {
+  if (imageList.value.length === 0) return []
+  
+  const uploadedUrls = []
+  for (const file of imageList.value) {
+    if (file.raw) {
+      try {
+        const res = await orderStore.uploadReviewImage(file.raw)
+        if (res && res.data && res.data.url) {
+          uploadedUrls.push(res.data.url)
+        }
+      } catch (error) {
+        console.error('图片上传失败:', error)
+      }
+    }
+  }
+  return uploadedUrls
+}
+
+// 提交评价
+const submitReview = async () => {
+  // 验证
+  if (reviewForm.rating === 0) {
+    orderPromptMessages.showRatingRequired()
+    return
+  }
+  
+  if (!reviewForm.content || reviewForm.content.trim().length < 5) {
+    orderPromptMessages.showReviewContentTooShort()
+    return
+  }
+  
+  submitting.value = true
+  
+  try {
+    // 先上传图片
+    const imageUrls = await uploadImages()
+    
+    // 提交评价
+    const res = await orderStore.submitOrderReview({
+      orderId: orderId,
+      teaId: orderDetail.value.teaId,
+      rating: reviewForm.rating,
+      content: reviewForm.content.trim(),
+      images: imageUrls,
+      isAnonymous: reviewForm.isAnonymous ? 1 : 0
+    })
+    
+    showByCode(res?.code)
+    
+    // 返回订单详情
+    setTimeout(() => {
+      router.push(`/order/detail/${orderId}`)
+    }, 1500)
+  } catch (error) {
+    console.error('提交评价失败:', error)
+  } finally {
+    submitting.value = false
+  }
+}
+
+onMounted(() => {
+  if (!orderId) {
+    orderPromptMessages.showOrderIdRequired()
+    router.push('/order/list')
+    return
+  }
+  loadOrderDetail()
+})
 </script>
 
 <style lang="scss" scoped>

@@ -73,165 +73,146 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useOrderStore } from '@/stores/order'
 import { CircleCheck, CircleClose, Loading } from '@element-plus/icons-vue'
 
-export default {
-  name: 'PaymentPage',
-  components: {
-    CircleCheck,
-    CircleClose,
-    Loading
-  },
-  setup() {
-    const router = useRouter()
-    const route = useRoute()
-    const orderStore = useOrderStore()
+defineOptions({
+  name: 'PaymentPage'
+})
 
-    const loading = ref(true)
-    const paymentSuccess = ref(false)
-    const failureReason = ref('支付已取消或支付失败，请重试')
-    
-    // 从URL获取订单ID
-    const orderId = ref(route.query.orderId || route.query.out_trade_no || '')
-    
-    // 当前订单数据
-    const currentOrder = computed(() => orderStore.currentOrder || {})
-    
-    const orderAmount = computed(() => {
-      return currentOrder.value.totalAmount || 0
-    })
-    
-    const paymentTime = computed(() => {
-      if (currentOrder.value.paymentTime) {
-        return new Date(currentOrder.value.paymentTime).toLocaleString('zh-CN')
-      }
-      return new Date().toLocaleString('zh-CN')
-    })
+const router = useRouter()
+const route = useRoute()
+const orderStore = useOrderStore()
 
-    let pollingTimer = null
-    let pollingCount = 0
-    const MAX_POLLING_COUNT = 10 // 最多轮询10次
+const loading = ref(true)
+const paymentSuccess = ref(false)
+const failureReason = ref('支付已取消或支付失败，请重试')
 
-    /**
-     * 轮询查询订单状态
-     * 因为支付宝异步回调可能有延迟，需要轮询确认
-     */
-    const checkPaymentStatus = async () => {
-      if (!orderId.value) {
-        loading.value = false
+// 从URL获取订单ID
+const orderId = ref(route.query.orderId || route.query.out_trade_no || '')
+
+// 当前订单数据
+const currentOrder = computed(() => orderStore.currentOrder || {})
+
+const orderAmount = computed(() => {
+  return currentOrder.value.totalAmount || 0
+})
+
+const paymentTime = computed(() => {
+  if (currentOrder.value.paymentTime) {
+    return new Date(currentOrder.value.paymentTime).toLocaleString('zh-CN')
+  }
+  return new Date().toLocaleString('zh-CN')
+})
+
+let pollingTimer = null
+let pollingCount = 0
+const MAX_POLLING_COUNT = 10 // 最多轮询10次
+
+/**
+ * 轮询查询订单状态
+ * 因为支付宝异步回调可能有延迟，需要轮询确认
+ */
+const checkPaymentStatus = async () => {
+  if (!orderId.value) {
+    loading.value = false
+    paymentSuccess.value = false
+    failureReason.value = '订单信息丢失，请在"我的订单"中查看'
+    return
+  }
+
+  try {
+    // 获取订单详情
+    await orderStore.fetchOrderDetail(orderId.value)
+    
+    const order = currentOrder.value
+    
+    // 检查订单状态
+    // 订单状态：0-待付款, 1-待发货(已支付), 2-待收货, 3-已完成, 4-已取消, 5-已退款
+    if (order.status === 1 || order.status === 2 || order.status === 3) {
+      // 支付成功
+      paymentSuccess.value = true
+      loading.value = false
+      stopPolling()
+      return
+    }
+    
+    // 如果还是待付款状态，继续轮询
+    if (order.status === 0) {
+      pollingCount++
+      
+      if (pollingCount >= MAX_POLLING_COUNT) {
+        // 轮询次数用完，认为支付失败
         paymentSuccess.value = false
-        failureReason.value = '订单信息丢失，请在"我的订单"中查看'
+        loading.value = false
+        failureReason.value = '支付结果确认超时，请稍后在"我的订单"中查看订单状态'
+        stopPolling()
         return
       }
-
-      try {
-        // 获取订单详情
-        await orderStore.fetchOrderDetail(orderId.value)
-        
-        const order = currentOrder.value
-        
-        // 检查订单状态
-        // 订单状态：0-待付款, 1-待发货(已支付), 2-待收货, 3-已完成, 4-已取消, 5-已退款
-        if (order.status === 1 || order.status === 2 || order.status === 3) {
-          // 支付成功
-          paymentSuccess.value = true
-          loading.value = false
-          stopPolling()
-          return
-        }
-        
-        // 如果还是待付款状态，继续轮询
-        if (order.status === 0) {
-          pollingCount++
-          
-          if (pollingCount >= MAX_POLLING_COUNT) {
-            // 轮询次数用完，认为支付失败
-            paymentSuccess.value = false
-            loading.value = false
-            failureReason.value = '支付结果确认超时，请稍后在"我的订单"中查看订单状态'
-            stopPolling()
-            return
-          }
-          
-          // 继续轮询，2秒后再次查询
-          pollingTimer = setTimeout(checkPaymentStatus, 2000)
-          return
-        }
-        
-        // 其他状态（如已取消），认为支付失败
-        paymentSuccess.value = false
-        loading.value = false
-        failureReason.value = '订单已取消或支付失败'
-        stopPolling()
-        
-      } catch (error) {
-        console.error('查询订单状态失败:', error)
-        
-        pollingCount++
-        
-        if (pollingCount >= MAX_POLLING_COUNT) {
-          paymentSuccess.value = false
-          loading.value = false
-          failureReason.value = '无法确认支付结果，请稍后在"我的订单"中查看'
-          stopPolling()
-        } else {
-          // 出错了也继续轮询
-          pollingTimer = setTimeout(checkPaymentStatus, 2000)
-        }
-      }
+      
+      // 继续轮询，2秒后再次查询
+      pollingTimer = setTimeout(checkPaymentStatus, 2000)
+      return
     }
-
-    const stopPolling = () => {
-      if (pollingTimer) {
-        clearTimeout(pollingTimer)
-        pollingTimer = null
-      }
-    }
-
-    const goToOrderDetail = () => {
-      router.push(`/order/detail/${orderId.value}`)
-    }
-
-    const goToOrderList = () => {
-      router.push('/order/list')
-    }
-
-    const goToHome = () => {
-      router.push('/tea-culture')
-    }
-
-    const retryPayment = () => {
-      // 跳转回结算页面，重新发起支付
-      router.push(`/order/checkout?orderId=${orderId.value}`)
-    }
-
-    onMounted(() => {
-      // 开始轮询查询订单状态
-      checkPaymentStatus()
-    })
-
-    onUnmounted(() => {
+    
+    // 其他状态（如已取消），认为支付失败
+    paymentSuccess.value = false
+    loading.value = false
+    failureReason.value = '订单已取消或支付失败'
+    stopPolling()
+    
+  } catch (error) {
+    console.error('查询订单状态失败:', error)
+    
+    pollingCount++
+    
+    if (pollingCount >= MAX_POLLING_COUNT) {
+      paymentSuccess.value = false
+      loading.value = false
+      failureReason.value = '无法确认支付结果，请稍后在"我的订单"中查看'
       stopPolling()
-    })
-
-    return {
-      loading,
-      paymentSuccess,
-      failureReason,
-      orderId,
-      orderAmount,
-      paymentTime,
-      goToOrderDetail,
-      goToOrderList,
-      goToHome,
-      retryPayment
+    } else {
+      // 出错了也继续轮询
+      pollingTimer = setTimeout(checkPaymentStatus, 2000)
     }
   }
 }
+
+const stopPolling = () => {
+  if (pollingTimer) {
+    clearTimeout(pollingTimer)
+    pollingTimer = null
+  }
+}
+
+const goToOrderDetail = () => {
+  router.push(`/order/detail/${orderId.value}`)
+}
+
+const goToOrderList = () => {
+  router.push('/order/list')
+}
+
+const goToHome = () => {
+  router.push('/tea-culture')
+}
+
+const retryPayment = () => {
+  // 跳转回结算页面，重新发起支付
+  router.push(`/order/checkout?orderId=${orderId.value}`)
+}
+
+onMounted(() => {
+  // 开始轮询查询订单状态
+  checkPaymentStatus()
+})
+
+onUnmounted(() => {
+  stopPolling()
+})
 </script>
 
 <style lang="scss" scoped>

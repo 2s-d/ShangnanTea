@@ -203,55 +203,54 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useOrderStore } from '@/stores/order'
 import { ElMessageBox } from 'element-plus'
-import { showByCode, isSuccess } from '@/utils/apiMessages'
+import { showByCode } from '@/utils/apiMessages'
 import { orderPromptMessages } from '@/utils/promptMessages'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-export default {
-  name: 'OrderDetailPage',
-  components: {
-    SafeImage
-  },
-  setup() {
-    const router = useRouter()
-    const route = useRoute()
-    const orderStore = useOrderStore()
-    const loading = computed(() => orderStore.loading)
-    
-    // 从路由参数获取订单ID
-    const orderId = route.params.id
-    
-    /**
-     * 生产形态：不在 UI 层造假数据；通过 Pinia -> API -> 后端返回数据
-     * TODO-SCRIPT: 订单详情页需对接 order/fetchOrderDetail，并补齐地址/物流等接口
-     */
-    const orderDetail = ref(null)
-    
-    const address = ref({
-      name: '',
-      phone: '',
-      province: '',
-      city: '',
-      district: '',
-      detail: ''
-    })
-    
-    const logistics = ref({
-      company: '',
-      tracking_number: '',
-      ship_time: '',
-      traces: []
-    })
-    
-    const refundInfo = ref({
-      status: '',
-      reason: '',
-      process_reason: ''
-    })
+
+defineOptions({
+  name: 'OrderDetailPage'
+})
+
+const router = useRouter()
+const route = useRoute()
+const orderStore = useOrderStore()
+const loading = computed(() => orderStore.loading)
+
+// 从路由参数获取订单ID
+const orderId = route.params.id
+
+/**
+ * 生产形态：不在 UI 层造假数据；通过 Pinia -> API -> 后端返回数据
+ * TODO-SCRIPT: 订单详情页需对接 order/fetchOrderDetail，并补齐地址/物流等接口
+ */
+const orderDetail = ref(null)
+
+const address = ref({
+  name: '',
+  phone: '',
+  province: '',
+  city: '',
+  district: '',
+  detail: ''
+})
+
+const logistics = ref({
+  company: '',
+  tracking_number: '',
+  ship_time: '',
+  traces: []
+})
+
+const refundInfo = ref({
+  status: '',
+  reason: '',
+  process_reason: ''
+})
     
     // 获取订单状态文本
     const getStatusText = status => {
@@ -518,50 +517,19 @@ export default {
         })
     }
     
-    // 默认图片（生产形态：不使用 mock-images）
-    const defaultTeaImage = ''
-    
-    // 初始化
-    onMounted(() => {
-      if (!orderId) {
-        orderPromptMessages.showOrderNotFound()
-        goBack()
-        return
-      }
-      
-      loadOrderDetail()
-    })
-    return {
-      loading,
-      orderDetail,
-      address,
-      logistics,
-      refundInfo,
-      getStatusText,
-      getStatusClass,
-      getPaymentMethodText,
-      getProductsAmount,
-      formatTime,
-      goBack,
-      viewTeaDetail,
-      continuePay,
-      cancelOrder,
-      confirmReceipt,
-      viewLogistics,
-      contactSeller,
-      writeReview,
-      buyAgain,
-      defaultTeaImage,
-      canRequestRefund,
-      canReview,
-      refundDialogVisible,
-      refundSubmitting,
-      refundReason,
-      openRefundDialog,
-      submitRefund
-    }
+// 默认图片（生产形态：不使用 mock-images）
+const defaultTeaImage = ''
+
+// 初始化
+onMounted(() => {
+  if (!orderId) {
+    orderPromptMessages.showOrderNotFound()
+    goBack()
+    return
   }
-}
+  
+  loadOrderDetail()
+})
 </script>
 
 <style lang="scss" scoped>

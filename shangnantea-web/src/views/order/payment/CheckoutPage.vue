@@ -200,7 +200,7 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, computed, onMounted, reactive } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useOrderStore } from '@/stores/order'
@@ -209,17 +209,12 @@ import { ElMessage } from 'element-plus'
 
 import { ArrowLeft, Plus } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-import { showByCode, isSuccess } from '@/utils/apiMessages'
+import { showByCode } from '@/utils/apiMessages'
 import { orderPromptMessages } from '@/utils/promptMessages'
 
-export default {
-  name: 'CheckoutPage',
-  components: {
-    ArrowLeft,
-    Plus,
-    SafeImage
-  },
-  setup() {
+defineOptions({
+  name: 'CheckoutPage'
+})
     const router = useRouter()
     const route = useRoute()
     const orderStore = useOrderStore()
@@ -519,32 +514,6 @@ export default {
       }
     }
     
-    return {
-      loading,
-      submitting,
-      addresses,
-      selectedAddressId,
-      orderItems,
-      paymentMethod,
-      goodsAmount,
-      shippingFee,
-      totalAmount,
-      canSubmitOrder,
-      goBack,
-      submitOrder,
-      addressDialogVisible,
-      addressSubmitting,
-      addressForm,
-      addressFormRef,
-      addressRules,
-      regionOptions,
-      openAddressDialog,
-      saveAddress,
-      defaultTeaImage,
-      defaultPaymentImage
-    }
-  }
-}
 </script>
 
 <style lang="scss" scoped>
