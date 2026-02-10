@@ -105,7 +105,7 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { Plus } from '@element-plus/icons-vue'
 import { ref, onMounted, reactive, toRaw, computed } from 'vue'
 
@@ -114,12 +114,9 @@ import { regionData, getStaticRegionData } from '@/utils/region'
 import { useUserStore } from '@/stores/user'
 import { userPromptMessages as userMessages } from '@/utils/promptMessages'
 
-export default {
-  name: 'AddressPage',
-  components: {
-    Plus
-  },
-  setup() {
+defineOptions({
+  name: 'AddressPage'
+})
     // 使用Pinia store
     const userStore = useUserStore()
     
@@ -400,31 +397,6 @@ export default {
       handleFetchAddressList()
       handleLoadRegionData()
     })
-    
-    return {
-      addresses,
-      loading,
-      addressModalVisible,
-      isEditing,
-      confirmLoading,
-      addressForm,
-      addressFormRef,
-      addressRules,
-      cascaderOptions,
-      regionLoading,
-      handleRegionChange,
-      handleFetchAddressList,
-      handleAddAddress,
-      handleEditAddress,
-      handleDeleteAddress,
-      handleSetDefaultAddress,
-      handleSaveAddress,
-      cancelAddressModal,
-      addressItems,
-      formatAddress
-    }
-  }
-}
 </script>
 
 <style scoped>

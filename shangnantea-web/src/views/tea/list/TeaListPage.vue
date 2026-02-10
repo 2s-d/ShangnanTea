@@ -170,25 +170,20 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useTeaStore } from '@/stores/tea'
 
-import { Search, Shop } from '@element-plus/icons-vue'
+import { Shop } from '@element-plus/icons-vue'
 import TeaCard from '@/components/tea/card/TeaCard.vue'
 
 import SearchBar from '@/components/common/SearchBar.vue'
-import { showByCode, isSuccess } from '@/utils/apiMessages'
+import { showByCode } from '@/utils/apiMessages'
 
-export default {
-  name: 'TeaListPage',
-  components: {
-    Shop,
-    TeaCard,
-    SearchBar
-  },
-  setup() {
+defineOptions({
+  name: 'TeaListPage'
+})
     const teaStore = useTeaStore()
     const router = useRouter()
     const route = useRoute()
@@ -394,31 +389,6 @@ export default {
       // 任务组F：加载热门推荐
       await loadPopularTeas()
     })
-    
-    return {
-      searchQuery,
-      sortOption,
-      viewMode,
-      filters,
-      loading,
-      teas,
-      currentPage,
-      pageSize,
-      totalCount,
-      categoryOptions,
-      goToShopList,
-      handleSearch,
-      handleSearchFromBar,
-      applyFilters,
-      resetFilters,
-      handlePageChange,
-      handleSortChange,
-      // 任务组F：热门推荐
-      popularTeas,
-      goToTeaDetail
-    }
-  }
-}
 </script>
 
 <style lang="scss" scoped>

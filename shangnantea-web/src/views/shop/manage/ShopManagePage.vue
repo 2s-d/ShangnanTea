@@ -621,7 +621,7 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useShopStore } from '@/stores/shop'
@@ -633,15 +633,9 @@ import { API } from '@/api/apiConstants'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { shopPromptMessages } from '@/utils/promptMessages'
 
-export default {
-  name: 'ShopManagePage',
-  components: {
-    Setting,
-    Plus,
-    Search,
-    SafeImage
-  },
-  setup() {
+defineOptions({
+  name: 'ShopManagePage'
+})
     const router = useRouter()
     const shopStore = useShopStore()
     
@@ -1312,85 +1306,6 @@ export default {
         loadStatistics()
       })
     })
-    
-    return {
-      // 店铺相关
-      loading,
-      shop,
-      defaultLogo,
-      defaultTeaImage,
-      showSettingsDialog,
-      
-      // 茶叶列表相关
-      teaLoading,
-      searchQuery,
-      statusFilter,
-      categoryFilter,
-      currentPage,
-      pageSize,
-      totalCount,
-      shopTeas,
-      categoryOptions,
-      getCategoryName,
-      getMinPrice,
-      showAddTeaDialog,
-      handleSearch,
-      handleFilterChange,
-      handlePageChange,
-      handleSizeChange,
-
-      // 任务组E：Logo上传
-      beforeLogoUpload,
-      handleLogoSuccess,
-      handleLogoUploadRequest,
-      
-      // 对话框相关
-      dialogVisible,
-      isEdit,
-      currentTea,
-      submitting,
-      teaFormRef,
-      handleEdit,
-      handleToggleStatus,
-      handleDelete,
-      handleDialogClose,
-      handleSave,
-      addSpec,
-      removeSpec,
-      handleDefaultChange,
-      // 任务组B：Banner管理
-      bannerLoading,
-      shopBanners,
-      bannerDialogVisible,
-      currentBanner,
-      isEditBanner,
-      bannerFormRef,
-      showAddBannerDialog,
-      showEditBannerDialog,
-      handleSaveBanner,
-      handleDeleteBanner,
-      moveBanner,
-      // 任务组B：公告管理
-      announcementLoading,
-      shopAnnouncements,
-      announcementDialogVisible,
-      currentAnnouncement,
-      isEditAnnouncement,
-      announcementFormRef,
-      showAddAnnouncementDialog,
-      showEditAnnouncementDialog,
-      handleSaveAnnouncement,
-      handleDeleteAnnouncement,
-      formatTime,
-      // 任务组D：统计数据
-      statisticsLoading,
-      shopStatistics,
-      dateRange,
-      handleDateRangeChange,
-      formatMoney
-    }
-  }
-}
 </script>
 
 <style lang="scss" scoped>

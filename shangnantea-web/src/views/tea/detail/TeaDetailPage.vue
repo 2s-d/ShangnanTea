@@ -336,7 +336,7 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useTeaStore } from '@/stores/tea'
@@ -345,20 +345,12 @@ import { useOrderStore } from '@/stores/order'
 import { ElMessageBox } from 'element-plus'
 import { Back, ShoppingCart, Star, ChatLineRound, StarFilled } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-import { showByCode, isSuccess } from '@/utils/apiMessages'
+import { showByCode } from '@/utils/apiMessages'
 import teaMessages from '@/utils/promptMessages'
 
-export default {
-  name: 'TeaDetailPage',
-  components: {
-    Back,
-    ShoppingCart,
-    Star,
-    ChatLineRound,
-    StarFilled,
-    SafeImage
-  },
-  setup() {
+defineOptions({
+  name: 'TeaDetailPage'
+})
     const teaStore = useTeaStore()
     const userStore = useUserStore()
     const orderStore = useOrderStore()
@@ -771,58 +763,6 @@ export default {
         loadTeaDetail()
       }
     )
-    
-    return {
-      tea,
-      teaImages,
-      loading,
-      submitting,
-      activeTab,
-      selectedSpecId,
-      quantity,
-      currentImageIndex,
-      isPlatformTea,
-      selectedSpec,
-      currentStock,
-      canAddToCart,
-      getCategoryName,
-      addToCart,
-      buyNow,
-      goToShop,
-      goBack,
-      goToTeaList,
-      isFavorite,
-      favoriteLoading,
-      toggleFavorite,
-      // 新增回复相关
-      isShopOwner,
-      activeReplyId,
-      replyContent,
-      submittingReply,
-      showReplyForm,
-      cancelReply,
-      submitReply,
-      defaultAvatar,
-      contactShop,
-      // 任务组F：相似推荐
-      similarTeas,
-      goToTeaDetail,
-      // 新增评价相关
-      teaReviews,
-      reviewStats,
-      reviewTotalCount,
-      reviewCurrentPage,
-      reviewPageSize,
-      averageRatingNumber,
-      handleLikeReview,
-      handleReviewPageChange,
-      formatTime,
-      // 新增规格相关
-      teaSpecifications,
-      handleSpecChange
-    }
-  }
-}
 </script>
 
 <style lang="scss" scoped>
