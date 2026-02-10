@@ -38,7 +38,7 @@
 <script>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useStore } from 'vuex'
+import { useOrderStore } from '@/stores/order'
 
 import { ShoppingCart } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
@@ -58,7 +58,7 @@ export default {
   },
   setup(props) {
     const router = useRouter()
-    const store = useStore()
+    const orderStore = useOrderStore()
     const loading = ref(false)
     
     // 判断是否为平台直售茶叶
@@ -73,7 +73,7 @@ export default {
     const addToCart = async () => {
       loading.value = true
       try {
-        const response = await store.dispatch('order/addToCart', {
+        const response = await orderStore.addToCart({
           teaId: props.tea.id,
           quantity: 1
         })

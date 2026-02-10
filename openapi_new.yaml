@@ -107,15 +107,6 @@ paths:
                     code: 2000
                     data:
                       token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjeTEwMDAwMiIsInJvbGUiOjIsInVzZXJuYW1lIjoidGVzdHVzZXIiLCJpYXQiOjE3MzcwMDAwMDAsImV4cCI6MTg5MzQ1NjAwMCwiaXNzIjoic2hhbmduYW50ZWEifQ.mock_signature_for_testing"
-                      userInfo:
-                        id: "cy100002"
-                        username: "testuser"
-                        nickname: "测试用户"
-                        avatar: "/images/default-avatar.png"
-                        email: "user@example.com"
-                        phone: "13800138000"
-                        role: 2
-                        status: 1
                 failure_wrong_password:
                   summary: 登录失败，请检查用户名和密码
                   value:
@@ -142,12 +133,8 @@ paths:
               $ref: '#/components/schemas/RegisterRequest'
             example:
               username: "newuser"
-              nickname: "新用户"
               password: "password123"
               confirmPassword: "password123"
-              contactType: "phone"
-              phone: "13800138000"
-              verificationCode: "123456"
       responses:
         '200':
           description: 请求完成，通过 code 判断业务结果
@@ -272,7 +259,7 @@ paths:
                     code: 2104
                     data: null
 
-  /user/{{userId}}:
+  /user/{userId}:
     get:
       operationId: getUserById
       tags:
@@ -555,7 +542,7 @@ paths:
                     code: 2116
                     data: null
 
-  /user/addresses/{{id}}:
+  /user/addresses/{id}:
     put:
       operationId: updateAddress
       tags:
@@ -627,7 +614,7 @@ paths:
                     code: 2118
                     data: null
 
-  /user/addresses/{{id}}/default:
+  /user/addresses/{id}/default:
     put:
       operationId: setDefaultAddress
       tags:
@@ -1216,7 +1203,7 @@ paths:
                     code: 2135
                     data: null
 
-  /user/admin/users/{{userId}}:
+  /user/admin/users/{userId}:
     put:
       operationId: adminUpdateUser
       tags:
@@ -1302,7 +1289,7 @@ paths:
                     code: 2139
                     data: null
 
-  /user/admin/users/{{userId}}/status:
+  /user/admin/users/{userId}/status:
     put:
       operationId: adminUpdateUserStatus
       tags:
@@ -1410,7 +1397,7 @@ paths:
                     code: 2143
                     data: null
 
-  /user/admin/certifications/{{id}}:
+  /user/admin/certifications/{id}:
     put:
       operationId: adminReviewCertification
       tags:
@@ -1518,6 +1505,7 @@ paths:
                   value:
                     code: 2148
                     data: null
+
   /user/verification-code/send:
     post:
       operationId: sendVerificationCode
@@ -1591,7 +1579,6 @@ paths:
                   value:
                     code: 2151
                     data: null
-
 
   # ==================== 茶叶模块 ====================
   /tea/list:
@@ -1721,7 +1708,7 @@ paths:
                     code: 3101
                     data: null
 
-  /tea/{{id}}:
+  /tea/{id}:
     get:
       operationId: getTeaDetail
       tags:
@@ -1908,7 +1895,7 @@ paths:
                     code: 3107
                     data: null
 
-  /tea/categories/{{id}}:
+  /tea/categories/{id}:
     put:
       operationId: updateTeaCategory
       tags:
@@ -1980,7 +1967,7 @@ paths:
                     code: 3109
                     data: null
 
-  /tea/{{teaId}}/reviews:
+  /tea/{teaId}/reviews:
     get:
       operationId: getTeaReviews
       tags:
@@ -2033,7 +2020,7 @@ paths:
                     code: 3110
                     data: null
 
-  /tea/{{teaId}}/reviews/stats:
+  /tea/{teaId}/reviews/stats:
     get:
       operationId: getTeaReviewStats
       tags:
@@ -2073,7 +2060,7 @@ paths:
                     code: 3111
                     data: null
 
-  /tea/reviews/{{reviewId}}/reply:
+  /tea/reviews/{reviewId}/reply:
     post:
       operationId: replyTeaReview
       tags:
@@ -2118,7 +2105,7 @@ paths:
                     code: 3113
                     data: null
 
-  /tea/{{teaId}}/specifications:
+  /tea/{teaId}/specifications:
     get:
       operationId: getTeaSpecifications
       tags:
@@ -2199,7 +2186,7 @@ paths:
                     code: 3116
                     data: null
 
-  /tea/specifications/{{specId}}:
+  /tea/specifications/{specId}:
     put:
       operationId: updateTeaSpecification
       tags:
@@ -2271,7 +2258,7 @@ paths:
                     code: 3118
                     data: null
 
-  /tea/specifications/{{specId}}/default:
+  /tea/specifications/{specId}/default:
     put:
       operationId: setDefaultSpecification
       tags:
@@ -2305,7 +2292,7 @@ paths:
                     code: 3119
                     data: null
 
-  /tea/{{teaId}}/images:
+  /tea/{teaId}/images:
     post:
       operationId: uploadTeaImages
       tags:
@@ -2364,7 +2351,7 @@ paths:
                     code: 3122
                     data: null
 
-  /tea/images/{{imageId}}:
+  /tea/images/{imageId}:
     delete:
       operationId: deleteTeaImage
       tags:
@@ -2398,7 +2385,7 @@ paths:
                     code: 3123
                     data: null
 
-  /tea/images/{{imageId}}/main:
+  /tea/images/{imageId}/main:
     put:
       operationId: setMainTeaImage
       tags:
@@ -2479,7 +2466,7 @@ paths:
                     code: 3125
                     data: null
 
-  /tea/{{teaId}}/status:
+  /tea/{teaId}/status:
     put:
       operationId: updateTeaStatus
       tags:
@@ -2745,7 +2732,7 @@ paths:
                     code: 4101
                     data: null
 
-  /shop/{{id}}:
+  /shop/{id}:
     get:
       operationId: getShopDetail
       tags:
@@ -2865,7 +2852,7 @@ paths:
                     code: 4105
                     data: null
 
-  /shop/{{shopId}}/teas:
+  /shop/{shopId}/teas:
     get:
       operationId: getShopTeas
       tags:
@@ -2951,7 +2938,7 @@ paths:
                     code: 4108
                     data: null
 
-  /shop/teas/{{teaId}}:
+  /shop/teas/{teaId}:
     put:
       operationId: updateShopTea
       tags:
@@ -3023,7 +3010,7 @@ paths:
                     code: 4110
                     data: null
 
-  /shop/teas/{{teaId}}/status:
+  /shop/teas/{teaId}/status:
     put:
       operationId: updateShopTeaStatus
       tags:
@@ -3078,7 +3065,7 @@ paths:
                     code: 4112
                     data: null
 
-  /shop/{{shopId}}/statistics:
+  /shop/{shopId}/statistics:
     get:
       operationId: getShopStatistics
       tags:
@@ -3128,7 +3115,7 @@ paths:
                     code: 4106
                     data: null
 
-  /shop/{{shopId}}/logo:
+  /shop/{shopId}/logo:
     post:
       operationId: uploadShopLogo
       tags:
@@ -3184,7 +3171,7 @@ paths:
                     code: 4115
                     data: null
 
-  /shop/{{shopId}}/banners:
+  /shop/{shopId}/banners:
     get:
       operationId: getShopBanners
       tags:
@@ -3280,7 +3267,7 @@ paths:
                     code: 4119
                     data: null
 
-  /shop/banners/{{bannerId}}:
+  /shop/banners/{bannerId}:
     put:
       operationId: updateShopBanner
       tags:
@@ -3403,7 +3390,7 @@ paths:
                     code: 4122
                     data: null
 
-  /shop/{{shopId}}/announcements:
+  /shop/{shopId}/announcements:
     get:
       operationId: getShopAnnouncements
       tags:
@@ -3483,7 +3470,7 @@ paths:
                     code: 4124
                     data: null
 
-  /shop/announcements/{{announcementId}}:
+  /shop/announcements/{announcementId}:
     put:
       operationId: updateShopAnnouncement
       tags:
@@ -3556,7 +3543,7 @@ paths:
                     code: 4126
                     data: null
 
-  /shop/{{shopId}}/reviews:
+  /shop/{shopId}/reviews:
     get:
       operationId: getShopReviews
       tags:
@@ -3771,7 +3758,7 @@ paths:
                     code: 5113
                     data: null
 
-  /order/{{id}}:
+  /order/{id}:
     get:
       operationId: getOrderDetail
       tags:
@@ -3850,14 +3837,14 @@ paths:
                   type: string
                 paymentMethod:
                   type: string
-                  enum: [alipay, wechat, balance]
+                  enum: [alipay, wechat]
                   description: 支付方式
             example:
               orderId: "order001"
               paymentMethod: "alipay"
       responses:
         '200':
-          description: 支付成功
+          description: 支付响应
           content:
             application/json:
               schema:
@@ -3869,7 +3856,7 @@ paths:
                     code: 5006
                     data: null
                 success:
-                  summary: 支付成功
+                  summary: 支付表单生成成功
                   value:
                     code: 5007
                     data: null
@@ -3878,20 +3865,15 @@ paths:
                   value:
                     code: 5117
                     data: null
-                failure_cancelled:
-                  summary: 支付已取消
+                failure_unsupported:
+                  summary: 不支持的支付方式
                   value:
                     code: 5118
                     data: null
-                failure_timeout:
-                  summary: 支付超时
+                failure_form:
+                  summary: 生成支付表单失败
                   value:
                     code: 5119
-                    data: null
-                failure_balance:
-                  summary: 余额不足
-                  value:
-                    code: 5120
                     data: null
 
   /order/cancel:
@@ -3994,7 +3976,7 @@ paths:
                     code: 5126
                     data: null
 
-  /order/{{id}}/ship:
+  /order/{id}/ship:
     post:
       operationId: shipOrder
       tags:
@@ -4207,7 +4189,7 @@ paths:
                     code: 5130
                     data: null
 
-  /order/{{id}}/refund:
+  /order/{id}/refund:
     get:
       operationId: getRefundDetail
       tags:
@@ -4251,7 +4233,7 @@ paths:
                     code: 5134
                     data: null
 
-  /order/{{id}}/refund/process:
+  /order/{id}/refund/process:
     post:
       operationId: processRefund
       tags:
@@ -4310,7 +4292,7 @@ paths:
                     code: 5132
                     data: null
 
-  /order/{{id}}/logistics:
+  /order/{id}/logistics:
     get:
       operationId: getOrderExpress
       tags:
@@ -4900,7 +4882,7 @@ paths:
                     code: 6105
                     data: null
 
-  /forum/banners/{{id}}:
+  /forum/banners/{id}:
     put:
       operationId: updateForumBanner
       tags:
@@ -5104,7 +5086,7 @@ paths:
                     code: 6116
                     data: null
 
-  /forum/topics/{{id}}:
+  /forum/topics/{id}:
     get:
       operationId: getForumTopic
       tags:
@@ -5442,7 +5424,7 @@ paths:
                     code: 6121
                     data: null
 
-  /forum/posts/{{id}}:
+  /forum/posts/{id}:
     get:
       operationId: getForumPostDetail
       tags:
@@ -5559,7 +5541,7 @@ paths:
                     code: 6124
                     data: null
 
-  /forum/posts/{{id}}/replies:
+  /forum/posts/{id}/replies:
     get:
       operationId: getPostComments
       tags:
@@ -5660,7 +5642,7 @@ paths:
                     code: 6130
                     data: null
 
-  /forum/replies/{{id}}:
+  /forum/replies/{id}:
     delete:
       operationId: deleteComment
       tags:
@@ -5694,7 +5676,7 @@ paths:
                     code: 6131
                     data: null
 
-  /forum/posts/{{id}}/approve:
+  /forum/posts/{id}/approve:
     post:
       operationId: approvePost
       tags:
@@ -5728,7 +5710,7 @@ paths:
                     code: 6134
                     data: null
 
-  /forum/posts/{{id}}/reject:
+  /forum/posts/{id}/reject:
     post:
       operationId: rejectPost
       tags:
@@ -5774,7 +5756,7 @@ paths:
                     code: 6135
                     data: null
 
-  /forum/posts/{{id}}/sticky:
+  /forum/posts/{id}/sticky:
     put:
       operationId: stickyPost
       tags:
@@ -5823,7 +5805,7 @@ paths:
                     code: 6137
                     data: null
 
-  /forum/posts/{{id}}/essence:
+  /forum/posts/{id}/essence:
     put:
       operationId: essencePost
       tags:
@@ -5965,7 +5947,7 @@ paths:
                     code: 6111
                     data: null
 
-  /forum/articles/{{id}}:
+  /forum/articles/{id}:
     get:
       operationId: getArticleDetail
       tags:
@@ -6130,7 +6112,7 @@ paths:
                     code: 7100
                     data: null
 
-  /message/{{id}}:
+  /message/{id}:
     get:
       operationId: getMessageDetail
       tags:
@@ -6459,7 +6441,7 @@ paths:
                     code: 7113
                     data: null
 
-  /message/sessions/{{sessionId}}:
+  /message/sessions/{sessionId}:
     delete:
       operationId: deleteChatSession
       tags:
@@ -6493,7 +6475,7 @@ paths:
                     code: 7115
                     data: null
 
-  /message/sessions/{{sessionId}}/pin:
+  /message/sessions/{sessionId}/pin:
     put:
       operationId: pinChatSession
       tags:
@@ -6580,7 +6562,7 @@ paths:
                     code: 7118
                     data: null
 
-  /message/user/{{userId}}:
+  /message/user/{userId}:
     get:
       operationId: getUserProfile
       tags:
@@ -6628,7 +6610,7 @@ paths:
                     code: 7120
                     data: null
 
-  /message/user/{{userId}}/dynamic:
+  /message/user/{userId}/dynamic:
     get:
       operationId: getUserDynamic
       tags:
@@ -6675,7 +6657,7 @@ paths:
                     code: 7121
                     data: null
 
-  /message/user/{{userId}}/statistics:
+  /message/user/{userId}/statistics:
     get:
       operationId: getUserStatistics
       tags:
@@ -6854,7 +6836,7 @@ paths:
                     code: 7100
                     data: null
 
-  /message/notifications/{{id}}:
+  /message/notifications/{id}:
     get:
       operationId: getNotificationDetail
       tags:
@@ -7056,7 +7038,7 @@ components:
         data:
           type: object
           nullable: true
-          description: 登录成功时返回token和用户信息，失败时为null
+          description: 登录成功时返回token对象，失败时为null
           properties:
             token:
               type: string
@@ -7071,9 +7053,6 @@ components:
                 - exp: 过期时间 (Unix时间戳，秒)
                 - iss: 签发者 ("shangnantea")
               example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjeTEwMDAwMiIsInJvbGUiOjIsInVzZXJuYW1lIjoidGVzdHVzZXIiLCJpYXQiOjE3MzcwMDAwMDAsImV4cCI6MTg5MzQ1NjAwMCwiaXNzIjoic2hhbmduYW50ZWEifQ.mock_signature_for_testing"
-            userInfo:
-              $ref: '#/components/schemas/UserInfo'
-              description: 用户信息（登录成功后返回，避免前端再次请求）
 
     RegisterRequest:
       type: object
@@ -7081,46 +7060,29 @@ components:
         - username
         - password
         - confirmPassword
-        - contactType
-        - verificationCode
       properties:
         username:
           type: string
           description: 用户名
-          minLength: 4
-          maxLength: 20
+          minLength: 3
+          maxLength: 50
         password:
           type: string
           description: 密码
           format: password
           minLength: 6
-          maxLength: 20
         confirmPassword:
           type: string
           description: 确认密码
           format: password
           minLength: 6
-          maxLength: 20
-        contactType:
-          type: string
-          enum: [phone, email]
-          description: 联系方式类型（phone=手机号，email=邮箱）
-        phone:
-          type: string
-          pattern: "^1[3-9]\\d{9}$"
-          description: 手机号（当contactType为phone时必填）
         email:
           type: string
           format: email
-          description: 邮箱（当contactType为email时必填）
-        verificationCode:
+          description: 邮箱
+        phone:
           type: string
-          pattern: "^\\d{6}$"
-          description: 验证码（6位数字）
-        nickname:
-          type: string
-          maxLength: 20
-          description: 昵称（可选，不提供时默认使用用户名）
+          description: 手机号
 
     RegisterResponse:
       type: object
@@ -7144,8 +7106,7 @@ components:
               description: 昵称
             avatar:
               type: string
-              nullable: true
-              description: 头像URL（可为null，默认使用默认头像）
+              description: 头像URL
             role:
               type: integer
               description: 角色
@@ -7207,8 +7168,7 @@ components:
           description: 昵称
         avatar:
           type: string
-          nullable: true
-          description: 头像URL（可为null，默认使用默认头像）
+          description: 头像URL
         email:
           type: string
           format: email
