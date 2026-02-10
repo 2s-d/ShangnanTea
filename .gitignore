@@ -46,6 +46,12 @@ coverage/
 # Maven构建输出
 shangnantea-server/target/
 
+# 本地配置文件（包含真实密钥）⭐ 重要
+**/application-local.yml
+**/application-local.properties
+**/*-local.yml
+**/*-local.properties
+
 # 日志文件
 *.log
 
@@ -63,5 +69,3 @@ files/
 # ==================== Portfolio 项目（已独立） ====================
 portfolio/
 
-
-**/application-local.yml
