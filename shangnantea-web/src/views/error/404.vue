@@ -16,31 +16,18 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { useRouter } from 'vue-router'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 
-export default {
-  name: 'NotFoundPage',
-  components: {
-    SafeImage
-  },
-  setup() {
-    const router = useRouter()
-    
-    const goBack = () => {
-      router.go(-1)
-    }
-    
-    const goHome = () => {
-      router.push('/')
-    }
-    
-    return {
-      goBack,
-      goHome
-    }
-  }
+const router = useRouter()
+
+const goBack = () => {
+  router.go(-1)
+}
+
+const goHome = () => {
+  router.push('/')
 }
 </script>
 

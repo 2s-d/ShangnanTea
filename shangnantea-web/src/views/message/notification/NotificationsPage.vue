@@ -44,88 +44,70 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, markRaw, watch, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import SystemNotificationsPage from './SystemNotificationsPage.vue'
 import ChatPage from '../chat/ChatPage.vue'
 import { Bell, ChatLineRound } from '@element-plus/icons-vue'
 
-export default {
-  name: 'NotificationsPage',
-  components: {
-    SystemNotificationsPage,
-    ChatPage,
-    Bell, ChatLineRound
-  },
-  setup() {
-    const router = useRouter()
-    const route = useRoute()
-    
-    // 菜单项和对应组件映射
-    const menuOptions = {
-      notifications: '系统通知',
-      chat: '私信聊天'
-    }
-    
-    // 组件映射
-    const componentMap = {
-      notifications: markRaw(SystemNotificationsPage),
-      chat: markRaw(ChatPage)
-    }
-    
-    // 活动菜单
-    const activeMenu = ref('notifications')
-    // 当前显示的组件
-    const currentComponent = ref(componentMap.notifications)
-    
-    // 判断当前菜单是否有对应组件
-    const hasComponent = computed(() => {
-      return componentMap[activeMenu.value] !== undefined
-    })
-    
-    // 从路由参数初始化activeMenu
-    onMounted(() => {
-      if (route.params.tab && componentMap[route.params.tab]) {
-        activeMenu.value = route.params.tab
-        currentComponent.value = componentMap[route.params.tab]
-      }
-    })
-    
-    // 监听路由参数变化
-    watch(() => route.params.tab, newTab => {
-      if (newTab && componentMap[newTab]) {
-        activeMenu.value = newTab
-        currentComponent.value = componentMap[newTab]
-      }
-    })
-    
-    // 菜单选择处理
-    const handleMenuSelect = key => {
-      activeMenu.value = key
-      
-      // 如果存在对应组件就设置，否则显示开发中
-      if (componentMap[key]) {
-        currentComponent.value = componentMap[key]
-      } else {
-        currentComponent.value = null
-      }
-      
-      // 更新路由参数（不刷新页面）
-      router.push({
-        path: `/message/center/${key}`,
-        replace: true
-      })
-    }
-    
-    return {
-      activeMenu,
-      currentComponent,
-      menuOptions,
-      handleMenuSelect,
-      hasComponent
-    }
+const router = useRouter()
+const route = useRoute()
+
+// 菜单项和对应组件映射
+const menuOptions = {
+  notifications: '系统通知',
+  chat: '私信聊天'
+}
+
+// 组件映射
+const componentMap = {
+  notifications: markRaw(SystemNotificationsPage),
+  chat: markRaw(ChatPage)
+}
+
+// 活动菜单
+const activeMenu = ref('notifications')
+// 当前显示的组件
+const currentComponent = ref(componentMap.notifications)
+
+// 判断当前菜单是否有对应组件
+const hasComponent = computed(() => {
+  return componentMap[activeMenu.value] !== undefined
+})
+
+// 从路由参数初始化activeMenu
+onMounted(() => {
+  if (route.params.tab && componentMap[route.params.tab]) {
+    activeMenu.value = route.params.tab
+    currentComponent.value = componentMap[route.params.tab]
   }
+})
+
+// 监听路由参数变化
+watch(() => route.params.tab, newTab => {
+  if (newTab && componentMap[newTab]) {
+    activeMenu.value = newTab
+    currentComponent.value = componentMap[newTab]
+  }
+})
+
+// 菜单选择处理
+const handleMenuSelect = key => {
+  activeMenu.value = key
+  
+  // 如果存在对应组件就设置，否则显示开发中
+  if (componentMap[key]) {
+    currentComponent.value = componentMap[key]
+  } else {
+    currentComponent.value = null
+  }
+  
+  // 更新路由参数（不刷新页面）
+  router.push({
+    path: `/message/center/${key}`,
+    replace: true
+  })
 }
 </script>
 

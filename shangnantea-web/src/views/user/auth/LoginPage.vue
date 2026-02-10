@@ -74,7 +74,7 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
@@ -83,116 +83,99 @@ import { checkAndMigrateData } from '@/utils/versionManager'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { userPromptMessages as userMessages } from '@/utils/promptMessages'
 
-export default {
-  name: 'LoginPage',
-  setup() {
-    const userStore = useUserStore()
-    const router = useRouter()
-    const route = useRoute()
-    
-    // 登录表单
-    const loginForm = reactive({
-      username: '',
-      password: '',
-      role: 2 // 默认为普通用户
-    })
-    
-    // 表单验证规则
-    const loginRules = {
-      username: [
-        { required: true, message: '请输入用户名', trigger: 'blur' },
-        { min: 3, max: 20, message: '用户名长度在3到20个字符之间', trigger: 'blur' }
-      ],
-      password: [
-        { required: true, message: '请输入密码', trigger: 'blur' },
-        { min: 6, max: 20, message: '密码长度在6到20个字符之间', trigger: 'blur' }
-      ],
-      role: [
-        { required: true, message: '请选择角色', trigger: 'change' }
-      ]
-    }
-    
-    const rememberMe = ref(false)
-    const loading = ref(false)
-    const loginFormRef = ref(null)
-    const redirect = computed(() => route.query.redirect || '/tea-culture')
-    
-    // 自动填充记住的用户信息
-    onMounted(() => {
-      // 如果存在记住的用户信息，自动填充
-      const rememberedUser = localStorage.getItem('rememberedUser')
-      if (rememberedUser) {
-        const userInfo = JSON.parse(rememberedUser)
-        loginForm.username = userInfo.username
-        loginForm.role = userInfo.role
-        rememberMe.value = true
-      }
-    })
-    
-    // 处理登录
-    const handleLogin = async () => {
-      try {
-        loading.value = true
+const userStore = useUserStore()
+const router = useRouter()
+const route = useRoute()
 
-        await userStore.login({
-          username: loginForm.username,
-          password: loginForm.password,
-          role: loginForm.role
-        })
-        
-        const redirect = route.query.redirect || '/tea-culture'
-        router.push(redirect)
-      } catch (error) {
-        // store中已处理消息提示，这里只记录日志
-        console.error('登录失败:', error)
-      } finally {
-        loading.value = false
-      }
-    }
+// 登录表单
+const loginForm = reactive({
+  username: '',
+  password: '',
+  role: 2 // 默认为普通用户
+})
+
+// 表单验证规则
+const loginRules = {
+  username: [
+    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { min: 3, max: 20, message: '用户名长度在3到20个字符之间', trigger: 'blur' }
+  ],
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    { min: 6, max: 20, message: '密码长度在6到20个字符之间', trigger: 'blur' }
+  ],
+  role: [
+    { required: true, message: '请选择角色', trigger: 'change' }
+  ]
+}
+
+const rememberMe = ref(false)
+const loading = ref(false)
+const loginFormRef = ref(null)
+const redirect = computed(() => route.query.redirect || '/tea-culture')
+
+// 自动填充记住的用户信息
+onMounted(() => {
+  // 如果存在记住的用户信息，自动填充
+  const rememberedUser = localStorage.getItem('rememberedUser')
+  if (rememberedUser) {
+    const userInfo = JSON.parse(rememberedUser)
+    loginForm.username = userInfo.username
+    loginForm.role = userInfo.role
+    rememberMe.value = true
+  }
+})
+
+// 处理登录
+const handleLogin = async () => {
+  try {
+    loading.value = true
+
+    await userStore.login({
+      username: loginForm.username,
+      password: loginForm.password,
+      role: loginForm.role
+    })
     
-    // 忘记密码 - 跳转到密码找回页面
-    const forgotPassword = () => {
-      router.push('/reset-password')
-    }
+    const redirect = route.query.redirect || '/tea-culture'
+    router.push(redirect)
+  } catch (error) {
+    // store中已处理消息提示，这里只记录日志
+    console.error('登录失败:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+// 忘记密码 - 跳转到密码找回页面
+const forgotPassword = () => {
+  router.push('/reset-password')
+}
+
+// 开发者选项：重置本地存储
+const resetLocalStorage = () => {
+  if (confirm('确定要重置所有本地存储数据吗？这将清除所有登录状态和用户数据。')) {
+    localStorage.clear()
+    userMessages.success.showStorageReset()
+    setTimeout(() => {
+      window.location.reload()
+    }, 1000)
+  }
+}
+
+// 开发者选项：触发数据迁移
+const migrateData = () => {
+  try {
+    // 将版本号重置，触发迁移
+    localStorage.removeItem('app_data_version')
     
-    // 开发者选项：重置本地存储
-    const resetLocalStorage = () => {
-      if (confirm('确定要重置所有本地存储数据吗？这将清除所有登录状态和用户数据。')) {
-        localStorage.clear()
-        userMessages.success.showStorageReset()
-        setTimeout(() => {
-          window.location.reload()
-        }, 1000)
-      }
-    }
+    // 使用非静默模式(false)执行迁移，允许显示消息
+    checkAndMigrateData(false)
     
-    // 开发者选项：触发数据迁移
-    const migrateData = () => {
-      try {
-        // 将版本号重置，触发迁移
-        localStorage.removeItem('app_data_version')
-        
-        // 使用非静默模式(false)执行迁移，允许显示消息
-        checkAndMigrateData(false)
-        
-        userMessages.success.showDataMigrationTriggered()
-      } catch (e) {
-        console.error('数据迁移失败:', e)
-        userMessages.error.showDataMigrationFailed(e.message)
-      }
-    }
-    
-    return {
-      loginForm,
-      loginRules,
-      rememberMe,
-      loading,
-      loginFormRef,
-      handleLogin,
-      forgotPassword,
-      resetLocalStorage,
-      migrateData
-    }
+    userMessages.success.showDataMigrationTriggered()
+  } catch (e) {
+    console.error('数据迁移失败:', e)
+    userMessages.error.showDataMigrationFailed(e.message)
   }
 }
 </script>

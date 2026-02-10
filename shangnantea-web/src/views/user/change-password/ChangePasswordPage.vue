@@ -25,83 +25,69 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, reactive, computed } from 'vue'
 import { useFormValidation } from '@/composables/useFormValidation'
 import { useAuth } from '@/composables/useAuth'
 
-export default {
-  name: 'ChangePasswordPage',
-  setup() {
-    // 使用表单验证组合式函数
-    const { confirmPasswordValidator, rules, validateForm, resetForm } = useFormValidation()
+// 使用表单验证组合式函数
+const { confirmPasswordValidator, rules, validateForm, resetForm } = useFormValidation()
+
+// 使用认证组合式函数
+const { userInfo, loading, changePassword } = useAuth()
+
+const passwordFormRef = ref(null)
+
+// 表单数据
+const passwordForm = reactive({
+  oldPassword: '',
+  newPassword: '',
+  confirmPassword: ''
+})
+
+// 表单验证规则
+const passwordRules = reactive({
+  oldPassword: [
+    rules.required('请输入当前密码'),
+    rules.minLength(6, '密码长度不能少于6个字符')
+  ],
+  newPassword: [
+    rules.required('请输入新密码'),
+    rules.minLength(6, '密码长度不能少于6个字符')
+  ],
+  confirmPassword: [
+    rules.required('请再次输入新密码'),
+    {
+      validator: confirmPasswordValidator(passwordForm, 'newPassword'),
+      trigger: 'blur'
+    }
+  ]
+})
+
+// 提交表单
+const submitPasswordForm = () => {
+  validateForm(passwordFormRef.value, async () => {
+    if (!userInfo.value || !userInfo.value.id) {
+      return
+    }
     
-    // 使用认证组合式函数
-    const { userInfo, loading, changePassword } = useAuth()
-    
-    const passwordFormRef = ref(null)
-    
-    // 表单数据
-    const passwordForm = reactive({
-      oldPassword: '',
-      newPassword: '',
-      confirmPassword: ''
-    })
-    
-    // 表单验证规则
-    const passwordRules = reactive({
-      oldPassword: [
-        rules.required('请输入当前密码'),
-        rules.minLength(6, '密码长度不能少于6个字符')
-      ],
-      newPassword: [
-        rules.required('请输入新密码'),
-        rules.minLength(6, '密码长度不能少于6个字符')
-      ],
-      confirmPassword: [
-        rules.required('请再次输入新密码'),
-        {
-          validator: confirmPasswordValidator(passwordForm, 'newPassword'),
-          trigger: 'blur'
-        }
-      ]
-    })
-    
-    // 提交表单
-    const submitPasswordForm = () => {
-      validateForm(passwordFormRef.value, async () => {
-        if (!userInfo.value || !userInfo.value.id) {
-          return
-        }
-        
-        try {
-          await changePassword({
-            userId: userInfo.value.id,
-            oldPassword: passwordForm.oldPassword,
-            newPassword: passwordForm.newPassword
-          })
-          
-          resetPasswordForm()
-        } catch (error) {
-          // 错误已在changePassword中处理
-        }
+    try {
+      await changePassword({
+        userId: userInfo.value.id,
+        oldPassword: passwordForm.oldPassword,
+        newPassword: passwordForm.newPassword
       })
+      
+      resetPasswordForm()
+    } catch (error) {
+      // 错误已在changePassword中处理
     }
-    
-    // 重置表单
-    const resetPasswordForm = () => {
-      resetForm(passwordFormRef.value)
-    }
-    
-    return {
-      loading,
-      passwordForm,
-      passwordRules,
-      passwordFormRef,
-      submitPasswordForm,
-      resetPasswordForm
-    }
-  }
+  })
+}
+
+// 重置表单
+const resetPasswordForm = () => {
+  resetForm(passwordFormRef.value)
 }
 </script>
 

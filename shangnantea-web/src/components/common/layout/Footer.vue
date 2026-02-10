@@ -63,69 +63,58 @@
   </footer>
 </template>
 
-<script>
+<script setup>
 import { ref, computed, onMounted } from 'vue'
 import { commonPromptMessages } from '@/utils/promptMessages'
 import { useStorage } from '@/composables/useStorage'
 
-export default {
-  name: 'Footer',
-  setup() {
-    const email = ref('')
-    const currentYear = computed(() => new Date().getFullYear())
-    
-    // 使用本地存储组合式函数来记住用户的邮箱
-    const { value: subscribedEmails, setValue: setSubscribedEmails } = useStorage('subscribed_emails', [])
-    
-    // 邮箱验证
-    const isValidEmail = email => {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-      return emailRegex.test(email)
-    }
-    
-    // 订阅
-    const subscribe = () => {
-      if (!email.value) {
-        // 邮箱为空，提示用户
-        commonPromptMessages.showEmailRequired()
-        return
-      }
-      
-      // 验证邮箱格式
-      if (!isValidEmail(email.value)) {
-        commonPromptMessages.showEmailFormatInvalid()
-        return
-      }
-      
-      // 检查邮箱是否已订阅
-      if (subscribedEmails.value.includes(email.value)) {
-        commonPromptMessages.showEmailAlreadySubscribed()
-        return
-      }
-      
-      // 添加到已订阅列表
-      setSubscribedEmails([...subscribedEmails.value, email.value])
-      
-      // 模拟订阅成功（前端提示消息）
-      commonPromptMessages.showSubscribeSuccess()
-      email.value = ''
-    }
-    
-    // 检查上次使用的邮箱
-    onMounted(() => {
-      const lastUsedEmail = localStorage.getItem('shangnantea_last_email')
-      if (lastUsedEmail) {
-        email.value = lastUsedEmail
-      }
-    })
-    
-    return {
-      email,
-      currentYear,
-      subscribe
-    }
-  }
+const email = ref('')
+const currentYear = computed(() => new Date().getFullYear())
+
+// 使用本地存储组合式函数来记住用户的邮箱
+const { value: subscribedEmails, setValue: setSubscribedEmails } = useStorage('subscribed_emails', [])
+
+// 邮箱验证
+const isValidEmail = email => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return emailRegex.test(email)
 }
+
+// 订阅
+const subscribe = () => {
+  if (!email.value) {
+    // 邮箱为空，提示用户
+    commonPromptMessages.showEmailRequired()
+    return
+  }
+  
+  // 验证邮箱格式
+  if (!isValidEmail(email.value)) {
+    commonPromptMessages.showEmailFormatInvalid()
+    return
+  }
+  
+  // 检查邮箱是否已订阅
+  if (subscribedEmails.value.includes(email.value)) {
+    commonPromptMessages.showEmailAlreadySubscribed()
+    return
+  }
+  
+  // 添加到已订阅列表
+  setSubscribedEmails([...subscribedEmails.value, email.value])
+  
+  // 模拟订阅成功（前端提示消息）
+  commonPromptMessages.showSubscribeSuccess()
+  email.value = ''
+}
+
+// 检查上次使用的邮箱
+onMounted(() => {
+  const lastUsedEmail = localStorage.getItem('shangnantea_last_email')
+  if (lastUsedEmail) {
+    email.value = lastUsedEmail
+  }
+})
 </script>
 
 <style lang="scss" scoped>
