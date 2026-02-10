@@ -176,7 +176,7 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useOrderStore } from '@/stores/order'
@@ -185,26 +185,21 @@ import { ElMessageBox } from 'element-plus'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { orderPromptMessages } from '@/utils/promptMessages'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-export default {
-  name: 'CartPage',
-  components: {
-    SafeImage
-  },
-  setup() {
-    const orderStore = useOrderStore()
-    const teaStore = useTeaStore()
-    const router = useRouter()
-    const loading = ref(false)
-    const cartItems = ref([])
-    const selectAll = ref(false)
-    const cartCount = ref(0)
+
+const orderStore = useOrderStore()
+const teaStore = useTeaStore()
+const router = useRouter()
+const loading = ref(false)
+const cartItems = ref([])
+const selectAll = ref(false)
+const cartCount = ref(0)
     
-    // 规格选择相关状态
-    const specDialogVisible = ref(false)
-    const currentSpecTea = ref(null)
-    const currentCartItemId = ref(null)
-    const availableSpecs = ref([])
-    const tempSelectedSpecId = ref(null)
+// 规格选择相关状态
+const specDialogVisible = ref(false)
+const currentSpecTea = ref(null)
+const currentCartItemId = ref(null)
+const availableSpecs = ref([])
+const tempSelectedSpecId = ref(null)
   
     const initCartData = async () => {
       loading.value = true
@@ -510,41 +505,8 @@ export default {
       updateCartCountBadge(itemCount)
     }, { deep: true })
     
-    return {
-      loading,
-      cartItems,
-      selectAll,
-      isIndeterminate,
-      selectedCount,
-      totalPrice,
-      isPlatformProduct,
-      
-      // 规格选择相关
-      specDialogVisible,
-      currentSpecTea,
-      availableSpecs,
-      tempSelectedSpecId,
-      selectedSpecName,
-      selectedSpecPrice,
-      
-      // 事件处理方法
-      handleSelectAllChange,
-      handleItemSelectChange,
-      handleQuantityChange,
-      selectSpecification,
-      confirmSpecChange,
-      removeItem,
-      removeSelectedItems,
-      checkout,
-      goToTeaDetail,
-      goToTeaMall,
-      updateCartCountBadge,
-      
-      // 添加默认图片常量
-      defaultTeaImage
-    }
-  }
-}
+// 添加默认图片常量
+const defaultTeaImage = '@/assets/images/teas/default.jpg'
 </script>
 
 <style lang="scss" scoped>

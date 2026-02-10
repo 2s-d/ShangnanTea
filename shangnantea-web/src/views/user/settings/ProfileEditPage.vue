@@ -114,7 +114,7 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { useRouter } from 'vue-router'
@@ -123,30 +123,24 @@ import { Sunny, Moon, MagicStick, Grid, List } from '@element-plus/icons-vue'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { userPromptMessages as userMessages } from '@/utils/promptMessages'
 
-export default {
-  name: 'ProfileEditPage',
-  components: {
-    Sunny, Moon, MagicStick, Grid, List
-  },
-  setup() {
-    const formRef = ref(null)
-    const loading = ref(false)
-    const submitting = ref(false)
-    const userStore = useUserStore()
-    
-    // 默认主题色
-    const DEFAULT_PRIMARY_COLOR = '#409EFF'
-    
-    // 个性化偏好设置（页面内编辑用副本；保存时统一走 Pinia）
-    const preferences = reactive({
-      theme: 'light',
-      primaryColor: DEFAULT_PRIMARY_COLOR,
-      fontSize: 14,
-      fontFamily: '',
-      enableAnimation: true,
-      listMode: 'grid',
-      pageSize: 20
-    })
+const formRef = ref(null)
+const loading = ref(false)
+const submitting = ref(false)
+const userStore = useUserStore()
+
+// 默认主题色
+const DEFAULT_PRIMARY_COLOR = '#409EFF'
+
+// 个性化偏好设置（页面内编辑用副本；保存时统一走 Pinia）
+const preferences = reactive({
+  theme: 'light',
+  primaryColor: DEFAULT_PRIMARY_COLOR,
+  fontSize: 14,
+  fontFamily: '',
+  enableAnimation: true,
+  listMode: 'grid',
+  pageSize: 20
+})
     
     // 应用主题设置
     const applyThemeSettings = theme => {
@@ -289,18 +283,11 @@ export default {
       
       fetchPreferences()
     })
-    
-    return {
-      formRef,
-      loading,
-      submitting,
-      preferences,
-      resetThemeColor,
-      savePreferences,
-      resetPreferences,
-      goBack
-    }
-  }
+
+// 路由
+const router = useRouter()
+const goBack = () => {
+  router.back()
 }
 </script>
 
