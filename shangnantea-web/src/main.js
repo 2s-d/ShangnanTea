@@ -1,7 +1,8 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
-import store from './store'
+// import store from './store'  // Vuex (已迁移到 Pinia)
+import { createPinia } from 'pinia'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 // 导入Element Plus图标
@@ -26,6 +27,7 @@ checkAndMigrateData()
 messageManager.clearAllMessageStates()
 
 const app = createApp(App)
+const pinia = createPinia()
 
 // 注册所有Element Plus图标组件
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
@@ -46,7 +48,7 @@ const elementPlusOptions = {
 }
 
 app.use(router)
-  .use(store)
+  .use(pinia)  // 使用 Pinia 替代 Vuex
   .use(ElementPlus, elementPlusOptions)
   .use(CommonComponents)  // 注册公共组件
   .use(Directives)  // 注册自定义指令
@@ -55,6 +57,7 @@ app.use(router)
 app.mount('#app')
 
 // 初始化用户认证状态（在应用挂载后）
+// TODO: 等 Pinia user store 迁移完成后，这里需要改用 Pinia
 // 注意：不能在这里使用 useAuth()，因为它必须在 Vue 组件上下文中调用
 // 改为直接使用 tokenStorage 和 store
 const initAuthState = () => {
@@ -63,14 +66,17 @@ const initAuthState = () => {
     const user = tokenStorage.verifyToken()
     
     if (user) {
-      // 更新 Vuex 中的用户信息
-      store.commit('user/SET_USER_INFO', user)
-      store.commit('user/SET_LOGGED_IN', true)
-      console.log('用户认证状态初始化完成')
+      // TODO: 改用 Pinia user store
+      // const userStore = useUserStore()
+      // userStore.userInfo = user
+      // userStore.isLoggedIn = true
+      console.log('用户认证状态初始化完成（待 Pinia 迁移）')
     } else {
       // 确保清除无效状态
       tokenStorage.removeToken()
-      store.commit('user/CLEAR_USER')
+      // TODO: 改用 Pinia user store
+      // const userStore = useUserStore()
+      // userStore.$reset()
       console.log('未检测到有效登录状态')
     }
   } catch (error) {
