@@ -2,24 +2,10 @@
 
 ## 进度统计
 
-- **总文件数：** 38
-- **已完成：** 38
+- **总文件数：** 44
+- **已完成：** 44
 - **剩余：** 0
 - **完成度：** 100%
-
----
-
-## 额外发现的文件（6个）
-
-在转换过程中发现还有6个文件也需要转换：
-
-1. `src/views/user/auth/RegisterPage.vue`
-2. `src/views/user/auth/MerchantApplication.vue`
-3. `src/App.vue`
-4. `src/components/common/layout/NavBar.vue`
-5. `src/components/common/feedback/MessageMonitor.vue`
-6. `src/components/dev/ErrorMonitor.vue`
-
 ---
 
 ## 第一组：user-auth-module（7个文件）
@@ -122,7 +108,29 @@
 
 ---
 
-## 总计：38个文件（已全部完成）+ 6个额外文件（待转换）
+---
+
+## 第七组：额外发现的文件（6个）
+
+**状态：** ✅ 已完成
+
+**提交信息：** 
+- `refactor: 转换第七组（额外发现）3个文件从 setup() 到 <script setup> 语法糖`
+- `refactor: 转换第八组（App、MessageMonitor、NavBar）3个文件从 setup() 到 <script setup> 语法糖`
+- `refactor: 转换 ErrorMonitor 从 setup() 到 <script setup> 语法糖`
+
+**文件列表：**
+1. ✅ `src/components/message/chat/EmojiPicker.vue` (重新转换)
+2. ✅ `src/views/user/auth/RegisterPage.vue`
+3. ✅ `src/views/user/auth/MerchantApplication.vue`
+4. ✅ `src/App.vue`
+5. ✅ `src/components/common/layout/NavBar.vue`
+6. ✅ `src/components/common/feedback/MessageMonitor.vue`
+7. ✅ `src/components/dev/ErrorMonitor.vue`
+
+---
+
+## 总计：44个文件（已全部完成）✅
 
 ## 转换说明
 

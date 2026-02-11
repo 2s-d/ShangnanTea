@@ -2352,8 +2352,8 @@ public class UserServiceImpl implements UserService {
             return Result.failure(2150); // 发送过于频繁，请稍后再试
         }
         
-        // 3. 生成6位随机验证码
-        String code = String.format("%06d", RANDOM.nextInt(1000000));
+        // 3. 生成4位随机验证码（匹配阿里云短信模板）
+        String code = String.format("%04d", RANDOM.nextInt(10000));
         logger.info("生成验证码: contact={}, code={}", contact, code);
         
         // 4. 存储验证码到Redis（5分钟有效期）
@@ -2454,9 +2454,10 @@ public class UserServiceImpl implements UserService {
             logger.info("使用短信模板: templateCode={}, signName={}, phone={}", 
                 aliyunTemplateCode, aliyunSignName, phone);
             
-            // 构建请求（短信认证服务模板需要 code 和 min 两个参数）
-            // 验证码有效期5分钟
-            String templateParam = String.format("{\"code\":\"%s\",\"min\":\"%d\"}", code, 5);
+            // 构建请求（模板参数只需要 code）
+            // 生成4位数字验证码
+            String code4 = code.substring(code.length() - 4); // 取后4位
+            String templateParam = String.format("{\"code\":\"%s\"}", code4);
             logger.debug("模板参数: {}", templateParam);
             
             com.aliyun.dysmsapi20170525.models.SendSmsRequest sendSmsRequest = new com.aliyun.dysmsapi20170525.models.SendSmsRequest()
