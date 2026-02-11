@@ -69,9 +69,14 @@ public class SchemaToYamlGenerator {
                     String table = rs.getString("TABLE_NAME");
                     String col = rs.getString("COLUMN_NAME");
                     String dataType = rs.getString("DATA_TYPE");
-                    Integer len = rs.getObject("CHARACTER_MAXIMUM_LENGTH") != null
-                            ? rs.getInt("CHARACTER_MAXIMUM_LENGTH")
-                            : null;
+                    Integer len = null;
+                    Object lenObj = rs.getObject("CHARACTER_MAXIMUM_LENGTH");
+                    if (lenObj != null) {
+                        long l = rs.getLong("CHARACTER_MAXIMUM_LENGTH");
+                        if (!rs.wasNull() && l > 0 && l <= Integer.MAX_VALUE) {
+                            len = (int) l;
+                        }
+                    }
                     boolean nullable = "YES".equalsIgnoreCase(rs.getString("IS_NULLABLE"));
 
                     result.computeIfAbsent(table, k -> new ArrayList<>())
@@ -174,13 +179,15 @@ public class SchemaToYamlGenerator {
      * jdbc:mysql://localhost:3306/teasystem.sql?xxx -> teasystem.sql
      */
     private static String extractSchemaFromUrl(String url) {
-        int slash = url.lastIndexOf('/');
-        if (slash < 0 || slash + 1 >= url.length()) {
+        // 先截掉参数部分，避免 serverTimezone=Asia/Shanghai 里的斜杠干扰
+        int q = url.indexOf('?');
+        String withoutParams = (q >= 0) ? url.substring(0, q) : url;
+
+        int slash = withoutParams.lastIndexOf('/');
+        if (slash < 0 || slash + 1 >= withoutParams.length()) {
             throw new IllegalArgumentException("无法从 URL 解析数据库名: " + url);
         }
-        int q = url.indexOf('?', slash);
-        if (q < 0) q = url.length();
-        return url.substring(slash + 1, q);
+        return withoutParams.substring(slash + 1);
     }
 }
 
