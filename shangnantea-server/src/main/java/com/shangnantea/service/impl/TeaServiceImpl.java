@@ -199,13 +199,14 @@ public class TeaServiceImpl implements TeaService {
                 case "similar":
                     // 相似推荐：根据teaId查询同分类的茶叶
                     if (teaId != null && !teaId.trim().isEmpty()) {
+                        final String finalTeaId = teaId;
                         Tea refTea = teaMapper.selectById(teaId);
                         if (refTea != null) {
                             queryMap.put("categoryId", refTea.getCategoryId());
                             queryMap.put("sortBy", "sales");
                             recommendTeas = teaMapper.selectTeasWithPage(queryMap);
                             // 移除参考茶叶本身
-                            recommendTeas.removeIf(tea -> tea.getId().equals(teaId));
+                            recommendTeas.removeIf(tea -> tea.getId().equals(finalTeaId));
                         }
                     }
                     // 如果没有找到相似茶叶，降级为热门推荐
