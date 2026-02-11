@@ -2438,12 +2438,12 @@ public class UserServiceImpl implements UserService {
     }
     
     /**
-     * 阿里云短信认证服务真实发送
+     * 阿里云短信认证服务真实发送（使用号码认证服务 dypnsapi）
      */
     private boolean sendAliyunSms(String phone, String code) {
         try {
-            // 配置阿里云SDK
-            com.aliyun.dysmsapi20170525.Client client = createAliyunSmsClient();
+            // 配置阿里云SDK（使用号码认证服务）
+            com.aliyun.dypnsapi20170525.Client client = createAliyunDypnsClient();
             
             // 检查模板代码配置
             if (aliyunTemplateCode == null || aliyunTemplateCode.isEmpty()) {
@@ -2454,27 +2454,27 @@ public class UserServiceImpl implements UserService {
             logger.info("使用短信模板: templateCode={}, signName={}, phone={}", 
                 aliyunTemplateCode, aliyunSignName, phone);
             
-            // 构建请求（模板参数只需要 code）
-            // 生成4位数字验证码
-            String code4 = code.substring(code.length() - 4); // 取后4位
-            String templateParam = String.format("{\"code\":\"%s\"}", code4);
+            // 构建请求（使用 SendSmsVerifyCode 接口）
+            // 模板参数格式：{"code":"##code##","min":"5"}
+            String templateParam = String.format("{\"code\":\"%s\",\"min\":\"5\"}", code);
             logger.debug("模板参数: {}", templateParam);
             
-            com.aliyun.dysmsapi20170525.models.SendSmsRequest sendSmsRequest = new com.aliyun.dysmsapi20170525.models.SendSmsRequest()
-                .setPhoneNumbers(phone)
-                .setTemplateCode(aliyunTemplateCode)  // 使用配置的模板代码
-                .setTemplateParam(templateParam);
+            com.aliyun.dypnsapi20170525.models.SendSmsVerifyCodeRequest request = 
+                new com.aliyun.dypnsapi20170525.models.SendSmsVerifyCodeRequest()
+                    .setPhoneNumber(phone)
+                    .setTemplateCode(aliyunTemplateCode)
+                    .setTemplateParam(templateParam);
             
-            // 只有当签名不为空时才设置签名（赠送模板不需要签名）
+            // 只有当签名不为空时才设置签名
             if (aliyunSignName != null && !aliyunSignName.trim().isEmpty()) {
-                sendSmsRequest.setSignName(aliyunSignName);
+                request.setSignName(aliyunSignName);
                 logger.debug("使用签名: {}", aliyunSignName);
             } else {
-                logger.debug("未设置签名（使用赠送模板）");
+                logger.debug("未设置签名（使用默认签名）");
             }
             
             // 发送短信
-            com.aliyun.dysmsapi20170525.models.SendSmsResponse response = client.sendSms(sendSmsRequest);
+            com.aliyun.dypnsapi20170525.models.SendSmsVerifyCodeResponse response = client.sendSmsVerifyCode(request);
             
             // 判断是否成功
             if ("OK".equals(response.getBody().getCode())) {
@@ -2485,11 +2485,6 @@ public class UserServiceImpl implements UserService {
                 String errorMessage = response.getBody().getMessage();
                 logger.error("阿里云短信发送失败: phone={}, templateCode={}, errorCode={}, errorMessage={}", 
                     phone, aliyunTemplateCode, errorCode, errorMessage);
-                
-                // 如果是模板不存在错误，给出更明确的提示
-                if ("isv.SMS_TEMPLATE_ILLEGAL".equals(errorCode)) {
-                    logger.error("模板代码不存在！请检查：1) 模板代码是否正确 2) 是否在'自定义模版配置'中创建了模板 3) 模板是否已审核通过");
-                }
                 return false;
             }
             
@@ -2500,14 +2495,14 @@ public class UserServiceImpl implements UserService {
     }
     
     /**
-     * 创建阿里云短信客户端
+     * 创建阿里云号码认证服务客户端
      */
-    private com.aliyun.dysmsapi20170525.Client createAliyunSmsClient() throws Exception {
+    private com.aliyun.dypnsapi20170525.Client createAliyunDypnsClient() throws Exception {
         com.aliyun.teaopenapi.models.Config config = new com.aliyun.teaopenapi.models.Config()
             .setAccessKeyId(aliyunAccessKeyId)
             .setAccessKeySecret(aliyunAccessKeySecret)
-            .setEndpoint("dysmsapi.aliyuncs.com");
-        return new com.aliyun.dysmsapi20170525.Client(config);
+            .setEndpoint("dypnsapi.aliyuncs.com");  // 使用号码认证服务的 endpoint
+        return new com.aliyun.dypnsapi20170525.Client(config);
     }
     
     /**
