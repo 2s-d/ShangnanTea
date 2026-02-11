@@ -71,7 +71,10 @@ tables:
         sqlType: varchar(200)
         nullable: true
       last_message_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: true
       initiator_unread:
@@ -83,7 +86,9 @@ tables:
         sqlType: int
         nullable: true
       is_pinned:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: enum
+        args:
+          values: [0, 1]
         sqlType: tinyint
         nullable: true
       session_type:
@@ -95,11 +100,17 @@ tables:
         sqlType: tinyint
         nullable: false
       create_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
       update_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
 
@@ -147,11 +158,15 @@ tables:
         sqlType: int
         nullable: true
       is_sticky:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: enum
+        args:
+          values: [0, 1]
         sqlType: tinyint
         nullable: true
       is_essence:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: enum
+        args:
+          values: [0, 1]
         sqlType: tinyint
         nullable: true
       status:
@@ -159,15 +174,24 @@ tables:
         sqlType: tinyint
         nullable: true
       last_reply_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: true
       create_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
       update_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
 
@@ -203,11 +227,17 @@ tables:
         sqlType: tinyint
         nullable: true
       create_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
       update_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
 
@@ -251,11 +281,17 @@ tables:
         sqlType: tinyint
         nullable: true
       create_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
       update_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
 
@@ -291,11 +327,17 @@ tables:
         sqlType: tinyint
         nullable: true
       create_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
       update_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
 
@@ -355,7 +397,10 @@ tables:
         sqlType: tinyint
         nullable: false
       payment_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: true
       payment_method:
@@ -371,15 +416,24 @@ tables:
         sqlType: varchar(50)
         nullable: true
       shipping_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: true
       completion_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: true
       cancel_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: true
       cancel_reason:
@@ -407,19 +461,31 @@ tables:
         sqlType: varchar(500)
         nullable: true
       refund_apply_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: true
       refund_process_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: true
       create_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
       update_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
 
@@ -443,7 +509,9 @@ tables:
         sqlType: text(65535)
         nullable: false
       is_top:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: enum
+        args:
+          values: [0, 1]
         sqlType: tinyint
         nullable: true
       status:
@@ -451,11 +519,17 @@ tables:
         sqlType: tinyint
         nullable: true
       create_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
       update_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
 
@@ -535,7 +609,7 @@ tables:
         sqlType: varchar(100)
         nullable: false
       contact_phone:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: phone
         sqlType: varchar(20)
         nullable: false
       province:
@@ -575,15 +649,23 @@ tables:
         sqlType: int
         nullable: true
       notification_confirmed:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: enum
+        args:
+          values: [0, 1]
         sqlType: tinyint
         nullable: true
       create_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
       update_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
 
@@ -611,15 +693,23 @@ tables:
         sqlType: int
         nullable: false
       selected:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: enum
+        args:
+          values: [0, 1]
         sqlType: tinyint
         nullable: false
       create_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
       update_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
 
@@ -655,7 +745,7 @@ tables:
         sqlType: varchar(500)
         nullable: true
       contact_phone:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: phone
         sqlType: varchar(20)
         nullable: true
       province:
@@ -695,11 +785,17 @@ tables:
         sqlType: int
         nullable: true
       create_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
       update_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
 
@@ -771,15 +867,24 @@ tables:
         sqlType: tinyint
         nullable: true
       publish_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: true
       create_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
       update_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
 
@@ -807,11 +912,17 @@ tables:
         sqlType: varchar(255)
         nullable: true
       create_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
       update_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
 
@@ -835,11 +946,16 @@ tables:
         sqlType: int
         nullable: true
       is_main:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: enum
+        args:
+          values: [0, 1]
         sqlType: tinyint
         nullable: true
       create_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
 
@@ -879,19 +995,30 @@ tables:
         sqlType: text(65535)
         nullable: true
       reply_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: true
       is_anonymous:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: enum
+        args:
+          values: [0, 1]
         sqlType: tinyint
         nullable: true
       create_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
       update_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
 
@@ -919,15 +1046,23 @@ tables:
         sqlType: int
         nullable: false
       is_default:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: enum
+        args:
+          values: [0, 1]
         sqlType: tinyint
         nullable: true
       create_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
       update_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
 
@@ -983,15 +1118,23 @@ tables:
         sqlType: tinyint
         nullable: false
       create_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
       update_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
       is_deleted:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: const
+        args:
+          value: 0
         sqlType: tinyint
         nullable: true
 
@@ -1011,7 +1154,7 @@ tables:
         sqlType: varchar(50)
         nullable: false
       receiver_phone:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: phone
         sqlType: varchar(20)
         nullable: false
       province:
@@ -1031,15 +1174,23 @@ tables:
         sqlType: varchar(200)
         nullable: false
       is_default:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: enum
+        args:
+          values: [0, 1]
         sqlType: tinyint
         nullable: true
       create_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
       update_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
 
