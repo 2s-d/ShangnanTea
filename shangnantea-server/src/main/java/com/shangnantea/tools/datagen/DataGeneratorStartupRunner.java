@@ -48,11 +48,10 @@ public class DataGeneratorStartupRunner implements CommandLineRunner {
         if (line != null && "Y".equalsIgnoreCase(line.trim())) {
             System.out.println("[DataGen-Startup] 开始运行图形界面数据生成工具...");
             try {
-                if (GraphicsEnvironment.isHeadless()) {
-                    System.err.println("[DataGen-Startup] 当前环境为 headless，无法显示 GUI，已跳过。");
-                    return;
-                }
+                // 尝试直接启动 GUI，如环境不支持，会抛出 HeadlessException
                 DataGeneratorGuiApp.startGui();
+            } catch (java.awt.HeadlessException he) {
+                System.err.println("[DataGen-Startup] 当前环境不支持图形界面 (Headless)，无法显示 GUI，已跳过。");
             } catch (Exception e) {
                 System.err.println("[DataGen-Startup] 数据生成 GUI 执行失败: " + e.getMessage());
                 e.printStackTrace(System.err);
