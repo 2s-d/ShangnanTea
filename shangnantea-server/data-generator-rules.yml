@@ -1218,11 +1218,15 @@ tables:
         sqlType: varchar(8)
         nullable: false
       username:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: faker
+        args:
+          provider: "internet.username"
         sqlType: varchar(50)
         nullable: false
       password:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: password
+        args:
+          base: "user1234"  # 与系统默认测试密码保持一致
         sqlType: varchar(100)
         nullable: false
       nickname:
@@ -1244,11 +1248,17 @@ tables:
         sqlType: varchar(100)
         nullable: true
       role:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: enum
+        args:
+          # 仅用于测试数据：1=管理员, 2=普通用户, 3=商家
+          values: [1, 2, 3]
         sqlType: tinyint
         nullable: false
       status:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: enum
+        args:
+          # 0=禁用, 1=正常
+          values: [0, 1]
         sqlType: tinyint
         nullable: false
       create_time:
@@ -1266,19 +1276,29 @@ tables:
         sqlType: datetime
         nullable: false
       is_deleted:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: const
+        args:
+          value: 0
         sqlType: tinyint
         nullable: false
       gender:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: enum
+        args:
+          # 0=未知,1=男,2=女
+          values: [0, 1, 2]
         sqlType: tinyint
         nullable: true
       birthday:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "1970-01-01"
+          to: "2010-01-01"
         sqlType: date
         nullable: true
       bio:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: faker
+        args:
+          provider: "lorem.sentence"
         sqlType: varchar(255)
         nullable: true
 

@@ -43,6 +43,22 @@ public class DataGeneratorMain {
 
         DataSourceConfig ds = loadDataSourceConfig();
 
+        // 支持通过 JVM 参数 -Ddatagen.tables=users,teas 或环境变量 DATAGEN_TABLES 只生成指定表的数据
+        String tablesProperty = System.getProperty("datagen.tables");
+        if (tablesProperty == null || tablesProperty.isBlank()) {
+            tablesProperty = System.getenv("DATAGEN_TABLES");
+        }
+        java.util.Set<String> tableFilter = null;
+        if (tablesProperty != null && !tablesProperty.isBlank()) {
+            tableFilter = new java.util.HashSet<>();
+            for (String name : tablesProperty.split(",")) {
+                if (name != null && !name.isBlank()) {
+                    tableFilter.add(name.trim());
+                }
+            }
+            System.out.println("[DataGen] 仅为以下表生成数据(通过 datagen.tables 指定): " + tableFilter);
+        }
+
         try (Connection conn = DriverManager.getConnection(ds.url(), ds.username(), ds.password())) {
             conn.setAutoCommit(false);
 
@@ -54,6 +70,11 @@ public class DataGeneratorMain {
                 String tableName = entry.getKey();
                 TableRule rule = entry.getValue();
                 int count = rule.getDefaultCount();
+
+                if (tableFilter != null && !tableFilter.contains(tableName)) {
+                    System.out.println("[DataGen] 表 " + tableName + " 未在 datagen.tables 过滤列表中，跳过");
+                    continue;
+                }
 
                 if (count <= 0) {
                     System.out.println("[DataGen] 表 " + tableName + " 的 defaultCount <= 0，跳过");
