@@ -1222,7 +1222,10 @@ tables:
         sqlType: varchar(255)
         nullable: true
       create_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
 
@@ -1254,7 +1257,10 @@ tables:
         sqlType: varchar(255)
         nullable: true
       create_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
 
@@ -1278,7 +1284,10 @@ tables:
         sqlType: varchar(20)
         nullable: false
       create_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
 
@@ -1322,15 +1331,23 @@ tables:
         sqlType: text(65535)
         nullable: true
       is_read:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: enum
+        args:
+          values: [0, 1]
         sqlType: tinyint
         nullable: false
       create_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
       read_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: true
 
@@ -1358,11 +1375,17 @@ tables:
         sqlType: varchar(20)
         nullable: true
       create_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
       update_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
 
