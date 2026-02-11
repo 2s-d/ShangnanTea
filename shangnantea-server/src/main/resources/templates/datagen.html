@@ -50,7 +50,7 @@
             <td>
                 <input class="count-input" type="number" min="1"
                        th:name="${'count_' + entry.key}"
-                       th:value="${#numbers.max(entry.value.defaultCount, 1)}">
+                       th:value="${entry.value.defaultCount > 0 ? entry.value.defaultCount : 100}">
             </td>
             <td>
                 <span th:text="${'默认 ' + entry.value.defaultCount + ' 行'}"></span>
