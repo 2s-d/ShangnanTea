@@ -23,7 +23,9 @@ tables:
         sqlType: varchar(8)
         nullable: false
       content:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: faker
+        args:
+          provider: "lorem.sentence"
         sqlType: text(65535)
         nullable: false
       content_type:
@@ -67,7 +69,9 @@ tables:
         sqlType: varchar(8)
         nullable: false
       last_message:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: faker
+        args:
+          provider: "lorem.sentence"
         sqlType: varchar(200)
         nullable: true
       last_message_time:
@@ -78,11 +82,17 @@ tables:
         sqlType: datetime
         nullable: true
       initiator_unread:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: intRange
+        args:
+          min: 0
+          max: 50
         sqlType: int
         nullable: true
       receiver_unread:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: intRange
+        args:
+          min: 0
+          max: 50
         sqlType: int
         nullable: true
       is_pinned:
@@ -136,31 +146,47 @@ tables:
         sqlType: int
         nullable: false
       title:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: faker
+        args:
+          provider: "lorem.sentence"
         sqlType: varchar(100)
         nullable: false
       content:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: faker
+        args:
+          provider: "lorem.paragraph"
         sqlType: text(65535)
         nullable: false
       summary:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: faker
+        args:
+          provider: "lorem.sentence"
         sqlType: varchar(200)
         nullable: true
       cover_image:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: faker
+        args:
+          provider: "internet.url"
         sqlType: varchar(255)
         nullable: true
       images:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: faker
+        args:
+          provider: "internet.url"
         sqlType: text(65535)
         nullable: true
       view_count:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: intRange
+        args:
+          min: 0
+          max: 5000
         sqlType: int
         nullable: true
       reply_count:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: intRange
+        args:
+          min: 0
+          max: 5000
         sqlType: int
         nullable: true
       is_sticky:
@@ -220,7 +246,9 @@ tables:
         sqlType: varchar(8)
         nullable: false
       content:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: faker
+        args:
+          provider: "lorem.sentence"
         sqlType: text(65535)
         nullable: false
       parent_id:
@@ -261,19 +289,27 @@ tables:
         sqlType: int
         nullable: false
       name:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: faker
+        args:
+          provider: "lorem.word"
         sqlType: varchar(50)
         nullable: false
       description:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: faker
+        args:
+          provider: "lorem.sentence"
         sqlType: varchar(200)
         nullable: true
       icon:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: faker
+        args:
+          provider: "internet.url"
         sqlType: varchar(255)
         nullable: true
       cover:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: faker
+        args:
+          provider: "internet.url"
         sqlType: varchar(255)
         nullable: true
       user_id:
@@ -281,11 +317,17 @@ tables:
         sqlType: varchar(8)
         nullable: true
       sort_order:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: intRange
+        args:
+          min: 0
+          max: 1000
         sqlType: int
         nullable: true
       post_count:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: intRange
+        args:
+          min: 0
+          max: 10000
         sqlType: int
         nullable: true
       status:
@@ -325,19 +367,28 @@ tables:
         sqlType: varchar(50)
         nullable: false
       title:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: faker
+        args:
+          provider: "lorem.sentence"
         sqlType: varchar(100)
         nullable: true
       sub_title:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: faker
+        args:
+          provider: "lorem.sentence"
         sqlType: varchar(200)
         nullable: true
       content:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: faker
+        args:
+          provider: "lorem.paragraph"
         sqlType: text(65535)
         nullable: true
       sort_order:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: intRange
+        args:
+          min: 0
+          max: 1000
         sqlType: int
         nullable: true
       status:
@@ -531,11 +582,15 @@ tables:
         sqlType: varchar(10)
         nullable: false
       title:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: faker
+        args:
+          provider: "lorem.sentence"
         sqlType: varchar(100)
         nullable: false
       content:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: faker
+        args:
+          provider: "lorem.paragraph"
         sqlType: text(65535)
         nullable: false
       is_top:
