@@ -503,29 +503,13 @@ export const useUserStore = defineStore('user', () => {
     if (!addressData.id) {
       throw new Error('更新地址必须提供地址ID')
     }
-    
+
     loading.value = true
     try {
       const backendData = mapAddressToBackend(addressData)
       const res = await updateAddressApi(addressData.id, backendData)
-      const updatedAddress = mapAddressFromBackend(res.data)
-      
-      const index = addressList.value.findIndex(addr => addr.id === updatedAddress.id)
-      if (index !== -1) {
-        addressList.value.splice(index, 1, updatedAddress)
-        
-        if (updatedAddress.isDefault) {
-          addressList.value.forEach(addr => {
-            if (addr.id !== updatedAddress.id) {
-              addr.isDefault = false
-            }
-          })
-          defaultAddressId.value = updatedAddress.id
-        } else if (defaultAddressId.value === updatedAddress.id) {
-          defaultAddressId.value = null
-        }
-      }
-      
+      // 后端当前返回的是 {code, data: null}，不包含更新后的地址数据
+      // 地址列表刷新交给调用方（如 AddressPage.vue 中的 handleFetchAddressList）处理
       return res
     } catch (error) {
       console.error('更新地址失败:', error)
