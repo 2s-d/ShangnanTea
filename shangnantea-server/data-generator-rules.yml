@@ -1236,7 +1236,9 @@ tables:
         sqlType: varchar(50)
         nullable: true
       avatar:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: faker
+        args:
+          provider: "internet.username"
         sqlType: varchar(255)
         nullable: true
       phone:
