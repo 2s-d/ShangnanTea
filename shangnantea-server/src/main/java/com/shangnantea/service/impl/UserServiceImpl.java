@@ -2462,9 +2462,16 @@ public class UserServiceImpl implements UserService {
             
             com.aliyun.dysmsapi20170525.models.SendSmsRequest sendSmsRequest = new com.aliyun.dysmsapi20170525.models.SendSmsRequest()
                 .setPhoneNumbers(phone)
-                .setSignName(aliyunSignName)
                 .setTemplateCode(aliyunTemplateCode)  // 使用配置的模板代码
                 .setTemplateParam(templateParam);
+            
+            // 只有当签名不为空时才设置签名（赠送模板不需要签名）
+            if (aliyunSignName != null && !aliyunSignName.trim().isEmpty()) {
+                sendSmsRequest.setSignName(aliyunSignName);
+                logger.debug("使用签名: {}", aliyunSignName);
+            } else {
+                logger.debug("未设置签名（使用赠送模板）");
+            }
             
             // 发送短信
             com.aliyun.dysmsapi20170525.models.SendSmsResponse response = client.sendSms(sendSmsRequest);
