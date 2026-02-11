@@ -195,8 +195,8 @@ onBeforeUnmount(() => {
   window.removeEventListener('unhandledrejection', handleUnhandledRejection)
 })
 
-// 导出添加消息记录的函数
-export function addMessageRecord(content, type, source) {
+// 添加消息记录的函数
+function addMessageRecord(content, type, source) {
   const now = new Date()
   const time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`
   
@@ -207,10 +207,16 @@ export function addMessageRecord(content, type, source) {
   }
 }
 
-// 导出切换面板可见性的函数
-export function toggleMonitorVisibility() {
+// 切换面板可见性的函数
+function toggleMonitorVisibility() {
   document.querySelector('.message-monitor')?.classList.toggle('hidden')
 }
+
+// 使用 defineExpose 暴露函数供外部使用
+defineExpose({
+  addMessageRecord,
+  toggleMonitorVisibility
+})
 </script>
 
 <style scoped>
