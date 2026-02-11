@@ -70,7 +70,6 @@
             >
               提交
             </el-button>
-            <el-button @click="goBack">返回登录</el-button>
           </el-form-item>
         </el-form>
         
@@ -218,10 +217,6 @@ const handleReset = async () => {
   }
 }
 
-// 返回登录
-const goBack = () => {
-  router.push('/login')
-}
 </script>
 
 <style lang="scss" scoped>
