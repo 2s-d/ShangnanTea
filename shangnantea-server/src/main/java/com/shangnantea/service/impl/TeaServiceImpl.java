@@ -313,7 +313,7 @@ public class TeaServiceImpl implements TeaService {
             resultData.put("pageSize", queryDTO.getPageSize());
             
             logger.info("获取茶叶列表成功, 总数: {}, 当前页: {}, 每页: {}", total, queryDTO.getPage(), queryDTO.getPageSize());
-            return Result.success(3000, resultData);
+            return Result.success(200, resultData);
             
         } catch (Exception e) {
             logger.error("获取茶叶列表失败: 系统异常", e);
