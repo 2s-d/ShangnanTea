@@ -2438,12 +2438,12 @@ public class UserServiceImpl implements UserService {
     }
     
     /**
-     * 阿里云短信认证服务真实发送（使用号码认证服务 dypnsapi）
+     * 阿里云短信认证服务真实发送
      */
     private boolean sendAliyunSms(String phone, String code) {
         try {
-            // 配置阿里云SDK（使用号码认证服务）
-            com.aliyun.sdk.service.dypnsapi20170525.AsyncClient client = createAliyunDypnsClient();
+            // 配置阿里云SDK
+            com.aliyun.dysmsapi20170525.Client client = createAliyunSmsClient();
             
             // 检查模板代码配置
             if (aliyunTemplateCode == null || aliyunTemplateCode.isEmpty()) {
@@ -2454,37 +2454,30 @@ public class UserServiceImpl implements UserService {
             logger.info("使用短信模板: templateCode={}, signName={}, phone={}", 
                 aliyunTemplateCode, aliyunSignName, phone);
             
-            // 构建请求（使用 SendSmsVerifyCode 接口）
-            // 模板参数格式：{"code":"xxxx","min":"5"}
+            // 构建请求 - 模板参数格式：{"code":"xxxx","min":"5"}
             String templateParam = String.format("{\"code\":\"%s\",\"min\":\"5\"}", code);
             logger.debug("模板参数: {}", templateParam);
             
-            com.aliyun.sdk.service.dypnsapi20170525.models.SendSmsVerifyCodeRequest request = 
-                com.aliyun.sdk.service.dypnsapi20170525.models.SendSmsVerifyCodeRequest.builder()
-                    .phoneNumber(phone)
+            com.aliyun.dysmsapi20170525.models.SendSmsRequest sendSmsRequest = 
+                com.aliyun.dysmsapi20170525.models.SendSmsRequest.builder()
+                    .phoneNumbers(phone)
+                    .signName(aliyunSignName)
                     .templateCode(aliyunTemplateCode)
                     .templateParam(templateParam)
-                    .signName(aliyunSignName)
                     .build();
             
-            logger.debug("使用签名: {}", aliyunSignName);
-            
-            // 发送短信（异步调用，同步获取结果）
-            java.util.concurrent.CompletableFuture<com.aliyun.sdk.service.dypnsapi20170525.models.SendSmsVerifyCodeResponse> responseFuture = 
-                client.sendSmsVerifyCode(request);
-            com.aliyun.sdk.service.dypnsapi20170525.models.SendSmsVerifyCodeResponse response = responseFuture.get();
+            // 发送短信
+            com.aliyun.dysmsapi20170525.models.SendSmsResponse response = client.sendSms(sendSmsRequest);
             
             // 判断是否成功
             if ("OK".equals(response.getBody().getCode())) {
                 logger.info("阿里云短信发送成功: phone={}, code={}", phone, code);
-                client.close();
                 return true;
             } else {
                 String errorCode = response.getBody().getCode();
                 String errorMessage = response.getBody().getMessage();
                 logger.error("阿里云短信发送失败: phone={}, templateCode={}, errorCode={}, errorMessage={}", 
                     phone, aliyunTemplateCode, errorCode, errorMessage);
-                client.close();
                 return false;
             }
             
@@ -2495,21 +2488,14 @@ public class UserServiceImpl implements UserService {
     }
     
     /**
-     * 创建阿里云号码认证服务客户端
+     * 创建阿里云短信客户端
      */
-    private com.aliyun.sdk.service.dypnsapi20170525.AsyncClient createAliyunDypnsClient() throws Exception {
-        com.aliyun.auth.credentials.provider.DefaultCredentialProvider provider = 
-            com.aliyun.auth.credentials.provider.DefaultCredentialProvider.builder()
-                .build();
-        
-        return com.aliyun.sdk.service.dypnsapi20170525.AsyncClient.builder()
-            .region("ap-southeast-1")
-            .credentialsProvider(provider)
-            .overrideConfiguration(
-                darabonba.core.client.ClientOverrideConfiguration.create()
-                    .setEndpointOverride("dypnsapi.aliyuncs.com")
-            )
-            .build();
+    private com.aliyun.dysmsapi20170525.Client createAliyunSmsClient() throws Exception {
+        com.aliyun.teaopenapi.models.Config config = new com.aliyun.teaopenapi.models.Config()
+            .setAccessKeyId(aliyunAccessKeyId)
+            .setAccessKeySecret(aliyunAccessKeySecret)
+            .setEndpoint("dysmsapi.aliyuncs.com");
+        return new com.aliyun.dysmsapi20170525.Client(config);
     }
     
     /**
