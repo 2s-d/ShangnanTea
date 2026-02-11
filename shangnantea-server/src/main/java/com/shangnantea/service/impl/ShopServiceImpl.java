@@ -723,15 +723,17 @@ public class ShopServiceImpl implements ShopService {
                 return Result.failure(4107);
             }
             
-            // 3. 解析分页参数
+            // 3. 解析分页参数（兼容空字符串）
             int page = 1;
             int size = 10;
             if (params != null) {
-                if (params.get("page") != null) {
-                    page = Integer.parseInt(params.get("page").toString());
+                String pageStr = getTrimmed(params.get("page"));
+                if (!pageStr.isEmpty()) {
+                    page = Integer.parseInt(pageStr);
                 }
-                if (params.get("size") != null) {
-                    size = Integer.parseInt(params.get("size").toString());
+                String sizeStr = getTrimmed(params.get("size"));
+                if (!sizeStr.isEmpty()) {
+                    size = Integer.parseInt(sizeStr);
                 }
             }
             

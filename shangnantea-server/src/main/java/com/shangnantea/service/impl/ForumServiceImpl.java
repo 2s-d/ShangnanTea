@@ -508,10 +508,15 @@ public class ForumServiceImpl implements ForumService {
             // 1. 解析查询参数
             String categoryId = (String) params.get("categoryId");
             String keyword = (String) params.get("keyword");
-            Integer page = params.get("page") != null ? 
-                    Integer.parseInt(params.get("page").toString()) : 1;
-            Integer pageSize = params.get("pageSize") != null ? 
-                    Integer.parseInt(params.get("pageSize").toString()) : 10;
+            // 修复：处理空字符串参数
+            Integer page = 1;
+            Integer pageSize = 10;
+            if (params.get("page") != null && !params.get("page").toString().trim().isEmpty()) {
+                page = Integer.parseInt(params.get("page").toString());
+            }
+            if (params.get("pageSize") != null && !params.get("pageSize").toString().trim().isEmpty()) {
+                pageSize = Integer.parseInt(params.get("pageSize").toString());
+            }
             
             // 2. 使用优化的查询方法（数据库层面过滤和排序）
             List<TeaArticle> allArticles = articleMapper.selectPublishedArticles(categoryId, keyword, 1);
@@ -1143,13 +1148,20 @@ public class ForumServiceImpl implements ForumService {
             logger.info("获取帖子列表请求: {}", params);
             
             // 1. 解析查询参数
-            Integer topicId = params.get("topicId") != null ? 
-                    Integer.parseInt(params.get("topicId").toString()) : null;
+            // 修复：处理空字符串参数
+            Integer topicId = null;
+            if (params.get("topicId") != null && !params.get("topicId").toString().trim().isEmpty()) {
+                topicId = Integer.parseInt(params.get("topicId").toString());
+            }
             String keyword = (String) params.get("keyword");
-            Integer page = params.get("page") != null ? 
-                    Integer.parseInt(params.get("page").toString()) : 1;
-            Integer pageSize = params.get("pageSize") != null ? 
-                    Integer.parseInt(params.get("pageSize").toString()) : 10;
+            Integer page = 1;
+            Integer pageSize = 10;
+            if (params.get("page") != null && !params.get("page").toString().trim().isEmpty()) {
+                page = Integer.parseInt(params.get("page").toString());
+            }
+            if (params.get("pageSize") != null && !params.get("pageSize").toString().trim().isEmpty()) {
+                pageSize = Integer.parseInt(params.get("pageSize").toString());
+            }
             
             // 2. 使用优化的查询方法（数据库层面过滤和排序）
             List<ForumPost> allPosts = postMapper.selectPublishedPosts(topicId, keyword, 1);
@@ -1297,10 +1309,15 @@ public class ForumServiceImpl implements ForumService {
             logger.info("获取待审核帖子列表请求: {}", params);
             
             // 1. 解析查询参数
-            Integer page = params.get("page") != null ? 
-                    Integer.parseInt(params.get("page").toString()) : 1;
-            Integer pageSize = params.get("pageSize") != null ? 
-                    Integer.parseInt(params.get("pageSize").toString()) : 10;
+            // 修复：处理空字符串参数
+            Integer page = 1;
+            Integer pageSize = 10;
+            if (params.get("page") != null && !params.get("page").toString().trim().isEmpty()) {
+                page = Integer.parseInt(params.get("page").toString());
+            }
+            if (params.get("pageSize") != null && !params.get("pageSize").toString().trim().isEmpty()) {
+                pageSize = Integer.parseInt(params.get("pageSize").toString());
+            }
             
             // 2. 使用优化的查询方法（数据库层面过滤和排序）
             List<ForumPost> allPosts = postMapper.selectByStatus(0);
@@ -1615,10 +1632,15 @@ public class ForumServiceImpl implements ForumService {
             }
             
             // 2. 解析分页参数
-            Integer page = params.get("page") != null ? 
-                    Integer.parseInt(params.get("page").toString()) : 1;
-            Integer pageSize = params.get("pageSize") != null ? 
-                    Integer.parseInt(params.get("pageSize").toString()) : 20;
+            // 修复：处理空字符串参数
+            Integer page = 1;
+            Integer pageSize = 20;
+            if (params.get("page") != null && !params.get("page").toString().trim().isEmpty()) {
+                page = Integer.parseInt(params.get("page").toString());
+            }
+            if (params.get("pageSize") != null && !params.get("pageSize").toString().trim().isEmpty()) {
+                pageSize = Integer.parseInt(params.get("pageSize").toString());
+            }
             
             // 3. 查询所有回复（数据库层面已按时间升序排序）
             List<ForumReply> allReplies = replyMapper.selectByPostId(postId);

@@ -4,7 +4,7 @@
       <div class="reset-password-box">
         <div class="reset-password-header">
           <h2>密码找回</h2>
-          <p>通过用户名、手机号或邮箱找回您的账户密码</p>
+          <p>通过手机号或邮箱找回您的账户密码</p>
         </div>
         
         <el-form 
@@ -15,22 +15,9 @@
         >
           <el-form-item label="找回方式" prop="method">
             <el-radio-group v-model="resetForm.method">
-              <el-radio value="username">用户名</el-radio>
               <el-radio value="phone">手机号</el-radio>
               <el-radio value="email">邮箱</el-radio>
             </el-radio-group>
-          </el-form-item>
-          
-          <el-form-item 
-            v-if="resetForm.method === 'username'"
-            label="用户名" 
-            prop="username"
-          >
-            <el-input 
-              v-model="resetForm.username" 
-              placeholder="请输入用户名" 
-              prefix-icon="el-icon-user"
-            ></el-input>
           </el-form-item>
           
           <el-form-item 
@@ -108,144 +95,133 @@ const resetFormRef = ref(null)
 
 // 表单数据
 const resetForm = reactive({
-  method: 'username',
-  username: '',
+  method: 'phone',
   phone: '',
   email: '',
   verificationCode: ''
 })
     
-    // 表单验证规则
-    const resetRules = reactive({
-      method: [
-        { required: true, message: '请选择找回方式', trigger: 'change' }
-      ],
-      username: [
-        { required: true, message: '请输入用户名', trigger: 'blur' },
-        { min: 3, max: 20, message: '用户名长度在3到20个字符之间', trigger: 'blur' }
-      ],
-      phone: [
-        { required: true, message: '请输入手机号', trigger: 'blur' },
-        { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' }
-      ],
-      email: [
-        { required: true, message: '请输入邮箱', trigger: 'blur' },
-        { type: 'email', message: '邮箱格式不正确', trigger: 'blur' }
-      ],
-      verificationCode: [
-        { required: true, message: '请输入验证码', trigger: 'blur' },
-        { min: 4, max: 6, message: '验证码长度为4-6位', trigger: 'blur' }
-      ]
+// 表单验证规则
+const resetRules = reactive({
+  method: [
+    { required: true, message: '请选择找回方式', trigger: 'change' }
+  ],
+  phone: [
+    { required: true, message: '请输入手机号', trigger: 'blur' },
+    { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' }
+  ],
+  email: [
+    { required: true, message: '请输入邮箱', trigger: 'blur' },
+    { type: 'email', message: '邮箱格式不正确', trigger: 'blur' }
+  ],
+  verificationCode: [
+    { required: true, message: '请输入验证码', trigger: 'blur' },
+    { len: 6, message: '验证码必须为6位', trigger: 'blur' }
+  ]
+})
+
+const loading = ref(false)
+const codeCountdown = ref(0)
+
+// 发送验证码
+const sendVerificationCode = async () => {
+  // 验证输入
+  let contact = ''
+  let contactType = ''
+
+  if (resetForm.method === 'phone') {
+    if (!resetForm.phone) {
+      userPromptMessages.error.showFormIncomplete()
+      return
+    }
+    contact = resetForm.phone
+    contactType = 'phone'
+  } else if (resetForm.method === 'email') {
+    if (!resetForm.email) {
+      userPromptMessages.error.showFormIncomplete()
+      return
+    }
+    contact = resetForm.email
+    contactType = 'email'
+  } else {
+    // 理论上不会走到这里，兜底处理
+    userPromptMessages.error.showError('当前找回方式不支持，请选择手机号或邮箱')
+    return
+  }
+  
+  try {
+    const res = await userStore.sendVerificationCode({
+      contact,
+      contactType,
+      sceneType: 'reset_password'
     })
     
-    const loading = ref(false)
-    const codeCountdown = ref(0)
+    // 显示发送结果
+    showByCode(res.code)
     
-    // 发送验证码
-    const sendVerificationCode = async () => {
-      // 验证输入
-      let contact = ''
-      let contactType = ''
-      
-      if (resetForm.method === 'username') {
-        if (!resetForm.username) {
-          userPromptMessages.error.showFormIncomplete()
-          return
+    // 如果发送成功，启动倒计时
+    if (isSuccess(res.code)) {
+      codeCountdown.value = 60
+      const timer = setInterval(() => {
+        codeCountdown.value--
+        if (codeCountdown.value <= 0) {
+          clearInterval(timer)
         }
-        // 用户名方式暂不支持验证码
-        userPromptMessages.error.showError('用户名方式暂不支持验证码，请使用手机号或邮箱')
-        return
-      } else if (resetForm.method === 'phone') {
-        if (!resetForm.phone) {
-          userPromptMessages.error.showFormIncomplete()
-          return
-        }
-        contact = resetForm.phone
-        contactType = 'phone'
-      } else if (resetForm.method === 'email') {
-        if (!resetForm.email) {
-          userPromptMessages.error.showFormIncomplete()
-          return
-        }
-        contact = resetForm.email
-        contactType = 'email'
-      }
-      
-      try {
-        const res = await userStore.sendVerificationCode({
-          contact,
-          contactType,
-          sceneType: 'reset_password'
-        })
-        
-        // 显示发送结果
-        showByCode(res.code)
-        
-        // 如果发送成功，启动倒计时
-        if (isSuccess(res.code)) {
-          codeCountdown.value = 60
-          const timer = setInterval(() => {
-            codeCountdown.value--
-            if (codeCountdown.value <= 0) {
-              clearInterval(timer)
-            }
-          }, 1000)
-        }
-      } catch (error) {
-        console.error('发送验证码失败:', error)
-      }
+      }, 1000)
+    }
+  } catch (error) {
+    console.error('发送验证码失败:', error)
+  }
+}
+
+// 处理密码找回
+const handleReset = async () => {
+  if (!resetFormRef.value) return
+  
+  try {
+    await resetFormRef.value.validate()
+  } catch (error) {
+    return false
+  }
+  
+  loading.value = true
+  
+  try {
+    // 准备找回数据
+    const resetData = {
+      verificationCode: resetForm.verificationCode
     }
     
-    // 处理密码找回
-    const handleReset = async () => {
-      if (!resetFormRef.value) return
-      
-      try {
-        await resetFormRef.value.validate()
-      } catch (error) {
-        return false
-      }
-      
-      loading.value = true
-      
-      try {
-        // 准备找回数据
-        const resetData = {
-          verificationCode: resetForm.verificationCode
-        }
-        
-        // 根据选择的方式添加对应字段
-        if (resetForm.method === 'username') {
-          resetData.username = resetForm.username
-        } else if (resetForm.method === 'phone') {
-          resetData.phone = resetForm.phone
-        } else if (resetForm.method === 'email') {
-          resetData.email = resetForm.email
-        }
-        
-        // 调用Pinia action
-        const res = await userStore.findPassword(resetData)
-        
-        // 显示API响应消息
-        showByCode(res.code)
-        
-        // 只有成功时才跳转到登录页
-        if (isSuccess(res.code)) {
-          setTimeout(() => {
-            router.push('/login')
-          }, 2000)
-        }
-      } catch (error) {
-        console.error('密码找回失败:', error)
-      } finally {
-        loading.value = false
-      }
+    // 根据选择的方式添加对应字段（仅手机号或邮箱）
+    if (resetForm.method === 'phone') {
+      resetData.phone = resetForm.phone
+    } else if (resetForm.method === 'email') {
+      resetData.email = resetForm.email
     }
     
-    // 返回登录
-    const goBack = () => {
-      router.push('/login')
+    // 调用Pinia action
+    const res = await userStore.findPassword(resetData)
+    
+    // 显示API响应消息
+    showByCode(res.code)
+    
+    // 只有成功时才跳转到登录页
+    if (isSuccess(res.code)) {
+      setTimeout(() => {
+        router.push('/login')
+      }, 2000)
     }
+  } catch (error) {
+    console.error('密码找回失败:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+// 返回登录
+const goBack = () => {
+  router.push('/login')
+}
 </script>
 
 <style lang="scss" scoped>
