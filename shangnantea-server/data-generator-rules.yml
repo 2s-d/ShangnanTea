@@ -27,10 +27,7 @@ tables:
         sqlType: text(65535)
         nullable: false
       content_type:
-        type: enum
-        args:
-          # 内容类型(text文本,image图片)
-          values: ["text", "image"]
+        type: TODO  # TODO: 根据业务选择生成类型
         sqlType: varchar(20)
         nullable: true
       is_read:
@@ -759,11 +756,7 @@ tables:
     defaultCount: 100  # TODO: 默认生成数量
     fields:
       id:
-        type: sequence
-        args:
-          # shop前缀 + 6位数字，例如 shop000001（参考 generate_shop_id）
-          prefix: "shop"
-          length: 6
+        type: TODO  # TODO: 根据业务选择生成类型
         sqlType: varchar(10)
         nullable: false
       owner_id:
@@ -1126,11 +1119,7 @@ tables:
     defaultCount: 100  # TODO: 默认生成数量
     fields:
       id:
-        type: sequence
-        args:
-          # tea前缀 + 7位数字，例如 tea0000001（参考 generate_tea_id）
-          prefix: "tea"
-          length: 7
+        type: TODO  # TODO: 根据业务选择生成类型
         sqlType: varchar(10)
         nullable: false
       name:
