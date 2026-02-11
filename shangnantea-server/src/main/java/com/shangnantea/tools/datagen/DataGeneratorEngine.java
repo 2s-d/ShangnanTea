@@ -5,7 +5,9 @@ import net.datafaker.Faker;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -38,6 +40,10 @@ public class DataGeneratorEngine {
     private final Faker faker = new Faker();
     private final PasswordEncoder passwordEncoder;
     private final Random random = new Random();
+    /**
+     * 外键候选值缓存，key 形如 "users.id"
+     */
+    private final Map<String, List<Object>> fkCache = new java.util.HashMap<>();
 
     public DataGeneratorEngine(DataGenConfig config, PasswordEncoder passwordEncoder) {
         this.config = config;
@@ -79,7 +85,7 @@ public class DataGeneratorEngine {
 
                 for (String col : columns) {
                     FieldRule rule = tableRule.getFields().get(col);
-                    Object value = generateValue(rule, i + 1, tableRule);
+                    Object value = generateValue(conn, rule, i + 1, tableRule);
                     ps.setObject(paramIndex++, value);
                 }
 
@@ -112,7 +118,7 @@ public class DataGeneratorEngine {
         return sb.toString();
     }
 
-    private Object generateValue(FieldRule rule, int seq, TableRule tableRule) {
+    private Object generateValue(Connection conn, FieldRule rule, int seq, TableRule tableRule) {
         if (rule == null) {
             throw new IllegalArgumentException("字段规则为空，请检查配置");
         }
@@ -181,9 +187,49 @@ public class DataGeneratorEngine {
                 val = Math.round(val * factor) / factor;
                 yield val;
             }
+            case "fkrandom" -> {
+                String table = String.valueOf(rule.getArgOrDefault("table", "")).trim();
+                String column = String.valueOf(rule.getArgOrDefault("column", "id")).trim();
+                if (table.isEmpty()) {
+                    throw new IllegalArgumentException("fkrandom 字段必须配置 table 参数");
+                }
+                String key = table + "." + column;
+                List<Object> candidates = fkCache.get(key);
+                if (candidates == null) {
+                    try {
+                        candidates = loadFkValues(conn, table, column);
+                    } catch (SQLException e) {
+                        throw new RuntimeException("加载外键候选值失败: " + key, e);
+                    }
+                    fkCache.put(key, candidates);
+                }
+                if (candidates.isEmpty()) {
+                    throw new IllegalStateException("外键字段使用 fkrandom 时，源表无数据: " + key + "，请先为该表生成数据");
+                }
+                int idx = random.nextInt(candidates.size());
+                yield candidates.get(idx);
+            }
             case "auto", "skip" -> null; // 不应出现在绑定参数列表
             default -> throw new IllegalArgumentException("未知字段生成类型: " + type);
         };
+    }
+
+    /**
+     * 从指定表/列加载外键候选值，去重后返回
+     */
+    private List<Object> loadFkValues(Connection conn, String table, String column) throws SQLException {
+        String sql = "SELECT DISTINCT " + column + " FROM " + table;
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            List<Object> list = new ArrayList<>();
+            while (rs.next()) {
+                Object val = rs.getObject(1);
+                if (val != null) {
+                    list.add(val);
+                }
+            }
+            return list;
+        }
     }
 
     private Object generateFakerValue(FieldRule rule) {

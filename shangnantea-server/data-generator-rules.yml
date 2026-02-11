@@ -425,23 +425,24 @@ tables:
         sqlType: varchar(20)
         nullable: false
       user_id:
-        type: sequence
+        type: fkRandom
         args:
-          # 对应 users.id 规则: cy + 6位数字
-          prefix: "cy"
-          length: 6
+          table: users
+          column: id
         sqlType: varchar(8)
         nullable: false
       shop_id:
-        type: faker
+        type: fkRandom
         args:
-          provider: "internet.username"
+          table: shops
+          column: id
         sqlType: varchar(10)
         nullable: false
       tea_id:
-        type: faker
+        type: fkRandom
         args:
-          provider: "internet.username"
+          table: teas
+          column: id
         sqlType: varchar(12)
         nullable: false
       tea_name:
@@ -451,10 +452,10 @@ tables:
         sqlType: varchar(100)
         nullable: false
       spec_id:
-        type: intRange
+        type: fkRandom
         args:
-          min: 1
-          max: 1000
+          table: tea_specifications
+          column: id
         sqlType: int
         nullable: true
       spec_name:
@@ -493,10 +494,10 @@ tables:
         sqlType: decimal
         nullable: false
       address_id:
-        type: intRange
+        type: fkRandom
         args:
-          min: 1
-          max: 10000
+          table: user_addresses
+          column: id
         sqlType: int
         nullable: false
       status:
@@ -853,24 +854,24 @@ tables:
         sqlType: int
         nullable: false
       user_id:
-        type: sequence
+        type: fkRandom
         args:
-          # 对应 users.id 规则: cy + 6位数字
-          prefix: "cy"
-          length: 6
+          table: users
+          column: id
         sqlType: varchar(8)
         nullable: false
       tea_id:
-        type: faker
+        type: fkRandom
         args:
-          provider: "internet.username"
+          table: teas
+          column: id
         sqlType: varchar(12)
         nullable: false
       spec_id:
-        type: intRange
+        type: fkRandom
         args:
-          min: 1
-          max: 1000
+          table: tea_specifications
+          column: id
         sqlType: int
         nullable: true
       quantity:
@@ -1243,7 +1244,10 @@ tables:
         sqlType: varchar(8)
         nullable: false
       order_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: fkRandom
+        args:
+          table: orders
+          column: id
         sqlType: varchar(20)
         nullable: true
       content:
