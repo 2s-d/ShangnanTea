@@ -2438,12 +2438,12 @@ public class UserServiceImpl implements UserService {
     }
     
     /**
-     * 阿里云短信认证服务真实发送
+     * 阿里云号码认证服务真实发送（使用dypnsapi）
      */
     private boolean sendAliyunSms(String phone, String code) {
         try {
-            // 配置阿里云SDK
-            com.aliyun.dysmsapi20170525.Client client = createAliyunSmsClient();
+            // 配置阿里云SDK - 使用号码认证服务
+            com.aliyun.dypnsapi20170525.Client client = createAliyunDypnsClient();
             
             // 检查模板代码配置
             if (aliyunTemplateCode == null || aliyunTemplateCode.isEmpty()) {
@@ -2458,16 +2458,18 @@ public class UserServiceImpl implements UserService {
             String templateParam = String.format("{\"code\":\"%s\",\"min\":\"5\"}", code);
             logger.debug("模板参数: {}", templateParam);
             
-            com.aliyun.dysmsapi20170525.models.SendSmsRequest sendSmsRequest = 
-                com.aliyun.dysmsapi20170525.models.SendSmsRequest.builder()
-                    .phoneNumbers(phone)
-                    .signName(aliyunSignName)
-                    .templateCode(aliyunTemplateCode)
-                    .templateParam(templateParam)
-                    .build();
+            com.aliyun.dypnsapi20170525.models.SendSmsVerifyCodeRequest request = 
+                new com.aliyun.dypnsapi20170525.models.SendSmsVerifyCodeRequest()
+                    .setSignName(aliyunSignName)
+                    .setTemplateCode(aliyunTemplateCode)
+                    .setTemplateParam(templateParam)
+                    .setPhoneNumber(phone);
+            
+            com.aliyun.teautil.models.RuntimeOptions runtime = new com.aliyun.teautil.models.RuntimeOptions();
             
             // 发送短信
-            com.aliyun.dysmsapi20170525.models.SendSmsResponse response = client.sendSms(sendSmsRequest);
+            com.aliyun.dypnsapi20170525.models.SendSmsVerifyCodeResponse response = 
+                client.sendSmsVerifyCodeWithOptions(request, runtime);
             
             // 判断是否成功
             if ("OK".equals(response.getBody().getCode())) {
@@ -2488,14 +2490,20 @@ public class UserServiceImpl implements UserService {
     }
     
     /**
-     * 创建阿里云短信客户端
+     * 创建阿里云号码认证服务客户端
      */
-    private com.aliyun.dysmsapi20170525.Client createAliyunSmsClient() throws Exception {
+    private com.aliyun.dypnsapi20170525.Client createAliyunDypnsClient() throws Exception {
+        // 使用Credentials SDK创建凭证
+        com.aliyun.credentials.Client credential = new com.aliyun.credentials.Client();
+        
         com.aliyun.teaopenapi.models.Config config = new com.aliyun.teaopenapi.models.Config()
             .setAccessKeyId(aliyunAccessKeyId)
             .setAccessKeySecret(aliyunAccessKeySecret)
-            .setEndpoint("dysmsapi.aliyuncs.com");
-        return new com.aliyun.dysmsapi20170525.Client(config);
+            .setCredential(credential);
+        
+        config.endpoint = "dypnsapi.aliyuncs.com";
+        
+        return new com.aliyun.dypnsapi20170525.Client(config);
     }
     
     /**
