@@ -1223,9 +1223,27 @@ public class TeaServiceImpl implements TeaService {
                 return Result.failure(3110);
             }
             
-            // 3. 提取分页参数
-            int page = params.get("page") != null ? Integer.parseInt(params.get("page").toString()) : 1;
-            int pageSize = params.get("pageSize") != null ? Integer.parseInt(params.get("pageSize").toString()) : 10;
+            // 3. 提取分页参数（处理空字符串情况）
+            int page = 1;
+            int pageSize = 10;
+            
+            try {
+                if (params.get("page") != null && !params.get("page").toString().trim().isEmpty()) {
+                    page = Integer.parseInt(params.get("page").toString().trim());
+                }
+            } catch (NumberFormatException e) {
+                logger.warn("page参数格式错误, 使用默认值1: {}", params.get("page"));
+                page = 1;
+            }
+            
+            try {
+                if (params.get("pageSize") != null && !params.get("pageSize").toString().trim().isEmpty()) {
+                    pageSize = Integer.parseInt(params.get("pageSize").toString().trim());
+                }
+            } catch (NumberFormatException e) {
+                logger.warn("pageSize参数格式错误, 使用默认值10: {}", params.get("pageSize"));
+                pageSize = 10;
+            }
             
             // 验证分页参数
             if (page < 1) page = 1;
