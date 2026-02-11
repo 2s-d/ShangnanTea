@@ -92,7 +92,10 @@ tables:
         sqlType: tinyint
         nullable: true
       session_type:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: enum
+        args:
+          # 会话类型(private私聊,customer客服)
+          values: ["private", "customer"]
         sqlType: varchar(20)
         nullable: true
       status:
@@ -315,7 +318,10 @@ tables:
         sqlType: int
         nullable: false
       section:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: enum
+        args:
+          # 区域标识(banner,recommend,feature等)
+          values: ["banner", "recommend", "feature"]
         sqlType: varchar(50)
         nullable: false
       title:
@@ -1362,7 +1368,10 @@ tables:
         sqlType: varchar(8)
         nullable: true
       type:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: enum
+        args:
+          # 通知类型(system,reply,like,certification等)，补充 message
+          values: ["system", "reply", "like", "certification", "message"]
         sqlType: varchar(20)
         nullable: false
       title:
