@@ -968,11 +968,14 @@ tables:
     defaultCount: 100  # TODO: 默认生成数量
     fields:
       id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: uuid  # 与服务中UUID生成逻辑保持一致
         sqlType: varchar(10)
         nullable: false
       owner_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: fkRandom
+        args:
+          table: users
+          column: id
         sqlType: varchar(8)
         nullable: false
       shop_name:
@@ -1087,7 +1090,7 @@ tables:
     defaultCount: 100  # TODO: 默认生成数量
     fields:
       id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: auto  # 使用数据库自增ID
         sqlType: bigint
         nullable: false
       title:
@@ -1208,7 +1211,7 @@ tables:
     defaultCount: 100  # TODO: 默认生成数量
     fields:
       id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: auto  # 使用数据库自增ID
         sqlType: int
         nullable: false
       name:
@@ -1622,7 +1625,9 @@ tables:
         sqlType: varchar(20)
         nullable: false
       item_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: faker
+        args:
+          provider: "internet.username"
         sqlType: varchar(20)
         nullable: false
       target_name:
@@ -1667,7 +1672,9 @@ tables:
         sqlType: varchar(20)
         nullable: false
       follow_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: faker
+        args:
+          provider: "internet.username"
         sqlType: varchar(20)
         nullable: false
       target_name:
@@ -1712,7 +1719,9 @@ tables:
         sqlType: varchar(20)
         nullable: false
       target_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: faker
+        args:
+          provider: "internet.username"
         sqlType: varchar(20)
         nullable: false
       create_time:

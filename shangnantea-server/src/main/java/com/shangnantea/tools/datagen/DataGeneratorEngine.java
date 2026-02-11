@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.UUID;
 
 /**
  * 数据生成内核：根据 DataGenConfig 中的规则，为指定表批量生成测试数据。
@@ -187,6 +188,7 @@ public class DataGeneratorEngine {
                 val = Math.round(val * factor) / factor;
                 yield val;
             }
+            case "uuid" -> UUID.randomUUID().toString().replace("-", "");
             case "fkrandom" -> {
                 String table = String.valueOf(rule.getArgOrDefault("table", "")).trim();
                 String column = String.valueOf(rule.getArgOrDefault("column", "id")).trim();
