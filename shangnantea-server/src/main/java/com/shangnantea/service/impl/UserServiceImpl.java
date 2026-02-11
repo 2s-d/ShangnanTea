@@ -2367,26 +2367,15 @@ public class UserServiceImpl implements UserService {
         long secondsUntilMidnight = getSecondsUntilMidnight();
         redisTemplate.opsForValue().set(dailyKey, String.valueOf(dailyCount + 1), secondsUntilMidnight, TimeUnit.SECONDS);
         
-        // 7. 发送验证码
-        boolean sendSuccess;
-        if ("email".equals(contactType)) {
-            // 发送邮件验证码
-            sendSuccess = sendEmailCode(contact, code, sceneType);
-        } else {
-            // 发送短信验证码（必须启用真实短信发送）
-            if (!smsEnabled || aliyunAccessKeyId == null || aliyunAccessKeyId.isEmpty()) {
-                logger.error("短信服务未配置: smsEnabled={}, accessKeyId={}", smsEnabled, aliyunAccessKeyId != null);
-                return Result.failure(2149); // 发送验证码失败
-            }
-            sendSuccess = sendAliyunSms(contact, code);
-        }
+        // 7. 发送验证码（本地开发环境：直接返回成功，控制台打印验证码）
+        logger.warn("=================================================");
+        logger.warn("【开发环境】验证码: {}", code);
+        logger.warn("【开发环境】联系方式: {}", contact);
+        logger.warn("【开发环境】类型: {}", contactType);
+        logger.warn("=================================================");
         
-        if (!sendSuccess) {
-            logger.error("验证码发送失败: contact={}", contact);
-            return Result.failure(2149); // 发送验证码失败
-        }
-        
-        logger.info("验证码发送成功: contact={}", contact);
+        // 本地开发直接返回成功，不实际发送短信或邮件
+        logger.info("验证码发送成功（开发模式）: contact={}", contact);
         return Result.success(2025, null);
     }
     
