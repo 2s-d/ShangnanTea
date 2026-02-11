@@ -381,10 +381,11 @@ const router = createRouter({
   routes
 })
 
-// 不需要登录验证的白名单路径 - 只保留登录和注册
+// 不需要登录验证的白名单路径 - 登录 / 注册 / 密码找回 等公开页面
 const whiteList = [
   '/login',
-  '/register'
+  '/register',
+  '/reset-password'
 ]
 
 // 全局前置守卫
@@ -392,8 +393,8 @@ router.beforeEach(async (to, from, next) => {
   // 设置页面标题
   document.title = to.meta.title ? to.meta.title : '商南茶文化推广与销售平台'
   
-  // 白名单路由直接通过
-  if (whiteList.includes(to.path)) {
+  // 白名单或显式标记为不需要鉴权的路由直接通过
+  if (whiteList.includes(to.path) || to.meta.requireAuth === false) {
     next()
     return
   }

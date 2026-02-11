@@ -40,6 +40,7 @@ import {
 } from '@/api/user'
 import { useTokenStorage } from '@/composables/useStorage'
 import { userPromptMessages } from '@/utils/promptMessages'
+import { showByCode, isSuccess } from '@/utils/apiMessages'
 
 // 地址字段映射辅助函数
 const mapAddressFromBackend = address => {
@@ -138,6 +139,13 @@ export const useUserStore = defineStore('user', () => {
       
       const res = await loginApi(loginData)
       console.log('登录API响应:', JSON.stringify(res, null, 2))
+
+      const code = res?.code
+      // 如果业务上登录失败（例如用户名或密码错误），直接根据状态码提示，不再尝试解析token
+      if (!isSuccess(code)) {
+        showByCode(code)
+        return res
+      }
       
       const token = res.data?.token || res.data?.data?.token || res.token
       
