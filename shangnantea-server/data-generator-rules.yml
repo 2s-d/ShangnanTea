@@ -417,35 +417,56 @@ tables:
     defaultCount: 100  # TODO: 默认生成数量
     fields:
       id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: sequence
+        args:
+          # 订单号: od + 10位序号，例如 od0000000001
+          prefix: "od"
+          length: 10
         sqlType: varchar(20)
         nullable: false
       user_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: sequence
+        args:
+          # 对应 users.id 规则: cy + 6位数字
+          prefix: "cy"
+          length: 6
         sqlType: varchar(8)
         nullable: false
       shop_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: faker
+        args:
+          provider: "internet.username"
         sqlType: varchar(10)
         nullable: false
       tea_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: faker
+        args:
+          provider: "internet.username"
         sqlType: varchar(12)
         nullable: false
       tea_name:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: faker
+        args:
+          provider: "lorem.sentence"
         sqlType: varchar(100)
         nullable: false
       spec_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: intRange
+        args:
+          min: 1
+          max: 1000
         sqlType: int
         nullable: true
       spec_name:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: faker
+        args:
+          provider: "lorem.word"
         sqlType: varchar(50)
         nullable: true
       tea_image:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: faker
+        args:
+          provider: "internet.url"
         sqlType: varchar(255)
         nullable: true
       quantity:
@@ -472,7 +493,10 @@ tables:
         sqlType: decimal
         nullable: false
       address_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: intRange
+        args:
+          min: 1
+          max: 10000
         sqlType: int
         nullable: false
       status:
@@ -490,15 +514,23 @@ tables:
         sqlType: datetime
         nullable: true
       payment_method:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: enum
+        args:
+          # 支付方式: alipay 支付宝, wechat 微信
+          values: ["alipay", "wechat"]
         sqlType: varchar(20)
         nullable: true
       logistics_company:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: enum
+        args:
+          # 常见物流公司简写
+          values: ["SF", "YTO", "ZTO", "STO", "YD", "JD"]
         sqlType: varchar(50)
         nullable: true
       logistics_number:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: faker
+        args:
+          provider: "internet.username"
         sqlType: varchar(50)
         nullable: true
       shipping_time:
@@ -817,19 +849,28 @@ tables:
     defaultCount: 100  # TODO: 默认生成数量
     fields:
       id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: auto  # 使用数据库自增ID
         sqlType: int
         nullable: false
       user_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: sequence
+        args:
+          # 对应 users.id 规则: cy + 6位数字
+          prefix: "cy"
+          length: 6
         sqlType: varchar(8)
         nullable: false
       tea_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: faker
+        args:
+          provider: "internet.username"
         sqlType: varchar(12)
         nullable: false
       spec_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: intRange
+        args:
+          min: 1
+          max: 1000
         sqlType: int
         nullable: true
       quantity:
