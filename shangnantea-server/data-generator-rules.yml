@@ -756,7 +756,11 @@ tables:
     defaultCount: 100  # TODO: 默认生成数量
     fields:
       id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: sequence
+        args:
+          # shop前缀 + 6位数字，例如 shop000001（参考 generate_shop_id）
+          prefix: "shop"
+          length: 6
         sqlType: varchar(10)
         nullable: false
       owner_id:
@@ -1119,7 +1123,11 @@ tables:
     defaultCount: 100  # TODO: 默认生成数量
     fields:
       id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: sequence
+        args:
+          # tea前缀 + 7位数字，例如 tea0000001（参考 generate_tea_id）
+          prefix: "tea"
+          length: 7
         sqlType: varchar(10)
         nullable: false
       name:
