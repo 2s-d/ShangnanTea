@@ -1206,7 +1206,10 @@ tables:
         sqlType: varchar(8)
         nullable: false
       item_type:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: enum
+        args:
+          # 收藏项类型: tea, post, tea_article
+          values: ["tea", "post", "tea_article"]
         sqlType: varchar(20)
         nullable: false
       item_id:
@@ -1241,7 +1244,10 @@ tables:
         sqlType: varchar(8)
         nullable: false
       follow_type:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: enum
+        args:
+          # 关注类型: shop, user
+          values: ["shop", "user"]
         sqlType: varchar(20)
         nullable: false
       follow_id:
@@ -1276,7 +1282,10 @@ tables:
         sqlType: varchar(8)
         nullable: false
       target_type:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: enum
+        args:
+          # 点赞目标类型: post, reply, article
+          values: ["post", "reply", "article"]
         sqlType: varchar(20)
         nullable: false
       target_id:
@@ -1363,7 +1372,9 @@ tables:
         sqlType: varchar(8)
         nullable: false
       setting_key:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: faker
+        args:
+          provider: "internet.username"
         sqlType: varchar(50)
         nullable: false
       setting_value:
@@ -1371,7 +1382,10 @@ tables:
         sqlType: text(65535)
         nullable: true
       setting_type:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: enum
+        args:
+          # 值类型(string,number,boolean,json)
+          values: ["string", "number", "boolean", "json"]
         sqlType: varchar(20)
         nullable: true
       create_time:
