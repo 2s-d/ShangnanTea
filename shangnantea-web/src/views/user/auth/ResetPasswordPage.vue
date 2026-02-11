@@ -13,6 +13,13 @@
           :rules="resetRules" 
           label-position="top"
         >
+          <el-form-item label="用户名" prop="username">
+            <el-input
+              v-model="resetForm.username"
+              placeholder="请输入用户名"
+              prefix-icon="el-icon-user"
+            ></el-input>
+          </el-form-item>
           <el-form-item label="找回方式" prop="method">
             <el-radio-group v-model="resetForm.method">
               <el-radio value="phone">手机号</el-radio>
@@ -68,7 +75,7 @@
               :loading="loading" 
               @click="handleReset"
             >
-              提交
+              下一步
             </el-button>
           </el-form-item>
         </el-form>
@@ -94,6 +101,7 @@ const resetFormRef = ref(null)
 
 // 表单数据
 const resetForm = reactive({
+  username: '',
   method: 'phone',
   phone: '',
   email: '',
@@ -102,6 +110,10 @@ const resetForm = reactive({
     
 // 表单验证规则
 const resetRules = reactive({
+  username: [
+    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { min: 3, max: 20, message: '用户名长度在3到20个字符之间', trigger: 'blur' }
+  ],
   method: [
     { required: true, message: '请选择找回方式', trigger: 'change' }
   ],
@@ -173,7 +185,7 @@ const sendVerificationCode = async () => {
   }
 }
 
-// 处理密码找回
+// 第一步：校验表单并跳转到设置新密码页面
 const handleReset = async () => {
   if (!resetFormRef.value) return
   
@@ -182,39 +194,20 @@ const handleReset = async () => {
   } catch (error) {
     return false
   }
-  
-  loading.value = true
-  
-  try {
-    // 准备找回数据
-    const resetData = {
+
+  // 将第一步收集到的数据通过路由参数传递给下一步页面
+  const contactType = resetForm.method
+  const contact = contactType === 'phone' ? resetForm.phone : resetForm.email
+
+  router.push({
+    path: '/reset-password/confirm',
+    query: {
+      username: resetForm.username,
+      contactType,
+      contact,
       verificationCode: resetForm.verificationCode
     }
-    
-    // 根据选择的方式添加对应字段（仅手机号或邮箱）
-    if (resetForm.method === 'phone') {
-      resetData.phone = resetForm.phone
-    } else if (resetForm.method === 'email') {
-      resetData.email = resetForm.email
-    }
-    
-    // 调用Pinia action
-    const res = await userStore.findPassword(resetData)
-    
-    // 显示API响应消息
-    showByCode(res.code)
-    
-    // 只有成功时才跳转到登录页
-    if (isSuccess(res.code)) {
-      setTimeout(() => {
-        router.push('/login')
-      }, 2000)
-    }
-  } catch (error) {
-    console.error('密码找回失败:', error)
-  } finally {
-    loading.value = false
-  }
+  })
 }
 
 </script>

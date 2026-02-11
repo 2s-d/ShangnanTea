@@ -97,6 +97,15 @@ const routes = [
       requireAuth: false
     }
   },
+  {
+    path: '/reset-password/confirm',
+    name: 'ResetPasswordConfirm',
+    component: () => import('@/views/user/auth/ResetPasswordConfirmPage.vue'),
+    meta: {
+      title: '设置新密码 - 商南茶文化',
+      requireAuth: false
+    }
+  },
   
   // 论坛路由
   {
@@ -385,7 +394,8 @@ const router = createRouter({
 const whiteList = [
   '/login',
   '/register',
-  '/reset-password'
+  '/reset-password',
+  '/reset-password/confirm'
 ]
 
 // 全局前置守卫

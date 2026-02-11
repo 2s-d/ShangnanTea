@@ -618,6 +618,19 @@ public class UserServiceImpl implements UserService {
     /**
      * 密码找回/重置
      * 成功码：2006，失败码：2114
+     *
+     * 说明：
+     * - 前端在完成验证码发送与输入后，一次性提交以下数据：
+     *   username      用户名（用于唯一定位用户）
+     *   contactType   联系方式类型：phone / email
+     *   contact       联系方式内容：手机号或邮箱
+     *   verificationCode 验证码
+     *   newPassword   新密码
+     * - 本接口在一次请求中完成：
+     *   1）校验用户名是否存在
+     *   2）校验用户名与手机号/邮箱是否匹配
+     *   3）校验验证码是否正确
+     *   4）更新密码
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -625,7 +638,8 @@ public class UserServiceImpl implements UserService {
         try {
             // 1. 获取参数
             String username = (String) resetData.get("username");
-            String phone = (String) resetData.get("phone");
+            String contactType = (String) resetData.get("contactType");
+            String contact = (String) resetData.get("contact");
             String newPassword = (String) resetData.get("newPassword");
             String verificationCode = (String) resetData.get("verificationCode");
             
@@ -635,37 +649,56 @@ public class UserServiceImpl implements UserService {
                 return Result.failure(2114); // 密码重置失败
             }
             
-            if (phone == null || phone.trim().isEmpty()) {
-                logger.warn("密码重置失败: 手机号不能为空");
+            if (contactType == null || contactType.trim().isEmpty()) {
+                logger.warn("密码重置失败: 联系方式类型不能为空, username: {}", username);
+                return Result.failure(2114); // 密码重置失败
+            }
+            
+            if (!"phone".equals(contactType) && !"email".equals(contactType)) {
+                logger.warn("密码重置失败: 联系方式类型不合法, username: {}, contactType: {}", username, contactType);
+                return Result.failure(2114); // 密码重置失败
+            }
+            
+            if (contact == null || contact.trim().isEmpty()) {
+                logger.warn("密码重置失败: 联系方式不能为空, username: {}", username);
                 return Result.failure(2114); // 密码重置失败
             }
             
             if (newPassword == null || newPassword.trim().isEmpty()) {
-                logger.warn("密码重置失败: 新密码不能为空");
+                logger.warn("密码重置失败: 新密码不能为空, username: {}", username);
                 return Result.failure(2114); // 密码重置失败
             }
             
             if (verificationCode == null || verificationCode.trim().isEmpty()) {
-                logger.warn("密码重置失败: 验证码不能为空");
+                logger.warn("密码重置失败: 验证码不能为空, username: {}", username);
                 return Result.failure(2114); // 密码重置失败
             }
             
-            // 3. 验证用户名和手机号是否匹配
+            // 3. 验证用户名与联系方式是否匹配
             User user = getUserByUsername(username);
             if (user == null) {
                 logger.warn("密码重置失败: 用户不存在, username: {}", username);
                 return Result.failure(2114); // 密码重置失败
             }
             
-            if (!phone.equals(user.getPhone())) {
-                logger.warn("密码重置失败: 手机号不匹配, username: {}", username);
-                return Result.failure(2114); // 密码重置失败
+            if ("phone".equals(contactType)) {
+                if (user.getPhone() == null || !contact.equals(user.getPhone())) {
+                    logger.warn("密码重置失败: 手机号不匹配, username: {}, inputPhone: {}, userPhone: {}", 
+                        username, contact, user.getPhone());
+                    return Result.failure(2114); // 密码重置失败
+                }
+            } else { // email
+                if (user.getEmail() == null || !contact.equals(user.getEmail())) {
+                    logger.warn("密码重置失败: 邮箱不匹配, username: {}, inputEmail: {}, userEmail: {}", 
+                        username, contact, user.getEmail());
+                    return Result.failure(2114); // 密码重置失败
+                }
             }
             
-            // 4. 验证验证码是否正确
-            boolean codeValid = verifyCode(phone, "reset_password", verificationCode);
+            // 4. 验证验证码是否正确（按手机号或邮箱 + reset_password 场景）
+            boolean codeValid = verifyCode(contact, "reset_password", verificationCode);
             if (!codeValid) {
-                logger.warn("密码重置失败: 验证码错误或已过期, phone: {}", phone);
+                logger.warn("密码重置失败: 验证码错误或已过期, contact: {}", contact);
                 return Result.failure(2114); // 密码重置失败
             }
             
