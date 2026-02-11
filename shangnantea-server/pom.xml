@@ -25,6 +25,8 @@
         <fastjson.version>2.0.47</fastjson.version>
         <commons-lang3.version>3.14.0</commons-lang3.version>
         <lombok.version>1.18.30</lombok.version>
+        <jackson.yaml.version>2.17.1</jackson.yaml.version>
+        <datafaker.version>2.1.0</datafaker.version>
     </properties>
 
     <dependencies>
@@ -131,6 +133,20 @@
             <groupId>com.alipay.sdk</groupId>
             <artifactId>alipay-sdk-java</artifactId>
             <version>4.38.157.ALL</version>
+        </dependency>
+
+        <!-- YAML 支持（用于加载数据生成规则配置） -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
+            <version>${jackson.yaml.version}</version>
+        </dependency>
+
+        <!-- 测试数据生成库 DataFaker -->
+        <dependency>
+            <groupId>net.datafaker</groupId>
+            <artifactId>datafaker</artifactId>
+            <version>${datafaker.version}</version>
         </dependency>
     </dependencies>
 
