@@ -31,15 +31,23 @@ tables:
         sqlType: varchar(20)
         nullable: true
       is_read:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: enum
+        args:
+          values: [0, 1]
         sqlType: tinyint
         nullable: false
       read_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: true
       create_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
 
