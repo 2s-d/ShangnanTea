@@ -96,7 +96,10 @@ tables:
         sqlType: varchar(20)
         nullable: true
       status:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: enum
+        args:
+          # 状态:1正常,0禁用
+          values: [0, 1]
         sqlType: tinyint
         nullable: false
       create_time:
@@ -170,7 +173,10 @@ tables:
         sqlType: tinyint
         nullable: true
       status:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: enum
+        args:
+          # 状态:1正常,0待审核,2已删除
+          values: [0, 1, 2]
         sqlType: tinyint
         nullable: true
       last_reply_time:
@@ -223,7 +229,10 @@ tables:
         sqlType: varchar(8)
         nullable: true
       status:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: enum
+        args:
+          # 状态:1正常,0待审核,2已删除
+          values: [0, 1, 2]
         sqlType: tinyint
         nullable: true
       create_time:
@@ -277,7 +286,10 @@ tables:
         sqlType: int
         nullable: true
       status:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: enum
+        args:
+          # 状态:1启用,0禁用
+          values: [0, 1]
         sqlType: tinyint
         nullable: true
       create_time:
@@ -323,7 +335,10 @@ tables:
         sqlType: int
         nullable: true
       status:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: enum
+        args:
+          # 状态:1显示,0隐藏
+          values: [0, 1]
         sqlType: tinyint
         nullable: true
       create_time:
@@ -393,7 +408,10 @@ tables:
         sqlType: int
         nullable: false
       status:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: enum
+        args:
+          # 订单状态:0待付款,1待发货,2待收货,3已完成,4已取消,5已退款
+          values: [0, 1, 2, 3, 4, 5]
         sqlType: tinyint
         nullable: false
       payment_time:
@@ -445,11 +463,17 @@ tables:
         sqlType: varchar(500)
         nullable: true
       buyer_rate:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: enum
+        args:
+          # 买家是否已评价: 0否,1是
+          values: [0, 1]
         sqlType: tinyint
         nullable: true
       refund_status:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: enum
+        args:
+          # 退款状态:0无退款申请,1申请中,2已同意,3已拒绝
+          values: [0, 1, 2, 3]
         sqlType: tinyint
         nullable: true
       refund_reason:
@@ -515,7 +539,10 @@ tables:
         sqlType: tinyint
         nullable: true
       status:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: enum
+        args:
+          # 状态:1显示,0隐藏
+          values: [0, 1]
         sqlType: tinyint
         nullable: true
       create_time:
@@ -561,7 +588,10 @@ tables:
         sqlType: int
         nullable: true
       status:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: enum
+        args:
+          # 状态:1显示,0隐藏
+          values: [0, 1]
         sqlType: tinyint
         nullable: true
       create_time:
@@ -633,7 +663,10 @@ tables:
         sqlType: varchar(500)
         nullable: true
       status:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: enum
+        args:
+          # 状态:0待审核,1已通过,2已拒绝
+          values: [0, 1, 2]
         sqlType: tinyint
         nullable: false
       admin_id:
@@ -769,7 +802,10 @@ tables:
         sqlType: varchar(255)
         nullable: true
       status:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: enum
+        args:
+          # 状态:1正常,0关闭
+          values: [0, 1]
         sqlType: tinyint
         nullable: false
       rating:
@@ -855,15 +891,22 @@ tables:
         sqlType: int
         nullable: true
       is_top:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: enum
+        args:
+          values: [0, 1]
         sqlType: tinyint
         nullable: true
       is_recommend:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: enum
+        args:
+          values: [0, 1]
         sqlType: tinyint
         nullable: true
       status:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: enum
+        args:
+          # 状态:1已发布,0草稿,2已删除
+          values: [0, 1, 2]
         sqlType: tinyint
         nullable: true
       publish_time:
@@ -1114,7 +1157,10 @@ tables:
         sqlType: varchar(255)
         nullable: true
       status:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: enum
+        args:
+          # 状态:0下架,1上架
+          values: [0, 1]
         sqlType: tinyint
         nullable: false
       create_time:
