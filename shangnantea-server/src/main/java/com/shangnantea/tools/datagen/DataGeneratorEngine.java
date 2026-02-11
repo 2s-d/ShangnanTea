@@ -157,6 +157,30 @@ public class DataGeneratorEngine {
             }
             case "now" -> Timestamp.valueOf(LocalDateTime.now());
             case "randomdate" -> generateRandomTimestamp(rule);
+            case "intrange" -> {
+                int min = Integer.parseInt(String.valueOf(rule.getArgOrDefault("min", 0)));
+                int max = Integer.parseInt(String.valueOf(rule.getArgOrDefault("max", 100)));
+                if (min > max) {
+                    int tmp = min;
+                    min = max;
+                    max = tmp;
+                }
+                yield min + random.nextInt(max - min + 1);
+            }
+            case "decimalrange" -> {
+                double min = Double.parseDouble(String.valueOf(rule.getArgOrDefault("min", 0)));
+                double max = Double.parseDouble(String.valueOf(rule.getArgOrDefault("max", 100)));
+                int scale = Integer.parseInt(String.valueOf(rule.getArgOrDefault("scale", 2)));
+                if (min > max) {
+                    double tmp = min;
+                    min = max;
+                    max = tmp;
+                }
+                double val = min + (max - min) * random.nextDouble();
+                double factor = Math.pow(10, scale);
+                val = Math.round(val * factor) / factor;
+                yield val;
+            }
             case "auto", "skip" -> null; // 不应出现在绑定参数列表
             default -> throw new IllegalArgumentException("未知字段生成类型: " + type);
         };
