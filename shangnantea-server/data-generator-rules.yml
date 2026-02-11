@@ -1,0 +1,1284 @@
+# 自动生成的测试数据规则骨架文件
+# 生成时间: 2026-02-11T21:04:25.612637
+# 请根据实际业务为每个字段的 type / 规则进行补充，例如：
+#   type: sequence / faker / enum / password / phone / email / const / randomDate 等
+tables:
+  chat_messages:
+    defaultCount: 100  # TODO: 默认生成数量
+    fields:
+      id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: bigint
+        nullable: false
+      session_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(32)
+        nullable: false
+      sender_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(8)
+        nullable: false
+      receiver_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(8)
+        nullable: false
+      content:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: text(65535)
+        nullable: false
+      content_type:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(20)
+        nullable: true
+      is_read:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: tinyint
+        nullable: false
+      read_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: true
+      create_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+
+  chat_sessions:
+    defaultCount: 100  # TODO: 默认生成数量
+    fields:
+      id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(32)
+        nullable: false
+      initiator_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(8)
+        nullable: false
+      receiver_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(8)
+        nullable: false
+      last_message:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(200)
+        nullable: true
+      last_message_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: true
+      initiator_unread:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: int
+        nullable: true
+      receiver_unread:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: int
+        nullable: true
+      is_pinned:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: tinyint
+        nullable: true
+      session_type:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(20)
+        nullable: true
+      status:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: tinyint
+        nullable: false
+      create_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+      update_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+
+  forum_posts:
+    defaultCount: 100  # TODO: 默认生成数量
+    fields:
+      id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: bigint
+        nullable: false
+      user_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(8)
+        nullable: false
+      topic_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: int
+        nullable: false
+      title:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(100)
+        nullable: false
+      content:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: text(65535)
+        nullable: false
+      summary:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(200)
+        nullable: true
+      cover_image:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(255)
+        nullable: true
+      images:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: text(65535)
+        nullable: true
+      view_count:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: int
+        nullable: true
+      reply_count:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: int
+        nullable: true
+      is_sticky:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: tinyint
+        nullable: true
+      is_essence:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: tinyint
+        nullable: true
+      status:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: tinyint
+        nullable: true
+      last_reply_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: true
+      create_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+      update_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+
+  forum_replies:
+    defaultCount: 100  # TODO: 默认生成数量
+    fields:
+      id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: bigint
+        nullable: false
+      post_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: bigint
+        nullable: false
+      user_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(8)
+        nullable: false
+      content:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: text(65535)
+        nullable: false
+      parent_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: bigint
+        nullable: true
+      to_user_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(8)
+        nullable: true
+      status:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: tinyint
+        nullable: true
+      create_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+      update_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+
+  forum_topics:
+    defaultCount: 100  # TODO: 默认生成数量
+    fields:
+      id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: int
+        nullable: false
+      name:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(50)
+        nullable: false
+      description:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(200)
+        nullable: true
+      icon:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(255)
+        nullable: true
+      cover:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(255)
+        nullable: true
+      user_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(8)
+        nullable: true
+      sort_order:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: int
+        nullable: true
+      post_count:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: int
+        nullable: true
+      status:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: tinyint
+        nullable: true
+      create_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+      update_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+
+  home_contents:
+    defaultCount: 100  # TODO: 默认生成数量
+    fields:
+      id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: int
+        nullable: false
+      section:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(50)
+        nullable: false
+      title:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(100)
+        nullable: true
+      sub_title:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(200)
+        nullable: true
+      content:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: text(65535)
+        nullable: true
+      sort_order:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: int
+        nullable: true
+      status:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: tinyint
+        nullable: true
+      create_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+      update_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+
+  orders:
+    defaultCount: 100  # TODO: 默认生成数量
+    fields:
+      id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(20)
+        nullable: false
+      user_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(8)
+        nullable: false
+      shop_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(10)
+        nullable: false
+      tea_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(12)
+        nullable: false
+      tea_name:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(100)
+        nullable: false
+      spec_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: int
+        nullable: true
+      spec_name:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(50)
+        nullable: true
+      tea_image:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(255)
+        nullable: true
+      quantity:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: int
+        nullable: false
+      price:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: decimal
+        nullable: false
+      total_amount:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: decimal
+        nullable: false
+      address_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: int
+        nullable: false
+      status:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: tinyint
+        nullable: false
+      payment_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: true
+      payment_method:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(20)
+        nullable: true
+      logistics_company:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(50)
+        nullable: true
+      logistics_number:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(50)
+        nullable: true
+      shipping_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: true
+      completion_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: true
+      cancel_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: true
+      cancel_reason:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(200)
+        nullable: true
+      buyer_message:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(500)
+        nullable: true
+      buyer_rate:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: tinyint
+        nullable: true
+      refund_status:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: tinyint
+        nullable: true
+      refund_reason:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(500)
+        nullable: true
+      refund_reject_reason:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(500)
+        nullable: true
+      refund_apply_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: true
+      refund_process_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: true
+      create_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+      update_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+
+  shop_announcements:
+    defaultCount: 100  # TODO: 默认生成数量
+    fields:
+      id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: int
+        nullable: false
+      shop_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(10)
+        nullable: false
+      title:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(100)
+        nullable: false
+      content:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: text(65535)
+        nullable: false
+      is_top:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: tinyint
+        nullable: true
+      status:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: tinyint
+        nullable: true
+      create_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+      update_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+
+  shop_banners:
+    defaultCount: 100  # TODO: 默认生成数量
+    fields:
+      id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: int
+        nullable: false
+      shop_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(10)
+        nullable: false
+      image_url:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(255)
+        nullable: false
+      link_url:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(255)
+        nullable: true
+      title:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(100)
+        nullable: true
+      sort_order:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: int
+        nullable: true
+      status:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: tinyint
+        nullable: true
+      create_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+      update_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+
+  shop_certifications:
+    defaultCount: 100  # TODO: 默认生成数量
+    fields:
+      id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: int
+        nullable: false
+      user_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(8)
+        nullable: false
+      real_name:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(50)
+        nullable: false
+      id_card:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(18)
+        nullable: false
+      id_card_front:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(255)
+        nullable: false
+      id_card_back:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(255)
+        nullable: false
+      business_license:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(255)
+        nullable: false
+      shop_name:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(100)
+        nullable: false
+      contact_phone:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(20)
+        nullable: false
+      province:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(50)
+        nullable: false
+      city:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(50)
+        nullable: false
+      district:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(50)
+        nullable: false
+      address:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(200)
+        nullable: false
+      apply_reason:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(500)
+        nullable: true
+      status:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: tinyint
+        nullable: false
+      admin_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(8)
+        nullable: true
+      reject_reason:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(500)
+        nullable: true
+      notification_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: int
+        nullable: true
+      notification_confirmed:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: tinyint
+        nullable: true
+      create_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+      update_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+
+  shopping_cart:
+    defaultCount: 100  # TODO: 默认生成数量
+    fields:
+      id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: int
+        nullable: false
+      user_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(8)
+        nullable: false
+      tea_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(12)
+        nullable: false
+      spec_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: int
+        nullable: true
+      quantity:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: int
+        nullable: false
+      selected:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: tinyint
+        nullable: false
+      create_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+      update_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+
+  shops:
+    defaultCount: 100  # TODO: 默认生成数量
+    fields:
+      id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(10)
+        nullable: false
+      owner_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(8)
+        nullable: false
+      shop_name:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(100)
+        nullable: false
+      logo:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(255)
+        nullable: true
+      banner:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(255)
+        nullable: true
+      description:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(500)
+        nullable: true
+      announcement:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(500)
+        nullable: true
+      contact_phone:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(20)
+        nullable: true
+      province:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(50)
+        nullable: true
+      city:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(50)
+        nullable: true
+      district:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(50)
+        nullable: true
+      address:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(200)
+        nullable: true
+      business_license:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(255)
+        nullable: true
+      status:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: tinyint
+        nullable: false
+      rating:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: decimal
+        nullable: true
+      rating_count:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: int
+        nullable: true
+      sales_count:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: int
+        nullable: true
+      create_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+      update_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+
+  tea_articles:
+    defaultCount: 100  # TODO: 默认生成数量
+    fields:
+      id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: bigint
+        nullable: false
+      title:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(100)
+        nullable: false
+      subtitle:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(200)
+        nullable: true
+      author:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(50)
+        nullable: true
+      content:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: longtext
+        nullable: false
+      summary:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(500)
+        nullable: true
+      cover_image:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(255)
+        nullable: true
+      images:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: text(65535)
+        nullable: true
+      video_url:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(255)
+        nullable: true
+      category:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(20)
+        nullable: true
+      tags:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(255)
+        nullable: true
+      source:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(100)
+        nullable: true
+      view_count:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: int
+        nullable: true
+      is_top:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: tinyint
+        nullable: true
+      is_recommend:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: tinyint
+        nullable: true
+      status:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: tinyint
+        nullable: true
+      publish_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: true
+      create_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+      update_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+
+  tea_categories:
+    defaultCount: 100  # TODO: 默认生成数量
+    fields:
+      id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: int
+        nullable: false
+      name:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(50)
+        nullable: false
+      parent_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: int
+        nullable: true
+      sort_order:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: int
+        nullable: true
+      icon:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(255)
+        nullable: true
+      create_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+      update_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+
+  tea_images:
+    defaultCount: 100  # TODO: 默认生成数量
+    fields:
+      id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: int
+        nullable: false
+      tea_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(10)
+        nullable: false
+      url:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(255)
+        nullable: false
+      sort_order:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: int
+        nullable: true
+      is_main:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: tinyint
+        nullable: true
+      create_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+
+  tea_reviews:
+    defaultCount: 100  # TODO: 默认生成数量
+    fields:
+      id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: int
+        nullable: false
+      tea_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(10)
+        nullable: false
+      user_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(8)
+        nullable: false
+      order_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(20)
+        nullable: true
+      content:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: text(65535)
+        nullable: true
+      rating:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: tinyint
+        nullable: false
+      images:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: text(65535)
+        nullable: true
+      reply:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: text(65535)
+        nullable: true
+      reply_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: true
+      is_anonymous:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: tinyint
+        nullable: true
+      create_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+      update_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+
+  tea_specifications:
+    defaultCount: 100  # TODO: 默认生成数量
+    fields:
+      id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: int
+        nullable: false
+      tea_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(10)
+        nullable: false
+      spec_name:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(50)
+        nullable: false
+      price:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: decimal
+        nullable: false
+      stock:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: int
+        nullable: false
+      is_default:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: tinyint
+        nullable: true
+      create_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+      update_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+
+  teas:
+    defaultCount: 100  # TODO: 默认生成数量
+    fields:
+      id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(10)
+        nullable: false
+      name:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(100)
+        nullable: false
+      shop_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(10)
+        nullable: false
+      category_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: int
+        nullable: true
+      price:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: decimal
+        nullable: false
+      description:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: text(65535)
+        nullable: true
+      detail:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: text(65535)
+        nullable: true
+      origin:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(50)
+        nullable: true
+      stock:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: int
+        nullable: false
+      sales:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: int
+        nullable: false
+      main_image:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(255)
+        nullable: true
+      status:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: tinyint
+        nullable: false
+      create_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+      update_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+      is_deleted:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: tinyint
+        nullable: true
+
+  user_addresses:
+    defaultCount: 100  # TODO: 默认生成数量
+    fields:
+      id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: int
+        nullable: false
+      user_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(8)
+        nullable: false
+      receiver_name:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(50)
+        nullable: false
+      receiver_phone:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(20)
+        nullable: false
+      province:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(50)
+        nullable: false
+      city:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(50)
+        nullable: false
+      district:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(50)
+        nullable: false
+      detail_address:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(200)
+        nullable: false
+      is_default:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: tinyint
+        nullable: true
+      create_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+      update_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+
+  user_favorites:
+    defaultCount: 100  # TODO: 默认生成数量
+    fields:
+      id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: int
+        nullable: false
+      user_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(8)
+        nullable: false
+      item_type:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(20)
+        nullable: false
+      item_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(20)
+        nullable: false
+      target_name:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(100)
+        nullable: true
+      target_image:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(255)
+        nullable: true
+      create_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+
+  user_follows:
+    defaultCount: 100  # TODO: 默认生成数量
+    fields:
+      id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: int
+        nullable: false
+      user_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(8)
+        nullable: false
+      follow_type:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(20)
+        nullable: false
+      follow_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(20)
+        nullable: false
+      target_name:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(100)
+        nullable: true
+      target_avatar:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(255)
+        nullable: true
+      create_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+
+  user_likes:
+    defaultCount: 100  # TODO: 默认生成数量
+    fields:
+      id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: int
+        nullable: false
+      user_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(8)
+        nullable: false
+      target_type:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(20)
+        nullable: false
+      target_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(20)
+        nullable: false
+      create_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+
+  user_notifications:
+    defaultCount: 100  # TODO: 默认生成数量
+    fields:
+      id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: bigint
+        nullable: false
+      user_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(8)
+        nullable: false
+      sender_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(8)
+        nullable: true
+      type:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(20)
+        nullable: false
+      title:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(100)
+        nullable: true
+      content:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(500)
+        nullable: true
+      target_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(50)
+        nullable: true
+      target_type:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(20)
+        nullable: true
+      extra_data:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: text(65535)
+        nullable: true
+      is_read:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: tinyint
+        nullable: false
+      create_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+      read_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: true
+
+  user_settings:
+    defaultCount: 100  # TODO: 默认生成数量
+    fields:
+      id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: bigint
+        nullable: false
+      user_id:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(8)
+        nullable: false
+      setting_key:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(50)
+        nullable: false
+      setting_value:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: text(65535)
+        nullable: true
+      setting_type:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(20)
+        nullable: true
+      create_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+      update_time:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: datetime
+        nullable: false
+
+  users:
+    defaultCount: 100  # TODO: 默认生成数量
+    fields:
+      id:
+        type: sequence
+        args:
+          prefix: "U"
+          length: 7  # U + 7 位数字，共 8 位
+        sqlType: varchar(8)
+        nullable: false
+      username:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(50)
+        nullable: false
+      password:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(100)
+        nullable: false
+      nickname:
+        type: faker
+        args:
+          provider: "name.fullName"
+        sqlType: varchar(50)
+        nullable: true
+      avatar:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(255)
+        nullable: true
+      phone:
+        type: phone
+        sqlType: varchar(20)
+        nullable: true
+      email:
+        type: email
+        sqlType: varchar(100)
+        nullable: true
+      role:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: tinyint
+        nullable: false
+      status:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: tinyint
+        nullable: false
+      create_time:
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
+        sqlType: datetime
+        nullable: false
+      update_time:
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
+        sqlType: datetime
+        nullable: false
+      is_deleted:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: tinyint
+        nullable: false
+      gender:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: tinyint
+        nullable: true
+      birthday:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: date
+        nullable: true
+      bio:
+        type: TODO  # TODO: 根据业务选择生成类型
+        sqlType: varchar(255)
+        nullable: true
+
