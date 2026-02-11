@@ -1,0 +1,5 @@
+# 自动生成的测试数据规则骨架文件
+# 生成时间: 2026-02-11T20:59:44.230119200
+# 请根据实际业务为每个字段的 type / 规则进行补充，例如：
+#   type: sequence / faker / enum / password / phone / email / const / randomDate 等
+tables:
