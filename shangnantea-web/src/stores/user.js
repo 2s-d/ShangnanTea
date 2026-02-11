@@ -523,21 +523,11 @@ export const useUserStore = defineStore('user', () => {
   async function deleteAddress(addressId) {
     loading.value = true
     try {
-      await deleteAddressApi(addressId)
-      addressList.value = addressList.value.filter(addr => addr.id !== addressId)
-      if (defaultAddressId.value === addressId) {
-        defaultAddressId.value = null
-      }
-      return true
+      const res = await deleteAddressApi(addressId)
+      // 当前后端返回 {code, data: null}，不在这里直接改本地列表，交给调用方刷新
+      return res
     } catch (error) {
       console.error('删除地址失败:', error)
-      if (process.env.NODE_ENV === 'development') {
-        addressList.value = addressList.value.filter(addr => addr.id !== addressId)
-        if (defaultAddressId.value === addressId) {
-          defaultAddressId.value = null
-        }
-        return true
-      }
       throw error
     } finally {
       loading.value = false
