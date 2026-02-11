@@ -37,10 +37,11 @@ spring:
 # 阿里云短信认证服务配置
 aliyun:
   sms:
-    enabled: ture  # 是否启用真实短信发送（true=真实发送，false=模拟发送）
+    enabled: ${ALIYUN_SMS_ENABLED:false}  # 是否启用真实短信发送（true=真实发送，false=模拟发送）
     access-key-id: ${ALIYUN_ACCESS_KEY_ID:your-aliyun-access-key-id}  # 使用环境变量
     access-key-secret: ${ALIYUN_ACCESS_KEY_SECRET:your-aliyun-access-key-secret}  # 使用环境变量
-    sign-name: 商南茶城  # 短信签名
+    sign-name: ${ALIYUN_SIGN_NAME:商南茶城}  # 短信签名
+    template-code: ${ALIYUN_TEMPLATE_CODE:}  # 短信模板代码
 
 mybatis:
   mapper-locations: classpath:mapper/*.xml
