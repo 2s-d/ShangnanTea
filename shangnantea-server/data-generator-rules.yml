@@ -7,19 +7,28 @@ tables:
     defaultCount: 100  # TODO: 默认生成数量
     fields:
       id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: auto  # 数据库自增ID
         sqlType: bigint
         nullable: false
       session_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: fkRandom
+        args:
+          table: chat_sessions
+          column: id
         sqlType: varchar(32)
         nullable: false
       sender_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: fkRandom
+        args:
+          table: users
+          column: id
         sqlType: varchar(8)
         nullable: false
       receiver_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: fkRandom
+        args:
+          table: users
+          column: id
         sqlType: varchar(8)
         nullable: false
       content:
@@ -29,7 +38,10 @@ tables:
         sqlType: text(65535)
         nullable: false
       content_type:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: enum
+        args:
+          # 内容类型: text文本,image图片
+          values: ["text", "image"]
         sqlType: varchar(20)
         nullable: true
       is_read:
@@ -57,15 +69,21 @@ tables:
     defaultCount: 100  # TODO: 默认生成数量
     fields:
       id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: uuid  # 使用32位UUID
         sqlType: varchar(32)
         nullable: false
       initiator_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: fkRandom
+        args:
+          table: users
+          column: id
         sqlType: varchar(8)
         nullable: false
       receiver_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: fkRandom
+        args:
+          table: users
+          column: id
         sqlType: varchar(8)
         nullable: false
       last_message:
@@ -134,15 +152,21 @@ tables:
     defaultCount: 100  # TODO: 默认生成数量
     fields:
       id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: auto  # 使用数据库自增ID
         sqlType: bigint
         nullable: false
       user_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: fkRandom
+        args:
+          table: users
+          column: id
         sqlType: varchar(8)
         nullable: false
       topic_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: fkRandom
+        args:
+          table: forum_topics
+          column: id
         sqlType: int
         nullable: false
       title:
@@ -234,15 +258,21 @@ tables:
     defaultCount: 100  # TODO: 默认生成数量
     fields:
       id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: auto  # 使用数据库自增ID
         sqlType: bigint
         nullable: false
       post_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: fkRandom
+        args:
+          table: forum_posts
+          column: id
         sqlType: bigint
         nullable: false
       user_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: fkRandom
+        args:
+          table: users
+          column: id
         sqlType: varchar(8)
         nullable: false
       content:
@@ -252,11 +282,17 @@ tables:
         sqlType: text(65535)
         nullable: false
       parent_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: fkRandom
+        args:
+          table: forum_replies
+          column: id
         sqlType: bigint
         nullable: true
       to_user_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: fkRandom
+        args:
+          table: users
+          column: id
         sqlType: varchar(8)
         nullable: true
       status:
@@ -285,7 +321,7 @@ tables:
     defaultCount: 100  # TODO: 默认生成数量
     fields:
       id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: auto  # 使用数据库自增ID
         sqlType: int
         nullable: false
       name:
@@ -313,7 +349,10 @@ tables:
         sqlType: varchar(255)
         nullable: true
       user_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: fkRandom
+        args:
+          table: users
+          column: id
         sqlType: varchar(8)
         nullable: true
       sort_order:
@@ -356,7 +395,7 @@ tables:
     defaultCount: 100  # TODO: 默认生成数量
     fields:
       id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: auto  # 使用数据库自增ID
         sqlType: int
         nullable: false
       section:
@@ -626,11 +665,14 @@ tables:
     defaultCount: 100  # TODO: 默认生成数量
     fields:
       id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: auto  # 使用数据库自增ID
         sqlType: int
         nullable: false
       shop_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: fkRandom
+        args:
+          table: shops
+          column: id
         sqlType: varchar(10)
         nullable: false
       title:
@@ -677,11 +719,14 @@ tables:
     defaultCount: 100  # TODO: 默认生成数量
     fields:
       id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: auto  # 使用数据库自增ID
         sqlType: int
         nullable: false
       shop_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: fkRandom
+        args:
+          table: shops
+          column: id
         sqlType: varchar(10)
         nullable: false
       image_url:
@@ -717,11 +762,17 @@ tables:
         sqlType: tinyint
         nullable: true
       create_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
       update_time:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
         sqlType: datetime
         nullable: false
 
@@ -729,11 +780,14 @@ tables:
     defaultCount: 100  # TODO: 默认生成数量
     fields:
       id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: auto  # 使用数据库自增ID
         sqlType: int
         nullable: false
       user_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: fkRandom
+        args:
+          table: users
+          column: id
         sqlType: varchar(8)
         nullable: false
       real_name:
@@ -814,15 +868,23 @@ tables:
         sqlType: tinyint
         nullable: false
       admin_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: fkRandom
+        args:
+          table: users
+          column: id
         sqlType: varchar(8)
         nullable: true
       reject_reason:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: faker
+        args:
+          provider: "lorem.sentence"
         sqlType: varchar(500)
         nullable: true
       notification_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: fkRandom
+        args:
+          table: user_notifications
+          column: id
         sqlType: int
         nullable: true
       notification_confirmed:
@@ -1194,11 +1256,14 @@ tables:
     defaultCount: 100  # TODO: 默认生成数量
     fields:
       id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: auto  # 使用数据库自增ID
         sqlType: int
         nullable: false
       tea_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: fkRandom
+        args:
+          table: teas
+          column: id
         sqlType: varchar(10)
         nullable: false
       url:
@@ -1232,15 +1297,21 @@ tables:
     defaultCount: 100  # TODO: 默认生成数量
     fields:
       id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: auto  # 使用数据库自增ID
         sqlType: int
         nullable: false
       tea_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: fkRandom
+        args:
+          table: teas
+          column: id
         sqlType: varchar(10)
         nullable: false
       user_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: fkRandom
+        args:
+          table: users
+          column: id
         sqlType: varchar(8)
         nullable: false
       order_id:
@@ -1307,11 +1378,14 @@ tables:
     defaultCount: 100  # TODO: 默认生成数量
     fields:
       id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: auto  # 使用数据库自增ID
         sqlType: int
         nullable: false
       tea_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: fkRandom
+        args:
+          table: teas
+          column: id
         sqlType: varchar(10)
         nullable: false
       spec_name:
@@ -1360,7 +1434,7 @@ tables:
     defaultCount: 100  # TODO: 默认生成数量
     fields:
       id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: uuid  # 与服务中UUID生成逻辑保持一致
         sqlType: varchar(10)
         nullable: false
       name:
@@ -1370,11 +1444,17 @@ tables:
         sqlType: varchar(100)
         nullable: false
       shop_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: fkRandom
+        args:
+          table: shops
+          column: id
         sqlType: varchar(10)
         nullable: false
       category_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: fkRandom
+        args:
+          table: tea_categories
+          column: id
         sqlType: int
         nullable: true
       price:
@@ -1455,11 +1535,14 @@ tables:
     defaultCount: 100  # TODO: 默认生成数量
     fields:
       id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: auto  # 使用数据库自增ID
         sqlType: int
         nullable: false
       user_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: fkRandom
+        args:
+          table: users
+          column: id
         sqlType: varchar(8)
         nullable: false
       receiver_name:
@@ -1521,11 +1604,14 @@ tables:
     defaultCount: 100  # TODO: 默认生成数量
     fields:
       id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: auto  # 使用数据库自增ID
         sqlType: int
         nullable: false
       user_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: fkRandom
+        args:
+          table: users
+          column: id
         sqlType: varchar(8)
         nullable: false
       item_type:
@@ -1563,11 +1649,14 @@ tables:
     defaultCount: 100  # TODO: 默认生成数量
     fields:
       id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: auto  # 使用数据库自增ID
         sqlType: int
         nullable: false
       user_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: fkRandom
+        args:
+          table: users
+          column: id
         sqlType: varchar(8)
         nullable: false
       follow_type:
@@ -1605,11 +1694,14 @@ tables:
     defaultCount: 100  # TODO: 默认生成数量
     fields:
       id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: auto  # 使用数据库自增ID
         sqlType: int
         nullable: false
       user_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: fkRandom
+        args:
+          table: users
+          column: id
         sqlType: varchar(8)
         nullable: false
       target_type:
@@ -1635,15 +1727,21 @@ tables:
     defaultCount: 100  # TODO: 默认生成数量
     fields:
       id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: auto  # 使用数据库自增ID
         sqlType: bigint
         nullable: false
       user_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: fkRandom
+        args:
+          table: users
+          column: id
         sqlType: varchar(8)
         nullable: false
       sender_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: fkRandom
+        args:
+          table: users
+          column: id
         sqlType: varchar(8)
         nullable: true
       type:
@@ -1708,11 +1806,14 @@ tables:
     defaultCount: 100  # TODO: 默认生成数量
     fields:
       id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: auto  # 使用数据库自增ID
         sqlType: bigint
         nullable: false
       user_id:
-        type: TODO  # TODO: 根据业务选择生成类型
+        type: fkRandom
+        args:
+          table: users
+          column: id
         sqlType: varchar(8)
         nullable: false
       setting_key:
