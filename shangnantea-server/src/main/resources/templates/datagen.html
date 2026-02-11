@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>商南茶 - 测试数据生成控制台</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 20px; }
+        h1 { margin-bottom: 10px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 6px 8px; font-size: 13px; }
+        th { background: #f5f5f5; }
+        .count-input { width: 80px; }
+        .msg { white-space: pre-wrap; background: #f9f9f9; border: 1px solid #ddd; padding: 8px; margin-top: 10px; font-size: 12px; }
+        .error { color: #b71c1c; }
+        .toolbar { margin-top: 10px; margin-bottom: 10px; }
+        .toolbar button { margin-right: 8px; }
+    </style>
+</head>
+<body>
+<h1>商南茶 - 测试数据生成控制台</h1>
+
+<p>说明：此页面仅用于本地/开发环境批量生成测试数据，请勿在生产环境使用。</p>
+
+<div th:if="${error != null}" class="msg error" th:text="${error}"></div>
+<div th:if="${message != null}" class="msg" th:text="${message}"></div>
+
+<form method="post" th:action="@{/internal/datagen/run}">
+    <div class="toolbar">
+        <button type="button" onclick="selectAll(true)">全选</button>
+        <button type="button" onclick="selectAll(false)">全不选</button>
+        <button type="submit">开始生成</button>
+    </div>
+
+    <table>
+        <thead>
+        <tr>
+            <th style="width: 40px;">选中</th>
+            <th>表名</th>
+            <th style="width: 120px;">生成数量</th>
+            <th>说明</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="entry : ${tables}">
+            <td style="text-align: center;">
+                <input type="checkbox" name="tables"
+                       th:value="${entry.key}">
+            </td>
+            <td th:text="${entry.key}"></td>
+            <td>
+                <input class="count-input" type="number" min="1"
+                       th:name="${'count_' + entry.key}"
+                       th:value="${#numbers.max(entry.value.defaultCount, 1)}">
+            </td>
+            <td>
+                <span th:text="${'默认 ' + entry.value.defaultCount + ' 行'}"></span>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</form>
+
+<script>
+    function selectAll(flag) {
+        document.querySelectorAll('input[type=checkbox][name=tables]').forEach(function (cb) {
+            cb.checked = flag;
+        });
+    }
+</script>
+</body>
+</html>
+

@@ -39,25 +39,27 @@ public class DataGeneratorStartupRunner implements CommandLineRunner {
         System.out.println("======================================");
         System.out.println(" 商南茶数据生成工具提示 (开发模式)");
         System.out.println("======================================");
-        System.out.println("当前服务已启动，可选择是否立即运行图形界面数据生成工具。");
+        System.out.println("当前服务已启动，可选择是否立即打开内部数据生成控制台页面。");
         System.out.println("注意：仅建议在本地/开发环境使用，不要在生产环境生成测试数据。");
-        System.out.print("是否现在运行数据生成 GUI？输入 Y 确认，其他任意键跳过：");
+        System.out.println("控制台地址: http://localhost:8080/api/internal/datagen");
+        System.out.print("是否现在在默认浏览器中打开该页面？输入 Y 确认，其他任意键跳过：");
 
         BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
         String line = in.readLine();
         if (line != null && "Y".equalsIgnoreCase(line.trim())) {
-            System.out.println("[DataGen-Startup] 开始运行图形界面数据生成工具...");
+            System.out.println("[DataGen-Startup] 尝试在默认浏览器中打开内部数据生成控制台页面...");
             try {
-                // 尝试直接启动 GUI，如环境不支持，会抛出 HeadlessException
-                DataGeneratorGuiApp.startGui();
-            } catch (java.awt.HeadlessException he) {
-                System.err.println("[DataGen-Startup] 当前环境不支持图形界面 (Headless)，无法显示 GUI，已跳过。");
+                if (!java.awt.Desktop.isDesktopSupported()) {
+                    System.err.println("[DataGen-Startup] 当前环境不支持 Desktop API，请手动在浏览器中打开: http://localhost:8080/api/internal/datagen");
+                    return;
+                }
+                java.awt.Desktop.getDesktop().browse(new java.net.URI("http://localhost:8080/api/internal/datagen"));
             } catch (Exception e) {
-                System.err.println("[DataGen-Startup] 数据生成 GUI 执行失败: " + e.getMessage());
+                System.err.println("[DataGen-Startup] 自动打开浏览器失败，请手动访问: http://localhost:8080/api/internal/datagen");
                 e.printStackTrace(System.err);
             }
         } else {
-            System.out.println("[DataGen-Startup] 已跳过数据生成 GUI。");
+            System.out.println("[DataGen-Startup] 已跳过自动打开控制台页面，如需使用请手动访问: http://localhost:8080/api/internal/datagen");
         }
     }
 }
