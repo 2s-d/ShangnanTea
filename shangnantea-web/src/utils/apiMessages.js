@@ -693,6 +693,28 @@ export const CODE_MAP = {
   6141: '不支持的文件类型',
   6142: '文件大小超限',
   
+  // 接口38: uploadArticleImage - /forum/articles/image
+  6029: '图片上传成功',
+  6143: '图片上传失败',
+  6144: '不支持的文件类型',
+  6145: '文件大小超限',
+  
+  // 接口39: getCategories - /forum/categories
+  // 成功码: 200 (已在HTTP状态码中定义)
+  // 失败码: 6100 (已在接口1中定义)
+  
+// 接口40: createCategory - /forum/categories
+  6030: '分类创建成功',
+  6146: '分类创建失败',
+  
+  // 接口41: updateCategory - /forum/categories/{id}
+  6031: '分类更新成功',
+  6147: '分类更新失败',
+  
+  // 接口42: deleteCategory - /forum/categories/{id}
+  6032: '分类已删除',
+  6148: '分类删除失败',
+  
   // ========== 消息模块 (7xxx) ==========
   // 接口1: getMessages - /message/list
   7100: '加载失败',

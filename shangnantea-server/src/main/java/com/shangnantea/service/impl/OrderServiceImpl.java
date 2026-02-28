@@ -1910,12 +1910,25 @@ public class OrderServiceImpl implements OrderService {
             // 统计订单总金额
             java.math.BigDecimal totalAmount = orderMapper.sumOrderAmount(userId, shopId, startDate, endDate);
             
-            // 统计各状态订单数量
-            Map<String, Integer> statusDistribution = orderMapper.countOrdersByStatus(userId, shopId, startDate, endDate);
-            // 确保所有状态都有值（初始化为0）
-            if (statusDistribution == null) {
-                statusDistribution = new java.util.HashMap<>();
+            // 统计各状态订单数量（Mapper 返回多行，每行一个状态）
+            java.util.List<java.util.Map<String, Object>> statusList = orderMapper.countOrdersByStatus(userId, shopId, startDate, endDate);
+            Map<String, Integer> statusDistribution = new java.util.HashMap<>();
+            if (statusList != null) {
+                for (java.util.Map<String, Object> row : statusList) {
+                    if (row == null) {
+                        continue;
+                    }
+                    Object statusKey = row.get("status");
+                    Object countVal = row.get("count");
+                    if (statusKey == null || countVal == null) {
+                        continue;
+                    }
+                    String statusStr = statusKey.toString();
+                    int count = ((Number) countVal).intValue();
+                    statusDistribution.put(statusStr, count);
             }
+            }
+            // 确保所有状态都有值（初始化为0）
             for (int i = 0; i <= 5; i++) {
                 statusDistribution.putIfAbsent(String.valueOf(i), 0);
             }

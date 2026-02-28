@@ -298,7 +298,8 @@ export function setMainImage(imageId) {
  */
 export function toggleTeaStatus(teaId, data) {
   return request({
-    url: API.TEA.STATUS_UPDATE.replace('{teaId}', teaId),
+    // 使用在 apiConstants.js 中定义的 STATUS 常量，路径为 /tea/{teaId}/status
+    url: API.TEA.STATUS.replace('{teaId}', teaId),
     method: 'put',
     data
   })
@@ -311,7 +312,8 @@ export function toggleTeaStatus(teaId, data) {
  */
 export function batchToggleTeaStatus(data) {
   return request({
-    url: API.TEA.BATCH_STATUS_UPDATE,
+    // 使用在 apiConstants.js 中定义的 BATCH_STATUS 常量，路径为 /tea/batch-status
+    url: API.TEA.BATCH_STATUS,
     method: 'put',
     data
   })

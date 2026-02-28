@@ -16,7 +16,6 @@
       <el-tabs v-model="activeTab" class="management-tabs">
         <el-tab-pane label="茶文章管理" name="articles">
           <div class="management-section">
-            <!-- 文章管理区域 -->
             <div class="section-header">
               <div class="search-area">
                 <el-input
@@ -30,15 +29,16 @@
                   </template>
                 </el-input>
                 <el-select v-model="articleCategory" placeholder="选择分类" clearable>
-                  <el-option label="茶文化" value="茶文化" />
-                  <el-option label="茶艺茶道" value="茶艺茶道" />
-                  <el-option label="茶叶百科" value="茶叶百科" />
-                  <el-option label="茶文化传承" value="茶文化传承" />
+                  <el-option
+                    v-for="cat in categoryOptions"
+                    :key="cat.value"
+                    :label="cat.label"
+                    :value="cat.value"
+                  />
                 </el-select>
                 <el-select v-model="articleStatus" placeholder="文章状态" clearable>
                   <el-option label="已发布" :value="1" />
                   <el-option label="草稿" :value="0" />
-                  <el-option label="已删除" :value="2" />
                 </el-select>
               </div>
               <div class="button-area">
@@ -48,7 +48,6 @@
               </div>
             </div>
             
-            <!-- 文章列表 -->
             <el-table
               :data="filteredArticles"
               style="width: 100%"
@@ -59,17 +58,21 @@
               <el-table-column label="标题" min-width="200">
                 <template #default="scope">
                   <div class="article-title-cell">
-                    <el-tag v-if="scope.row.is_top" type="danger" size="small" effect="plain">置顶</el-tag>
-                    <el-tag v-if="scope.row.is_recommend" type="success" size="small" effect="plain">推荐</el-tag>
+                    <el-tag v-if="scope.row.isTop === 1 || scope.row.is_top === 1" type="danger" size="small">置顶</el-tag>
+                    <el-tag v-if="scope.row.isRecommend === 1 || scope.row.is_recommend === 1" type="success" size="small">推荐</el-tag>
                     <span>{{ scope.row.title }}</span>
                   </div>
                 </template>
               </el-table-column>
               <el-table-column label="分类" prop="category" width="120" />
-              <el-table-column label="作者" prop="author" width="120" />
+              <el-table-column label="作者" width="120">
+                <template #default="scope">
+                  {{ scope.row.authorName || scope.row.author || '-' }}
+                </template>
+              </el-table-column>
               <el-table-column label="发布时间" width="180">
                 <template #default="scope">
-                  {{ formatDate(scope.row.publish_time) }}
+                  {{ formatDate(scope.row.publishTime || scope.row.publish_time) }}
                 </template>
               </el-table-column>
               <el-table-column label="状态" width="100">
@@ -79,8 +82,12 @@
                   </el-tag>
                 </template>
               </el-table-column>
-              <el-table-column label="阅读量" prop="view_count" width="100" />
-              <el-table-column label="操作" width="250">
+              <el-table-column label="阅读量" width="100">
+                <template #default="scope">
+                  {{ scope.row.viewCount || scope.row.view_count || 0 }}
+                </template>
+              </el-table-column>
+              <el-table-column label="操作" width="250" fixed="right">
                 <template #default="scope">
                   <el-button size="small" type="primary" @click="handleEditArticle(scope.row)">编辑</el-button>
                   <el-button size="small" type="success" @click="toggleRecommend(scope.row)" :disabled="scope.row.status !== 1">
@@ -91,7 +98,6 @@
               </el-table-column>
             </el-table>
             
-            <!-- 分页 -->
             <div class="pagination-container">
               <el-pagination
                 v-model:current-page="articlePagination.currentPage"
@@ -104,165 +110,165 @@
           </div>
         </el-tab-pane>
         
-        <el-tab-pane label="主页区块管理" name="blocks">
+        <el-tab-pane label="分类管理" name="categories">
           <div class="management-section">
-            <!-- 区块管理区域 -->
-            <el-alert
-              title="区块管理功能允许您配置茶文化主页的各个内容区域"
-              type="info"
-              :closable="false"
-              class="block-info"
-            />
+            <div class="section-header">
+              <h3>文章分类</h3>
+              <el-button type="primary" @click="handleAddCategory">
+                <el-icon><Plus /></el-icon> 添加分类
+              </el-button>
+            </div>
             
-            <el-table
-              :data="homeBlocks"
-              style="width: 100%"
-              v-loading="blocksLoading"
-              border
-            >
-              <el-table-column label="区块名称" min-width="150">
-                <template #default="scope">
-                  <div class="block-name">
-                    <span>{{ getBlockName(scope.row.section) }}</span>
-                    <el-tag size="small" type="info">{{ scope.row.section }}</el-tag>
-                  </div>
-                </template>
-              </el-table-column>
-              <el-table-column label="标题" prop="title" min-width="150" />
-              <el-table-column label="副标题" prop="sub_title" min-width="200" />
-              <el-table-column label="显示状态" width="100">
-                <template #default="scope">
-                  <el-switch
-                    v-model="scope.row.status"
-                    :active-value="1"
-                    :inactive-value="0"
-                    @change="toggleBlockStatus(scope.row)"
-                  />
-                </template>
-              </el-table-column>
+            <el-table :data="categories" style="width: 100%" border>
+              <el-table-column label="分类名称" prop="name" min-width="150" />
+              <el-table-column label="描述" prop="description" min-width="200" />
               <el-table-column label="排序" prop="sort_order" width="80" />
-              <el-table-column label="最后更新" width="180">
+              <el-table-column label="文章数量" width="100">
                 <template #default="scope">
-                  {{ formatDate(scope.row.update_time) }}
+                  {{ getCategoryArticleCount(scope.row.name) }}
                 </template>
               </el-table-column>
-              <el-table-column label="操作" width="120">
+              <el-table-column label="操作" width="180" fixed="right">
                 <template #default="scope">
-                  <el-button size="small" type="primary" @click="handleEditBlock(scope.row)">
-                    编辑内容
-                  </el-button>
+                  <el-button size="small" type="primary" @click="handleEditCategory(scope.row)">编辑</el-button>
+                  <el-button size="small" type="danger" @click="handleDeleteCategory(scope.row)">删除</el-button>
                 </template>
               </el-table-column>
             </el-table>
-      </div>
+          </div>
+        </el-tab-pane>
+        
+        <el-tab-pane label="轮播图管理" name="banners">
+          <div class="management-section">
+            <div class="section-header">
+              <h3>首页轮播图</h3>
+              <el-button type="primary" @click="handleAddBanner">
+                <el-icon><Plus /></el-icon> 添加轮播图
+              </el-button>
+            </div>
+            
+            <el-table :data="banners" style="width: 100%" v-loading="bannersLoading" border>
+              <el-table-column label="ID" prop="id" width="80" />
+              <el-table-column label="预览" width="150">
+                <template #default="scope">
+                  <el-image 
+                    :src="scope.row.image_url" 
+                    fit="cover" 
+                    style="width: 120px; height: 60px"
+                    :preview-src-list="[scope.row.image_url]"
+                  />
+                </template>
+              </el-table-column>
+              <el-table-column label="标题" prop="title" min-width="150" />
+              <el-table-column label="副标题" prop="subtitle" min-width="200" />
+              <el-table-column label="链接" prop="link_url" min-width="200" show-overflow-tooltip />
+              <el-table-column label="排序" prop="sort_order" width="80" />
+              <el-table-column label="操作" width="180" fixed="right">
+                <template #default="scope">
+                  <el-button size="small" type="primary" @click="handleEditBanner(scope.row)">编辑</el-button>
+                  <el-button size="small" type="danger" @click="handleDeleteBanner(scope.row)">删除</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
         </el-tab-pane>
       </el-tabs>
     </div>
 
-    <!-- 文章表单对话框 将在下一部分添加 -->
+    <!-- 文章表单对话框 -->
     <el-dialog
       v-model="articleFormVisible"
       :title="articleForm.id ? '编辑文章' : '新建文章'"
-      width="70%"
+      width="90%"
+      top="5vh"
       destroy-on-close
+      :close-on-click-modal="false"
+      @close="handleDialogClose"
     >
       <el-form :model="articleForm" label-width="100px" :rules="articleRules" ref="articleFormRef">
-        <el-form-item label="文章标题" prop="title">
-          <el-input v-model="articleForm.title" placeholder="请输入文章标题"></el-input>
-        </el-form-item>
-        
-        <el-form-item label="副标题" prop="subtitle">
-          <el-input v-model="articleForm.subtitle" placeholder="请输入副标题"></el-input>
-        </el-form-item>
-        
         <el-row :gutter="20">
-          <el-col :span="8">
-            <el-form-item label="作者" prop="author">
-              <el-input v-model="articleForm.author" placeholder="请输入作者"></el-input>
+          <el-col :span="16">
+            <el-form-item label="文章标题" prop="title">
+              <el-input v-model="articleForm.title" placeholder="请输入文章标题" />
             </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="分类" prop="category">
-              <el-select v-model="articleForm.category" placeholder="请选择分类" style="width: 100%">
-                <el-option label="茶文化" value="茶文化" />
-                <el-option label="茶艺茶道" value="茶艺茶道" />
-                <el-option label="茶叶百科" value="茶叶百科" />
-                <el-option label="茶文化传承" value="茶文化传承" />
-              </el-select>
+            
+            <el-form-item label="副标题" prop="subtitle">
+              <el-input v-model="articleForm.subtitle" placeholder="请输入副标题" />
             </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="来源" prop="source">
-              <el-input v-model="articleForm.source" placeholder="请输入文章来源"></el-input>
+            
+            <el-form-item label="文章摘要" prop="summary">
+              <el-input 
+                v-model="articleForm.summary" 
+                type="textarea" 
+                :rows="3"
+                placeholder="请输入文章摘要，将显示在文章列表中"
+              />
             </el-form-item>
-          </el-col>
-        </el-row>
-        
-        <el-form-item label="文章摘要" prop="summary">
-          <el-input 
-            v-model="articleForm.summary" 
-            type="textarea" 
-            :rows="3"
-            placeholder="请输入文章摘要，将显示在文章列表中"
-          ></el-input>
-        </el-form-item>
-        
-        <el-form-item label="封面图片" prop="cover_image">
-          <el-input v-model="articleForm.cover_image" placeholder="请输入封面图片URL">
-            <template #append>
-              <el-button>选择图片</el-button>
-            </template>
-          </el-input>
-          <div class="cover-preview" v-if="articleForm.cover_image">
-            <SafeImage :src="articleForm.cover_image" type="post" alt="封面预览" style="width:100%;height:auto;max-height:150px;object-fit:contain;" />
-          </div>
-        </el-form-item>
-        
-        <el-form-item label="文章内容" prop="content">
-          <el-input 
-            v-model="articleForm.content" 
-            type="textarea" 
-            :rows="10"
-            placeholder="请输入文章内容，支持HTML格式"
-          ></el-input>
-          <div class="form-tip">支持HTML格式，可以添加段落、标题、图片等内容</div>
-        </el-form-item>
-        
-        <el-form-item label="视频链接" prop="video_url">
-          <el-input v-model="articleForm.video_url" placeholder="请输入视频链接URL（可选）"></el-input>
-        </el-form-item>
-        
-        <el-form-item label="标签" prop="tags">
-          <el-input v-model="articleForm.tags" placeholder="请输入标签，多个标签用英文逗号分隔"></el-input>
-          <div class="form-tip">多个标签用英文逗号分隔，如：商南茶,历史,文化</div>
-        </el-form-item>
-        
-        <el-row :gutter="20">
-          <el-col :span="8">
-            <el-form-item label="发布状态" prop="status">
-              <el-radio-group v-model="articleForm.status">
-                <el-radio :value="1">发布</el-radio>
-                <el-radio :value="0">草稿</el-radio>
-              </el-radio-group>
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="是否置顶" prop="is_top">
-              <el-switch
-                v-model="articleForm.is_top"
-                :active-value="1"
-                :inactive-value="0"
+            
+            <el-form-item label="文章内容" prop="content">
+              <QuillEditor
+                v-model:content="articleForm.content"
+                contentType="html"
+                :options="editorOptions"
+                style="height: 400px"
+                @ready="onEditorReady"
               />
             </el-form-item>
           </el-col>
+          
           <el-col :span="8">
-            <el-form-item label="是否推荐" prop="is_recommend">
-              <el-switch
-                v-model="articleForm.is_recommend"
-                :active-value="1"
-                :inactive-value="0"
-              />
-            </el-form-item>
+            <el-card shadow="hover" class="meta-card">
+              <template #header>
+                <span>文章设置</span>
+              </template>
+              
+              <el-form-item label="作者" prop="author">
+                <el-input v-model="articleForm.author" placeholder="请输入作者" />
+              </el-form-item>
+              
+              <el-form-item label="分类" prop="category">
+                <el-select v-model="articleForm.category" placeholder="请选择分类" style="width: 100%">
+                  <el-option
+                    v-for="cat in categoryOptions"
+                    :key="cat.value"
+                    :label="cat.label"
+                    :value="cat.value"
+                  />
+                </el-select>
+              </el-form-item>
+              
+              <el-form-item label="来源" prop="source">
+                <el-input v-model="articleForm.source" placeholder="请输入文章来源" />
+              </el-form-item>
+              
+              <el-form-item label="标签" prop="tags">
+                <el-input v-model="articleForm.tags" placeholder="用逗号分隔" />
+                <div class="form-tip">多个标签用英文逗号分隔</div>
+              </el-form-item>
+              
+              <el-divider />
+              
+              <el-form-item label="视频链接" prop="video_url">
+                <el-input v-model="articleForm.video_url" placeholder="视频URL（可选）" />
+              </el-form-item>
+              
+              <el-divider />
+              
+              <el-form-item label="发布状态" prop="status">
+                <el-radio-group v-model="articleForm.status">
+                  <el-radio :value="1">发布</el-radio>
+                  <el-radio :value="0">草稿</el-radio>
+                </el-radio-group>
+              </el-form-item>
+              
+              <el-form-item label="置顶" prop="is_top">
+                <el-switch v-model="articleForm.is_top" :active-value="1" :inactive-value="0" />
+              </el-form-item>
+              
+              <el-form-item label="推荐" prop="is_recommend">
+                <el-switch v-model="articleForm.is_recommend" :active-value="1" :inactive-value="0" />
+              </el-form-item>
+            </el-card>
           </el-col>
         </el-row>
       </el-form>
@@ -277,162 +283,83 @@
       </template>
     </el-dialog>
     
-    <!-- 区块编辑对话框 将在下一部分添加 -->
+    <!-- 分类表单对话框 -->
     <el-dialog
-      v-model="blockFormVisible"
-      :title="`编辑区块：${currentBlock ? getBlockName(currentBlock.section) : ''}`"
-      width="70%"
+      v-model="categoryFormVisible"
+      :title="categoryForm.id ? '编辑分类' : '添加分类'"
+      width="500px"
       destroy-on-close
     >
-      <template v-if="currentBlock">
-        <el-form :model="blockForm" label-width="100px" ref="blockFormRef">
-          <el-form-item label="区块标题" prop="title">
-            <el-input v-model="blockForm.title" placeholder="请输入区块标题"></el-input>
-          </el-form-item>
-          
-          <el-form-item label="副标题" prop="sub_title">
-            <el-input v-model="blockForm.sub_title" placeholder="请输入副标题"></el-input>
-          </el-form-item>
-          
-          <el-form-item label="排序" prop="sort_order">
-            <el-input-number v-model="blockForm.sort_order" :min="1" :max="100"></el-input-number>
-            <div class="form-tip">数字越小排序越靠前</div>
-          </el-form-item>
-          
-          <!-- 轮播图区块编辑 -->
-          <template v-if="currentBlock.section === 'banner'">
-            <el-divider content-position="left">轮播图内容</el-divider>
-            
-            <el-form-item>
-              <template #label>
-                <div class="custom-label">
-                  <span>轮播图列表</span>
-                  <el-button type="primary" size="small" plain @click="addBannerItem">
-                    <el-icon><Plus /></el-icon>
-                    添加轮播图
-                  </el-button>
-                </div>
-              </template>
-              
-              <div v-for="(item, index) in bannerItems" :key="index" class="banner-item">
-                <el-card shadow="hover">
-                  <div class="banner-header">
-                    <span class="banner-index">轮播图 #{{ index + 1 }}</span>
-                    <el-button type="danger" size="small" plain @click="removeBannerItem(index)">
-                      移除
-                    </el-button>
-                  </div>
-                  
-                  <div class="banner-form">
-                    <el-row :gutter="20">
-                      <el-col :span="14">
-                        <el-form-item label="图片URL">
-                          <el-input v-model="item.url" placeholder="请输入图片URL"></el-input>
-                        </el-form-item>
-                      </el-col>
-                      <el-col :span="10">
-                        <el-form-item label="链接地址">
-                          <el-input v-model="item.link" placeholder="点击后跳转的链接"></el-input>
-                        </el-form-item>
-                      </el-col>
-                    </el-row>
-                    <el-row :gutter="20">
-                      <el-col :span="12">
-                        <el-form-item label="标题">
-                          <el-input v-model="item.title" placeholder="轮播图标题"></el-input>
-                        </el-form-item>
-                      </el-col>
-                      <el-col :span="12">
-                        <el-form-item label="副标题">
-                          <el-input v-model="item.subtitle" placeholder="轮播图副标题"></el-input>
-                        </el-form-item>
-                      </el-col>
-                    </el-row>
-                  </div>
-                </el-card>
-              </div>
-            </el-form-item>
-          </template>
-          
-          <!-- 推荐茶叶区块编辑 -->
-          <template v-else-if="currentBlock.section === 'recommend'">
-            <el-divider content-position="left">推荐茶叶内容</el-divider>
-            
-            <el-form-item>
-              <template #label>
-                <div class="custom-label">
-                  <span>推荐茶叶列表</span>
-                  <el-button type="primary" size="small" plain @click="addRecommendItem">
-                    <el-icon><Plus /></el-icon>
-                    添加推荐茶叶
-                  </el-button>
-                </div>
-              </template>
-              
-              <div v-for="(item, index) in recommendItems" :key="index" class="recommend-item">
-                <el-card shadow="hover">
-                  <div class="recommend-header">
-                    <span class="recommend-index">茶叶 #{{ index + 1 }}</span>
-                    <el-button type="danger" size="small" plain @click="removeRecommendItem(index)">
-                      移除
-                    </el-button>
-                  </div>
-                  
-                  <div class="recommend-form">
-                    <el-row :gutter="20">
-                      <el-col :span="8">
-                        <el-form-item label="茶叶ID">
-                          <el-input v-model="item.id" placeholder="请输入茶叶ID"></el-input>
-                        </el-form-item>
-                      </el-col>
-                      <el-col :span="8">
-                        <el-form-item label="茶叶名称">
-                          <el-input v-model="item.title" placeholder="请输入茶叶名称"></el-input>
-                        </el-form-item>
-                      </el-col>
-                      <el-col :span="8">
-                        <el-form-item label="价格">
-                          <el-input v-model="item.price" placeholder="请输入价格"></el-input>
-                        </el-form-item>
-                      </el-col>
-                    </el-row>
-                    <el-form-item label="图片URL">
-                      <el-input v-model="item.image" placeholder="请输入图片URL"></el-input>
-                    </el-form-item>
-                  </div>
-                </el-card>
-              </div>
-            </el-form-item>
-          </template>
-          
-          <!-- 其他类型区块的通用内容编辑 -->
-          <template v-else>
-            <el-form-item label="区块内容" prop="content">
-              <el-input 
-                v-model="rawBlockContent" 
-                type="textarea" 
-                :rows="10"
-                placeholder="请输入区块内容（JSON格式）"
-              ></el-input>
-              <div class="form-tip">请使用JSON格式填写区块内容</div>
-            </el-form-item>
-          </template>
-          
-          <el-form-item label="显示状态" prop="status">
-            <el-switch
-              v-model="blockForm.status"
-              :active-value="1"
-              :inactive-value="0"
-            />
-          </el-form-item>
-        </el-form>
-      </template>
+      <el-form :model="categoryForm" label-width="100px" ref="categoryFormRef">
+        <el-form-item label="分类名称" required>
+          <el-input v-model="categoryForm.name" placeholder="请输入分类名称" />
+        </el-form-item>
+        
+        <el-form-item label="分类描述">
+          <el-input v-model="categoryForm.description" type="textarea" :rows="3" placeholder="请输入分类描述" />
+        </el-form-item>
+        
+        <el-form-item label="排序">
+          <el-input-number v-model="categoryForm.sort_order" :min="1" :max="100" />
+          <div class="form-tip">数字越小排序越靠前</div>
+        </el-form-item>
+      </el-form>
       
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="blockFormVisible = false">取消</el-button>
-          <el-button type="primary" @click="submitBlockForm" :loading="blockSubmitting">
-            保存修改
+          <el-button @click="categoryFormVisible = false">取消</el-button>
+          <el-button type="primary" @click="submitCategoryForm" :loading="categorySubmitting">
+            {{ categoryForm.id ? '保存修改' : '添加' }}
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
+    
+    <!-- Banner表单对话框 -->
+    <el-dialog
+      v-model="bannerFormVisible"
+      :title="bannerForm.id ? '编辑轮播图' : '添加轮播图'"
+      width="600px"
+      destroy-on-close
+    >
+      <el-form :model="bannerForm" label-width="100px" ref="bannerFormRef">
+        <el-form-item label="轮播图片" required>
+          <el-upload
+            class="banner-uploader"
+            :show-file-list="false"
+            :http-request="handleBannerImageUpload"
+            :before-upload="beforeImageUpload"
+            accept="image/*"
+          >
+            <img v-if="bannerForm.image_url" :src="bannerForm.image_url" class="banner-image" />
+            <el-icon v-else class="banner-uploader-icon"><Plus /></el-icon>
+          </el-upload>
+          <div class="form-tip">建议尺寸: 1920x600px</div>
+        </el-form-item>
+        
+        <el-form-item label="标题">
+          <el-input v-model="bannerForm.title" placeholder="请输入标题" />
+        </el-form-item>
+        
+        <el-form-item label="副标题">
+          <el-input v-model="bannerForm.subtitle" placeholder="请输入副标题" />
+        </el-form-item>
+        
+        <el-form-item label="链接地址">
+          <el-input v-model="bannerForm.link_url" placeholder="点击后跳转的链接" />
+        </el-form-item>
+        
+        <el-form-item label="排序">
+          <el-input-number v-model="bannerForm.sort_order" :min="1" :max="100" />
+          <div class="form-tip">数字越小排序越靠前</div>
+        </el-form-item>
+      </el-form>
+      
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="bannerFormVisible = false">取消</el-button>
+          <el-button type="primary" @click="submitBannerForm" :loading="bannerSubmitting">
+            {{ bannerForm.id ? '保存修改' : '添加' }}
           </el-button>
         </span>
       </template>
@@ -445,23 +372,23 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useForumStore } from '@/stores/forum'
 import { DocumentCopy, Plus, Search } from '@element-plus/icons-vue'
-import { ElMessageBox } from 'element-plus'
-import SafeImage from '@/components/common/form/SafeImage.vue'
-import { forumPromptMessages } from '@/utils/promptMessages'
-import { showByCode } from '@/utils/apiMessages'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { QuillEditor } from '@vueup/vue-quill'
+import '@vueup/vue-quill/dist/vue-quill.snow.css'
+import forumAPI from '@/api/forum'
+import { showByCode, isSuccess } from '@/utils/apiMessages'
 
 const router = useRouter()
 const forumStore = useForumStore()
+
+// Tab 状态
 const activeTab = ref('articles')
 
-// 默认封面图片
-const defaultCover = ''
-
-// 跳转到论坛管理页面
+// 跳转到论坛管理
 const goToForumManage = () => {
   router.push('/forum/manage')
 }
-    
+
 // ============ 文章管理 ============
 const articleSearch = ref('')
 const articleCategory = ref('')
@@ -470,9 +397,105 @@ const articlesLoading = ref(false)
 const articleFormRef = ref(null)
 const articleFormVisible = ref(false)
 const articleSubmitting = ref(false)
+
+// Quill 编辑器配置
+const editorOptions = {
+  modules: {
+    toolbar: {
+      container: [
+        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+        [{ 'color': [] }, { 'background': [] }],
+        [{ 'align': [] }],
+        ['link', 'image'],
+        ['clean']
+      ],
+      handlers: {
+        image: imageHandler
+      }
+    }
+  },
+  placeholder: '请输入文章内容...',
+  theme: 'snow'
+}
+
+let quillInstance = null
+
+// 编辑器准备完成
+const onEditorReady = (quill) => {
+  quillInstance = quill
+}
+
+// 对话框关闭时重置 quillInstance
+const handleDialogClose = () => {
+  // 延迟重置，确保所有操作完成
+  setTimeout(() => {
+    quillInstance = null
+  }, 100)
+}
+
+// 自定义图片上传处理
+function imageHandler() {
+  const input = document.createElement('input')
+  input.setAttribute('type', 'file')
+  input.setAttribute('accept', 'image/*')
+  input.click()
+  
+  input.onchange = async () => {
+    const file = input.files[0]
+    if (!file) return
     
+    // 检查 quillInstance 是否存在（防止组件已销毁）
+    if (!quillInstance) {
+      ElMessage.warning('编辑器未准备好，请稍后再试')
+      return
+    }
+    
+    try {
+      const res = await forumAPI.uploadArticleImage(file)
+      if (res.code === 6029 && res.data && res.data.url) {
+        // 再次检查 quillInstance（防止异步操作期间组件被销毁）
+        if (!quillInstance) {
+          ElMessage.warning('编辑器已关闭，图片上传成功但未插入')
+          return
+        }
+        const range = quillInstance.getSelection(true)
+        const imageUrl = res.data.url
+        
+        // 确保URL是完整的（如果后端返回的是相对路径，需要补全）
+        let fullImageUrl = imageUrl
+        if (!imageUrl.startsWith('http://') && !imageUrl.startsWith('https://')) {
+          // 如果是相对路径，可能需要补全基础URL
+          // 这里假设后端已经返回了完整URL，如果不行再调整
+          console.warn('图片URL可能是相对路径:', imageUrl)
+        }
+        
+        if (range && range.index !== null) {
+          // 使用 insertEmbed 插入图片
+          quillInstance.insertEmbed(range.index, 'image', fullImageUrl)
+          quillInstance.setSelection(range.index + 1)
+        } else {
+          // 如果没有选中位置，插入到末尾
+          const length = quillInstance.getLength()
+          quillInstance.insertEmbed(length - 1, 'image', fullImageUrl)
+        }
+        
+        // 强制更新编辑器内容
+        quillInstance.update()
+        ElMessage.success('图片上传成功')
+      } else {
+        ElMessage.error('图片上传失败')
+      }
+    } catch (error) {
+      console.error('图片上传失败:', error)
+      ElMessage.error('图片上传失败')
+    }
+  }
+}
+
 // 文章表单数据
-const articleForm = ref({
+const articleForm = reactive({
   id: null,
   title: '',
   subtitle: '',
@@ -480,8 +503,6 @@ const articleForm = ref({
   category: '',
   content: '',
   summary: '',
-  cover_image: '',
-  images: '',
   video_url: '',
   tags: '',
   source: '',
@@ -497,63 +518,64 @@ const articleRules = {
   content: [{ required: true, message: '请输入文章内容', trigger: 'blur' }]
 }
 
-// 从Pinia获取数据
-const articles = computed(() => forumStore.articles || [])
-const loading = computed(() => forumStore.loading)
-
+// 文章分页
 const articlePagination = reactive({
   currentPage: 1,
   pageSize: 10,
   total: 0
 })
-    
+
+// 从 store 获取文章列表
+const articles = computed(() => forumStore.articles || [])
+
 // 筛选后的文章列表
 const filteredArticles = computed(() => {
-  return articles.value.filter(article => {
-    let match = true
-    
-    // 搜索标题
-    if (articleSearch.value && !article.title.includes(articleSearch.value)) {
-      match = false
-    }
-    
-    // 筛选分类
-    if (articleCategory.value && article.category !== articleCategory.value) {
-      match = false
-    }
-    
-    // 筛选状态
-    if (articleStatus.value !== '' && article.status !== articleStatus.value) {
-      match = false
-    }
-    
-    return match
-  })
-})
-    
-// 根据状态获取标签类型
-const getStatusType = status => {
-  switch (status) {
-  case 1: return 'success'
-  case 0: return 'warning'
-  case 2: return 'info'
-  default: return 'info'
+  let result = articles.value
+  
+  if (articleSearch.value) {
+    result = result.filter(article => 
+      article.title.includes(articleSearch.value)
+    )
   }
+  
+  if (articleCategory.value) {
+    result = result.filter(article => 
+      article.category === articleCategory.value
+    )
+  }
+  
+  if (articleStatus.value !== '') {
+    result = result.filter(article => 
+      article.status === articleStatus.value
+    )
+  }
+  
+  articlePagination.total = result.length
+  return result
+})
+
+// 获取状态标签类型
+const getStatusType = (status) => {
+  const types = { 0: 'warning', 1: 'success', 2: 'info' }
+  return types[status] || 'info'
 }
 
-// 根据状态获取文本
-const getStatusText = status => {
-  switch (status) {
-  case 1: return '已发布'
-  case 0: return '草稿'
-  case 2: return '已删除'
-  default: return '未知'
-  }
+// 获取状态文本
+const getStatusText = (status) => {
+  const texts = { 0: '草稿', 1: '已发布', 2: '已删除' }
+  return texts[status] || '未知'
 }
-    
+
+// 格式化日期
+const formatDate = (dateString) => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+}
+
 // 创建文章
 const handleCreateArticle = () => {
-  articleForm.value = {
+  Object.assign(articleForm, {
     id: null,
     title: '',
     subtitle: '',
@@ -561,44 +583,78 @@ const handleCreateArticle = () => {
     category: '',
     content: '',
     summary: '',
-    cover_image: '',
-    images: '',
     video_url: '',
     tags: '',
     source: '',
     status: 1,
     is_top: 0,
     is_recommend: 0
-  }
+  })
   articleFormVisible.value = true
 }
 
 // 编辑文章
-const handleEditArticle = article => {
-  articleForm.value = { ...article }
-  // 如果tags是数组，转换为字符串
-  if (Array.isArray(articleForm.value.tags)) {
-    articleForm.value.tags = articleForm.value.tags.join(',')
-  }
-  articleFormVisible.value = true
-}
-    
-// 切换推荐状态
-const toggleRecommend = async article => {
+const handleEditArticle = async (article) => {
   try {
-    const newRecommendStatus = article.is_recommend === 1 ? 0 : 1
-    const res = await forumStore.updateArticle({ 
-      id: article.id, 
-      data: { ...article, is_recommend: newRecommendStatus }
+    // 编辑时需要调用详情接口获取完整数据（包括 content）
+    const res = await forumStore.fetchArticleDetail(article.id)
+    if (res && res.data) {
+      const detail = res.data
+      Object.assign(articleForm, {
+        id: detail.id,
+        title: detail.title || '',
+        subtitle: detail.subtitle || '',
+        author: detail.author || detail.authorName || '',
+        category: detail.category || '',
+        content: detail.content || '',
+        summary: detail.summary || '',
+        video_url: detail.videoUrl || detail.video_url || '',
+        tags: Array.isArray(detail.tags) ? detail.tags.join(',') : (detail.tags || ''),
+        source: detail.source || '',
+        status: detail.status !== undefined ? detail.status : 1,
+        is_top: detail.isTop !== undefined ? detail.isTop : (detail.is_top !== undefined ? detail.is_top : 0),
+        is_recommend: detail.isRecommend !== undefined ? detail.isRecommend : (detail.is_recommend !== undefined ? detail.is_recommend : 0)
+      })
+    } else {
+      // 如果详情接口失败，使用列表数据（但可能没有 content）
+      Object.assign(articleForm, {
+        ...article,
+        author: article.authorName || article.author || '',
+        video_url: article.videoUrl || article.video_url || '',
+        tags: Array.isArray(article.tags) ? article.tags.join(',') : (article.tags || ''),
+        status: article.status !== undefined ? article.status : 1,
+        is_top: article.isTop !== undefined ? article.isTop : (article.is_top !== undefined ? article.is_top : 0),
+        is_recommend: article.isRecommend !== undefined ? article.isRecommend : (article.is_recommend !== undefined ? article.is_recommend : 0)
+      })
+    }
+    articleFormVisible.value = true
+  } catch (error) {
+    console.error('获取文章详情失败:', error)
+    ElMessage.error('获取文章详情失败，请重试')
+  }
+}
+
+// 切换推荐状态
+const toggleRecommend = async (article) => {
+  try {
+    const currentStatus = article.isRecommend !== undefined ? article.isRecommend : (article.is_recommend !== undefined ? article.is_recommend : 0)
+    const newStatus = currentStatus === 1 ? 0 : 1
+    const res = await forumStore.updateArticle({
+      id: article.id,
+      data: { is_recommend: newStatus }
     })
     showByCode(res.code)
+    if (isSuccess(res.code)) {
+      await fetchArticles()
+    }
   } catch (error) {
     console.error('切换推荐状态失败:', error)
+    ElMessage.error('操作失败')
   }
 }
-    
+
 // 删除文章
-const handleDeleteArticle = article => {
+const handleDeleteArticle = (article) => {
   ElMessageBox.confirm(
     `确定要删除文章 "${article.title}" 吗？`,
     '警告',
@@ -611,268 +667,371 @@ const handleDeleteArticle = article => {
     try {
       const res = await forumStore.deleteArticle(article.id)
       showByCode(res.code)
+      await fetchArticles()
     } catch (error) {
       console.error('删除文章失败:', error)
+      ElMessage.error('删除失败')
     }
-  }).catch(() => {
-    // 取消删除
-  })
+  }).catch(() => {})
 }
-    
+
 // 提交文章表单
 const submitArticleForm = () => {
   if (!articleFormRef.value) return
   
-  articleFormRef.value.validate(async valid => {
-    if (!valid) {
-      return false
-    }
+  articleFormRef.value.validate(async (valid) => {
+    if (!valid) return
     
     articleSubmitting.value = true
     
     try {
-      const formData = { ...articleForm.value }
+      const formData = { ...articleForm }
       
-      // 处理标签：如果是字符串，转换为数组
+      // 处理标签
       if (typeof formData.tags === 'string') {
         formData.tags = formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag)
       }
       
-      if (formData.id) {
-        // 更新文章
-        const res = await forumStore.updateArticle({ id: formData.id, data: formData })
-        showByCode(res.code)
-      } else {
-        // 创建文章
-        const res = await forumStore.createArticle(formData)
-        showByCode(res.code)
+      // 字段名映射：前端表单字段 -> 后端API字段
+      const apiData = {
+        title: formData.title,
+        subtitle: formData.subtitle,
+        content: formData.content,
+        summary: formData.summary,
+        category: formData.category,
+        tags: formData.tags,
+        source: formData.source,
+        author: formData.author,
+        videoUrl: formData.video_url,
+        status: formData.status,
+        is_top: formData.is_top,
+        is_recommend: formData.is_recommend
       }
       
-      articleFormVisible.value = false
-      // 刷新文章列表
-      await fetchArticles()
+      // 调试：打印提交的数据
+      console.log('提交文章数据:', {
+        id: formData.id,
+        title: apiData.title,
+        contentLength: apiData.content ? apiData.content.length : 0,
+        hasImages: apiData.content ? apiData.content.includes('<img') : false,
+        contentPreview: apiData.content ? apiData.content.substring(0, 200) : ''
+      })
+      
+      let res
+      try {
+        if (formData.id) {
+          res = await forumStore.updateArticle({ id: formData.id, data: apiData })
+        } else {
+          res = await forumStore.createArticle(apiData)
+        }
+        
+        console.log('文章操作结果:', res)
+        showByCode(res.code)
+        
+        if (isSuccess(res.code)) {
+          articleFormVisible.value = false
+          await fetchArticles()
+        } else {
+          // 失败时显示详细错误信息
+          console.error('文章操作失败:', res)
+          ElMessage.error(res.message || '操作失败，请检查控制台日志')
+        }
+      } catch (error) {
+        console.error('文章操作异常:', error)
+        ElMessage.error('操作失败: ' + (error.message || '未知错误'))
+        throw error
+      }
     } catch (error) {
       console.error('提交文章失败:', error)
+      ElMessage.error('提交失败')
     } finally {
       articleSubmitting.value = false
     }
   })
 }
-    
-// ============ 区块管理 ============
-const blocksLoading = ref(false)
-const blockFormRef = ref(null)
-const blockFormVisible = ref(false)
-const blockSubmitting = ref(false)
-const currentBlock = ref(null)
 
-// 区块表单数据
-const blockForm = ref({
-  title: '',
-  sub_title: '',
-  sort_order: 1,
-  status: 1
-})
 
-// 轮播图项目
-const bannerItems = ref([])
-
-// 推荐项目
-const recommendItems = ref([])
-
-// 原始区块内容
-const rawBlockContent = ref('')
-    
-// 从Pinia获取首页数据
-const homeBlocks = computed(() => {
-  // 将首页数据转换为区块格式
-  const blocks = []
-  const homeData = forumStore
-  
-  // Banner区块
-  if (homeData.banners && homeData.banners.length > 0) {
-    blocks.push({
-      section: 'banner',
-      title: '顶部轮播图',
-      sub_title: '首页轮播展示',
-      content: JSON.stringify(homeData.banners),
-      status: 1,
-      sort_order: 1,
-      update_time: new Date().toISOString()
-    })
-  }
-  
-  // 推荐茶叶区块
-  if (homeData.cultureFeatures && homeData.cultureFeatures.length > 0) {
-    blocks.push({
-      section: 'recommend',
-      title: '推荐茶叶',
-      sub_title: '精选茶叶推荐',
-      content: JSON.stringify(homeData.cultureFeatures),
-      status: 1,
-      sort_order: 2,
-      update_time: new Date().toISOString()
-    })
-  }
-  
-  return blocks
-})
-    
-// 获取区块友好名称
-const getBlockName = section => {
-  const blockNames = {
-    'banner': '顶部轮播图',
-    'recommend': '推荐茶叶',
-    'culture_intro': '文化简介',
-    'feature': '特色功能',
-    'news': '新闻动态'
-  }
-  return blockNames[section] || section
-}
-
-// 切换区块状态
-const toggleBlockStatus = async block => {
-  try {
-    const res = await forumStore.updateHomeData({ ...block, status: block.status === 1 ? 0 : 1 })
-    showByCode(res.code)
-  } catch (error) {
-    console.error('切换区块状态失败:', error)
-  }
-}
-
-// 编辑区块
-const handleEditBlock = block => {
-  currentBlock.value = block
-  blockForm.value = {
-    title: block.title,
-    sub_title: block.sub_title,
-    sort_order: block.sort_order,
-    status: block.status
-  }
-  
-  // 解析内容
-  if (block.section === 'banner') {
-    try {
-      bannerItems.value = JSON.parse(block.content)
-    } catch (e) {
-      bannerItems.value = []
-      forumPromptMessages.showBannerDataError()
-    }
-  } else if (block.section === 'recommend') {
-    try {
-      recommendItems.value = JSON.parse(block.content)
-    } catch (e) {
-      recommendItems.value = []
-      forumPromptMessages.showRecommendDataError()
-    }
-  } else {
-    rawBlockContent.value = block.content
-  }
-  
-  blockFormVisible.value = true
-}
-
-// 添加轮播图项目
-const addBannerItem = () => {
-  bannerItems.value.push({
-    url: '',
-    link: '',
-    title: '',
-    subtitle: ''
-  })
-}
-
-// 移除轮播图项目
-const removeBannerItem = index => {
-  bannerItems.value.splice(index, 1)
-}
-
-// 添加推荐茶叶项目
-const addRecommendItem = () => {
-  recommendItems.value.push({
-    id: '',
-    title: '',
-    image: '',
-    price: ''
-  })
-}
-
-// 移除推荐茶叶项目
-const removeRecommendItem = index => {
-  recommendItems.value.splice(index, 1)
-}
-
-// 提交区块表单
-const submitBlockForm = async () => {
-  if (!currentBlock.value) return
-  
-  blockSubmitting.value = true
-  
-  try {
-    let content = ''
-    
-    // 根据区块类型构造内容
-    if (currentBlock.value.section === 'banner') {
-      content = JSON.stringify(bannerItems.value)
-    } else if (currentBlock.value.section === 'recommend') {
-      content = JSON.stringify(recommendItems.value)
-    } else {
-      content = rawBlockContent.value
-    }
-    
-    const updateData = {
-      ...blockForm.value,
-      content
-    }
-    
-    // 更新首页数据
-    const res = await forumStore.updateHomeData(updateData)
-    showByCode(res.code)
-    blockFormVisible.value = false
-    
-    // 刷新首页数据
-    await fetchHomeData()
-  } catch (error) {
-    console.error('保存区块失败:', error)
-  } finally {
-    blockSubmitting.value = false
-  }
-}
-
-// ============ 共用函数 ============
-// 格式化日期
-const formatDate = dateString => {
-  if (!dateString) return ''
-  const date = new Date(dateString)
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
-}
-
-// 去论坛管理
 // 获取文章列表
 const fetchArticles = async () => {
+  articlesLoading.value = true
   try {
-    const res = await forumStore.fetchArticles()
-    showByCode(res.code)
+    await forumStore.fetchArticles()
   } catch (error) {
     console.error('获取文章列表失败:', error)
+  } finally {
+    articlesLoading.value = false
   }
 }
 
-// 获取首页数据
-const fetchHomeData = async () => {
+// ============ 轮播图管理 ============
+const bannersLoading = ref(false)
+const bannerFormRef = ref(null)
+const bannerFormVisible = ref(false)
+const bannerSubmitting = ref(false)
+
+// 轮播图表单数据
+const bannerForm = reactive({
+  id: null,
+  image_url: '',
+  title: '',
+  subtitle: '',
+  link_url: '',
+  sort_order: 1
+})
+
+// 从 store 获取轮播图列表
+const banners = computed(() => forumStore.banners || [])
+
+// 添加轮播图
+const handleAddBanner = () => {
+  Object.assign(bannerForm, {
+    id: null,
+    image_url: '',
+    title: '',
+    subtitle: '',
+    link_url: '',
+    sort_order: 1
+  })
+  bannerFormVisible.value = true
+}
+
+// 编辑轮播图
+const handleEditBanner = (banner) => {
+  Object.assign(bannerForm, banner)
+  bannerFormVisible.value = true
+}
+
+// 删除轮播图
+const handleDeleteBanner = (banner) => {
+  ElMessageBox.confirm(
+    `确定要删除轮播图 "${banner.title}" 吗？`,
+    '警告',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }
+  ).then(async () => {
+    try {
+      const res = await forumStore.deleteBanner(banner.id)
+      showByCode(res.code)
+      await fetchBanners()
+    } catch (error) {
+      console.error('删除轮播图失败:', error)
+      ElMessage.error('删除失败')
+    }
+  }).catch(() => {})
+}
+
+// 轮播图图片上传
+const handleBannerImageUpload = async ({ file }) => {
   try {
-    const res = await forumStore.fetchHomeData()
-    showByCode(res.code)
+    const res = await forumAPI.uploadArticleImage(file)
+    if (res.code === 6029 && res.data && res.data.url) {
+      bannerForm.image_url = res.data.url
+      ElMessage.success('图片上传成功')
+    } else {
+      ElMessage.error('图片上传失败')
+    }
   } catch (error) {
-    console.error('获取首页数据失败:', error)
+    console.error('图片上传失败:', error)
+    ElMessage.error('图片上传失败')
   }
 }
 
-// 加载页面数据
+// 提交轮播图表单
+const submitBannerForm = async () => {
+  if (!bannerForm.image_url) {
+    ElMessage.warning('请上传轮播图片')
+    return
+  }
+  
+  bannerSubmitting.value = true
+  
+  try {
+    let res
+    if (bannerForm.id) {
+      res = await forumStore.updateBanner({ id: bannerForm.id, data: bannerForm })
+    } else {
+      const formData = new FormData()
+      formData.append('title', bannerForm.title)
+      formData.append('subtitle', bannerForm.subtitle)
+      formData.append('linkUrl', bannerForm.link_url)
+      formData.append('sortOrder', bannerForm.sort_order)
+      
+      // 如果有图片URL，需要先下载再上传（这里简化处理，直接使用URL）
+      res = await forumStore.uploadBanner(formData)
+    }
+    
+    showByCode(res.code)
+    bannerFormVisible.value = false
+    await fetchBanners()
+  } catch (error) {
+    console.error('提交轮播图失败:', error)
+    ElMessage.error('提交失败')
+  } finally {
+    bannerSubmitting.value = false
+  }
+}
+
+// 获取轮播图列表
+const fetchBanners = async () => {
+  bannersLoading.value = true
+  try {
+    await forumStore.fetchBanners()
+  } catch (error) {
+    console.error('获取轮播图列表失败:', error)
+  } finally {
+    bannersLoading.value = false
+  }
+}
+
+// ============ 分类管理 ============
+const categoryFormRef = ref(null)
+const categoryFormVisible = ref(false)
+const categorySubmitting = ref(false)
+
+// 分类表单数据
+const categoryForm = reactive({
+  id: null,
+  name: '',
+  description: '',
+  sort_order: 1
+})
+
+// 分类列表（从 home_contents 中读取 section='category' 的数据）
+const categories = ref([])
+
+// 分类下拉选项：优先使用后端配置（home_contents section='category'），为空时兜底固定四类
+const categoryOptions = computed(() => {
+  const fromApi = (categories.value || [])
+    .filter(item => item && item.status !== 0)
+    .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+    .map(item => ({ label: item.name, value: item.name }))
+
+  if (fromApi.length > 0) {
+    return fromApi
+  }
+
+  // 兜底：避免后端还未初始化分类导致无法创建/筛选文章
+  return [
+    { label: '茶叶历史', value: '茶叶历史' },
+    { label: '茶艺茶道', value: '茶艺茶道' },
+    { label: '茶叶百科', value: '茶叶百科' },
+    { label: '茶文化传承', value: '茶文化传承' }
+  ]
+})
+
+// 获取分类列表
+const fetchCategories = async () => {
+  try {
+    const response = await forumAPI.getCategories()
+    if (response.code === 200) {
+      categories.value = response.data || []
+    }
+  } catch (error) {
+    console.error('获取分类列表失败:', error)
+    ElMessage.error('获取分类列表失败')
+  }
+}
+
+// 获取分类的文章数量
+const getCategoryArticleCount = (categoryName) => {
+  return articles.value.filter(article => article.category === categoryName).length
+}
+
+// 添加分类
+const handleAddCategory = () => {
+  Object.assign(categoryForm, {
+    id: null,
+    name: '',
+    description: '',
+    sort_order: categories.value.length + 1
+  })
+  categoryFormVisible.value = true
+}
+
+// 编辑分类
+const handleEditCategory = (category) => {
+  Object.assign(categoryForm, category)
+  categoryFormVisible.value = true
+}
+
+// 删除分类
+const handleDeleteCategory = async (category) => {
+  const articleCount = getCategoryArticleCount(category.name)
+  
+  if (articleCount > 0) {
+    ElMessage.warning(`该分类下还有 ${articleCount} 篇文章，无法删除`)
+    return
+  }
+  
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除分类 "${category.name}" 吗？`,
+      '警告',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+    
+    const response = await forumAPI.deleteCategory(category.id)
+    showByCode(response.code)
+    if (isSuccess(response.code)) {
+      await fetchCategories()
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('删除分类失败:', error)
+    }
+  }
+}
+
+// 提交分类表单
+const submitCategoryForm = async () => {
+  if (!categoryForm.name) {
+    ElMessage.warning('请输入分类名称')
+    return
+  }
+  
+  categorySubmitting.value = true
+  
+  try {
+    const data = {
+      name: categoryForm.name,
+      description: categoryForm.description,
+      sort_order: categoryForm.sort_order
+    }
+    
+    let response
+    if (categoryForm.id) {
+      // 编辑
+      response = await forumAPI.updateCategory(categoryForm.id, data)
+    } else {
+      // 新增
+      response = await forumAPI.createCategory(data)
+    }
+    
+    showByCode(response.code)
+    if (isSuccess(response.code)) {
+      categoryFormVisible.value = false
+      await fetchCategories()
+    }
+  } catch (error) {
+    console.error('提交分类失败:', error)
+  } finally {
+    categorySubmitting.value = false
+  }
+}
+
+// 页面加载时获取数据
 onMounted(async () => {
   await Promise.all([
     fetchArticles(),
-    fetchHomeData()
+    fetchBanners(),
+    fetchCategories()
   ])
 })
 </script>
@@ -883,82 +1042,90 @@ onMounted(async () => {
   background-color: #f5f7fa;
 }
 
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 15px;
-}
-
 .page-header {
-  background-color: #fff;
-  padding: 30px 0;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 40px 0;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   
-  .page-title {
-    font-size: 28px;
-    font-weight: 600;
-    margin: 0 0 10px;
-    color: var(--el-text-color-primary);
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px;
   }
   
-  .page-description {
-    font-size: 16px;
-    color: var(--el-text-color-secondary);
-    margin-bottom: 20px;
+  .page-title {
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0 0 15px;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
   
   .header-actions {
-    margin-top: 10px;
-    
-    .el-button {
-      padding: 9px 15px;
-      font-size: 14px;
-      line-height: 1.5;
-      border-radius: 4px;
-      font-weight: 500;
-      height: 40px;
-      
-      .el-icon {
-        margin-right: 5px;
-      }
-    }
+    margin-top: 15px;
   }
 }
 
 .main-content {
-  margin-bottom: 40px;
+  max-width: 1400px;
+  margin: 0 auto 40px;
+  padding: 0 20px;
 }
 
 .management-tabs {
   background-color: #fff;
-  border-radius: 4px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  padding: 24px;
+  
+  :deep(.el-tabs__header) {
+    margin-bottom: 24px;
+  }
+  
+  :deep(.el-tabs__item) {
+    font-size: 16px;
+    font-weight: 500;
+    padding: 0 24px;
+    height: 48px;
+    line-height: 48px;
+  }
 }
 
 .management-section {
-  margin-top: 20px;
-  
   .section-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+    
+    h3 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      color: #303133;
+    }
     
     .search-area {
       display: flex;
-      gap: 10px;
+      gap: 12px;
       flex: 1;
+      flex-wrap: wrap;
       
       .search-input {
-        max-width: 300px;
+        width: 280px;
+      }
+      
+      .el-select {
+        width: 160px;
       }
     }
     
     .button-area {
       display: flex;
-      gap: 10px;
+      gap: 12px;
     }
   }
 }
@@ -966,93 +1133,216 @@ onMounted(async () => {
 .article-title-cell {
   display: flex;
   align-items: center;
-  gap: 5px;
-  
-  .el-tag {
-    margin-right: 5px;
-  }
-}
-
-.block-name {
-  display: flex;
-  align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
   
   .el-tag {
-    margin-left: 5px;
+    flex-shrink: 0;
   }
-}
-
-.block-info {
-  margin-bottom: 20px;
+  
+  span {
+    flex: 1;
+    min-width: 0;
+  }
 }
 
 .pagination-container {
-  margin-top: 20px;
+  margin-top: 24px;
   display: flex;
   justify-content: flex-end;
 }
 
-.cover-preview {
-  margin-top: 10px;
-  width: 200px;
-  height: 120px;
-  overflow: hidden;
-  border: 1px solid #eaeaea;
-  border-radius: 4px;
+// 文章表单样式
+.meta-card {
+  :deep(.el-card__header) {
+    background-color: #f5f7fa;
+    font-weight: 600;
+    font-size: 16px;
+  }
   
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+  .el-form-item {
+    margin-bottom: 20px;
   }
 }
 
 .form-tip {
   color: #909399;
   font-size: 12px;
-  margin-top: 5px;
+  margin-top: 4px;
+  line-height: 1.5;
 }
 
-.custom-label {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-}
-
-.banner-item, .recommend-item {
-  margin-bottom: 15px;
-  
-  .banner-header, .recommend-header {
+// Banner上传样式
+.banner-uploader {
+  :deep(.el-upload) {
+    border: 1px dashed #d9d9d9;
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s;
+    width: 100%;
+    height: 200px;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
-    border-bottom: 1px dashed #eaeaea;
-    padding-bottom: 10px;
+    justify-content: center;
+    
+    &:hover {
+      border-color: #409eff;
+    }
   }
   
-  .banner-form, .recommend-form {
-    padding: 0 10px;
+  .banner-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: block;
+  }
+  
+  .banner-uploader-icon {
+    font-size: 32px;
+    color: #8c939d;
+  }
+}
+
+// Quill编辑器样式优化
+:deep(.ql-container) {
+  min-height: 400px;
+  font-size: 14px;
+  
+  .ql-editor {
+    min-height: 400px;
+    
+    &.ql-blank::before {
+      color: #c0c4cc;
+      font-style: normal;
+    }
+  }
+}
+
+:deep(.ql-toolbar) {
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+  background-color: #fafafa;
+}
+
+:deep(.ql-container) {
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+
+// 响应式设计
+@media (max-width: 1200px) {
+  .page-header .page-title {
+    font-size: 28px;
+  }
+  
+  .main-content {
+    max-width: 100%;
   }
 }
 
 @media (max-width: 768px) {
-  .section-header {
+  .page-header {
+    padding: 30px 0;
+    
+    .page-title {
+      font-size: 24px;
+    }
+  }
+  
+  .management-section .section-header {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
     
     .search-area {
-      margin-bottom: 10px;
       width: 100%;
-      flex-wrap: wrap;
       
-      .el-input, .el-select {
+      .search-input,
+      .el-select {
         width: 100%;
-        margin-bottom: 10px;
+      }
+    }
+    
+    .button-area {
+      width: 100%;
+      
+      .el-button {
+        flex: 1;
       }
     }
   }
+  
+  .el-table {
+    font-size: 12px;
+  }
+  
+  :deep(.el-dialog) {
+    width: 95% !important;
+    margin: 5vh auto !important;
+  }
 }
-</style> 
+
+// 表格优化
+:deep(.el-table) {
+  .el-button + .el-button {
+    margin-left: 8px;
+  }
+  
+  .el-tag + .el-tag {
+    margin-left: 4px;
+  }
+}
+
+// 对话框优化
+:deep(.el-dialog) {
+  border-radius: 8px;
+  
+  .el-dialog__header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #ebeef5;
+    
+    .el-dialog__title {
+      font-size: 18px;
+      font-weight: 600;
+    }
+  }
+  
+  .el-dialog__body {
+    padding: 24px;
+  }
+  
+  .el-dialog__footer {
+    padding: 16px 24px;
+    border-top: 1px solid #ebeef5;
+  }
+}
+
+// 按钮优化
+.el-button {
+  border-radius: 4px;
+  font-weight: 500;
+  transition: all 0.3s;
+  
+  &.el-button--primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    
+    &:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+    }
+  }
+}
+
+// 卡片优化
+.el-card {
+  border-radius: 8px;
+  border: 1px solid #ebeef5;
+  
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+}
+</style>

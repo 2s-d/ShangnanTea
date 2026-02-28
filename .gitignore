@@ -66,6 +66,10 @@ shangnantea-server/target/
 uploads/
 files/
 
-# ==================== Portfolio 项目（已独立） ====================
+# ==================== 独立项目（已有独立仓库） ====================
 portfolio/
+shangnantea-official/
+
+# ==================== 容器化部署配置 ====================
+docker-deployment/
 

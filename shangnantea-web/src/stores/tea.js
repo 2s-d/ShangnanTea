@@ -49,7 +49,9 @@ export const useTeaStore = defineStore('tea', () => {
     origin: '',
     rating: null,
     sortBy: '',
-    sortOrder: 'asc'
+    sortOrder: 'asc',
+    // 平台直售 / 店铺筛选：shopId 为空表示不过滤，'PLATFORM' 表示平台直售
+    shopId: ''
   })
   
   // 评价相关state
@@ -106,6 +108,10 @@ export const useTeaStore = defineStore('tea', () => {
       }
       if (filters.sortBy) params.sortBy = filters.sortBy
       if (filters.sortOrder) params.sortOrder = filters.sortOrder
+      // 管理员在茶叶管理页使用的店铺来源筛选（平台直售/商家店）
+      if (filters.shopId) {
+        params.shopId = filters.shopId
+      }
       
       const res = await getTeas(params)
       
@@ -218,7 +224,8 @@ export const useTeaStore = defineStore('tea', () => {
       origin: '',
       rating: null,
       sortBy: '',
-      sortOrder: 'asc'
+      sortOrder: 'asc',
+      shopId: ''
     })
     Object.assign(pagination, {
       total: 0,

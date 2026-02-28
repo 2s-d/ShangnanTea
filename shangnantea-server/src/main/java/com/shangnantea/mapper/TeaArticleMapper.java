@@ -21,4 +21,11 @@ public interface TeaArticleMapper extends BaseMapper<TeaArticle, Long> {
     List<TeaArticle> selectPublishedArticles(@Param("category") String category, 
                                               @Param("keyword") String keyword,
                                               @Param("status") Integer status);
+    /**
+     * 根据分类查询文章列表
+     * 
+     * @param category 分类名称
+     * @return 文章列表
+     */
+    List<TeaArticle> selectByCategory(@Param("category") String category);
 } 

@@ -6,9 +6,9 @@
       <el-card class="profile-card" v-loading="loading">
         <div class="profile-content">
           <el-form 
-            :model="userForm" 
+            :model="formData" 
             :rules="rules"
-            ref="userFormRef"
+            ref="userForm"
             label-width="100px" 
             class="user-form"
             status-icon
@@ -34,13 +34,13 @@
               </div>
             </el-form-item>
             <el-form-item label="用户名">
-              <el-input v-model="userForm.username" disabled></el-input>
+              <el-input v-model="formData.username" disabled></el-input>
             </el-form-item>
             <el-form-item label="昵称" prop="nickname">
-              <el-input v-model="userForm.nickname" placeholder="请输入您的昵称"></el-input>
+              <el-input v-model="formData.nickname" placeholder="请输入您的昵称"></el-input>
             </el-form-item>
             <el-form-item label="性别" prop="gender">
-              <el-radio-group v-model="userForm.gender">
+              <el-radio-group v-model="formData.gender">
                 <el-radio :value="1">男</el-radio>
                 <el-radio :value="2">女</el-radio>
                 <el-radio :value="0">保密</el-radio>
@@ -48,7 +48,7 @@
             </el-form-item>
             <el-form-item label="生日" prop="birthday">
               <el-date-picker 
-                v-model="userForm.birthday" 
+                v-model="formData.birthday" 
                 type="date" 
                 placeholder="选择生日"
                 format="YYYY-MM-DD"
@@ -58,14 +58,14 @@
               ></el-date-picker>
             </el-form-item>
             <el-form-item label="手机号" prop="phone">
-              <el-input v-model="userForm.phone" placeholder="请输入您的手机号"></el-input>
+              <el-input v-model="formData.phone" placeholder="请输入您的手机号"></el-input>
             </el-form-item>
             <el-form-item label="电子邮箱" prop="email">
-              <el-input v-model="userForm.email" placeholder="请输入您的电子邮箱"></el-input>
+              <el-input v-model="formData.email" placeholder="请输入您的电子邮箱"></el-input>
             </el-form-item>
             <el-form-item label="个人简介" prop="bio">
               <el-input 
-                v-model="userForm.bio" 
+                v-model="formData.bio" 
                 type="textarea" 
                 :rows="4" 
                 placeholder="请输入您的个人简介"

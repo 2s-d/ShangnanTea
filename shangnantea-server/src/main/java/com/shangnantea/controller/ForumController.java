@@ -365,6 +365,82 @@ public class ForumController {
     }
 
     /**
+     * 上传文章图片
+     * 路径: POST /forum/articles/image
+     * 成功码: 6029, 失败码: 6143, 6144, 6145
+     *
+     * @param file 图片文件
+     * @return 上传结果
+     */
+    @PostMapping("/articles/image")
+    @RequiresLogin
+    public Result<Map<String, Object>> uploadArticleImage(@RequestParam("file") MultipartFile file) {
+        logger.info("上传文章图片请求, 文件名: {}", file.getOriginalFilename());
+        return forumService.uploadArticleImage(file);
+    }
+
+    // ==================== 分类管理 ====================
+
+    /**
+     * 获取分类列表
+     * 路径: GET /forum/categories
+     * 成功码: 200, 失败码: 6100
+     *
+     * @return 分类列表
+     */
+    @GetMapping("/categories")
+    public Result<Object> getCategories() {
+        logger.info("获取分类列表请求");
+        return forumService.getCategories();
+    }
+
+    /**
+     * 创建分类（管理员）
+     * 路径: POST /forum/categories
+     * 成功码: 6030, 失败码: 6146
+     *
+     * @param data 分类数据 {name, description, sort_order}
+     * @return 创建结果
+     */
+    @PostMapping("/categories")
+    @RequiresRoles({1})
+    public Result<Object> createCategory(@RequestBody Map<String, Object> data) {
+        logger.info("创建分类请求: {}", data);
+        return forumService.createCategory(data);
+    }
+
+    /**
+     * 更新分类（管理员）
+     * 路径: PUT /forum/categories/{id}
+     * 成功码: 6031, 失败码: 6147
+     *
+     * @param id 分类ID
+     * @param data 分类数据
+     * @return 更新结果
+     */
+    @PutMapping("/categories/{id}")
+    @RequiresRoles({1})
+    public Result<Object> updateCategory(@PathVariable String id, @RequestBody Map<String, Object> data) {
+        logger.info("更新分类请求: id={}, data={}", id, data);
+        return forumService.updateCategory(id, data);
+    }
+
+    /**
+     * 删除分类（管理员）
+     * 路径: DELETE /forum/categories/{id}
+     * 成功码: 6032, 失败码: 6148
+     *
+     * @param id 分类ID
+     * @return 删除结果
+     */
+    @DeleteMapping("/categories/{id}")
+    @RequiresRoles({1})
+    public Result<Boolean> deleteCategory(@PathVariable String id) {
+        logger.info("删除分类请求: id={}", id);
+        return forumService.deleteCategory(id);
+    }
+
+    /**
      * 获取帖子回复列表
      * 路径: GET /forum/posts/{id}/replies
      * 成功码: 200, 失败码: 6129

@@ -28,9 +28,16 @@
         </div>
       </div>
       
-      <!-- 文章封面图片 -->
-      <div class="article-cover" v-if="article.coverImage">
-        <SafeImage :src="article.coverImage" type="post" :alt="article.title" style="width:100%;" />
+      <!-- 视频播放区（如果有视频链接） -->
+      <div class="article-video" v-if="article.videoUrl">
+        <video 
+          :src="article.videoUrl" 
+          controls 
+          preload="metadata"
+          style="width: 100%; max-width: 800px; border-radius: 8px;"
+        >
+          您的浏览器不支持视频播放。
+        </video>
       </div>
       
       <!-- 文章内容区 -->
@@ -162,7 +169,8 @@ const article = computed(() => forumStore.currentArticle || {
   likeCount: 0,
   tags: [],
   source: '',
-  coverImage: ''
+  coverImage: '',
+  videoUrl: ''
 })
 
 // 相关文章（从文章列表中筛选同分类的其他文章）

@@ -1,17 +1,10 @@
 package com.shangnantea.service;
 
-import com.shangnantea.common.api.PageParam;
-import com.shangnantea.common.api.PageResult;
 import com.shangnantea.common.api.Result;
 import com.shangnantea.model.dto.forum.CreatePostDTO;
 import com.shangnantea.model.dto.forum.CreateTopicDTO;
 import com.shangnantea.model.dto.forum.UpdatePostDTO;
 import com.shangnantea.model.dto.forum.UpdateTopicDTO;
-import com.shangnantea.model.entity.forum.ForumPost;
-import com.shangnantea.model.entity.forum.ForumReply;
-import com.shangnantea.model.entity.forum.ForumTopic;
-import com.shangnantea.model.entity.forum.HomeContent;
-import com.shangnantea.model.entity.forum.TeaArticle;
 import com.shangnantea.model.vo.forum.ForumHomeVO;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -58,6 +51,58 @@ public interface ForumService {
      * @return 上传结果
      */
     Result<Map<String, Object>> uploadPostImage(MultipartFile image);
+    
+    /**
+     * 上传文章图片
+     * 路径: POST /forum/articles/image
+     * 成功码: 6029, 失败码: 6143, 6144, 6145
+     *
+     * @param image 图片文件
+     * @return 上传结果
+     */
+    Result<Map<String, Object>> uploadArticleImage(MultipartFile image);
+    
+    // ==================== 分类管理 ====================
+    
+    /**
+     * 获取分类列表
+     * 路径: GET /forum/categories
+     * 成功码: 200, 失败码: 6100
+     *
+     * @return 分类列表
+     */
+    Result<Object> getCategories();
+    
+    /**
+     * 创建分类
+     * 路径: POST /forum/categories
+     * 成功码: 6030, 失败码: 6146
+     *
+     * @param data 分类数据
+     * @return 创建结果
+     */
+    Result<Object> createCategory(Map<String, Object> data);
+    
+    /**
+     * 更新分类
+     * 路径: PUT /forum/categories/{id}
+     * 成功码: 6031, 失败码: 6147
+     *
+     * @param id 分类ID
+     * @param data 分类数据
+     * @return 更新结果
+     */
+    Result<Object> updateCategory(String id, Map<String, Object> data);
+    
+    /**
+     * 删除分类
+     * 路径: DELETE /forum/categories/{id}
+     * 成功码: 6032, 失败码: 6148
+     *
+     * @param id 分类ID
+     * @return 删除结果
+     */
+    Result<Boolean> deleteCategory(String id);
     
     /**
      * 获取帖子列表

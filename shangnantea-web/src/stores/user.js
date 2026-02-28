@@ -133,9 +133,14 @@ export const useUserStore = defineStore('user', () => {
   // ========== Actions ==========
   
   // 用户登录
-  async function login(loginData) {
+  async function login(loginData = {}) {
     try {
       loading.value = true
+      
+      // 每次尝试登录前，先清理旧的登录状态，避免旧token干扰新登录结果
+      tokenStorage.removeToken()
+      userInfo.value = null
+      isLoggedIn.value = false
       
       const res = await loginApi(loginData)
       console.log('登录API响应:', JSON.stringify(res, null, 2))
@@ -201,6 +206,23 @@ export const useUserStore = defineStore('user', () => {
         console.error('Token解析失败，完整token内容:', token)
         console.error('响应数据:', res)
         throw new Error('Token解析失败')
+      }
+      
+      // 如果前端传入了期望角色，则与token中的角色进行一次一致性校验
+      if (loginData.role != null && Number(loginData.role) !== Number(userInfoData.role)) {
+        console.warn('登录失败：前端选择的角色与账号实际角色不一致', {
+          requestRole: loginData.role,
+          tokenRole: userInfoData.role
+        })
+        
+        // 清理token与登录状态，视为登录失败
+        tokenStorage.removeToken()
+        userInfo.value = null
+        isLoggedIn.value = false
+        
+        const failRes = { code: 2100, data: null }
+        showByCode(failRes.code)
+        return failRes
       }
       
       userInfo.value = userInfoData

@@ -9,7 +9,8 @@ import { API } from './apiConstants'
  */
 export function getHomeData() {
   return request({
-    url: API.FORUM.HOME_CONTENTS,
+    // 使用论坛首页接口常量，避免出现 undefined 导致请求指向 /api 根路径
+    url: API.FORUM.HOME,
     method: 'get'
   })
 }
@@ -277,6 +278,25 @@ export function uploadPostImage(file) {
 }
 
 /**
+ * 上传文章图片（用于茶文化文章封面和内容图片）
+ * @param {File} file 图片文件
+ * @returns {Promise} 上传结果
+ */
+export function uploadArticleImage(file) {
+  const formData = new FormData()
+  formData.append('file', file)
+  
+  return request({
+    url: API.FORUM.ARTICLE_IMAGE,
+    method: 'post',
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+
+/**
  * 更新帖子
  * @param {number} id 帖子ID
  * @param {Object} data 帖子数据
@@ -419,6 +439,58 @@ export function togglePostEssence(id, isEssence) {
   })
 }
 
+// ===== 分类管理相关API方法 =====
+
+/**
+ * 获取分类列表
+ * @returns {Promise} 分类列表
+ */
+export function getCategories() {
+  return request({
+    url: API.FORUM.CATEGORIES,
+    method: 'get'
+  })
+}
+
+/**
+ * 创建分类（管理员功能）
+ * @param {Object} data 分类数据 {name, description, sort_order}
+ * @returns {Promise} 创建结果
+ */
+export function createCategory(data) {
+  return request({
+    url: API.FORUM.CATEGORIES,
+    method: 'post',
+    data
+  })
+}
+
+/**
+ * 更新分类（管理员功能）
+ * @param {number} id 分类ID
+ * @param {Object} data 分类数据
+ * @returns {Promise} 更新结果
+ */
+export function updateCategory(id, data) {
+  return request({
+    url: `${API.FORUM.CATEGORIES}/${id}`,
+    method: 'put',
+    data
+  })
+}
+
+/**
+ * 删除分类（管理员功能）
+ * @param {number} id 分类ID
+ * @returns {Promise} 删除结果
+ */
+export function deleteCategory(id) {
+  return request({
+    url: `${API.FORUM.CATEGORIES}/${id}`,
+    method: 'delete'
+  })
+}
+
 export default {
   getHomeData,
   updateHomeData,
@@ -441,6 +513,7 @@ export default {
   getPostDetail,
   createPost,
   uploadPostImage,
+  uploadArticleImage,
   updatePost,
   deletePost,
   getPostReplies,
@@ -451,5 +524,10 @@ export default {
   approvePost,
   rejectPost,
   togglePostSticky,
-  togglePostEssence
+  togglePostEssence,
+  // 分类管理相关
+  getCategories,
+  createCategory,
+  updateCategory,
+  deleteCategory
 } 

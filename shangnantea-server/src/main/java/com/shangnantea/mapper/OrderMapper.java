@@ -94,7 +94,16 @@ public interface OrderMapper extends BaseMapper<Order, String> {
      * @param endDate 结束日期（可选）
      * @return Map<状态, 数量>
      */
-    java.util.Map<String, Integer> countOrdersByStatus(String userId, String shopId, String startDate, String endDate);
+    /**
+     * 统计各状态订单数量
+     *
+     * @param userId    用户ID（可选）
+     * @param shopId    店铺ID（可选）
+     * @param startDate 开始日期（可选，格式yyyy-MM-dd）
+     * @param endDate   结束日期（可选，格式yyyy-MM-dd）
+     * @return 各状态订单数量列表，每条记录包含 status 和 count 字段
+     */
+    java.util.List<java.util.Map<String, Object>> countOrdersByStatus(String userId, String shopId, String startDate, String endDate);
     
     /**
      * 查询订单趋势数据

@@ -128,17 +128,39 @@ onMounted(() => {
 
 // 处理登录
 const handleLogin = async () => {
+  if (!loginFormRef.value) return
+  
   try {
+    // 先做一次表单校验，确保用户名/密码/角色都已填写
+    await loginFormRef.value.validate()
+    
     loading.value = true
 
-    await userStore.login({
+    const res = await userStore.login({
       username: loginForm.username,
       password: loginForm.password,
       role: loginForm.role
     })
     
-    const redirect = route.query.redirect || '/tea-culture'
-    router.push(redirect)
+    // 只有在后端业务码表示成功时，才认为登录成功并跳转
+    if (isSuccess(res?.code)) {
+      // 显示“登录成功”提示（2000）
+      showByCode(res.code)
+      
+      const redirectPath = route.query.redirect || '/tea-culture'
+      
+      // 处理“记住我”功能：只记用户名和角色，不记密码
+      if (rememberMe.value) {
+        localStorage.setItem('rememberedUser', JSON.stringify({
+          username: loginForm.username,
+          role: loginForm.role
+        }))
+      } else {
+        localStorage.removeItem('rememberedUser')
+      }
+      
+      router.push(redirectPath)
+    }
   } catch (error) {
     // store中已处理消息提示，这里只记录日志
     console.error('登录失败:', error)

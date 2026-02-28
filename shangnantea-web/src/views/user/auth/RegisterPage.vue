@@ -278,7 +278,8 @@ const canSendCode = computed(() => {
 // 发送验证码
 const sendVerificationCode = async () => {
   if (!canSendCode.value) {
-    userMessages.error.showFormIncomplete()
+    // 使用用户模块的通用表单不完整提示
+    userMessages.showFormIncomplete()
     return
   }
   
@@ -319,8 +320,8 @@ const handleRegister = async () => {
   }
   
   if (!registerForm.agreement) {
-    // 使用userMessages处理提示消息
-    userMessages.prompt.showAgreementRequired()
+    // 使用用户模块的协议必选提示
+    userMessages.showAgreementRequired()
     return false
   }
   
@@ -358,6 +359,9 @@ const handleRegister = async () => {
       console.error('[开发调试] 注册时发生意外错误：', error)
     }
     return false
+  } finally {
+    // 无论注册成功、业务失败还是出现异常，都要关闭按钮 loading 状态
+    loading.value = false
   }
 }
 

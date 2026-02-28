@@ -685,8 +685,8 @@ public class UserServiceImpl implements UserService {
                 if (user.getPhone() == null || !contact.equals(user.getPhone())) {
                     logger.warn("密码重置失败: 手机号不匹配, username: {}, inputPhone: {}, userPhone: {}", 
                         username, contact, user.getPhone());
-                    return Result.failure(2114); // 密码重置失败
-                }
+                return Result.failure(2114); // 密码重置失败
+            }
             } else { // email
                 if (user.getEmail() == null || !contact.equals(user.getEmail())) {
                     logger.warn("密码重置失败: 邮箱不匹配, username: {}, inputEmail: {}, userEmail: {}", 

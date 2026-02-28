@@ -123,4 +123,11 @@
         </if>
         ORDER BY create_time DESC
     </select>
+    
+    <!-- 根据分类查询文章列表 -->
+    <select id="selectByCategory" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM tea_articles
+        WHERE category = #{category}
+    </select>
 </mapper> 

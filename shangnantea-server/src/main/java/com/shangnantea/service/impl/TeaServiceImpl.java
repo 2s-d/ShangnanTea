@@ -179,12 +179,12 @@ public class TeaServiceImpl implements TeaService {
             String countStr = getTrimmed(params.get("count"));
             int count = countStr.isEmpty() ? 6 : Integer.parseInt(countStr);
             
-            // 2. 验证count范围
+            // 2. 验证count范围（首页需求：一次性选出最多30个推荐茶叶）
             if (count <= 0) {
                 count = 6;
             }
-            if (count > 20) {
-                count = 20; // 限制最大数量
+            if (count > 30) {
+                count = 30; // 限制最大数量为30
             }
             
             List<Tea> recommendTeas = new ArrayList<>();
@@ -374,14 +374,23 @@ public class TeaServiceImpl implements TeaService {
                 return Result.failure(3101);
             }
             
-            // 3. 权限验证：验证shopId是否属于当前用户
+            // 3. 权限验证：验证shopId是否属于当前用户（平台直售使用特殊shopId）
             String currentUserId = UserContext.getCurrentUserId();
             if (currentUserId == null) {
                 logger.warn("添加茶叶失败: 用户未登录");
                 return Result.failure(3101);
             }
             
-            // 查询店铺信息验证权限
+            boolean isAdmin = UserContext.isAdmin();
+            // 平台直售：shopId 使用特殊值 'PLATFORM'（兼容历史数据 '0'）
+            if ("PLATFORM".equalsIgnoreCase(shopId) || "0".equals(shopId)) {
+                if (!isAdmin) {
+                    logger.warn("添加茶叶失败: 非管理员无权创建平台直售茶叶, userId: {}", currentUserId);
+                    return Result.failure(3101);
+                }
+                // 平台直售不依赖 shops 表记录，跳过店铺存在性和owner校验
+            } else {
+                // 商家店铺：需要校验店铺存在且当前用户为店主
             Shop shop = shopMapper.selectById(shopId);
             if (shop == null) {
                 logger.warn("添加茶叶失败: 店铺不存在, shopId: {}", shopId);
@@ -391,6 +400,7 @@ public class TeaServiceImpl implements TeaService {
                 logger.warn("添加茶叶失败: 无权限为此店铺添加茶叶, userId: {}, shopOwnerId: {}", 
                     currentUserId, shop.getOwnerId());
                 return Result.failure(3101);
+                }
             }
             
             // 4. 创建Tea实体
@@ -2246,22 +2256,35 @@ public class TeaServiceImpl implements TeaService {
                 return Result.failure(status == 1 ? 3126 : 3127);
             }
             
-            // 4. 权限验证：验证茶叶是否属于当前用户的店铺
+            // 4. 权限验证：验证茶叶是否属于当前用户的店铺（平台直售特殊处理）
             String currentUserId = UserContext.getCurrentUserId();
             if (currentUserId == null) {
                 logger.warn("切换茶叶状态失败: 用户未登录");
                 return Result.failure(status == 1 ? 3126 : 3127);
             }
             
-            Shop shop = shopMapper.selectById(tea.getShopId());
+            // 管理员可以管理全平台茶叶，商家只能管理自己店铺的茶叶
+            boolean isAdmin = UserContext.isAdmin();
+            String shopId = tea.getShopId();
+            // 平台直售茶叶：shopId 使用 'PLATFORM' 或历史值 '0'，不依赖 shops 表
+            if ("PLATFORM".equalsIgnoreCase(shopId) || "0".equals(shopId)) {
+                if (!isAdmin) {
+                    logger.warn("切换茶叶状态失败: 非管理员无权操作平台直售茶叶, userId: {}", currentUserId);
+                    return Result.failure(status == 1 ? 3126 : 3127);
+                }
+            } else {
+                // 商家店铺：需要验证店铺存在且当前用户为店主（管理员可跨店操作）
+                Shop shop = shopMapper.selectById(shopId);
             if (shop == null) {
-                logger.warn("切换茶叶状态失败: 店铺不存在, shopId: {}", tea.getShopId());
+                    logger.warn("切换茶叶状态失败: 店铺不存在, shopId: {}", shopId);
                 return Result.failure(status == 1 ? 3126 : 3127);
             }
-            if (!currentUserId.equals(shop.getOwnerId())) {
+                // 仅当是商家时才做「店主本人」校验；管理员跳过此限制
+                if (!isAdmin && !currentUserId.equals(shop.getOwnerId())) {
                 logger.warn("切换茶叶状态失败: 无权限切换状态, userId: {}, shopOwnerId: {}", 
                         currentUserId, shop.getOwnerId());
                 return Result.failure(status == 1 ? 3126 : 3127);
+                }
             }
             
             // 5. 执行状态更新

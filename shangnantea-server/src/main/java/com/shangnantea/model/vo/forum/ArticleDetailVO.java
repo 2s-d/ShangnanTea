@@ -103,4 +103,9 @@ public class ArticleDetailVO {
      * 当前用户是否已收藏该文章
      */
     private Boolean isFavorited;
+    
+    /**
+     * 视频链接URL
+     */
+    private String videoUrl;
 }

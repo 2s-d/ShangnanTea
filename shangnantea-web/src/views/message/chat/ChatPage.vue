@@ -117,7 +117,12 @@
         </div>
         
         <div class="chat-header" v-else>
-          <h3 class="chat-title">请选择一个联系人开始聊天</h3>
+          <h3 class="chat-title">
+            {{ hasSessions ? '请选择一个联系人开始聊天' : '暂无聊天会话' }}
+          </h3>
+          <p v-if="!hasSessions" class="chat-subtitle">
+            可以从茶叶详情页、店铺详情页或订单列表中发起私信咨询。
+          </p>
         </div>
         
         <!-- 消息列表 -->
@@ -199,8 +204,19 @@
         
         <!-- 无选中会话时显示 -->
         <div class="select-tip" v-else>
+          <template v-if="hasSessions">
           <SafeImage src="/images/chat/start.jpg" type="banner" alt="开始聊天" class="tip-image" />
-          <p>选择一个联系人开始聊天</p>
+            <p>在左侧选择一个联系人开始聊天</p>
+          </template>
+          <template v-else>
+            <el-empty :image-size="160">
+              <template #description>
+                <p>还没有任何聊天会话</p>
+                <p class="select-tip-desc">可以先去茶叶商城或店铺页面，向商家发起咨询。</p>
+              </template>
+              <el-button type="primary" @click="goToTeaMall">去茶叶商城逛逛</el-button>
+            </el-empty>
+          </template>
         </div>
         
         <!-- 输入区域 -->
@@ -324,48 +340,56 @@ const userStore = useUserStore()
       '👋', '👍', '👎', '❤️', '💋', '👏', '🙏', '🤝', '💪', '✌️'
     ]
     
-    // 获取所有会话列表
+    // 获取所有会话列表（使用后端真实数据）
     const fetchSessions = async () => {
       try {
         const response = await messageStore.fetchChatSessions()
         
-        // 显示API响应消息（成功或失败都通过状态码映射显示）
-        showByCode(response.code)
-        
-        // 失败时直接返回
+        // 失败时提示并清空本地会话
         if (!isSuccess(response.code)) {
+          showByCode(response.code)
+          mockSessions.value = []
+          currentSessionId.value = null
           return
         }
 
-        // 从Pinia获取会话列表数据
+        // 从 Pinia 获取会话列表数据
         const sessions = messageStore.chatSessions || []
+        const currentUserId = userStore.userInfo?.id
         
-        // 转换数据格式以匹配UI组件的期望格式
-        mockSessions.value = sessions.map(session => ({
+        // 转换数据格式以匹配 UI 组件的期望格式：
+        // - receiverId 始终表示“对端用户”的 ID
+        // - unreadCount 根据当前用户是发起者/接收者选择对应未读字段
+        mockSessions.value = sessions.map(session => {
+          const isInitiator = currentUserId && session.initiatorId === currentUserId
+          const targetId = isInitiator ? session.receiverId : session.initiatorId
+          const unreadCount = isInitiator
+            ? (session.initiatorUnread ?? 0)
+            : (session.receiverUnread ?? 0)
+
+          const isCustomerService = session.sessionType === 'customer'
+
+          return {
           sessionId: session.id,
-          receiverId: session.receiverId, // 对方用户ID（统一使用receiverId）
-          targetType: session.sessionType === 'customer' ? 'shop' : 'user',
-          name: session.sessionType === 'customer' ? `店铺${session.receiverId}客服` : `用户${session.receiverId}`,
-          avatar: `https://via.placeholder.com/50x50?text=${session.sessionType === 'customer' ? '店铺' : '用户'}`,
+            receiverId: targetId, // 对端用户ID
+            targetType: isCustomerService ? 'shop' : 'user',
+            name: isCustomerService ? `店铺${targetId}客服` : `用户${targetId}`,
+            avatar: `https://via.placeholder.com/50x50?text=${isCustomerService ? '店铺' : '用户'}`,
           lastMessage: session.lastMessage || '',
           lastTime: session.lastMessageTime,
-          unreadCount: session.initiatorUnread || 0,
-          isPinned: session.isPinned || false // 添加置顶状态
-        }))
+            unreadCount,
+            isPinned: session.isPinned || false,
+            raw: session
+          }
+        })
 
-        // 默认选中：优先未读，否则第一个
+        // 如果当前没有选中的会话，默认选中：优先未读，否则第一个
+        if (!currentSessionId.value && mockSessions.value.length > 0) {
         const unreadSession = mockSessions.value.find(session => session.unreadCount > 0)
-        if (unreadSession) {
-          selectSession(unreadSession)
-        } else if (mockSessions.value.length > 0) {
-          selectSession(mockSessions.value[0])
+          selectSession(unreadSession || mockSessions.value[0])
         }
-
-        return
       } catch (error) {
-        // 捕获意外的运行时错误（非API业务错误）
-        // API业务失败已通过 showByCode 显示，网络错误已在响应拦截器显示
-        // 这里只记录日志用于开发调试
+        // 捕获意外的运行时错误（非 API 业务错误）
         if (process.env.NODE_ENV === 'development') {
           console.error('[开发调试] 获取会话列表时发生意外错误：', error)
         }
@@ -388,11 +412,13 @@ const userStore = useUserStore()
           }
         })
         
-        // 显示API响应消息（成功或失败都通过状态码映射显示）
+        // 失败时仅提示错误，不打断页面其他逻辑
+        if (!isSuccess(response.code)) {
         showByCode(response.code)
+          return
+        }
         
         // 只有成功时才更新消息列表
-        if (isSuccess(response.code)) {
           const history = response.data?.list || []
           messagesMap[sessionId] = history.map(msg => ({
             id: msg.id,
@@ -404,7 +430,6 @@ const userStore = useUserStore()
             isSelf: msg.senderId === userStore.userInfo?.id,
             showTimeDivider: false
           }))
-        }
 
         return
       } catch (error) {
@@ -682,6 +707,9 @@ const userStore = useUserStore()
       })
     })
     
+    // 是否存在任何会话
+    const hasSessions = computed(() => mockSessions.value.length > 0)
+    
     // 当前会话
     const currentSession = computed(() => {
       return mockSessions.value.find(s => s.sessionId === currentSessionId.value) || null
@@ -692,144 +720,67 @@ const userStore = useUserStore()
       return messagesMap[currentSessionId.value] || []
     })
     
-    // 初始化函数，根据路由参数自动打开特定会话
-    const initializeChatFromRouteParams = () => {
-      // 检查URL中是否包含shopId参数
+    // 初始化函数：根据路由参数自动打开特定会话（店铺 / 用户）
+    const initializeChatFromRouteParams = async () => {
       const shopId = route.query.shopId
-      // 检查URL中是否包含userId参数
       const userId = route.query.userId
       
-      if (shopId) {
-        // 根据shopId找到对应店铺的会话
-        // 在实际应用中，这里可能需要先检查是否已有此会话，没有则创建新会话
-        const shopSession = mockSessions.value.find(session => 
-          session.targetType === 'shop' && session.receiverId.toString() === shopId.toString()
+      // 如果没有指定目标，仅在有会话但未选中时做一次默认选择
+      if (!shopId && !userId) {
+        if (!currentSessionId.value && mockSessions.value.length > 0) {
+          const unreadSession = mockSessions.value.find(session => session.unreadCount > 0)
+          selectSession(unreadSession || mockSessions.value[0])
+        }
+        return
+      }
+
+      const targetType = shopId ? 'shop' : 'user'
+      const targetId = shopId || userId
+
+      // 1. 先在现有会话中查找
+      const existing = mockSessions.value.find(session =>
+        session.targetType === targetType &&
+        session.receiverId?.toString() === targetId.toString()
         )
         
-        if (shopSession) {
-          // 如果找到对应会话，自动选择该会话
-          selectSession(shopSession)
-        } else {
-          // 如果没有找到，创建新的店铺客服会话
-          createShopServiceSession(shopId)
-        }
-      } else if (userId) {
-        // 根据userId找到对应用户的会话
-        const userSession = mockSessions.value.find(session => 
-          session.targetType === 'user' && session.receiverId.toString() === userId.toString()
+      if (existing) {
+        selectSession(existing)
+        return
+    }
+    
+      // 2. 若不存在，则通过后端创建/获取会话
+      try {
+        const res = await messageStore.createChatSession({
+          targetId,
+          targetType
+        })
+
+        if (!isSuccess(res.code)) {
+          showByCode(res.code)
+          return
+      }
+      
+        // 3. 重新拉取会话列表并选中目标会话
+        await fetchSessions()
+        const created = mockSessions.value.find(session =>
+          session.targetType === targetType &&
+          session.receiverId?.toString() === targetId.toString()
         )
-        
-        if (userSession) {
-          // 如果找到对应会话，自动选择该会话
-          selectSession(userSession)
-        } else {
-          // 如果没有找到，创建新的用户会话
-          createUserChatSession(userId)
+
+        if (created) {
+          selectSession(created)
+        }
+      } catch (error) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[开发调试] 根据路由参数初始化聊天会话失败：', error)
         }
       }
     }
     
-    // 创建新的店铺客服会话
-    const createShopServiceSession = shopId => {
-      // 模拟创建新的店铺客服会话
-      // 实际应用中应该调用API获取店铺信息和创建会话
-      
-      // 模拟店铺信息，实际应用中应从API获取
-      const shopInfo = {
-        id: shopId,
-        name: shopId === '101' ? '秦岭茗茶' : 
-          shopId === '102' ? '云雾茶庄' : 
-            shopId === '103' ? '福建茶行' : `店铺${shopId}`,
-        avatar: shopId === '101' ? 'https://via.placeholder.com/50x50?text=秦岭' :
-          shopId === '102' ? 'https://via.placeholder.com/50x50?text=云雾' :
-            shopId === '103' ? 'https://via.placeholder.com/50x50?text=福建' : 'https://via.placeholder.com/50x50?text=店铺'
-      }
-      
-      // 创建新会话
-      const newSession = {
-        sessionId: `shop_${shopId}_${Date.now()}`,
-        receiverId: shopId,
-        targetType: 'shop',
-        name: `${shopInfo.name}客服`,
-        avatar: shopInfo.avatar,
-        lastMessage: '您好，有什么可以帮到您的吗？',
-        lastTime: new Date().toISOString(),
-        unreadCount: 0,
-        messages: [
-          {
-            id: `msg_${Date.now()}`,
-            sessionId: `shop_${shopId}_${Date.now()}`,
-            content: '您好，有什么可以帮到您的吗？',
-            type: 'text',
-            createTime: new Date().toISOString(),
-            status: 'read',
-            isSelf: false,
-            showTimeDivider: true
-          }
-        ]
-      }
-      
-      // 添加到会话列表
-      mockSessions.value.unshift(newSession)
-      
-      // 选择新创建的会话
-      selectSession(newSession)
-      
-      // 显示欢迎消息
-      message.success(`已连接到${shopInfo.name}客服`)
-    }
-    
-    // 创建新的用户聊天会话
-    const createUserChatSession = userId => {
-      // 模拟创建新的用户聊天会话
-      // 实际应用中应该调用API获取用户信息和创建会话
-      
-      // 模拟用户信息，实际应用中应从API获取
-      const userInfo = {
-        id: userId,
-        name: userId === '1' ? '茶香四溢' : 
-          userId === '2' ? '茶艺小能手' : 
-            userId === '3' ? '普洱控' : `用户${userId}`,
-        avatar: userId === '1' ? 'https://via.placeholder.com/50x50?text=茶香' :
-          userId === '2' ? 'https://via.placeholder.com/50x50?text=茶艺' :
-            userId === '3' ? 'https://via.placeholder.com/50x50?text=普洱' : 'https://via.placeholder.com/50x50?text=用户'
-      }
-      
-      // 创建新会话
-      const newSession = {
-        sessionId: `user_${userId}_${Date.now()}`,
-        receiverId: userId,
-        targetType: 'user',
-        name: userInfo.name,
-        avatar: userInfo.avatar,
-        lastMessage: '',
-        lastTime: new Date().toISOString(),
-        unreadCount: 0,
-        messages: []
-      }
-      
-      // 添加到会话列表
-      mockSessions.value.unshift(newSession)
-      
-      // 选择新创建的会话
-      selectSession(newSession)
-      
-      // 显示提示消息
-      message.success(`已开始与${userInfo.name}的聊天`)
-    }
-    
-    // 在组件挂载时检查路由参数
-    onMounted(() => {
-      // 先加载所有会话
-      fetchSessions()
-      
-      // 然后处理路由参数，自动打开特定会话
-      initializeChatFromRouteParams()
-      
-      // 监听路由变化，以处理在聊天页面内导航到不同会话的情况
-      if (route.query.shopId || route.query.userId) {
-        initializeChatFromRouteParams()
-      }
+    // 在组件挂载时初始化：先加载会话，再根据路由参数选择目标
+    onMounted(async () => {
+      await fetchSessions()
+      await initializeChatFromRouteParams()
     })
     
     // 监听路由参数变化
@@ -839,12 +790,17 @@ const userStore = useUserStore()
       }
     })
     
-// 监听userId路由参数变化
+    // 监听 userId 路由参数变化
 watch(() => route.query.userId, newUserId => {
   if (newUserId) {
     initializeChatFromRouteParams()
   }
 })
+
+    // 引导按钮：跳转到茶叶商城
+    const goToTeaMall = () => {
+      router.push('/tea/mall')
+    }
 </script>
 
 <style lang="scss" scoped>
@@ -985,20 +941,26 @@ watch(() => route.query.userId, newUserId => {
       background-color: #f7f7f7;
       
       .chat-header {
-        padding: 15px;
+        padding: 16px 20px;
         border-bottom: 1px solid #eee;
         background-color: #fff;
         display: flex;
-        justify-content: space-between;
-        align-items: center;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
         
         .chat-title {
           margin: 0;
           font-size: 16px;
           font-weight: 500;
           color: var(--text-primary);
-          text-align: center;
-          flex: 1;
+        }
+
+        .chat-subtitle {
+          margin-top: 4px;
+          font-size: 13px;
+          color: var(--text-secondary);
+        }
       }
       
       .chat-messages {
@@ -1187,6 +1149,7 @@ watch(() => route.query.userId, newUserId => {
         flex-direction: column;
         align-items: center;
         justify-content: center;
+        text-align: center;
         color: var(--text-secondary);
         
         .tip-image {
@@ -1197,6 +1160,12 @@ watch(() => route.query.userId, newUserId => {
         
         p {
           font-size: 16px;
+        }
+
+        .select-tip-desc {
+          margin-top: 4px;
+          font-size: 13px;
+          color: #999;
         }
       }
       
@@ -1323,8 +1292,5 @@ watch(() => route.query.userId, newUserId => {
   &::-webkit-scrollbar-track {
     background-color: #f7f7f7;
   }
-}
-
-/* 修复 SCSS 大括号未闭合导致的编译失败（SassError: expected "}"） */
 }
 </style> 

@@ -1,7 +1,5 @@
 package com.shangnantea.service.impl;
 
-import com.shangnantea.common.api.PageParam;
-import com.shangnantea.common.api.PageResult;
 import com.shangnantea.common.api.Result;
 import com.shangnantea.mapper.ForumPostMapper;
 import com.shangnantea.mapper.ForumReplyMapper;
@@ -111,7 +109,6 @@ public class ForumServiceImpl implements ForumService {
                         }
                         bannerVO.setImageUrl(imageUrl);
                         bannerVO.setTitle(content.getTitle());
-                        bannerVO.setLinkUrl(content.getLinkUrl());
                         return bannerVO;
                     })
                     .collect(java.util.stream.Collectors.toList());
@@ -194,7 +191,6 @@ public class ForumServiceImpl implements ForumService {
                             Integer.parseInt(bannerData.get("id").toString()) : null;
                     String imageUrl = (String) bannerData.get("imageUrl");
                     String title = (String) bannerData.get("title");
-                    String linkUrl = (String) bannerData.get("linkUrl");
                     Integer sortOrder = bannerData.get("sortOrder") != null ? 
                             Integer.parseInt(bannerData.get("sortOrder").toString()) : 0;
                     
@@ -204,7 +200,6 @@ public class ForumServiceImpl implements ForumService {
                         if (content != null && "banner".equals(content.getSection())) {
                             content.setContent(imageUrl);
                             content.setTitle(title);
-                            content.setLinkUrl(linkUrl);
                             content.setSortOrder(sortOrder);
                             content.setUpdateTime(new Date());
                             homeContentMapper.updateById(content);
@@ -250,7 +245,6 @@ public class ForumServiceImpl implements ForumService {
                         }
                         bannerVO.setImageUrl(imageUrl);
                         bannerVO.setTitle(content.getTitle());
-                        bannerVO.setLinkUrl(content.getLinkUrl());
                         bannerVO.setSortOrder(content.getSortOrder());
                         return bannerVO;
                     })
@@ -283,8 +277,6 @@ public class ForumServiceImpl implements ForumService {
             content.setTitle(title);
             content.setSubTitle(subtitle);
             content.setContent(relativePath); // 存储相对路径
-            content.setLinkUrl(linkUrl);
-            content.setType("image");
             content.setStatus(1); // 启用状态
             content.setCreateTime(new Date());
             content.setUpdateTime(new Date());
@@ -303,7 +295,6 @@ public class ForumServiceImpl implements ForumService {
             responseData.put("path", relativePath);
             responseData.put("title", title);
             responseData.put("subtitle", subtitle);
-            responseData.put("linkUrl", linkUrl);
             
             logger.info("论坛轮播图上传成功: id: {}, path: {}", content.getId(), relativePath);
             return Result.success(6001, responseData); // Banner上传成功
@@ -355,9 +346,6 @@ public class ForumServiceImpl implements ForumService {
             if (title != null && !title.trim().isEmpty()) {
                 content.setTitle(title);
             }
-            if (linkUrl != null) {
-                content.setLinkUrl(linkUrl);
-            }
             if (sortOrder != null) {
                 content.setSortOrder(sortOrder);
             }
@@ -374,7 +362,6 @@ public class ForumServiceImpl implements ForumService {
             Map<String, Object> responseData = new HashMap<>();
             responseData.put("id", content.getId());
             responseData.put("title", content.getTitle());
-            responseData.put("linkUrl", content.getLinkUrl());
             responseData.put("sortOrder", content.getSortOrder());
             // 生成图片访问URL
             String imageUrl = content.getContent();
@@ -549,6 +536,7 @@ public class ForumServiceImpl implements ForumService {
                             vo.setIsRecommend(article.getIsRecommend());
                             vo.setPublishTime(article.getPublishTime());
                             vo.setCreateTime(article.getCreateTime());
+                            vo.setStatus(article.getStatus() != null ? article.getStatus() : 0);
                             return vo;
                         })
                         .collect(Collectors.toList());
@@ -605,6 +593,7 @@ public class ForumServiceImpl implements ForumService {
             vo.setCategory(article.getCategory());
             vo.setTags(article.getTags());
             vo.setSource(article.getSource());
+            vo.setVideoUrl(article.getVideoUrl());
             vo.setViewCount(article.getViewCount());
             // 使用动态计算获取点赞数和收藏数
             vo.setLikeCount(statisticsUtils.getLikeCount("article", String.valueOf(article.getId())));
@@ -733,6 +722,7 @@ public class ForumServiceImpl implements ForumService {
             vo.setIsRecommend(article.getIsRecommend());
             vo.setPublishTime(article.getPublishTime());
             vo.setCreateTime(article.getCreateTime());
+            vo.setStatus(article.getStatus() != null ? article.getStatus() : 1);
             
             logger.info("创建文章成功: id={}", article.getId());
             return Result.success(6005, vo); // 文章创建成功
@@ -802,10 +792,47 @@ public class ForumServiceImpl implements ForumService {
                 article.setCategory((String) data.get("category"));
             }
             if (data.containsKey("tags")) {
-                article.setTags((String) data.get("tags"));
+                Object tagsObj = data.get("tags");
+                if (tagsObj != null) {
+                    // 处理tags：可能是数组或字符串
+                    if (tagsObj instanceof String) {
+                        article.setTags((String) tagsObj);
+                    } else if (tagsObj instanceof java.util.List) {
+                        // 如果是数组，转换为逗号分隔的字符串
+                        @SuppressWarnings("unchecked")
+                        java.util.List<String> tagsList = (java.util.List<String>) tagsObj;
+                        article.setTags(String.join(",", tagsList));
+                    } else {
+                        article.setTags(tagsObj.toString());
+                    }
+                }
+            }
+            if (data.containsKey("videoUrl")) {
+                article.setVideoUrl((String) data.get("videoUrl"));
             }
             if (data.containsKey("source")) {
                 article.setSource((String) data.get("source"));
+            }
+            if (data.containsKey("status")) {
+                Object statusObj = data.get("status");
+                if (statusObj != null) {
+                    article.setStatus(statusObj instanceof Integer ? (Integer) statusObj : Integer.parseInt(statusObj.toString()));
+                }
+            }
+            if (data.containsKey("is_top")) {
+                Object isTopObj = data.get("is_top");
+                if (isTopObj != null) {
+                    article.setIsTop(isTopObj instanceof Integer ? (Integer) isTopObj : Integer.parseInt(isTopObj.toString()));
+                }
+            }
+            if (data.containsKey("is_recommend")) {
+                Object isRecommendObj = data.get("is_recommend");
+                if (isRecommendObj != null) {
+                    article.setIsRecommend(isRecommendObj instanceof Integer ? (Integer) isRecommendObj : Integer.parseInt(isRecommendObj.toString()));
+                }
+            }
+            if (data.containsKey("author")) {
+                article.setAuthor((String) data.get("author"));
             }
             article.setUpdateTime(new Date());
             
@@ -831,6 +858,7 @@ public class ForumServiceImpl implements ForumService {
             vo.setIsRecommend(article.getIsRecommend());
             vo.setPublishTime(article.getPublishTime());
             vo.setCreateTime(article.getCreateTime());
+            vo.setStatus(article.getStatus() != null ? article.getStatus() : 0);
             
             logger.info("更新文章成功: id={}", id);
             return Result.success(6006, vo); // 文章更新成功
@@ -2092,6 +2120,257 @@ public class ForumServiceImpl implements ForumService {
         } catch (Exception e) {
             logger.error("上传帖子图片失败: 系统异常", e);
             return Result.failure(6140); // 图片上传失败
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Map<String, Object>> uploadArticleImage(MultipartFile image) {
+        try {
+            logger.info("上传文章图片请求: filename={}", image.getOriginalFilename());
+            
+            // 1. 验证文件
+            if (image == null || image.isEmpty()) {
+                logger.warn("上传文章图片失败: 文件为空");
+                return Result.failure(6143); // 图片上传失败
+            }
+            
+            // 2. 验证文件类型
+            String contentType = image.getContentType();
+            if (contentType == null || !contentType.startsWith("image/")) {
+                logger.warn("上传文章图片失败: 文件类型不正确, contentType: {}", contentType);
+                return Result.failure(6144); // 不支持的文件类型
+            }
+            
+            // 3. 验证文件大小（限制5MB）
+            if (image.getSize() > 5 * 1024 * 1024) {
+                logger.warn("上传文章图片失败: 文件大小超过限制, size: {}", image.getSize());
+                return Result.failure(6145); // 文件大小超限
+            }
+            
+            // 4. 上传文件
+            String filePath = FileUploadUtils.uploadImage(image, "forum-articles");
+            if (filePath == null || filePath.isEmpty()) {
+                logger.error("上传文章图片失败: 文件上传失败");
+                return Result.failure(6143); // 图片上传失败
+            }
+            
+            // 5. 生成访问URL
+            String accessUrl = FileUploadUtils.generateAccessUrl(filePath, baseUrl);
+            
+            // 6. 构造返回数据
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("url", accessUrl);
+            responseData.put("path", filePath);
+            
+            logger.info("上传文章图片成功: path={}, url={}", filePath, accessUrl);
+            return Result.success(6029, responseData); // 图片上传成功
+            
+        } catch (Exception e) {
+            logger.error("上传文章图片失败: 系统异常", e);
+            return Result.failure(6143); // 图片上传失败
+        }
+    }
+    
+    // ==================== 分类管理 ====================
+    
+    @Override
+    public Result<Object> getCategories() {
+        try {
+            logger.info("获取分类列表请求");
+            
+            // 查询 home_contents 表中 section='category' 的记录
+            List<HomeContent> categories = homeContentMapper.selectBySection("category", 1);
+            
+            // 转换为前端需要的格式
+            List<Map<String, Object>> categoryList = categories.stream()
+                    .map(category -> {
+                        Map<String, Object> map = new HashMap<>();
+                        map.put("id", category.getId());
+                        map.put("name", category.getTitle()); // title 字段存储分类名称
+                        map.put("description", category.getSubTitle()); // sub_title 字段存储描述
+                        map.put("sort_order", category.getSortOrder());
+                        map.put("status", category.getStatus());
+                        return map;
+                    })
+                    .collect(Collectors.toList());
+            
+            logger.info("获取分类列表成功，共{}条", categoryList.size());
+            return Result.success(200, categoryList);
+            
+        } catch (Exception e) {
+            logger.error("获取分类列表失败: 系统异常", e);
+            return Result.failure(6100);
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> createCategory(Map<String, Object> data) {
+        try {
+            logger.info("创建分类请求: {}", data);
+            
+            // 1. 解析请求数据
+            String name = (String) data.get("name");
+            String description = (String) data.get("description");
+            Integer sortOrder = data.get("sort_order") != null ? 
+                    Integer.parseInt(data.get("sort_order").toString()) : 0;
+            
+            // 2. 参数验证
+            if (name == null || name.trim().isEmpty()) {
+                logger.warn("创建分类失败: 分类名称不能为空");
+                return Result.failure(6147, "分类名称不能为空");
+            }
+            
+            // 3. 检查分类名称是否已存在
+            List<HomeContent> existingCategories = homeContentMapper.selectBySection("category", null);
+            boolean nameExists = existingCategories.stream()
+                    .anyMatch(c -> name.trim().equals(c.getTitle()));
+            if (nameExists) {
+                logger.warn("创建分类失败: 分类名称已存在, name: {}", name);
+                return Result.failure(6147, "分类名称已存在");
+            }
+            
+            // 4. 创建分类实体
+            HomeContent category = new HomeContent();
+            category.setSection("category");
+            category.setTitle(name.trim());
+            category.setSubTitle(description);
+            category.setSortOrder(sortOrder);
+            category.setStatus(1); // 默认启用
+            category.setCreateTime(new Date());
+            category.setUpdateTime(new Date());
+            
+            // 5. 保存到数据库
+            int result = homeContentMapper.insert(category);
+            if (result <= 0) {
+                logger.error("创建分类失败: 数据库插入失败");
+                return Result.failure(6147);
+            }
+            
+            // 6. 构造返回数据
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("id", category.getId());
+            responseData.put("name", category.getTitle());
+            responseData.put("description", category.getSubTitle());
+            responseData.put("sort_order", category.getSortOrder());
+            
+            logger.info("创建分类成功: id={}, name={}", category.getId(), name);
+            return Result.success(6030, responseData);
+            
+        } catch (Exception e) {
+            logger.error("创建分类失败: 系统异常", e);
+            return Result.failure(6147);
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Object> updateCategory(String id, Map<String, Object> data) {
+        try {
+            logger.info("更新分类请求: id={}, data={}", id, data);
+            
+            // 1. 查询分类是否存在
+            Integer categoryId = Integer.parseInt(id);
+            HomeContent category = homeContentMapper.selectById(categoryId);
+            
+            if (category == null || !"category".equals(category.getSection())) {
+                logger.warn("更新分类失败: 分类不存在, id: {}", id);
+                return Result.failure(6149);
+            }
+            
+            // 2. 解析请求数据
+            String name = (String) data.get("name");
+            String description = (String) data.get("description");
+            Integer sortOrder = data.get("sort_order") != null ? 
+                    Integer.parseInt(data.get("sort_order").toString()) : null;
+            
+            // 3. 如果要更新名称，检查是否与其他分类重复
+            if (name != null && !name.trim().isEmpty()) {
+                List<HomeContent> existingCategories = homeContentMapper.selectBySection("category", null);
+                boolean nameExists = existingCategories.stream()
+                        .anyMatch(c -> !c.getId().equals(categoryId) && name.trim().equals(c.getTitle()));
+                if (nameExists) {
+                    logger.warn("更新分类失败: 分类名称已存在, name: {}", name);
+                    return Result.failure(6149, "分类名称已存在");
+                }
+                category.setTitle(name.trim());
+            }
+            
+            // 4. 更新其他字段
+            if (description != null) {
+                category.setSubTitle(description);
+            }
+            if (sortOrder != null) {
+                category.setSortOrder(sortOrder);
+            }
+            category.setUpdateTime(new Date());
+            
+            // 5. 保存到数据库
+            int result = homeContentMapper.updateById(category);
+            if (result <= 0) {
+                logger.error("更新分类失败: 数据库更新失败, id: {}", id);
+                return Result.failure(6149);
+            }
+            
+            // 6. 构造返回数据
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("id", category.getId());
+            responseData.put("name", category.getTitle());
+            responseData.put("description", category.getSubTitle());
+            responseData.put("sort_order", category.getSortOrder());
+            
+            logger.info("更新分类成功: id={}", id);
+            return Result.success(6031, responseData);
+            
+        } catch (NumberFormatException e) {
+            logger.error("更新分类失败: ID格式错误, id: {}", id, e);
+            return Result.failure(6149);
+        } catch (Exception e) {
+            logger.error("更新分类失败: 系统异常, id: {}", id, e);
+            return Result.failure(6149);
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Boolean> deleteCategory(String id) {
+        try {
+            logger.info("删除分类请求: id={}", id);
+            
+            // 1. 查询分类是否存在
+            Integer categoryId = Integer.parseInt(id);
+            HomeContent category = homeContentMapper.selectById(categoryId);
+            
+            if (category == null || !"category".equals(category.getSection())) {
+                logger.warn("删除分类失败: 分类不存在, id: {}", id);
+                return Result.failure(6151);
+            }
+            
+            // 2. 检查是否有文章使用该分类
+            String categoryName = category.getTitle();
+            List<TeaArticle> articlesInCategory = articleMapper.selectByCategory(categoryName);
+            if (articlesInCategory != null && !articlesInCategory.isEmpty()) {
+                logger.warn("删除分类失败: 该分类下还有{}篇文章, id: {}", articlesInCategory.size(), id);
+                return Result.failure(6151);
+            }
+            
+            // 3. 删除分类
+            int result = homeContentMapper.deleteById(categoryId);
+            if (result <= 0) {
+                logger.error("删除分类失败: 数据库删除失败, id: {}", id);
+                return Result.failure(6148);
+            }
+            
+            logger.info("删除分类成功: id={}", id);
+            return Result.success(6032);
+            
+        } catch (NumberFormatException e) {
+            logger.error("删除分类失败: ID格式错误, id: {}", id, e);
+            return Result.failure(6151);
+        } catch (Exception e) {
+            logger.error("删除分类失败: 系统异常, id: {}", id, e);
+            return Result.failure(6151);
         }
     }
 } 

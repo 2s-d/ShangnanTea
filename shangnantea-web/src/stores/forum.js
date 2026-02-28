@@ -31,7 +31,8 @@ import {
   approvePost as approvePostApi,
   rejectPost as rejectPostApi,
   togglePostSticky as togglePostStickyApi,
-  togglePostEssence as togglePostEssenceApi
+  togglePostEssence as togglePostEssenceApi,
+  getCategories
 } from '@/api/forum'
 
 export const useForumStore = defineStore('forum', () => {
@@ -42,6 +43,8 @@ export const useForumStore = defineStore('forum', () => {
   const banners = ref([])
   const cultureFeatures = ref([])
   const teaCategories = ref([])
+  // 文章分类（从后端分类管理接口获取，用于首页栏目）
+  const categories = ref([])
   const latestNews = ref([])
   const partners = ref([])
   
@@ -112,6 +115,31 @@ export const useForumStore = defineStore('forum', () => {
     } catch (err) {
       error.value = err.message || '获取首页数据失败'
       console.error('获取首页数据失败:', err)
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+  
+  /**
+   * 获取文章分类列表（首页栏目使用）
+   */
+  async function fetchCategories() {
+    loading.value = true
+    error.value = null
+    
+    try {
+      const res = await getCategories()
+      const data = res.data || {}
+      // 后端直接返回数组，兼容 { list: [] } 或 { categories: [] }
+      const list = Array.isArray(data)
+        ? data
+        : data.list || data.categories || []
+      categories.value = Array.isArray(list) ? list : []
+      return res
+    } catch (err) {
+      error.value = err.message || '获取分类列表失败'
+      console.error('获取分类列表失败:', err)
       throw err
     } finally {
       loading.value = false
@@ -247,10 +275,15 @@ export const useForumStore = defineStore('forum', () => {
     
     try {
       const res = await getArticles(params)
-      articles.value = res.data?.articles || (Array.isArray(res.data) ? res.data : [])
-      if (res.data?.pagination) {
-        Object.assign(articlePagination, res.data.pagination)
-      }
+      const data = res.data || {}
+      // 后端返回格式：{ list, total }，兼容旧版 { articles, pagination } 和直接数组
+      const list = data.list || data.articles || (Array.isArray(data) ? data : [])
+      articles.value = Array.isArray(list) ? list : []
+      
+      // 分页信息（当前只用 total，page/pageSize 前端自己控制）
+      articlePagination.total = typeof data.total === 'number'
+        ? data.total
+        : articles.value.length
       return res
     } catch (err) {
       error.value = err.message || '获取文章列表失败'
@@ -716,6 +749,7 @@ export const useForumStore = defineStore('forum', () => {
     // State
     homeData,
     banners,
+    categories,
     articles,
     currentArticle,
     articlePagination,
@@ -734,6 +768,7 @@ export const useForumStore = defineStore('forum', () => {
     // Actions - 首页数据
     fetchHomeData,
     updateHomeData,
+    fetchCategories,
     
     // Actions - Banner管理
     fetchBanners,

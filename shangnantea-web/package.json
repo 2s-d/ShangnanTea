@@ -26,6 +26,7 @@
     "auto-commit": "powershell -ExecutionPolicy Bypass -File ..\\auto-commit.ps1"
   },
   "dependencies": {
+    "@vueup/vue-quill": "^1.2.0",
     "axios": "^0.27.2",
     "china-area-data": "^5.0.1",
     "core-js": "^3.23.1",
@@ -33,6 +34,7 @@
     "element-plus": "^2.2.6",
     "glob": "^11.0.1",
     "pinia": "^2.1.0",
+    "quill": "^2.0.2",
     "vue": "^3.2.37",
     "vue-demi": "^0.14.10",
     "vue-router": "^4.0.16"

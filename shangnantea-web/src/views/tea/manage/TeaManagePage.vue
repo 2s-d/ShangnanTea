@@ -52,6 +52,12 @@
             :value="category.id"
           />
         </el-select>
+
+        <!-- 平台直售筛选：只查看平台自营茶叶 -->
+        <el-select v-model="sourceFilter" placeholder="来源筛选" @change="handleFilterChange">
+          <el-option label="全部来源" value="" />
+          <el-option label="仅平台直售" value="platform" />
+        </el-select>
         </div>
         </div>
 
@@ -494,10 +500,15 @@ defineOptions({
     // 标签页状态
     const activeTab = ref('tea')
     
+    // 平台直售标记shopId（后端/前端统一使用特殊值，而不是实际店铺表ID）
+    // 约定：shop_id === 'PLATFORM' 或老数据中的 '0' 视为平台直售
+    const PLATFORM_SHOP_ID = 'PLATFORM'
+
     // 筛选相关状态
     const searchQuery = ref('')
     const statusFilter = ref('')
     const categoryFilter = ref('')
+    const sourceFilter = ref('') // ''=全部，'platform'=仅平台直售
     
     // 对话框相关状态
     const dialogVisible = ref(false)
@@ -1282,6 +1293,10 @@ defineOptions({
         }
         if (categoryFilter.value !== '') {
           filters.category = parseInt(categoryFilter.value)
+        }
+        // 管理员专用：仅查看平台直售茶叶（shop_id 为平台自营店）
+        if (sourceFilter.value === 'platform') {
+          filters.shopId = PLATFORM_SHOP_ID
         }
         
         // 更新 Pinia filters 并获取数据

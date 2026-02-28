@@ -68,4 +68,9 @@ public class ArticleVO {
      * 创建时间
      */
     private Date createTime;
+    
+    /**
+     * 文章状态：0=草稿，1=已发布，2=已删除
+     */
+    private Integer status;
 }

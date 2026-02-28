@@ -32,56 +32,22 @@
     <!-- 四栏目文章板块 - 改为新样式 -->
     <div class="article-section">
       <div class="article-container">
-        <!-- 茶叶历史 -->
-        <div class="article-column">
+        <!-- 动态分类栏目：与后端 /forum/categories 对接 -->
+        <div
+          class="article-column"
+          v-for="category in categoryColumns"
+          :key="category.id"
+        >
           <div class="column-header">
             <div class="header-indicator"></div>
-            <h3>茶叶历史</h3>
+            <h3>{{ category.name }}</h3>
           </div>
           <ul class="article-list">
-            <li v-for="(article, index) in articleData.history" :key="index" @click="viewArticle(article.id)">
-              <span class="article-title">{{ article.title }}</span>
-              <span class="article-date">{{ article.date }}</span>
-            </li>
-          </ul>
-        </div>
-        
-        <!-- 茶艺茶道 -->
-        <div class="article-column">
-          <div class="column-header">
-            <div class="header-indicator"></div>
-            <h3>茶艺茶道</h3>
-          </div>
-          <ul class="article-list">
-            <li v-for="(article, index) in articleData.art" :key="index" @click="viewArticle(article.id)">
-              <span class="article-title">{{ article.title }}</span>
-              <span class="article-date">{{ article.date }}</span>
-            </li>
-          </ul>
-        </div>
-        
-        <!-- 茶叶百科 -->
-        <div class="article-column">
-          <div class="column-header">
-            <div class="header-indicator"></div>
-            <h3>茶叶百科</h3>
-          </div>
-          <ul class="article-list">
-            <li v-for="(article, index) in articleData.encyclopedia" :key="index" @click="viewArticle(article.id)">
-              <span class="article-title">{{ article.title }}</span>
-              <span class="article-date">{{ article.date }}</span>
-            </li>
-          </ul>
-        </div>
-        
-        <!-- 茶文化传承 -->
-        <div class="article-column">
-          <div class="column-header">
-            <div class="header-indicator"></div>
-            <h3>茶文化传承</h3>
-          </div>
-          <ul class="article-list">
-            <li v-for="(article, index) in articleData.heritage" :key="index" @click="viewArticle(article.id)">
+            <li
+              v-for="article in category.articles"
+              :key="article.id"
+              @click="viewArticle(article.id)"
+            >
               <span class="article-title">{{ article.title }}</span>
               <span class="article-date">{{ article.date }}</span>
             </li>
@@ -90,12 +56,13 @@
       </div>
       
       <!-- 添加加载更多按钮 -->
+      <!-- 中间刷新按钮：现在专门用于“换一批推荐好茶” -->
       <div class="load-more-container">
         <el-button 
           type="primary" 
           circle
           size="large"
-          @click="refreshArticles"
+          @click="refreshRecommendTeas"
           :loading="refreshing"
         >
           <el-icon><RefreshRight /></el-icon>
@@ -132,6 +99,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useForumStore } from '@/stores/forum'
+import { useTeaStore } from '@/stores/tea'
 
 import { RefreshRight, VideoPlay } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
@@ -140,6 +108,7 @@ import { forumPromptMessages } from '@/utils/promptMessages'
 
 const router = useRouter()
 const forumStore = useForumStore()
+const teaStore = useTeaStore()
 const refreshing = ref(false)
     
 // 从Pinia获取数据
@@ -150,20 +119,57 @@ const latestNews = computed(() => forumStore.latestNews)
 const partners = computed(() => forumStore.partners)
 const loading = computed(() => forumStore.loading)
     
-// 组织文章数据结构
-const articleData = computed(() => {
+// 首页文章栏目：与后端分类管理（/forum/categories）动态对接
+// 每个分类一列，每列最多显示5篇文章
+const categoryColumns = computed(() => {
+  const categories = forumStore.categories || []
   const articles = forumStore.articles || []
-  return {
-    history: articles.filter(article => article.category === 'history').slice(0, 5),
-    art: articles.filter(article => article.category === 'art').slice(0, 5),
-    encyclopedia: articles.filter(article => article.category === 'encyclopedia').slice(0, 5),
-    heritage: articles.filter(article => article.category === 'heritage').slice(0, 5)
-  }
+
+  return categories.map(category => {
+    const list = articles
+      .filter(article => article.category === category.name)
+      .slice(0, 5)
+
+    return {
+      id: category.id,
+      name: category.name,
+      articles: list
+    }
+  })
 })
 
-// 推荐茶叶（从茶叶模块获取）
-// TODO: 需要从茶叶 store 获取，暂时使用空数组
-const recommendTeas = computed(() => [])
+// 推荐茶叶（从茶叶 store 获取，并适配后端字段结构）
+const recommendTeas = computed(() => {
+  const source = Array.isArray(teaStore.recommendTeas) ? [...teaStore.recommendTeas] : []
+  const DISPLAY_COUNT = 6
+
+  // 如果推荐池大于展示数量，则随机抽取 DISPLAY_COUNT 条
+  let sampled = source
+  if (source.length > DISPLAY_COUNT) {
+    // Fisher-Yates 洗牌，避免修改原始数组
+    for (let i = source.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[source[i], source[j]] = [source[j], source[i]]
+    }
+    sampled = source.slice(0, DISPLAY_COUNT)
+  }
+
+  return sampled.map(item => {
+    const images = Array.isArray(item.images) ? item.images : []
+    const image =
+      (images.length > 0 && images[0]) ||
+      item.mainImage ||
+      item.main_image ||
+      defaultTeaImage
+
+    return {
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      image
+    }
+  })
+})
 
 // 获取首页数据
 const fetchHomeData = async () => {
@@ -190,17 +196,30 @@ const fetchArticles = async () => {
   try {
     const res = await forumStore.fetchArticles()
     showByCode(res.code)
+    return res
   } catch (error) {
     console.error('获取文章数据失败:', error)
   }
 }
 
-// 获取推荐茶叶
+// 获取分类列表（用于首页栏目）
+const fetchCategories = async () => {
+  try {
+    const res = await forumStore.fetchCategories()
+    showByCode(res.code)
+    return res
+  } catch (error) {
+    console.error('获取分类列表失败:', error)
+  }
+}
+
+// 获取推荐茶叶（后端推荐机制：随机 / 热门 / 相似，这里首页用随机，刷新时更有变化）
 const fetchRecommendTeas = async () => {
   try {
-    // TODO: 需要从茶叶 store 调用
-    // const res = await teaStore.fetchRecommendTeas({ type: 'random', count: 6 })
-    // showByCode(res.code)
+    // 一次性从后端拿到最多30个符合规则的推荐茶叶
+    const res = await teaStore.fetchRecommendTeas({ type: 'random', count: 30 })
+    showByCode(res.code)
+    return res
   } catch (error) {
     console.error('获取推荐茶叶失败:', error)
   }
@@ -212,6 +231,7 @@ onMounted(async () => {
     fetchHomeData(),
     fetchBanners(),
     fetchArticles(),
+    fetchCategories(),
     fetchRecommendTeas()
   ])
 })
@@ -226,14 +246,13 @@ const viewTeaDetail = id => {
   router.push(`/tea/${id}`)
 }
 
-// 刷新文章列表
-const refreshArticles = async () => {
+// 刷新推荐好茶（换一批）
+const refreshRecommendTeas = async () => {
   refreshing.value = true
   try {
-    const res = await fetchArticles()
-    showByCode(res?.code)
+    await fetchRecommendTeas()
   } catch (error) {
-    console.error('刷新文章失败:', error)
+    console.error('刷新推荐茶叶失败:', error)
   } finally {
     refreshing.value = false
   }
@@ -361,6 +380,8 @@ const articleList = ref([])
           list-style: none;
           padding: 0;
           margin: 0;
+          // 预留至少5行的高度，保证版面统一
+          min-height: 150px;
           
           li {
             position: relative;

@@ -4,7 +4,7 @@
     <div class="page-header" v-if="post">
       <div class="container">
         <div class="back-button" @click="goBack">
-          <el-icon><Back /></el-icon> 返回列表
+          <el-icon><Back></Back></el-icon> 返回列表
         </div>
         <h1 class="page-title">{{ post.title }}</h1>
         <div class="post-meta">
@@ -18,7 +18,7 @@
             <span class="post-topic" v-if="post.topicName">版块: {{ post.topicName }}</span>
             <span class="post-time">{{ formatDate(post.createTime) }}</span>
             <span class="post-views">
-              <el-icon><View /></el-icon> {{ post.viewCount }}
+              <el-icon><View></View></el-icon> {{ post.viewCount }}
             </span>
           </div>
         </div>
@@ -40,19 +40,25 @@
         
         <div class="post-actions">
           <el-button type="primary" plain @click="likePost" :loading="likeLoading" :class="{ 'liked': liked }">
-            <el-icon><StarFilled v-if="liked" /><Star v-else /></el-icon> 
+            <el-icon>
+              <StarFilled v-if="liked" />
+              <Star v-else />
+            </el-icon>
             {{ liked ? '已点赞' : '点赞' }} ({{ post.likeCount || 0 }})
           </el-button>
           <el-button plain @click="scrollToReply">
-            <el-icon><ChatDotRound /></el-icon> 
+            <el-icon><ChatDotRound></ChatDotRound></el-icon>
             回复 ({{ post.replyCount || 0 }})
           </el-button>
           <el-button plain @click="toggleFavorite" :loading="favoriteLoading" :class="{ 'favorited': favorited }">
-            <el-icon><StarFilled v-if="favorited" /><Star v-else /></el-icon> 
+            <el-icon>
+              <StarFilled v-if="favorited" />
+              <Star v-else />
+            </el-icon>
             {{ favorited ? '已收藏' : '收藏' }} ({{ post.favoriteCount || 0 }})
           </el-button>
           <el-button plain @click="showShareDialog">
-            <el-icon><Share /></el-icon> 分享
+            <el-icon><Share></Share></el-icon> 分享
           </el-button>
         </div>
       </div>
@@ -62,18 +68,19 @@
         <div class="section-header">
           <h2 class="section-title">全部回复 ({{ post.replyCount || 0 }})</h2>
           <div class="section-actions">
-            <el-dropdown trigger="click" @command="handleSortChange">
-              <span class="sort-dropdown">
-                {{ sortOptions[currentSort] || '默认排序' }} <el-icon><ArrowDown /></el-icon>
-              </span>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item v-for="(label, value) in sortOptions" :key="value" :command="value">
-                    {{ label }}
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
+            <el-select
+              v-model="currentSort"
+              size="small"
+              style="width: 140px"
+              @change="handleSortChange"
+            >
+              <el-option
+                v-for="(label, value) in sortOptions"
+                :key="value"
+                :label="label"
+                :value="value"
+              />
+            </el-select>
           </div>
         </div>
         
@@ -108,11 +115,14 @@
               <!-- 回复操作 -->
               <div class="reply-actions">
                 <span class="action-item" @click="likeReply(reply)" :class="{ 'liked': reply.isLiked }">
-                  <el-icon><StarFilled v-if="reply.isLiked" /><Star v-else /></el-icon> 
+                  <el-icon>
+                    <StarFilled v-if="reply.isLiked" />
+                    <Star v-else />
+                  </el-icon>
                   {{ reply.isLiked ? '已赞' : '点赞' }} ({{ reply.likeCount || 0 }})
                 </span>
                 <span class="action-item" @click="showReplyInput(reply)">
-                  <el-icon><ChatLineRound /></el-icon> 回复
+                  <el-icon><ChatLineRound></ChatLineRound></el-icon> 回复
                 </span>
               </div>
             </div>
@@ -193,7 +203,7 @@
             <div class="item-meta">
               <span class="item-author">{{ item.authorName }}</span>
               <span class="item-views">
-                <el-icon><View /></el-icon> {{ item.viewCount }}
+                <el-icon><View></View></el-icon> {{ item.viewCount }}
               </span>
             </div>
           </div>
@@ -660,6 +670,7 @@ const getReplyContent = replyId => {
   return content.length > 50 ? content.substring(0, 50) + '...' : content
 }
 
+</script>
 
 <style lang="scss" scoped>
 .forum-detail-page {
