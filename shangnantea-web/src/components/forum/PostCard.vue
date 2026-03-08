@@ -72,7 +72,10 @@
       </div>
     </div>
     
-    <!-- 删除按钮（仅在显示自己的帖子时显示） -->
+    <!-- 编辑 / 删除按钮（仅在显示自己的帖子时显示） -->
+    <div class="edit-button" v-if="showEdit" @click.stop="handleEdit">
+      <el-icon><Edit /></el-icon>
+    </div>
     <div class="delete-button" v-if="showDelete" @click.stop="handleDelete">
       <el-icon><Delete /></el-icon>
     </div>
@@ -82,7 +85,7 @@
 <script>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { View, ChatDotRound, Star, StarFilled, Collection, CollectionTag, Male, Female, Delete } from '@element-plus/icons-vue'
+import { View, ChatDotRound, Star, StarFilled, Collection, CollectionTag, Male, Female, Delete, Edit } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 
 export default {
@@ -97,6 +100,7 @@ export default {
     Male,
     Female,
     Delete,
+    Edit,
     SafeImage
   },
   props: {
@@ -108,12 +112,16 @@ export default {
       type: Boolean,
       default: false
     },
+    showEdit: {
+      type: Boolean,
+      default: false
+    },
     showStatus: {
       type: Boolean,
       default: false
     }
   },
-  emits: ['reply', 'like', 'favorite', 'delete'],
+  emits: ['reply', 'like', 'favorite', 'delete', 'edit'],
   setup(props, { emit }) {
     const router = useRouter()
     const showFullContent = ref(false)
@@ -153,6 +161,11 @@ export default {
     // 收藏帖子
     const handleFavorite = () => {
       emit('favorite', props.post)
+    }
+    
+    // 编辑帖子
+    const handleEdit = () => {
+      emit('edit', props.post)
     }
     
     // 删除帖子
@@ -221,6 +234,7 @@ export default {
       handleReply,
       handleLike,
       handleFavorite,
+      handleEdit,
       handleDelete,
       formatDate,
       getStatusText,
@@ -384,6 +398,16 @@ export default {
     }
   }
   
+  .edit-button {
+    position: absolute;
+    top: 16px;
+    right: 44px;
+    color: var(--el-color-primary);
+    cursor: pointer;
+    font-size: 16px;
+    z-index: 1;
+  }
+
   .delete-button {
     position: absolute;
     top: 16px;

@@ -698,8 +698,9 @@ export const useShopStore = defineStore('shop', () => {
     
     try {
       loading.value = true
+      // 后端当前约定：提交成功时 data 为空，仅返回状态码
+      // 这里不直接改本地列表，由调用方在成功后调用 fetchShopReviews 重新拉取最新数据
       const res = await apiSubmitShopReview(targetShopId, reviewData)
-      shopReviews.value.unshift(res.data)
       return res
     } catch (error) {
       console.error('提交店铺评价失败:', error)

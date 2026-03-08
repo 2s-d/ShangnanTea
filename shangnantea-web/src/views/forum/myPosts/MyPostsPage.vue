@@ -27,9 +27,11 @@
             :post="post"
             :show-status="true"
             :show-delete="true"
+            :show-edit="true"
             @reply="handleReply" 
             @like="handleLike"
             @favorite="handleFavorite"
+            @edit="handleEdit"
             @delete="handleDelete"
           />
           
@@ -51,6 +53,46 @@
         </div>
       </div>
     </div>
+
+    <!-- 编辑帖子弹窗 -->
+    <el-dialog
+      v-model="editDialogVisible"
+      title="编辑帖子"
+      width="600px"
+      destroy-on-close
+    >
+      <el-form :model="editForm" label-width="80px">
+        <el-form-item label="标题">
+          <el-input v-model="editForm.title" maxlength="100" show-word-limit />
+        </el-form-item>
+        <el-form-item label="摘要">
+          <el-input
+            v-model="editForm.summary"
+            type="textarea"
+            :rows="3"
+            maxlength="200"
+            show-word-limit
+          />
+        </el-form-item>
+        <el-form-item label="内容">
+          <el-input
+            v-model="editForm.content"
+            type="textarea"
+            :rows="6"
+            maxlength="10000"
+            show-word-limit
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="editDialogVisible = false">取 消</el-button>
+          <el-button type="primary" :loading="editLoading" @click="submitEdit">
+            保 存
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -80,6 +122,16 @@ const postList = computed(() => forumStore.forumPosts)
 const loading = computed(() => forumStore.loading)
 const paginationData = computed(() => forumStore.postPagination)
 const currentUser = computed(() => userStore.userInfo)
+
+// 编辑帖子弹窗状态
+const editDialogVisible = ref(false)
+const editingPostId = ref(null)
+const editForm = ref({
+  title: '',
+  content: '',
+  summary: ''
+})
+const editLoading = ref(false)
 
 // 更新本地分页状态
 const updatePagination = () => {
@@ -180,6 +232,38 @@ const handleFavorite = async post => {
     }
   } catch (error) {
     console.error('收藏操作失败:', error)
+  }
+}
+
+// 编辑帖子：复用“个人主页 / 我的发布”那套弹窗编辑逻辑
+const handleEdit = post => {
+  if (!post?.id) return
+  editingPostId.value = post.id
+  editForm.value = {
+    title: post.title || '',
+    content: post.content || '',
+    summary: post.summary || ''
+  }
+  editDialogVisible.value = true
+}
+
+const submitEdit = async () => {
+  if (!editingPostId.value) return
+  try {
+    editLoading.value = true
+    const payload = {
+      title: editForm.value.title,
+      content: editForm.value.content,
+      summary: editForm.value.summary
+    }
+    const res = await forumStore.updatePost(editingPostId.value, payload)
+    showByCode(res.code)
+    editDialogVisible.value = false
+    await fetchPosts()
+  } catch (error) {
+    console.error('更新帖子失败:', error)
+  } finally {
+    editLoading.value = false
   }
 }
 
