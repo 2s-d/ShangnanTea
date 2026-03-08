@@ -328,13 +328,12 @@
             <SafeImage :src="tea.mainImage" type="tea" :alt="tea.name" class="recommend-image" />
             <div class="recommend-info">
               <div class="recommend-name">{{ tea.name }}</div>
-              <div class="recommend-price">
-                <span class="current-price">¥{{ tea.discount_price || tea.price }}</span>
-                <span v-if="tea.discount_price" class="original-price">¥{{ tea.price }}</span>
-              </div>
               <div class="recommend-meta">
+                <div class="price-box">
+                  <span class="current-price">¥{{ tea.discount_price || tea.price }}</span>
+                  <span v-if="tea.discount_price" class="original-price">¥{{ tea.price }}</span>
+                </div>
                 <span class="sales">销量: {{ tea.sales }}</span>
-                <el-rate :model-value="tea.rating" disabled :max="5" size="small" />
               </div>
             </div>
           </div>
@@ -1330,23 +1329,6 @@ defineOptions({
             white-space: nowrap;
           }
           
-          .recommend-price {
-            margin-bottom: 10px;
-            
-            .current-price {
-              font-size: 18px;
-              font-weight: 600;
-              color: #f56c6c;
-              margin-right: 8px;
-            }
-            
-            .original-price {
-              font-size: 14px;
-              color: #909399;
-              text-decoration: line-through;
-            }
-          }
-          
           .recommend-meta {
             display: flex;
             justify-content: space-between;
@@ -1354,8 +1336,23 @@ defineOptions({
             font-size: 12px;
             color: #909399;
             
+            .price-box {
+              .current-price {
+                font-size: 18px;
+                font-weight: 600;
+                color: #f56c6c;
+                margin-right: 8px;
+              }
+              
+              .original-price {
+                font-size: 14px;
+                color: #909399;
+                text-decoration: line-through;
+              }
+            }
+            
             .sales {
-              flex: 1;
+              margin-left: 12px;
             }
           }
         }
