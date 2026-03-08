@@ -109,7 +109,11 @@ public class ForumVOConverter {
         PostVO vo = new PostVO();
         vo.setId(post.getId());
         vo.setUserId(post.getUserId());
-        vo.setUserName(user != null ? user.getUsername() : "未知用户");
+        // 前台仅展示昵称，不再暴露用户名；昵称在User层已保证非空
+        vo.setUserName(null);
+        if (user != null) {
+            vo.setNickname(user.getNickname());
+        }
         vo.setUserAvatar(user != null ? generateImageUrl(user.getAvatar(), baseUrl) : null);
         vo.setTopicId(post.getTopicId());
         vo.setTopicName(topicName != null ? topicName : "");

@@ -1891,7 +1891,8 @@ public class ForumServiceImpl implements ForumService {
                         // 从Map获取用户信息
                         User user = finalUserMap.get(reply.getUserId());
                         if (user != null) {
-                            vo.setUsername(user.getUsername());
+                            // 前台仅展示昵称，不再暴露用户名
+                            vo.setUsername(null);
                             vo.setNickname(user.getNickname());
                             String avatar = user.getAvatar();
                             if (avatar != null && !avatar.trim().isEmpty()) {
@@ -1909,7 +1910,8 @@ public class ForumServiceImpl implements ForumService {
                         if (reply.getToUserId() != null) {
                             User toUser = finalUserMap.get(reply.getToUserId());
                             if (toUser != null) {
-                                vo.setToUsername(toUser.getUsername());
+                                // 目标用户同样仅展示昵称
+                                vo.setToUsername(toUser.getNickname());
                             }
                         }
                         
