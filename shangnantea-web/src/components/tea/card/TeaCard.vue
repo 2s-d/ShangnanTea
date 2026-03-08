@@ -3,7 +3,6 @@
     <!-- 茶叶主图 -->
     <div class="tea-image">
       <SafeImage :src="tea.mainImage" type="tea" :alt="tea.name" style="width:100%;height:100%;object-fit:cover;" />
-      <span v-if="isPlatformTea" class="platform-tag">平台直售</span>
     </div>
     
     <!-- 茶叶信息 -->
@@ -130,18 +129,6 @@ export default {
       object-fit: cover;
       transition: transform 0.3s;
     }
-    
-    .platform-tag {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      background-color: var(--el-color-danger);
-      color: white;
-      font-size: 12px;
-      padding: 2px 8px;
-      border-radius: 4px;
-      z-index: 1;
-    }
   }
   
   .tea-info {
@@ -151,7 +138,7 @@ export default {
     flex: 1;
     
     .tea-name {
-      margin: 0 0 8px 0;
+      margin: 0 0 4px 0; // 缩减茶叶名字到图标之间的距离
       font-size: 16px;
       font-weight: 500;
       color: var(--el-text-color-primary);
@@ -165,7 +152,7 @@ export default {
     }
     
     .shop-tag-container {
-      margin-bottom: 8px;
+      margin-bottom: 100px; // 缩减图标到价格之间的距离
       
       .shop-tag {
         display: inline-block;
