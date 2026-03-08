@@ -4,10 +4,10 @@
     <div class="post-header">
       <div class="user-info" @click="goToUserProfile">
         <div class="avatar">
-          <SafeImage :src="post.userAvatar" type="avatar" :alt="post.userName" style="width:100%;height:100%;object-fit:cover;" />
+          <SafeImage :src="post.userAvatar" type="avatar" :alt="getDisplayName(post)" style="width:100%;height:100%;object-fit:cover;" />
         </div>
         <div class="info">
-          <div class="name">{{ post.userName }}</div>
+          <div class="name">{{ getDisplayName(post) }}</div>
           <div class="meta">
             <span class="time">{{ formatDate(post.createTime) }}</span>
             <span class="gender" v-if="post.authorGender">
@@ -225,6 +225,12 @@ export default {
       return typeMap[status] || 'info'
     }
     
+    // 获取显示名称（优先昵称，没有昵称显示用户名）
+    const getDisplayName = (post) => {
+      if (!post) return '未知用户'
+      return post.nickname || post.userName || post.username || '未知用户'
+    }
+    
     return {
       showFullContent,
       isContentOverflow,
@@ -238,7 +244,8 @@ export default {
       handleDelete,
       formatDate,
       getStatusText,
-      getStatusTagType
+      getStatusTagType,
+      getDisplayName
     }
   }
 }

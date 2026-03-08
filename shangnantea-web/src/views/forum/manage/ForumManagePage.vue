@@ -149,7 +149,7 @@
                 <template #default="scope">
                   <div class="user-info">
                     <el-avatar :size="30" :src="scope.row.userAvatar" />
-                    <span class="user-name">{{ scope.row.userName }}</span>
+                    <span class="user-name">{{ getDisplayName(scope.row) }}</span>
                   </div>
                 </template>
               </el-table-column>
@@ -248,7 +248,7 @@
                   <div class="post-meta">
                     <span class="meta-item">
                       <el-icon><User /></el-icon>
-                      {{ currentAuditPost?.userName }}
+                      {{ getDisplayName(currentAuditPost) }}
                     </span>
                     <span class="meta-item">
                       <el-icon><Clock /></el-icon>
@@ -314,7 +314,7 @@
                   <div class="post-meta">
                     <span class="meta-item">
                       <el-icon><User /></el-icon>
-                      {{ currentAuditPost?.userName }}
+                      {{ getDisplayName(currentAuditPost) }}
                     </span>
                     <span class="meta-item">
                       <el-icon><Clock /></el-icon>
@@ -409,7 +409,7 @@
               </el-table-column>
               <el-table-column label="作者" width="120">
                 <template #default="scope">
-                  <span>{{ scope.row.userName }}</span>
+                  <span>{{ getDisplayName(scope.row) }}</span>
                 </template>
               </el-table-column>
               <el-table-column label="版块" width="120">
@@ -542,6 +542,12 @@ const router = useRouter()
 const forumStore = useForumStore()
 const activeTab = ref('audit')  // 默认显示审核标签页
 const postSearchText = ref('')
+
+// 获取显示名称（优先昵称，没有昵称显示用户名）
+const getDisplayName = (user) => {
+  if (!user) return '未知用户'
+  return user.nickname || user.userName || user.username || '未知用户'
+}
     
 // 版块相关数据
 const topicsList = computed(() => forumStore.forumTopics)

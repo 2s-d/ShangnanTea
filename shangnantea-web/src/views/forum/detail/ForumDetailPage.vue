@@ -684,23 +684,23 @@ const viewPost = postId => {
   router.push(`/forum/${postId}`)
 }
 
-// 获取显示名称（优先用户名，没有用户名显示昵称）
+// 获取显示名称（优先昵称，没有昵称显示用户名）
 const getDisplayName = (user) => {
   if (!user) return '未知用户'
-  return user.username || user.userName || user.nickname || '未知用户'
+  return user.nickname || user.username || user.userName || '未知用户'
 }
 
-// 获取回复用户名（优先用户名，没有用户名显示昵称）
+// 获取回复用户名（优先昵称，没有昵称显示用户名）
 const getReplyUserName = replyId => {
   const reply = replyList.value.find(item => item.id === replyId)
   if (!reply) return '未知用户'
-  return reply.username || reply.userName || reply.nickname || '未知用户'
+  return reply.nickname || reply.username || reply.userName || '未知用户'
 }
 
-// 获取帖子作者显示名称（优先用户名，没有用户名显示昵称）
+// 获取帖子作者显示名称（优先昵称，没有昵称显示用户名）
 const getPostAuthorName = (post) => {
   if (!post) return '未知用户'
-  return post.userName || post.username || post.nickname || '未知用户'
+  return post.nickname || post.userName || post.username || '未知用户'
 }
 
 // 获取回复内容

@@ -93,10 +93,10 @@
             <div class="user-info-card">
               <div class="user-info" @click="goToMyPosts">
                 <div class="avatar">
-                  <SafeImage :src="currentUser.avatar" type="avatar" :alt="currentUser.username" style="width:50px;height:50px;border-radius:50%;object-fit:cover;" />
+                  <SafeImage :src="currentUser.avatar" type="avatar" :alt="getDisplayName(currentUser)" style="width:50px;height:50px;border-radius:50%;object-fit:cover;" />
                 </div>
                 <div class="info">
-                  <div class="name">{{ currentUser.username }}</div>
+                  <div class="name">{{ getDisplayName(currentUser) }}</div>
                   <div class="my-posts-link">我的帖子</div>
                 </div>
               </div>
@@ -266,12 +266,19 @@ const currentTopicId = ref('all')
 // 搜索关键词
 const searchKeyword = ref('')
 
+// 获取显示名称（优先昵称，没有昵称显示用户名）
+const getDisplayName = (user) => {
+  if (!user) return '未知用户'
+  return user.nickname || user.username || user.userName || '未知用户'
+}
+
 // 当前用户信息（从userStore获取）
 const currentUser = computed(() => {
   const user = userStore.userInfo
   return {
     id: user?.id || '',
     username: user?.username || '未登录',
+    nickname: user?.nickname || null,
     avatar: user?.avatar || '',
     gender: user?.gender || 0
   }

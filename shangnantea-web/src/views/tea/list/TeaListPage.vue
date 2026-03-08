@@ -286,8 +286,6 @@ defineOptions({
         orderStore.useDefaultSpecOnAdd = val
       }
     })
-    const currentPage = ref(1)
-    
     // 筛选选项
     const filters = reactive({
       categories: [],
@@ -303,6 +301,7 @@ defineOptions({
     const teas = computed(() => teaStore.teaList)
     const totalCount = computed(() => teaStore.pagination.total)
     const pageSize = computed(() => teaStore.pagination.pageSize)
+    const currentPage = computed(() => teaStore.pagination.currentPage)
     const loading = computed(() => teaStore.loading)
 
     // 规格选择弹窗状态（用于从列表页加购物车时选择规格）
@@ -474,7 +473,7 @@ defineOptions({
     // 同步筛选条件到URL
     const updateQueryParams = () => {
       const query = {
-        page: currentPage.value,
+        page: teaStore.pagination.currentPage,
         sort: sortOption.value
       }
       
@@ -566,7 +565,6 @@ defineOptions({
     
     // 页面变化
     const handlePageChange = page => {
-      currentPage.value = page
       updateQueryParams()
       teaStore.setPage(page)
     }
