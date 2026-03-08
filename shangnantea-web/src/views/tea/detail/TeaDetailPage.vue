@@ -61,18 +61,26 @@
           <div class="shop-info">
             <h3 class="section-title">店铺信息</h3>
             <div class="shop-details">
-              <!-- 平台直售茶叶显示平台标签，无法跳转 -->
+              <!-- 平台直售茶叶显示平台信息，无法跳转 -->
               <template v-if="isPlatformTea">
                 <div class="platform-shop">
                   <div class="platform-logo">
-                    <SafeImage :src="tea.platform_logo" type="avatar" :alt="平台直售" style="width:50px;height:50px;border-radius:50%;object-fit:cover;" class="platform-avatar" />
+                    <SafeImage
+                      src="/images/tea-logo.png"
+                      type="avatar"
+                      :alt="'平台直售'"
+                      style="width:50px;height:50px;border-radius:50%;object-fit:cover;"
+                      class="platform-avatar"
+                    />
                   </div>
                   <div class="platform-info">
-                    <div class="platform-name">平台直售</div>
+                    <div class="platform-name">商南茶文化平台</div>
                     <div class="platform-tag">
-                      <el-tag type="danger" size="small">官方直售</el-tag>
+                      <el-tag type="danger" size="small">平台直售</el-tag>
                     </div>
-                    <div class="platform-desc">由商南茶文化平台官方直接销售的优质茶叶</div>
+                    <div class="platform-desc">
+                      由商南茶文化平台严选直售的优质茶叶，统一质检与售后服务，为您筛选出更放心的好茶。
+                    </div>
                   </div>
                 </div>
               </template>
