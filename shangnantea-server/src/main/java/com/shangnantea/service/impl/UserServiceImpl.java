@@ -2419,12 +2419,7 @@ public class UserServiceImpl implements UserService {
         UserVO userVO = new UserVO();
         userVO.setId(user.getId());
         userVO.setUsername(user.getUsername());
-        // 确保昵称不为空：如果昵称为空，使用用户名作为昵称（用户名是私密信息，不应直接显示）
-        String nickname = user.getNickname();
-        if (nickname == null || nickname.trim().isEmpty()) {
-            nickname = user.getUsername();
-        }
-        userVO.setNickname(nickname);
+        userVO.setNickname(user.getNickname());
         userVO.setEmail(user.getEmail());
         userVO.setPhone(user.getPhone());
         // 头像字段可能存的是相对路径，也可能已经是完整URL（历史数据 / 手动修复）

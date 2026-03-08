@@ -233,8 +233,8 @@
                 <div v-for="review in teaReviews" :key="review.id" class="review-item">
                   <div class="review-header">
                     <div class="user-info">
-                      <SafeImage :src="review.avatar" type="avatar" :alt="review.nickname || '用户'" style="width:40px;height:40px;border-radius:50%;object-fit:cover;" class="user-avatar" />
-                      <span class="user-name">{{ review.nickname || '用户' }}</span>
+                      <SafeImage :src="review.avatar" type="avatar" :alt="review.username || review.nickname" style="width:40px;height:40px;border-radius:50%;object-fit:cover;" class="user-avatar" />
+                      <span class="user-name">{{ review.username || review.nickname }}</span>
                     </div>
                     <div class="review-rating">
                       <el-rate :model-value="review.rating" disabled />

@@ -269,8 +269,7 @@ const searchKeyword = ref('')
 // 获取显示名称（优先昵称，没有昵称显示用户名）
 const getDisplayName = (user) => {
   if (!user) return '未知用户'
-  // 只显示昵称，不显示用户名（用户名是私密信息）
-  return user.nickname || '未知用户'
+  return user.nickname || user.username || user.userName || '未知用户'
 }
 
 // 当前用户信息（从userStore获取）
