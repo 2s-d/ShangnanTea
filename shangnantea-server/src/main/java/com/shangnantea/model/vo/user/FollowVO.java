@@ -33,6 +33,16 @@ public class FollowVO {
     private String targetAvatar;
     
     /**
+     * 店铺Logo（仅店铺类型有效）
+     */
+    private String targetLogo;
+    
+    /**
+     * 店铺描述（仅店铺类型有效）
+     */
+    private String targetDescription;
+    
+    /**
      * 创建时间
      */
     private Date createTime;
@@ -75,6 +85,22 @@ public class FollowVO {
     
     public void setTargetAvatar(String targetAvatar) {
         this.targetAvatar = targetAvatar;
+    }
+    
+    public String getTargetLogo() {
+        return targetLogo;
+    }
+    
+    public void setTargetLogo(String targetLogo) {
+        this.targetLogo = targetLogo;
+    }
+    
+    public String getTargetDescription() {
+        return targetDescription;
+    }
+    
+    public void setTargetDescription(String targetDescription) {
+        this.targetDescription = targetDescription;
     }
     
     public Date getCreateTime() {

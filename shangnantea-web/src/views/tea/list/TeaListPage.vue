@@ -495,7 +495,7 @@ defineOptions({
         // 从URL参数更新筛选条件
         if (query.search) searchQuery.value = query.search
         if (query.sort) sortOption.value = query.sort
-        if (query.page) currentPage.value = parseInt(query.page)
+        if (query.page) teaStore.setPage(parseInt(query.page))
         if (query.categories) {
           try {
             filters.categories = JSON.parse(query.categories)
@@ -529,7 +529,7 @@ defineOptions({
     
     // 搜索处理（原有方法，保留用于兼容）
     const handleSearch = () => {
-      currentPage.value = 1
+      teaStore.setPage(1)
       updateQueryParams()
     }
     
@@ -542,7 +542,7 @@ defineOptions({
     
     // 应用筛选 - 直接应用，不再需要按钮
     const applyFilters = () => {
-      currentPage.value = 1
+      teaStore.setPage(1)
       updateQueryParams()
     }
     
@@ -554,7 +554,7 @@ defineOptions({
       filters.rating = null
       searchQuery.value = ''
       sortOption.value = 'default'
-      currentPage.value = 1
+      teaStore.setPage(1)
       
       // 重置Pinia筛选条件
       await teaStore.resetFilters()
@@ -571,7 +571,7 @@ defineOptions({
     
     // 处理排序变更
     const handleSortChange = () => {
-      currentPage.value = 1
+      teaStore.setPage(1)
       updateQueryParams()
       loadTeas()
     }
