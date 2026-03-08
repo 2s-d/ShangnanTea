@@ -38,7 +38,7 @@ export const useTeaStore = defineStore('tea', () => {
   const pagination = reactive({
     total: 0,
     currentPage: 1,
-    pageSize: 10
+    pageSize: 12  // 一行4个，12条正好3行
   })
   
   // 过滤条件
