@@ -21,7 +21,6 @@
             text-color="#ff9900"
             score-template="{value}"
           />
-          <span class="rating-count">({{ shop.rating_count }})</span>
         </div>
         
         <div class="shop-brief">
@@ -35,7 +34,7 @@
           </span>
           <span class="stat-item">
             <el-icon><ShoppingCart /></el-icon>
-            销量: {{ shop.sales_count || 0 }}
+            销量: {{ shop.sales_count || shop.salesCount || 0 }}
           </span>
           <span class="stat-item">
             <el-icon><Timer /></el-icon>
@@ -93,9 +92,9 @@ export default {
   setup(props) {
     const router = useRouter()
     
-    // 获取店铺的两件茶叶展示
+    // 获取店铺的三件茶叶展示
     const featuredTeas = computed(() => {
-      return props.shopTeas.slice(0, 2)
+      return props.shopTeas.slice(0, 3)
     })
     
     // 计算店铺茶叶数量
@@ -241,7 +240,7 @@ export default {
   }
   
   .shop-teas {
-    width: 240px;
+    width: 320px;
     flex-shrink: 0;
     display: flex;
     align-items: center;
@@ -250,24 +249,23 @@ export default {
     .tea-list {
       width: 100%;
       display: flex;
-      flex-direction: column;
-      padding: 8px;
+      flex-direction: row;
+      justify-content: space-between;
+      padding: 12px 16px;
+      gap: 12px;
       
       .tea-preview {
+        flex: 1;
         display: flex;
-        align-items: center;
-        padding: 8px;
-        
-        &:not(:last-child) {
-          border-bottom: 1px solid var(--el-border-color-lighter);
-        }
+        flex-direction: column;
+        align-items: flex-start;
         
         .tea-preview-image {
-          width: 60px;
-          height: 60px;
+          width: 100%;
+          height: 90px;
           border-radius: 4px;
           overflow: hidden;
-          margin-right: 12px;
+          margin-bottom: 6px;
           
           img {
             width: 100%;
@@ -277,19 +275,19 @@ export default {
         }
         
         .tea-preview-info {
-          flex: 1;
+          width: 100%;
           
           .tea-preview-name {
-            font-size: 14px;
+            font-size: 13px;
             color: var(--el-text-color-primary);
-            margin-bottom: 4px;
+            margin-bottom: 2px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
           }
           
           .tea-preview-price {
-      font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
             color: var(--el-color-danger);
           }

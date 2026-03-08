@@ -140,6 +140,7 @@ defineOptions({
     const loading = computed(() => shopStore.loading || false)
     const currentPageFromStore = computed(() => shopStore.pagination.currentPage || 1)
     const filters = computed(() => shopStore.filters || {})
+    const shopTeasPreviewMap = computed(() => shopStore.shopTeasPreviewMap || {})
     
     // 同步Pinia分页到本地
     watch(currentPageFromStore, newPage => {
@@ -174,15 +175,19 @@ defineOptions({
     
     // 获取指定店铺的茶叶
     const getShopTeas = shopId => {
-      // 生产结构下：列表页不再本地造"店铺下的茶叶预览数据"
-      // 后续对接后端后，可在此处实现"按店铺加载预览茶叶"的逻辑（通过 Pinia action）
-      return []
+      return shopTeasPreviewMap.value[shopId] || []
     }
     
     // 任务组A：加载店铺列表（使用Pinia）
     const loadShops = async () => {
       try {
         await shopStore.fetchShops({})
+        // 加载每个店铺的预览茶叶（最多3个），失败时忽略
+        shops.value.forEach(shop => {
+          if (shop && shop.id && !shopTeasPreviewMap.value[shop.id]) {
+            shopStore.fetchShopTeasPreview(shop.id, 3).catch(() => {})
+          }
+        })
       } catch (error) {
         console.error('加载店铺列表失败:', error)
       }

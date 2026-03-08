@@ -32,6 +32,8 @@ export const useShopStore = defineStore('shop', () => {
   const currentShop = ref(null)
   const myShop = ref(null)
   const shopTeas = ref([])
+  // 店铺列表页右侧预览用：每个店铺的部分茶叶
+  const shopTeasPreviewMap = reactive({})
   const loading = ref(false)
   
   // 分页信息
@@ -228,6 +230,28 @@ export const useShopStore = defineStore('shop', () => {
       throw error
     } finally {
       loading.value = false
+    }
+  }
+  
+  // 获取某个店铺用于列表预览的茶叶（最多 size 条），结果缓存在 map 中
+  async function fetchShopTeasPreview(shopId, size = 3) {
+    if (!shopId) {
+      throw new Error('店铺ID不能为空')
+    }
+    
+    try {
+      const res = await getShopTeas(shopId, { page: 1, size })
+      const data = res.data
+      
+      const list = data?.list || data?.records || (Array.isArray(data) ? data : [])
+      // 只存入预览用的前 size 条
+      shopTeasPreviewMap[shopId] = list.slice(0, size)
+      
+      return res
+    } catch (error) {
+      console.error('获取店铺预览茶叶失败:', error)
+      shopTeasPreviewMap[shopId] = []
+      throw error
     }
   }
   
@@ -716,6 +740,7 @@ export const useShopStore = defineStore('shop', () => {
     currentShop,
     myShop,
     shopTeas,
+    shopTeasPreviewMap,
     loading,
     pagination,
     filters,
@@ -738,6 +763,7 @@ export const useShopStore = defineStore('shop', () => {
     fetchShopDetail,
     fetchMyShop,
     fetchShopTeas,
+    fetchShopTeasPreview,
     updateShop,
     createShop,
     addShopTea,
