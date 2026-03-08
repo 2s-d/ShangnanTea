@@ -276,6 +276,8 @@ defineOptions({
     const searchQuery = ref('')
     const sortOption = ref('default')
     const viewMode = ref('grid')
+    // 标志：是否正在通过applyFilters更新，避免watch重复触发
+    const isApplyingFilters = ref(false)
     // 是否直接使用默认规格加入购物车（从全局orderStore读写，避免切页后丢失）
     const useDefaultSpecOnAdd = computed({
       get() {
@@ -495,23 +497,41 @@ defineOptions({
       query => {
         // 从URL参数更新筛选条件
         if (query.search) searchQuery.value = query.search
+        else searchQuery.value = ''
+        
         if (query.sort) sortOption.value = query.sort
+        else sortOption.value = 'default'
+        
         if (query.page) teaStore.setPage(parseInt(query.page))
+        else teaStore.setPage(1)
+        
         if (query.categories) {
           try {
             filters.categories = JSON.parse(query.categories)
           } catch (e) {
             filters.categories = []
           }
+        } else {
+          filters.categories = []
         }
+        
         if (query.price) {
           try {
             filters.priceRange = JSON.parse(query.price)
           } catch (e) {
             filters.priceRange = [0, 1000]
           }
+        } else {
+          filters.priceRange = [0, 1000]
         }
-        if (query.source) filters.source = query.source
+        
+        // 商品来源：如果URL中有source参数则使用，否则重置为'all'
+        if (query.source) {
+          filters.source = query.source
+        } else {
+          filters.source = 'all'
+        }
+        
         if (query.rating !== undefined && query.rating !== null && query.rating !== '') {
           filters.rating = parseFloat(query.rating)
         } else {
@@ -542,8 +562,10 @@ defineOptions({
     }
     
     // 应用筛选 - 直接应用，不再需要按钮
-    const applyFilters = () => {
-      teaStore.setPage(1)
+    const applyFilters = async () => {
+      // 直接更新筛选条件并加载数据（updateFilters会重置页码为1）
+      await loadTeas()
+      // 然后同步URL参数
       updateQueryParams()
     }
     
