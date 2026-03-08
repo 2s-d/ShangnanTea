@@ -1271,8 +1271,7 @@ public class ForumServiceImpl implements ForumService {
                             vo.setUserId(post.getUserId());
                             // 从Map获取用户信息
                             User user = finalUserMap.get(post.getUserId());
-                            vo.setUserName(user != null ? user.getUsername() : "未知用户");
-                            vo.setNickname(user != null ? user.getNickname() : null);
+                            vo.setNickname(user != null ? user.getNickname() : "未知用户");
                             // 处理用户头像URL
                             String userAvatar = user != null ? user.getAvatar() : null;
                             if (userAvatar != null && !userAvatar.trim().isEmpty()) {
@@ -1449,8 +1448,7 @@ public class ForumServiceImpl implements ForumService {
                             vo.setUserId(post.getUserId());
                             // 从Map获取用户信息
                             User user = finalUserMap.get(post.getUserId());
-                            vo.setUserName(user != null ? user.getUsername() : "未知用户");
-                            vo.setNickname(user != null ? user.getNickname() : null);
+                            vo.setNickname(user != null ? user.getNickname() : "未知用户");
                             // 处理用户头像URL
                             String userAvatar = user != null ? user.getAvatar() : null;
                             if (userAvatar != null && !userAvatar.trim().isEmpty()) {
@@ -1558,8 +1556,7 @@ public class ForumServiceImpl implements ForumService {
             PostDetailVO vo = new PostDetailVO();
             vo.setId(post.getId());
             vo.setUserId(post.getUserId());
-            vo.setUserName(user != null ? user.getUsername() : "未知用户");
-            vo.setNickname(user != null ? user.getNickname() : null);
+            vo.setNickname(user != null ? user.getNickname() : "未知用户");
             // 处理用户头像URL
             String userAvatar = user != null ? user.getAvatar() : null;
             if (userAvatar != null && !userAvatar.trim().isEmpty()) {
@@ -1891,8 +1888,7 @@ public class ForumServiceImpl implements ForumService {
                         // 从Map获取用户信息
                         User user = finalUserMap.get(reply.getUserId());
                         if (user != null) {
-                            // 前台仅展示昵称，不再暴露用户名
-                            vo.setUsername(null);
+                            // 前台仅展示昵称
                             vo.setNickname(user.getNickname());
                             String avatar = user.getAvatar();
                             if (avatar != null && !avatar.trim().isEmpty()) {
@@ -1911,7 +1907,7 @@ public class ForumServiceImpl implements ForumService {
                             User toUser = finalUserMap.get(reply.getToUserId());
                             if (toUser != null) {
                                 // 目标用户同样仅展示昵称
-                                vo.setToUsername(toUser.getNickname());
+                                vo.setToNickname(toUser.getNickname());
                             }
                         }
                         

@@ -529,8 +529,6 @@ const handleReplyInput = value => {
         if (!allUsers.has(reply.userId)) {
           allUsers.set(reply.userId, {
             id: reply.userId,
-            username: reply.username || reply.userName,
-            userName: reply.userName || reply.username,
             nickname: reply.nickname,
             avatar: reply.avatar
           })
@@ -540,8 +538,6 @@ const handleReplyInput = value => {
       if (post.value?.userId) {
         allUsers.set(post.value.userId, {
           id: post.value.userId,
-          username: post.value.userName || post.value.username,
-          userName: post.value.userName,
           nickname: post.value.nickname,
           avatar: post.value.userAvatar
         })
@@ -610,8 +606,8 @@ const selectMentionUser = user => {
   const replaceText = textAfter.substring(0, endIndex + 1)
   const remainingText = textAfter.substring(endIndex + 1)
   
-  // 使用用户名进行 @ 匹配，优先使用 username，没有则使用 userName
-  const mentionName = user.username || user.userName || getDisplayName(user)
+  // 使用昵称进行 @ 匹配
+  const mentionName = getDisplayName(user)
   replyContent.value = textBefore + '@' + mentionName + ' ' + remainingText
   showMentionList.value = false
   mentionStartPos.value = -1
@@ -620,8 +616,8 @@ const selectMentionUser = user => {
   setTimeout(() => {
     const textarea = replyTextareaRef.value?.textarea
     if (textarea) {
-      const mentionName = user.username || user.userName || getDisplayName(user)
-      const newPos = textBefore.length + mentionName.length + 2 // @ + 用户名 + 空格
+      const mentionName = getDisplayName(user)
+      const newPos = textBefore.length + mentionName.length + 2 // @ + 昵称 + 空格
       textarea.setSelectionRange(newPos, newPos)
       textarea.focus()
     }
@@ -643,13 +639,12 @@ const submitReply = async () => {
     let match
     while ((match = mentionRegex.exec(replyContent.value)) !== null) {
       // 从回复列表和帖子作者中查找用户ID
-      // @ 匹配时使用 username 或 userName 字段
-      const username = match[1]
-      const user = replyList.value.find(r => (r.username || r.userName) === username) ||
-                  ((post.value?.userName || post.value?.username) === username ? {
+      // @ 匹配时使用 nickname 字段
+      const nickname = match[1]
+      const user = replyList.value.find(r => r.nickname === nickname) ||
+                  (post.value?.nickname === nickname ? {
                     userId: post.value.userId,
-                    userName: post.value.userName,
-                    username: post.value.userName || post.value.username
+                    nickname: post.value.nickname
                   } : null)
       if (user) {
         mentionedUserIds.push(user.userId || user.id)
@@ -690,23 +685,23 @@ const goToUserProfile = userId => {
   router.push(`/profile/${userId}`)
 }
 
-// 获取显示名称（优先昵称，没有昵称显示用户名）
+// 获取显示名称（使用昵称）
 const getDisplayName = (user) => {
   if (!user) return '未知用户'
-  return user.nickname || user.username || user.userName || '未知用户'
+  return user.nickname || '未知用户'
 }
 
-// 获取回复用户名（优先昵称，没有昵称显示用户名）
+// 获取回复用户名（使用昵称）
 const getReplyUserName = replyId => {
   const reply = replyList.value.find(item => item.id === replyId)
   if (!reply) return '未知用户'
-  return reply.nickname || reply.username || reply.userName || '未知用户'
+  return reply.nickname || '未知用户'
 }
 
-// 获取帖子作者显示名称（优先昵称，没有昵称显示用户名）
+// 获取帖子作者显示名称（使用昵称）
 const getPostAuthorName = (post) => {
   if (!post) return '未知用户'
-  return post.nickname || post.userName || post.username || '未知用户'
+  return post.nickname || '未知用户'
 }
 
 // 获取回复内容

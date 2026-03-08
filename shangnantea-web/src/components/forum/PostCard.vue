@@ -225,10 +225,10 @@ export default {
       return typeMap[status] || 'info'
     }
     
-    // 获取显示名称（优先昵称，没有昵称显示用户名）
+    // 获取显示名称（使用昵称）
     const getDisplayName = (post) => {
       if (!post) return '未知用户'
-      return post.nickname || post.userName || post.username || '未知用户'
+      return post.nickname || '未知用户'
     }
     
     return {

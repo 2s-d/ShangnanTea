@@ -1591,8 +1591,7 @@ public class TeaServiceImpl implements TeaService {
         // 从缓存中获取用户信息
         com.shangnantea.model.entity.user.User user = userCache.get(review.getUserId());
         if (user != null) {
-            // 前台仅展示昵称，不再返回用户名；昵称已在业务层保证非空
-            vo.setUsername(null);
+            // 前台仅展示昵称；昵称已在业务层保证非空
             vo.setNickname(user.getNickname() != null ? user.getNickname() : user.getUsername());
             String avatar = user.getAvatar();
             if (avatar != null && !avatar.trim().isEmpty()) {
@@ -1605,8 +1604,7 @@ public class TeaServiceImpl implements TeaService {
                 vo.setAvatar("");
             }
         } else {
-            // 用户不存在时的降级处理：仅返回匿名昵称，不返回用户名
-            vo.setUsername(null);
+            // 用户不存在时的降级处理：仅返回匿名昵称
             vo.setNickname("用户" + review.getUserId());
             vo.setAvatar("");
         }
@@ -1650,11 +1648,10 @@ public class TeaServiceImpl implements TeaService {
             vo.setImages(new ArrayList<>());
         }
         
-        // 查询用户信息设置username, nickname, avatar
+        // 查询用户信息设置nickname, avatar
         try {
             com.shangnantea.model.entity.user.User user = userMapper.selectById(review.getUserId());
             if (user != null) {
-                vo.setUsername(user.getUsername());
                 vo.setNickname(user.getNickname() != null ? user.getNickname() : user.getUsername());
                 // 处理头像URL
                 String avatar = user.getAvatar();
@@ -1669,14 +1666,12 @@ public class TeaServiceImpl implements TeaService {
                 }
             } else {
                 // 用户不存在时的降级处理
-                vo.setUsername("用户" + review.getUserId());
                 vo.setNickname("用户" + review.getUserId());
                 vo.setAvatar("");
             }
         } catch (Exception e) {
             logger.warn("查询用户信息失败, userId: {}", review.getUserId(), e);
             // 查询失败时的降级处理
-            vo.setUsername("用户" + review.getUserId());
             vo.setNickname("用户" + review.getUserId());
             vo.setAvatar("");
         }

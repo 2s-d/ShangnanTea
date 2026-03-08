@@ -105,7 +105,6 @@
             <el-radio-group v-model="filters.source" @change="applyFilters">
               <el-radio value="all">全部</el-radio>
               <el-radio value="platform">平台直售</el-radio>
-              <el-radio value="shop">商家店铺</el-radio>
             </el-radio-group>
           </div>
           

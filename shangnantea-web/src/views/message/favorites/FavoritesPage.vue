@@ -134,8 +134,8 @@
               <div class="post-summary">{{ post.content }}</div>
               <div class="post-meta">
                 <span class="author" @click.stop="goToUserProfile(post.userId)">
-                  <SafeImage :src="post.userAvatar" type="avatar" :alt="post.userName" class="author-avatar" style="width:24px;height:24px;border-radius:50%;object-fit:cover;" />
-                  <span class="author-name">{{ post.userName }}</span>
+                  <SafeImage :src="post.userAvatar" type="avatar" :alt="post.nickname" class="author-avatar" style="width:24px;height:24px;border-radius:50%;object-fit:cover;" />
+                  <span class="author-name">{{ post.nickname }}</span>
                 </span>
                 <span class="publish-time">发布于 {{ formatDate(post.publishTime) }}</span>
                 <span class="favorite-time">收藏于 {{ formatDate(post.favoriteTime) }}</span>

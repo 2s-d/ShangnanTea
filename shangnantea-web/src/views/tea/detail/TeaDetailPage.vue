@@ -13,7 +13,6 @@
               type="primary" 
               @click="contactShop"
               class="contact-button"
-              v-if="!isPlatformTea"
             >
               <el-icon><ChatLineRound /></el-icon> 联系客服
             </el-button>
@@ -241,8 +240,8 @@
                 <div v-for="review in teaReviews" :key="review.id" class="review-item">
                   <div class="review-header">
                     <div class="user-info">
-                      <SafeImage :src="review.avatar" type="avatar" :alt="review.username || review.nickname" style="width:40px;height:40px;border-radius:50%;object-fit:cover;" class="user-avatar" />
-                      <span class="user-name">{{ review.username || review.nickname }}</span>
+                      <SafeImage :src="review.avatar" type="avatar" :alt="review.nickname" style="width:40px;height:40px;border-radius:50%;object-fit:cover;" class="user-avatar" />
+                      <span class="user-name">{{ review.nickname }}</span>
                     </div>
                     <div class="review-rating">
                       <el-rate :model-value="review.rating" disabled />
