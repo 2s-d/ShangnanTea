@@ -229,7 +229,7 @@
                   <el-form :model="reviewForm" label-width="80px">
                     <el-form-item label="评分">
                       <div class="my-rating-row">
-                        <el-rate v-model="reviewForm.rating" />
+                      <el-rate v-model="reviewForm.rating" />
                         <span v-if="!hasUserRating" class="no-rating-badge">未评价</span>
                       </div>
                     </el-form-item>
@@ -771,7 +771,7 @@ defineOptions({
     background-color: #fff;
     border-radius: 8px;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
-    padding: 20px;
+  padding: 20px;
     
     .shop-tabs {
       .products-container {

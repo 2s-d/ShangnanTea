@@ -43,9 +43,9 @@ export const useOrderStore = defineStore('order', () => {
   // 订单统计数据
   const orderStatistics = ref(null)
   
-// 购物车相关状态
-const cartItems = ref([])
-
+  // 购物车相关状态
+  const cartItems = ref([])
+  
 // 立即购买临时商品（不走购物车）
 const directBuyItem = ref(null)
 
@@ -265,12 +265,12 @@ const useDefaultSpecOnAdd = ref(false)
       // 提前将本地状态更新为“待发货”可能与实际结果不一致，这里保持保守策略：
       // 仅在后端明确返回5006（订单已支付）时更新一次，正常支付走轮询页面。
       if (res?.code === 5006 && orderId) {
-        const order = orderList.value.find(o => o.id === orderId)
-        if (order) {
-          order.status = 1
-        }
-        if (currentOrder.value && currentOrder.value.id === orderId) {
-          currentOrder.value.status = 1
+      const order = orderList.value.find(o => o.id === orderId)
+      if (order) {
+        order.status = 1
+      }
+      if (currentOrder.value && currentOrder.value.id === orderId) {
+        currentOrder.value.status = 1
         }
       }
       

@@ -90,20 +90,20 @@
                     />
                     <div class="shop-text">
                       <div class="shop-name-row">
-                        <div class="shop-name">{{ tea.shopName || '商家店铺' }}</div>
+                      <div class="shop-name">{{ tea.shopName || '商家店铺' }}</div>
                         <div class="shop-rating" v-if="shopRatingDisplay">
-                          <el-rate 
+                        <el-rate 
                             :model-value="shopRatingDisplay" 
-                            disabled 
-                            :max="5"
-                            text-color="#ff9900">
-                          </el-rate>
+                          disabled 
+                          :max="5"
+                          text-color="#ff9900">
+                        </el-rate>
                           <span class="shop-rating-score">{{ shopRatingDisplay }}</span>
-                        </div>
                       </div>
+                    </div>
                       <div class="shop-desc">
                         {{ shopDescDisplay || '专业经营各类优质茶叶' }}
-                      </div>
+                  </div>
                     </div>
                   </div>
                 </el-link>

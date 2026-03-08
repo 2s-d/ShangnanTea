@@ -143,7 +143,7 @@
         
         <div class="spec-options">
           <div class="spec-title-row">
-            <div class="spec-title">选择规格</div>
+          <div class="spec-title">选择规格</div>
             <el-checkbox 
               v-model="addAnotherSpec" 
               class="add-another-checkbox"
@@ -428,34 +428,34 @@ const addAnotherSpec = ref(false) // 是否"再买一款"
         } else {
           // 未勾选"再买一款"，更新原购物车项的规格
           if (!currentCartItemId.value) {
-            orderPromptMessages.showSpecRequired()
-            return
-          }
-          
-          // 如果选择的规格和当前规格相同，直接关闭
-          const currentItem = cartItems.value.find(item => item.id === currentCartItemId.value)
+        orderPromptMessages.showSpecRequired()
+        return
+      }
+
+      // 如果选择的规格和当前规格相同，直接关闭
+      const currentItem = cartItems.value.find(item => item.id === currentCartItemId.value)
           const currentItemSpecId = currentItem ? String(currentItem.specId || currentItem.spec_id || '') : ''
           if (currentItem && currentItemSpecId === String(tempSelectedSpecId.value)) {
-            specDialogVisible.value = false
-            return
-          }
-          
-          // 更新购物车商品的规格
-          const res = await orderStore.updateCartItem({
-            id: currentCartItemId.value,
-            specificationId: tempSelectedSpecId.value
-          })
+        specDialogVisible.value = false
+        return
+      }
+
+        // 更新购物车商品的规格
+        const res = await orderStore.updateCartItem({
+          id: currentCartItemId.value,
+          specificationId: tempSelectedSpecId.value
+        })
           
           // 显示结果消息
           if (res && res.code) {
-            showByCode(res.code)
-          }
+          showByCode(res.code)
+        }
           
           // 成功时关闭弹窗并刷新数据
           if (res && isSuccess(res.code)) {
-            specDialogVisible.value = false
-            // 重新获取购物车数据以更新价格和库存
-            await initCartData()
+        specDialogVisible.value = false
+        // 重新获取购物车数据以更新价格和库存
+        await initCartData()
           }
         }
       } catch (error) {
@@ -884,8 +884,8 @@ const addAnotherSpec = ref(false) // 是否"再买一款"
       align-items: center;
       margin-bottom: 10px;
       
-      .spec-title {
-        font-weight: 500;
+    .spec-title {
+      font-weight: 500;
         margin: 0;
       }
       
@@ -918,7 +918,7 @@ const addAnotherSpec = ref(false) // 是否"再买一款"
           }
           
           .spec-name {
-            color: var(--el-text-color-primary);
+      color: var(--el-text-color-primary);
           }
           
           .spec-price {

@@ -1272,6 +1272,7 @@ public class ForumServiceImpl implements ForumService {
                             // 从Map获取用户信息
                             User user = finalUserMap.get(post.getUserId());
                             vo.setUserName(user != null ? user.getUsername() : "未知用户");
+                            vo.setNickname(user != null ? user.getNickname() : null);
                             // 处理用户头像URL
                             String userAvatar = user != null ? user.getAvatar() : null;
                             if (userAvatar != null && !userAvatar.trim().isEmpty()) {
@@ -1449,6 +1450,7 @@ public class ForumServiceImpl implements ForumService {
                             // 从Map获取用户信息
                             User user = finalUserMap.get(post.getUserId());
                             vo.setUserName(user != null ? user.getUsername() : "未知用户");
+                            vo.setNickname(user != null ? user.getNickname() : null);
                             // 处理用户头像URL
                             String userAvatar = user != null ? user.getAvatar() : null;
                             if (userAvatar != null && !userAvatar.trim().isEmpty()) {

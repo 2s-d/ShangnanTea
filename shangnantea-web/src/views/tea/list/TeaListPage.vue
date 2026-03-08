@@ -35,14 +35,14 @@
               </el-radio-group>
               
               <div class="right-tools">
-                <div class="view-toggle">
-                  <el-switch
-                    v-model="viewMode"
-                    active-value="grid"
-                    inactive-value="list"
-                    active-text="网格"
-                    inactive-text="列表"
-                  />
+              <div class="view-toggle">
+                <el-switch
+                  v-model="viewMode"
+                  active-value="grid"
+                  inactive-value="list"
+                  active-text="网格"
+                  inactive-text="列表"
+                />
                 </div>
                 <el-checkbox v-model="useDefaultSpecOnAdd" class="default-spec-checkbox">
                   默认规格
@@ -156,13 +156,13 @@
               @current-change="handlePageChange"
             />
           </div>
+          </div>
         </div>
       </div>
-    </div>
-    
+      
     <!-- 任务组F：热门推荐（移到main-content外面，和首页一样） -->
     <div class="tea-recommend-section" v-if="popularTeas.length > 0">
-      <h2 class="section-title">热门推荐</h2>
+        <h2 class="section-title">热门推荐</h2>
       <div class="subtitle">甄选商南优质茶品</div>
       
       <div class="tea-list">
@@ -170,7 +170,7 @@
           v-for="(tea, index) in popularTeas" 
           :key="tea.id || index" 
           class="tea-item"
-          @click="goToTeaDetail(tea.id)"
+            @click="goToTeaDetail(tea.id)"
         >
           <div class="tea-image">
             <SafeImage :src="tea.image" type="tea" :alt="tea.name" style="width:100%;height:100%;object-fit:cover;" />
@@ -203,14 +203,14 @@
             <div class="tea-name">{{ currentSpecTea.teaName }}</div>
             <div class="tea-price">¥{{ selectedSpecPrice.toFixed(2) }}</div>
             <div class="selected-spec">已选规格：{{ selectedSpecName }}</div>
-          </div>
         </div>
+      </div>
         
         <div class="spec-options">
           <div class="spec-title-row">
             <div class="spec-title">选择规格</div>
             <el-checkbox v-model="selectMultipleSpecs" class="multi-spec-checkbox">选多款</el-checkbox>
-          </div>
+    </div>
           <div class="spec-list">
             <el-radio-group v-if="!selectMultipleSpecs" v-model="tempSelectedSpecId">
               <el-radio
@@ -841,8 +841,8 @@ defineOptions({
             gap: 12px;
             
             .tea-item {
-              background-color: #fff;
-              border-radius: 8px;
+      background-color: #fff;
+      border-radius: 8px;
               box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
               padding: 10px 16px;
             }
@@ -907,16 +907,16 @@ defineOptions({
         }
       }
     }
-  }
-  
+      }
+      
   // 任务组F：热门推荐样式（完全按照首页的样式，移到main-content外面）
   .tea-recommend-section {
     width: 85%;
     max-width: 1920px;
     margin: 0 auto 60px;
     padding: 0;
-    
-    .section-title {
+        
+        .section-title {
       text-align: center;
       font-size: 28px;
       color: #333;
@@ -928,13 +928,13 @@ defineOptions({
       text-align: center;
       font-size: 16px;
       color: #777;
-      margin-bottom: 20px;
-    }
-    
+          margin-bottom: 20px;
+        }
+        
     .tea-list {
       display: flex;
       flex-wrap: wrap;
-      gap: 20px;
+          gap: 20px;
       margin-top: 30px;
       
       .tea-item {

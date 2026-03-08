@@ -227,7 +227,7 @@ public class OrderServiceImpl implements OrderService {
                 orderList.add(order);
                 totalPrice = totalPrice.add(order.getTotalAmount());
             }
-
+            
             // 4. 生成支付单（支付批次），支持多订单一次支付
             String paymentId = generatePaymentId();
             Date now = new Date();
@@ -255,10 +255,10 @@ public class OrderServiceImpl implements OrderService {
                 orderMapper.insert(order);
                 logger.info("订单已创建: orderId={}, paymentId={}, teaId={}, quantity={}, totalAmount={}",
                         order.getId(), paymentId, order.getTeaId(), order.getQuantity(), order.getTotalAmount());
-
+                
                 // 创建订单创建通知（给商家）
                 com.shangnantea.utils.NotificationUtils.createOrderCreatedNotification(
-                        order.getId(), userId, order.getShopId(), order.getTeaName()
+                    order.getId(), userId, order.getShopId(), order.getTeaName()
                 );
             }
             
@@ -1215,16 +1215,16 @@ public class OrderServiceImpl implements OrderService {
                 }
             } else {
                 // 仅提供 orderId 的老调用路径：根据订单反查 paymentId
-                Order order = orderMapper.selectById(orderId);
-                if (order == null) {
-                    logger.warn("支付订单失败: 订单不存在: orderId={}", orderId);
-                    return Result.failure(5117);
-                }
-                if (!userId.equals(order.getUserId())) {
-                    logger.warn("支付订单失败: 无权限: orderId={}, userId={}, orderUserId={}",
-                            orderId, userId, order.getUserId());
-                    return Result.failure(5117);
-                }
+            Order order = orderMapper.selectById(orderId);
+            if (order == null) {
+                logger.warn("支付订单失败: 订单不存在: orderId={}", orderId);
+                return Result.failure(5117);
+            }
+            if (!userId.equals(order.getUserId())) {
+                logger.warn("支付订单失败: 无权限: orderId={}, userId={}, orderUserId={}", 
+                           orderId, userId, order.getUserId());
+                return Result.failure(5117);
+            }
                 if (order.getPaymentId() == null || order.getPaymentId().isEmpty()) {
                     logger.warn("支付订单失败: 订单缺少支付单号: orderId={}", orderId);
                     return Result.failure(5117);
@@ -2294,7 +2294,7 @@ public class OrderServiceImpl implements OrderService {
             
             logger.info("支付宝回调参数: outTradeNo={}, tradeNo={}, tradeStatus={}, totalAmount={}", 
                        outTradeNo, tradeNo, tradeStatus, totalAmount);
-
+            
             // 3. 先按支付单号处理（推荐路径：out_trade_no = paymentId）
             Payment payment = paymentMapper.selectById(outTradeNo);
             if (payment != null) {
@@ -2413,41 +2413,41 @@ public class OrderServiceImpl implements OrderService {
             }
 
             // 扣减库存（兼容旧逻辑）
-            if (order.getSpecId() != null) {
-                int rows = teaSpecificationMapper.updateStock(order.getSpecId(), order.getQuantity());
-                if (rows == 0) {
+                if (order.getSpecId() != null) {
+                    int rows = teaSpecificationMapper.updateStock(order.getSpecId(), order.getQuantity());
+                    if (rows == 0) {
                     logger.warn("支付宝回调(兼容旧逻辑): 库存不足或规格不存在: specId={}, quantity={}", 
-                               order.getSpecId(), order.getQuantity());
-                    return "failure";
-                }
-                logger.info("已扣减规格库存: specId={}, quantity={}", order.getSpecId(), order.getQuantity());
-            } else {
-                int rows = teaMapper.updateStockAndSales(order.getTeaId(), order.getQuantity());
-                if (rows == 0) {
+                                   order.getSpecId(), order.getQuantity());
+                        return "failure";
+                    }
+                    logger.info("已扣减规格库存: specId={}, quantity={}", order.getSpecId(), order.getQuantity());
+                } else {
+                    int rows = teaMapper.updateStockAndSales(order.getTeaId(), order.getQuantity());
+                    if (rows == 0) {
                     logger.warn("支付宝回调(兼容旧逻辑): 库存不足或商品不存在: teaId={}, quantity={}", 
-                               order.getTeaId(), order.getQuantity());
-                    return "failure";
+                                   order.getTeaId(), order.getQuantity());
+                        return "failure";
+                    }
+                    logger.info("已扣减库存并增加销量: teaId={}, quantity={}", order.getTeaId(), order.getQuantity());
                 }
-                logger.info("已扣减库存并增加销量: teaId={}, quantity={}", order.getTeaId(), order.getQuantity());
-            }
-            
-            // 更新订单状态为待发货
+                
+                // 更新订单状态为待发货
             Date now = new Date();
             order.setStatus(Order.STATUS_PENDING_SHIPMENT);
-            order.setPaymentMethod("alipay");
+                order.setPaymentMethod("alipay");
             order.setPaymentTime(now);
             order.setUpdateTime(now);
-            
-            int rows = orderMapper.updateById(order);
-            if (rows > 0) {
+                
+                int rows = orderMapper.updateById(order);
+                if (rows > 0) {
                 logger.info("支付宝回调处理成功(兼容旧逻辑): orderId={}, tradeNo={}", orderId, tradeNo);
-                
-                com.shangnantea.utils.NotificationUtils.createOrderPaidNotification(
-                    order.getId(), order.getUserId(), order.getShopId()
-                );
-                
-                return "success";
-            } else {
+                    
+                    com.shangnantea.utils.NotificationUtils.createOrderPaidNotification(
+                        order.getId(), order.getUserId(), order.getShopId()
+                    );
+                    
+                    return "success";
+                } else {
                 logger.warn("支付宝回调(兼容旧逻辑): 更新订单失败: orderId={}", orderId);
                 return "failure";
             }
