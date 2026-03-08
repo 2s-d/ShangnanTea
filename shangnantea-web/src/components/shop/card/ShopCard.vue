@@ -96,7 +96,7 @@ export default {
   setup(props) {
     const router = useRouter()
     
-    // 获取店铺的两件茶叶展示（固定展示样式）
+    // 获取店铺的茶叶展示（最多2个，保持固定样式）
     const featuredTeas = computed(() => {
       return props.shopTeas.slice(0, 2)
     })
@@ -276,12 +276,13 @@ export default {
       width: 100%;
       display: flex;
       flex-direction: row;
-      justify-content: space-between;
+      justify-content: flex-start;
       padding: 12px 16px;
       gap: 12px;
       
       .tea-preview {
-        flex: 1;
+        flex: 0 0 calc(50% - 6px); // 固定宽度，每个占50%减去gap的一半
+        max-width: calc(50% - 6px);
         display: flex;
         flex-direction: column;
         align-items: flex-start;

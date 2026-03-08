@@ -153,7 +153,7 @@
         <!-- 回复输入框 -->
         <div class="reply-form">
           <h3 class="form-title">
-            <span v-if="currentReply">回复 {{ currentReply.userName }}：</span>
+            <span v-if="currentReply">回复 {{ getDisplayName(currentReply) }}：</span>
             <span v-else>发表回复</span>
             <span v-if="currentReply" class="cancel-reply" @click="cancelReply">取消回复</span>
           </h3>
@@ -206,7 +206,7 @@
           <div v-for="item in recommendList" :key="item.id" class="recommend-item" @click="viewPost(item.id)">
             <div class="item-title">{{ item.title }}</div>
             <div class="item-meta">
-              <span class="item-author">{{ item.userName || item.authorName }}</span>
+              <span class="item-author">{{ getDisplayName(item) }}</span>
               <span class="item-views">
                 <el-icon><View></View></el-icon> {{ item.viewCount }}
               </span>
@@ -672,10 +672,23 @@ const viewPost = postId => {
   router.push(`/forum/${postId}`)
 }
 
-// 获取回复用户名
+// 获取显示名称（优先用户名，没有用户名显示昵称）
+const getDisplayName = (user) => {
+  if (!user) return '未知用户'
+  return user.username || user.userName || user.nickname || '未知用户'
+}
+
+// 获取回复用户名（优先用户名，没有用户名显示昵称）
 const getReplyUserName = replyId => {
   const reply = replyList.value.find(item => item.id === replyId)
-  return reply ? reply.username : '未知用户'
+  if (!reply) return '未知用户'
+  return reply.username || reply.userName || reply.nickname || '未知用户'
+}
+
+// 获取帖子作者显示名称（优先用户名，没有用户名显示昵称）
+const getPostAuthorName = (post) => {
+  if (!post) return '未知用户'
+  return post.userName || post.username || post.nickname || '未知用户'
 }
 
 // 获取回复内容
@@ -885,7 +898,6 @@ const getReplyContent = replyId => {
   }
   
   .reply-item {
-    display: flex;
     padding: 20px 0;
     border-bottom: 1px solid #f0f0f0;
     
@@ -893,16 +905,19 @@ const getReplyContent = replyId => {
       border-bottom: none;
     }
     
-    .reply-author {
-      width: 80px;
-      flex-shrink: 0;
+    .reply-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
+      position: relative;
       
       .author-avatar {
-        width: 50px;
-        height: 50px;
+        width: 40px;
+        height: 40px;
         border-radius: 50%;
         overflow: hidden;
-        margin-bottom: 8px;
+        flex-shrink: 0;
+        margin-right: 10px;
         
         img {
           width: 100%;
@@ -911,30 +926,24 @@ const getReplyContent = replyId => {
         }
       }
       
-      .author-info {
-        overflow: hidden;
-        
-        .author-name {
-          font-size: 14px;
-          font-weight: 500;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          margin-bottom: 4px;
-      color: var(--el-text-color-primary);
-        }
-        
-        .reply-time {
-          font-size: 12px;
-          color: var(--el-text-color-secondary);
-        }
+      .author-name {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--el-text-color-primary);
+        margin-right: auto;
+      }
+      
+      .reply-time {
+        font-size: 12px;
+        color: var(--el-text-color-secondary);
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
       }
     }
     
     .reply-content {
-      flex: 1;
-      margin-left: 15px;
-      
       .quoted-reply {
         background-color: #f5f7fa;
         padding: 10px 15px;
@@ -959,10 +968,11 @@ const getReplyContent = replyId => {
         line-height: 1.6;
         color: var(--el-text-color-primary);
         word-break: break-all;
+        margin-bottom: 12px;
       }
       
       .reply-actions {
-        margin-top: 15px;
+        margin-top: 8px;
         display: flex;
         gap: 20px;
         

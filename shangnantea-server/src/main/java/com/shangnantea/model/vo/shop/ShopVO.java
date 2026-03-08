@@ -55,4 +55,9 @@ public class ShopVO {
      * 店主用户ID
      */
     private String ownerId;
+    
+    /**
+     * 开店时间（创建时间）
+     */
+    private java.util.Date createTime;
 }

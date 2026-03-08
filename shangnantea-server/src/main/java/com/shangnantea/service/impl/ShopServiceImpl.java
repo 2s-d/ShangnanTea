@@ -487,6 +487,7 @@ public class ShopServiceImpl implements ShopService {
         // 使用动态计算获取关注数
         shopVO.setFollowCount(statisticsUtils.getFollowCount("shop", shop.getId()));
         shopVO.setOwnerId(shop.getOwnerId());
+        shopVO.setCreateTime(shop.getCreateTime());
         
         return shopVO;
     }
