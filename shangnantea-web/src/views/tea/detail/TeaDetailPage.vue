@@ -997,16 +997,14 @@ defineOptions({
             }
             
             .platform-info {
-              .platform-name-row {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                margin-bottom: 5px;
-              }
-
               .platform-name {
                 font-size: 16px;
                 font-weight: 500;
+                margin-bottom: 5px;
+              }
+              
+              .platform-tag {
+                margin-top: 5px;
               }
               
               .platform-desc {
