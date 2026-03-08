@@ -94,14 +94,13 @@
           </div>
           
           <div v-for="reply in replyList" :key="reply.id" class="reply-item">
-            <div class="reply-author">
+            <!-- 回复头部：头像、昵称/用户名、时间在同一行 -->
+            <div class="reply-header">
               <div class="author-avatar">
-                <SafeImage :src="reply.avatar" type="avatar" :alt="reply.username" style="width:40px;height:40px;border-radius:50%;object-fit:cover;" />
+                <SafeImage :src="reply.avatar" type="avatar" :alt="getDisplayName(reply)" style="width:40px;height:40px;border-radius:50%;object-fit:cover;" />
               </div>
-              <div class="author-info">
-                <div class="author-name">{{ reply.username }}</div>
-                <div class="reply-time">{{ formatDate(reply.createTime) }}</div>
-              </div>
+              <div class="author-name">{{ getDisplayName(reply) }}</div>
+              <div class="reply-time">{{ formatDate(reply.createTime) }}</div>
             </div>
             
             <div class="reply-content">
