@@ -10,9 +10,9 @@
         <div class="post-meta">
           <div class="post-author">
             <span class="author-avatar">
-              <SafeImage :src="post.userAvatar" type="avatar" :alt="post.userName" style="width:40px;height:40px;border-radius:50%;object-fit:cover;" />
+              <SafeImage :src="post.userAvatar" type="avatar" :alt="getPostAuthorName(post)" style="width:40px;height:40px;border-radius:50%;object-fit:cover;" />
             </span>
-            <span class="author-name">{{ post.userName }}</span>
+            <span class="author-name">{{ getPostAuthorName(post) }}</span>
           </div>
           <div class="post-info">
             <span class="post-topic" v-if="post.topicName">版块: {{ post.topicName }}</span>
@@ -183,9 +183,9 @@
                     @mouseenter="mentionSelectedIndex = index"
                   >
                     <el-avatar :src="(user && user.avatar) || ''" :size="24" style="margin-right: 8px;">
-                      {{ (user && user.username && user.username.charAt(0)) || '?' }}
+                      {{ (getDisplayName(user) && getDisplayName(user).charAt(0)) || '?' }}
                     </el-avatar>
-                    <span>{{ (user && user.username) || '未知用户' }}</span>
+                    <span>{{ getDisplayName(user) }}</span>
                   </div>
                 </div>
               </div>
@@ -529,7 +529,9 @@ const handleReplyInput = value => {
         if (!allUsers.has(reply.userId)) {
           allUsers.set(reply.userId, {
             id: reply.userId,
-            username: reply.username,
+            username: reply.username || reply.userName,
+            userName: reply.userName || reply.username,
+            nickname: reply.nickname,
             avatar: reply.avatar
           })
         }
@@ -538,13 +540,18 @@ const handleReplyInput = value => {
       if (post.value?.userId) {
         allUsers.set(post.value.userId, {
           id: post.value.userId,
-          username: post.value.userName,
+          username: post.value.userName || post.value.username,
+          userName: post.value.userName,
+          nickname: post.value.nickname,
           avatar: post.value.userAvatar
         })
       }
       
       mentionUsers.value = Array.from(allUsers.values())
-        .filter(user => user.username.toLowerCase().includes(searchKeyword))
+        .filter(user => {
+          const displayName = getDisplayName(user)
+          return displayName.toLowerCase().includes(searchKeyword)
+        })
         .slice(0, 5) // 最多显示5个
       
       if (mentionUsers.value.length > 0) {
@@ -603,7 +610,9 @@ const selectMentionUser = user => {
   const replaceText = textAfter.substring(0, endIndex + 1)
   const remainingText = textAfter.substring(endIndex + 1)
   
-  replyContent.value = textBefore + '@' + user.username + ' ' + remainingText
+  // 使用用户名进行 @ 匹配，优先使用 username，没有则使用 userName
+  const mentionName = user.username || user.userName || getDisplayName(user)
+  replyContent.value = textBefore + '@' + mentionName + ' ' + remainingText
   showMentionList.value = false
   mentionStartPos.value = -1
   
@@ -611,7 +620,8 @@ const selectMentionUser = user => {
   setTimeout(() => {
     const textarea = replyTextareaRef.value?.textarea
     if (textarea) {
-      const newPos = textBefore.length + user.username.length + 2 // @ + 用户名 + 空格
+      const mentionName = user.username || user.userName || getDisplayName(user)
+      const newPos = textBefore.length + mentionName.length + 2 // @ + 用户名 + 空格
       textarea.setSelectionRange(newPos, newPos)
       textarea.focus()
     }
@@ -633,11 +643,13 @@ const submitReply = async () => {
     let match
     while ((match = mentionRegex.exec(replyContent.value)) !== null) {
       // 从回复列表和帖子作者中查找用户ID
+      // @ 匹配时使用 username 或 userName 字段
       const username = match[1]
-      const user = replyList.value.find(r => r.username === username) ||
-                  (post.value?.userName === username ? {
+      const user = replyList.value.find(r => (r.username || r.userName) === username) ||
+                  ((post.value?.userName || post.value?.username) === username ? {
                     userId: post.value.userId,
-                    userName: post.value.userName
+                    userName: post.value.userName,
+                    username: post.value.userName || post.value.username
                   } : null)
       if (user) {
         mentionedUserIds.push(user.userId || user.id)
