@@ -45,7 +45,7 @@
                   <el-icon style="margin-right:4px;"><UserFilled /></el-icon>用户
                 </el-tag>
               </h2>
-              <div class="user-id">ID: {{ userInfo.id || userInfo.username }}</div>
+              <div class="user-id">ID: {{ userInfo.id || '未知' }}</div>
               <div class="user-location" v-if="formattedLocation">
                 <el-icon><Location /></el-icon>
                 {{ formattedLocation }}
@@ -412,7 +412,7 @@ const userStore = useUserStore()
           const res = await userStore.addFollow({
             targetId: userId.value,
             targetType: 'user',
-            targetName: userInfo.value.nickname || userInfo.value.username,
+            targetName: userInfo.value.nickname || '用户',
             targetAvatar: userInfo.value.avatar
           })
           showByCode(res.code)

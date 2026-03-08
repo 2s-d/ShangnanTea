@@ -1272,7 +1272,12 @@ public class ForumServiceImpl implements ForumService {
                             // 从Map获取用户信息
                             User user = finalUserMap.get(post.getUserId());
                             vo.setUserName(user != null ? user.getUsername() : "未知用户");
-                            vo.setNickname(user != null ? user.getNickname() : null);
+                            // 确保昵称不为空：如果昵称为空，使用用户名作为昵称（用户名是私密信息，不应直接显示）
+                            String nickname = user != null ? user.getNickname() : null;
+                            if (nickname == null || nickname.trim().isEmpty()) {
+                                nickname = user != null ? user.getUsername() : "未知用户";
+                            }
+                            vo.setNickname(nickname);
                             // 处理用户头像URL
                             String userAvatar = user != null ? user.getAvatar() : null;
                             if (userAvatar != null && !userAvatar.trim().isEmpty()) {
@@ -1450,7 +1455,12 @@ public class ForumServiceImpl implements ForumService {
                             // 从Map获取用户信息
                             User user = finalUserMap.get(post.getUserId());
                             vo.setUserName(user != null ? user.getUsername() : "未知用户");
-                            vo.setNickname(user != null ? user.getNickname() : null);
+                            // 确保昵称不为空：如果昵称为空，使用用户名作为昵称（用户名是私密信息，不应直接显示）
+                            String nickname = user != null ? user.getNickname() : null;
+                            if (nickname == null || nickname.trim().isEmpty()) {
+                                nickname = user != null ? user.getUsername() : "未知用户";
+                            }
+                            vo.setNickname(nickname);
                             // 处理用户头像URL
                             String userAvatar = user != null ? user.getAvatar() : null;
                             if (userAvatar != null && !userAvatar.trim().isEmpty()) {
@@ -1559,7 +1569,12 @@ public class ForumServiceImpl implements ForumService {
             vo.setId(post.getId());
             vo.setUserId(post.getUserId());
             vo.setUserName(user != null ? user.getUsername() : "未知用户");
-            vo.setNickname(user != null ? user.getNickname() : null);
+            // 确保昵称不为空：如果昵称为空，使用用户名作为昵称（用户名是私密信息，不应直接显示）
+            String nickname = user != null ? user.getNickname() : null;
+            if (nickname == null || nickname.trim().isEmpty()) {
+                nickname = user != null ? user.getUsername() : "未知用户";
+            }
+            vo.setNickname(nickname);
             // 处理用户头像URL
             String userAvatar = user != null ? user.getAvatar() : null;
             if (userAvatar != null && !userAvatar.trim().isEmpty()) {
@@ -1892,7 +1907,12 @@ public class ForumServiceImpl implements ForumService {
                         User user = finalUserMap.get(reply.getUserId());
                         if (user != null) {
                             vo.setUsername(user.getUsername());
-                            vo.setNickname(user.getNickname());
+                            // 确保昵称不为空：如果昵称为空，使用用户名作为昵称（用户名是私密信息，不应直接显示）
+                            String nickname = user.getNickname();
+                            if (nickname == null || nickname.trim().isEmpty()) {
+                                nickname = user.getUsername();
+                            }
+                            vo.setNickname(nickname);
                             String avatar = user.getAvatar();
                             if (avatar != null && !avatar.trim().isEmpty()) {
                                 if (avatar.startsWith("http://") || avatar.startsWith("https://")) {

@@ -156,7 +156,8 @@ export const useUserStore = defineStore('user', () => {
   const isShop = computed(() => userInfo.value?.role === 3)
   const displayName = computed(() => {
     if (!userInfo.value) return '用户'
-    return userInfo.value.nickname || userInfo.value.username || '用户'
+    // 只显示昵称，不显示用户名（用户名是私密信息）
+    return userInfo.value.nickname || '用户'
   })
   const defaultAddress = computed(() => {
     if (defaultAddressId.value) {
@@ -254,7 +255,8 @@ export const useUserStore = defineStore('user', () => {
       try {
         const roleMap = { 1: '管理员', 2: '普通用户', 3: '商家' }
         const info = userInfoData || {}
-        const displayNickname = info.nickname || info.username || '-'
+        // 只显示昵称，不显示用户名（用户名是私密信息）
+        const displayNickname = info.nickname || '-'
         console.log(
           '[LoginSuccess]',
           `username=${info.username || '-'}`,
