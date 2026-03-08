@@ -110,7 +110,6 @@ public class ForumVOConverter {
         vo.setId(post.getId());
         vo.setUserId(post.getUserId());
         // 前台仅展示昵称，不再暴露用户名；昵称在User层已保证非空
-        vo.setUserName(null);
         if (user != null) {
             vo.setNickname(user.getNickname());
         }
