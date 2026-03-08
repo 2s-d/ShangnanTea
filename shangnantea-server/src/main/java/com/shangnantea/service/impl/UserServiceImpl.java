@@ -627,7 +627,13 @@ public class UserServiceImpl implements UserService {
             boolean hasUpdate = false;
             
             if (userData.containsKey("nickname")) {
-                user.setNickname((String) userData.get("nickname"));
+                String nickname = (String) userData.get("nickname");
+                // 如果昵称为空或只包含空格，自动使用用户名作为昵称
+                if (nickname == null || nickname.trim().isEmpty()) {
+                    user.setNickname(user.getUsername());
+                } else {
+                    user.setNickname(nickname.trim());
+                }
                 hasUpdate = true;
             }
             
