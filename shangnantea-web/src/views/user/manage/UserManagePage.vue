@@ -177,7 +177,8 @@
         </el-form-item>
         
         <el-form-item label="昵称" prop="nickname">
-          <el-input v-model="userForm.nickname"></el-input>
+          <!-- 昵称：新增时可填写，编辑时仅展示不可修改 -->
+          <el-input v-model="userForm.nickname" :disabled="isEdit"></el-input>
         </el-form-item>
         
         <el-form-item label="密码" prop="password" v-if="!isEdit">
@@ -563,9 +564,8 @@ const userFormRef = ref(null)
         if (valid) {
           try {
             if (isEdit.value) {
-              // 编辑用户（不允许修改角色）
+              // 编辑用户（不允许修改角色和昵称）
               const userData = {
-                nickname: userForm.nickname,
                 email: userForm.email,
                 phone: userForm.phone,
                 status: userForm.status,
@@ -579,7 +579,7 @@ const userFormRef = ref(null)
               
               showByCode(res.code)
             } else {
-              // 添加管理员（固定role=1）
+              // 添加管理员（固定role=1，要求昵称必填）
               const adminData = {
                 username: userForm.username,
                 password: userForm.password,
