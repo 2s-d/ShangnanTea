@@ -135,9 +135,15 @@ export default {
       return `${displayYears}年`
     }
     
-    // 跳转到店铺详情
+    // 跳转到店铺详情或平台直售茶叶列表
     const goToShopDetail = () => {
-      router.push(`/shop/${props.shop.id}`)
+      const shopId = props.shop.id
+      // PLATFORM 是虚拟店铺标志，点击时跳转到平台直售茶叶列表页
+      if (shopId === 'PLATFORM' || shopId === '0') {
+        router.push('/tea/mall?shopId=PLATFORM')
+      } else {
+        router.push(`/shop/${shopId}`)
+      }
     }
     
     return {
