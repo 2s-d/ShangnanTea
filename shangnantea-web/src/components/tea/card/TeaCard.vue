@@ -10,7 +10,7 @@
       <h3 class="tea-name" :title="tea.name">{{ tea.name }}</h3>
       
       <!-- 店铺标签：平台直售（红色）或商家店铺（绿色） -->
-      <div class="shop-tag-container">
+      <div class="shop-tag-container" v-if="showShopTag && (isPlatformTea || shopName)">
         <span v-if="isPlatformTea" class="shop-tag platform-tag">平台直售</span>
         <span v-else-if="shopName" class="shop-tag shop-tag-green">{{ shopName }}</span>
       </div>
@@ -56,6 +56,11 @@ export default {
     tea: {
       type: Object,
       required: true
+    },
+    // 是否显示店铺/平台标签（在店铺详情页可以关闭）
+    showShopTag: {
+      type: Boolean,
+      default: true
     }
   },
   emits: ['add-to-cart'],

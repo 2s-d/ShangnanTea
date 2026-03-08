@@ -141,7 +141,8 @@
             <div class="products-container">
               <div v-if="shopTeas.length > 0" class="tea-grid">
                 <div v-for="tea in shopTeas" :key="tea.id" class="tea-item">
-                  <tea-card :tea="tea" />
+                  <!-- 店铺详情页中不需要再显示店铺标签 -->
+                  <tea-card :tea="tea" :show-shop-tag="false" />
                 </div>
               </div>
               <div v-else class="empty-products">
