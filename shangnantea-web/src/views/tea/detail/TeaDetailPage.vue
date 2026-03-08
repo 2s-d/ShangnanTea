@@ -74,9 +74,9 @@
                     />
                   </div>
                   <div class="platform-info">
-                    <div class="platform-name">商南茶文化平台</div>
-                    <div class="platform-tag">
-                      <el-tag type="danger" size="small">平台直售</el-tag>
+                    <div class="platform-name-row">
+                      <div class="platform-name">商南茶文化平台</div>
+                      <el-tag class="platform-tag" type="danger" size="small">平台直售</el-tag>
                     </div>
                     <div class="platform-desc">
                       由商南茶文化平台严选直售的优质茶叶，统一质检与售后服务，为您筛选出更放心的好茶。
@@ -997,14 +997,16 @@ defineOptions({
             }
             
             .platform-info {
+              .platform-name-row {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                margin-bottom: 5px;
+              }
+
               .platform-name {
                 font-size: 16px;
                 font-weight: 500;
-                margin-bottom: 5px;
-              }
-              
-              .platform-tag {
-                margin-top: 5px;
               }
               
               .platform-desc {
