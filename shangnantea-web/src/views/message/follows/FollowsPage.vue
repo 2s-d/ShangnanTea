@@ -194,9 +194,9 @@ const userStore = useUserStore()
           id: item.id,
           shopId: item.targetId,
           name: item.targetName || '未知店铺',
-          logo: item.targetAvatar || 'https://via.placeholder.com/50x50?text=店铺',
-          coverImage: item.targetAvatar || 'https://via.placeholder.com/300x100?text=店铺',
-          description: '', // 后端未提供，使用默认值
+          logo: item.targetLogo || item.targetAvatar || 'https://via.placeholder.com/50x50?text=店铺',
+          coverImage: item.targetAvatar || item.targetLogo || 'https://via.placeholder.com/300x100?text=店铺',
+          description: item.targetDescription || '暂无店铺介绍',
           followTime: item.createTime,
           popularity: 5 // 后端未提供，使用默认值
         }))

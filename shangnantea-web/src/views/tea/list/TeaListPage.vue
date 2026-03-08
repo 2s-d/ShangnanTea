@@ -146,7 +146,7 @@
           </template>
           
           <!-- 分页 -->
-          <div class="pagination-container">
+          <div class="pagination-container" v-if="totalCount > 0">
             <el-pagination
               background
               layout="prev, pager, next, jumper"
@@ -565,8 +565,9 @@ defineOptions({
     
     // 页面变化
     const handlePageChange = page => {
-      updateQueryParams()
       teaStore.setPage(page)
+      // setPage 会触发 fetchTeas，这里更新 URL 参数以保持同步
+      updateQueryParams()
     }
     
     // 处理排序变更

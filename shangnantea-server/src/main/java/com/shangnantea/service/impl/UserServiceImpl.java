@@ -26,6 +26,7 @@ import com.shangnantea.model.dto.SubmitShopCertificationDTO;
 import com.shangnantea.model.dto.UpdateUserPreferencesDTO;
 import com.shangnantea.model.dto.UpdateUserDTO;
 import com.shangnantea.model.dto.ProcessCertificationDTO;
+import com.shangnantea.model.entity.shop.Shop;
 import com.shangnantea.model.entity.shop.ShopCertification;
 import com.shangnantea.model.entity.user.User;
 import com.shangnantea.model.entity.user.UserAddress;
@@ -203,9 +204,14 @@ public class UserServiceImpl implements UserService {
                 try {
                     @SuppressWarnings("unchecked")
                     Map<String, Object> cachedRaw = objectMapper.readValue(cachedJson, Map.class);
-                    // 直接返回缓存中的字段（兼容是否包含max/min）
+                    // 无论缓存里之前存了多少字段，这里统一只返回 weather 和 temperature
+                    Map<String, Object> normalized = new HashMap<>();
+                    Object w = cachedRaw.get("weather");
+                    Object t = cachedRaw.get("temperature");
+                    normalized.put("weather", w != null ? w.toString() : "");
+                    normalized.put("temperature", t != null ? t.toString() : "");
                     logger.info("从缓存中读取天气数据: city={}, cacheKey={}", city, cacheKey);
-                    return Result.success(2026, cachedRaw);
+                    return Result.success(2026, normalized);
                 } catch (Exception e) {
                     logger.warn("解析缓存天气数据失败，将重新请求高德API: city={}, error={}", city, e.getMessage());
                 }
@@ -246,49 +252,11 @@ public class UserServiceImpl implements UserService {
 
             JsonNode live = lives.get(0);
             Map<String, Object> result = new HashMap<>();
-            // 实时天气：天气现象和当前温度
-            String weatherText = live.path("weather").asText("");
-            String tempNow = live.path("temperature").asText("");
-            result.put("weather", weatherText);
-            result.put("temperature", tempNow);
+            // 按需求只返回天气现象和温度，城市信息由前端自己处理
+            result.put("weather", live.path("weather").asText(""));
+            result.put("temperature", live.path("temperature").asText(""));
 
-            // 6. 调用高德天气预报API获取今日最高/最低温度（extensions=all）
-            try {
-                String forecastUrl = gaodeWeatherBaseUrl
-                        + "?key=" + gaodeWeatherKey
-                        + "&city=" + city
-                        + "&extensions=all";
-                logger.info("请求高德天气预报API以获取最高/最低温度: url={}", forecastUrl);
-                RestTemplate restTemplateForecast = new RestTemplate();
-                String forecastResp = restTemplateForecast.getForObject(forecastUrl, String.class);
-                if (forecastResp != null && !forecastResp.isEmpty()) {
-                    JsonNode forecastRoot = objectMapper.readTree(forecastResp);
-                    if ("1".equals(forecastRoot.path("status").asText())) {
-                        JsonNode forecasts = forecastRoot.path("forecasts");
-                        if (forecasts.isArray() && forecasts.size() > 0) {
-                            JsonNode todayCast = forecasts.get(0).path("casts");
-                            if (todayCast.isArray() && todayCast.size() > 0) {
-                                JsonNode today = todayCast.get(0);
-                                String maxT = today.path("daytemp").asText("");
-                                String minT = today.path("nighttemp").asText("");
-                                if (!maxT.isEmpty()) {
-                                    result.put("maxTemperature", maxT);
-                                }
-                                if (!minT.isEmpty()) {
-                                    result.put("minTemperature", minT);
-                                }
-                            }
-                        }
-                    } else {
-                        logger.warn("高德天气预报API调用失败: city={}, resp={}", city, forecastResp);
-                    }
-                }
-            } catch (Exception e) {
-                // 预报失败不影响主流程，只记录日志
-                logger.warn("获取高德天气最高/最低温度失败: city={}, error={}", city, e.getMessage());
-            }
-
-            // 7. 写入Redis缓存
+            // 6. 写入Redis缓存
             try {
                 String jsonToCache = objectMapper.writeValueAsString(result);
                 long ttlMinutes = gaodeCacheMinutes > 0 ? gaodeCacheMinutes : 30;
@@ -2565,6 +2533,27 @@ public class UserServiceImpl implements UserService {
             } else {
                 followVO.setTargetAvatar(null);
             }
+            
+            // 如果是店铺类型，查询店铺详情获取logo和description
+            if ("shop".equals(follow.getFollowType())) {
+                Shop shop = shopMapper.selectById(follow.getFollowId());
+                if (shop != null) {
+                    // 处理店铺Logo URL
+                    String logo = shop.getLogo();
+                    if (logo != null && !logo.trim().isEmpty()) {
+                        if (logo.startsWith("http://") || logo.startsWith("https://")) {
+                            followVO.setTargetLogo(logo);
+                        } else {
+                            followVO.setTargetLogo(FileUploadUtils.generateAccessUrl(logo, baseUrl));
+                        }
+                    } else {
+                        followVO.setTargetLogo(null);
+                    }
+                    // 设置店铺描述
+                    followVO.setTargetDescription(shop.getDescription());
+                }
+            }
+            
             followVO.setCreateTime(follow.getCreateTime());
             followVOList.add(followVO);
         }
