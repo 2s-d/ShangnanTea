@@ -620,9 +620,11 @@ defineOptions({
       }
     }
     
-    // 计算属性 - 是否为平台直售
+    // 计算属性 - 是否为平台直售（兼容 shopId / shop_id 字段）
     const isPlatformTea = computed(() => {
-      return tea.value && (tea.value.shopId === '0' || tea.value.shop_id === '0' || tea.value.shop_id === 'PLATFORM')
+      if (!tea.value) return false
+      const sid = tea.value.shopId || tea.value.shop_id
+      return sid === '0' || sid === 'PLATFORM'
     })
 
     // 兼容后端返回的图片结构（可能是 string[] 或 {url}[]）
