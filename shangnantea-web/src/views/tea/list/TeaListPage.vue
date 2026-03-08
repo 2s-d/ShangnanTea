@@ -345,6 +345,7 @@ defineOptions({
         
         // 将UI筛选条件映射到 store.filters
         // 任务组E：只显示上架茶叶（status=1）
+        // 商品来源筛选：platform 表示平台直售（shopId='PLATFORM'），all 表示全部（shopId=''）
         await teaStore.updateFilters({
           keyword: searchQuery.value,
           // 当前 store 只支持单个 category 字段，这里用"第一个选中分类"作为查询条件
@@ -354,7 +355,8 @@ defineOptions({
           rating: filters.rating,
           sortBy: sortBy,
           sortOrder: sortOrder,
-          status: 1 // 任务组E：只显示上架茶叶
+          status: 1, // 任务组E：只显示上架茶叶
+          shopId: filters.source === 'platform' ? 'PLATFORM' : '' // 平台直售筛选
         })
       } catch (error) {
         // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试

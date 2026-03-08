@@ -373,8 +373,8 @@ const userStore = useUserStore()
           sessionId: session.id,
             receiverId: targetId, // 对端用户ID
             targetType: isCustomerService ? 'shop' : 'user',
-            name: isCustomerService ? `店铺${targetId}客服` : `用户${targetId}`,
-            avatar: `https://via.placeholder.com/50x50?text=${isCustomerService ? '店铺' : '用户'}`,
+            name: isCustomerService ? (session.shopName || `店铺${targetId}客服`) : (session.nickname || `用户${targetId}`),
+            avatar: session.targetAvatar || `https://via.placeholder.com/50x50?text=${isCustomerService ? '店铺' : '用户'}`,
           lastMessage: session.lastMessage || '',
           lastTime: session.lastMessageTime,
             unreadCount,

@@ -171,11 +171,11 @@
                   <div class="review-header">
                     <div class="review-user">
                       <el-avatar :src="review.avatar" :size="40">
-                        {{ (review.nickname || review.username || '').charAt(0) }}
+                        {{ (review.nickname || '').charAt(0) }}
                       </el-avatar>
                       <div class="user-info">
                         <div class="user-name">
-                          {{ review.nickname || review.username || ('用户' + (review.userId || '')) }}
+                          {{ review.nickname || ('用户' + (review.userId || '')) }}
                         </div>
                         <div class="review-time">{{ formatTime(review.createTime) }}</div>
                       </div>

@@ -152,7 +152,7 @@ const userRole = computed(() => {
   return userStore.userInfo?.role || 0
 })
 
-// 用户信息（优先显示昵称，没有昵称再显示用户名）
+// 用户信息（显示昵称）
 const displayName = computed(() => userStore.displayName)
 const userAvatar = computed(() => {
   return userStore.userInfo?.avatar || ''
