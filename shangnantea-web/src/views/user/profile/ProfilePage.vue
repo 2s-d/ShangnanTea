@@ -156,7 +156,6 @@ const locationOptions = ref(provinceAndCityData)
     
     const rules = {
       nickname: [
-        { required: true, message: '请输入昵称', trigger: 'blur' },
         { max: 20, message: '昵称不能超过20个字符', trigger: 'blur' }
       ],
       phone: [

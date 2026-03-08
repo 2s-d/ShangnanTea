@@ -177,7 +177,7 @@
         </el-form-item>
         
         <el-form-item label="昵称" prop="nickname">
-          <el-input v-model="userForm.nickname" :disabled="isEdit"></el-input>
+          <el-input v-model="userForm.nickname"></el-input>
         </el-form-item>
         
         <el-form-item label="密码" prop="password" v-if="!isEdit">
