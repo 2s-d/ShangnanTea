@@ -1591,7 +1591,8 @@ public class TeaServiceImpl implements TeaService {
         // 从缓存中获取用户信息
         com.shangnantea.model.entity.user.User user = userCache.get(review.getUserId());
         if (user != null) {
-            vo.setUsername(user.getUsername());
+            // 前台仅展示昵称，不再返回用户名；昵称已在业务层保证非空
+            vo.setUsername(null);
             vo.setNickname(user.getNickname() != null ? user.getNickname() : user.getUsername());
             String avatar = user.getAvatar();
             if (avatar != null && !avatar.trim().isEmpty()) {
@@ -1604,8 +1605,8 @@ public class TeaServiceImpl implements TeaService {
                 vo.setAvatar("");
             }
         } else {
-            // 用户不存在时的降级处理
-            vo.setUsername("用户" + review.getUserId());
+            // 用户不存在时的降级处理：仅返回匿名昵称，不返回用户名
+            vo.setUsername(null);
             vo.setNickname("用户" + review.getUserId());
             vo.setAvatar("");
         }

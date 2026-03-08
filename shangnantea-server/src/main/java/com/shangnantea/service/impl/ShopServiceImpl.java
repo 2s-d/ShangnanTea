@@ -1897,7 +1897,8 @@ public class ShopServiceImpl implements ShopService {
                     try {
                         com.shangnantea.model.entity.user.User user = userMapper.selectById(review.getUserId());
                         if (user != null) {
-                            vo.setUsername(user.getUsername());
+                            // 前台仅展示昵称，不再返回用户名；昵称已在业务层保证非空
+                            vo.setUsername(null);
                             vo.setNickname(user.getNickname() != null ? user.getNickname() : user.getUsername());
                             String avatar = user.getAvatar();
                             if (avatar != null && !avatar.trim().isEmpty()) {
