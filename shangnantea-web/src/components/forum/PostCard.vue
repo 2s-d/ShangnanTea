@@ -228,7 +228,8 @@ export default {
     // 获取显示名称（优先昵称，没有昵称显示用户名）
     const getDisplayName = (post) => {
       if (!post) return '未知用户'
-      return post.nickname || post.userName || post.username || '未知用户'
+      // 只显示昵称，不显示用户名（用户名是私密信息）
+      return post.nickname || '未知用户'
     }
     
     return {

@@ -138,7 +138,7 @@ export default {
     flex: 1;
     
     .tea-name {
-      margin: 0 0 4px 0; // 缩减茶叶名字到图标之间的距离
+      margin: 0 0 -10px 0; // 缩减茶叶名字到图标之间的距离
       font-size: 16px;
       font-weight: 500;
       color: var(--el-text-color-primary);
@@ -152,7 +152,7 @@ export default {
     }
     
     .shop-tag-container {
-      margin-bottom: 100px; // 缩减图标到价格之间的距离
+      margin-bottom: -5px; // 缩减图标到价格之间的距离
       
       .shop-tag {
         display: inline-block;

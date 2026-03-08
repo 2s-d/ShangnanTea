@@ -26,7 +26,7 @@
             </div>
             <div class="user-details">
               <h2 class="user-name">
-                {{ userInfo.nickname || userInfo.username || '用户' }}
+                {{ userInfo.nickname || '用户' }}
                 <span class="user-gender">
                   <el-icon color="#409EFF" v-if="userInfo.gender === 1"><Male /></el-icon>
                   <el-icon color="#FF4949" v-else-if="userInfo.gender === 2"><Female /></el-icon>
