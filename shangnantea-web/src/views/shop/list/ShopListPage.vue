@@ -83,6 +83,7 @@
             :key="shop.id"
             :shop="shop"
             :shopTeas="getShopTeas(shop.id)"
+            :product-count="getProductCount(shop.id)"
           />
         </div>
         
@@ -141,6 +142,7 @@ defineOptions({
     const currentPageFromStore = computed(() => shopStore.pagination.currentPage || 1)
     const filters = computed(() => shopStore.filters || {})
     const shopTeasPreviewMap = computed(() => shopStore.shopTeasPreviewMap || {})
+    const shopProductCountMap = computed(() => shopStore.shopProductCountMap || {})
     
     // 同步Pinia分页到本地
     watch(currentPageFromStore, newPage => {
@@ -176,6 +178,11 @@ defineOptions({
     // 获取指定店铺的茶叶
     const getShopTeas = shopId => {
       return shopTeasPreviewMap.value[shopId] || []
+    }
+    
+    const getProductCount = shopId => {
+      const val = shopProductCountMap.value[shopId]
+      return typeof val === 'number' ? val : 0
     }
     
     // 任务组A：加载店铺列表（使用Pinia）

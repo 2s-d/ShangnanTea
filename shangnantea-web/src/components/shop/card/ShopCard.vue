@@ -38,7 +38,7 @@
           </span>
           <span class="stat-item">
             <el-icon><Timer /></el-icon>
-            {{ formatTime(shop.createTime) }}
+            店龄: {{ formatExistTime(shop.createTime) }}
           </span>
         </div>
       </div>
@@ -87,26 +87,52 @@ export default {
     shopTeas: {
       type: Array,
       default: () => []
+    },
+    productCount: {
+      type: Number,
+      default: null
     }
   },
   setup(props) {
     const router = useRouter()
     
-    // 获取店铺的三件茶叶展示
+    // 获取店铺的两件茶叶展示（固定展示样式）
     const featuredTeas = computed(() => {
-      return props.shopTeas.slice(0, 3)
+      return props.shopTeas.slice(0, 2)
     })
     
-    // 计算店铺茶叶数量
+    // 计算店铺茶叶数量（优先使用总数，其次使用预览数量）
     const shopTeaCount = computed(() => {
+      if (typeof props.productCount === 'number') {
+        return props.productCount
+      }
       return props.shopTeas.length
     })
     
-    // 格式化时间
-    const formatTime = timeString => {
+    // 格式化店铺存在时间（店龄）
+    const formatExistTime = timeString => {
       if (!timeString) return '未知'
-      const date = new Date(timeString)
-      return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
+      const createDate = new Date(timeString)
+      if (Number.isNaN(createDate.getTime())) return '未知'
+      
+      const now = new Date()
+      const diffMs = now.getTime() - createDate.getTime()
+      if (diffMs <= 0) return '1个月'
+      
+      const diffMonths = Math.floor(diffMs / (1000 * 60 * 60 * 24 * 30)) // 约30天一月
+      if (diffMonths < 12) {
+        const months = Math.max(1, diffMonths)
+        return `${months}个月`
+      }
+      
+      const years = Math.floor(diffMonths / 12)
+      const remainMonths = diffMonths - years * 12
+      let displayYears = years
+      // 超过一年6个月按下一年算
+      if (remainMonths >= 6) {
+        displayYears += 1
+      }
+      return `${displayYears}年`
     }
     
     // 跳转到店铺详情
@@ -117,7 +143,7 @@ export default {
     return {
       featuredTeas,
       shopTeaCount,
-      formatTime,
+      formatExistTime,
       goToShopDetail
     }
   }

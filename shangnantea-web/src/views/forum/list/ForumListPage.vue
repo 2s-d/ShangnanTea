@@ -367,11 +367,11 @@ function imageHandler() {
         quillInstance.setSelection(index + 1)
         quillInstance.update()
       } else {
-        forumPromptMessages.showCommonError('图片上传失败')
+        forumPromptMessages.showImageFormatInvalid()
       }
     } catch (e) {
       console.error('上传帖子图片失败:', e)
-      forumPromptMessages.showCommonError('图片上传失败')
+      forumPromptMessages.showImageFormatInvalid()
     }
   }
 }
@@ -386,11 +386,11 @@ const handleCoverUpload = async ({ file }) => {
     if (res?.code === 6037 && res.data?.url) {
       postForm.coverImage = res.data.url
     } else {
-      forumPromptMessages.showCommonError('封面上传失败')
+      forumPromptMessages.showImageFormatInvalid()
     }
   } catch (e) {
     console.error('封面上传失败:', e)
-    forumPromptMessages.showCommonError('封面上传失败')
+    forumPromptMessages.showImageFormatInvalid()
   } finally {
     coverUploading.value = false
   }

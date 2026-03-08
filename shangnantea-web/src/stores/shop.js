@@ -34,6 +34,8 @@ export const useShopStore = defineStore('shop', () => {
   const shopTeas = ref([])
   // 店铺列表页右侧预览用：每个店铺的部分茶叶
   const shopTeasPreviewMap = reactive({})
+  // 店铺商品总数（用于列表页“商品数”）
+  const shopProductCountMap = reactive({})
   const loading = ref(false)
   
   // 分页信息
@@ -246,6 +248,12 @@ export const useShopStore = defineStore('shop', () => {
       const list = data?.list || data?.records || (Array.isArray(data) ? data : [])
       // 只存入预览用的前 size 条
       shopTeasPreviewMap[shopId] = list.slice(0, size)
+      // 商品总数：优先使用 total，没有则退回列表长度
+      if (data && typeof data.total === 'number') {
+        shopProductCountMap[shopId] = data.total
+      } else {
+        shopProductCountMap[shopId] = list.length
+      }
       
       return res
     } catch (error) {
@@ -741,6 +749,7 @@ export const useShopStore = defineStore('shop', () => {
     myShop,
     shopTeas,
     shopTeasPreviewMap,
+    shopProductCountMap,
     loading,
     pagination,
     filters,
