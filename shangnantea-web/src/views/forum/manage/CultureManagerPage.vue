@@ -871,10 +871,10 @@ const submitBannerForm = async () => {
       formData.append('file', bannerUploadFile.value)
       formData.append('title', bannerForm.title || '')
       if (bannerForm.subtitle) {
-        formData.append('subtitle', bannerForm.subtitle)
+      formData.append('subtitle', bannerForm.subtitle)
       }
       if (bannerForm.link_url) {
-        formData.append('linkUrl', bannerForm.link_url)
+      formData.append('linkUrl', bannerForm.link_url)
       }
       // sortOrder 在后端初始可以使用默认值，如需调整顺序用“排序拖拽+保存顺序”接口
       res = await forumStore.uploadBanner(formData)

@@ -312,7 +312,10 @@ export const useUserStore = defineStore('user', () => {
       const data = res?.data || res || {}
       const normalized = {
         weather: data.weather ?? '',
-        temperature: data.temperature ?? ''
+        temperature: data.temperature ?? '',
+        // 如果后端提供了最高/最低温度，则一并缓存下来，供导航栏 tooltip 使用
+        maxTemperature: data.maxTemperature ?? null,
+        minTemperature: data.minTemperature ?? null
       }
       todayWeather.value = normalized
       todayWeatherCityCode.value = targetCode || null
