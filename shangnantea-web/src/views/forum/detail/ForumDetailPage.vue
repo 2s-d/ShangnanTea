@@ -34,8 +34,8 @@
       <!-- 帖子内容 -->
       <div v-else-if="post" class="post-container">
         <div class="post-content" v-html="post.content"></div>
-        <div v-if="post.cover" class="post-cover">
-          <SafeImage :src="post.cover" type="post" :alt="post.title" class="cover-img" style="width:100%;object-fit:cover;" />
+        <div v-if="post.coverImage" class="post-cover">
+          <SafeImage :src="post.coverImage" type="post" :alt="post.title" class="cover-img" style="width:100%;object-fit:cover;" />
         </div>
         
         <!-- 仅在帖子为已发布状态时允许互动操作 -->

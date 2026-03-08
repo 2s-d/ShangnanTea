@@ -138,7 +138,7 @@
       <el-dialog
         title="发布新帖"
         v-model="dialogVisible.post"
-        width="650px"
+        width="720px"
         :close-on-click-modal="false"
       >
         <el-form :model="postForm" :rules="postRules" ref="postFormRef" label-width="80px">
@@ -161,37 +161,50 @@
               />
             </el-select>
           </el-form-item>
-          
-          <el-form-item label="内容" prop="content">
-            <el-input 
-              v-model="postForm.content" 
-              type="textarea" 
-              :rows="8"
-              placeholder="请输入帖子内容（至少10字）"
-              maxlength="5000"
+
+          <el-form-item label="摘要">
+            <el-input
+              v-model="postForm.summary"
+              type="textarea"
+              :rows="3"
+              maxlength="200"
               show-word-limit
+              placeholder="可选：不填时将自动从正文前200字生成"
             />
           </el-form-item>
           
-          <el-form-item label="图片">
+          <el-form-item label="内容" prop="content">
+            <QuillEditor
+              v-model:content="postForm.content"
+              contentType="html"
+              :options="postEditorOptions"
+              style="height: 320px"
+              @ready="onPostEditorReady"
+            />
+          </el-form-item>
+          
+          <el-form-item label="封面图">
             <el-upload
-              v-model:file-list="postForm.images"
-              action="#"
-              list-type="picture-card"
-              :auto-upload="false"
-              :limit="6"
+              class="cover-uploader"
+              :show-file-list="false"
+              :http-request="handleCoverUpload"
               accept="image/*"
-              :on-exceed="handleImageExceed"
-              :on-change="handleImageChange"
-              :on-remove="handleImageRemove"
             >
-              <el-icon><Plus /></el-icon>
-              <template #tip>
-                <div class="el-upload__tip">
-                  最多上传6张图片，单张不超过5MB
-                </div>
+              <SafeImage
+                v-if="postForm.coverImage"
+                :src="postForm.coverImage"
+                type="post"
+                alt="封面图片"
+                class="cover-image-preview"
+              />
+              <template v-else>
+                <el-icon class="cover-uploader-icon"><Plus /></el-icon>
+                <div class="cover-uploader-text">上传封面（可选）</div>
               </template>
             </el-upload>
+            <div class="el-upload__tip">
+              建议比例 16:9，用于列表和详情页顶部展示
+            </div>
           </el-form-item>
         </el-form>
         
@@ -233,6 +246,9 @@ import PostCard from '@/components/forum/PostCard.vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 import { showByCode } from '@/utils/apiMessages'
 import { forumPromptMessages } from '@/utils/promptMessages'
+import { QuillEditor } from '@vueup/vue-quill'
+import '@vueup/vue-quill/dist/vue-quill.snow.css'
+import forumAPI from '@/api/forum'
 
 const router = useRouter()
 const route = useRoute()
@@ -282,7 +298,8 @@ const postForm = reactive({
   title: '',
   categoryId: '',
   content: '',
-  images: []
+  summary: '',
+  coverImage: ''
 })
 
 // 发帖表单验证规则
@@ -295,9 +312,88 @@ const postRules = {
     { required: true, message: '请选择分类', trigger: 'change' }
   ],
   content: [
-    { required: true, message: '请输入帖子内容', trigger: 'blur' },
-    { min: 10, message: '内容至少10个字符', trigger: 'blur' }
+    { required: true, message: '请输入帖子内容', trigger: 'change' }
   ]
+}
+
+// Quill 编辑器配置（帖子）
+const postEditorOptions = {
+  modules: {
+    toolbar: {
+      container: [
+        [{ header: [1, 2, 3, false] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        [{ color: [] }, { background: [] }],
+        [{ align: [] }],
+        ['link', 'image'],
+        ['clean']
+      ],
+      handlers: {
+        image: imageHandler
+      }
+    }
+  },
+  placeholder: '请输入帖子内容，可在正文中插入图片…',
+  theme: 'snow'
+}
+
+let quillInstance = null
+
+const onPostEditorReady = quill => {
+  quillInstance = quill
+}
+
+function imageHandler() {
+  const input = document.createElement('input')
+  input.setAttribute('type', 'file')
+  input.setAttribute('accept', 'image/*')
+  input.click()
+
+  input.onchange = async () => {
+    const file = input.files[0]
+    if (!file) return
+    if (!quillInstance) {
+      forumPromptMessages.showCommonError('编辑器未准备好，请稍后重试')
+      return
+    }
+    try {
+      const res = await forumAPI.uploadPostImage(file)
+      if (res?.code === 6037 && res.data?.url) {
+        const url = res.data.url
+        const range = quillInstance.getSelection(true)
+        const index = range && range.index != null ? range.index : quillInstance.getLength() - 1
+        quillInstance.insertEmbed(index, 'image', url)
+        quillInstance.setSelection(index + 1)
+        quillInstance.update()
+      } else {
+        forumPromptMessages.showCommonError('图片上传失败')
+      }
+    } catch (e) {
+      console.error('上传帖子图片失败:', e)
+      forumPromptMessages.showCommonError('图片上传失败')
+    }
+  }
+}
+
+// 封面上传
+const coverUploading = ref(false)
+
+const handleCoverUpload = async ({ file }) => {
+  try {
+    coverUploading.value = true
+    const res = await forumAPI.uploadPostImage(file)
+    if (res?.code === 6037 && res.data?.url) {
+      postForm.coverImage = res.data.url
+    } else {
+      forumPromptMessages.showCommonError('封面上传失败')
+    }
+  } catch (e) {
+    console.error('封面上传失败:', e)
+    forumPromptMessages.showCommonError('封面上传失败')
+  } finally {
+    coverUploading.value = false
+  }
 }
 
 // 排序选项
@@ -796,12 +892,13 @@ const updatePagination = () => {
       router.push('/user/settings/posts')
     }
     
-    // 显示发帖对话框
+// 显示发帖对话框
     const showPostDialog = () => {
       // 重置表单
       postForm.title = ''
       postForm.content = ''
-      postForm.images = []
+      postForm.summary = ''
+      postForm.coverImage = ''
       
       // 如果当前在具体版块，自动选中该版块；如果在"全部帖子"，则为空（需要用户手动选择）
       if (currentTopicId.value && currentTopicId.value !== 'all') {
@@ -813,41 +910,27 @@ const updatePagination = () => {
       dialogVisible.post = true
     }
     
-    // 处理图片超出限制
-    const handleImageExceed = () => {
-      forumPromptMessages.showImageCountLimit(6)
+    // 从HTML中提取纯文本（用于自动生成摘要）
+    const extractPlainText = html => {
+      if (!html) return ''
+      const div = document.createElement('div')
+      div.innerHTML = html
+      return div.textContent || div.innerText || ''
     }
-    
-    // 处理图片变化
-    const handleImageChange = (file, fileList) => {
-      // 验证文件大小
-      if (file.size > 5 * 1024 * 1024) {
-        forumPromptMessages.showImageSizeLimit5MB()
-        // 移除超大文件
-        const index = fileList.indexOf(file)
-        if (index > -1) {
-          fileList.splice(index, 1)
-        }
-        return false
-      }
-      
-      // 验证文件类型
-      const isImage = file.raw.type.startsWith('image/')
-      if (!isImage) {
-        forumPromptMessages.showImageFormatInvalid()
-        const index = fileList.indexOf(file)
-        if (index > -1) {
-          fileList.splice(index, 1)
-        }
-        return false
-      }
+
+    // 从HTML中提取图片URL列表（用于images字段）
+    const extractImageUrls = html => {
+      if (!html) return []
+      const div = document.createElement('div')
+      div.innerHTML = html
+      const imgs = Array.from(div.querySelectorAll('img'))
+      const urls = imgs
+        .map(img => img.getAttribute('src'))
+        .filter(u => !!u)
+      // 去重
+      return Array.from(new Set(urls))
     }
-    
-    // 处理图片移除
-    const handleImageRemove = (file, fileList) => {
-      postForm.images = fileList
-    }
-    
+
     // 取消发帖
     const cancelPost = () => {
       dialogVisible.post = false
@@ -868,28 +951,20 @@ const updatePagination = () => {
       localLoading.submit = true
       
       try {
-        // 1) 先上传图片（当前 el-upload 设置了 auto-upload=false，不会自动上传）
-        const imageUrls = []
-        for (const file of postForm.images) {
-          // 新选择的图片：file.raw 存在
-          if (file && file.raw) {
-            const uploadRes = await forumStore.uploadPostImage(file.raw)
-            if (uploadRes && uploadRes.data && uploadRes.data.url) {
-              imageUrls.push(uploadRes.data.url)
-            }
-            continue
-          }
-          // 已有图片：直接复用 url
-          if (file && file.url) {
-            imageUrls.push(file.url)
-          }
-        }
-        
-        // 2) 准备提交数据（后端 CreatePostDTO: topicId(Integer), images(String JSON)）
+        // 1) 从富文本中提取图片URL列表
+        const imageUrls = extractImageUrls(postForm.content)
+
+        // 2) 生成摘要（优先使用用户填写的摘要，否则从正文前200字自动生成）
+        const plainText = extractPlainText(postForm.content)
+        const autoSummary = plainText.slice(0, 200)
+
+        // 3) 准备提交数据（后端 CreatePostDTO: topicId, title, content, summary, coverImage, images）
         const submitData = {
           title: postForm.title,
           topicId: postForm.categoryId ? parseInt(postForm.categoryId, 10) : null,
           content: postForm.content,
+          summary: postForm.summary || autoSummary || null,
+          coverImage: postForm.coverImage || (imageUrls.length > 0 ? imageUrls[0] : null),
           images: imageUrls.length > 0 ? JSON.stringify(imageUrls) : null
         }
         
@@ -1084,6 +1159,24 @@ const updatePagination = () => {
 
 .main-content {
   margin-bottom: 40px;
+}
+
+.cover-uploader {
+  .cover-image-preview {
+    width: 200px;
+    max-height: 120px;
+    border-radius: 6px;
+    object-fit: cover;
+  }
+  .cover-uploader-icon {
+    font-size: 28px;
+    color: #8c939d;
+  }
+  .cover-uploader-text {
+    font-size: 12px;
+    color: #909399;
+    margin-top: 4px;
+  }
 }
 
 // 侧边栏样式
