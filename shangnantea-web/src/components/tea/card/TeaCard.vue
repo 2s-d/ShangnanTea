@@ -10,6 +10,12 @@
     <div class="tea-info">
       <h3 class="tea-name" :title="tea.name">{{ tea.name }}</h3>
       
+      <!-- 店铺标签：平台直售（红色）或商家店铺（绿色） -->
+      <div class="shop-tag-container">
+        <span v-if="isPlatformTea" class="shop-tag platform-tag">平台直售</span>
+        <span v-else-if="shopName" class="shop-tag shop-tag-green">{{ shopName }}</span>
+      </div>
+      
       <div class="tea-brief">{{ tea.brief }}</div>
       
       <div class="tea-price-row">
@@ -58,7 +64,16 @@ export default {
     const router = useRouter()
     
     // 判断是否为平台直售茶叶
-    const isPlatformTea = computed(() => props.tea.shop_id === 'PLATFORM')
+    const isPlatformTea = computed(() => {
+      const shopId = props.tea.shop_id || props.tea.shopId
+      return shopId === 'PLATFORM' || shopId === '0'
+    })
+    
+    // 获取店铺名称
+    const shopName = computed(() => {
+      if (isPlatformTea.value) return null
+      return props.tea.shopName || props.tea.shop_name || null
+    })
     
     // 查看详情
     const viewDetail = () => {
@@ -73,6 +88,7 @@ export default {
     
     return {
       isPlatformTea,
+      shopName,
       viewDetail,
       addToCart
     }
@@ -146,6 +162,28 @@ export default {
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
+    }
+    
+    .shop-tag-container {
+      margin-bottom: 8px;
+      
+      .shop-tag {
+        display: inline-block;
+        font-size: 12px;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-weight: 500;
+      }
+      
+      .platform-tag {
+        background-color: #f56c6c; // 红色
+        color: white;
+      }
+      
+      .shop-tag-green {
+        background-color: #67c23a; // 绿色
+        color: white;
+      }
     }
     
     .tea-brief {
