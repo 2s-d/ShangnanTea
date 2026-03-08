@@ -16,9 +16,14 @@
           <template #header>
             <div class="card-header">
               <span>店铺信息</span>
-              <el-button type="primary" size="small" @click="showSettingsDialog">
+              <div class="header-actions">
+                <el-button type="primary" size="small" @click="goToShopSettings">
                 <el-icon><Setting /></el-icon> 店铺设置
               </el-button>
+                <el-button type="default" size="small" @click="handlePreviewShop">
+                  <el-icon><View /></el-icon> 预览店铺
+                </el-button>
+              </div>
             </div>
           </template>
           
@@ -33,10 +38,10 @@
                   :http-request="handleLogoUploadRequest"
                 >
                   <SafeImage 
-                    v-if="shop.logo || shop.shop_logo" 
-                    :src="shop.logo || shop.shop_logo" 
+                    v-if="shop.logo" 
+                    :src="shop.logo" 
                     type="banner" 
-                    :alt="shop.name || shop.shop_name" 
+                    :alt="shop.name" 
                     class="shop-logo"
                   />
                   <el-icon v-else class="logo-uploader-icon"><Plus /></el-icon>
@@ -46,7 +51,7 @@
             </div>
             
             <div class="shop-info-right">
-              <h3 class="shop-name">{{ shop.name || shop.shop_name }}</h3>
+              <h3 class="shop-name">{{ shop.name }}</h3>
               
               <div class="shop-stats">
                 <div class="stat-item">
@@ -54,12 +59,14 @@
                   <span class="stat-label">销量</span>
                 </div>
                 <div class="stat-item">
-                  <span class="stat-value">{{ shop.rating || '0.0' }}</span>
-                  <span class="stat-label">评分</span>
+                  <span class="stat-value">{{ shop.followCount || 0 }}</span>
+                  <span class="stat-label">关注数</span>
                 </div>
                 <div class="stat-item">
-                  <span class="stat-value">{{ shop.follower_count || shop.followerCount || 0 }}</span>
-                  <span class="stat-label">关注数</span>
+                  <span class="stat-value">
+                    {{ (overviewStats.rating ?? 0).toFixed(1) }}
+                  </span>
+                  <span class="stat-label">评分</span>
                 </div>
               </div>
               
@@ -106,7 +113,7 @@
                 <div class="overview-value">{{ shopStatistics.overview?.totalProducts || 0 }}</div>
               </div>
               <div class="overview-item">
-                <div class="overview-label">访问量</div>
+                <div class="overview-label">评分人数</div>
                 <div class="overview-value">{{ shopStatistics.overview?.totalVisitors || 0 }}</div>
               </div>
             </div>
@@ -207,7 +214,7 @@
                 <el-table-column label="图片" width="100">
                   <template #default="scope">
                     <SafeImage 
-                      :src="scope.row.main_image" 
+                      :src="scope.row.mainImage" 
                       type="tea"
                       :alt="scope.row.name"
                       style="width: 60px; height: 60px; border-radius: 4px; object-fit: cover;"
@@ -281,145 +288,6 @@
             </div>
           </div>
         </el-card>
-
-        <!-- 任务组B：Banner管理部分 -->
-        <el-card class="banner-manage-card">
-          <template #header>
-            <div class="card-header">
-              <span>Banner管理</span>
-              <el-button type="primary" size="small" @click="showAddBannerDialog">
-                <el-icon><Plus /></el-icon> 添加Banner
-              </el-button>
-            </div>
-          </template>
-          
-          <div class="banner-manage-content" v-loading="bannerLoading">
-            <div v-if="shopBanners.length === 0" class="empty-banner">
-              <el-empty description="暂无Banner，点击上方按钮添加" />
-            </div>
-            
-            <div v-else class="banner-list">
-              <div 
-                v-for="(banner, index) in shopBanners" 
-                :key="banner.id" 
-                class="banner-item"
-              >
-                <div class="banner-preview">
-                  <SafeImage 
-                    :src="banner.image_url" 
-                    type="banner" 
-                    :alt="banner.title"
-                    style="width: 100%; height: 150px; object-fit: cover; border-radius: 4px;"
-                  />
-                  <div class="banner-info">
-                    <div class="banner-title">{{ banner.title || '未命名Banner' }}</div>
-                    <div class="banner-link">{{ banner.link_url || '无链接' }}</div>
-                    <div class="banner-order">排序：{{ banner.order || index + 1 }}</div>
-                  </div>
-                </div>
-                
-                <div class="banner-actions">
-                  <el-button 
-                    type="primary" 
-                    link 
-                    size="small"
-                    @click="showEditBannerDialog(banner)"
-                  >
-                    编辑
-                  </el-button>
-                  <el-button 
-                    type="danger" 
-                    link 
-                    size="small"
-                    @click="handleDeleteBanner(banner)"
-                  >
-                    删除
-                  </el-button>
-                  <div class="banner-order-controls">
-                    <el-button 
-                      type="info" 
-                      link 
-                      size="small"
-                      :disabled="index === 0"
-                      @click="moveBanner(index, 'up')"
-                    >
-                      ↑
-                    </el-button>
-                    <el-button 
-                      type="info" 
-                      link 
-                      size="small"
-                      :disabled="index === shopBanners.length - 1"
-                      @click="moveBanner(index, 'down')"
-                    >
-                      ↓
-                    </el-button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </el-card>
-
-        <!-- 任务组B：公告管理部分 -->
-        <el-card class="announcement-manage-card">
-          <template #header>
-            <div class="card-header">
-              <span>公告管理</span>
-              <el-button type="primary" size="small" @click="showAddAnnouncementDialog">
-                <el-icon><Plus /></el-icon> 添加公告
-              </el-button>
-            </div>
-          </template>
-          
-          <div class="announcement-manage-content" v-loading="announcementLoading">
-            <div v-if="shopAnnouncements.length === 0" class="empty-announcement">
-              <el-empty description="暂无公告，点击上方按钮添加" />
-            </div>
-            
-            <div v-else class="announcement-list">
-              <div 
-                v-for="announcement in shopAnnouncements" 
-                :key="announcement.id" 
-                class="announcement-item"
-                :class="{ 'is-top': announcement.is_top }"
-              >
-                <div class="announcement-header">
-                  <div class="announcement-title">
-                    <el-tag v-if="announcement.is_top" type="warning" size="small">置顶</el-tag>
-                    <span>{{ announcement.title }}</span>
-                  </div>
-                  <div class="announcement-time">
-                    {{ formatTime(announcement.create_time) }}
-                  </div>
-                </div>
-                
-                <div class="announcement-content">
-                  {{ announcement.content }}
-                </div>
-                
-                <div class="announcement-actions">
-                  <el-button 
-                    type="primary" 
-                    link 
-                    size="small"
-                    @click="showEditAnnouncementDialog(announcement)"
-                  >
-                    编辑
-                  </el-button>
-                  <el-button 
-                    type="danger" 
-                    link 
-                    size="small"
-                    @click="handleDeleteAnnouncement(announcement)"
-                  >
-                    删除
-                  </el-button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </el-card>
       </div>
     </div>
     
@@ -483,9 +351,9 @@
           </div>
           
           <el-table :data="currentTea.specifications" border class="specs-table">
-            <el-table-column prop="spec_name" label="规格名称" width="180">
+            <el-table-column prop="specName" label="规格名称" width="180">
               <template #default="scope">
-                <el-input v-model="scope.row.spec_name" placeholder="如：罐装100g" />
+                <el-input v-model="scope.row.specName" placeholder="如：罐装100g" />
               </template>
             </el-table-column>
             
@@ -501,9 +369,9 @@
               </template>
             </el-table-column>
             
-            <el-table-column prop="is_default" label="默认规格" width="100">
+            <el-table-column prop="isDefault" label="默认规格" width="100">
               <template #default="scope">
-                <el-checkbox v-model="scope.row.is_default" @change="handleDefaultChange(scope.$index)" />
+                <el-checkbox v-model="scope.row.isDefault" @change="handleDefaultChange(scope.$index)" />
               </template>
             </el-table-column>
             
@@ -539,85 +407,6 @@
         </div>
       </template>
     </el-dialog>
-
-    <!-- 任务组B：Banner表单对话框 -->
-    <el-dialog
-      v-model="bannerDialogVisible"
-      :title="isEditBanner ? '编辑Banner' : '添加Banner'"
-      width="600px"
-      destroy-on-close
-    >
-      <el-form 
-        ref="bannerFormRef" 
-        :model="currentBanner" 
-        label-width="100px"
-        v-if="currentBanner"
-      >
-        <el-form-item label="Banner标题" prop="title">
-          <el-input v-model="currentBanner.title" placeholder="请输入Banner标题" maxlength="50" />
-        </el-form-item>
-        
-        <el-form-item label="图片URL" prop="image_url">
-          <el-input v-model="currentBanner.image_url" placeholder="请输入图片URL" />
-        </el-form-item>
-        
-        <el-form-item label="链接地址" prop="link_url">
-          <el-input v-model="currentBanner.link_url" placeholder="请输入链接地址（可选）" />
-        </el-form-item>
-        
-        <el-form-item label="排序" prop="order">
-          <el-input-number v-model="currentBanner.order" :min="1" :max="10" />
-        </el-form-item>
-        
-        <el-form-item label="启用状态" prop="is_enabled">
-          <el-switch v-model="currentBanner.is_enabled" :active-value="1" :inactive-value="0" />
-        </el-form-item>
-      </el-form>
-      
-      <template #footer>
-        <el-button @click="bannerDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSaveBanner">保存</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 任务组B：公告表单对话框 -->
-    <el-dialog
-      v-model="announcementDialogVisible"
-      :title="isEditAnnouncement ? '编辑公告' : '添加公告'"
-      width="700px"
-      destroy-on-close
-    >
-      <el-form 
-        ref="announcementFormRef" 
-        :model="currentAnnouncement" 
-        label-width="100px"
-        v-if="currentAnnouncement"
-      >
-        <el-form-item label="公告标题" prop="title">
-          <el-input v-model="currentAnnouncement.title" placeholder="请输入公告标题" maxlength="100" />
-        </el-form-item>
-        
-        <el-form-item label="公告内容" prop="content">
-          <el-input
-            v-model="currentAnnouncement.content"
-            type="textarea"
-            :rows="6"
-            placeholder="请输入公告内容"
-            maxlength="1000"
-            show-word-limit
-          />
-        </el-form-item>
-        
-        <el-form-item label="置顶" prop="is_top">
-          <el-switch v-model="currentAnnouncement.is_top" :active-value="1" :inactive-value="0" />
-        </el-form-item>
-      </el-form>
-      
-      <template #footer>
-        <el-button @click="announcementDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSaveAnnouncement">保存</el-button>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
@@ -626,7 +415,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useShopStore } from '@/stores/shop'
 import { ElMessageBox } from 'element-plus'
-import { Setting, Plus, Search } from '@element-plus/icons-vue'
+import { Setting, Plus, Search, View } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 import { API } from '@/api/apiConstants'
 
@@ -855,15 +644,15 @@ defineOptions({
         origin: '商南县',
         stock: 0,
         sales: 0,
-        main_image: '',
+        mainImage: '',
         status: 0, // 默认下架状态
         specifications: [
           {
             id: Date.now(),
-            spec_name: '默认规格',
+            specName: '默认规格',
             price: 0,
             stock: 0,
-            is_default: true
+            isDefault: true
           }
         ],
         images: []
@@ -871,11 +660,22 @@ defineOptions({
       dialogVisible.value = true
     }
     
-    // 显示设置对话框
-    const showSettingsDialog = () => {
-      ElMessageBox.alert('店铺设置功能将在后续版本开发', '开发中', {
-        confirmButtonText: '确定'
-      })
+    // 跳转到店铺设置页
+    const goToShopSettings = () => {
+      if (!shop.value || !shop.value.id) {
+        shopPromptMessages.showShopInfoLoadFirst()
+        return
+      }
+      router.push('/shop/settings')
+    }
+    
+    // 预览店铺：以普通用户视角打开店铺详情页
+    const handlePreviewShop = () => {
+      if (!shop.value || !shop.value.id) {
+        shopPromptMessages.showShopInfoLoadFirst()
+        return
+      }
+      router.push(`/shop/${shop.value.id}`)
     }
     
     // 获取最低价格
@@ -927,10 +727,10 @@ defineOptions({
       
       currentTea.value.specifications.push({
         id: Date.now(),
-        spec_name: `规格${currentTea.value.specifications.length + 1}`,
+        specName: `规格${currentTea.value.specifications.length + 1}`,
         price: currentTea.value.price || 0,
         stock: 0,
-        is_default: false
+        isDefault: false
       })
     }
     
@@ -941,8 +741,8 @@ defineOptions({
       currentTea.value.specifications.splice(index, 1)
       
       // 如果删除了默认规格，则将第一个规格设为默认
-      if (!currentTea.value.specifications.some(spec => spec.is_default)) {
-        currentTea.value.specifications[0].is_default = true
+      if (!currentTea.value.specifications.some(spec => spec.isDefault)) {
+        currentTea.value.specifications[0].isDefault = true
       }
     }
     
@@ -953,7 +753,7 @@ defineOptions({
       // 只能有一个默认规格，将其他规格设为非默认
       currentTea.value.specifications.forEach((spec, index) => {
         if (index !== changedIndex) {
-          spec.is_default = false
+          spec.isDefault = false
         }
       })
     }
@@ -1128,7 +928,7 @@ defineOptions({
       currentAnnouncement.value = {
         title: '',
         content: '',
-        is_top: 0
+        isTop: false
       }
       announcementDialogVisible.value = true
     }
@@ -1151,7 +951,7 @@ defineOptions({
         const announcementData = {
           title: currentAnnouncement.value.title,
           content: currentAnnouncement.value.content,
-          is_top: currentAnnouncement.value.is_top ? 1 : 0
+          isTop: currentAnnouncement.value.isTop ? true : false
         }
         
         let response
@@ -1210,6 +1010,7 @@ defineOptions({
     // 任务组D：统计数据相关
     const statisticsLoading = ref(false)
     const shopStatistics = computed(() => shopStore.shopStatistics)
+    const overviewStats = computed(() => shopStatistics.value?.overview || {})
     const dateRange = ref([])
     
     // 加载统计数据
@@ -1315,9 +1116,10 @@ defineOptions({
   padding: 20px 0 40px;
   
   .shop-manage-container {
-    max-width: 1200px;
+    width: 85%;
+    max-width: 1920px;
     margin: 0 auto;
-    padding: 0 15px;
+    padding: 0;
   }
   
   .page-header {

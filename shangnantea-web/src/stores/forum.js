@@ -474,11 +474,14 @@ export const useForumStore = defineStore('forum', () => {
     
     try {
       const res = await getForumPosts(params)
-      const posts = res.data?.posts || (Array.isArray(res.data) ? res.data : [])
+      const data = res.data || {}
+      // 后端返回结构：{ list: [...], total: number }
+      const posts = Array.isArray(data.list) ? data.list : (Array.isArray(data.posts) ? data.posts : [])
       forumPosts.value = posts
-      if (res.data?.pagination) {
-        postPagination.value = { ...postPagination.value, ...res.data.pagination }
-      }
+      // 更新分页信息（使用内存分页结果）
+      postPagination.current = params.page || 1
+      postPagination.pageSize = params.pageSize || 10
+      postPagination.total = typeof data.total === 'number' ? data.total : posts.length
       return res
     } catch (err) {
       error.value = err.message || '获取帖子列表失败'
@@ -583,10 +586,27 @@ export const useForumStore = defineStore('forum', () => {
     
     try {
       const res = await getPostReplies(postId, params)
-      const replies = res.data?.replies || (Array.isArray(res.data) ? res.data : [])
+      // 后端返回格式：{code: 200, data: {total: 3, list: [...]}}
+      const replies = res.data?.list || res.data?.replies || (Array.isArray(res.data) ? res.data : [])
       postReplies.value = replies
-      if (res.data?.pagination) {
+      // 处理分页信息：后端返回的是 {total, list}，需要转换为分页格式
+      if (res.data?.total !== undefined && res.data?.total !== null) {
+        replyPagination.value = {
+          ...replyPagination.value,
+          total: res.data.total,
+          current: params.page || replyPagination.value.current || 1,
+          pageSize: params.size || replyPagination.value.pageSize || 20
+        }
+      } else if (res.data?.pagination) {
         replyPagination.value = { ...replyPagination.value, ...res.data.pagination }
+      } else {
+        // 如果没有total字段，使用list的长度作为total（至少显示当前页的数量）
+        replyPagination.value = {
+          ...replyPagination.value,
+          total: replies.length,
+          current: params.page || replyPagination.value.current || 1,
+          pageSize: params.size || replyPagination.value.pageSize || 20
+        }
       }
       return res
     } catch (err) {
@@ -641,11 +661,14 @@ export const useForumStore = defineStore('forum', () => {
     
     try {
       const res = await getPendingPosts(params)
-      const posts = res.data?.posts || (Array.isArray(res.data) ? res.data : [])
+      const data = res.data || {}
+      // 后端返回结构：{ list: [...], total: number }
+      const posts = Array.isArray(data.list) ? data.list : (Array.isArray(data.posts) ? data.posts : (Array.isArray(data) ? data : []))
       pendingPosts.value = posts
-      if (res.data?.pagination) {
-        pendingPostsPagination.value = { ...pendingPostsPagination.value, ...res.data.pagination }
-      }
+      // 更新分页信息
+      pendingPostsPagination.current = params.page || 1
+      pendingPostsPagination.pageSize = params.pageSize || 10
+      pendingPostsPagination.total = typeof data.total === 'number' ? data.total : posts.length
       return res
     } catch (err) {
       error.value = err.message || '获取待审核帖子列表失败'

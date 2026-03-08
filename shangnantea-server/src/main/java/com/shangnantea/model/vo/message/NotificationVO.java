@@ -14,7 +14,7 @@ public class NotificationVO implements Serializable {
     private Long id;
     
     /**
-     * 通知类型（system, order, forum, follow等）
+     * 通知类型（post_reply, system_announcement, external_link 等）
      */
     private String type;
     
@@ -29,9 +29,24 @@ public class NotificationVO implements Serializable {
     private String content;
     
     /**
-     * 是否已读
+     * 目标ID（帖子ID、订单ID、茶叶ID、店铺ID、会话ID等）
      */
-    private Boolean isRead;
+    private String targetId;
+    
+    /**
+     * 目标类型（post, order, tea, shop, chat_session 等）
+     */
+    private String targetType;
+    
+    /**
+     * 额外数据(JSON字符串，根据不同情景自定义字段)
+     */
+    private String extraData;
+    
+    /**
+     * 是否已读（0:未读, 1:已读）
+     */
+    private Integer isRead;
     
     /**
      * 创建时间
@@ -73,11 +88,35 @@ public class NotificationVO implements Serializable {
         this.content = content;
     }
     
-    public Boolean getIsRead() {
+    public String getTargetId() {
+        return targetId;
+    }
+    
+    public void setTargetId(String targetId) {
+        this.targetId = targetId;
+    }
+    
+    public String getTargetType() {
+        return targetType;
+    }
+    
+    public void setTargetType(String targetType) {
+        this.targetType = targetType;
+    }
+    
+    public String getExtraData() {
+        return extraData;
+    }
+    
+    public void setExtraData(String extraData) {
+        this.extraData = extraData;
+    }
+    
+    public Integer getIsRead() {
         return isRead;
     }
     
-    public void setIsRead(Boolean isRead) {
+    public void setIsRead(Integer isRead) {
         this.isRead = isRead;
     }
     

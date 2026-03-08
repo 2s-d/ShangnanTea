@@ -69,6 +69,11 @@ export const useShopStore = defineStore('shop', () => {
   
   // 店铺评价相关
   const shopReviews = ref([])
+  const shopRatingSummary = reactive({
+    rating: 0,
+    ratingCount: 0,
+    userRating: null
+  })
   const reviewPagination = reactive({
     total: 0,
     currentPage: 1,
@@ -372,11 +377,27 @@ export const useShopStore = defineStore('shop', () => {
       const res = await getShopStatistics(shopId, params)
       const data = res.data
       
-      Object.assign(shopStatistics, {
-        overview: data?.overview || null,
-        trends: data?.trends || [],
-        hotProducts: data?.hotProducts || []
-      })
+      // 后端返回的是平铺结构，需要转换为前端期望的嵌套结构
+      if (data) {
+        Object.assign(shopStatistics, {
+          overview: {
+            totalSales: data.totalSales || 0,
+            totalOrders: data.orderCount || 0,
+            totalProducts: data.productCount || 0,
+            totalVisitors: data.ratingCount || 0, // 访问量改为评分人数
+            rating: typeof data.rating === 'number' ? data.rating : 0,
+            ratingCount: data.ratingCount || 0
+          },
+          trends: data.trends || [],
+          hotProducts: data.hotProducts || []
+        })
+      } else {
+        Object.assign(shopStatistics, {
+          overview: null,
+          trends: [],
+          hotProducts: []
+        })
+      }
       
       return res
     } catch (error) {
@@ -400,11 +421,11 @@ export const useShopStore = defineStore('shop', () => {
       const logoUrl = res.data?.url
       
       if (myShop.value && myShop.value.id === shopId) {
-        myShop.value = { ...myShop.value, logo: logoUrl, shop_logo: logoUrl }
+        myShop.value = { ...myShop.value, logo: logoUrl }
       }
       
       if (currentShop.value && currentShop.value.id === shopId) {
-        currentShop.value = { ...currentShop.value, logo: logoUrl, shop_logo: logoUrl }
+        currentShop.value = { ...currentShop.value, logo: logoUrl }
       }
       
       return res
@@ -441,16 +462,34 @@ export const useShopStore = defineStore('shop', () => {
   }
   
   // 上传店铺Banner
-  async function uploadShopBanner({ file, linkUrl, sortOrder }) {
+  async function uploadShopBanner({ file, title = '', linkUrl = '', sortOrder = null }) {
     const shopId = myShop.value?.id
     if (!shopId) {
       throw new Error('店铺ID不能为空')
     }
+    if (!file) {
+      throw new Error('Banner图片不能为空')
+    }
     
     try {
       loading.value = true
-      const res = await uploadBanner(shopId, file, { linkUrl, sortOrder })
-      shopBanners.value.push(res.data)
+      
+      const formData = new FormData()
+      // 与后端接口保持一致：@RequestParam("image") MultipartFile file
+      formData.append('image', file)
+      // 可选参数
+      if (title) {
+        formData.append('title', title)
+      }
+      if (linkUrl) {
+        formData.append('linkUrl', linkUrl)
+      }
+      if (sortOrder != null) {
+        formData.append('sortOrder', sortOrder)
+      }
+      
+      const res = await uploadBanner(shopId, formData)
+      // 这里不直接改动本地列表，交给调用方通过 fetchShopBanners 刷新，避免数据结构不一致
       return res
     } catch (error) {
       console.error('上传Banner失败:', error)
@@ -465,8 +504,10 @@ export const useShopStore = defineStore('shop', () => {
     try {
       loading.value = true
       const res = await updateBannerApi(bannerId, bannerData)
-      const index = shopBanners.value.findIndex(b => b.id === bannerId)
-      if (index !== -1) {
+      const index = shopBanners.value.findIndex(
+        b => b && String(b.id) === String(bannerId)
+      )
+      if (index !== -1 && res && res.data) {
         shopBanners.value[index] = res.data
       }
       return res
@@ -552,9 +593,9 @@ export const useShopStore = defineStore('shop', () => {
       const res = await createAnnouncementApi(shopId, announcementData)
       shopAnnouncements.value.push(res.data)
       shopAnnouncements.value.sort((a, b) => {
-        if (a.is_top && !b.is_top) return -1
-        if (!a.is_top && b.is_top) return 1
-        return new Date(b.create_time) - new Date(a.create_time)
+        if (a.isTop && !b.isTop) return -1
+        if (!a.isTop && b.isTop) return 1
+        return new Date(b.createTime) - new Date(a.createTime)
       })
       return res
     } catch (error) {
@@ -574,9 +615,9 @@ export const useShopStore = defineStore('shop', () => {
       if (index !== -1) {
         shopAnnouncements.value[index] = res.data
         shopAnnouncements.value.sort((a, b) => {
-          if (a.is_top && !b.is_top) return -1
-          if (!a.is_top && b.is_top) return 1
-          return new Date(b.create_time) - new Date(a.create_time)
+          if (a.isTop && !b.isTop) return -1
+          if (!a.isTop && b.isTop) return 1
+          return new Date(b.createTime) - new Date(a.createTime)
         })
       }
       return res
@@ -618,6 +659,17 @@ export const useShopStore = defineStore('shop', () => {
       const data = res.data
       const reviews = data?.list || (Array.isArray(data) ? data : [])
       shopReviews.value = reviews
+      
+      // 填充评分汇总信息（rating、ratingCount、userRating）
+      if (data) {
+        shopRatingSummary.rating = typeof data.rating === 'number' ? data.rating : 0
+        shopRatingSummary.ratingCount = typeof data.ratingCount === 'number' ? data.ratingCount : 0
+        shopRatingSummary.userRating = data.userRating ?? null
+      } else {
+        shopRatingSummary.rating = 0
+        shopRatingSummary.ratingCount = 0
+        shopRatingSummary.userRating = null
+      }
       
       if (data?.total !== undefined) {
         Object.assign(reviewPagination, {
@@ -671,6 +723,7 @@ export const useShopStore = defineStore('shop', () => {
     shopStatistics,
     isFollowingShop,
     shopReviews,
+    shopRatingSummary,
     reviewPagination,
     // Getters
     myShopId,

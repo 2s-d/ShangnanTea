@@ -8,8 +8,19 @@
             <span class="title">订单详情</span>
           </div>
           <div class="status">
-            <span :class="['status-tag', getStatusClass(orderDetail.status)]">
+            <!-- 只有在成功获取到订单详情后才渲染真实状态，避免首次渲染访问 null -->
+            <span
+              v-if="orderDetail"
+              :class="['status-tag', getStatusClass(orderDetail.status)]"
+            >
               {{ getStatusText(orderDetail.status) }}
+            </span>
+            <!-- 数据尚未加载完成时给出轻量占位，避免页面抖动 -->
+            <span
+              v-else
+              class="status-tag status-unpaid"
+            >
+              加载中...
             </span>
           </div>
         </div>

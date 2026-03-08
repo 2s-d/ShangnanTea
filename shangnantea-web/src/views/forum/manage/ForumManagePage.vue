@@ -48,7 +48,7 @@
               </el-table-column>
               <el-table-column label="创建时间" width="180">
                 <template #default="scope">
-                  {{ scope.row.create_time }}
+                  {{ formatDateTime(scope.row.createTime) }}
                 </template>
               </el-table-column>
               <el-table-column label="操作" width="220" fixed="right">
@@ -176,27 +176,37 @@
               </el-table-column>
               <el-table-column label="操作" width="200" fixed="right">
                 <template #default="scope">
-                  <el-button
-                    size="small"
-                    type="primary"
-                    @click="viewPendingPost(scope.row)"
-                  >
-                    查看详情
-                  </el-button>
-                  <el-button
-                    size="small"
-                    type="success"
-                    @click="showApproveDialog(scope.row)"
-                  >
-                    通过
-                  </el-button>
-                  <el-button
-                    size="small"
-                    type="danger"
-                    @click="showRejectDialog(scope.row)"
-                  >
-                    拒绝
-                  </el-button>
+                  <div style="display: flex; gap: 12px;">
+                    <el-button
+                      size="small"
+                      type="primary"
+                      @click="viewPendingPost(scope.row)"
+                    >
+                      查看详情
+                    </el-button>
+                    <el-dropdown trigger="hover" @command="handleAuditCommand">
+                      <el-button size="small" type="warning">
+                        审核<el-icon class="el-icon--right"><ArrowDown /></el-icon>
+                      </el-button>
+                      <template #dropdown>
+                        <el-dropdown-menu>
+                          <el-dropdown-item 
+                            :command="{action: 'approve', post: scope.row}"
+                          >
+                            <el-icon><Check /></el-icon>
+                            通过
+                          </el-dropdown-item>
+                          <el-dropdown-item 
+                            :command="{action: 'reject', post: scope.row}"
+                            divided
+                          >
+                            <el-icon><Close /></el-icon>
+                            拒绝
+                          </el-dropdown-item>
+                        </el-dropdown-menu>
+                      </template>
+                    </el-dropdown>
+                  </div>
                 </template>
               </el-table-column>
             </el-table>
@@ -215,74 +225,146 @@
             
             <!-- 审核通过对话框 -->
             <el-dialog
-              title="审核通过"
               v-model="approveDialogVisible"
-              width="500px"
+              width="600px"
+              :close-on-click-modal="false"
+              class="audit-dialog"
             >
-              <div class="audit-post-info">
-                <h4>{{ currentAuditPost?.title }}</h4>
-                <p class="post-content">{{ currentAuditPost?.content }}</p>
+              <template #header>
+                <div class="dialog-header-approve">
+                  <el-icon class="header-icon"><Check /></el-icon>
+                  <span class="header-title">审核通过</span>
+                </div>
+              </template>
+              
+              <div class="audit-dialog-content">
+                <div class="post-preview">
+                  <div class="preview-label">帖子标题</div>
+                  <div class="preview-title">{{ currentAuditPost?.title }}</div>
+                  
+                  <div class="preview-label">帖子内容</div>
+                  <div class="preview-content">{{ currentAuditPost?.content }}</div>
+                  
+                  <div class="post-meta">
+                    <span class="meta-item">
+                      <el-icon><User /></el-icon>
+                      {{ currentAuditPost?.userName }}
+                    </span>
+                    <span class="meta-item">
+                      <el-icon><Clock /></el-icon>
+                      {{ formatDateTime(currentAuditPost?.createTime) }}
+                    </span>
+                  </div>
+                </div>
+                
+                <el-divider />
+                
+                <el-form
+                  ref="approveFormRef"
+                  :model="approveForm"
+                  label-width="90px"
+                  class="audit-form"
+                >
+                  <el-form-item label="审核意见">
+                    <el-input
+                      v-model="approveForm.comment"
+                      type="textarea"
+                      :rows="4"
+                      placeholder="请输入审核意见（可选），例如：内容优质，符合社区规范"
+                      maxlength="200"
+                      show-word-limit
+                    />
+                  </el-form-item>
+                </el-form>
               </div>
-              <el-form
-                ref="approveFormRef"
-                :model="approveForm"
-                label-width="100px"
-              >
-                <el-form-item label="审核意见">
-                  <el-input
-                    v-model="approveForm.comment"
-                    type="textarea"
-                    rows="3"
-                    placeholder="请输入审核意见（可选）"
-                  />
-                </el-form-item>
-              </el-form>
+              
               <template #footer>
-                <div class="dialog-footer">
-                  <el-button @click="approveDialogVisible = false">取消</el-button>
-                  <el-button type="primary" @click="confirmApprove">确认通过</el-button>
+                <div class="dialog-footer-custom">
+                  <el-button size="large" @click="approveDialogVisible = false">取消</el-button>
+                  <el-button size="large" type="success" @click="confirmApprove">
+                    <el-icon><Check /></el-icon>
+                    确认通过
+                  </el-button>
                 </div>
               </template>
             </el-dialog>
             
             <!-- 审核拒绝对话框 -->
             <el-dialog
-              title="审核拒绝"
               v-model="rejectDialogVisible"
-              width="500px"
+              width="600px"
+              :close-on-click-modal="false"
+              class="audit-dialog"
             >
-              <div class="audit-post-info">
-                <h4>{{ currentAuditPost?.title }}</h4>
-                <p class="post-content">{{ currentAuditPost?.content }}</p>
+              <template #header>
+                <div class="dialog-header-reject">
+                  <el-icon class="header-icon"><Close /></el-icon>
+                  <span class="header-title">审核拒绝</span>
+                </div>
+              </template>
+              
+              <div class="audit-dialog-content">
+                <div class="post-preview">
+                  <div class="preview-label">帖子标题</div>
+                  <div class="preview-title">{{ currentAuditPost?.title }}</div>
+                  
+                  <div class="preview-label">帖子内容</div>
+                  <div class="preview-content">{{ currentAuditPost?.content }}</div>
+                  
+                  <div class="post-meta">
+                    <span class="meta-item">
+                      <el-icon><User /></el-icon>
+                      {{ currentAuditPost?.userName }}
+                    </span>
+                    <span class="meta-item">
+                      <el-icon><Clock /></el-icon>
+                      {{ formatDateTime(currentAuditPost?.createTime) }}
+                    </span>
+                  </div>
+                </div>
+                
+                <el-divider />
+                
+                <el-form
+                  ref="rejectFormRef"
+                  :model="rejectForm"
+                  :rules="rejectFormRules"
+                  label-width="90px"
+                  class="audit-form"
+                >
+                  <el-form-item label="拒绝原因" prop="reason">
+                    <el-select 
+                      v-model="rejectForm.reason" 
+                      placeholder="请选择拒绝原因"
+                      style="width: 100%"
+                    >
+                      <el-option label="内容违规" value="违规内容" />
+                      <el-option label="垃圾信息" value="垃圾信息" />
+                      <el-option label="重复发布" value="重复发布" />
+                      <el-option label="标题不规范" value="标题不规范" />
+                      <el-option label="其他原因" value="其他原因" />
+                    </el-select>
+                  </el-form-item>
+                  <el-form-item label="详细说明" prop="comment">
+                    <el-input
+                      v-model="rejectForm.comment"
+                      type="textarea"
+                      :rows="4"
+                      placeholder="请详细说明拒绝原因，帮助作者了解问题所在"
+                      maxlength="200"
+                      show-word-limit
+                    />
+                  </el-form-item>
+                </el-form>
               </div>
-              <el-form
-                ref="rejectFormRef"
-                :model="rejectForm"
-                :rules="rejectFormRules"
-                label-width="100px"
-              >
-                <el-form-item label="拒绝原因" prop="reason">
-                  <el-select v-model="rejectForm.reason" placeholder="请选择拒绝原因">
-                    <el-option label="内容违规" value="违规内容" />
-                    <el-option label="垃圾信息" value="垃圾信息" />
-                    <el-option label="重复发布" value="重复发布" />
-                    <el-option label="标题不规范" value="标题不规范" />
-                    <el-option label="其他原因" value="其他原因" />
-                  </el-select>
-                </el-form-item>
-                <el-form-item label="详细说明" prop="comment">
-                  <el-input
-                    v-model="rejectForm.comment"
-                    type="textarea"
-                    rows="3"
-                    placeholder="请详细说明拒绝原因"
-                  />
-                </el-form-item>
-              </el-form>
+              
               <template #footer>
-                <div class="dialog-footer">
-                  <el-button @click="rejectDialogVisible = false">取消</el-button>
-                  <el-button type="danger" @click="confirmReject">确认拒绝</el-button>
+                <div class="dialog-footer-custom">
+                  <el-button size="large" @click="rejectDialogVisible = false">取消</el-button>
+                  <el-button size="large" type="danger" @click="confirmReject">
+                    <el-icon><Close /></el-icon>
+                    确认拒绝
+                  </el-button>
                 </div>
               </template>
             </el-dialog>
@@ -310,9 +392,7 @@
             </div>
             
             <!-- 帖子列表将在后续添加 -->
-            <div class="placeholder-content">
-              帖子管理功能即将加载...
-            </div>
+        
             
             <!-- 帖子列表表格 -->
             <el-table
@@ -329,17 +409,17 @@
               </el-table-column>
               <el-table-column label="作者" width="120">
                 <template #default="scope">
-                  <span>{{ scope.row.author_name }}</span>
+                  <span>{{ scope.row.userName }}</span>
                 </template>
               </el-table-column>
               <el-table-column label="版块" width="120">
                 <template #default="scope">
-                  <el-tag size="small" effect="plain">{{ scope.row.topic_name }}</el-tag>
+                  <el-tag size="small" effect="plain">{{ scope.row.topicName }}</el-tag>
                 </template>
               </el-table-column>
               <el-table-column label="浏览/回复" width="120" align="center">
                 <template #default="scope">
-                  {{ scope.row.view_count }}/{{ scope.row.reply_count }}
+                  {{ scope.row.viewCount }}/{{ scope.row.replyCount }}
                 </template>
               </el-table-column>
               <el-table-column label="状态" width="100" align="center">
@@ -357,7 +437,7 @@
                 <template #default="scope">
                   <div class="post-features">
                     <el-tag
-                      v-if="scope.row.is_top"
+                      v-if="scope.row.isSticky === 1"
                       type="danger"
                       effect="plain"
                       size="small"
@@ -366,7 +446,7 @@
                       置顶
                     </el-tag>
                     <el-tag
-                      v-if="scope.row.is_essence"
+                      v-if="scope.row.isEssence === 1"
                       type="success"
                       effect="plain"
                       size="small"
@@ -379,58 +459,55 @@
               </el-table-column>
               <el-table-column label="发布时间" width="180">
                 <template #default="scope">
-                  {{ scope.row.create_time }}
+                  {{ formatDateTime(scope.row.createTime) }}
                 </template>
               </el-table-column>
-              <el-table-column label="操作" width="300" fixed="right">
+              <el-table-column label="操作" width="350" fixed="right">
                 <template #default="scope">
-                  <el-button
-                    size="small"
-                    type="primary"
-                    link
-                    @click="viewPost(scope.row)"
-                  >
-                    查看
-                  </el-button>
-                  
-                  <el-button
-                    size="small"
-                    type="primary"
-                    link
-                    v-if="scope.row.status === 0"
-                    @click="approvePost(scope.row)"
-                  >
-                    审核通过
-                  </el-button>
-                  
-                  <el-button
-                    size="small"
-                    type="primary"
-                    link
-                    :disabled="scope.row.status !== 1"
-                    @click="toggleTopPost(scope.row)"
-                  >
-                    {{ scope.row.is_top ? '取消置顶' : '置顶' }}
-                  </el-button>
-                  
-                  <el-button
-                    size="small"
-                    type="primary"
-                    link
-                    :disabled="scope.row.status !== 1"
-                    @click="toggleEssencePost(scope.row)"
-                  >
-                    {{ scope.row.is_essence ? '取消加精' : '加精' }}
-                  </el-button>
-                  
-                  <el-button
-                    size="small"
-                    type="danger"
-                    link
-                    @click="deletePost(scope.row)"
-                  >
-                    删除
-                  </el-button>
+                  <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+                    <el-button
+                      size="small"
+                      type="info"
+                      @click="viewPost(scope.row)"
+                    >
+                      查看
+                    </el-button>
+                    
+                    <el-button
+                      size="small"
+                      type="success"
+                      v-if="scope.row.status === 0"
+                      @click="approvePost(scope.row)"
+                    >
+                      审核通过
+                    </el-button>
+                    
+                    <el-button
+                      size="small"
+                      type="warning"
+                      :disabled="scope.row.status !== 1"
+                      @click="toggleTopPost(scope.row)"
+                    >
+                      {{ scope.row.isSticky === 1 ? '取消置顶' : '置顶' }}
+                    </el-button>
+                    
+                    <el-button
+                      size="small"
+                      type="primary"
+                      :disabled="scope.row.status !== 1"
+                      @click="toggleEssencePost(scope.row)"
+                    >
+                      {{ scope.row.isEssence === 1 ? '取消加精' : '加精' }}
+                    </el-button>
+                    
+                    <el-button
+                      size="small"
+                      type="danger"
+                      @click="deletePost(scope.row)"
+                    >
+                      删除
+                    </el-button>
+                  </div>
                 </template>
               </el-table-column>
             </el-table>
@@ -457,7 +534,7 @@
 import { ref, onMounted, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useForumStore } from '@/stores/forum'
-import { Reading, Plus, Search } from '@element-plus/icons-vue'
+import { Reading, Plus, Search, ArrowDown, Check, Close, User, Clock } from '@element-plus/icons-vue'
 import { ElMessageBox } from 'element-plus'
 import { forumPromptMessages } from '@/utils/promptMessages'
 import { showByCode } from '@/utils/apiMessages'
@@ -508,9 +585,10 @@ const editTopicMode = ref(false)
 const currentTopic = ref(null)
     
 // 帖子相关数据
-const postsList = ref([])
+// 列表数据与总数统一从 forumStore 读取，遵循「组件 -> Store -> API」的数据流
+const postsList = computed(() => forumStore.forumPosts)
 const postsLoading = ref(false)
-const postsTotalCount = ref(0)
+const postsTotalCount = computed(() => forumStore.postPagination?.total || 0)
 const postCurrentPage = ref(1)
 const postPageSize = ref(10)
 
@@ -648,87 +726,19 @@ const deleteTopic = async topic => {
 // 加载帖子列表
 const loadPosts = async () => {
   postsLoading.value = true
-  
-  postsList.value = []
-  postsTotalCount.value = 0
-
-  /*
-  // 模拟帖子数据
-  const mockPosts = [
-        {
-          id: 1,
-          title: '分享我最近喝过的好茶',
-          content: '最近尝试了几款不同产地的绿茶，感觉口感各有特点...',
-          author_id: 'cy100002',
-          author_name: '茶香四溢',
-          author_avatar: '/avatar/user2.jpg',
-          topic_id: 1,
-          topic_name: '茶叶知识',
-          view_count: 128,
-          reply_count: 15,
-          is_top: true,
-          is_essence: true,
-          status: 1, // 1-已发布
-          create_time: '2025-03-28 10:25:36',
-          update_time: '2025-03-28 10:25:36'
-        },
-        {
-          id: 2,
-          title: '新手求推荐适合入门的茶具套装',
-          content: '刚开始接触茶道，想买一套适合新手的茶具，有什么推荐吗？',
-          author_id: 'cy100005',
-          author_name: '茶道初学者',
-          author_avatar: '/avatar/user5.jpg',
-          topic_id: 3,
-          topic_name: '茶具讨论',
-          view_count: 72,
-          reply_count: 8,
-          is_top: false,
-          is_essence: false,
-          status: 1, // 1-已发布
-          create_time: '2025-03-29 14:35:12',
-          update_time: '2025-03-29 14:35:12'
-        },
-        {
-          id: 3,
-          title: '茶友们都来分享一下最喜欢的茶叶品种吧',
-          content: '我个人最喜欢的是铁观音，浓香型的那种...',
-          author_id: 'cy100008',
-          author_name: '茶叶收藏家',
-          author_avatar: '/avatar/user8.jpg',
-          topic_id: 2,
-          topic_name: '茶友交流',
-          view_count: 95,
-          reply_count: 23,
-          is_top: false,
-          is_essence: true,
-          status: 1, // 1-已发布
-          create_time: '2025-03-30 09:17:45',
-          update_time: '2025-03-30 09:17:45'
-        },
-        {
-          id: 4,
-          title: '春茶采摘季开始了，有什么值得期待的新茶吗？',
-          content: '眼看着春茶季就要到了，哪些产区的春茶大家觉得值得关注？',
-          author_id: 'cy100012',
-          author_name: '春茶爱好者',
-          author_avatar: '/avatar/user12.jpg',
-          topic_id: 1,
-          topic_name: '茶叶知识',
-          view_count: 42,
-          reply_count: 5,
-          is_top: false,
-          is_essence: false,
-          status: 0, // 0-待审核
-          create_time: '2025-04-01 16:28:53',
-          update_time: '2025-04-01 16:28:53'
-        }
-      ]
-      
-  postsList.value = mockPosts
-  postsTotalCount.value = 28 // 模拟总数
-  */
-  postsLoading.value = false
+  try {
+    const params = {
+      page: postCurrentPage.value,
+      pageSize: postPageSize.value,
+      keyword: postSearchText.value.trim() || undefined
+    }
+    const res = await forumStore.fetchForumPosts(params)
+    showByCode(res.code)
+  } catch (error) {
+    console.error('获取帖子列表失败:', error)
+  } finally {
+    postsLoading.value = false
+  }
 }
 
 // 搜索帖子
@@ -778,13 +788,12 @@ const viewPost = post => {
 
 // 审核通过帖子
 const approvePost = async post => {
-  forumPromptMessages.showFeatureDeveloping()
-  return
+  showApproveDialog(post)
 }
 
 // 切换帖子置顶状态
 const toggleTopPost = async post => {
-  const newTopStatus = !post.is_top
+  const newTopStatus = post.isSticky === 1 ? 0 : 1
   
   try {
     const res = await forumStore.togglePostSticky({
@@ -793,7 +802,7 @@ const toggleTopPost = async post => {
     })
     showByCode(res.code)
     // 更新本地数据
-    post.is_top = newTopStatus
+    post.isSticky = newTopStatus
   } catch (error) {
     console.error('切换置顶状态失败:', error)
   }
@@ -801,7 +810,7 @@ const toggleTopPost = async post => {
 
 // 切换帖子精华状态
 const toggleEssencePost = async post => {
-  const newEssenceStatus = !post.is_essence
+  const newEssenceStatus = post.isEssence === 1 ? 0 : 1
   
   try {
     const res = await forumStore.togglePostEssence({
@@ -810,7 +819,7 @@ const toggleEssencePost = async post => {
     })
     showByCode(res.code)
     // 更新本地数据
-    post.is_essence = newEssenceStatus
+    post.isEssence = newEssenceStatus
   } catch (error) {
     console.error('切换精华状态失败:', error)
   }
@@ -841,7 +850,7 @@ const loadPendingPosts = async () => {
   try {
     const res = await forumStore.fetchPendingPosts({
       page: pendingPostsCurrentPage.value,
-      size: pendingPostsPageSize.value
+      pageSize: pendingPostsPageSize.value
     })
     showByCode(res.code)
   } catch (error) {
@@ -866,6 +875,15 @@ const viewPendingPost = post => {
   router.push(`/forum/detail/${post.id}`)
 }
 
+// 处理审核下拉菜单命令
+const handleAuditCommand = ({ action, post }) => {
+  if (action === 'approve') {
+    showApproveDialog(post)
+  } else if (action === 'reject') {
+    showRejectDialog(post)
+  }
+}
+
 // 显示审核通过对话框
 const showApproveDialog = post => {
   currentAuditPost.value = post
@@ -888,12 +906,12 @@ const showRejectDialog = post => {
 // 确认审核通过
 const confirmApprove = async () => {
   try {
-    const res = await forumStore.approvePost({
-      id: currentAuditPost.value.id,
-      data: {
+    const res = await forumStore.approvePost(
+      currentAuditPost.value.id,
+      {
         comment: approveForm.value.comment
       }
-    })
+    )
     showByCode(res.code)
     approveDialogVisible.value = false
     await loadPendingPosts()
@@ -909,13 +927,13 @@ const confirmReject = async () => {
   await rejectFormRef.value.validate(async valid => {
     if (valid) {
       try {
-        const res = await forumStore.rejectPost({
-          id: currentAuditPost.value.id,
-          data: {
+        const res = await forumStore.rejectPost(
+          currentAuditPost.value.id,
+          {
             reason: rejectForm.value.reason,
             comment: rejectForm.value.comment
           }
-        })
+        )
         showByCode(res.code)
         rejectDialogVisible.value = false
         await loadPendingPosts()
@@ -968,51 +986,86 @@ onMounted(() => {
 }
 
 .container {
-  max-width: 1200px;
+  width: 85%;
+  max-width: 1920px;
   margin: 0 auto;
-  padding: 0 15px;
+  padding: 0;
 }
 
 .page-header {
-  background-color: #fff;
-  padding: 30px 0;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 40px 0;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  
+  .container {
+    width: 85%;
+    max-width: 1920px;
+    margin: 0 auto;
+    padding: 0;
+  }
   
   .page-title {
-    font-size: 28px;
-    font-weight: 600;
-    margin: 0 0 10px;
-    color: var(--el-text-color-primary);
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0 0 15px;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
   
   .header-actions {
-    margin-top: 10px;
+    margin-top: 15px;
     
-    .el-button {
-      padding: 9px 15px;
-      font-size: 14px;
-      line-height: 1.5;
-      border-radius: 4px;
-      font-weight: 500;
-      height: 40px;
-      
-      .el-icon {
-        margin-right: 5px;
-      }
+    :deep(.el-button) {
+      border-radius: 999px;
+      padding: 10px 26px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      background: #82D2CE;
+      border-color: #82D2CE;
+      color: #103a3a;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    }
+
+    :deep(.el-button:hover) {
+      background: #9ce0dd;
+      border-color: #9ce0dd;
+      box-shadow: 0 10px 22px rgba(0, 0, 0, 0.32);
+      transform: translateY(-1px);
+    }
+
+    :deep(.el-button:active) {
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.24);
+      transform: translateY(0);
     }
   }
 }
 
 .main-content {
-  margin-bottom: 40px;
+  width: 85%;
+  max-width: 1920px;
+  margin: 0 auto 40px;
+  padding: 0;
 }
 
 .management-tabs {
   background-color: #fff;
   border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-  padding: 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  padding: 24px;
+  
+  :deep(.el-tabs__header) {
+    margin-bottom: 24px;
+  }
+  
+  :deep(.el-tabs__item) {
+    font-size: 16px;
+    font-weight: 500;
+    padding: 0 24px;
+    height: 48px;
+    line-height: 48px;
+  }
 }
 
 .management-section {
@@ -1020,12 +1073,22 @@ onMounted(() => {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+    
+    h2, h3 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      color: #303133;
+    }
     
     .section-title {
-      font-size: 20px;
-      font-weight: 500;
+      font-size: 18px;
+      font-weight: 600;
       margin: 0;
+      color: #303133;
     }
     
     .search-bar {
@@ -1071,33 +1134,198 @@ onMounted(() => {
       color: #606266;
     }
   }
+}
+
+// 审核对话框样式
+.audit-dialog {
+  :deep(.el-dialog__header) {
+    padding: 0;
+    margin: 0;
+  }
   
-  .audit-post-info {
-    margin-bottom: 20px;
-    padding: 15px;
-    background-color: #f8f9fa;
-    border-radius: 6px;
-    border-left: 4px solid #409eff;
+  :deep(.el-dialog__body) {
+    padding: 0;
+  }
+  
+  :deep(.el-dialog__footer) {
+    padding: 20px 24px;
+    border-top: 1px solid #e4e7ed;
+  }
+  
+  .dialog-header-approve,
+  .dialog-header-reject {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px 24px;
+    border-radius: 8px 8px 0 0;
     
-    h4 {
-      margin: 0 0 10px;
-      font-size: 16px;
-      font-weight: 500;
-      color: #303133;
+    .header-icon {
+      font-size: 24px;
     }
     
-    .post-content {
-      margin: 0;
+    .header-title {
+      font-size: 18px;
+      font-weight: 600;
+    }
+  }
+  
+  .dialog-header-approve {
+    background: linear-gradient(135deg, #67c23a 0%, #85ce61 100%);
+    color: #fff;
+  }
+  
+  .dialog-header-reject {
+    background: linear-gradient(135deg, #f56c6c 0%, #f78989 100%);
+    color: #fff;
+  }
+  
+  .audit-dialog-content {
+    padding: 24px;
+  }
+  
+  .post-preview {
+    .preview-label {
+      font-size: 12px;
+      color: #909399;
+      margin-bottom: 8px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .preview-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #303133;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+    
+    .preview-content {
       font-size: 14px;
       color: #606266;
-      line-height: 1.6;
-      max-height: 100px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      display: -webkit-box;
-      -webkit-line-clamp: 4;
-      -webkit-box-orient: vertical;
+      line-height: 1.8;
+      margin-bottom: 16px;
+      padding: 12px;
+      background-color: #f5f7fa;
+      border-radius: 6px;
+      max-height: 120px;
+      overflow-y: auto;
+      
+      &::-webkit-scrollbar {
+        width: 6px;
+      }
+      
+      &::-webkit-scrollbar-thumb {
+        background-color: #dcdfe6;
+        border-radius: 3px;
+      }
     }
+    
+    .post-meta {
+      display: flex;
+      gap: 20px;
+      font-size: 13px;
+      color: #909399;
+      
+      .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        
+        .el-icon {
+          font-size: 14px;
+        }
+      }
+    }
+  }
+  
+  .audit-form {
+    :deep(.el-form-item__label) {
+      font-weight: 500;
+      color: #606266;
+    }
+    
+    :deep(.el-textarea__inner) {
+      border-radius: 6px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    
+    :deep(.el-select) {
+      width: 100%;
+    }
+  }
+  
+  .dialog-footer-custom {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    
+    .el-button {
+      min-width: 100px;
+      border-radius: 6px;
+      font-weight: 500;
+      
+      &.el-button--success {
+        background: linear-gradient(135deg, #67c23a 0%, #85ce61 100%);
+        border: none;
+        
+        &:hover {
+          opacity: 0.9;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(103, 194, 58, 0.4);
+        }
+      }
+      
+      &.el-button--danger {
+        background: linear-gradient(135deg, #f56c6c 0%, #f78989 100%);
+        border: none;
+        
+        &:hover {
+          opacity: 0.9;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(245, 108, 108, 0.4);
+        }
+      }
+    }
+  }
+}
+
+// 按钮优化（与茶文化内容管理统一）
+.el-button {
+  border-radius: 4px;
+  font-weight: 500;
+  transition: all 0.3s;
+  
+  &.el-button--primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    
+    &:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+    }
+  }
+}
+
+// 下拉菜单样式优化
+:deep(.el-dropdown-menu) {
+  padding: 5px 0 !important;
+  border-radius: 4px !important;
+}
+
+:deep(.el-dropdown-menu__item) {
+  padding: 0 16px !important;
+  height: 34px !important;
+  line-height: 34px !important;
+  font-size: 14px !important;
+  
+  .el-icon {
+    margin-right: 8px !important;
+    font-size: 14px !important;
   }
 }
 

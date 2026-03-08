@@ -22,7 +22,7 @@ export function getShops(params) {
  */
 export function getShopDetail(id) {
   return request({
-    url: API.SHOP.DETAIL + id,
+    url: API.SHOP.DETAIL.replace('{id}', id),
     method: 'get'
   })
 }
@@ -59,7 +59,7 @@ export function createShop(shopData = {}) {
  */
 export function getShopTeas(shopId, params = {}) {
   return request({
-    url: API.SHOP.DETAIL + shopId + '/teas',
+    url: API.SHOP.DETAIL.replace('{id}', shopId) + '/teas',
     method: 'get',
     params
   })
@@ -72,7 +72,7 @@ export function getShopTeas(shopId, params = {}) {
  */
 export function updateShop(data) {
   return request({
-    url: API.SHOP.DETAIL + data.id,
+    url: API.SHOP.DETAIL.replace('{id}', data.id),
     method: 'put',
     data
   })
@@ -90,7 +90,7 @@ export function updateShop(data) {
  */
 export function addShopTea(shopId, teaData) {
   return request({
-    url: API.SHOP.DETAIL + shopId + '/teas',
+    url: API.SHOP.DETAIL.replace('{id}', shopId) + '/teas',
     method: 'post',
     data: teaData
   })
@@ -143,7 +143,7 @@ export function toggleShopTeaStatus(teaId, status) {
  */
 export function getShopStatistics(shopId, params = {}) {
   return request({
-    url: `${API.SHOP.DETAIL}${shopId}/statistics`,
+    url: API.SHOP.DETAIL.replace('{id}', shopId) + '/statistics',
     method: 'get',
     params
   })
@@ -160,7 +160,7 @@ export function uploadShopLogo(shopId, file) {
     formData.append('file', file)
   }
   return request({
-    url: `${API.SHOP.DETAIL}${shopId}/logo`,
+    url: API.SHOP.DETAIL.replace('{id}', shopId) + '/logo',
     method: 'post',
     data: formData,
     headers: {
@@ -180,7 +180,7 @@ export function uploadShopLogo(shopId, file) {
  */
 export function getShopBanners(shopId) {
   return request({
-    url: API.SHOP.DETAIL + shopId + '/banners',
+    url: API.SHOP.DETAIL.replace('{id}', shopId) + '/banners',
     method: 'get'
   })
 }
@@ -193,7 +193,7 @@ export function getShopBanners(shopId) {
  */
 export function uploadBanner(shopId, bannerData) {
   return request({
-    url: API.SHOP.DETAIL + shopId + '/banners',
+    url: API.SHOP.DETAIL.replace('{id}', shopId) + '/banners',
     method: 'post',
     data: bannerData,
     headers: {
@@ -210,7 +210,7 @@ export function uploadBanner(shopId, bannerData) {
  */
 export function updateBanner(bannerId, bannerData) {
   return request({
-    url: API.SHOP.BANNERS + '/' + bannerId,
+    url: API.SHOP.BANNER_DETAIL.replace('{bannerId}', bannerId),
     method: 'put',
     data: bannerData
   })
@@ -223,7 +223,7 @@ export function updateBanner(bannerId, bannerData) {
  */
 export function deleteBanner(bannerId) {
   return request({
-    url: API.SHOP.BANNERS + '/' + bannerId,
+    url: API.SHOP.BANNER_DETAIL.replace('{bannerId}', bannerId),
     method: 'delete'
   })
 }
@@ -252,7 +252,7 @@ export function updateBannerOrder(orderData) {
  */
 export function getShopAnnouncements(shopId) {
   return request({
-    url: API.SHOP.DETAIL + shopId + '/announcements',
+    url: API.SHOP.DETAIL.replace('{id}', shopId) + '/announcements',
     method: 'get'
   })
 }
@@ -260,12 +260,12 @@ export function getShopAnnouncements(shopId) {
 /**
  * 创建店铺公告
  * @param {string} shopId 店铺ID
- * @param {Object} announcementData 公告数据（title、content、is_top等）
+ * @param {Object} announcementData 公告数据（title、content、isTop等）
  * @returns {Promise} 创建后的公告
  */
 export function createAnnouncement(shopId, announcementData) {
   return request({
-    url: API.SHOP.DETAIL + shopId + '/announcements',
+    url: API.SHOP.DETAIL.replace('{id}', shopId) + '/announcements',
     method: 'post',
     data: announcementData
   })
@@ -312,7 +312,7 @@ export function deleteAnnouncement(announcementId) {
  */
 export function getShopReviews(shopId, params) {
   return request({
-    url: API.SHOP.DETAIL + shopId + '/reviews',
+    url: API.SHOP.DETAIL.replace('{id}', shopId) + '/reviews',
     method: 'get',
     params
   })
@@ -326,7 +326,7 @@ export function getShopReviews(shopId, params) {
  */
 export function submitShopReview(shopId, reviewData) {
   return request({
-    url: API.SHOP.DETAIL + shopId + '/reviews',
+    url: API.SHOP.DETAIL.replace('{id}', shopId) + '/reviews',
     method: 'post',
     data: reviewData
   })

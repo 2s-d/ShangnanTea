@@ -32,6 +32,7 @@ import com.shangnantea.model.vo.forum.TopicVO;
 import com.shangnantea.security.context.UserContext;
 import com.shangnantea.service.ForumService;
 import com.shangnantea.utils.FileUploadUtils;
+import com.shangnantea.utils.NotificationUtils;
 import com.shangnantea.utils.StatisticsUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -712,7 +713,17 @@ public class ForumServiceImpl implements ForumService {
             vo.setId(article.getId());
             vo.setTitle(article.getTitle());
             vo.setSummary(article.getSummary());
-            vo.setCoverImage(article.getCoverImage());
+            // 处理封面图片URL
+            String articleCoverImage = article.getCoverImage();
+            if (articleCoverImage != null && !articleCoverImage.trim().isEmpty()) {
+                if (articleCoverImage.startsWith("http://") || articleCoverImage.startsWith("https://")) {
+                    vo.setCoverImage(articleCoverImage);
+                } else {
+                    vo.setCoverImage(FileUploadUtils.generateAccessUrl(articleCoverImage, baseUrl));
+                }
+            } else {
+                vo.setCoverImage(null);
+            }
             vo.setAuthorName(article.getAuthor());
             vo.setCategory(article.getCategory());
             vo.setViewCount(article.getViewCount());
@@ -848,7 +859,17 @@ public class ForumServiceImpl implements ForumService {
             vo.setId(article.getId());
             vo.setTitle(article.getTitle());
             vo.setSummary(article.getSummary());
-            vo.setCoverImage(article.getCoverImage());
+            // 处理封面图片URL
+            String coverImage = article.getCoverImage();
+            if (coverImage != null && !coverImage.trim().isEmpty()) {
+                if (coverImage.startsWith("http://") || coverImage.startsWith("https://")) {
+                    vo.setCoverImage(coverImage);
+                } else {
+                    vo.setCoverImage(FileUploadUtils.generateAccessUrl(coverImage, baseUrl));
+                }
+            } else {
+                vo.setCoverImage(null);
+            }
             vo.setAuthorName(article.getAuthor());
             vo.setCategory(article.getCategory());
             vo.setViewCount(article.getViewCount());
@@ -1181,6 +1202,10 @@ public class ForumServiceImpl implements ForumService {
             if (params.get("topicId") != null && !params.get("topicId").toString().trim().isEmpty()) {
                 topicId = Integer.parseInt(params.get("topicId").toString());
             }
+            String userId = null;
+            if (params.get("userId") != null && !params.get("userId").toString().trim().isEmpty()) {
+                userId = params.get("userId").toString();
+            }
             String keyword = (String) params.get("keyword");
             Integer page = 1;
             Integer pageSize = 10;
@@ -1192,7 +1217,7 @@ public class ForumServiceImpl implements ForumService {
             }
             
             // 2. 使用优化的查询方法（数据库层面过滤和排序）
-            List<ForumPost> allPosts = postMapper.selectPublishedPosts(topicId, keyword, 1);
+            List<ForumPost> allPosts = postMapper.selectPublishedPosts(topicId, keyword, userId, 1);
             
             // 3. 批量查询用户和版块信息（优化N+1查询）
             List<String> userIds = allPosts.stream()
@@ -1216,6 +1241,16 @@ public class ForumServiceImpl implements ForumService {
                 topicMap = topics.stream().collect(Collectors.toMap(ForumTopic::getId, t -> t));
             }
             
+            // 批量查询每个帖子的回复数（优化N+1查询）
+            Map<Long, Integer> replyCountMap = new HashMap<>();
+            if (!allPosts.isEmpty()) {
+                List<Long> postIds = allPosts.stream().map(ForumPost::getId).collect(Collectors.toList());
+                for (Long postId : postIds) {
+                    List<ForumReply> replies = replyMapper.selectByPostId(postId);
+                    replyCountMap.put(postId, replies != null ? replies.size() : 0);
+                }
+            }
+            
             // 4. 内存分页
             int total = allPosts.size();
             int startIndex = (page - 1) * pageSize;
@@ -1225,6 +1260,7 @@ public class ForumServiceImpl implements ForumService {
             if (startIndex < total) {
                 final Map<String, User> finalUserMap = userMap;
                 final Map<Integer, ForumTopic> finalTopicMap = topicMap;
+                final Map<Long, Integer> finalReplyCountMap = replyCountMap;
                 
                 postVOList = allPosts.subList(startIndex, endIndex).stream()
                         .map(post -> {
@@ -1234,16 +1270,37 @@ public class ForumServiceImpl implements ForumService {
                             // 从Map获取用户信息
                             User user = finalUserMap.get(post.getUserId());
                             vo.setUserName(user != null ? user.getUsername() : "未知用户");
-                            vo.setUserAvatar(user != null ? user.getAvatar() : null);
+                            // 处理用户头像URL
+                            String userAvatar = user != null ? user.getAvatar() : null;
+                            if (userAvatar != null && !userAvatar.trim().isEmpty()) {
+                                if (userAvatar.startsWith("http://") || userAvatar.startsWith("https://")) {
+                                    vo.setUserAvatar(userAvatar);
+                                } else {
+                                    vo.setUserAvatar(FileUploadUtils.generateAccessUrl(userAvatar, baseUrl));
+                                }
+                            } else {
+                                vo.setUserAvatar(null);
+                            }
                             vo.setTopicId(post.getTopicId());
                             // 从Map获取版块名称
                             ForumTopic topic = finalTopicMap.get(post.getTopicId());
                             vo.setTopicName(topic != null ? topic.getName() : "");
                             vo.setTitle(post.getTitle());
                             vo.setSummary(post.getSummary());
-                            vo.setCoverImage(post.getCoverImage());
+                            // 处理封面图片URL
+                            String coverImage = post.getCoverImage();
+                            if (coverImage != null && !coverImage.trim().isEmpty()) {
+                                if (coverImage.startsWith("http://") || coverImage.startsWith("https://")) {
+                                    vo.setCoverImage(coverImage);
+                                } else {
+                                    vo.setCoverImage(FileUploadUtils.generateAccessUrl(coverImage, baseUrl));
+                                }
+                            } else {
+                                vo.setCoverImage(null);
+                            }
                             vo.setViewCount(post.getViewCount());
-                            vo.setReplyCount(post.getReplyCount());
+                            // 使用动态计算的回复数，而不是数据库字段
+                            vo.setReplyCount(finalReplyCountMap.getOrDefault(post.getId(), 0));
                             // 使用动态计算获取点赞数和收藏数
                             vo.setLikeCount(statisticsUtils.getLikeCount("post", String.valueOf(post.getId())));
                             vo.setFavoriteCount(statisticsUtils.getFavoriteCount("post", String.valueOf(post.getId())));
@@ -1305,7 +1362,7 @@ public class ForumServiceImpl implements ForumService {
             // likeCount和favoriteCount已从数据库删除，使用动态计算
             post.setIsSticky(0);
             post.setIsEssence(0);
-            post.setStatus(1); // 1=正常（直接发布，不需要审核）
+            post.setStatus(0); // 0=待审核（新帖子需要管理员审核后才能发布）
             post.setLastReplyTime(new Date());
             post.setCreateTime(new Date());
             post.setUpdateTime(new Date());
@@ -1317,13 +1374,13 @@ public class ForumServiceImpl implements ForumService {
                 return Result.failure(6120); // 帖子发布失败
             }
             
-            // 5. 更新版块的帖子数
+            // 5. 更新版块的帖子数（待审核的帖子也计入总数）
             topic.setPostCount((topic.getPostCount() != null ? topic.getPostCount() : 0) + 1);
             topic.setUpdateTime(new Date());
             topicMapper.updateById(topic);
             
-            logger.info("创建帖子成功: id={}, userId={}", post.getId(), userId);
-            return Result.success(6011, null); // 帖子发布成功
+            logger.info("创建帖子成功（待审核）: id={}, userId={}", post.getId(), userId);
+            return Result.success(6011, null); // 帖子提交成功，等待审核
             
         } catch (Exception e) {
             logger.error("创建帖子失败: 系统异常", e);
@@ -1390,14 +1447,34 @@ public class ForumServiceImpl implements ForumService {
                             // 从Map获取用户信息
                             User user = finalUserMap.get(post.getUserId());
                             vo.setUserName(user != null ? user.getUsername() : "未知用户");
-                            vo.setUserAvatar(user != null ? user.getAvatar() : null);
+                            // 处理用户头像URL
+                            String userAvatar = user != null ? user.getAvatar() : null;
+                            if (userAvatar != null && !userAvatar.trim().isEmpty()) {
+                                if (userAvatar.startsWith("http://") || userAvatar.startsWith("https://")) {
+                                    vo.setUserAvatar(userAvatar);
+                                } else {
+                                    vo.setUserAvatar(FileUploadUtils.generateAccessUrl(userAvatar, baseUrl));
+                                }
+                            } else {
+                                vo.setUserAvatar(null);
+                            }
                             vo.setTopicId(post.getTopicId());
                             // 从Map获取版块名称
                             ForumTopic topic = finalTopicMap.get(post.getTopicId());
                             vo.setTopicName(topic != null ? topic.getName() : "");
                             vo.setTitle(post.getTitle());
                             vo.setSummary(post.getSummary());
-                            vo.setCoverImage(post.getCoverImage());
+                            // 处理封面图片URL
+                            String coverImage = post.getCoverImage();
+                            if (coverImage != null && !coverImage.trim().isEmpty()) {
+                                if (coverImage.startsWith("http://") || coverImage.startsWith("https://")) {
+                                    vo.setCoverImage(coverImage);
+                                } else {
+                                    vo.setCoverImage(FileUploadUtils.generateAccessUrl(coverImage, baseUrl));
+                                }
+                            } else {
+                                vo.setCoverImage(null);
+                            }
                             vo.setViewCount(post.getViewCount());
                             vo.setReplyCount(post.getReplyCount());
                             // 使用动态计算获取点赞数和收藏数
@@ -1455,14 +1532,51 @@ public class ForumServiceImpl implements ForumService {
             vo.setId(post.getId());
             vo.setUserId(post.getUserId());
             vo.setUserName(user != null ? user.getUsername() : "未知用户");
-            vo.setUserAvatar(user != null ? user.getAvatar() : null);
+            // 处理用户头像URL
+            String userAvatar = user != null ? user.getAvatar() : null;
+            if (userAvatar != null && !userAvatar.trim().isEmpty()) {
+                if (userAvatar.startsWith("http://") || userAvatar.startsWith("https://")) {
+                    vo.setUserAvatar(userAvatar);
+                } else {
+                    vo.setUserAvatar(FileUploadUtils.generateAccessUrl(userAvatar, baseUrl));
+                }
+            } else {
+                vo.setUserAvatar(null);
+            }
             vo.setTopicId(post.getTopicId());
             vo.setTopicName(topic != null ? topic.getName() : "");
             vo.setTitle(post.getTitle());
             vo.setContent(post.getContent());
             vo.setSummary(post.getSummary());
-            vo.setCoverImage(post.getCoverImage());
-            vo.setImages(post.getImages());
+            // 处理封面图片URL
+            String coverImage = post.getCoverImage();
+            if (coverImage != null && !coverImage.trim().isEmpty()) {
+                if (coverImage.startsWith("http://") || coverImage.startsWith("https://")) {
+                    vo.setCoverImage(coverImage);
+                } else {
+                    vo.setCoverImage(FileUploadUtils.generateAccessUrl(coverImage, baseUrl));
+                }
+            } else {
+                vo.setCoverImage(null);
+            }
+            // 处理图片列表URL（逗号分隔的字符串）
+            String imagesStr = post.getImages();
+            if (imagesStr != null && !imagesStr.trim().isEmpty()) {
+                List<String> processedImages = new ArrayList<>();
+                String[] imageArray = imagesStr.split(",");
+                for (String imageUrl : imageArray) {
+                    if (imageUrl != null && !imageUrl.trim().isEmpty()) {
+                        if (imageUrl.trim().startsWith("http://") || imageUrl.trim().startsWith("https://")) {
+                            processedImages.add(imageUrl.trim());
+                        } else {
+                            processedImages.add(FileUploadUtils.generateAccessUrl(imageUrl.trim(), baseUrl));
+                        }
+                    }
+                }
+                vo.setImages(String.join(",", processedImages));
+            } else {
+                vo.setImages(null);
+            }
             vo.setViewCount(post.getViewCount());
             vo.setReplyCount(post.getReplyCount());
             // 使用动态计算获取点赞数和收藏数
@@ -1560,6 +1674,9 @@ public class ForumServiceImpl implements ForumService {
             if (dto.getImages() != null) {
                 post.setImages(dto.getImages());
             }
+            // 注意：修改已发布的帖子时，保持原有状态（status=1已发布），不需要重新审核
+            // 如果帖子是待审核状态（status=0），修改后仍然保持待审核状态
+            // 如果帖子是已拒绝状态（status=3），修改后可以重新设置为待审核状态（可选，这里保持原状态）
             post.setUpdateTime(new Date());
             
             // 5. 保存到数据库
@@ -1569,7 +1686,7 @@ public class ForumServiceImpl implements ForumService {
                 return Result.failure(6123); // 帖子更新失败
             }
             
-            logger.info("更新帖子成功: id={}, userId={}", id, userId);
+            logger.info("更新帖子成功: id={}, userId={}, status={}", id, userId, post.getStatus());
             return Result.success(6012, null); // 帖子更新成功
             
         } catch (NumberFormatException e) {
@@ -1743,7 +1860,16 @@ public class ForumServiceImpl implements ForumService {
                         User user = finalUserMap.get(reply.getUserId());
                         if (user != null) {
                             vo.setUsername(user.getUsername());
-                            vo.setAvatar(user.getAvatar());
+                            String avatar = user.getAvatar();
+                            if (avatar != null && !avatar.trim().isEmpty()) {
+                                if (avatar.startsWith("http://") || avatar.startsWith("https://")) {
+                                    vo.setAvatar(avatar);
+                                } else {
+                                    vo.setAvatar(FileUploadUtils.generateAccessUrl(avatar, baseUrl));
+                                }
+                            } else {
+                                vo.setAvatar(null);
+                            }
                         }
                         
                         // 从Map获取目标用户信息
@@ -1835,6 +1961,14 @@ public class ForumServiceImpl implements ForumService {
             post.setLastReplyTime(new Date());
             post.setUpdateTime(new Date());
             postMapper.updateById(post);
+            
+            // 6. 创建通知：给帖子作者发送回复通知
+            String postAuthorId = post.getUserId();
+            if (postAuthorId != null && !postAuthorId.equals(userId)) {
+                NotificationUtils.createPostReplyNotification(
+                    postAuthorId, userId, postId, reply.getId(), dto.getContent()
+                );
+            }
             
             logger.info("创建回复成功: replyId={}, userId={}, postId={}", reply.getId(), userId, id);
             return Result.success(6018, null); // 回复发布成功

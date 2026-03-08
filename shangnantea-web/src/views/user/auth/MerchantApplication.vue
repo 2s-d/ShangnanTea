@@ -1,5 +1,7 @@
 <template>
   <div class="merchant-application">
+    <!-- 仅普通用户(role=2)可以提交商家认证 -->
+    <template v-if="userRole === 2">
     <el-form 
       :model="applicationForm" 
       :rules="rules"
@@ -118,6 +120,17 @@
       <p>提交时间：{{ applicationTime }}</p>
       <el-button v-if="applicationStatus === 2" type="primary" @click="resetApplication">重新申请</el-button>
     </el-card>
+    </template>
+    
+    <!-- 商户 / 管理员等其他角色不允许在此处发起认证申请 -->
+    <template v-else>
+      <el-card class="status-card">
+        <h3>商家认证提示</h3>
+        <p v-if="userRole === 3">您已是商户，无需再次认证。</p>
+        <p v-else-if="userRole === 1">管理员账号无法进行商家认证。</p>
+        <p v-else>当前账号类型不支持商家认证。</p>
+      </el-card>
+    </template>
   </div>
 </template>
 
@@ -135,6 +148,9 @@ import { showByCode, isSuccess } from '@/utils/apiMessages'
 const userStore = useUserStore()
 const applicationFormRef = ref(null)
 const submitting = ref(false)
+
+// 当前用户角色：1-管理员，2-普通用户，3-商家
+const userRole = computed(() => userStore.userInfo?.role || userStore.userRole || 0)
 
 // 是否已申请认证
 const hasApplied = ref(false)
@@ -171,7 +187,9 @@ const applicationForm = reactive({
   city: '',
   district: '',
   address: '',
-  applyReason: ''
+  applyReason: '',
+  // 为了让表单校验能识别“所在地区”，这里增加一个 region 字段（仅用于前端校验）
+  region: []
 })
 
 // 表单验证规则
@@ -234,6 +252,9 @@ const handleLoadRegionData = async () => {
 const handleRegionChange = value => {
   console.log('选择的地区:', value)
   if (value && value.length >= 3) {
+    // 表单校验使用
+    applicationForm.region = value
+    // 具体省市区字段提交给后端使用
     applicationForm.province = value[0]
     applicationForm.city = value[1]
     applicationForm.district = value[2]
@@ -355,6 +376,7 @@ const submitApplication = () => {
 const resetForm = () => {
   applicationFormRef.value.resetFields()
   region.value = []
+  applicationForm.region = []
 }
 
 // 获取认证状态

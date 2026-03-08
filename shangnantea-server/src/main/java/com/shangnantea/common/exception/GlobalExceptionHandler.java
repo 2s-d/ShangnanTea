@@ -14,6 +14,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 /**
  * 全局异常处理器
@@ -119,6 +120,44 @@ public class GlobalExceptionHandler {
         LOGGER.warn("资源不存在: {}, uri={}, method={}", 
                 e.getMessage(), request.getRequestURI(), request.getMethod());
         return Result.failure(ResultCode.NOT_FOUND);
+    }
+    
+    /**
+     * 处理文件上传大小超限异常
+     * 统一返回2148（文件大小超限）业务码
+     */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public Result<String> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException e, HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        String method = request.getMethod();
+        long maxSize = e.getMaxUploadSize();
+        String maxSizeStr = formatFileSize(maxSize);
+        
+        LOGGER.warn("文件上传大小超限: uri={}, method={}, maxSize={}B ({}), actualSize={}B", 
+                uri, method, maxSize, maxSizeStr, 
+                e.getMessage().contains("exceeds") ? "未知" : "未知");
+        
+        // 根据接口路径返回对应的业务码
+        // 图片上传相关接口统一返回2148（文件大小超限）
+        if (uri != null && (uri.contains("/image") || uri.contains("/avatar") || uri.contains("/certification"))) {
+            return Result.failure(2148); // 文件大小超限
+        }
+        
+        // 其他文件上传接口也返回2148
+        return Result.failure(2148);
+    }
+    
+    /**
+     * 格式化文件大小（与FileUploadUtils保持一致）
+     */
+    private String formatFileSize(long bytes) {
+        if (bytes < 1024) {
+            return bytes + "B";
+        } else if (bytes < 1024 * 1024) {
+            return String.format("%.1fKB", bytes / 1024.0);
+        } else {
+            return String.format("%.1fMB", bytes / (1024.0 * 1024.0));
+        }
     }
     
     /**

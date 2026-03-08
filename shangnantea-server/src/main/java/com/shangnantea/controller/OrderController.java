@@ -65,7 +65,7 @@ public class OrderController {
     /**
      * 更新购物车商品
      * 路径: PUT /order/cart/update
-     * 成功码: 5001, 5002, 失败码: 5105, 5106, 5107
+     * 成功码: 5001, 5002, 失败码: 5105, 5106, 5107, 5147
      *
      * @param data 更新数据 {id, quantity, specificationId}
      * @return 更新结果

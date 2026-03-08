@@ -20,6 +20,7 @@ public class ForumVOConverter {
     /**
      * 生成图片访问URL
      * 如果relativePath为空或null，返回null
+     * 如果已经是完整URL（http://或https://开头），直接返回
      * 
      * @param relativePath 相对路径
      * @param baseUrl 基础URL
@@ -28,6 +29,10 @@ public class ForumVOConverter {
     public static String generateImageUrl(String relativePath, String baseUrl) {
         if (relativePath == null || relativePath.isEmpty()) {
             return null;
+        }
+        // 如果已经是完整URL，直接返回
+        if (relativePath.startsWith("http://") || relativePath.startsWith("https://")) {
+            return relativePath;
         }
         return FileUploadUtils.generateAccessUrl(relativePath, baseUrl);
     }

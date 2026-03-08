@@ -40,6 +40,7 @@ const SILENT_CODES = [
   2013, // 用户模块-接口20: removeFollow - 已取消关注
   2015, // 用户模块-接口23: removeFavorite - 已取消收藏
   2017, // 用户模块-接口25: removeLike - 已取消点赞
+  2026, // 用户模块-接口37: getTodayWeather - 获取今日天气成功（静默）
   3000, // 茶叶模块-接口1: getTeas - 茶叶列表加载成功
   // ===== DEPRECATED（接口已删除，保留分配但不再使用）=====
   // 4016, // 店铺模块-接口23: unfollowShop - 已取消关注（接口已删除）
@@ -212,6 +213,10 @@ export const CODE_MAP = {
   2149: '发送验证码失败',
   2150: '发送过于频繁，请稍后再试',
   2151: '验证码已过期',
+  
+  // 接口37: getTodayWeather - /user/weather/today
+  2026: '获取今日天气成功',
+  2152: '获取今日天气失败',
   
   // ========== 茶叶模块 (3xxx) ==========
   // 接口1: getTeas - /tea/list
@@ -448,6 +453,7 @@ export const CODE_MAP = {
   5105: '更新数量失败',
   5106: '商品库存不足',
   5107: '已达到购买数量上限',
+  5147: '此规格已存在',
   
   // 接口4: removeFromCart - /order/cart/remove
   5003: '商品已从购物车移除',
@@ -607,7 +613,7 @@ export const CODE_MAP = {
   6119: '获取帖子列表失败',
   
   // 接口19: createPost - /forum/posts
-  6011: '帖子发布成功',
+  6011: '帖子提交成功，等待管理员审核',
   6120: '帖子发布失败',
   
   // 接口20: getPendingPosts - /forum/posts/pending

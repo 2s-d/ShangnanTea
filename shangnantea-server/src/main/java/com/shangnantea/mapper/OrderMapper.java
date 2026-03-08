@@ -8,6 +8,14 @@ import java.util.List;
  */
 public interface OrderMapper extends BaseMapper<Order, String> {
     /**
+     * 根据支付单号查询订单列表
+     *
+     * @param paymentId 支付单号
+     * @return 订单列表
+     */
+    List<Order> selectByPaymentId(String paymentId);
+
+    /**
      * 根据状态查询订单
      * @param status 订单状态
      * @return 订单列表

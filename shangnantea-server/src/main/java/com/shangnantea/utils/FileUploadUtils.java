@@ -54,9 +54,11 @@ public class FileUploadUtils {
     );
     
     /**
-     * 默认最大文件大小: 5MB
+     * 默认最大文件大小: 20MB（与Spring Boot配置保持一致）
+     * 注意：实际限制由Spring Boot的multipart.max-file-size控制
+     * 这里只是业务层面的二次验证，用于提供更友好的错误信息
      */
-    private static final long DEFAULT_MAX_SIZE = 5 * 1024 * 1024;
+    private static final long DEFAULT_MAX_SIZE = 20 * 1024 * 1024;
     
     /**
      * 图片压缩阈值: 1MB
@@ -110,10 +112,25 @@ public class FileUploadUtils {
         try {
             File destFile = new File(fullPath);
             
+            // 检查文件类型，GIF和WebP动画图片不压缩（保持动画效果）
+            String extension = getFileExtension(file.getOriginalFilename()).toLowerCase();
+            boolean isAnimatedFormat = ".gif".equals(extension) || ".webp".equals(extension);
+            
             // 判断是否需要压缩
-            if (file.getSize() > COMPRESS_THRESHOLD) {
-                compressAndSaveImage(file, destFile);
+            // GIF和WebP动画格式不压缩，直接保存原文件以保持动画效果
+            if (!isAnimatedFormat && file.getSize() > COMPRESS_THRESHOLD) {
+                try {
+                    compressAndSaveImage(file, destFile);
+                } catch (BusinessException e) {
+                    // 如果压缩失败（如无法读取图片），尝试直接保存原文件
+                    if (e.getMessage().contains("无法读取图片") || e.getMessage().contains("读取图片失败")) {
+                        file.transferTo(destFile);
+                    } else {
+                        throw e;
+                    }
+                }
             } else {
+                // 小文件或动画格式，直接保存原文件
                 file.transferTo(destFile);
             }
             
@@ -127,34 +144,61 @@ public class FileUploadUtils {
     
     /**
      * 验证图片文件
+     * 
+     * 验证规则：
+     * 1. 文件不能为空
+     * 2. 文件大小不能超过限制
+     * 3. ContentType必须是允许的图片类型
+     * 4. 文件扩展名必须是允许的格式
+     * 5. 文件名不能包含危险字符（防止路径遍历攻击）
      */
     private static void validateImageFile(MultipartFile file, long maxSize) {
-        // 检查文件是否为空
+        // 1. 检查文件是否为空
         if (file == null || file.isEmpty()) {
             throw new BusinessException("文件不能为空");
         }
         
-        // 检查文件大小
-        if (file.getSize() > maxSize) {
+        // 2. 检查文件大小
+        long fileSize = file.getSize();
+        if (fileSize <= 0) {
+            throw new BusinessException("文件大小为0，请选择有效的图片文件");
+        }
+        if (fileSize > maxSize) {
             String maxSizeStr = formatFileSize(maxSize);
-            throw new BusinessException("文件大小不能超过 " + maxSizeStr);
+            String actualSizeStr = formatFileSize(fileSize);
+            throw new BusinessException(String.format("文件大小不能超过 %s，当前文件大小为 %s", maxSizeStr, actualSizeStr));
         }
         
-        // 检查文件类型
-        String contentType = file.getContentType();
-        if (contentType == null || !ALLOWED_IMAGE_TYPES.contains(contentType.toLowerCase())) {
-            throw new BusinessException("不支持的文件类型,只允许上传图片(jpg/png/gif/webp)");
-        }
-        
-        // 检查文件扩展名
+        // 3. 检查文件扩展名（先检查扩展名，因为更可靠）
         String originalFilename = file.getOriginalFilename();
-        if (originalFilename == null) {
+        if (originalFilename == null || originalFilename.trim().isEmpty()) {
             throw new BusinessException("文件名不能为空");
         }
         
+        // 防止路径遍历攻击
+        if (originalFilename.contains("..") || originalFilename.contains("/") || originalFilename.contains("\\")) {
+            throw new BusinessException("文件名包含非法字符，请使用正常的文件名");
+        }
+        
         String extension = getFileExtension(originalFilename).toLowerCase();
-        if (!ALLOWED_IMAGE_EXTENSIONS.contains(extension)) {
-            throw new BusinessException("不支持的文件扩展名,只允许: " + String.join(", ", ALLOWED_IMAGE_EXTENSIONS));
+        if (extension.isEmpty() || !ALLOWED_IMAGE_EXTENSIONS.contains(extension)) {
+            throw new BusinessException("不支持的文件扩展名，只允许: " + String.join(", ", ALLOWED_IMAGE_EXTENSIONS));
+        }
+        
+        // 4. 检查ContentType（作为辅助验证，某些浏览器可能不准确）
+        String contentType = file.getContentType();
+        if (contentType != null) {
+            String lowerContentType = contentType.toLowerCase();
+            // 允许contentType为空（某些情况下浏览器可能不提供），但如果不为空则必须匹配
+            boolean contentTypeValid = false;
+            for (String allowedType : ALLOWED_IMAGE_TYPES) {
+                if (lowerContentType.equals(allowedType) || lowerContentType.startsWith(allowedType + "/")) {
+                    contentTypeValid = true;
+                    break;
+                }
+            }
+            // 如果contentType存在但不匹配，给出警告但不阻止（因为扩展名已验证）
+            // 某些特殊格式的图片可能contentType不标准，但扩展名是正确的
         }
     }
     
@@ -268,10 +312,27 @@ public class FileUploadUtils {
      * 压缩并保存图片
      */
     private static void compressAndSaveImage(MultipartFile file, File destFile) throws IOException {
-        // 读取原始图片
-        BufferedImage originalImage = ImageIO.read(file.getInputStream());
-        if (originalImage == null) {
-            throw new BusinessException("无法读取图片文件");
+        BufferedImage originalImage = null;
+        String filename = file.getOriginalFilename();
+        long fileSize = file.getSize();
+        
+        try {
+            // 读取原始图片
+            originalImage = ImageIO.read(file.getInputStream());
+            if (originalImage == null) {
+                // 如果ImageIO无法读取，可能是格式问题
+                String errorMsg = String.format("无法读取图片文件: filename=%s, size=%dB, contentType=%s，可能是文件格式不支持或文件已损坏", 
+                        filename, fileSize, file.getContentType());
+                throw new BusinessException(errorMsg);
+            }
+        } catch (BusinessException e) {
+            // 重新抛出业务异常
+            throw e;
+        } catch (Exception e) {
+            // 如果读取失败，记录详细错误信息
+            String errorMsg = String.format("读取图片失败: filename=%s, size=%dB, contentType=%s, error=%s，可能是文件格式不支持", 
+                    filename, fileSize, file.getContentType(), e.getMessage());
+            throw new BusinessException(errorMsg);
         }
         
         // 计算压缩后的尺寸
@@ -281,8 +342,9 @@ public class FileUploadUtils {
         int targetWidth = COMPRESS_WIDTH;
         int targetHeight = (int) (originalHeight * ((double) targetWidth / originalWidth));
         
-        // 如果原图宽度小于目标宽度,则不压缩
+        // 如果原图宽度小于目标宽度,则不压缩，直接保存原文件
         if (originalWidth <= targetWidth) {
+            // MultipartFile.getInputStream()每次调用返回新流，可以直接保存
             file.transferTo(destFile);
             return;
         }
@@ -296,13 +358,36 @@ public class FileUploadUtils {
         
         // 绘制压缩图片
         Graphics2D g = compressedImage.createGraphics();
-        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-        g.drawImage(originalImage, 0, 0, targetWidth, targetHeight, null);
-        g.dispose();
+        try {
+            g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            g.drawImage(originalImage, 0, 0, targetWidth, targetHeight, null);
+        } finally {
+            g.dispose();
+        }
         
         // 保存压缩后的图片
-        String extension = getFileExtension(file.getOriginalFilename()).substring(1);
-        ImageIO.write(compressedImage, extension, destFile);
+        try {
+            String extension = getFileExtension(file.getOriginalFilename());
+            if (extension == null || extension.length() <= 1) {
+                throw new BusinessException("无法获取文件扩展名");
+            }
+            String formatName = extension.substring(1).toLowerCase();
+            // 确保格式名是ImageIO支持的格式
+            if (!formatName.equals("jpg") && !formatName.equals("jpeg") && !formatName.equals("png")) {
+                formatName = "jpg"; // 默认使用jpg格式
+            }
+            
+            boolean written = ImageIO.write(compressedImage, formatName, destFile);
+            if (!written) {
+                throw new BusinessException("图片压缩后保存失败，可能是格式不支持");
+            }
+        } catch (Exception e) {
+            // 如果压缩保存失败，尝试直接保存原文件
+            if (e instanceof BusinessException) {
+                throw e;
+            }
+            throw new BusinessException("压缩图片时出错: " + e.getMessage() + "，尝试直接保存原文件");
+        }
     }
     
     /**

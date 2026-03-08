@@ -34,14 +34,19 @@
                 <el-radio-button value="newest">最新上架</el-radio-button>
               </el-radio-group>
               
-              <div class="view-toggle">
-                <el-switch
-                  v-model="viewMode"
-                  active-value="grid"
-                  inactive-value="list"
-                  active-text="网格"
-                  inactive-text="列表"
-                />
+              <div class="right-tools">
+                <div class="view-toggle">
+                  <el-switch
+                    v-model="viewMode"
+                    active-value="grid"
+                    inactive-value="list"
+                    active-text="网格"
+                    inactive-text="列表"
+                  />
+                </div>
+                <el-checkbox v-model="useDefaultSpecOnAdd" class="default-spec-checkbox">
+                  默认规格
+                </el-checkbox>
               </div>
             </div>
           </div>
@@ -131,7 +136,7 @@
           <template v-else>
             <div :class="['tea-list', `view-${viewMode}`]" v-if="teas.length > 0">
               <div v-for="tea in teas" :key="tea.id" class="tea-item">
-                <tea-card :tea="tea" />
+                <tea-card :tea="tea" @add-to-cart="handleAddToCart" />
               </div>
             </div>
             
@@ -153,20 +158,98 @@
           </div>
         </div>
       </div>
+    </div>
+    
+    <!-- 任务组F：热门推荐（移到main-content外面，和首页一样） -->
+    <div class="tea-recommend-section" v-if="popularTeas.length > 0">
+      <h2 class="section-title">热门推荐</h2>
+      <div class="subtitle">甄选商南优质茶品</div>
       
-      <!-- 任务组F：热门推荐 -->
-      <div class="recommend-section" v-if="popularTeas.length > 0">
-        <h2 class="section-title">热门推荐</h2>
-        <div class="recommend-list">
-          <TeaCard 
-            v-for="tea in popularTeas" 
-            :key="tea.id" 
-            :tea="tea"
-            @click="goToTeaDetail(tea.id)"
-          />
+      <div class="tea-list">
+        <div 
+          v-for="(tea, index) in popularTeas" 
+          :key="tea.id || index" 
+          class="tea-item"
+          @click="goToTeaDetail(tea.id)"
+        >
+          <div class="tea-image">
+            <SafeImage :src="tea.image" type="tea" :alt="tea.name" style="width:100%;height:100%;object-fit:cover;" />
+          </div>
+          <div class="tea-info">
+            <h4>{{ tea.name }}</h4>
+            <p class="tea-price">¥{{ tea.price }}</p>
+          </div>
         </div>
       </div>
     </div>
+
+    <!-- 列表页加入购物车时的规格选择对话框 -->
+    <el-dialog
+      v-model="specDialogVisible"
+      title="选择规格"
+      width="400px"
+      destroy-on-close
+    >
+      <div class="spec-select-container" v-if="currentSpecTea">
+        <div class="current-tea-info">
+          <SafeImage
+            :src="currentSpecTea.teaImage"
+            type="tea"
+            :alt="currentSpecTea.teaName"
+            class="tea-image"
+            style="width:80px;height:80px;object-fit:cover;"
+          />
+          <div class="tea-info">
+            <div class="tea-name">{{ currentSpecTea.teaName }}</div>
+            <div class="tea-price">¥{{ selectedSpecPrice.toFixed(2) }}</div>
+            <div class="selected-spec">已选规格：{{ selectedSpecName }}</div>
+          </div>
+        </div>
+        
+        <div class="spec-options">
+          <div class="spec-title-row">
+            <div class="spec-title">选择规格</div>
+            <el-checkbox v-model="selectMultipleSpecs" class="multi-spec-checkbox">选多款</el-checkbox>
+          </div>
+          <div class="spec-list">
+            <el-radio-group v-if="!selectMultipleSpecs" v-model="tempSelectedSpecId">
+              <el-radio
+                v-for="spec in availableSpecs"
+                :key="spec.id"
+                :label="spec.id"
+                class="spec-radio"
+              >
+                <div class="spec-item">
+                  <span class="spec-name">{{ spec.specName }}</span>
+                  <span class="spec-price">¥{{ spec.price.toFixed(2) }}</span>
+                  <span v-if="spec.isDefault === 1" class="spec-tag">默认</span>
+                </div>
+              </el-radio>
+            </el-radio-group>
+            <el-checkbox-group v-else v-model="tempSelectedSpecIds">
+              <el-checkbox
+                v-for="spec in availableSpecs"
+                :key="spec.id"
+                :label="spec.id"
+                class="spec-checkbox"
+              >
+                <div class="spec-item">
+                  <span class="spec-name">{{ spec.specName }}</span>
+                  <span class="spec-price">¥{{ spec.price.toFixed(2) }}</span>
+                  <span v-if="spec.isDefault === 1" class="spec-tag">默认</span>
+                </div>
+              </el-checkbox>
+            </el-checkbox-group>
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="specDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="confirmSpecAddToCart">确认</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -174,23 +257,35 @@
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useTeaStore } from '@/stores/tea'
-
+import { useOrderStore } from '@/stores/order'
 import { Shop } from '@element-plus/icons-vue'
 import TeaCard from '@/components/tea/card/TeaCard.vue'
+import SafeImage from '@/components/common/form/SafeImage.vue'
 
 import SearchBar from '@/components/common/SearchBar.vue'
 import { showByCode } from '@/utils/apiMessages'
+import { orderPromptMessages } from '@/utils/promptMessages'
 
 defineOptions({
   name: 'TeaListPage'
 })
     const teaStore = useTeaStore()
+    const orderStore = useOrderStore()
     const router = useRouter()
     const route = useRoute()
 
     const searchQuery = ref('')
     const sortOption = ref('default')
     const viewMode = ref('grid')
+    // 是否直接使用默认规格加入购物车（从全局orderStore读写，避免切页后丢失）
+    const useDefaultSpecOnAdd = computed({
+      get() {
+        return orderStore.useDefaultSpecOnAdd
+      },
+      set(val) {
+        orderStore.useDefaultSpecOnAdd = val
+      }
+    })
     const currentPage = ref(1)
     
     // 筛选选项
@@ -209,6 +304,26 @@ defineOptions({
     const totalCount = computed(() => teaStore.pagination.total)
     const pageSize = computed(() => teaStore.pagination.pageSize)
     const loading = computed(() => teaStore.loading)
+
+    // 规格选择弹窗状态（用于从列表页加购物车时选择规格）
+    const specDialogVisible = ref(false)
+    const currentSpecTea = ref(null)
+    const availableSpecs = ref([])
+    const tempSelectedSpecId = ref(null)
+    const tempSelectedSpecIds = ref([]) // 多选时的规格ID数组
+    const selectMultipleSpecs = ref(false) // 是否选多款
+
+    const selectedSpecName = computed(() => {
+      if (!tempSelectedSpecId.value || !availableSpecs.value.length) return ''
+      const spec = availableSpecs.value.find(s => s.id === tempSelectedSpecId.value)
+      return spec ? spec.specName : ''
+    })
+
+    const selectedSpecPrice = computed(() => {
+      if (!tempSelectedSpecId.value || !availableSpecs.value.length) return 0
+      const spec = availableSpecs.value.find(s => s.id === tempSelectedSpecId.value)
+      return spec ? spec.price : 0
+    })
     
     // 加载茶叶数据（提前定义，避免 watch 中调用时未定义）
     const loadTeas = async () => {
@@ -247,6 +362,111 @@ defineOptions({
         // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
         if (process.env.NODE_ENV === 'development') {
           console.error('加载茶叶列表失败:', error)
+        }
+      }
+    }
+
+    // 从后端获取某个茶叶的规格列表
+    const fetchSpecsForTea = async teaId => {
+      const res = await teaStore.fetchTeaSpecifications(teaId)
+      const specs = res?.data || res || []
+      if (!specs || specs.length === 0) {
+        orderPromptMessages.showNoSpecAvailable()
+        return []
+      }
+      return specs
+    }
+
+    // 处理“加入购物车”（来自 TeaCard）
+    const handleAddToCart = async tea => {
+      try {
+        // 先查询规格列表
+        const specs = await fetchSpecsForTea(tea.id)
+        if (!specs.length) return
+
+        // 找到默认规格（若无，则取第一个）
+        const defaultSpec = specs.find(s => s.isDefault === 1) || specs[0]
+
+        // 如果勾选了“默认规格”，直接加入购物车
+        if (useDefaultSpecOnAdd.value && defaultSpec) {
+          const res = await orderStore.addToCart({
+            teaId: tea.id,
+            quantity: 1,
+            specificationId: String(defaultSpec.id)
+          })
+          if (res && res.code) {
+            showByCode(res.code)
+          }
+          return
+        }
+
+        // 否则弹出规格选择框
+        currentSpecTea.value = {
+          teaId: tea.id,
+          teaName: tea.name,
+          teaImage: tea.mainImage
+        }
+        availableSpecs.value = specs
+        tempSelectedSpecId.value = defaultSpec ? defaultSpec.id : specs[0].id
+        tempSelectedSpecIds.value = [] // 重置多选
+        selectMultipleSpecs.value = false // 重置选多款状态
+        specDialogVisible.value = true
+      } catch (error) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error('从列表加入购物车失败:', error)
+        }
+      }
+    }
+
+    // 确认从列表页选择规格并加入购物车
+    const confirmSpecAddToCart = async () => {
+      if (!currentSpecTea.value) {
+        orderPromptMessages.showSpecRequired()
+        return
+      }
+      
+      try {
+        // 如果勾选了"选多款"，为每个选中的规格分别添加到购物车
+        if (selectMultipleSpecs.value) {
+          if (!tempSelectedSpecIds.value || tempSelectedSpecIds.value.length === 0) {
+            orderPromptMessages.showSpecRequired()
+            return
+          }
+          // 批量添加
+          const promises = tempSelectedSpecIds.value.map(specId =>
+            orderStore.addToCart({
+              teaId: currentSpecTea.value.teaId,
+              quantity: 1,
+              specificationId: String(specId)
+            })
+          )
+          const results = await Promise.all(promises)
+          // 显示最后一个结果的消息
+          if (results.length > 0 && results[results.length - 1]?.code) {
+            showByCode(results[results.length - 1].code)
+          }
+        } else {
+          // 单选模式
+          if (!tempSelectedSpecId.value) {
+            orderPromptMessages.showSpecRequired()
+            return
+          }
+          const res = await orderStore.addToCart({
+            teaId: currentSpecTea.value.teaId,
+            quantity: 1,
+            specificationId: String(tempSelectedSpecId.value)
+          })
+          if (res && res.code) {
+            showByCode(res.code)
+          }
+        }
+        specDialogVisible.value = false
+        // 重置状态
+        selectMultipleSpecs.value = false
+        tempSelectedSpecIds.value = []
+      } catch (error) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error('加入购物车失败:', error)
         }
       }
     }
@@ -358,8 +578,40 @@ defineOptions({
       loadTeas()
     }
     
-    // 任务组F：热门推荐数据
-    const popularTeas = computed(() => teaStore.recommendTeas || [])
+    // 任务组F：热门推荐数据（完全按照首页的数据格式处理）
+    const popularTeas = computed(() => {
+      const source = Array.isArray(teaStore.recommendTeas) ? [...teaStore.recommendTeas] : []
+      const DISPLAY_COUNT = 6
+
+      // 如果推荐池大于展示数量，则随机抽取 DISPLAY_COUNT 条
+      let sampled = source
+      if (source.length > DISPLAY_COUNT) {
+        // Fisher-Yates 洗牌，避免修改原始数组
+        const shuffled = [...source]
+        for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1))
+          ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+        }
+        sampled = shuffled.slice(0, DISPLAY_COUNT)
+      }
+
+      return sampled.map(item => {
+        // 后端返回格式：{ id, name, price, images: [], mainImage }
+        // 首页需要格式：{ id, name, price, image }
+        const images = Array.isArray(item.images) ? item.images : []
+        const image =
+          (images.length > 0 && images[0]) ||
+          item.mainImage ||
+          ''
+
+        return {
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          image
+        }
+      })
+    })
     
     // 任务组F：跳转到茶叶详情页
     const goToTeaDetail = teaId => {
@@ -397,9 +649,10 @@ defineOptions({
     background-color: #f5f7fa;
   
   .container {
-    max-width: 1200px;
+    width: 85%;
+    max-width: 1920px;
     margin: 0 auto;
-    padding: 0 15px;
+    padding: 0;
   }
   
   .page-header {
@@ -467,8 +720,19 @@ defineOptions({
           align-items: center;
           gap: 15px;
           
+          .right-tools {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+          }
+          
           .view-toggle {
             margin-left: 10px;
+          }
+          
+          .default-spec-checkbox {
+            font-size: 13px;
+            color: #606266;
           }
         }
       }
@@ -570,15 +834,68 @@ defineOptions({
             }
           }
           
+          // 列表模式：一行一个茶叶，左图右文，整体高度控制在一行的范围内
           &.view-list {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 12px;
             
             .tea-item {
-      background-color: #fff;
-      border-radius: 8px;
+              background-color: #fff;
+              border-radius: 8px;
               box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+              padding: 10px 16px;
+            }
+            
+            // 调整列表模式下 TeaCard 的布局，避免图片过大、一条占满整页
+            :deep(.tea-card) {
+              display: flex;
+              flex-direction: row;
+              align-items: center;
+              height: auto;
+              min-height: 120px;
+              
+              .tea-image {
+                width: 140px;
+                height: 100px;
+                flex-shrink: 0;
+                padding-bottom: 0;
+                margin-right: 16px;
+              }
+              
+              .tea-info {
+                flex: 1;
+                padding: 0;
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+                
+                .tea-name {
+                  margin: 0;
+                  height: auto;
+                  -webkit-line-clamp: 1;
+                }
+                
+                .tea-brief {
+                  height: auto;
+                  margin: 0;
+                  -webkit-line-clamp: 1;
+                }
+                
+                .tea-price-row {
+                  margin: 0;
+                }
+                
+                .tea-actions {
+                  flex: 0 0 auto;
+                  margin-left: auto;
+                  
+                  .el-button {
+                    width: auto !important;
+                    min-width: 120px;
+                  }
+                }
+              }
             }
           }
         }
@@ -589,28 +906,172 @@ defineOptions({
           margin-top: 30px;
         }
       }
+    }
+  }
+  
+  // 任务组F：热门推荐样式（完全按照首页的样式，移到main-content外面）
+  .tea-recommend-section {
+    width: 85%;
+    max-width: 1920px;
+    margin: 0 auto 60px;
+    padding: 0;
+    
+    .section-title {
+      text-align: center;
+      font-size: 28px;
+      color: #333;
+      margin: 0 0 5px;
+      font-weight: 500;
+    }
+    
+    .subtitle {
+      text-align: center;
+      font-size: 16px;
+      color: #777;
+      margin-bottom: 20px;
+    }
+    
+    .tea-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-top: 30px;
       
-      // 任务组F：热门推荐样式
-      .recommend-section {
-        margin-top: 40px;
-        padding: 30px;
+      .tea-item {
+        width: calc(16.666% - 17px);
+        min-width: 150px;
         background-color: #fff;
         border-radius: 8px;
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+        cursor: pointer;
+        transition: transform 0.3s, box-shadow 0.3s;
         
-        .section-title {
-          font-size: 20px;
-          font-weight: 600;
-          color: #303133;
-          margin-bottom: 20px;
-          padding-bottom: 10px;
-          border-bottom: 2px solid #409eff;
+        &:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
         
-        .recommend-list {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-          gap: 20px;
+        .tea-image {
+          width: 100%;
+          padding-top: 100%; // 1:1 比例
+          position: relative;
+          
+          img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+          }
+        }
+        
+        .tea-info {
+          padding: 12px;
+          text-align: center;
+          
+          h4 {
+            margin: 0 0 5px;
+            font-size: 16px;
+            color: #333;
+            font-weight: 500;
+          }
+          
+          .tea-price {
+            color: #e74c3c;
+            font-weight: 600;
+            margin: 0;
+          }
+        }
+      }
+    }
+  }
+
+  // 列表页规格选择对话框样式（复用购物车的布局风格）
+  .spec-select-container {
+    padding: 10px 0;
+    
+    .current-tea-info {
+      display: flex;
+      align-items: center;
+      padding-bottom: 15px;
+      border-bottom: 1px dashed var(--el-border-color);
+      margin-bottom: 15px;
+      
+      .tea-image {
+        width: 80px;
+        height: 80px;
+        border-radius: 4px;
+        object-fit: cover;
+        margin-right: 15px;
+      }
+      
+      .tea-info {
+        flex: 1;
+        
+        .tea-name {
+          font-size: 16px;
+          font-weight: 500;
+          margin-bottom: 5px;
+        }
+        
+        .tea-price {
+          color: var(--el-color-danger);
+          font-size: 18px;
+          margin-bottom: 5px;
+        }
+        
+        .selected-spec {
+          color: var(--el-text-color-secondary);
+          font-size: 14px;
+        }
+      }
+    }
+    
+    .spec-options {
+      .spec-title-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        
+        .spec-title {
+          font-weight: 500;
+          margin: 0;
+        }
+        
+        .multi-spec-checkbox {
+          font-size: 13px;
+          color: var(--el-text-color-secondary);
+        }
+      }
+      
+      .spec-list {
+        .spec-radio,
+        .spec-checkbox {
+          display: block;
+          margin-bottom: 10px;
+          
+          .spec-item {
+            display: flex;
+            justify-content: space-between;
+            width: 300px;
+            
+            .spec-name {
+              color: var(--el-text-color-primary);
+            }
+            
+            .spec-price {
+              color: var(--el-color-danger);
+            }
+            
+            .spec-tag {
+              margin-left: 8px;
+              font-size: 12px;
+              color: var(--el-color-primary);
+            }
+          }
         }
       }
     }
@@ -691,6 +1152,30 @@ defineOptions({
         .tea-list {
           &.view-grid {
             grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+          }
+        }
+      }
+      
+      // 推荐茶叶响应式
+      .tea-recommend-section {
+        .tea-list {
+          .tea-item {
+            width: calc(50% - 10px);
+          }
+        }
+      }
+    }
+  }
+}
+
+// 中等屏幕响应式
+@media (max-width: 1024px) {
+  .tea-list-page {
+    .main-content {
+      .tea-recommend-section {
+        .tea-list {
+          .tea-item {
+            width: calc(33.333% - 14px);
           }
         }
       }

@@ -4499,6 +4499,11 @@ paths:
                   value:
                     code: 5107
                     data: null
+                failure_spec_exists:
+                  summary: 此规格已存在
+                  value:
+                    code: 5147
+                    data: null
 
   /order/cart/remove:
     delete:

@@ -15,6 +15,7 @@
           >
             <el-form-item label="头像">
               <div class="avatar-upload-container">
+                <!-- 编辑页头像：使用传统圆形图片组件预览 -->
                 <SafeImage 
                   :src="userInfo?.avatar || '/images/avatar/default.png'" 
                   type="avatar" 
@@ -46,6 +47,16 @@
                 <el-radio :value="0">保密</el-radio>
               </el-radio-group>
             </el-form-item>
+            <el-form-item label="现居地" prop="locationRegion">
+              <el-cascader 
+                v-model="formData.locationRegion" 
+                :options="locationOptions"
+                :props="{ expandTrigger: 'hover' }"
+                placeholder="请选择省市"
+                clearable
+                style="width: 100%"
+              ></el-cascader>
+            </el-form-item>
             <el-form-item label="生日" prop="birthday">
               <el-date-picker 
                 v-model="formData.birthday" 
@@ -73,25 +84,6 @@
                 show-word-limit
               ></el-input>
             </el-form-item>
-            <!-- 任务C-4：商家认证状态显示 -->
-            <el-form-item label="商家认证" v-if="!isAdmin">
-              <div class="certification-status">
-                <el-tag 
-                  :type="getCertificationTagType(certificationStatus)" 
-                  v-if="certificationStatus !== null"
-                >
-                  {{ getCertificationStatusText(certificationStatus) }}
-                </el-tag>
-                <el-button 
-                  type="primary" 
-                  size="small" 
-                  @click="goToMerchantApplication"
-                  v-if="certificationStatus === null || certificationStatus === -1 || certificationStatus === 1"
-                >
-                  {{ certificationStatus === null || certificationStatus === -1 ? '申请商家认证' : '重新申请' }}
-                </el-button>
-              </div>
-            </el-form-item>
             <el-form-item>
               <el-button type="primary" @click="handleSaveUserInfo" :loading="saving">保存修改</el-button>
               <el-button @click="handleResetForm">重置</el-button>
@@ -112,6 +104,7 @@ import { useFormValidation } from '@/composables/useFormValidation'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 import { userPromptMessages as userMessages, messagePromptMessages as messageMessages } from '@/utils/promptMessages'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
+import { provinceAndCityData, formatLocationDisplay } from '@/utils/region'
 
 const userStore = useUserStore()
 const route = useRoute()
@@ -120,7 +113,6 @@ const userForm = ref(null)
 
 const loading = ref(false)
 const saving = ref(false)
-const certificationStatus = ref(null) // 任务C-4：认证状态 -1未申请 0待审核 1已拒绝 2已通过
 
 const pageTitle = computed(() => {
   return '个人中心'
@@ -132,9 +124,13 @@ const formData = reactive({
   email: '',
   phone: '',
   gender: 0,  // 0-保密 1-男 2-女
+  locationRegion: [],  // 省市二级选择器使用的数组 [省code, 市code]
   birthday: '',
   bio: ''
 })
+
+// 省市二级联动数据
+const locationOptions = ref(provinceAndCityData)
     
     const { rules: validationRules } = useFormValidation()
     
@@ -177,54 +173,6 @@ const formData = reactive({
       return userStore.userInfo
     })
     
-    // 任务C-4：判断是否是管理员
-    const isAdmin = computed(() => {
-      return userStore.isAdmin
-    })
-    
-    // 任务C-4：获取认证状态文本
-    const getCertificationStatusText = status => {
-      if (status === null || status === -1) return '未申请'
-      if (status === 0) return '待审核'
-      if (status === 1) return '已拒绝'
-      if (status === 2) return '已通过'
-      return '未知'
-    }
-    
-    // 任务C-4：获取认证状态标签类型
-    const getCertificationTagType = status => {
-      if (status === null || status === -1) return 'info'
-      if (status === 0) return 'warning'
-      if (status === 1) return 'danger'
-      if (status === 2) return 'success'
-      return 'info'
-    }
-    
-    // 任务C-4：跳转到商家认证申请页
-    const goToMerchantApplication = () => {
-      router.push('/merchant-application')
-    }
-    
-    // 任务C-4：获取认证状态
-    const fetchCertificationStatus = async () => {
-      // 只有非管理员用户才需要显示认证状态
-      if (isAdmin.value) {
-        return
-      }
-      
-      try {
-        const result = await userStore.fetchShopCertificationStatus()
-        if (result && result.data) {
-          certificationStatus.value = result.data.status
-        } else {
-          certificationStatus.value = -1 // 未申请
-        }
-      } catch (error) {
-        console.error('获取认证状态失败:', error)
-        certificationStatus.value = -1
-      }
-    }
-    
     const handleInitForm = () => {
       if (userInfo.value) {
         formData.username = userInfo.value.username || ''
@@ -232,11 +180,37 @@ const formData = reactive({
         formData.email = userInfo.value.email || ''
         formData.phone = userInfo.value.phone || ''
         formData.gender = userInfo.value.gender || 0
+        // 从 currentLocation 字符串解析为省市数组（格式：省code-市code 或 省名-市名）
+        formData.locationRegion = parseLocationToRegion(userInfo.value.currentLocation)
         formData.birthday = userInfo.value.birthday || ''
         formData.bio = userInfo.value.bio || ''
       } else {
         messageMessages.showUserDataIncomplete()
       }
+    }
+    
+    // 将 currentLocation 字符串解析为省市 code 数组
+    const parseLocationToRegion = locationStr => {
+      if (!locationStr) return []
+      // 格式：610000-610100 或 陕西-商洛
+      const parts = locationStr.split('-')
+      if (parts.length >= 2) {
+        return [parts[0], parts[1]]
+      }
+      return []
+    }
+    
+    // 将省市 code 数组转换为 currentLocation 字符串（存储 code）
+    const regionToLocationString = regionArr => {
+      if (!regionArr || regionArr.length < 2) return ''
+      return `${regionArr[0]}-${regionArr[1]}`
+    }
+    
+    // 将省市 code 数组转换为中文显示（使用 region.js 的工具函数）
+    const formatLocationForDisplay = regionArr => {
+      if (!regionArr || regionArr.length < 2) return ''
+      const locationCode = `${regionArr[0]}-${regionArr[1]}`
+      return formatLocationDisplay(locationCode)
     }
     
     const handleFetchUserInfo = async () => {
@@ -324,10 +298,14 @@ const formData = reactive({
           saving.value = true
           loading.value = true
           
+          // 将 locationRegion 数组转换为 currentLocation 字符串
           const userData = {
             ...userInfo.value,
-            ...formData
+            ...formData,
+            currentLocation: regionToLocationString(formData.locationRegion)
           }
+          // 删除前端专用的 locationRegion 字段，后端不需要
+          delete userData.locationRegion
           
           // 更新用户信息
           const updateResponse = await userStore.updateUserInfo(userData)
@@ -363,13 +341,21 @@ const formData = reactive({
     
     onMounted(() => {
       handleFetchUserInfo()
-      fetchCertificationStatus() // 任务C-4：获取认证状态
     })
 </script>
 
 <style lang="scss" scoped>
 .profile-page {
   padding: 40px 0;
+  min-height: 100vh;
+  background-color: #f5f7fa;
+  
+  .container {
+    width: 85%;
+    max-width: 1920px;
+    margin: 0 auto;
+    padding: 0;
+  }
   
   .page-title {
     font-size: 2rem;

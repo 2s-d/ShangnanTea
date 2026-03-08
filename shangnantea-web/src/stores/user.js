@@ -13,6 +13,7 @@ import {
   refreshToken as refreshTokenApi,
   resetPassword as resetPasswordApi,
   sendVerificationCode as sendVerificationCodeApi,
+  getTodayWeather,
   getAddressList,
   addAddress as addAddressApi,
   updateAddress as updateAddressApi,
@@ -118,11 +119,45 @@ export const useUserStore = defineStore('user', () => {
   })
   const certificationList = ref([])
   
+  // 天气相关状态（前端缓存，避免每次导航都打后端）
+  const todayWeather = ref(null)
+  const todayWeatherCityCode = ref(null)
+  const todayWeatherUpdatedAt = ref(0)
+  // 前端天气缓存TTL：10分钟
+  const WEATHER_TTL_MS = 10 * 60 * 1000
+  
+  // 当前用户完整信息持久化键名（用于跨刷新保持昵称 / 头像等）
+  const CURRENT_USER_KEY = 'currentUserInfo'
+
+  // 初始化：如果本地有有效 token，则尝试从 localStorage 恢复完整用户信息
+  ;(() => {
+    try {
+      const hasValidToken = tokenStorage.isTokenValid && tokenStorage.isTokenValid()
+      if (!hasValidToken) return
+
+      const stored = localStorage.getItem(CURRENT_USER_KEY)
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        if (parsed && typeof parsed === 'object') {
+          userInfo.value = parsed
+          isLoggedIn.value = true
+        }
+      }
+    } catch (e) {
+      // 恢复失败不影响正常流程
+      console.error('从本地恢复用户信息失败:', e)
+    }
+  })()
+  
   // ========== Getters ==========
   const userRole = computed(() => userInfo.value?.role || 0)
   const isAdmin = computed(() => userInfo.value?.role === 1)
   const isUser = computed(() => userInfo.value?.role === 2)
   const isShop = computed(() => userInfo.value?.role === 3)
+  const displayName = computed(() => {
+    if (!userInfo.value) return '用户'
+    return userInfo.value.nickname || userInfo.value.username || '用户'
+  })
   const defaultAddress = computed(() => {
     if (defaultAddressId.value) {
       return addressList.value.find(addr => addr.id === defaultAddressId.value) || null
@@ -143,7 +178,6 @@ export const useUserStore = defineStore('user', () => {
       isLoggedIn.value = false
       
       const res = await loginApi(loginData)
-      console.log('登录API响应:', JSON.stringify(res, null, 2))
 
       const code = res?.code
       // 如果业务上登录失败（例如用户名或密码错误），直接根据状态码提示，不再尝试解析token
@@ -154,31 +188,12 @@ export const useUserStore = defineStore('user', () => {
       
       const token = res.data?.token || res.data?.data?.token || res.token
       
-      console.log('提取的token:', {
-        hasResData: !!res.data,
-        resDataType: typeof res.data,
-        resDataKeys: res.data ? Object.keys(res.data) : [],
-        tokenFound: !!token,
-        tokenType: typeof token,
-        tokenValue: token
-      })
-      
       if (!token) {
         console.error('登录响应中未找到token:', res)
         throw new Error('登录响应中未找到token')
       }
       
       const tokenParts = token.split('.')
-      console.log('Token调试信息:', {
-        tokenLength: token.length,
-        tokenPartsCount: tokenParts.length,
-        tokenPreview: token.substring(0, 100) + (token.length > 100 ? '...' : ''),
-        tokenParts: tokenParts.map((part, index) => ({
-          index,
-          length: part.length,
-          preview: part.substring(0, 20) + (part.length > 20 ? '...' : '')
-        }))
-      })
       
       if (typeof token !== 'string' || tokenParts.length < 2) {
         console.error('Token格式不正确:', {
@@ -227,10 +242,87 @@ export const useUserStore = defineStore('user', () => {
       
       userInfo.value = userInfoData
       isLoggedIn.value = true
+
+      // 持久化完整用户信息，供刷新后快速还原（包含昵称 / 头像）
+      try {
+        localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userInfo.value))
+      } catch (e) {
+        console.error('保存当前用户信息到本地失败:', e)
+      }
+
+      // 控制台仅保留一条简洁的登录成功信息（用户名 / 昵称 / 角色）
+      try {
+        const roleMap = { 1: '管理员', 2: '普通用户', 3: '商家' }
+        const info = userInfoData || {}
+        const displayNickname = info.nickname || info.username || '-'
+        console.log(
+          '[LoginSuccess]',
+          `username=${info.username || '-'}`,
+          `nickname=${displayNickname}`,
+          `role=${roleMap[Number(info.role)] || info.role || '-'}`
+        )
+      } catch (e) {
+        // 忽略日志处理中的任何异常，避免影响正常登录流程
+      }
       
       return res
     } finally {
       loading.value = false
+    }
+  }
+  
+  /**
+   * 获取今日天气（带前端TTL缓存）
+   * @param {string|null} cityCode 城市编码，可为 null（则使用用户现居地或后端默认）
+   * @param {Object} options 选项 { force?: boolean }，force=true 时忽略前端缓存
+   */
+  async function fetchTodayWeather(cityCode = null, options = {}) {
+    const { force = false } = options || {}
+    
+    // 确定目标城市编码：优先显式传入，其次用用户现居地编码
+    let targetCode = cityCode
+    if (!targetCode) {
+      const locationCode = userInfo.value?.currentLocation
+      if (locationCode && typeof locationCode === 'string') {
+        targetCode = locationCode
+      }
+    }
+    
+    const now = Date.now()
+    // 命中前端缓存：城市相同且未过期
+    if (
+      !force &&
+      todayWeather.value &&
+      todayWeatherUpdatedAt.value &&
+      now - todayWeatherUpdatedAt.value < WEATHER_TTL_MS &&
+      todayWeatherCityCode.value === targetCode
+    ) {
+      return { code: 2026, data: todayWeather.value }
+    }
+    
+    try {
+      const res = await getTodayWeather(targetCode)
+      const code = res?.code
+      if (!isSuccess(code)) {
+        // 按约定 2026 是成功静默码，这里只对失败码做提示
+        showByCode(code)
+        return res
+      }
+      
+      const data = res?.data || res || {}
+      const normalized = {
+        weather: data.weather ?? '',
+        temperature: data.temperature ?? ''
+      }
+      todayWeather.value = normalized
+      todayWeatherCityCode.value = targetCode || null
+      todayWeatherUpdatedAt.value = now
+      return res
+    } catch (error) {
+      if (import.meta.env.MODE === 'development') {
+        console.error('获取今日天气失败:', error)
+      }
+      throw error
     }
   }
   
@@ -299,6 +391,11 @@ export const useUserStore = defineStore('user', () => {
       tokenStorage.removeToken()
       userInfo.value = null
       isLoggedIn.value = false
+      try {
+        localStorage.removeItem(CURRENT_USER_KEY)
+      } catch (e) {
+        console.error('清理本地用户信息失败:', e)
+      }
       return res
     } catch (error) {
       console.error('退出登录失败', error)
@@ -318,6 +415,12 @@ export const useUserStore = defineStore('user', () => {
         const userInfoData = res?.data || res
         userInfo.value = userInfoData
         isLoggedIn.value = true
+        // 同步更新本地持久化信息
+        try {
+          localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userInfo.value))
+        } catch (e) {
+          console.error('更新本地用户信息失败:', e)
+        }
       }
       
       return res
@@ -336,6 +439,11 @@ export const useUserStore = defineStore('user', () => {
           tokenStorage.removeToken()
           userInfo.value = null
           isLoggedIn.value = false
+          try {
+            localStorage.removeItem(CURRENT_USER_KEY)
+          } catch (e) {
+            console.error('清理本地用户信息失败:', e)
+          }
         }
       }
       throw error
@@ -880,12 +988,16 @@ export const useUserStore = defineStore('user', () => {
     userPagination,
     userFilters,
     certificationList,
+    todayWeather,
+    todayWeatherCityCode,
+    todayWeatherUpdatedAt,
     // Getters
     userRole,
     isAdmin,
     isUser,
     isShop,
     defaultAddress,
+    displayName,
     // Actions
     login,
     register,
@@ -897,6 +1009,7 @@ export const useUserStore = defineStore('user', () => {
     getUserInfo,
     updateUserInfo,
     uploadAvatar,
+    fetchTodayWeather,
     changePassword,
     refreshToken,
     findPassword,

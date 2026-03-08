@@ -84,7 +84,7 @@
             <div class="product-info">
               <div class="product-title" @click="goToProductDetail(product.id)">{{ product.name }}</div>
               <div class="product-shop" @click="goToShopDetail(product.shopId)">
-                <SafeImage :src="product.shop_logo" type="banner" :alt="product.shopName" class="shop-logo" style="width:20px;height:20px;border-radius:50%;object-fit:cover;" />
+                <SafeImage :src="product.shopLogo || product.shop?.logo" type="banner" :alt="product.shopName" class="shop-logo" style="width:20px;height:20px;border-radius:50%;object-fit:cover;" />
                 <span>{{ product.shopName }}</span>
               </div>
               <div class="product-price">¥{{ product.price.toFixed(2) }}</div>
@@ -133,9 +133,9 @@
               <div class="post-title">{{ post.title }}</div>
               <div class="post-summary">{{ post.content }}</div>
               <div class="post-meta">
-                <span class="author" @click.stop="goToUserProfile(post.authorId)">
-                  <SafeImage :src="post.author_avatar" type="avatar" :alt="post.authorName" class="author-avatar" style="width:24px;height:24px;border-radius:50%;object-fit:cover;" />
-                  <span class="author-name">{{ post.authorName }}</span>
+                <span class="author" @click.stop="goToUserProfile(post.userId)">
+                  <SafeImage :src="post.userAvatar" type="avatar" :alt="post.userName" class="author-avatar" style="width:24px;height:24px;border-radius:50%;object-fit:cover;" />
+                  <span class="author-name">{{ post.userName }}</span>
                 </span>
                 <span class="publish-time">发布于 {{ formatDate(post.publishTime) }}</span>
                 <span class="favorite-time">收藏于 {{ formatDate(post.favoriteTime) }}</span>
@@ -232,7 +232,7 @@ const activeTab = ref('culture')
           price: 0, // 后端未提供，使用默认值
           shopId: '', // 后端未提供，使用默认值
           shopName: '', // 后端未提供，使用默认值
-          shop_logo: '', // 后端未提供，使用默认值
+          shopLogo: '', // 后端未提供，使用默认值
           favoriteTime: item.createTime
         }))
     })
@@ -273,9 +273,9 @@ const activeTab = ref('culture')
           postId: item.itemId,
           title: item.targetName || '未知帖子',
           content: '', // 后端未提供，使用默认值
-          authorId: '', // 后端未提供，使用默认值
-          authorName: '', // 后端未提供，使用默认值
-          author_avatar: '', // 后端未提供，使用默认值
+          userId: '', // 后端未提供，使用默认值
+          userName: '', // 后端未提供，使用默认值
+          userAvatar: '', // 后端未提供，使用默认值
           publishTime: item.createTime,
           favoriteTime: item.createTime,
           viewCount: 0, // 后端未提供，使用默认值

@@ -18,6 +18,15 @@ public class TableRule {
      */
     private Map<String, FieldRule> fields = new LinkedHashMap<>();
 
+    /**
+     * 关联表配置：表名 -> 关联规则
+     * 例如：生成10个店铺时，每个店铺自动生成2张轮播图
+     * relatedTables:
+     *   shop_banners:
+     *     count: 2  # 每个店铺生成2张轮播图
+     */
+    private Map<String, RelatedTableRule> relatedTables = new LinkedHashMap<>();
+
     public int getDefaultCount() {
         return defaultCount;
     }
@@ -32,6 +41,14 @@ public class TableRule {
 
     public void setFields(Map<String, FieldRule> fields) {
         this.fields = fields;
+    }
+
+    public Map<String, RelatedTableRule> getRelatedTables() {
+        return relatedTables;
+    }
+
+    public void setRelatedTables(Map<String, RelatedTableRule> relatedTables) {
+        this.relatedTables = relatedTables;
     }
 }
 

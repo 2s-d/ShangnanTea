@@ -40,6 +40,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
     
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // 调试：打印当前应用的工作目录，确认静态资源根路径
+        System.out.println("WebMvcConfig - static files user.dir = " + System.getProperty("user.dir"));
+        
         // 配置静态资源映射，用于访问上传的文件
         registry.addResourceHandler("/files/**")
                 .addResourceLocations("file:" + System.getProperty("user.dir") + "/files/");

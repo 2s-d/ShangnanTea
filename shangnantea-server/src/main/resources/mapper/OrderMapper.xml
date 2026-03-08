@@ -14,6 +14,7 @@
         <result column="quantity" property="quantity"/>
         <result column="price" property="price"/>
         <result column="total_amount" property="totalAmount"/>
+        <result column="payment_id" property="paymentId"/>
         <result column="address_id" property="addressId"/>
         <result column="status" property="status"/>
         <result column="payment_time" property="paymentTime"/>
@@ -38,7 +39,7 @@
     <!-- 所有列 -->
     <sql id="Base_Column_List">
         id, user_id, shop_id, tea_id, tea_name, spec_id, spec_name, tea_image, quantity, 
-        price, total_amount, address_id, status, payment_time, payment_method, logistics_company, 
+        price, total_amount, payment_id, address_id, status, payment_time, payment_method, logistics_company, 
         logistics_number, shipping_time, completion_time, cancel_time, cancel_reason, 
         buyer_message, buyer_rate, refund_status, refund_reason, refund_reject_reason,
         refund_apply_time, refund_process_time, create_time, update_time
@@ -48,12 +49,12 @@
     <insert id="insert" parameterType="com.shangnantea.model.entity.order.Order">
         INSERT INTO orders (
             id, user_id, shop_id, tea_id, tea_name, spec_id, spec_name, tea_image, quantity, 
-            price, total_amount, address_id, status, payment_time, payment_method, logistics_company, 
+            price, total_amount, payment_id, address_id, status, payment_time, payment_method, logistics_company, 
             logistics_number, shipping_time, completion_time, cancel_time, cancel_reason, 
             buyer_message, buyer_rate, create_time, update_time
         ) VALUES (
             #{id}, #{userId}, #{shopId}, #{teaId}, #{teaName}, #{specId}, #{specName}, #{teaImage}, #{quantity}, 
-            #{price}, #{totalAmount}, #{addressId}, #{status}, #{paymentTime}, #{paymentMethod}, #{logisticsCompany}, 
+            #{price}, #{totalAmount}, #{paymentId}, #{addressId}, #{status}, #{paymentTime}, #{paymentMethod}, #{logisticsCompany}, 
             #{logisticsNumber}, #{shippingTime}, #{completionTime}, #{cancelTime}, #{cancelReason}, 
             #{buyerMessage}, #{buyerRate}, #{createTime}, #{updateTime}
         )
@@ -86,6 +87,7 @@
             <if test="quantity != null">quantity = #{quantity},</if>
             <if test="price != null">price = #{price},</if>
             <if test="totalAmount != null">total_amount = #{totalAmount},</if>
+            <if test="paymentId != null">payment_id = #{paymentId},</if>
             <if test="addressId != null">address_id = #{addressId},</if>
             <if test="status != null">status = #{status},</if>
             <if test="paymentTime != null">payment_time = #{paymentTime},</if>
@@ -102,6 +104,14 @@
         </set>
         WHERE id = #{id}
     </update>
+
+    <!-- 根据支付单号查询订单列表（避免与 payments 表 join，兼容不同排序规则） -->
+    <select id="selectByPaymentId" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM orders
+        WHERE payment_id = #{paymentId}
+        ORDER BY create_time ASC
+    </select>
 
     <!-- 根据主键查询记录 -->
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">

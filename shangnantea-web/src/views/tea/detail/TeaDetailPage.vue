@@ -81,20 +81,31 @@
               <template v-else>
                 <el-link @click="goToShop" class="shop-link">
                   <div class="shop-basic">
-                    <SafeImage :src="tea.shop_logo" type="avatar" :alt="tea.shop_name || '商家店铺'" style="width:50px;height:50px;border-radius:50%;object-fit:cover;" class="shop-avatar" />
+                    <SafeImage
+                      :src="tea.shopLogo || tea.shop?.logo"
+                      type="avatar"
+                      :alt="tea.shopName || '商家店铺'"
+                      style="width:50px;height:50px;border-radius:50%;object-fit:cover;"
+                      class="shop-avatar"
+                    />
                     <div class="shop-text">
-                      <div class="shop-name">{{ tea.shop_name || '商家店铺' }}</div>
-                      <div class="shop-rating">
-                        <el-rate 
-                          v-model="tea.shop_rating" 
-                          disabled 
-                          :max="5"
-                          text-color="#ff9900">
-                        </el-rate>
+                      <div class="shop-name-row">
+                        <div class="shop-name">{{ tea.shopName || '商家店铺' }}</div>
+                        <div class="shop-rating" v-if="shopRatingDisplay">
+                          <el-rate 
+                            :model-value="shopRatingDisplay" 
+                            disabled 
+                            :max="5"
+                            text-color="#ff9900">
+                          </el-rate>
+                          <span class="shop-rating-score">{{ shopRatingDisplay }}</span>
+                        </div>
+                      </div>
+                      <div class="shop-desc">
+                        {{ shopDescDisplay || '专业经营各类优质茶叶' }}
                       </div>
                     </div>
                   </div>
-                  <div class="shop-desc">{{ tea.shop_desc || '专业经营各类优质茶叶' }}</div>
                 </el-link>
               </template>
             </div>
@@ -125,7 +136,7 @@
                   :label="spec.id"
                   :disabled="spec.stock <= 0"
                 >
-                  {{ spec.spec_name }} - ¥{{ spec.price }}
+                  {{ spec.specName }} - ¥{{ spec.price }}
                   <span v-if="spec.stock <= 0" class="sold-out">已售罄</span>
                 </el-radio-button>
               </el-radio-group>
@@ -182,7 +193,7 @@
                 <el-descriptions-item label="产地">商南县</el-descriptions-item>
                 <el-descriptions-item label="规格">
                   <div v-for="spec in teaSpecifications" :key="spec.id">
-                    {{ spec.spec_name }} - ¥{{ spec.price }}
+                    {{ spec.specName }} - ¥{{ spec.price }}
                   </div>
                 </el-descriptions-item>
                 <el-descriptions-item label="净含量">根据规格不同，详见包装</el-descriptions-item>
@@ -198,6 +209,9 @@
                 <div class="average-rating">
                   <span class="rating-value">{{ reviewStats.averageRating || 0 }}</span>
                   <el-rate v-model="averageRatingNumber" disabled :max="5" />
+                  <span class="rating-count" v-if="reviewStats.totalCount && reviewStats.totalCount > 0">
+                    （{{ reviewStats.totalCount }}人）
+                  </span>
                   <span class="total-count">共{{ reviewStats.totalCount || 0 }}条评价</span>
                 </div>
                 <div class="rating-distribution" v-if="reviewStats.ratingDistribution">
@@ -219,12 +233,12 @@
                 <div v-for="review in teaReviews" :key="review.id" class="review-item">
                   <div class="review-header">
                     <div class="user-info">
-                      <SafeImage :src="review.avatar || review.user_avatar" type="avatar" :alt="review.username || review.user_name" style="width:40px;height:40px;border-radius:50%;object-fit:cover;" class="user-avatar" />
-                      <span class="user-name">{{ review.username || review.user_name }}</span>
+                      <SafeImage :src="review.avatar" type="avatar" :alt="review.username || review.nickname" style="width:40px;height:40px;border-radius:50%;object-fit:cover;" class="user-avatar" />
+                      <span class="user-name">{{ review.username || review.nickname }}</span>
                     </div>
                     <div class="review-rating">
                       <el-rate :model-value="review.rating" disabled />
-                      <span class="review-time">{{ formatTime(review.createTime || review.create_time) }}</span>
+                      <span class="review-time">{{ formatTime(review.createTime) }}</span>
                     </div>
                   </div>
                   <div class="review-content">{{ review.content }}</div>
@@ -245,7 +259,7 @@
                   </div>
                   <div class="review-reply" v-if="review.reply">
                     <div class="reply-header">
-                      <span class="shop-name">{{ isPlatformTea ? '平台回复' : tea.shop_name }}</span>
+                      <span class="shop-name">{{ isPlatformTea ? '平台回复' : tea.shopName }}</span>
                       <span class="reply-time">{{ formatTime(review.replyTime || review.reply_time) }}</span>
                     </div>
                     <div class="reply-content">{{ review.reply }}</div>
@@ -311,7 +325,7 @@
             class="recommend-item"
             @click="goToTeaDetail(tea.id)"
           >
-            <SafeImage :src="tea.main_image" type="tea" :alt="tea.name" class="recommend-image" />
+            <SafeImage :src="tea.mainImage" type="tea" :alt="tea.name" class="recommend-image" />
             <div class="recommend-info">
               <div class="recommend-name">{{ tea.name }}</div>
               <div class="recommend-price">
@@ -376,6 +390,17 @@ defineOptions({
     const isShopOwner = computed(() => {
       const currentUserId = userStore.userInfo?.id
       return currentUserId && tea.value && currentUserId === tea.value.shopOwnerId
+    })
+
+    // 店铺评分和简介（兼容多种字段命名）
+    const shopRatingDisplay = computed(() => {
+      const t = tea.value
+      const rating = t?.shopRating ?? t?.shop_rating ?? t?.shop?.rating
+      return rating || 0
+    })
+    const shopDescDisplay = computed(() => {
+      const t = tea.value
+      return t?.shopDesc || t?.shop_desc || t?.shop?.description || ''
     })
     
     // 任务组B：评价相关数据
@@ -539,7 +564,7 @@ defineOptions({
             itemId: tea.value.id,
             itemType: 'tea',
             targetName: tea.value.name,
-            targetImage: tea.value.main_image || tea.value.images?.[0] || ''
+            targetImage: tea.value.mainImage || tea.value.images?.[0] || ''
           })
           showByCode(response.code)
           // 重新加载茶叶详情以更新isFavorited状态
@@ -577,7 +602,7 @@ defineOptions({
         
         // 任务组C：设置默认规格（从Pinia的currentTeaSpecs获取）
         const specs = teaStore.currentTeaSpecs || []
-        const defaultSpec = specs.find(spec => spec.is_default === 1)
+        const defaultSpec = specs.find(spec => spec.isDefault === 1)
         if (defaultSpec) {
           selectedSpecId.value = defaultSpec.id
         } else if (specs.length > 0) {
@@ -666,7 +691,8 @@ defineOptions({
         return
       }
       
-      if (!selectedSpecId.value) {
+      // 如果有规格但未选择，提示选择规格
+      if (teaSpecifications.value.length > 0 && !selectedSpecId.value) {
         teaMessages.prompt.showSelectSpec()
         return
       }
@@ -674,10 +700,12 @@ defineOptions({
       submitting.value = true
       try {
         // 生产版：通过 order 模块 action 走后端，传递规格ID
+        // 规格ID需要转换为String（后端DTO要求String类型）
+        // 如果茶叶没有规格，specificationId可以为null
         const response = await orderStore.addToCart({ 
           teaId: tea.value.id, 
           quantity: quantity.value,
-          specificationId: selectedSpecId.value
+          specificationId: selectedSpecId.value ? String(selectedSpecId.value) : null
         })
         showByCode(response.code)
       } catch (error) {
@@ -687,26 +715,41 @@ defineOptions({
       }
     }
     
-    // 立即购买
+    // 立即购买：设置临时订单商品并跳转结算页
     const buyNow = async () => {
       if (!canAddToCart.value) {
         teaMessages.prompt.showSoldOut()
         return
       }
       
-      if (!selectedSpecId.value) {
+      if (teaSpecifications.value.length > 0 && !selectedSpecId.value) {
         teaMessages.prompt.showSelectSpec()
         return
       }
       
       try {
         submitting.value = true
-        // TODO: 直接购买的生产版流程需要订单模块提供“direct buy”能力；目前先跳转结算页
+        
+        // 构造“立即购买”临时商品数据（尽量与购物车项字段保持一致）
+        const spec = selectedSpec.value
+        const directItem = {
+          id: null, // 非购物车来源，无实际cartId
+          teaId: tea.value.id,
+          teaName: tea.value.name,
+          teaImage: tea.value.mainImage || (teaImages.value && teaImages.value[0]) || '',
+          specId: spec ? spec.id : null,
+          specName: spec ? spec.specName : null,
+          price: spec ? spec.price : tea.value.price,
+          quantity: quantity.value,
+          remark: '',
+          shopId: tea.value.shopId
+        }
+        
+        orderStore.setDirectBuyItem(directItem)
+        
         router.push('/order/checkout?direct=1')
       } catch (error) {
-        // TODO: 迁移到新消息系统 - 使用 showByCode(response.code)
-
-        teaMessages.error.showBuyFailed(error.message)
+        teaMessages.error.showBuyFailed(error?.message || '立即购买失败')
       } finally {
         submitting.value = false
       }
@@ -772,9 +815,10 @@ defineOptions({
   padding: 20px 0 40px;
   
   .container {
-    max-width: 1200px;
+    width: 85%;
+    max-width: 1920px;
     margin: 0 auto;
-    padding: 0 15px;
+    padding: 0;
   }
   
   .page-actions {
@@ -893,11 +937,19 @@ defineOptions({
             
             .shop-text {
               margin-left: 15px;
+              display: flex;
+              flex-direction: column;
+              gap: 4px;
+              
+              .shop-name-row {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+              }
               
               .shop-name {
                 font-size: 16px;
                 font-weight: 500;
-                margin-bottom: 5px;
                 transition: color 0.3s;
               }
               
@@ -908,6 +960,10 @@ defineOptions({
                 span {
                   margin-left: 5px;
                   color: #FF9900;
+                }
+                
+                .shop-rating-score {
+                  font-size: 13px;
                 }
               }
             }

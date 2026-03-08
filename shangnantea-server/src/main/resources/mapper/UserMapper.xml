@@ -15,6 +15,7 @@
         <result column="status" property="status" jdbcType="INTEGER"/>
         <result column="is_deleted" property="isDeleted" jdbcType="INTEGER"/>
         <result column="gender" property="gender" jdbcType="INTEGER"/>
+        <result column="current_location" property="currentLocation" jdbcType="VARCHAR"/>
         <result column="birthday" property="birthday" jdbcType="DATE"/>
         <result column="bio" property="bio" jdbcType="VARCHAR"/>
         <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
@@ -24,7 +25,7 @@
     <!-- 公共列 -->
     <sql id="Base_Column_List">
         id, username, password, nickname, phone, email, avatar, role, status, is_deleted, 
-        gender, birthday, bio, create_time, update_time
+        gender, current_location, birthday, bio, create_time, update_time
     </sql>
     
     <!-- 通过ID查询用户 -->
@@ -47,7 +48,7 @@
     <insert id="insert" parameterType="com.shangnantea.model.entity.user.User">
         INSERT INTO users (
             id, username, password, nickname, phone, email, avatar, 
-            role, status, is_deleted, gender, birthday, bio, create_time, update_time
+            role, status, is_deleted, gender, current_location, birthday, bio, create_time, update_time
         ) VALUES (
             #{id,jdbcType=VARCHAR}, 
             #{username,jdbcType=VARCHAR}, 
@@ -60,6 +61,7 @@
             #{status,jdbcType=INTEGER}, 
             #{isDeleted,jdbcType=INTEGER}, 
             #{gender,jdbcType=INTEGER}, 
+            #{currentLocation,jdbcType=VARCHAR}, 
             #{birthday,jdbcType=DATE}, 
             #{bio,jdbcType=VARCHAR}, 
             #{createTime,jdbcType=TIMESTAMP}, 
@@ -81,6 +83,7 @@
             <if test="status != null">status = #{status,jdbcType=INTEGER},</if>
             <if test="isDeleted != null">is_deleted = #{isDeleted,jdbcType=INTEGER},</if>
             <if test="gender != null">gender = #{gender,jdbcType=INTEGER},</if>
+            <if test="currentLocation != null">current_location = #{currentLocation,jdbcType=VARCHAR},</if>
             <if test="birthday != null">birthday = #{birthday,jdbcType=DATE},</if>
             <if test="bio != null">bio = #{bio,jdbcType=VARCHAR},</if>
             update_time = now()

@@ -50,6 +50,26 @@ public class UserVO {
     private Integer status;
     
     /**
+     * 性别（0-保密，1-男，2-女）
+     */
+    private Integer gender;
+    
+    /**
+     * 现居地（省市县，例如：陕西省商洛市商南县）
+     */
+    private String currentLocation;
+    
+    /**
+     * 生日
+     */
+    private Date birthday;
+    
+    /**
+     * 个人简介
+     */
+    private String bio;
+    
+    /**
      * 创建时间
      */
     private Date createTime;
@@ -121,6 +141,38 @@ public class UserVO {
     
     public void setStatus(Integer status) {
         this.status = status;
+    }
+    
+    public Integer getGender() {
+        return gender;
+    }
+    
+    public void setGender(Integer gender) {
+        this.gender = gender;
+    }
+    
+    public String getCurrentLocation() {
+        return currentLocation;
+    }
+    
+    public void setCurrentLocation(String currentLocation) {
+        this.currentLocation = currentLocation;
+    }
+    
+    public Date getBirthday() {
+        return birthday;
+    }
+    
+    public void setBirthday(Date birthday) {
+        this.birthday = birthday;
+    }
+    
+    public String getBio() {
+        return bio;
+    }
+    
+    public void setBio(String bio) {
+        this.bio = bio;
     }
     
     public Date getCreateTime() {

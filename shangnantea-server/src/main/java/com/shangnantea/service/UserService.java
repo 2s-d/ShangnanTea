@@ -330,6 +330,18 @@ public interface UserService {
      */
     Result<Boolean> processCertification(Integer id, ProcessCertificationDTO processCertificationDTO);
     
+    // ==================== 天气服务 ====================
+    
+    /**
+     * 获取今日天气（高德天气API）
+     *
+     * 成功码：2026，失败码：2152
+     *
+     * @param cityAdcode 城市行政区划代码（可选），为空时使用默认城市
+     * @return 今日天气信息
+     */
+    Result<Map<String, Object>> getTodayWeather(String cityAdcode);
+    
     // ==================== 基础方法（内部使用） ====================
     
     /**

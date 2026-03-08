@@ -74,6 +74,11 @@ public class Order {
      * 订单总金额
      */
     private BigDecimal totalAmount;
+
+    /**
+     * 支付单号（支付批次ID），关联 payments.id
+     */
+    private String paymentId;
     
     /**
      * 收货地址ID

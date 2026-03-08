@@ -2,7 +2,7 @@
   <div class="tea-card" @click="viewDetail">
     <!-- 茶叶主图 -->
     <div class="tea-image">
-      <SafeImage :src="tea.main_image" type="tea" :alt="tea.name" style="width:100%;height:100%;object-fit:cover;" />
+      <SafeImage :src="tea.mainImage" type="tea" :alt="tea.name" style="width:100%;height:100%;object-fit:cover;" />
       <span v-if="isPlatformTea" class="platform-tag">平台直售</span>
     </div>
     
@@ -25,7 +25,6 @@
           type="primary" 
           size="small" 
           @click.stop="addToCart"
-          :loading="loading"
         >
           <el-icon><ShoppingCart /></el-icon>
           加入购物车
@@ -36,13 +35,11 @@
 </template>
 
 <script>
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useOrderStore } from '@/stores/order'
 
 import { ShoppingCart } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-import { showByCode } from '@/utils/apiMessages'
 
 export default {
   name: 'TeaCard',
@@ -56,10 +53,9 @@ export default {
       required: true
     }
   },
-  setup(props) {
+  emits: ['add-to-cart'],
+  setup(props, { emit }) {
     const router = useRouter()
-    const orderStore = useOrderStore()
-    const loading = ref(false)
     
     // 判断是否为平台直售茶叶
     const isPlatformTea = computed(() => props.tea.shop_id === 'PLATFORM')
@@ -70,23 +66,12 @@ export default {
     }
     
     // 加入购物车
-    const addToCart = async () => {
-      loading.value = true
-      try {
-        const response = await orderStore.addToCart({
-          teaId: props.tea.id,
-          quantity: 1
-        })
-        showByCode(response.code)
-      } catch (error) {
-        console.error('加入购物车失败:', error)
-      } finally {
-        loading.value = false
-      }
+    const addToCart = () => {
+      // 由父组件决定是直接加默认规格还是弹出规格选择框
+      emit('add-to-cart', props.tea)
     }
     
     return {
-      loading,
       isPlatformTea,
       viewDetail,
       addToCart
@@ -208,6 +193,68 @@ export default {
       
       .el-button {
         width: 100%;
+      }
+    }
+  }
+}
+
+// 列表模式样式（通过父级类名控制）
+:deep(.view-list) .tea-card {
+  flex-direction: row;
+  height: auto;
+  min-height: 150px;
+  
+  .tea-image {
+    width: 150px;
+    flex-shrink: 0;
+    padding-bottom: 0;
+    height: 150px;
+    
+    img {
+      position: static;
+      width: 100%;
+      height: 100%;
+    }
+  }
+  
+  .tea-info {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 20px;
+    gap: 20px;
+    
+    .tea-name {
+      flex: 1;
+      height: auto;
+      margin: 0;
+      font-size: 18px;
+      -webkit-line-clamp: 1;
+    }
+    
+    .tea-brief {
+      flex: 1;
+      height: auto;
+      margin: 0;
+      -webkit-line-clamp: 1;
+    }
+    
+    .tea-price-row {
+      flex: 0 0 auto;
+      margin: 0;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+    }
+    
+    .tea-actions {
+      flex: 0 0 auto;
+      margin: 0;
+      
+      .el-button {
+        width: auto;
+        min-width: 120px;
       }
     }
   }

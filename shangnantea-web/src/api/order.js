@@ -102,8 +102,10 @@ export function getOrders(params) {
  * @returns {Promise} 订单详情
  */
 export function getOrderDetail(id) {
+  // 使用占位符模板 /order/{id}，避免出现 /order/{id}OD2025... 这种错误路径
+  const url = API.ORDER.DETAIL.replace('{id}', encodeURIComponent(id))
   return request({
-    url: API.ORDER.DETAIL + id,
+    url,
     method: 'get'
   })
 }
@@ -186,8 +188,9 @@ export function refundOrder(data) {
  */
 export function processRefund(payload) {
   const { orderId, approve, reason } = payload
+  const url = API.ORDER.REFUND_PROCESS.replace('{id}', encodeURIComponent(orderId))
   return request({
-    url: `${API.ORDER.DETAIL}${orderId}/refund/process`,
+    url,
     method: 'post',
     data: { approve, reason }
   })
@@ -198,8 +201,9 @@ export function processRefund(payload) {
  * @param {string} orderId
  */
 export function getRefundDetail(orderId) {
+  const url = API.ORDER.REFUND_DETAIL.replace('{id}', encodeURIComponent(orderId))
   return request({
-    url: `${API.ORDER.DETAIL}${orderId}/refund`,
+    url,
     method: 'get'
   })
 }
@@ -212,8 +216,10 @@ export function getRefundDetail(orderId) {
  */
 export function shipOrder(payload) {
   const { id, logisticsCompany, logisticsNumber } = payload
+  // 将占位符 {id} 替换为实际订单ID，避免出现 /order/{id}... 这样的错误路径
+  const url = API.ORDER.SHIP.replace('{id}', encodeURIComponent(id))
   return request({
-    url: `${API.ORDER.DETAIL}${id}/ship`,
+    url,
     method: 'post',
     params: {
       logisticsCompany,
@@ -245,8 +251,9 @@ export function batchShipOrders(payload) {
  * - 实现后traces字段应返回物流轨迹数组：[{time, content}]
  */
 export function getOrderLogistics(id) {
+  const url = API.ORDER.LOGISTICS.replace('{id}', encodeURIComponent(id))
   return request({
-    url: `${API.ORDER.DETAIL}${id}/logistics`,
+    url,
     method: 'get'
   })
 }

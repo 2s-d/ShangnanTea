@@ -12,7 +12,7 @@
       <div class="shop-header">
           <div class="shop-info">
           <div class="shop-logo">
-            <SafeImage :src="shop.logo || shop.shop_logo" type="banner" :alt="shop.name || shop.shop_name || '商铺'" style="width:100px;height:100px;border-radius:50%;" />
+            <SafeImage :src="shop.logo" type="banner" :alt="shop.name || '商铺'" style="width:100px;height:100px;border-radius:50%;" />
             <div v-if="shop.certification && shop.certification.status === 'verified'" class="cert-badge">
               <el-tooltip content="已认证商家" placement="top">
                 <el-icon><Check /></el-icon>
@@ -22,7 +22,7 @@
           
           <div class="shop-basic-info">
             <div class="shop-name-row">
-              <h1 class="shop-name">{{ shop.name || shop.shop_name }}</h1>
+              <h1 class="shop-name">{{ shop.name }}</h1>
               
               <div class="shop-actions">
               <el-button 
@@ -46,13 +46,18 @@
             
             <div class="shop-rating">
               <el-rate
-                v-model="shop.rating"
+                :model-value="headerRating"
                 disabled
                 text-color="#ff9900"
                 score-template="{value}"
               />
-              <span class="rating-text">{{ shop.rating.toFixed(1) }}</span>
-              <span class="rating-count">({{ shop.rating_count }})</span>
+              <span class="rating-text">{{ headerRating.toFixed(1) }}</span>
+              <span
+                v-if="headerRatingCount > 0"
+                class="rating-count"
+              >
+                {{ headerRatingCount }}人评价
+              </span>
             </div>
             
             <div class="shop-brief">{{ shop.desc || shop.description }}</div>
@@ -68,11 +73,11 @@
               </div>
               <div class="stat-item">
                 <span class="stat-label">关注数</span>
-                <span class="stat-value">{{ shop.follower_count || shop.followerCount || 0 }}</span>
+                <span class="stat-value">{{ shop.followCount || 0 }}</span>
               </div>
               <div class="stat-item">
                 <span class="stat-label">开店时间</span>
-                <span class="stat-value">{{ formatTime(shop.create_time || shop.createTime) }}</span>
+                <span class="stat-value">{{ formatTime(shop.createTime) }}</span>
               </div>
             </div>
           </div>
@@ -114,14 +119,14 @@
               v-for="announcement in shopAnnouncements" 
               :key="announcement.id" 
               class="announcement-item"
-              :class="{ 'is-top': announcement.is_top }"
+              :class="{ 'is-top': announcement.isTop }"
             >
               <div class="announcement-header">
                 <div class="announcement-title-row">
-                  <el-tag v-if="announcement.is_top" type="warning" size="small">置顶</el-tag>
+                  <el-tag v-if="announcement.isTop" type="warning" size="small">置顶</el-tag>
                   <span class="announcement-title">{{ announcement.title }}</span>
                 </div>
-                <span class="announcement-time">{{ formatTime(announcement.create_time) }}</span>
+                <span class="announcement-time">{{ formatTime(announcement.createTime) }}</span>
               </div>
               <div class="announcement-content">{{ announcement.content }}</div>
             </div>
@@ -147,6 +152,20 @@
           
           <el-tab-pane label="店铺评价" name="reviews">
             <div class="shop-reviews-container">
+              <!-- 评分汇总 -->
+              <div 
+                v-if="ratingSummary.ratingCount > 0" 
+                class="review-summary"
+              >
+                <span class="review-summary-score">
+                  {{ ratingSummary.rating.toFixed(1) }}
+                </span>
+                <span class="review-summary-unit">分</span>
+                <span class="review-summary-count">
+                  {{ ratingSummary.ratingCount }}人评价
+                </span>
+              </div>
+              
               <!-- 评价列表 -->
               <div v-if="shopReviews.length > 0" class="reviews-list">
                 <div v-for="review in shopReviews" :key="review.id" class="review-item">
@@ -233,7 +252,7 @@
           <el-tab-pane label="店铺信息" name="info">
             <div class="shop-detail-info">
               <el-descriptions title="基本信息" :column="1" border>
-                <el-descriptions-item label="店铺名称">{{ shop.name || shop.shop_name }}</el-descriptions-item>
+                <el-descriptions-item label="店铺名称">{{ shop.name }}</el-descriptions-item>
                 <el-descriptions-item label="店铺介绍">{{ shop.desc || shop.description }}</el-descriptions-item>
                 <el-descriptions-item label="联系电话">{{ shop.contact_phone || shop.contactPhone || '未设置' }}</el-descriptions-item>
                 <el-descriptions-item label="所在地区">
@@ -300,6 +319,23 @@ defineOptions({
     
     // 店铺评价相关
     const shopReviews = computed(() => shopStore.shopReviews || [])
+    const ratingSummary = computed(() => shopStore.shopRatingSummary || { rating: 0, ratingCount: 0 })
+    // 顶部评分：优先使用 reviews 接口的汇总数据，兜底用店铺详情里的原始字段
+    const headerRating = computed(() => {
+      const summary = ratingSummary.value
+      const fromSummary = typeof summary.rating === 'number' ? summary.rating : 0
+      if (fromSummary && fromSummary > 0) return fromSummary
+      const raw = shop.value?.rating
+      return typeof raw === 'number' ? raw : 0
+    })
+    const headerRatingCount = computed(() => {
+      const summary = ratingSummary.value
+      if (summary && typeof summary.ratingCount === 'number' && summary.ratingCount > 0) {
+        return summary.ratingCount
+      }
+      const raw = shop.value?.rating_count ?? shop.value?.ratingCount
+      return typeof raw === 'number' ? raw : 0
+    })
     const reviewPagination = computed(() => shopStore.reviewPagination)
     const reviewForm = ref({
       rating: 5,
@@ -326,8 +362,7 @@ defineOptions({
         // 加载店铺评价
         await shopStore.fetchShopReviews({
           shopId,
-          page: 1,
-          size: 10
+          params: { page: 1, size: 10 }
         })
       } catch (error) {
         console.error('加载店铺详情失败:', error)
@@ -371,8 +406,8 @@ defineOptions({
           const response = await userStore.addFollow({
             targetId: shop.value.id,
             targetType: 'shop',
-            targetName: shop.value.name || shop.value.shop_name,
-            targetAvatar: shop.value.logo || shop.value.shop_logo
+            targetName: shop.value.name,
+            targetAvatar: shop.value.logo
           })
           showByCode(response.code)
           // 重新加载店铺详情以更新isFollowed状态
@@ -404,8 +439,7 @@ defineOptions({
       try {
         await shopStore.fetchShopReviews({
           shopId,
-          page,
-          size: reviewPagination.value.pageSize
+          params: { page, size: reviewPagination.value.pageSize }
         })
       } catch (error) {
         console.error('加载评价失败:', error)
@@ -444,8 +478,7 @@ defineOptions({
         // 重新加载评价列表
         await shopStore.fetchShopReviews({
           shopId,
-          page: 1,
-          size: reviewPagination.value.pageSize
+          params: { page: 1, size: reviewPagination.value.pageSize }
         })
       } catch (error) {
         console.error('提交评价失败:', error)
@@ -489,9 +522,10 @@ defineOptions({
   padding: 20px 0 40px;
   
   .container {
-    max-width: 1200px;
+    width: 85%;
+    max-width: 1920px;
     margin: 0 auto;
-    padding: 0 15px;
+    padding: 0;
   }
   
   .page-actions {
@@ -576,7 +610,7 @@ defineOptions({
           }
           
           .rating-count {
-            margin-left: 5px;
+            margin-left: 25px; // 与评分数字拉开一点距离
             color: var(--el-text-color-secondary);
             font-size: 14px;
           }

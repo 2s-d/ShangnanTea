@@ -3,7 +3,7 @@
     <!-- 店铺基本信息区域 -->
     <div class="shop-info">
       <div class="shop-logo">
-        <SafeImage :src="shop.logo" type="banner" :alt="shop.shop_name" style="width:100%;height:100%;object-fit:cover;" />
+        <SafeImage :src="shop.logo" type="banner" :alt="shop.name" style="width:100%;height:100%;object-fit:cover;" />
         <div v-if="shop.certification && shop.certification.status === 'verified'" class="cert-badge">
           <el-tooltip content="已认证商家" placement="top">
             <el-icon><Check /></el-icon>
@@ -12,7 +12,7 @@
       </div>
       
       <div class="shop-details">
-        <h3 class="shop-name">{{ shop.shop_name }}</h3>
+        <h3 class="shop-name">{{ shop.name }}</h3>
         
         <div class="shop-rating">
           <el-rate
@@ -39,7 +39,7 @@
           </span>
           <span class="stat-item">
             <el-icon><Timer /></el-icon>
-            {{ formatTime(shop.create_time) }}
+            {{ formatTime(shop.createTime) }}
           </span>
         </div>
       </div>
@@ -50,7 +50,7 @@
       <div v-if="featuredTeas.length > 0" class="tea-list">
         <div v-for="tea in featuredTeas" :key="tea.id" class="tea-preview">
           <div class="tea-preview-image">
-            <SafeImage :src="tea.main_image" type="tea" :alt="tea.name" style="width:100%;height:100%;object-fit:cover;" />
+            <SafeImage :src="tea.mainImage" type="tea" :alt="tea.name" style="width:100%;height:100%;object-fit:cover;" />
           </div>
           <div class="tea-preview-info">
             <div class="tea-preview-name">{{ tea.name }}</div>

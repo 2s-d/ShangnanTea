@@ -5,8 +5,9 @@
     :class="{ collapsed: isCollapsed }"
     :style="monitorStyle"
     @mousedown="startDrag"
+    ref="monitorRef"
   >
-    <div class="monitor-header" @click="toggleCollapse">
+    <div class="monitor-header">
       <div class="header-left">
         <span class="drag-handle" @mousedown.stop="startDrag">⋮⋮</span>
         <h3>开发监控</h3>
@@ -22,9 +23,13 @@
       <div class="monitor-controls">
         <button class="copy-btn" @click.stop="copyCurrentTab">复制</button>
         <button class="clear-btn" @click.stop="clearCurrentTab">清空</button>
-        <button class="toggle-btn">{{ isCollapsed ? '▲' : '▼' }}</button>
+        <button class="toggle-btn" @click.stop="toggleCollapse">{{ isCollapsed ? '展开' : '折叠' }}</button>
       </div>
     </div>
+    <!-- 自定义窗口缩放句柄：右边、下边、右下角 -->
+    <div v-if="!isCollapsed" class="resize-handle right" @mousedown.stop="startResize($event, 'right')"></div>
+    <div v-if="!isCollapsed" class="resize-handle bottom" @mousedown.stop="startResize($event, 'bottom')"></div>
+    <div v-if="!isCollapsed" class="resize-handle corner" @mousedown.stop="startResize($event, 'corner')"></div>
     
     <div class="monitor-body" v-if="!isCollapsed">
       <!-- 错误日志 Tab -->
@@ -93,49 +98,133 @@ let performanceObserver = null
 
 
     const visible = ref(process.env.NODE_ENV === 'development')
-    const isCollapsed = ref(false)
+    const isCollapsed = ref(true)
     const activeTab = ref('errors')
     const backendStatus = ref('checking') // checking, connected, disconnected
     const backendStatusText = ref('检测中...')
     
-    // 拖动相关状态
-    const position = reactive({ x: 20, y: window.innerHeight - 400 }) // 默认左下角
+    // 拖动和缩放相关状态
+    // 初始位置整体向下移动 200 像素（在原来基础上 +200）
+    const position = reactive({ x: 20, y: window.innerHeight - 200 }) // 默认左下角，向下偏移
     const isDragging = ref(false)
     const dragStart = reactive({ x: 0, y: 0 })
+    const size = reactive({ width: 0, height: 0 })
+    const monitorRef = ref(null)
+    const isResizing = ref(false)
+    const resizeDir = ref(null) // right | bottom | corner
+    const resizeStart = reactive({ x: 0, y: 0, width: 0, height: 0 })
+    
+    // 保存当前的事件监听器引用，确保能正确清理
+    let currentDragHandlers = { onMouseMove: null, onMouseUp: null }
+    let currentResizeHandlers = { onMouseMove: null, onMouseUp: null }
     
     const monitorStyle = computed(() => ({
       left: `${position.x}px`,
       top: `${position.y}px`,
-      maxWidth: '800px',
-      maxHeight: '60vh'
+      width: `${isCollapsed.value ? 260 : (size.width || 800)}px`,
+      height: isCollapsed.value ? '48px' : `${size.height || 360}px`,
+      maxWidth: '80vw',
+      maxHeight: '80vh'
     }))
     
     const errorCount = computed(() => messages.filter(m => m.type !== 'warn').length)
     const apiFailCount = computed(() => apiRequests.filter(r => r.status === 'error').length)
 
-    const toggleCollapse = () => { isCollapsed.value = !isCollapsed.value }
+    const toggleCollapse = () => {
+      isCollapsed.value = !isCollapsed.value
+    }
+    
+    // 清理旧的拖动监听器
+    const cleanupDragHandlers = () => {
+      if (currentDragHandlers.onMouseMove) {
+        document.removeEventListener('mousemove', currentDragHandlers.onMouseMove)
+        currentDragHandlers.onMouseMove = null
+      }
+      if (currentDragHandlers.onMouseUp) {
+        document.removeEventListener('mouseup', currentDragHandlers.onMouseUp)
+        currentDragHandlers.onMouseUp = null
+      }
+      // 确保状态重置
+      isDragging.value = false
+    }
     
     // 拖动功能
     const startDrag = e => {
+      // 先清理旧的监听器，避免重复绑定
+      cleanupDragHandlers()
+      
+      // 确保状态完全重置
       isDragging.value = true
       dragStart.x = e.clientX - position.x
       dragStart.y = e.clientY - position.y
       
       const onMouseMove = e => {
         if (!isDragging.value) return
+        // 拖动范围保持原来的相对宽松限制，避免感觉被"卡住"
         position.x = Math.max(0, Math.min(window.innerWidth - 300, e.clientX - dragStart.x))
         position.y = Math.max(0, Math.min(window.innerHeight - 100, e.clientY - dragStart.y))
       }
       
       const onMouseUp = () => {
-        isDragging.value = false
-        document.removeEventListener('mousemove', onMouseMove)
-        document.removeEventListener('mouseup', onMouseUp)
+        cleanupDragHandlers()
       }
       
+      // 保存引用并绑定
+      currentDragHandlers.onMouseMove = onMouseMove
+      currentDragHandlers.onMouseUp = onMouseUp
       document.addEventListener('mousemove', onMouseMove)
       document.addEventListener('mouseup', onMouseUp)
     }
+    
+    // 清理旧的缩放监听器
+    const cleanupResizeHandlers = () => {
+      if (currentResizeHandlers.onMouseMove) {
+        document.removeEventListener('mousemove', currentResizeHandlers.onMouseMove)
+        currentResizeHandlers.onMouseMove = null
+      }
+      if (currentResizeHandlers.onMouseUp) {
+        document.removeEventListener('mouseup', currentResizeHandlers.onMouseUp)
+        currentResizeHandlers.onMouseUp = null
+      }
+      isResizing.value = false
+    }
+    
+    const startResize = (e, dir) => {
+      // 先清理旧的监听器
+      cleanupResizeHandlers()
+      
+      isResizing.value = true
+      resizeDir.value = dir
+      resizeStart.x = e.clientX
+      resizeStart.y = e.clientY
+      const rect = monitorRef.value?.getBoundingClientRect()
+      resizeStart.width = rect?.width || size.width || 800
+      resizeStart.height = rect?.height || size.height || 360
+
+      const onMouseMove = ev => {
+        if (!isResizing.value) return
+        const dx = ev.clientX - resizeStart.x
+        const dy = ev.clientY - resizeStart.y
+        if (dir === 'right' || dir === 'corner') {
+          size.width = Math.max(260, resizeStart.width + dx)
+        }
+        if (dir === 'bottom' || dir === 'corner') {
+          size.height = Math.max(160, resizeStart.height + dy)
+        }
+      }
+
+      const onMouseUp = () => {
+        cleanupResizeHandlers()
+        resizeDir.value = null
+      }
+
+      // 保存引用并绑定
+      currentResizeHandlers.onMouseMove = onMouseMove
+      currentResizeHandlers.onMouseUp = onMouseUp
+      document.addEventListener('mousemove', onMouseMove)
+      document.addEventListener('mouseup', onMouseUp)
+    }
+    
     
     const clearCurrentTab = () => {
       if (activeTab.value === 'errors') {
@@ -674,6 +763,9 @@ onBeforeUnmount(() => {
   restoreNetworkInterceptors()
   window.removeEventListener('error', handleGlobalError)
   window.removeEventListener('unhandledrejection', handleUnhandledRejection)
+  // 清理所有事件监听器
+  cleanupDragHandlers()
+  cleanupResizeHandlers()
 })
 </script>
 
@@ -690,14 +782,41 @@ onBeforeUnmount(() => {
   border: 2px solid #007acc;
   border-radius: 8px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-  min-width: 400px;
-  resize: both;
+  min-width: 260px;
   overflow: hidden;
 }
 
 .error-monitor.collapsed {
   max-height: auto;
-  resize: none;
+}
+
+.resize-handle {
+  position: absolute;
+  z-index: 2;
+}
+
+.resize-handle.right {
+  top: 12px;
+  bottom: 12px;
+  right: 0;
+  width: 6px;
+  cursor: ew-resize;
+}
+
+.resize-handle.bottom {
+  left: 12px;
+  right: 12px;
+  bottom: 0;
+  height: 6px;
+  cursor: ns-resize;
+}
+
+.resize-handle.corner {
+  right: 0;
+  bottom: 0;
+  width: 10px;
+  height: 10px;
+  cursor: nwse-resize;
 }
 
 .monitor-header {
@@ -792,6 +911,7 @@ onBeforeUnmount(() => {
 
 .copy-btn:hover { background: #007acc; }
 .clear-btn:hover { background: #f44336; }
+.toggle-btn:hover { background: #007acc; }
 
 .monitor-body {
   flex: 1;

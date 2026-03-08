@@ -1,6 +1,7 @@
 <template>
   <div class="address-management">
-    <el-card class="box-card" shadow="never">
+    <div class="container main-content">
+      <el-card class="box-card" shadow="never">
       <template #header>
         <div class="card-header">
           <span>收货地址管理</span>
@@ -102,6 +103,7 @@
         </span>
       </template>
     </el-dialog>
+    </div>
   </div>
 </template>
 
@@ -401,7 +403,16 @@ defineOptions({
 
 <style scoped>
 .address-management {
-  padding: 20px;
+  padding: 20px 0 40px;
+  min-height: 100vh;
+  background-color: #f5f7fa;
+}
+
+.container.main-content {
+  width: 85%;
+  max-width: 1920px;
+  margin: 0 auto;
+  padding: 0;
 }
 
 .card-header {

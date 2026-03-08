@@ -195,7 +195,7 @@ export function createChatSession(data) {
  */
 export function getUserProfile(userId) {
   return request({
-    url: `${API.MESSAGE.USER_PROFILE}${userId}`,
+    url: API.MESSAGE.USER_PROFILE.replace('{userId}', userId),
     method: 'get'
   })
 }
@@ -207,7 +207,7 @@ export function getUserProfile(userId) {
  */
 export function getUserDynamic(userId) {
   return request({
-    url: `${API.MESSAGE.USER_PROFILE}${userId}/dynamic`,
+    url: API.MESSAGE.USER_DYNAMIC.replace('{userId}', userId),
     method: 'get'
   })
 }
@@ -219,7 +219,7 @@ export function getUserDynamic(userId) {
  */
 export function getUserStatistics(userId) {
   return request({
-    url: `${API.MESSAGE.USER_PROFILE}${userId}/statistics`,
+    url: API.MESSAGE.USER_STATISTICS.replace('{userId}', userId),
     method: 'get'
   })
 }

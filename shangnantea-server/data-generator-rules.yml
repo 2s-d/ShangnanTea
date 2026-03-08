@@ -2,6 +2,11 @@
 # 生成时间: 2026-02-11T21:04:25.612637
 # 请根据实际业务为每个字段的 type / 规则进行补充，例如：
 #   type: sequence / faker / enum / password / phone / email / const / randomDate 等
+#
+# 图片字段类型说明：
+#   - imagePlaceholder: 生成占位图片（快速，但图片是纯色+文字）
+#   - imageDownload: 从免费API下载真实图片（较慢，但图片真实美观）
+#   推荐使用 imageDownload 以获得更好的视觉效果
 tables:
   chat_messages:
     defaultCount: 100  # TODO: 默认生成数量
@@ -67,6 +72,13 @@ tables:
 
   chat_sessions:
     defaultCount: 100  # TODO: 默认生成数量
+    # 关联表配置：生成聊天会话时，自动生成关联数据
+    # 例如：生成10个会话时，每个会话自动生成10条消息，共100条消息数据
+    relatedTables:
+      chat_messages:
+        count: 10  # 每个会话生成10条消息
+        fieldMapping:
+          session_id: id
     fields:
       id:
         type: uuid  # 使用32位UUID
@@ -150,6 +162,13 @@ tables:
 
   forum_posts:
     defaultCount: 100  # TODO: 默认生成数量
+    # 关联表配置：生成论坛帖子时，自动生成关联数据
+    # 例如：生成10个帖子时，每个帖子自动生成5个回复，共50条回复数据
+    relatedTables:
+      forum_replies:
+        count: 5  # 每个帖子生成5个回复
+        fieldMapping:
+          post_id: id
     fields:
       id:
         type: auto  # 使用数据库自增ID
@@ -188,15 +207,23 @@ tables:
         sqlType: varchar(200)
         nullable: true
       cover_image:
-        type: faker
+        # 生成帖子封面图占位图片
+        type: imagePlaceholder
         args:
-          provider: "internet.url"
+          type: forum-posts
+          width: 800
+          height: 450
+          text: "POST"
         sqlType: varchar(255)
         nullable: true
       images:
-        type: faker
+        # 生成帖子图片占位图片（JSON数组格式）
+        type: imagePlaceholder
         args:
-          provider: "internet.url"
+          type: forum-posts
+          width: 800
+          height: 600
+          text: "IMAGE"
         sqlType: text(65535)
         nullable: true
       view_count:
@@ -282,6 +309,7 @@ tables:
         sqlType: text(65535)
         nullable: false
       parent_id:
+        # 注意：应该验证parent_id对应的回复的post_id与当前回复的post_id匹配，当前引擎不支持条件外键，需要扩展或手动修复
         type: fkRandom
         args:
           table: forum_replies
@@ -319,6 +347,13 @@ tables:
 
   forum_topics:
     defaultCount: 100  # TODO: 默认生成数量
+    # 关联表配置：生成论坛版块时，自动生成关联数据
+    # 例如：生成5个版块时，每个版块自动生成10个帖子，共50条帖子数据
+    relatedTables:
+      forum_posts:
+        count: 10  # 每个版块生成10个帖子
+        fieldMapping:
+          topic_id: id
     fields:
       id:
         type: auto  # 使用数据库自增ID
@@ -337,15 +372,23 @@ tables:
         sqlType: varchar(200)
         nullable: true
       icon:
-        type: faker
+        # 生成版块图标占位图片
+        type: imagePlaceholder
         args:
-          provider: "internet.url"
+          type: topics
+          width: 100
+          height: 100
+          text: "ICON"
         sqlType: varchar(255)
         nullable: true
       cover:
-        type: faker
+        # 生成版块封面占位图片
+        type: imagePlaceholder
         args:
-          provider: "internet.url"
+          type: topics
+          width: 800
+          height: 300
+          text: "COVER"
         sqlType: varchar(255)
         nullable: true
       user_id:
@@ -454,13 +497,24 @@ tables:
 
   orders:
     defaultCount: 100  # TODO: 默认生成数量
+    # 注意：订单表通常不需要自动生成关联数据，因为订单是用户操作的结果
+    # 但可以配置生成订单评价（tea_reviews）
+    # relatedTables:
+    #   tea_reviews:
+    #     count: 1  # 每个订单生成1条评价（如果buyer_rate=1）
+    #     fieldMapping:
+    #       order_id: id
+    #       tea_id: tea_id
+    #       user_id: user_id
     fields:
       id:
         type: sequence
         args:
-          # 订单号: od + 10位序号，例如 od0000000001
-          prefix: "od"
-          length: 10
+          # 订单号规则: OD + YYYYMMDD + 3位序号，例如 OD20240508001
+          # 注意：当前引擎不支持日期格式，需要扩展引擎支持或手动修复
+          # 临时方案：使用 OD + 11位序号，后续需要根据create_time修复为正确格式
+          prefix: "OD"
+          length: 11
         sqlType: varchar(20)
         nullable: false
       user_id:
@@ -485,12 +539,14 @@ tables:
         sqlType: varchar(12)
         nullable: false
       tea_name:
+        # 注意：应该从tea_id对应的茶叶中获取name，当前引擎不支持，需要扩展或手动修复
         type: faker
         args:
           provider: "lorem.sentence"
         sqlType: varchar(100)
         nullable: false
       spec_id:
+        # 注意：应该从tea_id对应的茶叶规格中选择，当前引擎不支持条件外键，需要扩展或手动修复
         type: fkRandom
         args:
           table: tea_specifications
@@ -498,12 +554,14 @@ tables:
         sqlType: int
         nullable: true
       spec_name:
+        # 注意：应该从spec_id对应的规格中获取spec_name，当前引擎不支持，需要扩展或手动修复
         type: faker
         args:
           provider: "lorem.word"
         sqlType: varchar(50)
         nullable: true
       tea_image:
+        # 注意：应该从tea_id对应的茶叶中获取main_image，当前引擎不支持，需要扩展或手动修复
         type: faker
         args:
           provider: "internet.url"
@@ -517,22 +575,24 @@ tables:
         sqlType: int
         nullable: false
       price:
-        type: decimalRange
+        # 从spec_id对应的规格中获取price
+        type: fkField
         args:
-          min: 20
-          max: 500
-          scale: 2
+          table: tea_specifications
+          column: price
+          whereField: id
+          whereValueField: spec_id
         sqlType: decimal
         nullable: false
       total_amount:
-        type: decimalRange
+        # 计算字段：price * quantity
+        type: calc
         args:
-          min: 20
-          max: 2000
-          scale: 2
+          expression: "price * quantity"
         sqlType: decimal
         nullable: false
       address_id:
+        # 注意：应该验证address_id属于订单的user_id，当前引擎不支持条件外键，需要扩展或手动修复
         type: fkRandom
         args:
           table: user_addresses
@@ -715,6 +775,65 @@ tables:
         sqlType: datetime
         nullable: false
 
+  shop_reviews:
+    defaultCount: 100  # TODO: 默认生成数量
+    # 注意：shop_reviews 也可以作为 shops 表的关联表自动生成（已在 shops.relatedTables 中配置）
+    # 但如果需要单独生成或批量生成，可以使用此配置
+    fields:
+      id:
+        type: auto  # 使用数据库自增ID
+        sqlType: int
+        nullable: false
+      shop_id:
+        type: fkRandom
+        args:
+          table: shops
+          column: id
+        sqlType: varchar(10)
+        nullable: false
+      user_id:
+        type: fkRandom
+        args:
+          table: users
+          column: id
+        sqlType: varchar(8)
+        nullable: false
+      order_id:
+        # 注意：应该验证order_id对应的订单的shop_id和user_id与当前评价匹配，当前引擎不支持条件外键，需要扩展或手动修复
+        type: fkRandom
+        args:
+          table: orders
+          column: id
+        sqlType: varchar(20)
+        nullable: true
+      content:
+        type: faker
+        args:
+          provider: "lorem.sentence"
+        sqlType: varchar(500)
+        nullable: true
+      rating:
+        type: intRange
+        args:
+          min: 1
+          max: 5
+        sqlType: int
+        nullable: false
+      create_time:
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
+        sqlType: datetime
+        nullable: false
+      update_time:
+        type: randomDate
+        args:
+          from: "2024-01-01"
+          to: "2025-01-01"
+        sqlType: datetime
+        nullable: false
+
   shop_banners:
     defaultCount: 100  # TODO: 默认生成数量
     fields:
@@ -730,9 +849,13 @@ tables:
         sqlType: varchar(10)
         nullable: false
       image_url:
-        type: faker
+        # 生成店铺轮播图占位图片
+        type: imagePlaceholder
         args:
-          provider: "internet.url"
+          type: banners
+          width: 1200
+          height: 400
+          text: "BANNER"
         sqlType: varchar(255)
         nullable: false
       link_url:
@@ -930,6 +1053,7 @@ tables:
         sqlType: varchar(12)
         nullable: false
       spec_id:
+        # 注意：应该验证spec_id对应的规格的tea_id与购物车的tea_id匹配，当前引擎不支持条件外键，需要扩展或手动修复
         type: fkRandom
         args:
           table: tea_specifications
@@ -966,9 +1090,28 @@ tables:
 
   shops:
     defaultCount: 100  # TODO: 默认生成数量
+    # 关联表配置：生成店铺时，自动生成关联数据
+    # 例如：生成10个店铺时，每个店铺自动生成2张轮播图、1条公告、5条评价，共20条轮播图、10条公告、50条评价数据
+    relatedTables:
+      shop_banners:
+        count: 2  # 每个店铺生成2张轮播图
+        fieldMapping:
+          shop_id: id  # 店铺的id字段映射到轮播图的shop_id字段
+      shop_announcements:
+        count: 1  # 每个店铺生成1条公告
+        fieldMapping:
+          shop_id: id
+      shop_reviews:
+        count: 5  # 每个店铺生成5条评价
+        fieldMapping:
+          shop_id: id
     fields:
       id:
-        type: uuid  # 与服务中UUID生成逻辑保持一致
+        type: sequence
+        args:
+          # 店铺ID规则: SH + 8位数字，例如 SH00000001
+          prefix: "SH"
+          length: 8
         sqlType: varchar(10)
         nullable: false
       owner_id:
@@ -985,15 +1128,23 @@ tables:
         sqlType: varchar(100)
         nullable: false
       logo:
-        type: faker
+        # 生成店铺logo占位图片
+        type: imagePlaceholder
         args:
-          provider: "internet.url"
+          type: logos
+          width: 200
+          height: 200
+          text: "LOGO"
         sqlType: varchar(255)
         nullable: true
       banner:
-        type: faker
+        # 生成店铺banner占位图片
+        type: imagePlaceholder
         args:
-          provider: "internet.url"
+          type: shops
+          width: 1200
+          height: 400
+          text: "BANNER"
         sqlType: varchar(255)
         nullable: true
       description:
@@ -1124,15 +1275,23 @@ tables:
         sqlType: varchar(500)
         nullable: true
       cover_image:
-        type: faker
+        # 生成文章封面图占位图片
+        type: imagePlaceholder
         args:
-          provider: "internet.url"
+          type: articles
+          width: 800
+          height: 450
+          text: "ARTICLE"
         sqlType: varchar(255)
         nullable: true
       images:
-        type: faker
+        # 生成文章图片占位图片（JSON数组格式）
+        type: imagePlaceholder
         args:
-          provider: "internet.url"
+          type: articles
+          width: 800
+          height: 600
+          text: "IMAGE"
         sqlType: text(65535)
         nullable: true
       video_url:
@@ -1235,9 +1394,13 @@ tables:
         sqlType: int
         nullable: true
       icon:
-        type: faker
+        # 生成分类图标占位图片
+        type: imagePlaceholder
         args:
-          provider: "internet.url"
+          type: categories
+          width: 100
+          height: 100
+          text: "CATEGORY"
         sqlType: varchar(255)
         nullable: true
       create_time:
@@ -1318,6 +1481,7 @@ tables:
         sqlType: varchar(8)
         nullable: false
       order_id:
+        # 注意：应该验证order_id对应的订单的tea_id和user_id与当前评价匹配，当前引擎不支持条件外键，需要扩展或手动修复
         type: fkRandom
         args:
           table: orders
@@ -1338,9 +1502,13 @@ tables:
         sqlType: tinyint
         nullable: false
       images:
-        type: faker
+        # 生成评价图片占位图片（JSON数组格式）
+        type: imagePlaceholder
         args:
-          provider: "internet.url"
+          type: reviews
+          width: 600
+          height: 600
+          text: "REVIEW"
         sqlType: text(65535)
         nullable: true
       reply:
@@ -1435,9 +1603,28 @@ tables:
 
   teas:
     defaultCount: 100  # TODO: 默认生成数量
+    # 关联表配置：生成茶叶时，自动生成关联数据
+    # 例如：生成10个茶叶时，每个茶叶自动生成3张图片、2个规格、3条评价，共30条图片、20条规格、30条评价数据
+    relatedTables:
+      tea_images:
+        count: 3  # 每个茶叶生成3张图片
+        fieldMapping:
+          tea_id: id
+      tea_specifications:
+        count: 2  # 每个茶叶生成2个规格
+        fieldMapping:
+          tea_id: id
+      tea_reviews:
+        count: 3  # 每个茶叶生成3条评价
+        fieldMapping:
+          tea_id: id
     fields:
       id:
-        type: uuid  # 与服务中UUID生成逻辑保持一致
+        type: sequence
+        args:
+          # 茶叶ID规则: TEA + 8位数字，例如 TEA00000001
+          prefix: "TEA"
+          length: 8
         sqlType: varchar(10)
         nullable: false
       name:
@@ -1501,9 +1688,13 @@ tables:
         sqlType: int
         nullable: false
       main_image:
-        type: faker
+        # 生成茶叶主图占位图片
+        type: imagePlaceholder
         args:
-          provider: "internet.url"
+          type: teas
+          width: 800
+          height: 600
+          text: "TEA"
         sqlType: varchar(255)
         nullable: true
       status:
@@ -1625,9 +1816,15 @@ tables:
         sqlType: varchar(20)
         nullable: false
       item_id:
-        type: faker
+        # 根据item_type从对应表中选择
+        type: fkConditionalByField
         args:
-          provider: "internet.username"
+          typeField: item_type
+          column: id
+          fieldMap:
+            tea: teas
+            post: forum_posts
+            tea_article: tea_articles
         sqlType: varchar(20)
         nullable: false
       target_name:
@@ -1637,9 +1834,13 @@ tables:
         sqlType: varchar(100)
         nullable: true
       target_image:
-        type: faker
+        # 生成收藏项图片占位图片
+        type: imagePlaceholder
         args:
-          provider: "internet.url"
+          type: favorites
+          width: 400
+          height: 400
+          text: "FAVORITE"
         sqlType: varchar(255)
         nullable: true
       create_time:
@@ -1672,9 +1873,14 @@ tables:
         sqlType: varchar(20)
         nullable: false
       follow_id:
-        type: faker
+        # 根据follow_type从对应表中选择
+        type: fkConditionalByField
         args:
-          provider: "internet.username"
+          typeField: follow_type
+          column: id
+          fieldMap:
+            shop: shops
+            user: users
         sqlType: varchar(20)
         nullable: false
       target_name:
@@ -1684,9 +1890,13 @@ tables:
         sqlType: varchar(100)
         nullable: true
       target_avatar:
-        type: faker
+        # 生成关注目标头像占位图片
+        type: imagePlaceholder
         args:
-          provider: "internet.url"
+          type: avatars
+          width: 200
+          height: 200
+          text: "AVATAR"
         sqlType: varchar(255)
         nullable: true
       create_time:
@@ -1719,9 +1929,15 @@ tables:
         sqlType: varchar(20)
         nullable: false
       target_id:
-        type: faker
+        # 根据target_type从对应表中选择
+        type: fkConditionalByField
         args:
-          provider: "internet.username"
+          typeField: target_type
+          column: id
+          fieldMap:
+            post: forum_posts
+            reply: forum_replies
+            article: tea_articles
         sqlType: varchar(20)
         nullable: false
       create_time:
@@ -1861,6 +2077,33 @@ tables:
 
   users:
     defaultCount: 100  # TODO: 默认生成数量
+    # 关联表配置：生成用户时，自动生成关联数据
+    # 例如：生成10个用户时，每个用户自动生成2个地址、5个收藏、3个关注等
+    relatedTables:
+      user_addresses:
+        count: 2  # 每个用户生成2个地址
+        fieldMapping:
+          user_id: id
+      user_favorites:
+        count: 5  # 每个用户生成5个收藏
+        fieldMapping:
+          user_id: id
+      user_follows:
+        count: 3  # 每个用户关注3个店铺/用户
+        fieldMapping:
+          user_id: id
+      user_likes:
+        count: 10  # 每个用户点赞10个帖子/回复/文章
+        fieldMapping:
+          user_id: id
+      user_notifications:
+        count: 5  # 每个用户生成5条通知
+        fieldMapping:
+          user_id: id
+      user_settings:
+        count: 1  # 每个用户生成1条设置
+        fieldMapping:
+          user_id: id
     fields:
       id:
         type: sequence
@@ -1889,9 +2132,13 @@ tables:
         sqlType: varchar(50)
         nullable: true
       avatar:
-        type: faker
+        # 生成用户头像占位图片
+        type: imagePlaceholder
         args:
-          provider: "internet.username"
+          type: avatars
+          width: 200
+          height: 200
+          text: "AVATAR"
         sqlType: varchar(255)
         nullable: true
       phone:

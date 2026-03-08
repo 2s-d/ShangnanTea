@@ -133,13 +133,14 @@ public interface ShopService {
      * 接口14：上传店铺Banner
      * 商家上传店铺Banner图片
      *
-     * @param shopId 店铺ID
-     * @param file Banner图片文件
-     * @param title Banner标题
-     * @param linkUrl 跳转链接
+     * @param shopId   店铺ID
+     * @param file     Banner图片文件
+     * @param title    Banner标题
+     * @param linkUrl  跳转链接
+     * @param sortOrder 排序值（可选，null 或 <=0 时由系统自动分配）
      * @return 上传结果
      */
-    Result<Object> uploadBanner(String shopId, MultipartFile file, String title, String linkUrl);
+    Result<Object> uploadBanner(String shopId, MultipartFile file, String title, String linkUrl, Integer sortOrder);
     
     // ==================== 接口15-21：Banner和公告管理 ====================
     

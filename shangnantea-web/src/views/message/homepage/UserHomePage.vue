@@ -6,10 +6,23 @@
         <div class="user-profile-section">
           <div class="user-basic-info">
             <div class="user-avatar">
-              <SafeImage 
-                :src="userInfo.avatar" 
-                type="avatar" 
-                style="width:120px;height:120px;border-radius:50%;object-fit:cover;" />
+              <!-- 个人主页展示头像：圆形基础层 + 上方 120° 开放区域 pop 层 -->
+              <div class="avatar-pop-wrapper">
+                <div class="avatar-circle">
+                  <SafeImage 
+                    :src="userInfo.avatar" 
+                    type="avatar" 
+                    class="avatar-base"
+                  />
+                </div>
+                <!-- pop 层：同一张图，只开放“上边 120°”的大区域（仅 GIF 动图显示） -->
+                <SafeImage 
+                  v-if="isGifAvatar"
+                  :src="userInfo.avatar" 
+                  type="avatar" 
+                  class="avatar-pop"
+                />
+              </div>
             </div>
             <div class="user-details">
               <h2 class="user-name">
@@ -17,15 +30,31 @@
                 <span class="user-gender">
                   <el-icon color="#409EFF" v-if="userInfo.gender === 1"><Male /></el-icon>
                   <el-icon color="#FF4949" v-else-if="userInfo.gender === 2"><Female /></el-icon>
+                  <el-tooltip v-else content="性别未填写/后端未返回gender字段" placement="top">
+                    <el-icon color="#909399"><QuestionFilled /></el-icon>
+                  </el-tooltip>
                 </span>
-                <el-tag v-if="userInfo.role === 'merchant'" type="warning" size="small">商家</el-tag>
+                <!-- 角色标签：1-管理员，2-普通用户，3-商家（必须都能显示，否则无法判断接口返回是否正确） -->
+                <el-tag v-if="userInfo.role === 1" type="danger" size="small">
+                  <el-icon style="margin-right:4px;"><Key /></el-icon>管理员
+                </el-tag>
+                <el-tag v-else-if="userInfo.role === 3" type="warning" size="small">
+                  <el-icon style="margin-right:4px;"><Shop /></el-icon>商家
+                </el-tag>
+                <el-tag v-else type="info" size="small">
+                  <el-icon style="margin-right:4px;"><UserFilled /></el-icon>用户
+                </el-tag>
               </h2>
-              <div class="user-id">ID: {{ userInfo.username }}</div>
+              <div class="user-id">ID: {{ userInfo.id || userInfo.username }}</div>
+              <div class="user-location" v-if="formattedLocation">
+                <el-icon><Location /></el-icon>
+                {{ formattedLocation }}
+              </div>
               <div class="user-bio">{{ userInfo.bio || '这个用户很懒，什么都没有留下...' }}</div>
               <div class="user-register-time" v-if="userInfo.registerTime">
                 注册时间：{{ formatDate(userInfo.registerTime) }}
               </div>
-              <div class="user-shop-link" v-if="userInfo.role === 'merchant' && userInfo.shopId">
+              <div class="user-shop-link" v-if="userInfo.role === 3 && userInfo.shopId">
                 <el-link type="primary" @click="goToShop">
                   <el-icon><Shop /></el-icon>
                   {{ userInfo.shopName || '我的店铺' }}
@@ -168,8 +197,9 @@ import FollowsPage from '@/views/message/follows/FollowsPage.vue'
 import FavoritesPage from '@/views/message/favorites/FavoritesPage.vue'
 import PublishedContentPage from '@/views/message/content/PublishedContentPage.vue'
 import { 
-  User, UserFilled, Star, Document, Male, Female, Edit, Plus, Shop, Clock, ChatDotRound 
+  User, UserFilled, Star, Document, Male, Female, Edit, Plus, Shop, Clock, ChatDotRound, Key, QuestionFilled, Location 
 } from '@element-plus/icons-vue'
+import { formatLocationDisplay } from '@/utils/region'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 import { showByCode } from '@/utils/apiMessages'
 import { commonPromptMessages } from '@/utils/promptMessages'
@@ -182,17 +212,34 @@ const userStore = useUserStore()
     // 从路由参数获取用户ID，如果没有则使用当前登录用户ID
     const userId = computed(() => route.params.userId || 'current')
     
-    // 从Pinia获取用户信息
-    const userInfo = computed(() => messageStore.userProfile || {
-      username: '',
-      nickname: '',
-      avatar: '',
-      gender: 0,
-      bio: '',
-      role: 'user',
-      registerTime: null,
-      shopId: null,
-      shopName: null
+    // 从Pinia获取用户信息（优先使用消息模块返回的数据，不足部分用全局用户信息补全）
+    const userInfo = computed(() => {
+      const profile = messageStore.userProfile || {}
+      const base = userStore.userInfo || {}
+      // 确保 role 和 gender 都是数字类型
+      const role = profile.role != null ? Number(profile.role) : (base.role != null ? Number(base.role) : null)
+      const gender = profile.gender != null ? Number(profile.gender) : (base.gender != null ? Number(base.gender) : 0)
+      return {
+        id: profile.id || base.id || base.userId || '',
+        username: profile.username || base.username || '',
+        nickname: profile.nickname || base.nickname || '',
+        avatar: profile.avatar || base.avatar || '',
+        gender: gender,
+        bio: profile.bio || base.bio || '',
+        role: role,
+        currentLocation: profile.currentLocation || base.currentLocation || '',
+        registerTime: profile.registerTime || base.createTime || base.registerTime || null,
+        shopId: profile.shopId || base.shopId || null,
+        shopName: profile.shopName || base.shopName || null,
+        isFollowed: profile.isFollowed || false
+      }
+    })
+    
+    // 格式化现居地显示（使用 region.js 的工具函数）
+    const formattedLocation = computed(() => {
+      const location = userInfo.value.currentLocation
+      if (!location) return ''
+      return formatLocationDisplay(location)
     })
     
     // 从Pinia获取用户动态
@@ -213,6 +260,12 @@ const userStore = useUserStore()
     
     // 加载状态
     const loading = computed(() => messageStore.loading)
+    
+    // 判断头像是否是 GIF 动图
+    const isGifAvatar = computed(() => {
+      const avatar = userInfo.value.avatar || ''
+      return avatar.toLowerCase().endsWith('.gif')
+    })
     
     // 判断是否是查看自己的主页
     const isOwnProfile = computed(() => {
@@ -339,7 +392,21 @@ const userStore = useUserStore()
     // 加载用户数据
     const loadUserData = async () => {
       try {
-        const targetUserId = userId.value === 'current' ? '123' : userId.value // 测试用户ID
+        let targetUserId = userId.value
+
+        // 当前用户主页：优先使用当前登录用户ID
+        if (targetUserId === 'current' || !targetUserId) {
+          // 如果全局用户信息还没初始化，先从后端拉一次
+          if (!userStore.userInfo) {
+            await userStore.getUserInfo()
+          }
+          targetUserId = userStore.userInfo?.id || userStore.userInfo?.userId
+        }
+
+        if (!targetUserId) {
+          console.warn('加载用户数据失败：无法获取目标用户ID')
+          return
+        }
         
         // 并行加载用户信息、动态和统计数据
         await Promise.all([
@@ -368,9 +435,10 @@ const defaultImage = ''
   padding: 40px 0;
   
   .container {
-    max-width: 1200px;
+    width: 85%;
+    max-width: 1920px;
     margin: 0 auto;
-    padding: 0 15px;
+    padding: 0;
   }
   
   .home-card {
@@ -389,18 +457,90 @@ const defaultImage = ''
         align-items: center;
         
         .user-avatar {
+          /* 外层：120x140 透视框区域（整体高度） */
+          width: 120px;
+          height: 140px;
+          margin-right: 30px;
+          position: relative;
+        }
+
+        .avatar-pop-wrapper {
+          position: relative;
+          width: 120px;
+          height: 140px;
+        }
+
+        /* 底层：120x120 的圆头像，贴在透视框底部 */
+        .avatar-circle {
+          position: absolute;
+          left: 0;
+          bottom: 0;
           width: 120px;
           height: 120px;
           border-radius: 50%;
           overflow: hidden;
-          margin-right: 30px;
-          border: 4px solid #f5f7fa;
-          
-          img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-          }
+          /* 移除可见边框，仅保留柔和阴影增强层次感 */
+          border: none;
+          box-shadow:
+            0 2px 4px rgba(0, 0, 0, 0.10),
+            0 6px 12px rgba(0, 0, 0, 0.14);
+          /* 彻底当作“圆形剪裁框”使用，本身不再上底色，避免看起来是方框 */
+          background: transparent;
+        }
+
+        .avatar-base {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .avatar-pop {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 120px;
+          height: 140px;
+          object-fit: cover;
+          pointer-events: none;
+          /* 去掉外框的 drop-shadow，阴影只加在内框 */
+          /* 用和预览一样的 border-radius 方法：上半部分椭圆弧线 */
+          border-top-left-radius: 60px 60px;
+          border-top-right-radius: 60px 60px;
+          /* 下半部分保持标准圆：通过 border-bottom-left-radius 和 border-bottom-right-radius */
+          border-bottom-left-radius: 60px;
+          border-bottom-right-radius: 60px;
+          overflow: hidden;
+        }
+        
+        /* 弧线预览：用纯 CSS border-radius 画一条可见的弧线 */
+        .arc-preview {
+          width: 120px;
+          height: 80px;
+          background: rgba(255, 0, 0, 0.2);
+          border: 2px solid rgba(255, 0, 0, 0.8);
+          margin-left: 30px;
+          margin-top: 20px;
+          position: relative;
+          /* 用 border-radius 画一个上半椭圆：上边是弧形，下边是直线 */
+          border-top-left-radius: 60px 100px;
+          border-top-right-radius: 60px 80px;
+          border-bottom-left-radius: 0;
+          border-bottom-right-radius: 0;
+          overflow: hidden;
+        }
+        
+        /* 用伪元素画一条更精确的弧线 */
+        .arc-preview::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 120px;
+          height: 80px;
+          background: transparent;
+          border-top: 3px solid rgba(255, 0, 0, 1);
+          border-top-left-radius: 60px 80px;
+          border-top-right-radius: 60px 80px;
         }
         
         .user-details {
@@ -419,7 +559,20 @@ const defaultImage = ''
           .user-id {
             color: #909399;
             font-size: 14px;
+            margin-bottom: 8px;
+          }
+          
+          .user-location {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #909399;
+            font-size: 13px;
             margin-bottom: 10px;
+            
+            .el-icon {
+              font-size: 14px;
+            }
           }
           
           .user-bio {

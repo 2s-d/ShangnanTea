@@ -44,16 +44,24 @@
         <tr th:each="entry : ${tables}">
             <td style="text-align: center;">
                 <input type="checkbox" name="tables"
-                       th:value="${entry.key}">
+                       th:value="${entry.key}"
+                       th:checked="${!entry.value.isRelatedTable}"
+                       th:disabled="${entry.value.isRelatedTable}">
             </td>
             <td th:text="${entry.key}"></td>
             <td>
-                <input class="count-input" type="number" min="1"
+                <input th:if="${!entry.value.isRelatedTable}" 
+                       class="count-input" type="number" min="1"
                        th:name="${'count_' + entry.key}"
                        th:value="${entry.value.defaultCount > 0 ? entry.value.defaultCount : 100}">
+                <span th:if="${entry.value.isRelatedTable}" style="color: #999;">自动生成</span>
             </td>
             <td>
-                <span th:text="${'默认 ' + entry.value.defaultCount + ' 行'}"></span>
+                <span th:if="${!entry.value.isRelatedTable}" 
+                      th:text="${'默认 ' + entry.value.defaultCount + ' 行'}"></span>
+                <span th:if="${entry.value.isRelatedTable && entry.value.relatedInfo != null}"
+                      th:text="${entry.value.relatedInfo}" 
+                      style="color: #666; font-size: 12px;"></span>
             </td>
         </tr>
         </tbody>
@@ -63,7 +71,9 @@
 <script>
     function selectAll(flag) {
         document.querySelectorAll('input[type=checkbox][name=tables]').forEach(function (cb) {
-            cb.checked = flag;
+            if (!cb.disabled) {
+                cb.checked = flag;
+            }
         });
     }
 </script>

@@ -2,8 +2,6 @@ package com.shangnantea.model.vo.shop;
 
 import lombok.Data;
 
-import java.math.BigDecimal;
-
 /**
  * 店铺详情视图对象
  * 用于返回给前端展示店铺详细信息
@@ -32,9 +30,9 @@ public class ShopDetailVO {
     private String description;
     
     /**
-     * 平均评分
+     * 开店时间（创建时间）
      */
-    private BigDecimal rating;
+    private java.util.Date createTime;
     
     /**
      * 销量

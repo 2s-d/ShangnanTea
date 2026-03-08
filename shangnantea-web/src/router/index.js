@@ -136,6 +136,15 @@ const routes = [
     }
   },
   {
+    path: '/forum/my-posts',
+    name: 'MyPosts',
+    component: () => import('@/views/forum/myPosts/MyPostsPage.vue'),
+    meta: { 
+      title: '我的帖子 - 商南茶文化',
+      requireAuth: true
+    }
+  },
+  {
     path: '/forum/manage',
     name: 'ForumManage',
     component: () => import('@/views/forum/manage/ForumManagePage.vue'),
@@ -214,6 +223,16 @@ const routes = [
     }
   },
   {
+    path: '/order/manage/detail/:id',
+    name: 'OrderManageDetail',
+    component: () => import('@/views/order/manage/OrderManageDetailPage.vue'),
+    meta: {
+      title: '订单详情（管理端） - 商南茶文化',
+      requireAuth: true,
+      roles: [ROLES.ADMIN, ROLES.SHOP]
+    }
+  },
+  {
     path: '/order/review/:id',
     name: 'OrderReview',
     component: () => import('@/views/order/review/OrderReviewPage.vue'),
@@ -270,6 +289,16 @@ const routes = [
     component: () => import('@/views/shop/manage/ShopManagePage.vue'),
     meta: {
       title: '商家店铺 - 商南茶文化',
+      requireAuth: true,
+      roles: [ROLES.SHOP]
+    }
+  },
+  {
+    path: '/shop/settings',
+    name: 'ShopSettings',
+    component: () => import('@/views/shop/manage/ShopSettingsPage.vue'),
+    meta: {
+      title: '店铺设置 - 商南茶文化',
       requireAuth: true,
       roles: [ROLES.SHOP]
     }
@@ -410,10 +439,10 @@ router.beforeEach(async (to, from, next) => {
   }
   
   try {
-    // 验证token，获取用户信息
-    const userInfo = verifyToken()
+    // 验证token，获取基础用户信息（仅id/username/role等）
+    const tokenUser = verifyToken()
     
-    if (!userInfo) {
+    if (!tokenUser) {
       // 如果token无效，进行清理并提示
       removeToken()
       const userStore = useUserStore()
@@ -429,6 +458,27 @@ router.beforeEach(async (to, from, next) => {
         })
       }
     }
+
+    // token有效时，确保 Pinia 中有至少一份基础用户信息
+    const userStore = useUserStore()
+    if (!userStore.userInfo) {
+      userStore.userInfo = {
+        ...(tokenUser || {}),
+        // 保留现有结构中可能已有的字段，避免覆盖
+        ...userStore.userInfo
+      }
+      userStore.isLoggedIn = true
+      
+      // 再补一次完整的用户信息（含昵称 / 头像等），确保导航栏等组件拿到的是最新资料
+      try {
+        await userStore.getUserInfo()
+      } catch (e) {
+        // 获取完整信息失败时，不阻塞路由，只在开发环境下打印
+        if (import.meta.env.MODE === 'development') {
+          console.error('路由守卫中获取用户信息失败:', e)
+        }
+      }
+    }
     
     // 已登录状态下访问登录页，重定向到茶文化页面
     if (to.path === '/login') {
@@ -438,11 +488,11 @@ router.beforeEach(async (to, from, next) => {
     
     // 检查是否需要特定角色权限
     if (to.meta.roles && to.meta.roles.length > 0) {
-      const hasRole = to.meta.roles.includes(userInfo.role)
+      const currentRole = userStore.userInfo?.role || tokenUser?.role
+      const hasRole = to.meta.roles.includes(currentRole)
       
       if (!hasRole) {
         // 没有权限访问
-        const userStore = useUserStore()
         userStore.handlePermissionDenied()
         
         // 重定向到403页面

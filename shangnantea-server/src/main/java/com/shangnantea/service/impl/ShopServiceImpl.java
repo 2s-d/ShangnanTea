@@ -7,6 +7,7 @@ import com.shangnantea.mapper.ShopAnnouncementMapper;
 import com.shangnantea.mapper.ShopBannerMapper;
 import com.shangnantea.mapper.ShopCertificationMapper;
 import com.shangnantea.mapper.ShopMapper;
+import com.shangnantea.mapper.ShopReviewMapper;
 import com.shangnantea.mapper.TeaMapper;
 import com.shangnantea.mapper.UserFollowMapper;
 import com.shangnantea.model.dto.shop.ShopQueryDTO;
@@ -15,9 +16,11 @@ import com.shangnantea.model.entity.shop.Shop;
 import com.shangnantea.model.entity.shop.ShopAnnouncement;
 import com.shangnantea.model.entity.shop.ShopBanner;
 import com.shangnantea.model.entity.shop.ShopCertification;
+import com.shangnantea.model.entity.shop.ShopReview;
 import com.shangnantea.model.entity.tea.Tea;
 import com.shangnantea.model.entity.user.UserFollow;
 import com.shangnantea.model.vo.TeaVO;
+import com.shangnantea.model.vo.ReviewVO;
 import com.shangnantea.model.vo.shop.AnnouncementVO;
 import com.shangnantea.model.vo.shop.BannerVO;
 import com.shangnantea.model.vo.shop.ShopDetailVO;
@@ -36,12 +39,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 /**
@@ -66,6 +70,9 @@ public class ShopServiceImpl implements ShopService {
     private ShopAnnouncementMapper shopAnnouncementMapper;
     
     @Autowired
+    private ShopReviewMapper shopReviewMapper;
+    
+    @Autowired
     private UserFollowMapper userFollowMapper;
     
     @Autowired
@@ -76,6 +83,9 @@ public class ShopServiceImpl implements ShopService {
     
     @Autowired
     private StatisticsUtils statisticsUtils;
+    
+    @Autowired
+    private com.shangnantea.mapper.UserMapper userMapper;
     
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
@@ -172,9 +182,10 @@ public class ShopServiceImpl implements ShopService {
     
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Result<Object> uploadBanner(String shopId, MultipartFile file, String title, String linkUrl) {
+    public Result<Object> uploadBanner(String shopId, MultipartFile file, String title, String linkUrl, Integer sortOrder) {
         try {
-            logger.info("上传店铺Banner请求, shopId: {}, title: {}, 文件名: {}", shopId, title, file.getOriginalFilename());
+            logger.info("上传店铺Banner请求, shopId: {}, title: {}, sortOrder: {}, 文件名: {}", 
+                    shopId, title, sortOrder, file.getOriginalFilename());
             
             // 1. 获取当前用户ID
             String userId = UserContext.getCurrentUserId();
@@ -203,33 +214,59 @@ public class ShopServiceImpl implements ShopService {
             // 5. 生成访问URL
             String accessUrl = FileUploadUtils.generateAccessUrl(relativePath, baseUrl);
             
-            // 6. 创建Banner记录
+            // 6. 计算排序值
+            int finalSortOrder = 0;
+            try {
+                // 如果前端显式传入了排序且大于0，则优先使用
+                if (sortOrder != null && sortOrder > 0) {
+                    finalSortOrder = sortOrder;
+                } else {
+                    // 否则按当前最大 sort_order + 1 追加在末尾
+                    List<ShopBanner> existingBanners = shopBannerMapper.selectByShopId(shopId);
+                    int maxOrder = 0;
+                    if (existingBanners != null) {
+                        for (ShopBanner b : existingBanners) {
+                            if (b != null && b.getSortOrder() != null && b.getSortOrder() > maxOrder) {
+                                maxOrder = b.getSortOrder();
+                            }
+                        }
+                    }
+                    finalSortOrder = maxOrder + 1;
+                }
+            } catch (Exception e) {
+                logger.warn("计算Banner排序值失败，使用默认0: shopId={}, sortOrderParam={}, error={}", 
+                        shopId, sortOrder, e.getMessage());
+                finalSortOrder = 0;
+            }
+            
+            // 7. 创建Banner记录
             ShopBanner banner = new ShopBanner();
             banner.setShopId(shopId);
             banner.setImageUrl(relativePath);
             banner.setTitle(title);
             banner.setLinkUrl(linkUrl);
-            banner.setSortOrder(0); // 默认排序值
+            banner.setSortOrder(finalSortOrder);
             banner.setStatus(1); // 默认显示
             banner.setCreateTime(new Date());
             banner.setUpdateTime(new Date());
             
-            // 7. 保存到数据库
+            // 8. 保存到数据库
             int result = shopBannerMapper.insert(banner);
             if (result <= 0) {
                 logger.error("Banner上传失败: 数据库插入失败, shopId: {}", shopId);
                 return Result.failure(4117);
             }
             
-            // 8. 构造返回数据
+            // 9. 构造返回数据
             Map<String, Object> responseData = new HashMap<>();
             responseData.put("id", banner.getId());
             responseData.put("url", accessUrl);
             responseData.put("path", relativePath);
             
-            logger.info("Banner上传成功: shopId: {}, bannerId: {}, path: {}", shopId, banner.getId(), relativePath);
+            logger.info("Banner上传成功: shopId: {}, bannerId: {}, sortOrder: {}, path: {}", 
+                    shopId, banner.getId(), finalSortOrder, relativePath);
             
-            // 9. 返回成功（根据code-message-mapping.md，成功码是4008）
+            // 10. 返回成功（根据code-message-mapping.md，成功码是4008）
             return Result.success(4008, responseData);
             
         } catch (BusinessException e) {
@@ -375,7 +412,7 @@ public class ShopServiceImpl implements ShopService {
             
             // 6. 构建店铺实体
             Shop shop = new Shop();
-        shop.setId(UUID.randomUUID().toString().replace("-", ""));
+            shop.setId(generateShopId());
             shop.setOwnerId(userId);
             shop.setShopName(shopName);
             
@@ -431,9 +468,21 @@ public class ShopServiceImpl implements ShopService {
         ShopVO shopVO = new ShopVO();
         shopVO.setId(shop.getId());
         shopVO.setName(shop.getShopName()); // shopName -> name
-        shopVO.setLogo(shop.getLogo());
+        // 店铺Logo同样可能存的是相对路径，这里统一补全为可直接访问的URL
+        String logo = shop.getLogo();
+        if (logo != null && !logo.trim().isEmpty()) {
+            if (logo.startsWith("http://") || logo.startsWith("https://")) {
+                shopVO.setLogo(logo);
+            } else {
+                shopVO.setLogo(FileUploadUtils.generateAccessUrl(logo, baseUrl));
+            }
+        } else {
+            shopVO.setLogo(null);
+        }
         shopVO.setDescription(shop.getDescription());
         shopVO.setRating(shop.getRating());
+        // 评分人数直接来自 shops.rating_count
+        shopVO.setRatingCount(shop.getRatingCount());
         shopVO.setSalesCount(shop.getSalesCount());
         // 使用动态计算获取关注数
         shopVO.setFollowCount(statisticsUtils.getFollowCount("shop", shop.getId()));
@@ -503,12 +552,23 @@ public class ShopServiceImpl implements ShopService {
         ShopDetailVO shopDetailVO = new ShopDetailVO();
         shopDetailVO.setId(shop.getId());
         shopDetailVO.setName(shop.getShopName()); // shopName -> name
-        shopDetailVO.setLogo(shop.getLogo());
+        String logo = shop.getLogo();
+        if (logo != null && !logo.trim().isEmpty()) {
+            if (logo.startsWith("http://") || logo.startsWith("https://")) {
+                shopDetailVO.setLogo(logo);
+            } else {
+                shopDetailVO.setLogo(FileUploadUtils.generateAccessUrl(logo, baseUrl));
+            }
+        } else {
+            shopDetailVO.setLogo(null);
+        }
         shopDetailVO.setDescription(shop.getDescription());
-        shopDetailVO.setRating(shop.getRating());
+        // 注意：评分和评分人数不应在此接口返回，应使用专门的评分接口 GET /shop/{shopId}/reviews
         shopDetailVO.setSalesCount(shop.getSalesCount());
         // 使用动态计算获取关注数
         shopDetailVO.setFollowCount(statisticsUtils.getFollowCount("shop", shop.getId()));
+        // 开店时间（创建时间）
+        shopDetailVO.setCreateTime(shop.getCreateTime());
         shopDetailVO.setOwnerId(shop.getOwnerId());
         
         return shopDetailVO;
@@ -665,7 +725,27 @@ public class ShopServiceImpl implements ShopService {
                 return Result.failure(4106);
             }
             
-            // 5. 构建统计数据
+            // 5. 解析日期范围参数
+            String startDateParam = null;
+            String endDateParam = null;
+            if (params != null) {
+                if (params.get("startDate") != null) {
+                    String startDateStr = params.get("startDate").toString().trim();
+                    if (!startDateStr.isEmpty()) {
+                        startDateParam = startDateStr;
+                    }
+                }
+                if (params.get("endDate") != null) {
+                    String endDateStr = params.get("endDate").toString().trim();
+                    if (!endDateStr.isEmpty()) {
+                        endDateParam = endDateStr;
+                    }
+                }
+            }
+            final String startDate = startDateParam;
+            final String endDate = endDateParam;
+            
+            // 6. 构建统计数据
             ShopStatisticsVO statisticsVO = new ShopStatisticsVO();
             
             // 从店铺基本信息中获取统计数据
@@ -674,18 +754,41 @@ public class ShopServiceImpl implements ShopService {
             statisticsVO.setRatingCount(shop.getRatingCount());
             statisticsVO.setRating(shop.getRating());
             
-            // 从订单表查询销售统计数据（只统计已完成的订单）
-            List<Order> completedOrders = orderMapper.selectByShopIdAndStatus(shopId, 3); // 状态3=已完成
-            BigDecimal totalSales = BigDecimal.ZERO;
+            // 从订单表查询销售统计数据（统计所有已支付的订单，status >= 1，包括待发货、待收货、已完成）
+            // 先查询所有订单，然后过滤掉待付款订单（status=0）和已取消订单（status=4）
+            List<Order> allOrders = orderMapper.selectByShopIdAndStatus(shopId, null);
+            java.math.BigDecimal totalSales = java.math.BigDecimal.ZERO;
             int orderCount = 0;
-            if (completedOrders != null && !completedOrders.isEmpty()) {
-                orderCount = completedOrders.size();
-                for (Order order : completedOrders) {
+            
+            if (allOrders != null && !allOrders.isEmpty()) {
+                // 过滤掉待付款订单（status=0）和已取消订单（status=4），并应用日期范围过滤
+                List<Order> paidOrders = allOrders.stream()
+                    .filter(order -> order.getStatus() != null && order.getStatus() >= 1 && order.getStatus() != 4)
+                    .filter(order -> {
+                        if (startDate != null && order.getCreateTime() != null) {
+                            String orderDate = new java.text.SimpleDateFormat("yyyy-MM-dd").format(order.getCreateTime());
+                            if (orderDate.compareTo(startDate) < 0) {
+                                return false;
+                            }
+                        }
+                        if (endDate != null && order.getCreateTime() != null) {
+                            String orderDate = new java.text.SimpleDateFormat("yyyy-MM-dd").format(order.getCreateTime());
+                            if (orderDate.compareTo(endDate) > 0) {
+                                return false;
+                            }
+                        }
+                        return true;
+                    })
+                    .collect(java.util.stream.Collectors.toList());
+                
+                orderCount = paidOrders.size();
+                for (Order order : paidOrders) {
                     if (order.getTotalAmount() != null) {
                         totalSales = totalSales.add(order.getTotalAmount());
                     }
                 }
             }
+            
             statisticsVO.setTotalSales(totalSales);
             statisticsVO.setOrderCount(orderCount);
             
@@ -800,7 +903,21 @@ public class ShopServiceImpl implements ShopService {
         teaVO.setOrigin(tea.getOrigin());
         teaVO.setStock(tea.getStock());
         teaVO.setSales(tea.getSales());
-        teaVO.setMainImage(tea.getMainImage());
+        
+        // 统一处理主图：数据库中存的是相对路径，这里转换为前端可直接访问的完整URL
+        String mainImage = tea.getMainImage();
+        if (mainImage != null && !mainImage.trim().isEmpty()) {
+            if (mainImage.startsWith("http://") || mainImage.startsWith("https://")) {
+                // 已经是完整URL（兼容历史/外链数据）
+                teaVO.setMainImage(mainImage);
+            } else {
+                // 相对路径 -> 补全为 http://host[:port]/context/files/...
+                teaVO.setMainImage(FileUploadUtils.generateAccessUrl(mainImage, baseUrl));
+            }
+        } else {
+            teaVO.setMainImage(null);
+        }
+        
         teaVO.setStatus(tea.getStatus());
         teaVO.setCreateTime(tea.getCreateTime());
         teaVO.setUpdateTime(tea.getUpdateTime());
@@ -850,7 +967,7 @@ public class ShopServiceImpl implements ShopService {
             
             // 6. 构建茶叶实体
             Tea tea = new Tea();
-            tea.setId(UUID.randomUUID().toString().replace("-", ""));
+            tea.setId(generateTeaId());
             tea.setShopId(shopId);
             tea.setName(name);
             
@@ -1075,6 +1192,7 @@ public class ShopServiceImpl implements ShopService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Result<Object> toggleShopTeaStatus(String teaId, Integer status) {
+        final boolean isUp = Integer.valueOf(1).equals(status);
         try {
             logger.info("茶叶上下架请求: teaId={}, status={}", teaId, status);
             
@@ -1083,39 +1201,39 @@ public class ShopServiceImpl implements ShopService {
             if (userId == null) {
                 logger.warn("茶叶上下架失败: 用户未登录");
                 // 根据status返回不同的失败码
-                return Result.failure(status == 1 ? 4111 : 4112);
+                return Result.failure(isUp ? 4111 : 4112);
             }
             
             // 2. 验证参数
             if (teaId == null || teaId.trim().isEmpty()) {
                 logger.warn("茶叶上下架失败: 茶叶ID为空");
-                return Result.failure(status == 1 ? 4111 : 4112);
+                return Result.failure(isUp ? 4111 : 4112);
             }
             
             if (status == null || (status != 0 && status != 1)) {
                 logger.warn("茶叶上下架失败: 状态参数无效, status={}", status);
-                return Result.failure(status == 1 ? 4111 : 4112);
+                return Result.failure(isUp ? 4111 : 4112);
             }
             
             // 3. 查询茶叶信息
             Tea tea = teaMapper.selectById(teaId);
             if (tea == null) {
                 logger.warn("茶叶上下架失败: 茶叶不存在, teaId={}", teaId);
-                return Result.failure(status == 1 ? 4111 : 4112);
+                return Result.failure(isUp ? 4111 : 4112);
             }
             
             // 4. 查询店铺信息并验证权限
             Shop shop = getShopById(tea.getShopId());
             if (shop == null) {
                 logger.warn("茶叶上下架失败: 店铺不存在, shopId={}", tea.getShopId());
-                return Result.failure(status == 1 ? 4111 : 4112);
+                return Result.failure(isUp ? 4111 : 4112);
             }
             
             // 5. 验证用户是否为店铺所有者
             if (!userId.equals(shop.getOwnerId())) {
                 logger.warn("茶叶上下架失败: 无权限操作, userId={}, teaId={}, shopId={}, ownerId={}", 
                         userId, teaId, tea.getShopId(), shop.getOwnerId());
-                return Result.failure(status == 1 ? 4111 : 4112);
+                return Result.failure(isUp ? 4111 : 4112);
             }
             
             // 6. 更新茶叶状态
@@ -1124,17 +1242,17 @@ public class ShopServiceImpl implements ShopService {
             int result = teaMapper.updateById(tea);
             if (result <= 0) {
                 logger.error("茶叶上下架失败: 数据库更新失败, teaId={}", teaId);
-                return Result.failure(status == 1 ? 4111 : 4112);
+                return Result.failure(isUp ? 4111 : 4112);
             }
             
             logger.info("茶叶上下架成功: teaId={}, teaName={}, status={}", teaId, tea.getName(), status);
             
             // 7. 返回成功（根据code-message-mapping.md，上架成功码是4005，下架成功码是4006）
-            return Result.success(status == 1 ? 4005 : 4006, null);
+            return Result.success(isUp ? 4005 : 4006, null);
             
         } catch (Exception e) {
             logger.error("茶叶上下架失败: 系统异常, teaId={}, status={}", teaId, status, e);
-            return Result.failure(status == 1 ? 4111 : 4112);
+            return Result.failure(isUp ? 4111 : 4112);
         }
     }
     
@@ -1188,7 +1306,16 @@ public class ShopServiceImpl implements ShopService {
         
         BannerVO bannerVO = new BannerVO();
         bannerVO.setId(banner.getId());
-        bannerVO.setImageUrl(banner.getImageUrl());
+        String imageUrl = banner.getImageUrl();
+        if (imageUrl != null && !imageUrl.trim().isEmpty()) {
+            if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+                bannerVO.setImageUrl(imageUrl);
+            } else {
+                bannerVO.setImageUrl(FileUploadUtils.generateAccessUrl(imageUrl, baseUrl));
+            }
+        } else {
+            bannerVO.setImageUrl(null);
+        }
         bannerVO.setTitle(banner.getTitle());
         bannerVO.setLinkUrl(banner.getLinkUrl());
         bannerVO.setSortOrder(banner.getSortOrder());
@@ -1709,17 +1836,101 @@ public class ShopServiceImpl implements ShopService {
                 return Result.failure(4130);
             }
             
-            // 3. 构建返回数据（只返回评分信息，不返回评价列表）
+            // 3. 查询当前用户对该店铺的评价（如果已登录）
+            Integer userRating = null;
+            String currentUserId = UserContext.getCurrentUserId();
+            if (currentUserId != null) {
+                ShopReview userReview = shopReviewMapper.selectByShopIdAndUserId(shopId, currentUserId);
+                if (userReview != null) {
+                    userRating = userReview.getRating();
+                }
+            }
+            
+            // 4. 处理分页参数
+            int page = 1;
+            int size = 10;
+            if (params != null) {
+                Object pageObj = params.get("page");
+                Object sizeObj = params.get("size");
+                if (pageObj != null) {
+                    try {
+                        page = Integer.parseInt(pageObj.toString());
+                    } catch (NumberFormatException ignored) {}
+                }
+                if (sizeObj != null) {
+                    try {
+                        size = Integer.parseInt(sizeObj.toString());
+                    } catch (NumberFormatException ignored) {}
+                }
+            }
+            if (page <= 0) page = 1;
+            if (size <= 0) size = 10;
+            int offset = (page - 1) * size;
+            
+            // 5. 查询店铺评价列表和总数
+            List<ShopReview> reviewList = shopReviewMapper.selectByShopIdWithPage(shopId, offset, size);
+            int total = shopReviewMapper.countByShopId(shopId);
+            
+            // 6. 将评价列表转换为 ReviewVO（带用户名/头像）
+            List<ReviewVO> voList = new ArrayList<>();
+            if (reviewList != null && !reviewList.isEmpty()) {
+                for (ShopReview review : reviewList) {
+                    if (review == null) {
+                        continue;
+                    }
+                    ReviewVO vo = new ReviewVO();
+                    vo.setId(review.getId());
+                    vo.setUserId(review.getUserId());
+                    vo.setContent(review.getContent());
+                    vo.setRating(review.getRating());
+                    vo.setCreateTime(review.getCreateTime());
+                    // 店铺评价暂不支持图片/点赞/回复，统一设置默认值
+                    vo.setImages(new ArrayList<>());
+                    vo.setLikeCount(0);
+                    vo.setIsLiked(false);
+                    vo.setReply(null);
+                    vo.setReplyTime(null);
+                    vo.setIsAnonymous(0);
+                    
+                    // 补充用户信息
+                    try {
+                        com.shangnantea.model.entity.user.User user = userMapper.selectById(review.getUserId());
+                        if (user != null) {
+                            vo.setUsername(user.getUsername());
+                            vo.setNickname(user.getNickname() != null ? user.getNickname() : user.getUsername());
+                            String avatar = user.getAvatar();
+                            if (avatar != null && !avatar.trim().isEmpty()) {
+                                if (avatar.startsWith("http://") || avatar.startsWith("https://")) {
+                                    vo.setAvatar(avatar);
+                                } else {
+                                    vo.setAvatar(FileUploadUtils.generateAccessUrl(avatar, baseUrl));
+                                }
+                            } else {
+                                vo.setAvatar("");
+                            }
+                        }
+                    } catch (Exception e) {
+                        logger.warn("查询店铺评价用户信息失败, reviewId={}, userId={}", review.getId(), review.getUserId(), e);
+                    }
+                    
+                    voList.add(vo);
+                }
+            }
+            
+            // 7. 构建返回数据（评分统计依然从 shops 表读取，列表从 shop_reviews 表读取）
             Map<String, Object> responseData = new HashMap<>();
-            responseData.put("rating", shop.getRating());
-            responseData.put("ratingCount", shop.getRatingCount());
-            responseData.put("list", new ArrayList<>()); // 空列表
-            responseData.put("total", 0);
+            responseData.put("rating", shop.getRating()); // 店铺总平均评分（从shops表读取）
+            responseData.put("ratingCount", shop.getRatingCount()); // 评分人数（从shops表读取）
+            responseData.put("userRating", userRating); // 当前用户的评分（从shop_reviews表读取，如果已登录且已评价）
+            responseData.put("list", voList);
+            responseData.put("total", total);
+            responseData.put("pageNum", page);
+            responseData.put("pageSize", size);
             
-            logger.info("获取店铺评分信息成功: shopId={}, rating={}, ratingCount={}", 
-                    shopId, shop.getRating(), shop.getRatingCount());
+            logger.info("获取店铺评分信息成功: shopId={}, rating={}, ratingCount={}, userRating={}, total={}", 
+                    shopId, shop.getRating(), shop.getRatingCount(), userRating, total);
             
-            // 4. 返回成功（根据code-message-mapping.md，成功码是200）
+            // 5. 返回成功（根据code-message-mapping.md，成功码是200）
             return Result.success(200, responseData);
             
         } catch (Exception e) {
@@ -1779,29 +1990,95 @@ public class ShopServiceImpl implements ShopService {
                 return Result.failure(4132);
             }
             
-            // 6. 更新店铺评分统计
+            String content = reviewData.get("content") != null ? reviewData.get("content").toString() : null;
+            String orderId = reviewData.get("orderId") != null ? reviewData.get("orderId").toString() : null;
+            
+            // 6. 检查是否已有评价（覆盖逻辑）
+            ShopReview existingReview = shopReviewMapper.selectByShopIdAndUserId(shopId, userId);
+            boolean isNewReview = (existingReview == null);
+            
+            // 7. 插入或更新 shop_reviews 表
+            Date now = new Date();
+            if (isNewReview) {
+                // 新评价：插入
+                ShopReview newReview = new ShopReview();
+                newReview.setShopId(shopId);
+                newReview.setUserId(userId);
+                newReview.setOrderId(orderId);
+                newReview.setContent(content);
+                newReview.setRating(rating);
+                newReview.setCreateTime(now);
+                newReview.setUpdateTime(now);
+                
+                int insertResult = shopReviewMapper.insert(newReview);
+                if (insertResult <= 0) {
+                    logger.error("提交评分失败: 插入评价记录失败, shopId={}, userId={}", shopId, userId);
+                    return Result.failure(4132);
+                }
+            } else {
+                // 覆盖评价：更新
+                // existingReview 在 else 分支中一定不为 null（因为 isNewReview = (existingReview == null)）
+                if (existingReview == null) {
+                    logger.error("提交评分失败: 逻辑错误，existingReview 不应为 null");
+                    return Result.failure(4132);
+                }
+                
+                existingReview.setRating(rating);
+                existingReview.setContent(content);
+                if (orderId != null) {
+                    existingReview.setOrderId(orderId);
+                }
+                existingReview.setUpdateTime(now);
+                
+                int updateResult = shopReviewMapper.updateById(existingReview);
+                if (updateResult <= 0) {
+                    logger.error("提交评分失败: 更新评价记录失败, reviewId={}", existingReview.getId());
+                    return Result.failure(4132);
+                }
+            }
+            
+            // 8. 更新店铺评分统计
             int currentCount = shop.getRatingCount();
             BigDecimal currentRating = shop.getRating();
+            BigDecimal newRating;
+            int newCount;
             
-            // 计算新的平均评分
-            BigDecimal newRating = currentRating.multiply(new BigDecimal(currentCount))
-                    .add(new BigDecimal(rating))
-                    .divide(new BigDecimal(currentCount + 1), 2, BigDecimal.ROUND_HALF_UP);
+            if (isNewReview) {
+                // 新评价：人数+1，重新计算平均分
+                newCount = currentCount + 1;
+                newRating = currentRating.multiply(new BigDecimal(currentCount))
+                        .add(new BigDecimal(rating))
+                        .divide(new BigDecimal(newCount), 2, RoundingMode.HALF_UP);
+            } else {
+                // 覆盖评价：人数不变，先减去旧评分的影响，再加上新评分
+                // existingReview 在 else 分支中一定不为 null（因为 isNewReview = (existingReview == null)）
+                if (existingReview == null) {
+                    logger.error("提交评分失败: 逻辑错误，existingReview 不应为 null");
+                    return Result.failure(4132);
+                }
+                
+                Integer oldRating = existingReview.getRating();
+                BigDecimal totalRating = currentRating.multiply(new BigDecimal(currentCount))
+                        .subtract(new BigDecimal(oldRating))
+                        .add(new BigDecimal(rating));
+                newCount = currentCount; // 人数不变
+                newRating = totalRating.divide(new BigDecimal(newCount), 2, RoundingMode.HALF_UP);
+            }
             
             shop.setRating(newRating);
-            shop.setRatingCount(currentCount + 1);
-            shop.setUpdateTime(new Date());
+            shop.setRatingCount(newCount);
+            shop.setUpdateTime(now);
             
             int result = shopMapper.updateById(shop);
             if (result <= 0) {
-                logger.error("提交评分失败: 数据库更新失败, shopId={}", shopId);
+                logger.error("提交评分失败: 更新店铺评分统计失败, shopId={}", shopId);
                 return Result.failure(4132);
             }
             
-            logger.info("提交评分成功: userId={}, shopId={}, rating={}, newAvgRating={}", 
-                    userId, shopId, rating, newRating);
+            logger.info("提交评分成功: userId={}, shopId={}, rating={}, isNewReview={}, newAvgRating={}, newCount={}", 
+                    userId, shopId, rating, isNewReview, newRating, newCount);
             
-            // 7. 返回成功（根据code-message-mapping.md，成功码是4017，data 为空）
+            // 9. 返回成功（根据code-message-mapping.md，成功码是4017，data 为空）
             return Result.success(4017);
             
         } catch (Exception e) {
@@ -1843,5 +2120,41 @@ public class ShopServiceImpl implements ShopService {
             logger.error("上传商家认证图片失败: 系统异常", e);
             return Result.failure(4101);
         }
+    }
+    
+    /**
+     * 生成店铺ID：SH + 8位数字
+     * @return 店铺ID
+     */
+    private String generateShopId() {
+        Random random = new Random();
+        StringBuilder sb = new StringBuilder("SH");
+        for (int i = 0; i < 8; i++) {
+            sb.append(random.nextInt(10));
+        }
+        String shopId = sb.toString();
+        // 检查ID是否已存在，存在则重新生成
+        if (shopMapper.selectById(shopId) != null) {
+            return generateShopId(); // 递归调用直到生成唯一ID
+        }
+        return shopId;
+    }
+    
+    /**
+     * 生成茶叶ID：TEA + 8位数字
+     * @return 茶叶ID
+     */
+    private String generateTeaId() {
+        Random random = new Random();
+        StringBuilder sb = new StringBuilder("TEA");
+        for (int i = 0; i < 8; i++) {
+            sb.append(random.nextInt(10));
+        }
+        String teaId = sb.toString();
+        // 检查ID是否已存在，存在则重新生成
+        if (teaMapper.selectById(teaId) != null) {
+            return generateTeaId(); // 递归调用直到生成唯一ID
+        }
+        return teaId;
     }
 } 

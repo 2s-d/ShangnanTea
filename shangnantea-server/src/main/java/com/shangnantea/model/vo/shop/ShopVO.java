@@ -37,6 +37,11 @@ public class ShopVO {
     private BigDecimal rating;
     
     /**
+     * 评分人数
+     */
+    private Integer ratingCount;
+    
+    /**
      * 销量
      */
     private Integer salesCount;

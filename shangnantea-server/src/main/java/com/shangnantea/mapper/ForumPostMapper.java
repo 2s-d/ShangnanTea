@@ -11,15 +11,17 @@ import java.util.List;
  */
 public interface ForumPostMapper extends BaseMapper<ForumPost, Long> {
     /**
-     * 查询正常状态的帖子（支持版块和关键词过滤）
+     * 查询正常状态的帖子（支持版块、关键词和用户ID过滤）
      *
      * @param topicId 版块ID（可选）
      * @param keyword 关键词（可选）
+     * @param userId 用户ID（可选）
      * @param status 状态（1=正常）
      * @return 帖子列表
      */
     List<ForumPost> selectPublishedPosts(@Param("topicId") Integer topicId, 
-                                         @Param("keyword") String keyword, 
+                                         @Param("keyword") String keyword,
+                                         @Param("userId") String userId,
                                          @Param("status") Integer status);
     
     /**

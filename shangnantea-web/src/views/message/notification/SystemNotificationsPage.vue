@@ -14,7 +14,6 @@
           <el-option label="帖子回复" value="post_reply"></el-option>
           <el-option label="系统公告" value="system_announcement"></el-option>
           <el-option label="外部链接" value="external_link"></el-option>
-          <el-option label="商家认证" value="merchant_verification"></el-option>
         </el-select>
       </div>
       
@@ -39,9 +38,8 @@
         >
           <div class="notification-icon" :class="getNotificationIconClass(notification.type)">
             <el-icon v-if="notification.type === 'post_reply'"><ChatDotRound /></el-icon>
-            <el-icon v-if="notification.type === 'system_announcement'"><Bell /></el-icon>
-            <el-icon v-if="notification.type === 'external_link'"><Star /></el-icon>
-            <el-icon v-if="notification.type === 'merchant_verification'"><User /></el-icon>
+            <el-icon v-else-if="notification.type === 'system_announcement'"><Bell /></el-icon>
+            <el-icon v-else-if="notification.type === 'external_link'"><Star /></el-icon>
             <el-icon v-else><Bell /></el-icon>
           </div>
           
@@ -63,7 +61,7 @@
                 type="info" 
                 circle 
                 size="small"
-                @click="markAsRead(notification.id)">
+                @click.stop="markAsRead(notification.id)">
                 <el-icon><Check /></el-icon>
               </el-button>
             </el-tooltip>
@@ -73,11 +71,47 @@
                 type="danger" 
                 circle 
                 size="small"
-                @click="deleteNotification(notification.id)">
+                @click.stop="deleteNotification(notification.id)">
                 <el-icon><Delete /></el-icon>
               </el-button>
             </el-tooltip>
           </div>
+        
+          <!-- 邮件式详情框：每条通知内根据 expandedId 控制展开 -->
+        <transition name="el-fade-in">
+          <div v-if="expandedId === notification.id" class="notification-detail-card">
+            <div class="detail-header">
+              <div class="detail-title">{{ (detailMap[notification.id] || notification).title }}</div>
+              <div class="detail-meta">
+                <span class="detail-time">{{ formatDate((detailMap[notification.id] || notification).createTime) }}</span>
+                <el-tag size="small" type="info">{{ getTypeLabel(notification.type) }}</el-tag>
+              </div>
+            </div>
+            
+            <div class="detail-body">
+              <!-- 1. 纯文本通知：系统公告等纯文字信息 -->
+              <template v-if="notification.type === 'system_announcement'">
+                <div class="detail-text">
+                  {{ (detailMap[notification.id] || notification).content }}
+                </div>
+              </template>
+              
+              <!-- 2. 带外部链接通知：可跳转到外部资源 -->
+              <template v-else-if="notification.type === 'external_link'">
+                <div class="detail-text">
+                  {{ (detailMap[notification.id] || notification).content }}
+                </div>
+                <div class="detail-actions" v-if="getExternalUrl(detailMap[notification.id] || notification)">
+                  <el-button 
+                    type="primary" 
+                    @click="window.open(getExternalUrl(detailMap[notification.id] || notification), '_blank')">
+                    打开链接
+                  </el-button>
+                </div>
+              </template>
+            </div>
+          </div>
+        </transition>
         </div>
       </div>
       
@@ -107,17 +141,12 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
-import { Bell, ChatDotRound, Star, User, Check, Delete } from '@element-plus/icons-vue'
+import { Bell, ChatDotRound, Star, Check, Delete } from '@element-plus/icons-vue'
 import { useMessageStore } from '@/stores/message'
-import { useUserStore } from '@/stores/user'
-import { useShopStore } from '@/stores/shop'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
-import { messagePromptMessages } from '@/utils/promptMessages'
 
 const router = useRouter()
 const messageStore = useMessageStore()
-const userStore = useUserStore()
-const shopStore = useShopStore()
     
     // 分页参数
     const currentPage = ref(1)
@@ -127,6 +156,10 @@ const shopStore = useShopStore()
     // 筛选参数
     const readStatus = ref('all')
     const typeFilter = ref('')
+    
+    // 展开详情状态
+    const expandedId = ref(null)
+    const detailMap = ref({})
     
     // 通知列表数据（以 Pinia 为单一数据源）
     const notifications = computed(() => messageStore.messages || [])
@@ -244,92 +277,77 @@ const shopStore = useShopStore()
     
     // 打开通知
     const openNotification = async notification => {
-      // 注意：后端在 getNotificationDetail() 中会自动标记为已读，无需前端手动调用
-      
-      // 根据通知类型跳转到相应页面
-      switch (notification.type) {
-      case 'post_reply':
-        // 帖子回复通知，跳转到帖子详情页
-        if (notification.targetId && notification.targetType === 'post') {
-          router.push(`/forum/posts/${notification.targetId}`)
-        }
-        break
-      case 'system_announcement':
-        // 系统公告一般不需要跳转
-        break
-      case 'external_link':
-        // 外部链接通知，解析extraData中的链接
-        try {
-          const extraData = JSON.parse(notification.extraData || '{}')
-          if (extraData.externalUrl) {
-            window.open(extraData.externalUrl, '_blank')
+      // 1. 可跳转通知：统一按targetType路由
+      if (notification.type === 'post_reply') {
+          if (notification.isRead === 0) {
+            await markAsRead(notification.id)
           }
-        } catch (e) {
-          console.warn('解析外部链接失败:', e)
+
+        const targetType = notification.targetType
+        const targetId = notification.targetId
+
+        // 根据不同目标类型跳转到对应业务页面
+        switch (targetType) {
+          case 'post':
+            router.push({ name: 'ForumDetail', params: { id: targetId } })
+            break
+          case 'order':
+            router.push({ name: 'OrderDetail', params: { id: targetId } })
+            break
+          case 'tea':
+            router.push({ name: 'TeaDetail', params: { id: targetId } })
+            break
+          case 'shop':
+            router.push({ name: 'ShopDetail', params: { id: targetId } })
+            break
+          case 'user':
+            // 个人主页目前按当前用户路由设计，此处暂不区分，后续如有需要可扩展
+            router.push({ name: 'UserProfile', params: { tab: 'overview' } })
+            break
+          case 'chat_session':
+            router.push({ name: 'MessageChat', query: { sessionId: targetId } })
+            break
+          default:
+            // 无法识别的targetType，不做跳转
+            break
         }
-        break
-      case 'merchant_verification':
-        // 商家认证通知，可能需要确认操作
-        try {
-          const extraData = JSON.parse(notification.extraData || '{}')
-          if (extraData.actionType === 'confirm') {
-            // 商家认证通过，需要确认通知并触发角色变更和店铺创建
-            await handleMerchantCertificationConfirm(notification)
-          } else {
-            // 普通商家认证通知，跳转到商家中心
-            router.push('/shop/my')
-          }
-        } catch (e) {
-          console.warn('解析操作数据失败:', e)
-          messagePromptMessages.showPleaseWait()
-        }
-        break
+        return
       }
-    }
-    
-    // 处理商家认证确认通知
-    const handleMerchantCertificationConfirm = async notification => {
+      
+      // 2. 其他类型（system_announcement、external_link）：展开详情框
+      // 如果点击的是已展开的通知，则收起
+      if (expandedId.value === notification.id) {
+        expandedId.value = null
+        return
+      }
+      
+      // 展开当前通知
+      expandedId.value = notification.id
+      
+      // 如果详情已加载，直接使用
+      if (detailMap.value[notification.id]) {
+        // 标记为已读（如果未读）
+        if (notification.isRead === 0) {
+          await markAsRead(notification.id)
+        }
+        return
+      }
+      
+      // 获取通知详情（后端会自动标记为已读）
       try {
-        // 1. 标记通知为已读
-        await messageStore.markNotificationAsRead(notification.id)
-        
-        // 2. 确认通知（触发后端角色变更）
-        // 注意：实际项目中，角色变更应该由后端在审核通过时自动完成
-        // 这里只是确认通知，刷新用户信息以获取最新角色
-        await userStore.fetchUserInfo()
-        
-        // 3. 检查用户角色是否已变更为商家（role === 3）
-        const userInfo = userStore.userInfo
-        if (userInfo && userInfo.role === 3) {
-          // 4. 检查是否已有店铺，如果没有则自动创建
-          try {
-            await shopStore.fetchMyShop()
-            // 商家认证已确认
-            router.push('/shop/my')
-          } catch (error) {
-            // 如果没有店铺，自动创建
-            if (error.message && error.message.includes('获取我的店铺失败')) {
-              try {
-                await shopStore.createShop({
-                  name: '我的商南茶叶店',
-                  desc: '专业经营商南优质茶叶'
-                })
-                // 店铺已自动创建
-                router.push('/shop/my')
-              } catch (createError) {
-                console.error('创建店铺失败:', createError)
-                router.push('/shop/my')
-              }
-            } else {
-              throw error
-            }
+        const res = await messageStore.fetchNotificationDetail(notification.id)
+        if (res.data) {
+          detailMap.value[notification.id] = res.data
+          // 同步本地未读状态
+          if (notification.isRead === 0) {
+            notification.isRead = 1
+            await messageStore.fetchUnreadCount()
           }
-        } else {
-          // 角色尚未变更，提示用户
-          messagePromptMessages.showPleaseWait()
         }
       } catch (error) {
-        console.error('处理商家认证确认失败:', error)
+        console.error('获取通知详情失败:', error)
+        // 如果获取详情失败，使用列表数据
+        detailMap.value[notification.id] = notification
       }
     }
     
@@ -365,11 +383,30 @@ const shopStore = useShopStore()
       const classMap = {
         post_reply: 'icon-forum',
         system_announcement: 'icon-system',
-        external_link: 'icon-like',
-        merchant_verification: 'icon-follow'
+        external_link: 'icon-like'
       }
       
       return classMap[type] || 'icon-default'
+    }
+    
+    // 获取类型标签
+    const getTypeLabel = type => {
+      const labelMap = {
+        post_reply: '帖子回复',
+        system_announcement: '系统公告',
+        external_link: '外部链接'
+      }
+      return labelMap[type] || '通知'
+    }
+    
+    // 获取外部链接
+    const getExternalUrl = detail => {
+      try {
+        const extraData = detail && detail.extraData ? JSON.parse(detail.extraData) : null
+        return extraData && extraData.externalUrl ? extraData.externalUrl : ''
+      } catch {
+        return ''
+      }
     }
     
     // 初始化
@@ -502,6 +539,60 @@ watch([readStatus, typeFilter], () => {
         display: flex;
         gap: 8px;
         margin-left: 15px;
+      }
+    }
+    
+    // 邮件式详情框样式
+    .notification-detail-card {
+      margin-top: 16px;
+      margin-left: 55px;
+      padding: 20px;
+      background-color: #fafafa;
+      border-left: 3px solid #409eff;
+      border-radius: 4px;
+      
+      .detail-header {
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #e4e7ed;
+        
+        .detail-title {
+          font-size: 18px;
+          font-weight: 600;
+          color: var(--el-text-color-primary);
+          margin-bottom: 8px;
+        }
+        
+        .detail-meta {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          
+          .detail-time {
+            font-size: 12px;
+            color: var(--el-text-color-secondary);
+          }
+        }
+      }
+      
+      .detail-body {
+        .detail-text {
+          font-size: 14px;
+          color: var(--el-text-color-regular);
+          line-height: 1.8;
+          white-space: pre-wrap;
+          word-break: break-word;
+          margin-bottom: 16px;
+        }
+        
+        .detail-status {
+          margin-bottom: 16px;
+        }
+        
+        .detail-actions {
+          display: flex;
+          gap: 12px;
+        }
       }
     }
   }

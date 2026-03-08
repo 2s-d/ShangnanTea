@@ -319,12 +319,6 @@ export function useTokenStorage() {
     try {
       // 获取JWT的payload部分
       const tokenParts = tokenStr.split('.')
-      console.log('decodeToken调试:', {
-        tokenLength: tokenStr.length,
-        partsCount: tokenParts.length,
-        partsLength: tokenParts.map((p, i) => ({ index: i, length: p.length })),
-        fullToken: tokenStr
-      })
       
       if (tokenParts.length < 2) {
         console.error('decodeToken: token格式不正确，缺少分隔符. token:', tokenStr)

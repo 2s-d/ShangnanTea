@@ -55,12 +55,27 @@
               border
             >
               <el-table-column label="ID" prop="id" width="80" />
-              <el-table-column label="标题" min-width="200">
+              <el-table-column label="标题" prop="title" min-width="260" />
+              <!-- 文章标记列：只显示小标签，不挤占标题 -->
+              <el-table-column label="标记" width="120">
                 <template #default="scope">
-                  <div class="article-title-cell">
-                    <el-tag v-if="scope.row.isTop === 1 || scope.row.is_top === 1" type="danger" size="small">置顶</el-tag>
-                    <el-tag v-if="scope.row.isRecommend === 1 || scope.row.is_recommend === 1" type="success" size="small">推荐</el-tag>
-                    <span>{{ scope.row.title }}</span>
+                  <div class="article-flags">
+                    <el-tag
+                      v-if="scope.row.isTop === 1"
+                      size="small"
+                      effect="plain"
+                      type="danger"
+                    >
+                      置顶
+                    </el-tag>
+                    <el-tag
+                      v-if="scope.row.isRecommend === 1"
+                      size="small"
+                      effect="plain"
+                      type="success"
+                    >
+                      推荐
+                    </el-tag>
                   </div>
                 </template>
               </el-table-column>
@@ -72,7 +87,7 @@
               </el-table-column>
               <el-table-column label="发布时间" width="180">
                 <template #default="scope">
-                  {{ formatDate(scope.row.publishTime || scope.row.publish_time) }}
+                  {{ formatDate(scope.row.publishTime) }}
                 </template>
               </el-table-column>
               <el-table-column label="状态" width="100">
@@ -84,14 +99,14 @@
               </el-table-column>
               <el-table-column label="阅读量" width="100">
                 <template #default="scope">
-                  {{ scope.row.viewCount || scope.row.view_count || 0 }}
+                  {{ scope.row.viewCount || 0 }}
                 </template>
               </el-table-column>
               <el-table-column label="操作" width="250" fixed="right">
                 <template #default="scope">
                   <el-button size="small" type="primary" @click="handleEditArticle(scope.row)">编辑</el-button>
                   <el-button size="small" type="success" @click="toggleRecommend(scope.row)" :disabled="scope.row.status !== 1">
-                    {{ scope.row.is_recommend ? '取消推荐' : '推荐' }}
+                    {{ scope.row.isRecommend === 1 ? '取消推荐' : '推荐' }}
                   </el-button>
                   <el-button size="small" type="danger" @click="handleDeleteArticle(scope.row)">删除</el-button>
                 </template>
@@ -261,12 +276,12 @@
                 </el-radio-group>
               </el-form-item>
               
-              <el-form-item label="置顶" prop="is_top">
-                <el-switch v-model="articleForm.is_top" :active-value="1" :inactive-value="0" />
+              <el-form-item label="置顶" prop="isTop">
+                <el-switch v-model="articleForm.isTop" :active-value="1" :inactive-value="0" />
               </el-form-item>
               
-              <el-form-item label="推荐" prop="is_recommend">
-                <el-switch v-model="articleForm.is_recommend" :active-value="1" :inactive-value="0" />
+              <el-form-item label="推荐" prop="isRecommend">
+                <el-switch v-model="articleForm.isRecommend" :active-value="1" :inactive-value="0" />
               </el-form-item>
             </el-card>
           </el-col>
@@ -322,13 +337,12 @@
       width="600px"
       destroy-on-close
     >
-      <el-form :model="bannerForm" label-width="100px" ref="bannerFormRef">
+      <el-form :model="bannerForm" label-width="100px" ref="bannerFormRef" class="banner-form">
         <el-form-item label="轮播图片" required>
           <el-upload
             class="banner-uploader"
             :show-file-list="false"
             :http-request="handleBannerImageUpload"
-            :before-upload="beforeImageUpload"
             accept="image/*"
           >
             <img v-if="bannerForm.image_url" :src="bannerForm.image_url" class="banner-image" />
@@ -507,8 +521,8 @@ const articleForm = reactive({
   tags: '',
   source: '',
   status: 1,
-  is_top: 0,
-  is_recommend: 0
+  isTop: 0,
+  isRecommend: 0
 })
 
 // 文章表单验证规则
@@ -587,8 +601,8 @@ const handleCreateArticle = () => {
     tags: '',
     source: '',
     status: 1,
-    is_top: 0,
-    is_recommend: 0
+    isTop: 0,
+    isRecommend: 0
   })
   articleFormVisible.value = true
 }
@@ -604,7 +618,7 @@ const handleEditArticle = async (article) => {
         id: detail.id,
         title: detail.title || '',
         subtitle: detail.subtitle || '',
-        author: detail.author || detail.authorName || '',
+        author: detail.authorName || detail.author || '',
         category: detail.category || '',
         content: detail.content || '',
         summary: detail.summary || '',
@@ -612,19 +626,21 @@ const handleEditArticle = async (article) => {
         tags: Array.isArray(detail.tags) ? detail.tags.join(',') : (detail.tags || ''),
         source: detail.source || '',
         status: detail.status !== undefined ? detail.status : 1,
-        is_top: detail.isTop !== undefined ? detail.isTop : (detail.is_top !== undefined ? detail.is_top : 0),
-        is_recommend: detail.isRecommend !== undefined ? detail.isRecommend : (detail.is_recommend !== undefined ? detail.is_recommend : 0)
+        // 详情接口使用 isTop / isRecommend
+        isTop: detail.isTop !== undefined ? detail.isTop : 0,
+        isRecommend: detail.isRecommend !== undefined ? detail.isRecommend : 0
       })
     } else {
       // 如果详情接口失败，使用列表数据（但可能没有 content）
       Object.assign(articleForm, {
         ...article,
-        author: article.authorName || article.author || '',
+        author: article.authorName || '',
         video_url: article.videoUrl || article.video_url || '',
         tags: Array.isArray(article.tags) ? article.tags.join(',') : (article.tags || ''),
         status: article.status !== undefined ? article.status : 1,
-        is_top: article.isTop !== undefined ? article.isTop : (article.is_top !== undefined ? article.is_top : 0),
-        is_recommend: article.isRecommend !== undefined ? article.isRecommend : (article.is_recommend !== undefined ? article.is_recommend : 0)
+        // 列表接口使用 isTop / isRecommend
+        isTop: article.isTop !== undefined ? article.isTop : 0,
+        isRecommend: article.isRecommend !== undefined ? article.isRecommend : 0
       })
     }
     articleFormVisible.value = true
@@ -637,11 +653,11 @@ const handleEditArticle = async (article) => {
 // 切换推荐状态
 const toggleRecommend = async (article) => {
   try {
-    const currentStatus = article.isRecommend !== undefined ? article.isRecommend : (article.is_recommend !== undefined ? article.is_recommend : 0)
+    const currentStatus = article.isRecommend !== undefined ? article.isRecommend : 0
     const newStatus = currentStatus === 1 ? 0 : 1
     const res = await forumStore.updateArticle({
       id: article.id,
-      data: { is_recommend: newStatus }
+      data: { isRecommend: newStatus }
     })
     showByCode(res.code)
     if (isSuccess(res.code)) {
@@ -704,8 +720,8 @@ const submitArticleForm = () => {
         author: formData.author,
         videoUrl: formData.video_url,
         status: formData.status,
-        is_top: formData.is_top,
-        is_recommend: formData.is_recommend
+        isTop: formData.isTop,
+        isRecommend: formData.isRecommend
       }
       
       // 调试：打印提交的数据
@@ -823,25 +839,23 @@ const handleDeleteBanner = (banner) => {
   }).catch(() => {})
 }
 
-// 轮播图图片上传
+// 轮播图图片上传（仅本地预览 + 保存文件，真正上传在提交表单时一起完成）
+const bannerUploadFile = ref(null)
+
 const handleBannerImageUpload = async ({ file }) => {
   try {
-    const res = await forumAPI.uploadArticleImage(file)
-    if (res.code === 6029 && res.data && res.data.url) {
-      bannerForm.image_url = res.data.url
-      ElMessage.success('图片上传成功')
-    } else {
-      ElMessage.error('图片上传失败')
-    }
+    bannerUploadFile.value = file
+    // 使用本地URL进行预览，避免提前上传
+    bannerForm.image_url = URL.createObjectURL(file)
   } catch (error) {
-    console.error('图片上传失败:', error)
-    ElMessage.error('图片上传失败')
+    console.error('处理轮播图图片失败:', error)
+    ElMessage.error('处理轮播图图片失败')
   }
 }
 
 // 提交轮播图表单
 const submitBannerForm = async () => {
-  if (!bannerForm.image_url) {
+  if (!bannerUploadFile.value) {
     ElMessage.warning('请上传轮播图片')
     return
   }
@@ -854,12 +868,15 @@ const submitBannerForm = async () => {
       res = await forumStore.updateBanner({ id: bannerForm.id, data: bannerForm })
     } else {
       const formData = new FormData()
-      formData.append('title', bannerForm.title)
-      formData.append('subtitle', bannerForm.subtitle)
-      formData.append('linkUrl', bannerForm.link_url)
-      formData.append('sortOrder', bannerForm.sort_order)
-      
-      // 如果有图片URL，需要先下载再上传（这里简化处理，直接使用URL）
+      formData.append('file', bannerUploadFile.value)
+      formData.append('title', bannerForm.title || '')
+      if (bannerForm.subtitle) {
+        formData.append('subtitle', bannerForm.subtitle)
+      }
+      if (bannerForm.link_url) {
+        formData.append('linkUrl', bannerForm.link_url)
+      }
+      // sortOrder 在后端初始可以使用默认值，如需调整顺序用“排序拖拽+保存顺序”接口
       res = await forumStore.uploadBanner(formData)
     }
     
@@ -1049,9 +1066,10 @@ onMounted(async () => {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   
   .container {
-    max-width: 1400px;
+    width: 85%;
+    max-width: 1920px;
     margin: 0 auto;
-    padding: 0 20px;
+    padding: 0;
   }
   
   .page-title {
@@ -1064,13 +1082,38 @@ onMounted(async () => {
   
   .header-actions {
     margin-top: 15px;
+    
+    :deep(.el-button) {
+      border-radius: 999px;
+      padding: 10px 26px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      background: #82D2CE;
+      border-color: #82D2CE;
+      color: #103a3a;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    }
+
+    :deep(.el-button:hover) {
+      background: #9ce0dd;
+      border-color: #9ce0dd;
+      box-shadow: 0 10px 22px rgba(0, 0, 0, 0.32);
+      transform: translateY(-1px);
+    }
+
+    :deep(.el-button:active) {
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.24);
+      transform: translateY(0);
+    }
   }
 }
 
 .main-content {
-  max-width: 1400px;
+  width: 85%;
+  max-width: 1920px;
   margin: 0 auto 40px;
-  padding: 0 20px;
+  padding: 0;
 }
 
 .management-tabs {
@@ -1134,15 +1177,18 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
-  
+}
+
+// 文章标记小标签（置顶 / 推荐）
+.article-flags {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
   .el-tag {
-    flex-shrink: 0;
-  }
-  
-  span {
-    flex: 1;
-    min-width: 0;
+    padding: 0 6px;
+    font-size: 12px;
+    line-height: 18px;
   }
 }
 
@@ -1202,6 +1248,14 @@ onMounted(async () => {
   .banner-uploader-icon {
     font-size: 32px;
     color: #8c939d;
+  }
+}
+
+// Banner 表单整体布局优化，避免表单内容区域“歪斜”
+.banner-form {
+  :deep(.el-form-item__content) {
+    display: block;         // 内容垂直堆叠：上传区域在上，提示文字在下
+    width: 100%;
   }
 }
 

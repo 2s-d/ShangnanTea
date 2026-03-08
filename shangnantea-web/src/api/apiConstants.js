@@ -15,6 +15,7 @@ export const API = {
     PASSWORD: '/user/password',
     PASSWORD_RESET: '/user/password/reset',
     SEND_VERIFICATION_CODE: '/user/verification-code/send',
+    TODAY_WEATHER: '/user/weather/today',
     ADDRESSES: '/user/addresses',
     ADDRESS_DETAIL: '/user/addresses/{id}',
     ADDRESS_DEFAULT: '/user/addresses/{id}/default',

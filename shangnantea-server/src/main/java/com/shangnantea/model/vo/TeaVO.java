@@ -33,6 +33,21 @@ public class TeaVO {
     private String shopName;
     
     /**
+     * 店铺Logo
+     */
+    private String shopLogo;
+    
+    /**
+     * 店铺评分
+     */
+    private BigDecimal shopRating;
+    
+    /**
+     * 店铺描述
+     */
+    private String shopDesc;
+    
+    /**
      * 分类ID
      */
     private Integer categoryId;

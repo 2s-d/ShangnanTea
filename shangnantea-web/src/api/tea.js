@@ -21,7 +21,7 @@ export function getTeas(params) {
  */
 export function getTeaDetail(id) {
   return request({
-    url: API.TEA.DETAIL + id,
+    url: API.TEA.DETAIL.replace('{id}', id),
     method: 'get'
   })
 }
@@ -96,7 +96,7 @@ export function addTea(data) {
  */
 export function updateTea(data) {
   return request({
-    url: API.TEA.DETAIL + data.id,
+    url: API.TEA.DETAIL.replace('{id}', data.id),
     method: 'put',
     data
   })
@@ -109,7 +109,7 @@ export function updateTea(data) {
  */
 export function deleteTea(id) {
   return request({
-    url: API.TEA.DETAIL + id,
+    url: API.TEA.DETAIL.replace('{id}', id),
     method: 'delete'
   })
 }
@@ -179,7 +179,7 @@ export function getTeaSpecifications(teaId) {
 /**
  * 添加规格
  * @param {string} teaId 茶叶ID
- * @param {Object} data 规格数据（spec_name, price, stock, is_default）
+ * @param {Object} data 规格数据（specName, price, stock, isDefault）
  * @returns {Promise} 添加结果
  */
 export function addSpecification(teaId, data) {
@@ -193,7 +193,7 @@ export function addSpecification(teaId, data) {
 /**
  * 更新规格
  * @param {string} specId 规格ID
- * @param {Object} data 规格数据（spec_name, price, stock, is_default）
+ * @param {Object} data 规格数据（specName, price, stock, isDefault）
  * @returns {Promise} 更新结果
  */
 export function updateSpecification(specId, data) {

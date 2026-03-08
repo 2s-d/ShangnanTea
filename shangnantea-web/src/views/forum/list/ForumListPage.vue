@@ -10,45 +10,27 @@
 
     <div class="container main-content">
       <el-row :gutter="20">
-        <!-- 左侧版块导航 -->
-        <el-col :xs="24" :sm="6" :md="5" :lg="4">
-          <div class="sidebar topics-sidebar">
-            <div class="sidebar-header">
-              <h3 class="sidebar-title">版块导航</h3>
-            </div>
-            <div class="topic-list">
-              <div 
-                class="topic-item" 
-                :class="{ active: currentTopicId === 'all' }" 
-                @click="switchTopic('all')"
-              >
-                <el-icon><Grid /></el-icon>
-                <span>全部帖子</span>
-                <span class="count">{{ pagination.total }}</span>
-              </div>
-              <div 
-                v-for="topic in topicList" 
-                :key="topic.id" 
-                class="topic-item" 
-                :class="{ active: currentTopicId === topic.id }"
-                @click="switchTopic(topic.id)"
-              >
-                <SafeImage :src="topic.icon" type="banner" :alt="topic.name" class="topic-icon" style="width:16px;height:16px;margin-right:6px;" />
-                <span>{{ topic.name }}</span>
-                <span class="count">{{ topic.postCount }}</span>
-              </div>
-            </div>
-          </div>
-        </el-col>
-        
-        <!-- 中间帖子列表 -->
-        <el-col :xs="24" :sm="18" :md="14" :lg="15">
+        <!-- 左侧帖子列表 -->
+        <el-col :xs="24" :sm="18" :md="16" :lg="17">
           <div class="main-posts">
-            <!-- 排序和刷新 -->
+            <!-- 搜索框、排序、刷新和发帖按钮 -->
             <div class="posts-header">
-              <div class="topic-info" v-if="currentTopicId !== 'all'">
-                <h2 class="current-topic">{{ getCurrentTopicName() }}</h2>
-                <p class="topic-desc">{{ getCurrentTopicDesc() }}</p>
+              <div class="search-section">
+                <el-input
+                  v-model="searchKeyword"
+                  placeholder="搜索帖子标题或内容..."
+                  clearable
+                  @keyup.enter="handleSearch"
+                  @clear="handleSearch"
+                  class="search-input"
+                >
+                  <template #prefix>
+                    <el-icon><Search /></el-icon>
+                  </template>
+                  <template #append>
+                    <el-button @click="handleSearch">搜索</el-button>
+                  </template>
+                </el-input>
               </div>
               <div class="header-actions">
                 <el-dropdown trigger="click" @command="handleSortChange">
@@ -66,6 +48,10 @@
                 
                 <el-button type="primary" plain size="small" @click="refreshPosts" :loading="loading">
                   <el-icon><Refresh /></el-icon> 刷新
+                </el-button>
+                
+                <el-button type="primary" size="small" @click="showPostDialog">
+                  <el-icon><EditPen /></el-icon> 发表新帖
                 </el-button>
               </div>
             </div>
@@ -100,62 +86,51 @@
           </div>
         </el-col>
         
-        <!-- 右侧用户信息和我的帖子 -->
-        <el-col :xs="24" :sm="24" :md="5" :lg="5">
+        <!-- 右侧用户信息和版块导航 -->
+        <el-col :xs="24" :sm="6" :md="8" :lg="7">
+          <!-- 简化的用户信息卡片 -->
           <div class="sidebar user-sidebar">
-            <!-- 用户信息 -->
             <div class="user-info-card">
-              <div class="user-info">
+              <div class="user-info" @click="goToMyPosts">
                 <div class="avatar">
-                  <SafeImage :src="currentUser.avatar" type="avatar" :alt="currentUser.username" style="width:40px;height:40px;border-radius:50%;object-fit:cover;" />
+                  <SafeImage :src="currentUser.avatar" type="avatar" :alt="currentUser.username" style="width:50px;height:50px;border-radius:50%;object-fit:cover;" />
                 </div>
                 <div class="info">
-                  <div class="name">
-                    {{ currentUser.username }}
-                    <el-icon color="#409EFF" v-if="currentUser.gender === 1"><Male /></el-icon>
-                    <el-icon color="#FF4949" v-if="currentUser.gender === 2"><Female /></el-icon>
-                  </div>
-                  <div class="stats">
-                    社区等级 Lv{{ currentUser.level || 1 }}
-                  </div>
+                  <div class="name">{{ currentUser.username }}</div>
+                  <div class="my-posts-link">我的帖子</div>
                 </div>
               </div>
-              <!-- 发帖按钮 -->
-              <el-button type="primary" class="post-btn" @click="showPostDialog">
-                <el-icon><EditPen /></el-icon> 发表新帖
-              </el-button>
             </div>
-            
-            <!-- 我的帖子 -->
-            <div class="my-posts-card">
-              <div class="sidebar-header">
-                <h3 class="sidebar-title">我的帖子</h3>
-              </div>
-              <div v-if="myPosts.length > 0" class="my-posts-list">
-                <div 
-                  v-for="post in myPosts" 
-                  :key="post.id" 
-                  class="my-post-item"
-                >
-                  <div class="post-content" @click="viewPost(post.id)">
-                    <div class="title">{{ post.title }}</div>
-                    <div class="summary">{{ post.summary }}</div>
-                  </div>
-                  <div class="post-actions">
-                    <el-button 
-                      type="danger" 
-                      link 
-                      size="small" 
-                      @click.stop="confirmDeletePost(post)"
-                    >
-                      <el-icon><Delete /></el-icon>
-                    </el-button>
-                  </div>
-                </div>
-              </div>
-              <el-empty v-else description="您还没有发表过帖子" />
+          </div>
+          
+          <!-- 版块导航 -->
+          <div class="sidebar topics-sidebar">
+            <div class="sidebar-header">
+              <h3 class="sidebar-title">版块导航</h3>
             </div>
-      </div>
+            <div class="topic-list">
+              <div 
+                class="topic-item" 
+                :class="{ active: currentTopicId === 'all' }" 
+                @click="switchTopic('all')"
+              >
+                <el-icon><Grid /></el-icon>
+                <span>全部帖子</span>
+                <span class="count">{{ pagination.total }}</span>
+              </div>
+              <div 
+                v-for="topic in topicList" 
+                :key="topic.id" 
+                class="topic-item" 
+                :class="{ active: currentTopicId === topic.id }"
+                @click="switchTopic(topic.id)"
+              >
+                <SafeImage :src="topic.icon" type="banner" :alt="topic.name" class="topic-icon" style="width:16px;height:16px;margin-right:6px;" />
+                <span>{{ topic.name }}</span>
+                <span class="count">{{ topic.postCount }}</span>
+              </div>
+            </div>
+          </div>
         </el-col>
       </el-row>
       
@@ -249,17 +224,18 @@
 <script setup>
 /* eslint-disable vue/no-ref-as-operand */
 import { ref, reactive, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useForumStore } from '@/stores/forum'
 import { useUserStore } from '@/stores/user'
 
-import { Refresh, ArrowDown, Grid, EditPen, Delete, Male, Female, Plus } from '@element-plus/icons-vue'
+import { Refresh, ArrowDown, Grid, EditPen, Delete, Male, Female, Plus, Search } from '@element-plus/icons-vue'
 import PostCard from '@/components/forum/PostCard.vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 import { showByCode } from '@/utils/apiMessages'
 import { forumPromptMessages } from '@/utils/promptMessages'
 
 const router = useRouter()
+const route = useRoute()
 const forumStore = useForumStore()
 const userStore = useUserStore()
 
@@ -268,16 +244,21 @@ const defaultAvatar = ''
 const defaultCover = ''
 const defaultIcon = ''
 
-// 当前选中的版块ID
+// 当前选中的版块ID（'all'表示全部帖子）
 const currentTopicId = ref('all')
 
-// 当前用户信息
-const currentUser = ref({
-  id: 'user123',
-  username: '茶韵悠长',
-  avatar: 'https://via.placeholder.com/80x80?text=茶韵',
-  gender: 1, // 1-男，2-女
-  level: 3
+// 搜索关键词
+const searchKeyword = ref('')
+
+// 当前用户信息（从userStore获取）
+const currentUser = computed(() => {
+  const user = userStore.userInfo
+  return {
+    id: user?.id || '',
+    username: user?.username || '未登录',
+    avatar: user?.avatar || '',
+    gender: user?.gender || 0
+  }
 })
 
 // 待删除的帖子
@@ -733,8 +714,15 @@ const updatePagination = () => {
         const params = {
           page: pagination.currentPage,
           size: pagination.pageSize,
-          sortBy: currentSort.value,
-          topicId: currentTopicId.value === 'all' ? null : currentTopicId.value
+          sortBy: currentSort.value
+        }
+        // 如果选中了版块且不是"全部"，传递topicId参数
+        if (currentTopicId.value && currentTopicId.value !== 'all') {
+          params.topicId = currentTopicId.value
+        }
+        // 如果有搜索关键词，传递keyword参数
+        if (searchKeyword.value && searchKeyword.value.trim()) {
+          params.keyword = searchKeyword.value.trim()
         }
         const res = await forumStore.fetchForumPosts(params)
         showByCode(res.code)
@@ -744,11 +732,24 @@ const updatePagination = () => {
       }
     }
     
+    // 处理搜索
+    const handleSearch = () => {
+      pagination.currentPage = 1
+      fetchPosts()
+    }
+    
     // 切换版块
     const switchTopic = topicId => {
       currentTopicId.value = topicId
+      // 切换版块时清空搜索关键词
+      searchKeyword.value = ''
       pagination.currentPage = 1
       fetchPosts()
+    }
+    
+    // 跳转到我的帖子页面
+    const goToMyPosts = () => {
+      router.push('/forum/my-posts')
     }
     
     // 刷新版块列表
@@ -799,9 +800,15 @@ const updatePagination = () => {
     const showPostDialog = () => {
       // 重置表单
       postForm.title = ''
-      postForm.categoryId = currentTopicId.value !== 'all' ? currentTopicId.value : ''
       postForm.content = ''
       postForm.images = []
+      
+      // 如果当前在具体版块，自动选中该版块；如果在"全部帖子"，则为空（需要用户手动选择）
+      if (currentTopicId.value && currentTopicId.value !== 'all') {
+        postForm.categoryId = currentTopicId.value
+      } else {
+        postForm.categoryId = ''
+      }
       
       dialogVisible.post = true
     }
@@ -861,27 +868,43 @@ const updatePagination = () => {
       localLoading.submit = true
       
       try {
-        // 准备提交数据
+        // 1) 先上传图片（当前 el-upload 设置了 auto-upload=false，不会自动上传）
+        const imageUrls = []
+        for (const file of postForm.images) {
+          // 新选择的图片：file.raw 存在
+          if (file && file.raw) {
+            const uploadRes = await forumStore.uploadPostImage(file.raw)
+            if (uploadRes && uploadRes.data && uploadRes.data.url) {
+              imageUrls.push(uploadRes.data.url)
+            }
+            continue
+          }
+          // 已有图片：直接复用 url
+          if (file && file.url) {
+            imageUrls.push(file.url)
+          }
+        }
+        
+        // 2) 准备提交数据（后端 CreatePostDTO: topicId(Integer), images(String JSON)）
         const submitData = {
           title: postForm.title,
-          categoryId: postForm.categoryId,
+          topicId: postForm.categoryId ? parseInt(postForm.categoryId, 10) : null,
           content: postForm.content,
-          images: postForm.images.map(file => file.url || file.response?.url || '').filter(url => url)
+          images: imageUrls.length > 0 ? JSON.stringify(imageUrls) : null
         }
         
         // 调用API
         const res = await forumStore.createPost(submitData)
         showByCode(res.code)
         
-        // 发布成功
-        if (res.code === 6000) {
+        // 提交成功（等待审核）
+        if (res.code === 6011) {
           dialogVisible.post = false
           // 重置表单
           postFormRef.value.resetFields()
           postForm.images = []
           
-          // 刷新帖子列表
-          await fetchPosts()
+          // 不需要刷新帖子列表（因为待审核的帖子不会显示在列表中）
         }
       } catch (error) {
         console.error('发布帖子失败:', error)
@@ -1015,10 +1038,14 @@ const updatePagination = () => {
     
     // 页面初始化
     onMounted(async () => {
-      await Promise.all([
-        fetchTopics(),
-        fetchPosts()
-      ])
+      await fetchTopics()
+      // 如果有路由参数topicId，设置为当前版块
+      const routeTopicId = route.params.id
+      if (routeTopicId) {
+        currentTopicId.value = parseInt(routeTopicId)
+      }
+      // 默认加载帖子列表（全部帖子）
+      await fetchPosts()
     })
 </script>
 
@@ -1029,9 +1056,10 @@ const updatePagination = () => {
 }
 
 .container {
-  max-width: 1200px;
+  width: 85%;
+  max-width: 1920px;
   margin: 0 auto;
-  padding: 0 15px;
+  padding: 0;
 }
 
 .page-header {
@@ -1140,16 +1168,22 @@ const updatePagination = () => {
   }
 }
 
-// 用户信息侧边栏
+// 用户信息侧边栏（简化版）
 .user-sidebar {
   .user-info-card {
-    padding: 15px;
-    border-bottom: 1px solid #f0f0f0;
+    padding: 20px;
     
     .user-info {
       display: flex;
       align-items: center;
-      margin-bottom: 15px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      padding: 10px;
+      border-radius: 8px;
+      
+      &:hover {
+        background-color: #f5f7fa;
+      }
       
       .avatar {
         width: 50px;
@@ -1157,6 +1191,7 @@ const updatePagination = () => {
         border-radius: 50%;
         overflow: hidden;
         margin-right: 12px;
+        flex-shrink: 0;
         
         img {
           width: 100%;
@@ -1167,70 +1202,26 @@ const updatePagination = () => {
       
       .info {
         flex: 1;
+        min-width: 0;
         
         .name {
           font-size: 16px;
           font-weight: 500;
-          margin-bottom: 4px;
-          display: flex;
-          align-items: center;
-          gap: 5px;
-        }
-        
-        .stats {
-          font-size: 13px;
-          color: var(--el-text-color-secondary);
-        }
-      }
-    }
-    
-    .post-btn {
-      width: 100%;
-    }
-  }
-  
-  .my-posts-card {
-    .my-posts-list {
-      padding: 0 15px 15px;
-      
-      .my-post-item {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        padding: 15px 0;
-        border-bottom: 1px solid #f0f0f0;
-        
-        &:last-child {
-          border-bottom: none;
-        }
-        
-        .post-content {
-          flex: 1;
+          margin-bottom: 6px;
+          color: var(--el-text-color-primary);
+          white-space: nowrap;
           overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        
+        .my-posts-link {
+          font-size: 13px;
+          color: var(--el-color-primary);
           cursor: pointer;
           
-          .title {
-            font-size: 14px;
-            font-weight: 500;
-            margin-bottom: 5px;
-            color: var(--el-text-color-primary);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+          &:hover {
+            text-decoration: underline;
           }
-          
-          .summary {
-            font-size: 12px;
-            color: var(--el-text-color-secondary);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-          }
-        }
-        
-        .post-actions {
-          flex-shrink: 0;
-          margin-left: 10px;
         }
       }
     }
@@ -1252,21 +1243,14 @@ const updatePagination = () => {
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
+    gap: 15px;
     
-    .topic-info {
-      margin-right: 20px;
+    .search-section {
+      flex: 1;
+      min-width: 300px;
       
-      .current-topic {
-        font-size: 18px;
-        font-weight: 500;
-        margin: 0 0 5px;
-    color: var(--el-text-color-primary);
-      }
-      
-      .topic-desc {
-        font-size: 13px;
-        color: var(--el-text-color-secondary);
-        margin: 0;
+      .search-input {
+        max-width: 500px;
       }
     }
     
@@ -1274,6 +1258,7 @@ const updatePagination = () => {
       display: flex;
       gap: 10px;
       align-items: center;
+      flex-shrink: 0;
       
       .sort-dropdown {
         cursor: pointer;

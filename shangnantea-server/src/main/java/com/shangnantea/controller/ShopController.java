@@ -278,12 +278,13 @@ public class ShopController {
      */
     @PostMapping("/{shopId}/banners")
     @RequiresLogin
-    public Result<Object> uploadBanner(@PathVariable String shopId, 
+    public Result<Object> uploadBanner(@PathVariable String shopId,
                                       @RequestParam("image") MultipartFile file,
                                       @RequestParam(value = "title", required = false) String title,
-                                      @RequestParam(value = "linkUrl", required = false) String linkUrl) {
-        logger.info("上传店铺Banner请求: shopId={}, 文件名: {}", shopId, file.getOriginalFilename());
-        return shopService.uploadBanner(shopId, file, title, linkUrl);
+                                      @RequestParam(value = "linkUrl", required = false) String linkUrl,
+                                      @RequestParam(value = "sortOrder", required = false) Integer sortOrder) {
+        logger.info("上传店铺Banner请求: shopId={}, title={}, sortOrder={}, 文件名: {}", shopId, title, sortOrder, file.getOriginalFilename());
+        return shopService.uploadBanner(shopId, file, title, linkUrl, sortOrder);
     }
 
     /**

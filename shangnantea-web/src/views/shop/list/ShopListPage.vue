@@ -320,9 +320,10 @@ defineOptions({
   background-color: #f5f7fa;
   
   .container {
-    max-width: 1200px;
+    width: 85%;
+    max-width: 1920px;
     margin: 0 auto;
-    padding: 0 15px;
+    padding: 0;
   }
   
   .page-header {

@@ -1,6 +1,8 @@
 package com.shangnantea.service.impl;
 
 import com.shangnantea.common.api.Result;
+import com.shangnantea.mapper.ShopMapper;
+import com.shangnantea.model.entity.shop.Shop;
 import com.shangnantea.mapper.ChatMessageMapper;
 import com.shangnantea.mapper.ChatSessionMapper;
 import com.shangnantea.mapper.UserNotificationMapper;
@@ -13,6 +15,7 @@ import com.shangnantea.model.vo.message.UnreadCountVO;
 import com.shangnantea.security.context.UserContext;
 import com.shangnantea.service.MessageService;
 import com.shangnantea.utils.FileUploadUtils;
+import com.shangnantea.utils.NotificationUtils;
 import com.shangnantea.utils.StatisticsUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,6 +64,9 @@ public class MessageServiceImpl implements MessageService {
     
     @Autowired
     private com.shangnantea.mapper.UserFavoriteMapper userFavoriteMapper;
+    
+    @Autowired
+    private ShopMapper shopMapper;
     
     @Autowired
     private StatisticsUtils statisticsUtils;
@@ -385,7 +391,12 @@ public class MessageServiceImpl implements MessageService {
             session.setUpdateTime(new Date());
             sessionMapper.updateById(session);
             
-            // 9. 构造返回数据（转换为MessageVO）
+            // 9. 创建私信通知：给接收者发送通知
+            NotificationUtils.createMessageNotification(
+                receiverId, senderId, session.getId(), content
+            );
+            
+            // 10. 构造返回数据（转换为MessageVO）
             MessageVO vo = new MessageVO();
             vo.setId(message.getId());
             vo.setType(type);
@@ -830,7 +841,10 @@ public class MessageServiceImpl implements MessageService {
         vo.setType(notification.getType());
         vo.setTitle(notification.getTitle());
         vo.setContent(notification.getContent());
-        vo.setIsRead(notification.getIsRead() != null && notification.getIsRead() == 1);
+        vo.setTargetId(notification.getTargetId());
+        vo.setTargetType(notification.getTargetType());
+        vo.setExtraData(notification.getExtraData());
+        vo.setIsRead(notification.getIsRead() != null ? notification.getIsRead() : 0);
         vo.setCreateTime(notification.getCreateTime());
         return vo;
     }
@@ -987,7 +1001,17 @@ public class MessageServiceImpl implements MessageService {
                 if (targetUser != null) {
                     sessionVO.put("targetUsername", targetUser.getUsername());
                     sessionVO.put("targetNickname", targetUser.getNickname());
-                    sessionVO.put("targetAvatar", targetUser.getAvatar());
+                    // 处理头像URL
+                    String targetAvatar = targetUser.getAvatar();
+                    if (targetAvatar != null && !targetAvatar.trim().isEmpty()) {
+                        if (targetAvatar.startsWith("http://") || targetAvatar.startsWith("https://")) {
+                            sessionVO.put("targetAvatar", targetAvatar);
+                        } else {
+                            sessionVO.put("targetAvatar", FileUploadUtils.generateAccessUrl(targetAvatar, baseUrl));
+                        }
+                    } else {
+                        sessionVO.put("targetAvatar", null);
+                    }
                 } else {
                     sessionVO.put("targetUsername", "未知用户");
                     sessionVO.put("targetNickname", "未知用户");
@@ -1083,7 +1107,17 @@ public class MessageServiceImpl implements MessageService {
                 if (sender != null) {
                     messageVO.put("senderUsername", sender.getUsername());
                     messageVO.put("senderNickname", sender.getNickname());
-                    messageVO.put("senderAvatar", sender.getAvatar());
+                    // 处理头像URL
+                    String senderAvatar = sender.getAvatar();
+                    if (senderAvatar != null && !senderAvatar.trim().isEmpty()) {
+                        if (senderAvatar.startsWith("http://") || senderAvatar.startsWith("https://")) {
+                            messageVO.put("senderAvatar", senderAvatar);
+                        } else {
+                            messageVO.put("senderAvatar", FileUploadUtils.generateAccessUrl(senderAvatar, baseUrl));
+                        }
+                    } else {
+                        messageVO.put("senderAvatar", null);
+                    }
                 } else {
                     messageVO.put("senderUsername", "未知用户");
                     messageVO.put("senderNickname", "未知用户");
@@ -1340,9 +1374,30 @@ public class MessageServiceImpl implements MessageService {
             userInfo.put("id", user.getId());
             userInfo.put("username", user.getUsername());
             userInfo.put("nickname", user.getNickname());
-            userInfo.put("avatar", user.getAvatar());
+            // 头像字段：数据库中可能是相对路径，这里统一转换为前端可直接访问的完整URL
+            String avatar = user.getAvatar();
+            if (avatar != null && !avatar.trim().isEmpty()) {
+                if (avatar.startsWith("http://") || avatar.startsWith("https://")) {
+                    userInfo.put("avatar", avatar);
+                } else {
+                    userInfo.put("avatar", FileUploadUtils.generateAccessUrl(avatar, baseUrl));
+                }
+            } else {
+                userInfo.put("avatar", null);
+            }
             userInfo.put("role", user.getRole());
             userInfo.put("bio", user.getBio());
+            userInfo.put("gender", user.getGender());
+            userInfo.put("createTime", user.getCreateTime());
+            
+            // 如果是商家角色，附带店铺信息
+            if (user.getRole() != null && user.getRole() == 3) {
+                Shop shop = shopMapper.selectByOwnerId(userId);
+                if (shop != null) {
+                    userInfo.put("shopId", shop.getId());
+                    userInfo.put("shopName", shop.getShopName());
+                }
+            }
             userProfile.put("user", userInfo);
             
             // 是否已关注
@@ -1389,7 +1444,17 @@ public class MessageServiceImpl implements MessageService {
                 dynamic.put("type", "post"); // 动态类型：帖子
                 dynamic.put("title", post.getTitle());
                 dynamic.put("content", post.getSummary() != null ? post.getSummary() : post.getContent());
-                dynamic.put("coverImage", post.getCoverImage());
+                // 处理封面图片URL
+                String coverImage = post.getCoverImage();
+                if (coverImage != null && !coverImage.trim().isEmpty()) {
+                    if (coverImage.startsWith("http://") || coverImage.startsWith("https://")) {
+                        dynamic.put("coverImage", coverImage);
+                    } else {
+                        dynamic.put("coverImage", FileUploadUtils.generateAccessUrl(coverImage, baseUrl));
+                    }
+                } else {
+                    dynamic.put("coverImage", null);
+                }
                 dynamic.put("viewCount", post.getViewCount());
                 // 使用动态计算获取点赞数
                 dynamic.put("likeCount", statisticsUtils.getLikeCount("post", String.valueOf(post.getId())));
@@ -1487,7 +1552,17 @@ public class MessageServiceImpl implements MessageService {
                 postVO.put("title", post.getTitle());
                 postVO.put("content", post.getContent());
                 postVO.put("summary", post.getSummary());
-                postVO.put("coverImage", post.getCoverImage());
+                // 处理封面图片URL
+                String coverImage = post.getCoverImage();
+                if (coverImage != null && !coverImage.trim().isEmpty()) {
+                    if (coverImage.startsWith("http://") || coverImage.startsWith("https://")) {
+                        postVO.put("coverImage", coverImage);
+                    } else {
+                        postVO.put("coverImage", FileUploadUtils.generateAccessUrl(coverImage, baseUrl));
+                    }
+                } else {
+                    postVO.put("coverImage", null);
+                }
                 postVO.put("viewCount", post.getViewCount());
                 postVO.put("replyCount", post.getReplyCount());
                 // 使用动态计算获取点赞数和收藏数
@@ -1556,7 +1631,24 @@ public class MessageServiceImpl implements MessageService {
                 reviewVO.put("orderId", review.getOrderId());
                 reviewVO.put("content", review.getContent());
                 reviewVO.put("rating", review.getRating());
-                reviewVO.put("images", review.getImages());
+                // 处理图片列表URL
+                String imagesStr = review.getImages();
+                if (imagesStr != null && !imagesStr.trim().isEmpty()) {
+                    List<String> imageList = new ArrayList<>();
+                    String[] imageArray = imagesStr.split(",");
+                    for (String imageUrl : imageArray) {
+                        if (imageUrl != null && !imageUrl.trim().isEmpty()) {
+                            if (imageUrl.trim().startsWith("http://") || imageUrl.trim().startsWith("https://")) {
+                                imageList.add(imageUrl.trim());
+                            } else {
+                                imageList.add(FileUploadUtils.generateAccessUrl(imageUrl.trim(), baseUrl));
+                            }
+                        }
+                    }
+                    reviewVO.put("images", imageList);
+                } else {
+                    reviewVO.put("images", new ArrayList<>());
+                }
                 reviewVO.put("reply", review.getReply());
                 reviewVO.put("replyTime", review.getReplyTime());
                 reviewVO.put("isAnonymous", review.getIsAnonymous());

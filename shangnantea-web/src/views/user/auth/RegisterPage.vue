@@ -389,7 +389,7 @@ const showPrivacy = () => {
 
 .register-container {
   width: 100%;
-  max-width: 1200px;
+  max-width: 1920px;
   margin: 0 auto;
   display: flex;
   justify-content: center;

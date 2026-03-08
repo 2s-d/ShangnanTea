@@ -135,6 +135,20 @@ public class UserController {
     }
     
     /**
+     * 获取今日天气信息
+     * 路径: GET /user/weather/today
+     * 成功码: 2026, 失败码: 2152
+     *
+     * @param city 可选，城市行政区划代码（adcode），为空时使用后端默认城市
+     * @return 今日天气信息
+     */
+    @GetMapping("/weather/today")
+    public Result<Map<String, Object>> getTodayWeather(@RequestParam(value = "city", required = false) String city) {
+        logger.info("获取今日天气请求, city={}", city);
+        return userService.getTodayWeather(city);
+    }
+    
+    /**
      * 上传头像
      * 路径: POST /user/avatar
      * 成功码: 2004, 失败码: 2109, 2110, 2111

@@ -369,10 +369,10 @@ export const useTeaStore = defineStore('tea', () => {
     try {
       const res = await addSpecificationApi(teaId, specData)
       
-      if (specData.is_default === 1) {
+      if (specData.isDefault === 1) {
         currentTeaSpecs.value.forEach(spec => {
           if (res.data && spec.id !== res.data.id) {
-            spec.is_default = 0
+            spec.isDefault = 0
           }
         })
       }
@@ -394,10 +394,10 @@ export const useTeaStore = defineStore('tea', () => {
     try {
       const res = await updateSpecificationApi(specId, specData)
       
-      if (specData.is_default === 1) {
+      if (specData.isDefault === 1) {
         currentTeaSpecs.value.forEach(spec => {
           if (spec.id !== specId) {
-            spec.is_default = 0
+            spec.isDefault = 0
           }
         })
       }
@@ -436,7 +436,7 @@ export const useTeaStore = defineStore('tea', () => {
       const res = await setDefaultSpecificationApi(specId)
       
       currentTeaSpecs.value.forEach(spec => {
-        spec.is_default = spec.id === specId ? 1 : 0
+        spec.isDefault = spec.id === specId ? 1 : 0
       })
       
       await fetchTeaSpecifications(teaId)
@@ -490,10 +490,19 @@ export const useTeaStore = defineStore('tea', () => {
   }
   
   // 更新图片顺序
-  async function updateImageOrder({ orders }) {
+  async function updateImageOrder({ teaId, orders }) {
     try {
-      const res = await updateImageOrderApi(orders)
+      // 后端期望的数据结构：{ teaId, orders: [{ imageId, sortOrder }] }
+      const payload = {
+        teaId,
+        orders: orders.map(item => ({
+          imageId: item.imageId,
+          sortOrder: item.order
+        }))
+      }
+      const res = await updateImageOrderApi(payload)
       
+      // 本地状态同步排序结果
       orders.forEach(({ imageId, order }) => {
         const image = teaImages.value.find(img => img.id === imageId)
         if (image) {
@@ -521,7 +530,7 @@ export const useTeaStore = defineStore('tea', () => {
       if (currentTea.value && currentTea.value.id === teaId) {
         const mainImage = teaImages.value.find(img => img.id === imageId)
         if (mainImage) {
-          currentTea.value.main_image = mainImage.url
+          currentTea.value.mainImage = mainImage.url
         }
       }
       

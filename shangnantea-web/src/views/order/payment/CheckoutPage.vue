@@ -30,16 +30,18 @@
                       <span class="phone">{{ address.phone }}</span>
                       <el-tag v-if="address.isDefault" size="small" type="success">默认地址</el-tag>
                     </div>
-                    <div class="address-detail">{{ address.formattedAddress }}</div>
+                    <div class="address-detail">{{ formatAddress(address) }}</div>
                   </div>
                 </el-radio>
               </div>
             </el-radio-group>
           </div>
           
-          <el-empty v-else description="您还没有收货地址，请添加" :image-size="100">
-            <el-button type="primary" @click="openAddressDialog">添加收货地址</el-button>
-          </el-empty>
+          <el-empty
+            v-else
+            description="您还没有收货地址，请先添加地址"
+            :image-size="80"
+          />
         </div>
 
         <!-- 订单商品部分 -->
@@ -52,7 +54,12 @@
           <div class="order-items">
             <div v-for="item in orderItems" :key="item.id" class="order-item">
               <div class="item-image">
-                <SafeImage :src="item.tea_image" type="tea" :alt="item.teaName" style="width:80px;height:80px;object-fit:cover;" />
+                <SafeImage
+                  :src="item.teaImage || ''"
+                  type="tea"
+                  :alt="item.teaName"
+                  style="width:80px;height:80px;object-fit:cover;"
+                />
               </div>
               <div class="item-info">
                 <div class="item-name">{{ item.teaName }}</div>
@@ -92,12 +99,26 @@
           <div class="payment-methods">
             <el-radio-group v-model="paymentMethod">
               <el-radio value="alipay">
-                <SafeImage src="/images/payments/alipay.jpg" type="banner" alt="支付宝" class="payment-logo" style="width:24px;height:24px;object-fit:contain;" />
-                支付宝
+                <div class="payment-method-item">
+                  <SafeImage
+                    src="/images/payments/alipay.jpg"
+                    type="banner"
+                    alt="支付宝"
+                    class="payment-logo"
+                  />
+                  <span>支付宝</span>
+                </div>
               </el-radio>
               <el-radio value="wechat">
-                <SafeImage src="/images/payments/wechat.jpg" type="banner" alt="微信支付" class="payment-logo" style="width:24px;height:24px;object-fit:contain;" />
-                微信支付
+                <div class="payment-method-item">
+                  <SafeImage
+                    src="/images/payments/wechat.jpg"
+                    type="banner"
+                    alt="微信支付"
+                    class="payment-logo"
+                  />
+                  <span>微信支付</span>
+                </div>
               </el-radio>
             </el-radio-group>
           </div>
@@ -206,6 +227,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useOrderStore } from '@/stores/order'
 import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
+import { getStaticRegionData, CodeToText } from '@/utils/region'
 
 import { ArrowLeft, Plus } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
@@ -282,17 +304,38 @@ defineOptions({
     }
     
     const regionOptions = ref([])
+    // 使用与地址管理页相同的静态省市区数据
+    regionOptions.value = getStaticRegionData()
     
     // 添加默认图片常量（生产形态：不使用 mock-images）
     const defaultTeaImage = ''
     const defaultPaymentImage = ''
+    
+    // 将省市区字段从 code 转为中文（若本身已是中文则原样返回）
+    const toRegionText = value => {
+      if (value === null || value === undefined) return ''
+      const key = String(value)
+      return CodeToText?.[key] || key
+    }
+
+    // 格式化地址展示文本（结算页使用 userStore.addressList，不包含 formattedAddress 字段）
+    const formatAddress = address => {
+      if (!address) return ''
+      return [
+        toRegionText(address.province),
+        toRegionText(address.city),
+        toRegionText(address.district),
+        address.detail
+      ].filter(Boolean).join(' ')
+    }
     
     // 加载地址和订单数据
     const loadAddresses = async () => {
       try {
         loading.value = true
         await userStore.fetchAddresses()
-        addresses.value = userStore.addresses || []
+        // 使用 Pinia 中维护的地址列表
+        addresses.value = userStore.addressList || []
         
         // 默认选中默认地址
         const defaultAddress = addresses.value.find(addr => addr.isDefault)
@@ -451,19 +494,19 @@ defineOptions({
       submitting.value = true
       try {
         // 第一步：创建订单
+        const isDirect = route.query.direct === '1'
         const orderData = {
-          address_id: selectedAddressId.value,
-          payment_method: paymentMethod.value,
-          order_amount: totalAmount.value,
-          shipping_fee: shippingFee.value,
-          fromCart: true,
+          // 后端 createOrder 接口使用驼峰字段：addressId / fromCart / items[*].teaId/specId/quantity/cartItemId
+          addressId: selectedAddressId.value,
+          fromCart: !isDirect, // 直接购买不走购物车
+          // 备注：后端当前只支持 order 级别 remark（buyerMessage），这里把每个商品备注合并成一条
+          remark: orderItems.value.map(i => i.remark).filter(Boolean).join('；'),
           items: orderItems.value.map(item => ({
-            tea_id: item.tea_id,
-            spec_id: item.spec_id,
-            quantity: item.quantity,
-            price: item.price,
-            shop_id: item.shop_id,
-            remark: item.remark || ''
+            // cartItemId 仅在 fromCart=true 时才会被后端用于删除购物车项
+            cartItemId: isDirect ? null : item.id,
+            teaId: item.teaId,
+            specId: item.specId || null,
+            quantity: item.quantity
           }))
         }
         const createRes = await orderStore.createOrder(orderData)
@@ -471,14 +514,16 @@ defineOptions({
         // 显示创建订单的消息
         if (createRes?.code) showByCode(createRes.code)
         
-        const orderId = createRes?.data?.order_id || createRes?.data?.id
-        if (!orderId) {
-          console.error('订单创建失败，未返回订单ID')
+        const paymentId = createRes?.data?.paymentId
+        const orderId = createRes?.data?.orderId || createRes?.data?.id
+        if (!paymentId || !orderId) {
+          console.error('订单创建失败，未返回支付单号或订单ID')
           return
         }
         
         // 第二步：发起支付
         const payRes = await orderStore.payOrder({
+          paymentId,
           orderId,
           paymentMethod: paymentMethod.value
         })
@@ -552,6 +597,12 @@ defineOptions({
   &:last-child {
     border-bottom: none;
   }
+}
+
+// 收货地址区域适当压缩高度
+.address-section {
+  margin-bottom: 20px;
+  padding-bottom: 10px;
 }
 
 .section-title {
@@ -702,21 +753,28 @@ defineOptions({
 }
 
 // 支付方式部分
-.payment-methods {
+// 让单选组横向排列，并使用 gap 控制支付宝/微信之间的间距
+.payment-methods :deep(.el-radio-group) {
   display: flex;
-  gap: 20px;
+  gap: 50px;
+  padding-left: 20px;
+}
+
+.payment-methods :deep(.el-radio) {
+  display: inline-flex;
+  align-items: center;
 }
 
 .payment-method-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 5px 0;
+  gap: 5px;
+  padding: 15px 10px;
 }
 
 .payment-logo {
-  width: 28px;
-  height: 28px;
+  width: 50px;
+  height: 50px;
   object-fit: contain;
 }
 

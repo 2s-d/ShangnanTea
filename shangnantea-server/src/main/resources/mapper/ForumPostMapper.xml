@@ -82,10 +82,22 @@
     </select>
     
     <!-- 查询正常状态的帖子（支持版块和关键词过滤） -->
+    <!-- 注意：当传入userId时，返回该用户的所有帖子（除了已删除的status=2），用于"我的帖子"功能 -->
+    <!-- 当不传入userId时，只返回已发布的帖子（status=1），用于公开的帖子列表 -->
     <select id="selectPublishedPosts" resultMap="BaseResultMap">
         SELECT <include refid="Base_Column_List"/>
         FROM forum_posts
-        WHERE status = #{status}
+        WHERE 
+        <choose>
+            <!-- 如果传入了userId，返回该用户的所有帖子（除了已删除的） -->
+            <when test="userId != null and userId != ''">
+                user_id = #{userId} AND status != 2
+            </when>
+            <!-- 如果没有传入userId，只返回已发布的帖子 -->
+            <otherwise>
+                status = #{status}
+            </otherwise>
+        </choose>
         <if test="topicId != null">
             AND topic_id = #{topicId}
         </if>

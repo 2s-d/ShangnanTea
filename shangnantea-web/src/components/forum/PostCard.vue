@@ -4,10 +4,10 @@
     <div class="post-header">
       <div class="user-info" @click="goToUserProfile">
         <div class="avatar">
-          <SafeImage :src="post.authorAvatar" type="avatar" :alt="post.authorName" style="width:100%;height:100%;object-fit:cover;" />
+          <SafeImage :src="post.userAvatar" type="avatar" :alt="post.userName" style="width:100%;height:100%;object-fit:cover;" />
         </div>
         <div class="info">
-          <div class="name">{{ post.authorName }}</div>
+          <div class="name">{{ post.userName }}</div>
           <div class="meta">
             <span class="time">{{ formatDate(post.createTime) }}</span>
             <span class="gender" v-if="post.authorGender">
@@ -21,7 +21,19 @@
     
     <!-- 帖子内容 -->
     <div class="post-content" @click="goToPostDetail">
-      <div class="title">{{ post.title }}</div>
+      <div class="title-row">
+        <div class="title">{{ post.title }}</div>
+        <!-- 审核状态标签（仅在"我的帖子"页面显示） -->
+        <el-tag 
+          v-if="showStatus && post.status !== undefined && post.status !== 1" 
+          :type="getStatusTagType(post.status)" 
+          size="small" 
+          effect="plain"
+          class="status-tag"
+        >
+          {{ getStatusText(post.status) }}
+        </el-tag>
+      </div>
       <div class="content" :class="{ 'clamp-content': !showFullContent }">
         {{ post.summary || post.content }}
       </div>
@@ -95,6 +107,10 @@ export default {
     showDelete: {
       type: Boolean,
       default: false
+    },
+    showStatus: {
+      type: Boolean,
+      default: false
     }
   },
   emits: ['reply', 'like', 'favorite', 'delete'],
@@ -120,7 +136,7 @@ export default {
     
     // 跳转到用户主页
     const goToUserProfile = () => {
-      router.push(`/profile/${props.post.authorId}`)
+      router.push(`/profile/${props.post.userId}`)
     }
     
     // 回复帖子
@@ -172,6 +188,30 @@ export default {
       return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
     }
     
+    // 获取审核状态文本
+    const getStatusText = status => {
+      // status: 0=待审核, 1=已发布, 2=已删除, 3=已拒绝
+      const statusMap = {
+        0: '待审核',
+        1: '已发布',
+        2: '已删除',
+        3: '已拒绝'
+      }
+      return statusMap[status] || '未知'
+    }
+    
+    // 获取审核状态标签类型
+    const getStatusTagType = status => {
+      // status: 0=待审核, 1=已发布, 2=已删除, 3=已拒绝
+      const typeMap = {
+        0: 'warning',  // 待审核 - 黄色
+        1: 'success',  // 已发布 - 绿色（通常不显示）
+        2: 'info',     // 已删除 - 灰色
+        3: 'danger'    // 已拒绝 - 红色
+      }
+      return typeMap[status] || 'info'
+    }
+    
     return {
       showFullContent,
       isContentOverflow,
@@ -182,7 +222,9 @@ export default {
       handleLike,
       handleFavorite,
       handleDelete,
-      formatDate
+      formatDate,
+      getStatusText,
+      getStatusTagType
     }
   }
 }
@@ -251,11 +293,22 @@ export default {
   .post-content {
     cursor: pointer;
     
-    .title {
-      font-size: 16px;
-      font-weight: 500;
+    .title-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
       margin-bottom: 8px;
-      color: var(--el-text-color-primary);
+      
+      .title {
+        font-size: 16px;
+        font-weight: 500;
+        color: var(--el-text-color-primary);
+        flex: 1;
+      }
+      
+      .status-tag {
+        flex-shrink: 0;
+      }
     }
     
     .content {

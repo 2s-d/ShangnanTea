@@ -75,7 +75,7 @@ export const useMessageStore = defineStore('message', () => {
       loading.value = true
       const queryParams = {
         page: pagination.value.currentPage,
-        size: pagination.value.pageSize,
+        pageSize: pagination.value.pageSize,
         ...params
       }
 
@@ -344,7 +344,22 @@ export const useMessageStore = defineStore('message', () => {
     try {
       loading.value = true
       const res = await getUserProfile(userId)
-      userProfile.value = res.data
+      const data = res.data || {}
+      const rawUser = data.user || data
+      userProfile.value = {
+        id: rawUser.id,
+        username: rawUser.username,
+        nickname: rawUser.nickname,
+        avatar: rawUser.avatar,
+        bio: rawUser.bio,
+        role: Number(rawUser.role) || null, // 确保是数字类型
+        gender: Number(rawUser.gender) || 0, // 确保是数字类型，默认0（未知）
+        // 主页额外字段
+        isFollowed: data.isFollowed || false,
+        registerTime: rawUser.createTime || rawUser.registerTime || null,
+        shopId: rawUser.shopId || null,
+        shopName: rawUser.shopName || null
+      }
       return res
     } finally {
       loading.value = false
@@ -360,7 +375,12 @@ export const useMessageStore = defineStore('message', () => {
     try {
       loading.value = true
       const res = await getUserDynamic(userId)
-      userDynamic.value = res.data
+      const data = res.data || {}
+      // 后端返回 { list, total }，这里适配为 recentPosts/recentComments 结构
+      userDynamic.value = {
+        recentPosts: data.list || [],
+        recentComments: [] // 评论动态后端暂未提供
+      }
       return res
     } finally {
       loading.value = false
@@ -376,7 +396,15 @@ export const useMessageStore = defineStore('message', () => {
     try {
       loading.value = true
       const res = await getUserStatistics(userId)
-      userStatistics.value = res.data
+      const stats = res.data || {}
+      userStatistics.value = {
+        postCount: stats.postCount || 0,
+        likeCount: stats.likeCount || 0,
+        favoriteCount: stats.favoriteCount || 0,
+        followingCount: stats.followingCount || 0,
+        followerCount: stats.followerCount || 0,
+        commentCount: stats.commentCount || 0
+      }
       return res
     } finally {
       loading.value = false

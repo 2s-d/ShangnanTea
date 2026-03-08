@@ -1,6 +1,8 @@
 <template>
   <div class="order-manage-page">
-    <el-card class="order-manage-card">
+    <!-- 使用全局 container，保证与其他管理页左右对齐 -->
+    <div class="container main-content">
+      <el-card class="order-manage-card">
       <template #header>
         <div class="card-header">
           <h2 class="page-title">订单管理</h2>
@@ -51,67 +53,70 @@
           </template>
           
           <!-- 概览卡片 -->
-          <div v-if="orderStatistics" class="overview-cards">
+          <div v-if="statisticsOverview" class="overview-cards">
             <div class="overview-card">
               <div class="overview-label">总订单数</div>
-              <div class="overview-value">{{ orderStatistics.overview?.total_orders || 0 }}</div>
+              <div class="overview-value">{{ statisticsOverview.totalOrders }}</div>
             </div>
             <div class="overview-card">
               <div class="overview-label">总金额</div>
-              <div class="overview-value">¥{{ (orderStatistics.overview?.total_amount || 0).toFixed(2) }}</div>
+              <div class="overview-value">¥{{ statisticsOverview.totalAmount.toFixed(2) }}</div>
             </div>
             <div class="overview-card">
               <div class="overview-label">待付款</div>
-              <div class="overview-value">{{ orderStatistics.overview?.pending_payment || 0 }}</div>
+              <div class="overview-value">{{ statisticsOverview.pendingPayment }}</div>
             </div>
             <div class="overview-card">
               <div class="overview-label">待发货</div>
-              <div class="overview-value">{{ orderStatistics.overview?.pending_shipment || 0 }}</div>
+              <div class="overview-value">{{ statisticsOverview.pendingShipment }}</div>
             </div>
             <div class="overview-card">
               <div class="overview-label">待收货</div>
-              <div class="overview-value">{{ orderStatistics.overview?.pending_receipt || 0 }}</div>
+              <div class="overview-value">{{ statisticsOverview.pendingReceipt }}</div>
             </div>
             <div class="overview-card">
               <div class="overview-label">已完成</div>
-              <div class="overview-value">{{ orderStatistics.overview?.completed || 0 }}</div>
+              <div class="overview-value">{{ statisticsOverview.completed }}</div>
             </div>
             <div class="overview-card">
               <div class="overview-label">已取消</div>
-              <div class="overview-value">{{ orderStatistics.overview?.cancelled || 0 }}</div>
+              <div class="overview-value">{{ statisticsOverview.cancelled }}</div>
             </div>
             <div class="overview-card">
               <div class="overview-label">已退款</div>
-              <div class="overview-value">{{ orderStatistics.overview?.refunded || 0 }}</div>
+              <div class="overview-value">{{ statisticsOverview.refunded }}</div>
             </div>
           </div>
           
-          <!-- 订单趋势 -->
-          <div v-if="orderStatistics?.trends" class="trend-section">
-            <h3 class="section-title">订单趋势（最近7天）</h3>
-            <el-table :data="orderStatistics.trends" border size="small" style="margin-top: 10px;">
-              <el-table-column prop="date" label="日期" width="120" />
-              <el-table-column prop="orders_count" label="订单数" width="100" />
-              <el-table-column prop="amount" label="金额" width="120">
-                <template #default="scope">
-                  ¥{{ (scope.row.amount || 0).toFixed(2) }}
-                </template>
-              </el-table-column>
-            </el-table>
-          </div>
-          
-          <!-- 状态分布 -->
-          <div v-if="orderStatistics?.status_distribution" class="status-distribution-section">
-            <h3 class="section-title">订单状态分布</h3>
-            <el-table :data="orderStatistics.status_distribution" border size="small" style="margin-top: 10px;">
-              <el-table-column prop="status_name" label="状态" width="120" />
-              <el-table-column prop="count" label="数量" width="100" />
-              <el-table-column prop="percentage" label="占比" width="120">
-                <template #default="scope">
-                  {{ scope.row.percentage }}%
-                </template>
-              </el-table-column>
-            </el-table>
+          <!-- 订单趋势和状态分布并排显示 -->
+          <div v-if="trendTableData.length || statusTableData.length" class="tables-row">
+            <!-- 订单趋势 -->
+            <div v-if="trendTableData.length" class="trend-section">
+              <h3 class="section-title">订单趋势（最近7天）</h3>
+              <el-table :data="trendTableData" border size="small" style="margin-top: 10px;">
+                <el-table-column prop="date" label="日期" width="120" />
+                <el-table-column prop="orders_count" label="订单数" width="100" />
+                <el-table-column prop="amount" label="金额" width="120">
+                  <template #default="scope">
+                    ¥{{ (scope.row.amount || 0).toFixed(2) }}
+                  </template>
+                </el-table-column>
+              </el-table>
+            </div>
+            
+            <!-- 状态分布 -->
+            <div v-if="statusTableData.length" class="status-distribution-section">
+              <h3 class="section-title">订单状态分布</h3>
+              <el-table :data="statusTableData" border size="small" style="margin-top: 10px;">
+                <el-table-column prop="status_name" label="状态" width="120" />
+                <el-table-column prop="count" label="数量" width="100" />
+                <el-table-column prop="percentage" label="占比" width="120">
+                  <template #default="scope">
+                    {{ scope.row.percentage }}%
+                  </template>
+                </el-table-column>
+              </el-table>
+            </div>
           </div>
         </el-card>
       </div>
@@ -173,24 +178,24 @@
           <el-table-column
             type="selection"
             width="55"
-            :selectable="row => row.status === 1 && row.refund_status !== 1"
+            :selectable="row => row.status === 1 && row.refundStatus !== 1"
           />
           <el-table-column prop="id" label="订单编号" min-width="180" show-overflow-tooltip>
             <template #default="scope">
               <el-link type="primary" @click="viewOrderDetail(scope.row.id)">{{ scope.row.id }}</el-link>
             </template>
           </el-table-column>
-          <el-table-column prop="tea_name" label="商品名称" min-width="180" show-overflow-tooltip />
-          <el-table-column prop="spec_name" label="规格" min-width="120" show-overflow-tooltip />
+          <el-table-column prop="teaName" label="商品名称" min-width="180" show-overflow-tooltip />
+          <el-table-column prop="specName" label="规格" min-width="120" show-overflow-tooltip />
           <el-table-column prop="price" label="单价" min-width="100">
             <template #default="scope">
               ¥{{ (scope.row.price || 0).toFixed(2) }}
             </template>
           </el-table-column>
           <el-table-column prop="quantity" label="数量" min-width="80" />
-          <el-table-column prop="total_amount" label="总金额" min-width="120">
+          <el-table-column prop="totalPrice" label="总金额" min-width="120">
             <template #default="scope">
-              ¥{{ (scope.row.total_amount || 0).toFixed(2) }}
+              ¥{{ (scope.row.totalPrice || 0).toFixed(2) }}
             </template>
           </el-table-column>
           <el-table-column prop="status" label="订单状态" min-width="120">
@@ -199,7 +204,7 @@
                 {{ getStatusText(scope.row.status) }}
               </el-tag>
               <el-tag
-                v-if="scope.row.refund_status === 1"
+                v-if="scope.row.refundStatus === 1"
                 type="warning"
                 effect="light"
                 style="margin-left: 5px"
@@ -208,13 +213,18 @@
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="create_time" label="下单时间" min-width="180" />
-          <el-table-column label="操作" fixed="right" min-width="200">
+          <el-table-column prop="createTime" label="下单时间" min-width="180" />
+          <el-table-column label="操作" fixed="right" width="180">
             <template #default="scope">
-              <!-- 待发货状态 -->
-              <div v-if="scope.row.status === 1">
+              <div style="display: flex; gap: 8px; align-items: center; flex-wrap: nowrap;">
+                <!-- 查看详情按钮 -->
+                <el-button size="small" @click="viewOrderDetail(scope.row.id)">
+                  查看详情
+                </el-button>
+                
+                <!-- 待发货状态 -->
                 <el-button 
-                  v-if="scope.row.refund_status !== 1"
+                  v-if="scope.row.status === 1 && scope.row.refundStatus !== 1"
                   type="primary" 
                   size="small" 
                   @click="shipOrder(scope.row)"
@@ -222,7 +232,7 @@
                   发货
                 </el-button>
                 <el-button 
-                  v-if="scope.row.refund_status === 1"
+                  v-if="scope.row.status === 1 && scope.row.refundStatus === 1"
                   type="warning" 
                   size="small" 
                   @click="openRefundDetail(scope.row)"
@@ -230,11 +240,6 @@
                   处理退款
                 </el-button>
               </div>
-              
-              <!-- 其他状态通用操作 -->
-              <el-button size="small" @click="viewOrderDetail(scope.row.id)">
-                查看详情
-              </el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -252,7 +257,8 @@
           />
         </div>
       </div>
-    </el-card>
+      </el-card>
+    </div>
 
     <!-- 发货对话框 -->
     <el-dialog
@@ -265,7 +271,7 @@
           <span>{{ currentOrder?.id }}</span>
         </el-form-item>
         <el-form-item label="商品信息">
-          <span>{{ currentOrder?.tea_name }} ({{ currentOrder?.spec_name }}) x{{ currentOrder?.quantity }}</span>
+          <span>{{ currentOrder?.teaName }} ({{ currentOrder?.specName }}) x{{ currentOrder?.quantity }}</span>
         </el-form-item>
         <el-form-item label="收货人">
           <span>{{ getReceiverInfo() }}</span>
@@ -333,9 +339,9 @@
       <el-descriptions :column="1" border>
         <el-descriptions-item label="订单编号">{{ currentRefundOrder?.id }}</el-descriptions-item>
         <el-descriptions-item label="商品信息">
-          {{ currentRefundOrder?.tea_name }} ({{ currentRefundOrder?.spec_name }}) x{{ currentRefundOrder?.quantity }}
+          {{ currentRefundOrder?.teaName }} ({{ currentRefundOrder?.specName }}) x{{ currentRefundOrder?.quantity }}
         </el-descriptions-item>
-        <el-descriptions-item label="订单金额">¥{{ currentRefundOrder?.total_amount?.toFixed(2) }}</el-descriptions-item>
+        <el-descriptions-item label="订单金额">¥{{ currentRefundOrder?.totalPrice?.toFixed(2) }}</el-descriptions-item>
         <el-descriptions-item label="申请时间">{{ refundDetail?.apply_time || formatRefundApplyTime() }}</el-descriptions-item>
         <el-descriptions-item label="退款原因">
           {{ refundDetail?.reason || currentRefundOrder?.refund_reason || '未提供原因' }}
@@ -494,6 +500,70 @@ const refundDetail = ref(null)
 const statisticsDateRange = ref([])
 const orderStatistics = computed(() => orderStore.orderStatistics)
 
+// 将后端的 OrderStatisticsVO 转换为页面所需结构
+const statisticsOverview = computed(() => {
+  const s = orderStatistics.value
+  if (!s) {
+    return {
+      totalOrders: 0,
+      totalAmount: 0,
+      pendingPayment: 0,
+      pendingShipment: 0,
+      pendingReceipt: 0,
+      completed: 0,
+      cancelled: 0,
+      refunded: 0
+    }
+  }
+  const dist = s.statusDistribution || {}
+  const getCount = (code) => Number(dist[String(code)] || 0)
+  return {
+    totalOrders: s.totalOrders ?? 0,
+    totalAmount: Number(s.totalAmount || 0),
+    pendingPayment: getCount(0),
+    pendingShipment: getCount(1),
+    pendingReceipt: getCount(2),
+    completed: getCount(3),
+    cancelled: getCount(4),
+    refunded: getCount(5)
+  }
+})
+
+// 趋势表格数据
+const trendTableData = computed(() => {
+  const list = orderStatistics.value?.trend || orderStatistics.value?.trends || []
+  if (!Array.isArray(list)) return []
+  return list.map(item => ({
+    date: item.date,
+    orders_count: item.orders,
+    amount: Number(item.amount || 0)
+  }))
+})
+
+// 状态分布表格数据
+const statusTableData = computed(() => {
+  const dist = orderStatistics.value?.statusDistribution || orderStatistics.value?.status_distribution
+  if (!dist) return []
+  const statusNames = {
+    0: '待付款',
+    1: '待发货',
+    2: '待收货',
+    3: '已完成',
+    4: '已取消',
+    5: '已退款'
+  }
+  const total = Object.values(dist).reduce((sum, v) => sum + Number(v || 0), 0) || 1
+  return Object.keys(statusNames).map(code => {
+    const count = Number(dist[code] || 0)
+    return {
+      status: Number(code),
+      status_name: statusNames[code],
+      count,
+      percentage: Number(((count * 100) / total).toFixed(2))
+    }
+  })
+})
+
 // 任务组E：导出订单相关
 const exportDialogVisible = ref(false)
 const exporting = ref(false)
@@ -521,16 +591,16 @@ const orderList = ref([])
         let sortBy = ''
         let sortOrder = ''
         if (sortKey.value === 'timeDesc') {
-          sortBy = 'create_time'
+          sortBy = 'createTime'
           sortOrder = 'desc'
         } else if (sortKey.value === 'timeAsc') {
-          sortBy = 'create_time'
+          sortBy = 'createTime'
           sortOrder = 'asc'
         } else if (sortKey.value === 'amountDesc') {
-          sortBy = 'total_amount'
+          sortBy = 'totalPrice'
           sortOrder = 'desc'
         } else if (sortKey.value === 'amountAsc') {
-          sortBy = 'total_amount'
+          sortBy = 'totalPrice'
           sortOrder = 'asc'
         }
         // 更新 Pinia中的筛选条件
@@ -547,7 +617,9 @@ const orderList = ref([])
           page: currentPage.value,
           size: pageSize.value
         })
-        orderList.value = data.list || orderStore.orderList || []
+        const rawList = data.list || orderStore.orderList || []
+        // 后端字段统一使用 camelCase，直接使用
+        orderList.value = rawList
         const p = orderStore.pagination
         total.value = p.total
         currentPage.value = p.currentPage
@@ -560,7 +632,7 @@ const orderList = ref([])
     // 多选变更
     const handleSelectionChange = rows => {
       const ids = rows
-        .filter(row => row.status === 1 && row.refund_status !== 1)
+        .filter(row => row.status === 1 && row.refundStatus !== 1)
         .map(row => row.id)
       selectedOrderIds.value = ids
       hasBatchSelection.value = ids.length > 0
@@ -652,9 +724,9 @@ const orderList = ref([])
       return statusMap[status] || 'info'
     }
     
-    // 查看订单详情
+    // 查看订单详情（跳转到管理端详情页）
     const viewOrderDetail = orderId => {
-      router.push(`/order/detail/${orderId}`)
+      router.push(`/order/manage/detail/${orderId}`)
     }
     
     // 跳转发货对话框
@@ -906,9 +978,16 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .order-manage-page {
-  padding: 20px;
+  padding: 20px 0 40px;
   background-color: #f5f7fa;
   min-height: calc(100vh - 60px);
+
+  .main-content {
+    width: 85%;
+    max-width: 1920px;
+    margin: 0 auto;
+    padding: 0;
+  }
 }
 
 .order-manage-card {
@@ -1019,15 +1098,30 @@ onMounted(() => {
     }
   }
   
-  .trend-section,
-  .status-distribution-section {
+  .tables-row {
+    display: flex;
+    gap: 20px;
     margin-top: 20px;
     
-    .section-title {
-      font-size: 16px;
-      font-weight: bold;
-      margin-bottom: 10px;
-      color: #303133;
+    .trend-section,
+    .status-distribution-section {
+      flex: 1;
+      min-width: 0; // 防止flex子元素溢出
+      
+      .section-title {
+        font-size: 16px;
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #303133;
+      }
+    }
+  }
+  
+  // 响应式：小屏幕下恢复垂直排列
+  @media (max-width: 768px) {
+    .tables-row {
+      flex-direction: column;
+      gap: 20px;
     }
   }
 }

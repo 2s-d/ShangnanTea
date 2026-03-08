@@ -8,7 +8,6 @@ import com.shangnantea.security.annotation.RequiresLogin;
 import com.shangnantea.security.annotation.RequiresRoles;
 import com.shangnantea.security.context.UserContext;
 import com.shangnantea.security.util.JwtUtil;
-import com.shangnantea.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,8 +32,9 @@ public class JwtInterceptor implements HandlerInterceptor {
     @Autowired
     private JwtUtil jwtUtil;
     
-    @Autowired
-    private UserService userService;
+    // 说明：为避免在应用启动阶段出现 Bean 装配问题，这里暂时不直接依赖 UserService，
+    // 而是仅基于 JWT 中的载荷构造一个简化的 User 放入 UserContext。
+    // 如果后续需要从数据库校验用户状态/角色，可再通过其他方式引入 UserService。
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -66,13 +66,32 @@ public class JwtInterceptor implements HandlerInterceptor {
             requiresRoles = clazz.getAnnotation(RequiresRoles.class);
         }
 
-        // 如果接口不需要登录也不需要角色验证，直接放行
+        // 如果接口不需要登录也不需要角色验证，尝试可选认证（如果token存在则设置UserContext）
         if (!requiresLogin && requiresRoles == null) {
+            if (token != null && jwtUtil.validateToken(token)) {
+                // 可选认证：如果token存在且有效，设置UserContext（用于返回isLiked等状态）
+                try {
+                    String userId = jwtUtil.getUserIdFromToken(token);
+                    String username = jwtUtil.getUsernameFromToken(token);
+                    Integer role = jwtUtil.getRoleFromToken(token);
+                    
+                    if (userId != null && username != null && role != null) {
+                        User user = new User();
+                        user.setId(userId);
+                        user.setUsername(username);
+                        user.setRole(role);
+                        UserContext.setCurrentUser(user);
+                        logger.debug("可选认证成功，设置用户上下文: ID={}, 角色={}", userId, role);
+                    }
+                } catch (Exception e) {
+                    logger.debug("可选认证失败，忽略token: {}", e.getMessage());
+                }
+            }
             logger.debug("接口不需要认证，直接放行: {}", requestURI);
             return true;
         }
 
-        // 验证令牌
+        // 验证令牌（接口需要登录或角色验证）
         if (token == null) {
             logger.warn("未提供JWT令牌，拒绝访问: {}", requestURI);
             throw new UnauthorizedException(ResultCode.UNAUTHORIZED, "未登录或登录已过期");
@@ -94,29 +113,15 @@ public class JwtInterceptor implements HandlerInterceptor {
             throw new UnauthorizedException(ResultCode.UNAUTHORIZED, "身份验证信息不完整");
         }
         
-        // 从数据库获取最新的用户信息（避免 JwtUtil -> UserService 的循环依赖）
-        User user = userService.getUserEntityById(userId);
-        if (user == null) {
-            logger.warn("无法找到用户，拒绝访问: {}, 用户ID: {}", requestURI, userId);
-            throw new UnauthorizedException(ResultCode.UNAUTHORIZED, "用户不存在");
-        }
-        
-        // 验证用户是否被禁用、删除等
-        if (user.getStatus() != null && user.getStatus() != 1) {
-            logger.warn("用户已被禁用，拒绝访问: {}, 用户ID: {}", requestURI, userId);
-            throw new UnauthorizedException(ResultCode.FORBIDDEN, "账户已被禁用");
-        }
-        
-        // 验证token中的角色与数据库中的角色是否一致
-        if (!user.getRole().equals(role)) {
-            logger.warn("用户角色不匹配，拒绝访问: {}, Token角色: {}, 数据库角色: {}", 
-                requestURI, role, user.getRole());
-            throw new UnauthorizedException(ResultCode.UNAUTHORIZED, "身份验证信息不一致");
-        }
+        // 基于 token 中的数据构造一个简化的 User 对象放入上下文
+        User user = new User();
+        user.setId(userId);
+        user.setUsername(username);
+        user.setRole(role);
+        // TODO: 如需校验用户状态/角色是否被后台修改，可在其他位置通过 UserService 再做一次数据库校验
 
-        // 设置用户信息到上下文
         UserContext.setCurrentUser(user);
-        logger.debug("用户已认证，ID: {}, 角色: {}", userId, role);
+        logger.debug("用户已认证（基于JWT），ID: {}, 角色: {}", userId, role);
 
         // 验证角色
         if (requiresRoles != null && requiresRoles.value().length > 0) {

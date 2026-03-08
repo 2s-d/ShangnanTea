@@ -17,7 +17,7 @@
           <div class="footer-links-group">
             <h3>网站导航</h3>
             <ul>
-              <li><router-link to="/tea-culture">首页</router-link></li>
+              <li><router-link to="/tea-culture">茶文化</router-link></li>
               <li><router-link to="/tea/mall">茶叶商城</router-link></li>
               <li><router-link to="/forum/list">茶友论坛</router-link></li>
               <li><router-link to="/shop/list">茶商店铺</router-link></li>
@@ -125,9 +125,10 @@ onMounted(() => {
   margin-top: 50px;
   
   .container {
-    max-width: 1200px;
+    width: 85%;
+    max-width: 1920px;
     margin: 0 auto;
-    padding: 0 20px;
+    padding: 0;
   }
   
   .footer-content {

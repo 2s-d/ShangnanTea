@@ -46,7 +46,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 /**
@@ -237,18 +237,31 @@ public class TeaServiceImpl implements TeaService {
                     break;
             }
             
-            // 4. 转换为简化的VO（只包含基本信息）
+            // 4. 转换为简化的VO（包含TeaCard所需的基本信息）
             List<Map<String, Object>> result = recommendTeas.stream()
                     .map(tea -> {
                         Map<String, Object> teaMap = new HashMap<>();
                         teaMap.put("id", tea.getId());
                         teaMap.put("name", tea.getName());
                         teaMap.put("price", tea.getPrice());
+                        teaMap.put("sales", tea.getSales() != null ? tea.getSales() : 0);
+                        teaMap.put("shop_id", tea.getShopId());
+                        teaMap.put("brief", tea.getDescription()); // description对应前端的brief
                         
                         // 处理图片列表
                         List<String> images = new ArrayList<>();
-                        if (tea.getMainImage() != null && !tea.getMainImage().isEmpty()) {
-                            images.add(tea.getMainImage());
+                        String mainImage = tea.getMainImage();
+                        if (mainImage != null && !mainImage.trim().isEmpty()) {
+                            if (mainImage.startsWith("http://") || mainImage.startsWith("https://")) {
+                                images.add(mainImage);
+                                teaMap.put("mainImage", mainImage); // 同时提供mainImage字段
+                            } else {
+                                String fullUrl = FileUploadUtils.generateAccessUrl(mainImage, baseUrl);
+                                images.add(fullUrl);
+                                teaMap.put("mainImage", fullUrl); // 同时提供mainImage字段
+                            }
+                        } else {
+                            teaMap.put("mainImage", ""); // 空字符串作为默认值
                         }
                         teaMap.put("images", images);
                         
@@ -405,7 +418,7 @@ public class TeaServiceImpl implements TeaService {
             
             // 4. 创建Tea实体
             Tea tea = new Tea();
-            tea.setId(UUID.randomUUID().toString().replace("-", "")); // 生成32位UUID
+            tea.setId(generateTeaId()); // 生成TEA+8位数字ID
             tea.setName(name.trim());
             tea.setCategoryId(categoryId);
             tea.setShopId(shopId);
@@ -816,9 +829,40 @@ public class TeaServiceImpl implements TeaService {
         TeaVO vo = new TeaVO();
         BeanUtils.copyProperties(tea, vo);
         
-        // 设置主图（如果mainImage为空，尝试从images获取）
-        if (vo.getMainImage() == null || vo.getMainImage().isEmpty()) {
-            // 这里可以后续从tea_images表查询，暂时使用main_image字段
+        // 统一处理主图：数据库中存的是相对路径，这里转换为前端可直接访问的完整URL
+        String mainImage = vo.getMainImage();
+        if (mainImage != null && !mainImage.trim().isEmpty()) {
+            if (mainImage.startsWith("http://") || mainImage.startsWith("https://")) {
+                // 已经是完整URL（兼容历史/外链数据）
+                vo.setMainImage(mainImage);
+            } else {
+                // 相对路径 -> 补全为 http://host[:port]/context/files/...
+                vo.setMainImage(FileUploadUtils.generateAccessUrl(mainImage, baseUrl));
+            }
+        }
+        
+        // 查询店铺信息并填充到VO
+        String shopId = tea.getShopId();
+        if (shopId != null && !shopId.trim().isEmpty() && !shopId.equals("0") && !shopId.equals("PLATFORM")) {
+            try {
+                Shop shop = shopMapper.selectById(shopId);
+                if (shop != null) {
+                    vo.setShopName(shop.getShopName());
+                    // 处理店铺Logo URL
+                    String logo = shop.getLogo();
+                    if (logo != null && !logo.trim().isEmpty()) {
+                        if (logo.startsWith("http://") || logo.startsWith("https://")) {
+                            vo.setShopLogo(logo);
+                        } else {
+                            vo.setShopLogo(FileUploadUtils.generateAccessUrl(logo, baseUrl));
+                        }
+                    }
+                    vo.setShopRating(shop.getRating());
+                    vo.setShopDesc(shop.getDescription());
+                }
+            } catch (Exception e) {
+                logger.warn("查询店铺信息失败, shopId: {}", shopId, e);
+            }
         }
         
         // 设置图片列表（暂时为空，后续可以从tea_images表查询）
@@ -858,7 +902,17 @@ public class TeaServiceImpl implements TeaService {
         
         TeaVO.TeaImageVO vo = new TeaVO.TeaImageVO();
         vo.setId(image.getId());
-        vo.setUrl(image.getUrl());
+        // 茶叶图片URL同样可能是相对路径，这里统一转换为完整URL
+        String url = image.getUrl();
+        if (url != null && !url.trim().isEmpty()) {
+            if (url.startsWith("http://") || url.startsWith("https://")) {
+                vo.setUrl(url);
+            } else {
+                vo.setUrl(FileUploadUtils.generateAccessUrl(url, baseUrl));
+            }
+        } else {
+            vo.setUrl(null);
+        }
         vo.setSortOrder(image.getSortOrder());
         vo.setIsMain(image.getIsMain());
         
@@ -1158,7 +1212,17 @@ public class TeaServiceImpl implements TeaService {
         vo.setName(category.getName());
         vo.setParentId(category.getParentId());
         vo.setSortOrder(category.getSortOrder());
-        vo.setIcon(category.getIcon());
+        // 分类图标：可能是相对路径或完整URL，这里统一处理
+        String icon = category.getIcon();
+        if (icon != null && !icon.trim().isEmpty()) {
+            if (icon.startsWith("http://") || icon.startsWith("https://")) {
+                vo.setIcon(icon);
+            } else {
+                vo.setIcon(FileUploadUtils.generateAccessUrl(icon, baseUrl));
+            }
+        } else {
+            vo.setIcon(null);
+        }
         
         return vo;
     }
@@ -1508,7 +1572,17 @@ public class TeaServiceImpl implements TeaService {
         
         // 处理图片列表
         if (review.getImages() != null && !review.getImages().isEmpty()) {
-            List<String> imageList = java.util.Arrays.asList(review.getImages().split(","));
+            List<String> imageList = new ArrayList<>();
+            String[] imageArray = review.getImages().split(",");
+            for (String imageUrl : imageArray) {
+                if (imageUrl != null && !imageUrl.trim().isEmpty()) {
+                    if (imageUrl.trim().startsWith("http://") || imageUrl.trim().startsWith("https://")) {
+                        imageList.add(imageUrl.trim());
+                    } else {
+                        imageList.add(FileUploadUtils.generateAccessUrl(imageUrl.trim(), baseUrl));
+                    }
+                }
+            }
             vo.setImages(imageList);
         } else {
             vo.setImages(new ArrayList<>());
@@ -1519,7 +1593,16 @@ public class TeaServiceImpl implements TeaService {
         if (user != null) {
             vo.setUsername(user.getUsername());
             vo.setNickname(user.getNickname() != null ? user.getNickname() : user.getUsername());
-            vo.setAvatar(user.getAvatar() != null ? user.getAvatar() : "");
+            String avatar = user.getAvatar();
+            if (avatar != null && !avatar.trim().isEmpty()) {
+                if (avatar.startsWith("http://") || avatar.startsWith("https://")) {
+                    vo.setAvatar(avatar);
+                } else {
+                    vo.setAvatar(FileUploadUtils.generateAccessUrl(avatar, baseUrl));
+                }
+            } else {
+                vo.setAvatar("");
+            }
         } else {
             // 用户不存在时的降级处理
             vo.setUsername("用户" + review.getUserId());
@@ -1550,7 +1633,17 @@ public class TeaServiceImpl implements TeaService {
         
         // 处理图片列表
         if (review.getImages() != null && !review.getImages().isEmpty()) {
-            List<String> imageList = java.util.Arrays.asList(review.getImages().split(","));
+            List<String> imageList = new ArrayList<>();
+            String[] imageArray = review.getImages().split(",");
+            for (String imageUrl : imageArray) {
+                if (imageUrl != null && !imageUrl.trim().isEmpty()) {
+                    if (imageUrl.trim().startsWith("http://") || imageUrl.trim().startsWith("https://")) {
+                        imageList.add(imageUrl.trim());
+                    } else {
+                        imageList.add(FileUploadUtils.generateAccessUrl(imageUrl.trim(), baseUrl));
+                    }
+                }
+            }
             vo.setImages(imageList);
         } else {
             vo.setImages(new ArrayList<>());
@@ -1562,7 +1655,17 @@ public class TeaServiceImpl implements TeaService {
             if (user != null) {
                 vo.setUsername(user.getUsername());
                 vo.setNickname(user.getNickname() != null ? user.getNickname() : user.getUsername());
-                vo.setAvatar(user.getAvatar() != null ? user.getAvatar() : "");
+                // 处理头像URL
+                String avatar = user.getAvatar();
+                if (avatar != null && !avatar.trim().isEmpty()) {
+                    if (avatar.startsWith("http://") || avatar.startsWith("https://")) {
+                        vo.setAvatar(avatar);
+                    } else {
+                        vo.setAvatar(FileUploadUtils.generateAccessUrl(avatar, baseUrl));
+                    }
+                } else {
+                    vo.setAvatar("");
+                }
             } else {
                 // 用户不存在时的降级处理
                 vo.setUsername("用户" + review.getUserId());
@@ -2394,6 +2497,24 @@ public class TeaServiceImpl implements TeaService {
             logger.error("批量切换茶叶状态失败: 系统异常", e);
             return Result.failure(3128);
         }
+    }
+    
+    /**
+     * 生成茶叶ID：TEA + 8位数字
+     * @return 茶叶ID
+     */
+    private String generateTeaId() {
+        Random random = new Random();
+        StringBuilder sb = new StringBuilder("TEA");
+        for (int i = 0; i < 8; i++) {
+            sb.append(random.nextInt(10));
+        }
+        String teaId = sb.toString();
+        // 检查ID是否已存在，存在则重新生成
+        if (teaMapper.selectById(teaId) != null) {
+            return generateTeaId(); // 递归调用直到生成唯一ID
+        }
+        return teaId;
     }
 }
 

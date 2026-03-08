@@ -10,9 +10,9 @@
         <div class="post-meta">
           <div class="post-author">
             <span class="author-avatar">
-              <SafeImage :src="post.authorAvatar" type="avatar" :alt="post.authorName" style="width:40px;height:40px;border-radius:50%;object-fit:cover;" />
+              <SafeImage :src="post.userAvatar" type="avatar" :alt="post.userName" style="width:40px;height:40px;border-radius:50%;object-fit:cover;" />
             </span>
-            <span class="author-name">{{ post.authorName }}</span>
+            <span class="author-name">{{ post.userName }}</span>
           </div>
           <div class="post-info">
             <span class="post-topic" v-if="post.topicName">版块: {{ post.topicName }}</span>
@@ -40,15 +40,19 @@
         
         <div class="post-actions">
           <el-button type="primary" plain @click="likePost" :loading="likeLoading" :class="{ 'liked': liked }">
-            <el-icon>
-              <StarFilled v-if="liked" />
-              <Star v-else />
+            <el-icon class="like-icon">
+              <svg v-if="liked" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+                <path fill="currentColor" d="M885.9 533.7c16.8-22.2 26.1-49.4 26.1-77.7 0-44.9-25.1-87.4-65.5-111.1a67.67 67.67 0 0 0-34.3-9.3H572.4l6-122.9c1.4-24.9-9.1-49.8-26.5-66.7a82.48 82.48 0 0 0-55.9-24.1H184v72h312.1c4.9 0 9.5 2.2 12.6 6.1l112 141.7a12 12 0 0 1-1.7 16.9l-292.2 215a12.03 12.03 0 0 0-2.7 16.6c12.7 18.7 32.9 30.4 55.2 30.4h258.6c16.8 0 33.1 5 46.8 14.4a99.2 99.2 0 0 1 41.6 50.5c1.9 3.7 3.8 7.4 5.5 11.2 10.3 22.7 15.2 47.6 14.1 73.2-.9 25.5-6.9 50.4-16.9 73.5a178.04 178.04 0 0 1-47.2 63.4 181.24 181.24 0 0 1-78.4 38.4l-8.2 1.4h-.1c-8.1 1.3-16.3 2-24.5 2H136c-4.4 0-8-3.6-8-8v-72c0-4.4 3.6-8 8-8h251.1l11.6-1.9c12.4-2 24.3-5.1 35.5-9.3 40.7-15.1 76.3-42.4 101.5-78.3 7.5-10.9 14.3-22.4 20.1-34.5 7.1-14.8 12.2-30.2 15.3-46.1l6-122.8h-76.6c-4.4 0-8-3.6-8-8v-72c0-4.4 3.6-8 8-8h407.2c19.3 0 38.1-5.1 54.8-14.8 15.8-9.1 29.6-21.2 40.7-35.8z"/>
+              </svg>
+              <svg v-else viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+                <path fill="currentColor" d="M885.9 533.7c16.8-22.2 26.1-49.4 26.1-77.7 0-44.9-25.1-87.4-65.5-111.1a67.67 67.67 0 0 0-34.3-9.3H572.4l6-122.9c1.4-24.9-9.1-49.8-26.5-66.7a82.48 82.48 0 0 0-55.9-24.1H184v72h312.1c4.9 0 9.5 2.2 12.6 6.1l112 141.7a12 12 0 0 1-1.7 16.9l-292.2 215a12.03 12.03 0 0 0-2.7 16.6c12.7 18.7 32.9 30.4 55.2 30.4h258.6c16.8 0 33.1 5 46.8 14.4a99.2 99.2 0 0 1 41.6 50.5c1.9 3.7 3.8 7.4 5.5 11.2 10.3 22.7 15.2 47.6 14.1 73.2-.9 25.5-6.9 50.4-16.9 73.5a178.04 178.04 0 0 1-47.2 63.4 181.24 181.24 0 0 1-78.4 38.4l-8.2 1.4h-.1c-8.1 1.3-16.3 2-24.5 2H136c-4.4 0-8-3.6-8-8v-72c0-4.4 3.6-8 8-8h251.1l11.6-1.9c12.4-2 24.3-5.1 35.5-9.3 40.7-15.1 76.3-42.4 101.5-78.3 7.5-10.9 14.3-22.4 20.1-34.5 7.1-14.8 12.2-30.2 15.3-46.1l6-122.8h-76.6c-4.4 0-8-3.6-8-8v-72c0-4.4 3.6-8 8-8h407.2c19.3 0 38.1-5.1 54.8-14.8 15.8-9.1 29.6-21.2 40.7-35.8z" opacity="0.5"/>
+              </svg>
             </el-icon>
             {{ liked ? '已点赞' : '点赞' }} ({{ post.likeCount || 0 }})
           </el-button>
           <el-button plain @click="scrollToReply">
             <el-icon><ChatDotRound></ChatDotRound></el-icon>
-            回复 ({{ post.replyCount || 0 }})
+            回复 ({{ pagination.total !== undefined && pagination.total !== null ? pagination.total : (post.replyCount || 0) }})
           </el-button>
           <el-button plain @click="toggleFavorite" :loading="favoriteLoading" :class="{ 'favorited': favorited }">
             <el-icon>
@@ -66,7 +70,7 @@
       <!-- 回复区域 -->
       <div class="reply-section" id="reply-section" v-if="post">
         <div class="section-header">
-          <h2 class="section-title">全部回复 ({{ post.replyCount || 0 }})</h2>
+          <h2 class="section-title">全部回复 ({{ pagination.total !== undefined && pagination.total !== null ? pagination.total : (post.replyCount || 0) }})</h2>
           <div class="section-actions">
             <el-select
               v-model="currentSort"
@@ -94,10 +98,10 @@
           <div v-for="reply in replyList" :key="reply.id" class="reply-item">
             <div class="reply-author">
               <div class="author-avatar">
-                <SafeImage :src="reply.userAvatar" type="avatar" :alt="reply.userName" style="width:40px;height:40px;border-radius:50%;object-fit:cover;" />
+                <SafeImage :src="reply.avatar" type="avatar" :alt="reply.username" style="width:40px;height:40px;border-radius:50%;object-fit:cover;" />
               </div>
               <div class="author-info">
-                <div class="author-name">{{ reply.userName }}</div>
+                <div class="author-name">{{ reply.username }}</div>
                 <div class="reply-time">{{ formatDate(reply.createTime) }}</div>
               </div>
             </div>
@@ -115,9 +119,13 @@
               <!-- 回复操作 -->
               <div class="reply-actions">
                 <span class="action-item" @click="likeReply(reply)" :class="{ 'liked': reply.isLiked }">
-                  <el-icon>
-                    <StarFilled v-if="reply.isLiked" />
-                    <Star v-else />
+                  <el-icon class="like-icon">
+                    <svg v-if="reply.isLiked" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+                      <path fill="currentColor" d="M885.9 533.7c16.8-22.2 26.1-49.4 26.1-77.7 0-44.9-25.1-87.4-65.5-111.1a67.67 67.67 0 0 0-34.3-9.3H572.4l6-122.9c1.4-24.9-9.1-49.8-26.5-66.7a82.48 82.48 0 0 0-55.9-24.1H184v72h312.1c4.9 0 9.5 2.2 12.6 6.1l112 141.7a12 12 0 0 1-1.7 16.9l-292.2 215a12.03 12.03 0 0 0-2.7 16.6c12.7 18.7 32.9 30.4 55.2 30.4h258.6c16.8 0 33.1 5 46.8 14.4a99.2 99.2 0 0 1 41.6 50.5c1.9 3.7 3.8 7.4 5.5 11.2 10.3 22.7 15.2 47.6 14.1 73.2-.9 25.5-6.9 50.4-16.9 73.5a178.04 178.04 0 0 1-47.2 63.4 181.24 181.24 0 0 1-78.4 38.4l-8.2 1.4h-.1c-8.1 1.3-16.3 2-24.5 2H136c-4.4 0-8-3.6-8-8v-72c0-4.4 3.6-8 8-8h251.1l11.6-1.9c12.4-2 24.3-5.1 35.5-9.3 40.7-15.1 76.3-42.4 101.5-78.3 7.5-10.9 14.3-22.4 20.1-34.5 7.1-14.8 12.2-30.2 15.3-46.1l6-122.8h-76.6c-4.4 0-8-3.6-8-8v-72c0-4.4 3.6-8 8-8h407.2c19.3 0 38.1-5.1 54.8-14.8 15.8-9.1 29.6-21.2 40.7-35.8z"/>
+                    </svg>
+                    <svg v-else viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+                      <path fill="currentColor" d="M885.9 533.7c16.8-22.2 26.1-49.4 26.1-77.7 0-44.9-25.1-87.4-65.5-111.1a67.67 67.67 0 0 0-34.3-9.3H572.4l6-122.9c1.4-24.9-9.1-49.8-26.5-66.7a82.48 82.48 0 0 0-55.9-24.1H184v72h312.1c4.9 0 9.5 2.2 12.6 6.1l112 141.7a12 12 0 0 1-1.7 16.9l-292.2 215a12.03 12.03 0 0 0-2.7 16.6c12.7 18.7 32.9 30.4 55.2 30.4h258.6c16.8 0 33.1 5 46.8 14.4a99.2 99.2 0 0 1 41.6 50.5c1.9 3.7 3.8 7.4 5.5 11.2 10.3 22.7 15.2 47.6 14.1 73.2-.9 25.5-6.9 50.4-16.9 73.5a178.04 178.04 0 0 1-47.2 63.4 181.24 181.24 0 0 1-78.4 38.4l-8.2 1.4h-.1c-8.1 1.3-16.3 2-24.5 2H136c-4.4 0-8-3.6-8-8v-72c0-4.4 3.6-8 8-8h251.1l11.6-1.9c12.4-2 24.3-5.1 35.5-9.3 40.7-15.1 76.3-42.4 101.5-78.3 7.5-10.9 14.3-22.4 20.1-34.5 7.1-14.8 12.2-30.2 15.3-46.1l6-122.8h-76.6c-4.4 0-8-3.6-8-8v-72c0-4.4 3.6-8 8-8h407.2c19.3 0 38.1-5.1 54.8-14.8 15.8-9.1 29.6-21.2 40.7-35.8z" opacity="0.5"/>
+                    </svg>
                   </el-icon>
                   {{ reply.isLiked ? '已赞' : '点赞' }} ({{ reply.likeCount || 0 }})
                 </span>
@@ -201,7 +209,7 @@
           <div v-for="item in recommendList" :key="item.id" class="recommend-item" @click="viewPost(item.id)">
             <div class="item-title">{{ item.title }}</div>
             <div class="item-meta">
-              <span class="item-author">{{ item.authorName }}</span>
+              <span class="item-author">{{ item.userName || item.authorName }}</span>
               <span class="item-views">
                 <el-icon><View></View></el-icon> {{ item.viewCount }}
               </span>
@@ -281,19 +289,18 @@ const fetchReplies = async () => {
       size: pagination.pageSize,
       sortBy: currentSort.value
     }
-    await forumStore.fetchPostReplies({ postId: postId.value, params })
-    updateReplyPagination()
+    const res = await forumStore.fetchPostReplies(postId.value, params)
+    // 直接从API响应获取total并设置
+    if (res?.data?.total !== undefined && res?.data?.total !== null) {
+      pagination.total = res.data.total
+    }
+    // 同步其他分页信息
+    const piniaPagination = forumStore.replyPagination
+    pagination.currentPage = piniaPagination.current || 1
+    pagination.pageSize = piniaPagination.pageSize || 10
   } catch (error) {
     console.error('获取回复列表失败:', error)
   }
-}
-
-// 更新回复分页信息
-const updateReplyPagination = () => {
-  const piniaPagination = forumStore.replyPagination
-  pagination.currentPage = piniaPagination.current
-  pagination.pageSize = piniaPagination.pageSize
-  pagination.total = piniaPagination.total
 }
 
 // 页面初始化
@@ -307,33 +314,35 @@ const goBack = () => {
   router.back()
 }
     
-// 点赞帖子
+// 点赞帖子（再点一次取消）
 const likePost = async () => {
-  if (!postId.value) return
+  if (!postId.value || !post.value || likeLoading.value) return
   
   likeLoading.value = true
   try {
-    if (post.value?.isLiked) {
-      // 取消点赞：直接传递targetId和targetType
+    if (post.value.isLiked) {
+      // 已点赞 -> 调用取消点赞接口
       const res = await userStore.removeLike({
         targetId: postId.value,
         targetType: 'post'
       })
       showByCode(res.code)
-      // 重新加载帖子详情以更新isLiked状态
+      // 重新获取帖子详情，更新点赞状态和数量
       await fetchPostDetail()
     } else {
-      // 添加点赞
+      // 未点赞 -> 调用点赞接口
       const res = await userStore.addLike({
         targetId: postId.value,
         targetType: 'post'
       })
       showByCode(res.code)
-      // 重新加载帖子详情以更新isLiked状态
+      // 重新获取帖子详情，更新点赞状态和数量
       await fetchPostDetail()
     }
   } catch (error) {
     console.error('点赞操作失败:', error)
+    // 出错时也重新获取数据，确保状态一致
+    await fetchPostDetail()
   } finally {
     likeLoading.value = false
   }
@@ -444,30 +453,40 @@ const handleCurrentChange = async page => {
   await fetchReplies()
 }
 
-// 点赞回复
+// 点赞回复（再点一次取消）
 const likeReply = async reply => {
+  if (!reply) return
+  
+  // 防止快速连续点击
+  if (reply._liking) return
+  reply._liking = true
+  
   try {
     if (reply.isLiked) {
-      // 取消点赞：直接传递targetId和targetType
+      // 已点赞 -> 调用取消点赞接口
       const res = await userStore.removeLike({
         targetId: reply.id,
         targetType: 'reply'
       })
       showByCode(res.code)
-      // 重新加载回复列表以更新isLiked状态
+      // 重新获取回复列表，更新点赞状态和数量
       await fetchReplies()
     } else {
-      // 添加点赞
+      // 未点赞 -> 调用点赞接口
       const res = await userStore.addLike({
         targetId: reply.id,
         targetType: 'reply'
       })
       showByCode(res.code)
-      // 重新加载回复列表以更新isLiked状态
+      // 重新获取回复列表，更新点赞状态和数量
       await fetchReplies()
     }
   } catch (error) {
     console.error('点赞回复失败:', error)
+    // 出错时也重新获取数据，确保状态一致
+    await fetchReplies()
+  } finally {
+    reply._liking = false
   }
 }
 
@@ -511,17 +530,17 @@ const handleReplyInput = value => {
         if (!allUsers.has(reply.userId)) {
           allUsers.set(reply.userId, {
             id: reply.userId,
-            username: reply.userName,
-            avatar: reply.userAvatar
+            username: reply.username,
+            avatar: reply.avatar
           })
         }
       })
       // 添加帖子作者
-      if (post.value?.authorId) {
-        allUsers.set(post.value.authorId, {
-          id: post.value.authorId,
-          username: post.value.authorName,
-          avatar: post.value.authorAvatar
+      if (post.value?.userId) {
+        allUsers.set(post.value.userId, {
+          id: post.value.userId,
+          username: post.value.userName,
+          avatar: post.value.userAvatar
         })
       }
       
@@ -616,10 +635,10 @@ const submitReply = async () => {
     while ((match = mentionRegex.exec(replyContent.value)) !== null) {
       // 从回复列表和帖子作者中查找用户ID
       const username = match[1]
-      const user = replyList.value.find(r => r.userName === username) ||
-                  (post.value?.authorName === username ? {
-                    userId: post.value.authorId,
-                    userName: post.value.authorName
+      const user = replyList.value.find(r => r.username === username) ||
+                  (post.value?.userName === username ? {
+                    userId: post.value.userId,
+                    userName: post.value.userName
                   } : null)
       if (user) {
         mentionedUserIds.push(user.userId || user.id)
@@ -632,7 +651,7 @@ const submitReply = async () => {
       mentionedUserIds: mentionedUserIds.length > 0 ? mentionedUserIds : undefined
     }
     
-    const res = await forumStore.createReply({ postId: postId.value, data: replyData })
+    const res = await forumStore.createReply(postId.value, replyData)
     showByCode(res.code)
     
     // 清空输入框和当前回复
@@ -657,7 +676,7 @@ const viewPost = postId => {
 // 获取回复用户名
 const getReplyUserName = replyId => {
   const reply = replyList.value.find(item => item.id === replyId)
-  return reply ? reply.userName : '未知用户'
+  return reply ? reply.username : '未知用户'
 }
 
 // 获取回复内容
@@ -679,9 +698,10 @@ const getReplyContent = replyId => {
 }
 
 .container {
-  max-width: 1200px;
+  width: 85%;
+  max-width: 1920px;
   margin: 0 auto;
-  padding: 0 15px;
+  padding: 0;
 }
 
 .page-header {
@@ -798,6 +818,18 @@ const getReplyContent = replyId => {
     border-top: 1px solid #eee;
     display: flex;
     gap: 15px;
+    
+    .like-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      
+      svg {
+        width: 16px;
+        height: 16px;
+        vertical-align: middle;
+      }
+    }
     
     .el-button.liked {
       color: var(--el-color-primary);
@@ -952,6 +984,18 @@ const getReplyContent = replyId => {
           
           .el-icon {
             margin-right: 4px;
+            
+            &.like-icon {
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              
+              svg {
+                width: 14px;
+                height: 14px;
+                vertical-align: middle;
+              }
+            }
           }
         }
       }

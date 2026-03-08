@@ -153,6 +153,24 @@ export function sendVerificationCode(data) {
   })
 }
 
+/**
+ * 获取今日天气
+ * @param {string|null} cityCode 城市编码（可选），例如 '61-6110'、'6110'、'611000'、'611023'
+ *                               如果不传，则由后端使用默认城市
+ * @returns {Promise} 天气数据 { weather, temperature }
+ */
+export function getTodayWeather(cityCode = null) {
+  const params = {}
+  if (cityCode) {
+    params.city = cityCode
+  }
+  return request({
+    url: API.USER.TODAY_WEATHER,
+    method: 'get',
+    params
+  })
+}
+
 // === 用户地址相关API ===
 
 /**

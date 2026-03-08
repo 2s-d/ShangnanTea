@@ -1,6 +1,7 @@
 <template>
   <div class="order-list-page">
-    <el-card class="list-card" shadow="hover">
+    <div class="container main-content">
+      <el-card class="list-card" shadow="hover">
       <template #header>
         <div class="card-header">
           <span class="title">我的订单</span>
@@ -181,6 +182,7 @@
         </span>
       </template>
     </el-dialog>
+    </div>
   </div>
 </template>
 
@@ -423,9 +425,16 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .order-list-page {
-  padding: 20px;
+  padding: 20px 0 40px;
+  min-height: 100vh;
   background-color: #f5f7fa;
-  min-height: calc(100vh - 60px);
+}
+
+.container.main-content {
+  width: 85%;
+  max-width: 1920px;
+  margin: 0 auto;
+  padding: 0;
 }
 
 .list-card {

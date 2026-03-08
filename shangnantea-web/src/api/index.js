@@ -146,13 +146,13 @@ service.interceptors.response.use(
       userStore.userInfo = null
       userStore.isLoggedIn = false
       
+    // 已在登录页时，不再反复弹“认证失败”提示，避免刷新时干扰体验
+    if (router.currentRoute.value.path !== '/login') {
       // 显示错误信息
       apiMessage.error(res.message || '认证失败，请重新登录')
-      
-      // 如果不是登录页，则跳转到登录页
-      if (router.currentRoute.value.path !== '/login') {
-        router.push(`/login?redirect=${router.currentRoute.value.path}`)
-      }
+      // 跳转到登录页
+      router.push(`/login?redirect=${router.currentRoute.value.path}`)
+    }
       
       return Promise.reject(new Error(res.message || '认证失败'))
     }

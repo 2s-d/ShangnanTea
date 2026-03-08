@@ -351,9 +351,10 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .article-detail-page {
-  max-width: 1200px;
+  width: 85%;
+  max-width: 1920px;
   margin: 20px auto 60px;
-  padding: 0 20px;
+  padding: 0;
   
   .article-container {
     background: #fff;

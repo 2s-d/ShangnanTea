@@ -1,22 +1,27 @@
 <template>
   <div class="tea-manage-page">
+    <!-- 顶部标题区域：与其他管理页保持一致，使用 container 居中 -->
     <div class="page-header">
-      <div class="header-title">
-        <h1>平台茶叶管理</h1>
-        <p class="sub-title">管理平台直售茶叶商品，支持添加、编辑、上架和下架操作</p>
-      </div>
-      <div class="header-actions">
-        <el-button type="primary" @click="showAddTeaDialog" v-if="activeTab === 'tea'">
-          <el-icon><Plus /></el-icon>添加茶叶
-        </el-button>
-        <el-button type="primary" @click="showAddCategoryDialog" v-if="activeTab === 'category'">
-          <el-icon><Plus /></el-icon>添加分类
-        </el-button>
+      <div class="container">
+        <div class="header-title">
+          <h1>平台茶叶管理</h1>
+          <p class="sub-title">管理平台直售茶叶商品，支持添加、编辑、上架和下架操作</p>
+        </div>
+        <div class="header-actions">
+          <el-button type="primary" @click="showAddTeaDialog" v-if="activeTab === 'tea'">
+            <el-icon><Plus /></el-icon>添加茶叶
+          </el-button>
+          <el-button type="primary" @click="showAddCategoryDialog" v-if="activeTab === 'category'">
+            <el-icon><Plus /></el-icon>添加分类
+          </el-button>
+        </div>
       </div>
     </div>
 
-    <!-- 标签页 -->
-    <el-tabs v-model="activeTab" class="manage-tabs">
+    <!-- 主体内容：统一使用 container main-content，宽度与用户管理等页面对齐 -->
+    <div class="container main-content">
+      <!-- 标签页 -->
+      <el-tabs v-model="activeTab" class="manage-tabs">
       <el-tab-pane label="茶叶管理" name="tea">
         <!-- 搜索和筛选区域 -->
         <div class="search-filter-container">
@@ -81,7 +86,7 @@
         <el-table-column label="图片" width="100">
           <template #default="scope">
             <SafeImage
-              :src="scope.row.main_image"
+              :src="scope.row.mainImage"
               type="tea"
               :alt="scope.row.name"
               style="width: 100px; height: 100px; object-fit: cover;"
@@ -100,7 +105,7 @@
         </el-table-column>
         <el-table-column label="分类" width="120">
           <template #default="scope">
-            {{ getCategoryName(scope.row.category_id) }}
+            {{ getCategoryName(scope.row.categoryId) }}
           </template>
         </el-table-column>
         <el-table-column prop="stock" label="库存" width="100" sortable />
@@ -114,7 +119,7 @@
         </el-table-column>
         <el-table-column label="创建时间" width="180">
           <template #default="scope">
-            {{ formatDate(scope.row.create_time) }}
+            {{ formatDate(scope.row.createTime) }}
           </template>
         </el-table-column>
         <el-table-column label="操作" fixed="right" width="200">
@@ -212,7 +217,8 @@
           </el-table>
         </div>
       </el-tab-pane>
-    </el-tabs>
+      </el-tabs>
+    </div>
 
     <!-- 添加/编辑茶叶对话框 -->
     <el-dialog
@@ -237,8 +243,8 @@
           <el-input v-model="currentTea.name" placeholder="请输入茶叶名称" maxlength="100" show-word-limit />
         </el-form-item>
         
-        <el-form-item label="茶叶分类" prop="category_id">
-          <el-select v-model="currentTea.category_id" placeholder="请选择茶叶分类" style="width: 100%">
+        <el-form-item label="茶叶分类" prop="categoryId">
+          <el-select v-model="currentTea.categoryId" placeholder="请选择茶叶分类" style="width: 100%">
             <el-option
               v-for="category in categoryOptions"
               :key="category.id"
@@ -289,7 +295,7 @@
             <el-table-column label="规格名称" min-width="180">
               <template #default="scope">
                 <el-input
-                  v-model="scope.row.spec_name"
+                  v-model="scope.row.specName"
                   placeholder="如：特级 50g 罐装"
                   maxlength="50"
                 />
@@ -325,7 +331,7 @@
             <el-table-column label="默认规格" width="100">
               <template #default="scope">
                 <el-checkbox
-                  v-model="scope.row.is_default"
+                  v-model="scope.row.isDefault"
                   @change="(val) => handleDefaultChange(val, scope.$index)"
                 />
               </template>
@@ -556,7 +562,7 @@ defineOptions({
         { required: true, message: '请输入茶叶名称', trigger: 'blur' },
         { min: 2, max: 100, message: '长度在2到100个字符', trigger: 'blur' }
       ],
-      category_id: [
+      categoryId: [
         { required: true, message: '请选择茶叶分类', trigger: 'change' }
       ],
       origin: [
@@ -606,10 +612,10 @@ defineOptions({
       
       currentTea.value.specifications.push({
         id: Date.now(),
-        spec_name: '',
+        specName: '',
         price: 0,
         stock: 0,
-        is_default: currentTea.value.specifications.length === 0
+        isDefault: currentTea.value.specifications.length === 0
       })
     }
     
@@ -617,8 +623,8 @@ defineOptions({
       if (!currentTea.value || currentTea.value.specifications.length <= 1) return
       
       // 如果删除的是默认规格，将第一个规格设为默认
-      if (currentTea.value.specifications[index].is_default) {
-        currentTea.value.specifications[0].is_default = true
+      if (currentTea.value.specifications[index].isDefault) {
+        currentTea.value.specifications[0].isDefault = true
       }
       
       currentTea.value.specifications.splice(index, 1)
@@ -628,14 +634,14 @@ defineOptions({
     const handleDefaultChange = (val, index) => {
       if (!val) {
         // 不允许取消默认，必须有一个默认规格
-        currentTea.value.specifications[index].is_default = true
+        currentTea.value.specifications[index].isDefault = true
         return
       }
       
       // 将其他规格设为非默认
       currentTea.value.specifications.forEach((spec, i) => {
         if (i !== index) {
-          spec.is_default = false
+          spec.isDefault = false
         }
       })
     }
@@ -679,23 +685,23 @@ defineOptions({
         // 平台直售茶叶权限控制：管理员创建的茶叶shopId固定为'PLATFORM'
         // 权限规则：只有管理员(role=1)可以管理平台直售茶叶
         // shopId='PLATFORM'表示平台直售，区别于商家店铺茶叶(shopId为店铺ID)
-        shop_id: 'PLATFORM',
-        category_id: '',
+        shopId: 'PLATFORM',
+        categoryId: '',
         price: 0,
         description: '',
         detail: '',
         origin: '商南县',
         stock: 0,
         sales: 0,
-        main_image: '',
+        mainImage: '',
         status: 0, // 默认下架状态
         specifications: [
           {
             id: Date.now(),
-            spec_name: '默认规格',
+            specName: '默认规格',
             price: 0,
             stock: 0,
-            is_default: true
+            isDefault: true
           }
         ],
         images: []
@@ -719,10 +725,10 @@ defineOptions({
         if (specs && specs.length > 0) {
           currentTea.value.specifications = specs.map(spec => ({
             id: spec.id,
-            spec_name: spec.spec_name,
+            specName: spec.specName,
             price: spec.price,
             stock: spec.stock,
-            is_default: spec.is_default === 1 || spec.is_default === true ? 1 : 0
+            isDefault: spec.isDefault === 1 || spec.isDefault === true ? 1 : 0
           }))
         }
       } catch (error) {
@@ -734,10 +740,10 @@ defineOptions({
         if (!currentTea.value.specifications || currentTea.value.specifications.length === 0) {
           currentTea.value.specifications = [{
             id: Date.now(),
-            spec_name: '默认规格',
+            specName: '默认规格',
             price: tea.price || 0,
             stock: tea.stock || 0,
-            is_default: 1
+            isDefault: 1
           }]
         }
       }
@@ -932,7 +938,7 @@ defineOptions({
         
         // 校验规格名称和价格
         const invalidSpec = currentTea.value.specifications.find(spec => 
-          !spec.spec_name || spec.price <= 0
+          !spec.specName || spec.price <= 0
         )
         if (invalidSpec) {
           teaPromptMessages.showSpecIncomplete()
@@ -940,7 +946,7 @@ defineOptions({
         }
         
         // 校验是否有默认规格
-        const hasDefault = currentTea.value.specifications.some(spec => spec.is_default)
+        const hasDefault = currentTea.value.specifications.some(spec => spec.isDefault)
         if (!hasDefault) {
           teaPromptMessages.showDefaultSpecRequired()
           return
@@ -959,7 +965,7 @@ defineOptions({
           const formData = {
             ...currentTea.value,
             status: teaStatus.value,
-            categoryId: parseInt(currentTea.value.category_id)
+            categoryId: parseInt(currentTea.value.categoryId)
           }
           
           // 设置主图
@@ -978,7 +984,7 @@ defineOptions({
           formData.stock = formData.specifications.reduce((sum, spec) => sum + spec.stock, 0)
           
           // 设置基础价格为默认规格的价格
-          const defaultSpec = formData.specifications.find(spec => spec.is_default)
+          const defaultSpec = formData.specifications.find(spec => spec.isDefault)
           if (defaultSpec) {
             formData.price = defaultSpec.price
           }
@@ -1004,15 +1010,15 @@ defineOptions({
                     teaId,
                     specId: spec.id,
                     specData: {
-                      spec_name: spec.spec_name,
+                      specName: spec.specName,
                       price: spec.price,
                       stock: spec.stock,
-                      is_default: spec.is_default === 1 || spec.is_default === true ? 1 : 0
+                      isDefault: spec.isDefault === 1 || spec.isDefault === true ? 1 : 0
                     }
                   })
                   
                   // 如果设置为默认规格
-                  if (spec.is_default === 1 || spec.is_default === true) {
+                  if (spec.isDefault === 1 || spec.isDefault === true) {
                     await teaStore.setDefaultSpecification({ teaId, specId: spec.id })
                   }
                 } else {
@@ -1020,10 +1026,10 @@ defineOptions({
                   await teaStore.addSpecification({
                     teaId,
                     specData: {
-                      spec_name: spec.spec_name,
+                      specName: spec.specName,
                       price: spec.price,
                       stock: spec.stock,
-                      is_default: spec.is_default === 1 || spec.is_default === true ? 1 : 0
+                      isDefault: spec.isDefault === 1 || spec.isDefault === true ? 1 : 0
                     }
                   })
                 }
@@ -1098,19 +1104,19 @@ defineOptions({
                   await teaStore.addSpecification({
                     teaId: newTeaId,
                     specData: {
-                      spec_name: spec.spec_name,
+                      specName: spec.specName,
                       price: spec.price,
                       stock: spec.stock,
-                      is_default: spec.is_default === 1 || spec.is_default === true ? 1 : 0
+                      isDefault: spec.isDefault === 1 || spec.isDefault === true ? 1 : 0
                     }
                   })
                   
                   // 如果设置为默认规格
-                  if (spec.is_default === 1 || spec.is_default === true) {
+                  if (spec.isDefault === 1 || spec.isDefault === true) {
                     // 需要先获取规格ID，这里简化处理，假设后端返回的规格包含ID
                     await teaStore.fetchTeaSpecifications(newTeaId)
                     const specs = teaStore.currentTeaSpecs || []
-                    const addedSpec = specs.find(s => s.spec_name === spec.spec_name)
+                    const addedSpec = specs.find(s => s.specName === spec.specName)
                     if (addedSpec) {
                       await teaStore.setDefaultSpecification({ teaId: newTeaId, specId: addedSpec.id })
                     }
@@ -1344,20 +1350,28 @@ defineOptions({
 
 <style lang="scss" scoped>
 .tea-manage-page {
-  padding: 20px;
-  
   .page-header {
-  display: flex;
-    justify-content: space-between;
-  align-items: center;
-    margin-bottom: 24px;
-    
+    background-color: #fff;
+    padding: 20px 0;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
+
+    .container {
+      width: 85%;
+      max-width: 1920px;
+      margin: 0 auto;
+      padding: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
     .header-title {
       h1 {
         font-size: 24px;
         margin: 0 0 8px 0;
-      color: var(--el-text-color-primary);
-}
+        color: var(--el-text-color-primary);
+      }
 
       .sub-title {
         font-size: 14px;
@@ -1365,6 +1379,13 @@ defineOptions({
         margin: 0;
       }
     }
+  }
+
+  .main-content {
+    width: 85%;
+    max-width: 1920px;
+    margin: 0 auto;
+    padding: 0 0 40px;
   }
   
   .search-filter-container {

@@ -12,13 +12,7 @@
         <template v-if="cartItems.length > 0">
           <!-- 购物车表头 -->
           <div class="cart-header">
-            <div class="header-checkbox">
-              <el-checkbox 
-                v-model="selectAll" 
-                @change="handleSelectAllChange"
-                :indeterminate="isIndeterminate"
-              >全选</el-checkbox>
-            </div>
+            <!-- 只保留底部结算栏的“全选”，这里不再重复显示 -->
             <div class="header-info">商品信息</div>
             <div class="header-price">单价</div>
             <div class="header-quantity">数量</div>
@@ -59,7 +53,7 @@
                 </div>
               </div>
               
-              <div class="item-price">¥{{ item.price.toFixed(2) }}</div>
+              <div class="item-price">¥{{ (item.price || 0).toFixed(2) }}</div>
               
               <div class="item-quantity">
                 <el-input-number 
@@ -71,7 +65,7 @@
                 />
               </div>
               
-              <div class="item-subtotal">¥{{ (item.price * item.quantity).toFixed(2) }}</div>
+              <div class="item-subtotal">¥{{ ((item.price || 0) * item.quantity).toFixed(2) }}</div>
               
               <div class="item-action">
                 <el-button 
@@ -148,7 +142,16 @@
         </div>
         
         <div class="spec-options">
-          <div class="spec-title">选择规格</div>
+          <div class="spec-title-row">
+            <div class="spec-title">选择规格</div>
+            <el-checkbox 
+              v-model="addAnotherSpec" 
+              class="add-another-checkbox"
+              :disabled="!canAddAnotherSpec"
+            >
+              再买一款
+            </el-checkbox>
+          </div>
           <div class="spec-list">
             <el-radio-group v-model="tempSelectedSpecId">
               <el-radio 
@@ -156,10 +159,12 @@
                 :key="spec.id" 
                 :label="spec.id"
                 class="spec-radio"
+                :disabled="addAnotherSpec && isSpecInCart(spec.id)"
               >
-                <div class="spec-item">
-                  <span class="spec-name">{{ spec.spec_name }}</span>
+                <div class="spec-item" :class="{ 'spec-disabled': addAnotherSpec && isSpecInCart(spec.id) }">
+                  <span class="spec-name">{{ spec.specName }}</span>
                   <span class="spec-price">¥{{ spec.price.toFixed(2) }}</span>
+                  <span v-if="addAnotherSpec && isSpecInCart(spec.id)" class="spec-tag">已在购物车</span>
                 </div>
               </el-radio>
             </el-radio-group>
@@ -200,6 +205,7 @@ const currentSpecTea = ref(null)
 const currentCartItemId = ref(null)
 const availableSpecs = ref([])
 const tempSelectedSpecId = ref(null)
+const addAnotherSpec = ref(false) // 是否"再买一款"
   
     const initCartData = async () => {
       loading.value = true
@@ -212,12 +218,20 @@ const tempSelectedSpecId = ref(null)
           
           // 只有成功时才处理数据
           if (isSuccess(res.code)) {
-            const items = res.data || []
+            // 后端返回格式：{code: 200, data: {items: [...], totalPrice: ...}}
+            // 需要从 data.items 中获取商品列表
+            const items = Array.isArray(res.data) 
+              ? res.data 
+              : (res.data?.items || res.data?.list || [])
             cartItems.value = items.map(i => ({
               ...i,
-              selected: typeof i.selected === 'boolean' ? i.selected : true
+              selected: typeof i.selected === 'boolean' ? i.selected : true,
+              // 确保price不为null，如果为null则使用0或从其他地方获取
+              price: i.price != null ? i.price : (i.specPrice || 0)
             }))
             updateSelectAllStatus()
+          } else {
+            cartItems.value = []
           }
         }
       } catch (error) {
@@ -249,14 +263,14 @@ const tempSelectedSpecId = ref(null)
     const totalPrice = computed(() => {
       return cartItems.value
         .filter(item => item.selected)
-        .reduce((total, item) => total + item.price * item.quantity, 0)
+        .reduce((total, item) => total + (item.price || 0) * item.quantity, 0)
     })
     
     // 当前选中规格名称
     const selectedSpecName = computed(() => {
       if (!tempSelectedSpecId.value || !availableSpecs.value.length) return ''
       const spec = availableSpecs.value.find(s => s.id === tempSelectedSpecId.value)
-      return spec ? spec.spec_name : ''
+      return spec ? spec.specName : ''
     })
     
     // 当前选中规格价格
@@ -264,6 +278,33 @@ const tempSelectedSpecId = ref(null)
       if (!tempSelectedSpecId.value || !availableSpecs.value.length) return 0
       const spec = availableSpecs.value.find(s => s.id === tempSelectedSpecId.value)
       return spec ? spec.price : 0
+    })
+    
+    // 判断某个规格是否已在购物车中（同一茶叶的同一规格）
+    const isSpecInCart = specId => {
+      if (!currentSpecTea.value || specId == null) return false
+      // 兼容不同字段命名
+      const currentTeaId = String(currentSpecTea.value.teaId || currentSpecTea.value.tea_id || '')
+      // 使用 String() 统一类型比较，避免数字和字符串比较失败
+      return cartItems.value.some(item => {
+        const itemTeaId = String(item.teaId || item.tea_id || '')
+        const itemSpecId = String(item.specId || item.spec_id || '')
+        return itemTeaId === currentTeaId && itemSpecId === String(specId)
+      })
+    }
+    
+    // "再买一款"是否可选：只有当选中的规格**不在**购物车中时才可选
+    const canAddAnotherSpec = computed(() => {
+      if (!tempSelectedSpecId.value) return false
+      // 选中的规格不在购物车中 → 可以勾选"再买一款"
+      return !isSpecInCart(tempSelectedSpecId.value)
+    })
+    
+    // 当选中的规格变化时，如果该规格在购物车中，自动取消勾选"再买一款"
+    watch(tempSelectedSpecId, newSpecId => {
+      if (newSpecId && isSpecInCart(newSpecId)) {
+        addAnotherSpec.value = false
+      }
     })
     
     // 更新全选状态
@@ -316,12 +357,15 @@ const tempSelectedSpecId = ref(null)
     const selectSpecification = async item => {
       currentCartItemId.value = item.id
       currentSpecTea.value = item
-      tempSelectedSpecId.value = item.specId || null
+      // 兼容不同字段命名，确保有值
+      tempSelectedSpecId.value = item.specId || item.spec_id || null
+      addAnotherSpec.value = false // 重置"再买一款"状态
       
       // 获取茶叶的规格列表
       try {
         loading.value = true
-        const res = await teaStore.fetchTeaSpecifications(item.teaId)
+        const teaId = item.teaId || item.tea_id
+        const res = await teaStore.fetchTeaSpecifications(teaId)
         availableSpecs.value = res?.data || res || []
         
         // 如果没有规格，提示用户
@@ -343,32 +387,77 @@ const tempSelectedSpecId = ref(null)
     
     // 确认规格变更
     const confirmSpecChange = async () => {
-      if (!tempSelectedSpecId.value || !currentCartItemId.value) {
+      if (!tempSelectedSpecId.value || !currentSpecTea.value) {
         orderPromptMessages.showSpecRequired()
-        return
-      }
-
-      // 如果选择的规格和当前规格相同，直接关闭
-      const currentItem = cartItems.value.find(item => item.id === currentCartItemId.value)
-      if (currentItem && currentItem.specId === tempSelectedSpecId.value) {
-        specDialogVisible.value = false
         return
       }
 
       try {
         loading.value = true
-        // 更新购物车商品的规格
-        const res = await orderStore.updateCartItem({
-          id: currentCartItemId.value,
-          specificationId: tempSelectedSpecId.value
-        })
-        // res = {code, data}
-        if (res && res.code !== 200) {
-          showByCode(res.code)
+        
+        // 兼容不同字段命名
+        const currentTeaId = currentSpecTea.value.teaId || currentSpecTea.value.tea_id
+        
+        // 如果勾选了"再买一款"，创建新的购物车项而不是更新原规格
+        if (addAnotherSpec.value) {
+          // 检查选中的规格是否已在购物车中（理论上不会，因为已在购物车的规格不能选中"再买一款"）
+          if (isSpecInCart(tempSelectedSpecId.value)) {
+            orderPromptMessages.showSpecRequired()
+            return
+          }
+          
+          // 添加新的购物车项
+          const res = await orderStore.addToCart({
+            teaId: currentTeaId,
+            quantity: 1,
+            specificationId: String(tempSelectedSpecId.value)
+          })
+          
+          // 显示结果消息
+          if (res && res.code) {
+            showByCode(res.code)
+          }
+          
+          // 成功时关闭弹窗并刷新数据
+          if (res && isSuccess(res.code)) {
+            specDialogVisible.value = false
+            addAnotherSpec.value = false // 重置状态
+            // 重新获取购物车数据
+            await initCartData()
+          }
+        } else {
+          // 未勾选"再买一款"，更新原购物车项的规格
+          if (!currentCartItemId.value) {
+            orderPromptMessages.showSpecRequired()
+            return
+          }
+          
+          // 如果选择的规格和当前规格相同，直接关闭
+          const currentItem = cartItems.value.find(item => item.id === currentCartItemId.value)
+          const currentItemSpecId = currentItem ? String(currentItem.specId || currentItem.spec_id || '') : ''
+          if (currentItem && currentItemSpecId === String(tempSelectedSpecId.value)) {
+            specDialogVisible.value = false
+            return
+          }
+          
+          // 更新购物车商品的规格
+          const res = await orderStore.updateCartItem({
+            id: currentCartItemId.value,
+            specificationId: tempSelectedSpecId.value
+          })
+          
+          // 显示结果消息
+          if (res && res.code) {
+            showByCode(res.code)
+          }
+          
+          // 成功时关闭弹窗并刷新数据
+          if (res && isSuccess(res.code)) {
+            specDialogVisible.value = false
+            // 重新获取购物车数据以更新价格和库存
+            await initCartData()
+          }
         }
-        specDialogVisible.value = false
-        // 重新获取购物车数据以更新价格和库存
-        await initCartData()
       } catch (error) {
         // 网络错误等已由响应拦截器处理，这里只记录日志
         if (process.env.NODE_ENV === 'development') {
@@ -513,9 +602,10 @@ const tempSelectedSpecId = ref(null)
   background-color: #f5f7fa;
   
   .container {
-    max-width: 1200px;
+    width: 85%;
+    max-width: 1920px;
     margin: 0 auto;
-    padding: 0 15px;
+    padding: 0;
   }
   
   .page-header {
@@ -788,9 +878,25 @@ const tempSelectedSpecId = ref(null)
   }
   
   .spec-options {
-    .spec-title {
-      font-weight: 500;
+    .spec-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       margin-bottom: 10px;
+      
+      .spec-title {
+        font-weight: 500;
+        margin: 0;
+      }
+      
+      .add-another-checkbox {
+        font-size: 13px;
+        color: var(--el-text-color-secondary);
+        
+        &.is-disabled {
+          color: var(--el-text-color-placeholder);
+        }
+      }
     }
     
     .spec-list {
@@ -798,17 +904,31 @@ const tempSelectedSpecId = ref(null)
         display: block;
         margin-bottom: 10px;
         
+        &.is-disabled {
+          opacity: 0.5;
+        }
+        
         .spec-item {
           display: flex;
           justify-content: space-between;
           width: 300px;
           
+          &.spec-disabled {
+            opacity: 0.5;
+          }
+          
           .spec-name {
-      color: var(--el-text-color-primary);
+            color: var(--el-text-color-primary);
           }
           
           .spec-price {
             color: var(--el-color-danger);
+          }
+          
+          .spec-tag {
+            margin-left: 8px;
+            font-size: 12px;
+            color: var(--el-text-color-placeholder);
           }
         }
       }

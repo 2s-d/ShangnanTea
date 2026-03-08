@@ -119,21 +119,62 @@ const latestNews = computed(() => forumStore.latestNews)
 const partners = computed(() => forumStore.partners)
 const loading = computed(() => forumStore.loading)
     
+// 随机打乱数组（Fisher-Yates 洗牌）
+function shuffleArray(arr) {
+  const result = [...arr]
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[result[i], result[j]] = [result[j], result[i]]
+  }
+  return result
+}
+
 // 首页文章栏目：与后端分类管理（/forum/categories）动态对接
 // 每个分类一列，每列最多显示5篇文章
+// 优先级：置顶 > 推荐 > 普通，同优先级内随机
+// 置顶：每个分类最多显示2篇（多出来的互相挤兑，只展示2篇）
 const categoryColumns = computed(() => {
   const categories = forumStore.categories || []
   const articles = forumStore.articles || []
 
   return categories.map(category => {
-    const list = articles
-      .filter(article => article.category === category.name)
-      .slice(0, 5)
+    // 当前分类下的所有文章
+    const categoryArticles = articles.filter(article => article.category === category.name)
+
+    if (categoryArticles.length === 0) {
+      return {
+        id: category.id,
+        name: category.name,
+        articles: []
+      }
+    }
+
+    // 先整体打乱，保证同优先级随机
+    const shuffled = shuffleArray(categoryArticles)
+
+    // 1. 置顶文章（isTop === 1），每个分类最多2篇
+    const topArticles = shuffled.filter(a => a.isTop === 1)
+    const selectedTop = topArticles.slice(0, 2)
+
+    // 从剩余文章中剔除已经选中的置顶
+    const remainingAfterTop = shuffled.filter(a => !selectedTop.includes(a))
+
+    // 2. 推荐文章（isRecommend === 1），优先级次于置顶，不限数量，但受总数5限制
+    const recommendArticles = remainingAfterTop.filter(a => a.isRecommend === 1)
+    const maxRecommendCount = Math.max(0, 5 - selectedTop.length)
+    const selectedRecommend = recommendArticles.slice(0, maxRecommendCount)
+
+    // 3. 普通文章：填满剩余位置
+    const remainingAfterRecommend = remainingAfterTop.filter(a => !selectedRecommend.includes(a))
+    const maxNormalCount = Math.max(0, 5 - selectedTop.length - selectedRecommend.length)
+    const selectedNormal = remainingAfterRecommend.slice(0, maxNormalCount)
+
+    const finalList = [...selectedTop, ...selectedRecommend, ...selectedNormal]
 
     return {
       id: category.id,
       name: category.name,
-      articles: list
+      articles: finalList
     }
   })
 })
@@ -159,7 +200,6 @@ const recommendTeas = computed(() => {
     const image =
       (images.length > 0 && images[0]) ||
       item.mainImage ||
-      item.main_image ||
       defaultTeaImage
 
     return {
@@ -323,10 +363,11 @@ const articleList = ref([])
   
   // 文化简介
   .culture-intro {
-    max-width: 1200px;
+    width: 85%;
+    max-width: 1920px;
     margin: 0 auto 40px;
     text-align: center;
-    padding: 0 20px;
+    padding: 0;
     
     .intro-text {
       font-size: 16px;
@@ -339,9 +380,10 @@ const articleList = ref([])
   
   // 文章板块 - 新样式
   .article-section {
-    max-width: 1200px;
+    width: 85%;
+    max-width: 1920px;
     margin: 0 auto 30px;
-    padding: 0 20px;
+    padding: 0;
     
     .article-container {
       display: flex;
@@ -437,9 +479,10 @@ const articleList = ref([])
   
   // 推荐茶叶
   .tea-recommend-section {
-    max-width: 1200px;
+    width: 85%;
+    max-width: 1920px;
     margin: 0 auto 60px;
-    padding: 0 20px;
+    padding: 0;
     
     .tea-list {
       display: flex;

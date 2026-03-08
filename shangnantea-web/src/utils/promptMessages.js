@@ -364,7 +364,8 @@ export const SHOP_PROMPT = {
   REVIEW_CONTENT_REQUIRED: '请输入评价内容',
   REVIEW_RATING_REQUIRED: '请选择评分',
   SHOP_INFO_LOAD_FIRST: '请先加载店铺信息',
-  SUBMITTING_WAIT: '正在提交数据，请稍候...'
+  SUBMITTING_WAIT: '正在提交数据，请稍候...',
+  CERTIFICATION_INCOMPLETE: '请完整填写商家认证信息后再提交'
 }
 
 export const shopPromptMessages = {
@@ -382,6 +383,9 @@ export const shopPromptMessages = {
   },
   showSubmittingWait() {
     promptMessage.show(SHOP_PROMPT.SUBMITTING_WAIT)
+  },
+  showCertificationIncomplete() {
+    promptMessage.show(SHOP_PROMPT.CERTIFICATION_INCOMPLETE)
   }
 }
 

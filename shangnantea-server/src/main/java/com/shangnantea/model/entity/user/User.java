@@ -65,6 +65,11 @@ public class User {
     private Integer gender;
     
     /**
+     * 现居地（省市县，例如：陕西省商洛市商南县）
+     */
+    private String currentLocation;
+    
+    /**
      * 生日
      */
     private Date birthday;

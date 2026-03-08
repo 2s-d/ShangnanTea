@@ -665,9 +665,10 @@ const userFormRef = ref(null)
     box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
     
     .container {
-      max-width: 1200px;
+      width: 85%;
+      max-width: 1920px;
       margin: 0 auto;
-      padding: 0 15px;
+      padding: 0;
     }
   
   .page-title {
@@ -683,9 +684,10 @@ const userFormRef = ref(null)
   }
   
   .main-content {
-    max-width: 1200px;
+    width: 85%;
+    max-width: 1920px;
     margin: 0 auto;
-    padding: 0 15px;
+    padding: 0;
   }
   
   .toolbar {

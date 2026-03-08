@@ -46,11 +46,71 @@ public class DataGeneratorWebController {
             return "datagen";
         }
         DataGenConfig config = loadConfig();
-        Map<String, TableRule> tables = config.getTables();
-        model.addAttribute("tables", tables);
+        Map<String, TableRule> allTables = config.getTables();
+        
+        // 找出所有关联表（被其他表的relatedTables引用的表）
+        java.util.Set<String> relatedTableNames = new java.util.HashSet<>();
+        for (TableRule tableRule : allTables.values()) {
+            if (tableRule.getRelatedTables() != null) {
+                relatedTableNames.addAll(tableRule.getRelatedTables().keySet());
+            }
+        }
+        
+        // 构建显示用的表信息（包含是否关联表的标记和关联信息）
+        Map<String, TableDisplayInfo> displayTables = new LinkedHashMap<>();
+        for (Map.Entry<String, TableRule> entry : allTables.entrySet()) {
+            String tableName = entry.getKey();
+            TableRule tableRule = entry.getValue();
+            
+            TableDisplayInfo info = new TableDisplayInfo();
+            info.tableRule = tableRule;
+            info.isRelatedTable = relatedTableNames.contains(tableName);
+            
+            // 构建关联信息说明
+            if (info.isRelatedTable) {
+                StringBuilder relatedInfo = new StringBuilder("关联表 - ");
+                // 找出哪些主表引用了这个关联表
+                java.util.List<String> mainTables = new java.util.ArrayList<>();
+                for (Map.Entry<String, TableRule> mainEntry : allTables.entrySet()) {
+                    if (mainEntry.getValue().getRelatedTables() != null &&
+                        mainEntry.getValue().getRelatedTables().containsKey(tableName)) {
+                        RelatedTableRule relatedRule = mainEntry.getValue().getRelatedTables().get(tableName);
+                        mainTables.add(mainEntry.getKey() + "×" + relatedRule.getCount());
+                    }
+                }
+                if (!mainTables.isEmpty()) {
+                    relatedInfo.append(String.join(", ", mainTables));
+                }
+                info.relatedInfo = relatedInfo.toString();
+            }
+            
+            displayTables.put(tableName, info);
+        }
+        
+        model.addAttribute("tables", displayTables);
         model.addAttribute("message", null);
         model.addAttribute("error", null);
         return "datagen";
+    }
+    
+    /**
+     * 表显示信息
+     */
+    public static class TableDisplayInfo {
+        public TableRule tableRule;
+        public boolean isRelatedTable;
+        public String relatedInfo;
+        
+        // Thymeleaf访问属性（使用getter方法）
+        public int getDefaultCount() { 
+            return tableRule != null ? tableRule.getDefaultCount() : 100; 
+        }
+        public boolean getIsRelatedTable() { 
+            return isRelatedTable; 
+        }
+        public String getRelatedInfo() { 
+            return relatedInfo != null ? relatedInfo : ""; 
+        }
     }
 
     @PostMapping("/run")
@@ -58,20 +118,73 @@ public class DataGeneratorWebController {
                       @RequestParam Map<String, String> allParams,
                       Model model) throws IOException {
         DataGenConfig config = loadConfig();
-        Map<String, TableRule> tables = config.getTables();
-        model.addAttribute("tables", tables);
+        Map<String, TableRule> allTables = config.getTables();
+        
+        // 重新构建显示用的表信息（与index方法保持一致）
+        java.util.Set<String> relatedTableNames = new java.util.HashSet<>();
+        for (TableRule tableRule : allTables.values()) {
+            if (tableRule.getRelatedTables() != null) {
+                relatedTableNames.addAll(tableRule.getRelatedTables().keySet());
+            }
+        }
+        
+        Map<String, TableDisplayInfo> displayTables = new LinkedHashMap<>();
+        for (Map.Entry<String, TableRule> entry : allTables.entrySet()) {
+            String tableName = entry.getKey();
+            TableRule tableRule = entry.getValue();
+            
+            TableDisplayInfo info = new TableDisplayInfo();
+            info.tableRule = tableRule;
+            info.isRelatedTable = relatedTableNames.contains(tableName);
+            
+            if (info.isRelatedTable) {
+                StringBuilder relatedInfo = new StringBuilder("关联表 - ");
+                java.util.List<String> mainTables = new java.util.ArrayList<>();
+                for (Map.Entry<String, TableRule> mainEntry : allTables.entrySet()) {
+                    if (mainEntry.getValue().getRelatedTables() != null &&
+                        mainEntry.getValue().getRelatedTables().containsKey(tableName)) {
+                        RelatedTableRule relatedRule = mainEntry.getValue().getRelatedTables().get(tableName);
+                        mainTables.add(mainEntry.getKey() + "×" + relatedRule.getCount());
+                    }
+                }
+                if (!mainTables.isEmpty()) {
+                    relatedInfo.append(String.join(", ", mainTables));
+                }
+                info.relatedInfo = relatedInfo.toString();
+            }
+            
+            displayTables.put(tableName, info);
+        }
+        
+        model.addAttribute("tables", displayTables);
 
         if (selectedTables == null || selectedTables.isEmpty()) {
             model.addAttribute("error", "请至少选择一个需要生成数据的表。");
             return "datagen";
         }
 
+        // 过滤掉关联表（防止用户通过修改HTML提交关联表）
+        // 过滤掉关联表（防止用户通过修改HTML提交关联表）
+        // 复用上面已经构建的relatedTableNames变量
+        
+        List<String> validTables = new java.util.ArrayList<>();
+        for (String table : selectedTables) {
+            if (!relatedTableNames.contains(table)) {
+                validTables.add(table);
+            }
+        }
+        
+        if (validTables.isEmpty()) {
+            model.addAttribute("error", "请至少选择一个主表（关联表会自动生成，无需选择）。");
+            return "datagen";
+        }
+        
         // 解析每个表的数量
         Map<String, Integer> plan = new LinkedHashMap<>();
-        for (String table : selectedTables) {
+        for (String table : validTables) {
             String key = "count_" + table;
             String raw = allParams.getOrDefault(key, "").trim();
-            int def = tables.get(table).getDefaultCount();
+            int def = allTables.get(table).getDefaultCount();
             if (def <= 0) def = 100;
             int count;
             if (raw.isEmpty()) {
@@ -172,4 +285,3 @@ public class DataGeneratorWebController {
         return new DataSourceConfig(url, username, password);
     }
 }
-

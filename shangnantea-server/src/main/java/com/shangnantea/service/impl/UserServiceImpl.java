@@ -47,6 +47,7 @@ import com.shangnantea.security.util.JwtUtil;
 import com.shangnantea.security.util.PasswordEncoder;
 import com.shangnantea.service.UserService;
 import com.shangnantea.utils.FileUploadUtils;
+import com.shangnantea.utils.NotificationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,11 +57,6 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -72,6 +68,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * 用户服务实现类
@@ -148,6 +147,22 @@ public class UserServiceImpl implements UserService {
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
     
+    // 高德天气配置
+    @Value("${gaode.weather.enabled:false}")
+    private boolean gaodeWeatherEnabled;
+    
+    @Value("${gaode.weather.key:}")
+    private String gaodeWeatherKey;
+    
+    @Value("${gaode.weather.base-url:https://restapi.amap.com/v3/weather/weatherInfo}")
+    private String gaodeWeatherBaseUrl;
+    
+    @Value("${gaode.weather.default-city:610000}")
+    private String gaodeDefaultCity;
+    
+    @Value("${gaode.weather.cache-minutes:30}")
+    private long gaodeCacheMinutes;
+    
     /**
      * JWT 工具类
      * 用于在登录等场景下生成和解析 Token。
@@ -155,6 +170,182 @@ public class UserServiceImpl implements UserService {
      */
     @Autowired
     private JwtUtil jwtUtil;
+    
+    // ==================== 天气服务 ====================
+    
+    /**
+     * 获取今日天气（高德天气API + Redis缓存）
+     *
+     * 成功码：2026，失败码：2152
+     */
+    @Override
+    public Result<Map<String, Object>> getTodayWeather(String cityAdcode) {
+        try {
+            // 1. 未开启真实天气查询时，直接返回失败，让前端知道没有真实数据
+            if (!gaodeWeatherEnabled) {
+                logger.warn("高德天气查询未启用（gaode.weather.enabled=false），不返回占位数据");
+                return Result.failure(2152);
+            }
+
+            // 2. 确定城市adcode（优先用入参，其次默认配置），并做长度归一化
+            // 支持以下几种形式：
+            //  - "61-6110"  或 "610000-611000"  -> 取最后一段 "6110"/"611000"
+            //  - "6110" (4位) -> 补零为 "611000"
+            //  - "61"   (2位) -> 补零为 "610000"
+            //  - "611023" (6位) -> 原样使用
+            String city = normalizeWeatherCityCode(cityAdcode);
+
+            // 3. 先查Redis缓存
+            String cacheKey = "weather:today:" + city;
+            String cachedJson = redisTemplate.opsForValue().get(cacheKey);
+            ObjectMapper objectMapper = new ObjectMapper();
+            if (cachedJson != null && !cachedJson.isEmpty()) {
+                try {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> cachedRaw = objectMapper.readValue(cachedJson, Map.class);
+                    // 直接返回缓存中的字段（兼容是否包含max/min）
+                    logger.info("从缓存中读取天气数据: city={}, cacheKey={}", city, cacheKey);
+                    return Result.success(2026, cachedRaw);
+                } catch (Exception e) {
+                    logger.warn("解析缓存天气数据失败，将重新请求高德API: city={}, error={}", city, e.getMessage());
+                }
+            }
+
+            // 4. 校验配置
+            if (gaodeWeatherKey == null || gaodeWeatherKey.isEmpty()) {
+                logger.error("高德天气API调用失败: GAODE_WEATHER_KEY 未配置");
+                return Result.failure(2152);
+            }
+
+            // 5. 调用高德天气API
+            String url = gaodeWeatherBaseUrl
+                    + "?key=" + gaodeWeatherKey
+                    + "&city=" + city
+                    + "&extensions=base";
+
+            logger.info("请求高德天气API: url={}", url);
+            RestTemplate restTemplate = new RestTemplate();
+            String resp = restTemplate.getForObject(url, String.class);
+
+            if (resp == null || resp.isEmpty()) {
+                logger.warn("高德天气API返回空响应: city={}", city);
+                return Result.failure(2152);
+            }
+
+            JsonNode root = objectMapper.readTree(resp);
+            if (!"1".equals(root.path("status").asText())) {
+                logger.warn("高德天气API调用失败: city={}, resp={}", city, resp);
+                return Result.failure(2152);
+            }
+
+            JsonNode lives = root.path("lives");
+            if (!lives.isArray() || lives.size() == 0) {
+                logger.warn("高德天气API未返回实时天气数据: city={}, resp={}", city, resp);
+                return Result.failure(2152);
+            }
+
+            JsonNode live = lives.get(0);
+            Map<String, Object> result = new HashMap<>();
+            // 实时天气：天气现象和当前温度
+            String weatherText = live.path("weather").asText("");
+            String tempNow = live.path("temperature").asText("");
+            result.put("weather", weatherText);
+            result.put("temperature", tempNow);
+
+            // 6. 调用高德天气预报API获取今日最高/最低温度（extensions=all）
+            try {
+                String forecastUrl = gaodeWeatherBaseUrl
+                        + "?key=" + gaodeWeatherKey
+                        + "&city=" + city
+                        + "&extensions=all";
+                logger.info("请求高德天气预报API以获取最高/最低温度: url={}", forecastUrl);
+                RestTemplate restTemplateForecast = new RestTemplate();
+                String forecastResp = restTemplateForecast.getForObject(forecastUrl, String.class);
+                if (forecastResp != null && !forecastResp.isEmpty()) {
+                    JsonNode forecastRoot = objectMapper.readTree(forecastResp);
+                    if ("1".equals(forecastRoot.path("status").asText())) {
+                        JsonNode forecasts = forecastRoot.path("forecasts");
+                        if (forecasts.isArray() && forecasts.size() > 0) {
+                            JsonNode todayCast = forecasts.get(0).path("casts");
+                            if (todayCast.isArray() && todayCast.size() > 0) {
+                                JsonNode today = todayCast.get(0);
+                                String maxT = today.path("daytemp").asText("");
+                                String minT = today.path("nighttemp").asText("");
+                                if (!maxT.isEmpty()) {
+                                    result.put("maxTemperature", maxT);
+                                }
+                                if (!minT.isEmpty()) {
+                                    result.put("minTemperature", minT);
+                                }
+                            }
+                        }
+                    } else {
+                        logger.warn("高德天气预报API调用失败: city={}, resp={}", city, forecastResp);
+                    }
+                }
+            } catch (Exception e) {
+                // 预报失败不影响主流程，只记录日志
+                logger.warn("获取高德天气最高/最低温度失败: city={}, error={}", city, e.getMessage());
+            }
+
+            // 7. 写入Redis缓存
+            try {
+                String jsonToCache = objectMapper.writeValueAsString(result);
+                long ttlMinutes = gaodeCacheMinutes > 0 ? gaodeCacheMinutes : 30;
+                redisTemplate.opsForValue().set(cacheKey, jsonToCache, ttlMinutes, TimeUnit.MINUTES);
+                logger.info("天气数据已写入缓存: city={}, cacheKey={}, ttlMinutes={}", city, cacheKey, ttlMinutes);
+            } catch (Exception e) {
+                logger.warn("写入天气缓存失败: city={}, error={}", city, e.getMessage());
+            }
+
+            logger.info("获取今日天气成功: city={}, weather={}, temp={}", city,
+                    result.get("weather"), result.get("temperature"));
+            return Result.success(2026, result);
+        } catch (Exception e) {
+            logger.error("获取今日天气失败: 系统异常", e);
+            return Result.failure(2152);
+        }
+    }
+
+    /**
+     * 归一化天气查询使用的城市编码。
+     * <p>
+     * 规则：
+     * <ul>
+     *     <li>null 或 空串 -> 使用默认配置的 gaodeDefaultCity</li>
+     *     <li>包含 '-' -> 取最后一段（兼容 "61-6110"、"610000-611000" 这类存储格式）</li>
+     *     <li>去掉非数字字符，只保留数字</li>
+     *     <li>2 位数字 -> 省级编码，补为 6 位：如 "61" -> "610000"</li>
+     *     <li>4 位数字 -> 地市级编码前缀，补为 6 位：如 "6110" -> "611000"</li>
+     *     <li>6 位及以上 -> 原样返回（高德使用 6 位 adcode）</li>
+     * </ul>
+     */
+    private String normalizeWeatherCityCode(String rawCode) {
+        if (rawCode == null || rawCode.trim().isEmpty()) {
+            return gaodeDefaultCity;
+        }
+        String code = rawCode.trim();
+        // 兼容 "61-6110" / "610000-611000" 这类用 '-' 连接的存储格式
+        if (code.contains("-")) {
+            String[] parts = code.split("-");
+            code = parts[parts.length - 1];
+        }
+        // 仅保留数字
+        code = code.replaceAll("\\D", "");
+        if (code.isEmpty()) {
+            return gaodeDefaultCity;
+        }
+        if (code.length() == 2) {
+            // 省级前缀，如 "61" -> "610000"
+            return code + "0000";
+        } else if (code.length() == 4) {
+            // 地市级前缀，如 "6110" -> "611000"
+            return code + "00";
+        } else {
+            // 6 位及其它情况，直接按高德规则使用
+            return code;
+        }
+    }
     
     // ==================== 认证相关 ====================
     
@@ -268,6 +459,13 @@ public class UserServiceImpl implements UserService {
             logger.error("注册失败: 无法获取注册后的用户信息, userId: {}", userId);
             return Result.failure(2102); // 注册失败，用户名已存在或数据格式错误
         }
+        
+        // 10. 创建欢迎通知
+        NotificationUtils.createSystemNotification(
+            userId,
+            "欢迎加入商南茶文化平台",
+            "您好，欢迎注册成为商南茶文化平台用户，建议先完善个人资料并查看茶文化入门文章。"
+        );
         
         logger.info("用户注册成功: username: {}, userId: {}", registerDTO.getUsername(), userId);
         return Result.success(2001, convertToUserVO(savedUser)); // 注册成功，请登录
@@ -472,6 +670,56 @@ public class UserServiceImpl implements UserService {
             
             if (userData.containsKey("phone")) {
                 user.setPhone((String) userData.get("phone"));
+                hasUpdate = true;
+            }
+            
+            // 支持更新性别（gender: 0-保密 1-男 2-女）
+            if (userData.containsKey("gender")) {
+                Object genderObj = userData.get("gender");
+                if (genderObj != null) {
+                    try {
+                        Integer gender = (genderObj instanceof Number)
+                                ? ((Number) genderObj).intValue()
+                                : Integer.parseInt(genderObj.toString());
+                        user.setGender(gender);
+                        hasUpdate = true;
+                    } catch (NumberFormatException e) {
+                        logger.warn("更新用户信息警告: 性别字段格式不正确, value={}", genderObj, e);
+                    }
+                }
+            }
+            
+            // 支持更新现居地
+            if (userData.containsKey("currentLocation")) {
+                user.setCurrentLocation((String) userData.get("currentLocation"));
+                hasUpdate = true;
+            }
+            
+            // 支持更新生日（前端以 YYYY-MM-DD 字符串格式提交）
+            if (userData.containsKey("birthday")) {
+                Object birthdayObj = userData.get("birthday");
+                if (birthdayObj != null) {
+                    try {
+                        String birthdayStr = birthdayObj.toString().trim();
+                        if (!birthdayStr.isEmpty()) {
+                            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
+                            sdf.setLenient(false);
+                            java.util.Date birthday = sdf.parse(birthdayStr);
+                            user.setBirthday(birthday);
+                        } else {
+                            // 允许清空生日
+                            user.setBirthday(null);
+                        }
+                        hasUpdate = true;
+                    } catch (Exception e) {
+                        logger.warn("更新用户信息警告: 生日字段格式不正确, value={}", birthdayObj, e);
+                    }
+                }
+            }
+            
+            // 支持更新个人简介
+            if (userData.containsKey("bio")) {
+                user.setBio((String) userData.get("bio"));
                 hasUpdate = true;
             }
             
@@ -1167,13 +1415,14 @@ public class UserServiceImpl implements UserService {
     
     @Override
     public Result<Map<String, Object>> uploadCertificationImage(MultipartFile file, String type) {
+        // 1. 获取当前用户ID（在try外部获取，确保catch块中可用）
+        String userId = UserContext.getCurrentUserId();
+        if (userId == null) {
+            logger.warn("上传认证图片失败: 用户未登录");
+            return Result.failure(2146); // 图片上传失败
+        }
+        
         try {
-            // 1. 获取当前用户ID
-            String userId = UserContext.getCurrentUserId();
-            if (userId == null) {
-                logger.warn("上传认证图片失败: 用户未登录");
-                return Result.failure(2146); // 图片上传失败
-            }
             
             // 2. 验证文件类型参数
             if (type == null || type.trim().isEmpty()) {
@@ -1203,7 +1452,10 @@ public class UserServiceImpl implements UserService {
             
         } catch (BusinessException e) {
             String msg = e.getMessage();
-            logger.warn("上传认证图片失败: {}", msg, e);
+            String filename = file != null ? file.getOriginalFilename() : "未知";
+            long fileSize = file != null ? file.getSize() : 0;
+            logger.warn("上传认证图片失败 [BusinessException]: userId={}, type={}, filename={}, size={}B, error={}", 
+                    userId, type, filename, fileSize, msg, e);
             if (msg != null) {
                 // 文件大小超限 -> 2148
                 if (msg.contains("文件大小不能超过")) {
@@ -1217,11 +1469,23 @@ public class UserServiceImpl implements UserService {
                 if (msg.contains("文件不能为空") || msg.contains("文件名不能为空")) {
                     return Result.failure(2146);
                 }
+                // 图片读取失败 -> 2146
+                if (msg.contains("无法读取图片") || msg.contains("读取图片失败")) {
+                    logger.error("图片读取失败，详细信息: filename={}, size={}B, error={}", filename, fileSize, msg, e);
+                    return Result.failure(2146);
+                }
             }
             // 兜底：统一视为上传失败（2146）
+            logger.error("上传认证图片失败 [BusinessException 兜底]: userId={}, type={}, filename={}, error={}", 
+                    userId, type, filename, msg, e);
             return Result.failure(2146);
         } catch (Exception e) {
-            logger.error("上传认证图片失败: 系统异常", e);
+            String filename = file != null ? file.getOriginalFilename() : "未知";
+            long fileSize = file != null ? file.getSize() : 0;
+            logger.error("上传认证图片失败 [系统异常]: userId={}, type={}, filename={}, size={}B, error={}", 
+                    userId, type, filename, fileSize, e.getMessage(), e);
+            // 打印完整堆栈信息
+            logger.error("异常堆栈:", e);
             // 系统异常统一按上传失败处理
             return Result.failure(2146);
         }
@@ -1319,6 +1583,10 @@ public class UserServiceImpl implements UserService {
             }
             
             logger.info("添加关注成功: userId: {}, targetId: {}, targetType: {}", userId, targetId, targetType);
+            
+            // 创建关注通知（给被关注者）
+            com.shangnantea.utils.NotificationUtils.createFollowNotification(userId, targetType, targetId);
+            
             // 返回 code=2012，data=null，保持与接口文档 & 前端映射一致
             return Result.success(2012);
             
@@ -1471,6 +1739,10 @@ public class UserServiceImpl implements UserService {
             }
             
             logger.info("添加收藏成功: userId: {}, itemId: {}, itemType: {}", userId, itemId, itemType);
+            
+            // 创建收藏通知（给商家，仅tea和shop类型）
+            com.shangnantea.utils.NotificationUtils.createFavoriteNotification(userId, itemType, itemId);
+            
             // 返回 code=2014，data=null
             return Result.success(2014);
             
@@ -1541,25 +1813,34 @@ public class UserServiceImpl implements UserService {
             String targetType = likeDTO.getTargetType();
             String targetId = likeDTO.getTargetId();
             
-            // 3. 验证目标对象是否存在
+            // 3. 验证目标对象是否存在，并获取作者ID
+            String authorId = null;
             if ("post".equals(targetType)) {
                 // 验证帖子是否存在
-                if (forumPostMapper.selectById(Long.parseLong(targetId)) == null) {
+                com.shangnantea.model.entity.forum.ForumPost post = forumPostMapper.selectById(Long.parseLong(targetId));
+                if (post == null) {
                     logger.warn("点赞失败: 帖子不存在, postId: {}", targetId);
                     return Result.failure(2128); // 操作失败
                 }
+                authorId = post.getUserId();
             } else if ("reply".equals(targetType)) {
                 // 验证回复是否存在
-                if (forumReplyMapper.selectById(Long.parseLong(targetId)) == null) {
+                com.shangnantea.model.entity.forum.ForumReply reply = forumReplyMapper.selectById(Long.parseLong(targetId));
+                if (reply == null) {
                     logger.warn("点赞失败: 回复不存在, replyId: {}", targetId);
                     return Result.failure(2128); // 操作失败
                 }
+                authorId = reply.getUserId();
             } else if ("article".equals(targetType)) {
                 // 验证文章是否存在
-                if (teaArticleMapper.selectById(Long.parseLong(targetId)) == null) {
+                com.shangnantea.model.entity.forum.TeaArticle article = teaArticleMapper.selectById(Long.parseLong(targetId));
+                if (article == null) {
                     logger.warn("点赞失败: 文章不存在, articleId: {}", targetId);
                     return Result.failure(2128); // 操作失败
                 }
+                // TODO: TeaArticle 当前仅有作者名称(author)，没有作者用户ID字段，
+                // 因此暂时无法给具体用户发送“文章被点赞”的通知，这里不设置 authorId。
+                // 如果后续为 TeaArticle 增加作者用户ID字段，再在此处补充通知逻辑。
             } else {
                 logger.warn("点赞失败: 点赞类型不正确, targetType: {}", targetType);
                 return Result.failure(2128); // 操作失败
@@ -1584,6 +1865,11 @@ public class UserServiceImpl implements UserService {
             if (result <= 0) {
                 logger.error("点赞失败: 数据库插入失败, userId: {}", userId);
                 return Result.failure(2128); // 操作失败
+            }
+            
+            // 7. 创建点赞通知：给被点赞内容的作者发送通知
+            if (authorId != null && !authorId.equals(userId)) {
+                NotificationUtils.createLikeNotification(authorId, userId, targetType, targetId);
             }
             
             logger.info("点赞成功: userId: {}, targetId: {}, targetType: {}", userId, targetId, targetType);
@@ -2134,6 +2420,16 @@ public class UserServiceImpl implements UserService {
             }
             
             logger.info("审核认证成功(管理员): certificationId: {}, status: {}, adminId: {}", id, auditStatus, adminId);
+
+            // 8. 创建商家认证审核结果通知（纯文本系统公告）
+            boolean approved = (auditStatus == 1);
+            String userId = certification.getUserId();
+            com.shangnantea.utils.NotificationUtils.createCertificationResultNotification(
+                    userId,
+                    approved,
+                    approved ? null : message
+            );
+
             // 返回 code=2023，data=null
             return Result.success(2023);
             
@@ -2158,9 +2454,26 @@ public class UserServiceImpl implements UserService {
         userVO.setNickname(user.getNickname());
         userVO.setEmail(user.getEmail());
         userVO.setPhone(user.getPhone());
-        userVO.setAvatar(user.getAvatar());
+        // 头像字段可能存的是相对路径，也可能已经是完整URL（历史数据 / 手动修复）
+        String avatar = user.getAvatar();
+        if (avatar != null && !avatar.trim().isEmpty()) {
+            // 如果已经是完整URL，直接返回
+            if (avatar.startsWith("http://") || avatar.startsWith("https://")) {
+                userVO.setAvatar(avatar);
+            } else {
+                // 否则按相对路径处理，补上 baseUrl + /api 前缀
+                String accessUrl = FileUploadUtils.generateAccessUrl(avatar, baseUrl);
+                userVO.setAvatar(accessUrl);
+            }
+        } else {
+            userVO.setAvatar(null);
+        }
         userVO.setRole(user.getRole());
         userVO.setStatus(user.getStatus());
+        userVO.setGender(user.getGender());
+        userVO.setCurrentLocation(user.getCurrentLocation());
+        userVO.setBirthday(user.getBirthday());
+        userVO.setBio(user.getBio());
         userVO.setCreateTime(user.getCreateTime());
         userVO.setUpdateTime(user.getUpdateTime());
         return userVO;
@@ -2241,7 +2554,17 @@ public class UserServiceImpl implements UserService {
             followVO.setTargetId(follow.getFollowId());
             followVO.setTargetType(follow.getFollowType());
             followVO.setTargetName(follow.getTargetName());
-            followVO.setTargetAvatar(follow.getTargetAvatar());
+            // 处理头像URL
+            String targetAvatar = follow.getTargetAvatar();
+            if (targetAvatar != null && !targetAvatar.trim().isEmpty()) {
+                if (targetAvatar.startsWith("http://") || targetAvatar.startsWith("https://")) {
+                    followVO.setTargetAvatar(targetAvatar);
+                } else {
+                    followVO.setTargetAvatar(FileUploadUtils.generateAccessUrl(targetAvatar, baseUrl));
+                }
+            } else {
+                followVO.setTargetAvatar(null);
+            }
             followVO.setCreateTime(follow.getCreateTime());
             followVOList.add(followVO);
         }
@@ -2579,7 +2902,17 @@ public class UserServiceImpl implements UserService {
             favoriteVO.setItemType(favorite.getItemType());
             favoriteVO.setItemId(favorite.getItemId());
             favoriteVO.setTargetName(favorite.getTargetName());
-            favoriteVO.setTargetImage(favorite.getTargetImage());
+            // 处理图片URL
+            String targetImage = favorite.getTargetImage();
+            if (targetImage != null && !targetImage.trim().isEmpty()) {
+                if (targetImage.startsWith("http://") || targetImage.startsWith("https://")) {
+                    favoriteVO.setTargetImage(targetImage);
+                } else {
+                    favoriteVO.setTargetImage(FileUploadUtils.generateAccessUrl(targetImage, baseUrl));
+                }
+            } else {
+                favoriteVO.setTargetImage(null);
+            }
             favoriteVO.setCreateTime(favorite.getCreateTime());
             favoriteVOList.add(favoriteVO);
         }

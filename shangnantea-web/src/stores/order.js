@@ -43,8 +43,14 @@ export const useOrderStore = defineStore('order', () => {
   // 订单统计数据
   const orderStatistics = ref(null)
   
-  // 购物车相关状态
-  const cartItems = ref([])
+// 购物车相关状态
+const cartItems = ref([])
+
+// 立即购买临时商品（不走购物车）
+const directBuyItem = ref(null)
+
+// 茶叶列表页：是否使用“默认规格”直接加入购物车（会在整个应用内保持，不做持久化）
+const useDefaultSpecOnAdd = ref(false)
   
   // ========== Getters ==========
   const orderStatusText = computed(() => (status) => {
@@ -59,9 +65,20 @@ export const useOrderStore = defineStore('order', () => {
     return statusMap[status] || '未知状态'
   })
   
-  const cartItemCount = computed(() => 
-    cartItems.value.reduce((sum, item) => sum + item.quantity, 0)
-  )
+  // 购物车商品种类数（不同商品的种类数，不是总数量）
+  const cartItemCount = computed(() => {
+    if (!cartItems.value || cartItems.value.length === 0) return 0
+    // 计算不同商品的数量（根据teaId和specId区分）
+    const uniqueItems = new Set()
+    cartItems.value.forEach(item => {
+      // 兼容不同的字段命名：teaId/tea_id, specId/spec_id
+      const teaId = item.teaId || item.tea_id || ''
+      const specId = item.specId || item.spec_id || 'null'
+      const key = `${teaId}_${specId}`
+      uniqueItems.add(key)
+    })
+    return uniqueItems.size
+  })
   
   const cartTotalPrice = computed(() => 
     cartItems.value.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2)
@@ -80,11 +97,28 @@ export const useOrderStore = defineStore('order', () => {
     try {
       loading.value = true
       const res = await getCartItems()
-      cartItems.value = res.data
+      const data = res?.data
+      // 后端返回格式：{ items: [...] } 或 { list: [...] } 或直接是数组
+      cartItems.value = Array.isArray(data) ? data : (data?.items || data?.list || [])
       return res
     } finally {
       loading.value = false
     }
+  }
+
+  /**
+   * 根据选中的购物车项ID列表，返回对应的购物车商品
+   * 主要用于从购物车跳转到结算页时，获取本次要结算的商品列表
+   *
+   * @param {Array<string|number>} selectedIds 选中的购物车项ID数组
+   * @returns {Array<Object>} 对应的购物车商品列表
+   */
+  function getSelectedCartItems(selectedIds = []) {
+    if (!Array.isArray(selectedIds) || selectedIds.length === 0) {
+      return []
+    }
+    const idSet = new Set(selectedIds.map(id => String(id)))
+    return cartItems.value.filter(item => idSet.has(String(item.id)))
   }
   
   // 添加商品到购物车
@@ -152,15 +186,28 @@ export const useOrderStore = defineStore('order', () => {
     try {
       loading.value = true
       const res = await createOrderApi(orderData)
-      
-      if (orderData.fromCart) {
-        await clearCart()
+      // 后端在 fromCart=true 时会按 items[*].cartItemId 删除“本次结算”的购物车项
+      // 前端不应清空整个购物车，只需要刷新一次即可
+      if (orderData?.fromCart) {
+        await fetchCartItems()
       }
       
       return res
     } finally {
       loading.value = false
     }
+  }
+
+  /**
+   * 设置“立即购买”的临时商品信息
+   * @param {Object|null} item
+   */
+  function setDirectBuyItem(item) {
+    if (!item) {
+      directBuyItem.value = null
+      return
+    }
+    directBuyItem.value = { ...item }
   }
   
   // 获取订单列表
@@ -201,19 +248,30 @@ export const useOrderStore = defineStore('order', () => {
     }
   }
   
-  // 支付订单
-  async function payOrder({ orderId, paymentMethod }) {
+  // 支付订单（优先使用 paymentId，多订单一次支付）
+  async function payOrder({ paymentId, orderId, paymentMethod }) {
     try {
       loading.value = true
-      const res = await payOrderApi({ orderId, paymentMethod })
-      
-      const order = orderList.value.find(o => o.id === orderId)
-      if (order) {
-        order.status = 1
+      const payload = { paymentMethod }
+      // 后端优先按 paymentId 处理，兼容老的仅按 orderId 支付
+      if (paymentId) {
+        payload.paymentId = paymentId
+      } else if (orderId) {
+        payload.orderId = orderId
       }
+
+      const res = await payOrderApi(payload)
       
-      if (currentOrder.value && currentOrder.value.id === orderId) {
-        currentOrder.value.status = 1
+      // 提前将本地状态更新为“待发货”可能与实际结果不一致，这里保持保守策略：
+      // 仅在后端明确返回5006（订单已支付）时更新一次，正常支付走轮询页面。
+      if (res?.code === 5006 && orderId) {
+        const order = orderList.value.find(o => o.id === orderId)
+        if (order) {
+          order.status = 1
+        }
+        if (currentOrder.value && currentOrder.value.id === orderId) {
+          currentOrder.value.status = 1
+        }
       }
       
       return res
@@ -455,6 +513,9 @@ export const useOrderStore = defineStore('order', () => {
     filters,
     orderStatistics,
     cartItems,
+    directBuyItem,
+    useDefaultSpecOnAdd,
+    directBuyItem,
     // Getters
     orderStatusText,
     cartItemCount,
@@ -462,6 +523,7 @@ export const useOrderStore = defineStore('order', () => {
     hasSelectedItems,
     // Actions
     fetchCartItems,
+    getSelectedCartItems,
     addToCart,
     updateCartItem,
     removeFromCart,
@@ -483,6 +545,7 @@ export const useOrderStore = defineStore('order', () => {
     fetchOrderStatistics,
     exportOrders,
     setPage,
-    uploadReviewImage
+    uploadReviewImage,
+    setDirectBuyItem
   }
 })
