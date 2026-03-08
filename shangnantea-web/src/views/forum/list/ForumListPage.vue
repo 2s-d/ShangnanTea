@@ -359,7 +359,7 @@ function imageHandler() {
     }
     try {
       const res = await forumAPI.uploadPostImage(file)
-      if (res?.code === 6037 && res.data?.url) {
+      if (res?.code === 6028 && res.data?.url) {
         const url = res.data.url
         const range = quillInstance.getSelection(true)
         const index = range && range.index != null ? range.index : quillInstance.getLength() - 1
@@ -383,7 +383,7 @@ const handleCoverUpload = async ({ file }) => {
   try {
     coverUploading.value = true
     const res = await forumAPI.uploadPostImage(file)
-    if (res?.code === 6037 && res.data?.url) {
+    if (res?.code === 6028 && res.data?.url) {
       postForm.coverImage = res.data.url
     } else {
       forumPromptMessages.showImageFormatInvalid()
