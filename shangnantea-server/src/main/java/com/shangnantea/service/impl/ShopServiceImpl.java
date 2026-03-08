@@ -2037,31 +2037,15 @@ public class ShopServiceImpl implements ShopService {
                 }
             }
             
-            // 8. 更新店铺评分统计
-            int currentCount = shop.getRatingCount();
-            BigDecimal currentRating = shop.getRating();
+            // 8. 基于评价表重新统计店铺评分（防止手动改库导致统计错误）
+            int newCount = shopReviewMapper.countByShopId(shopId);
             BigDecimal newRating;
-            int newCount;
-            
-            if (isNewReview) {
-                // 新评价：人数+1，重新计算平均分
-                newCount = currentCount + 1;
-                newRating = currentRating.multiply(new BigDecimal(currentCount))
-                        .add(new BigDecimal(rating))
-                        .divide(new BigDecimal(newCount), 2, RoundingMode.HALF_UP);
+            if (newCount <= 0) {
+                newRating = BigDecimal.ZERO;
+                newCount = 0;
             } else {
-                // 覆盖评价：人数不变，先减去旧评分的影响，再加上新评分
-                // existingReview 在 else 分支中一定不为 null（因为 isNewReview = (existingReview == null)）
-                if (existingReview == null) {
-                    logger.error("提交评分失败: 逻辑错误，existingReview 不应为 null");
-                    return Result.failure(4132);
-                }
-                
-                Integer oldRating = existingReview.getRating();
-                BigDecimal totalRating = currentRating.multiply(new BigDecimal(currentCount))
-                        .subtract(new BigDecimal(oldRating))
-                        .add(new BigDecimal(rating));
-                newCount = currentCount; // 人数不变
+                Integer sumRating = shopReviewMapper.sumRatingByShopId(shopId);
+                BigDecimal totalRating = new BigDecimal(sumRating != null ? sumRating : 0);
                 newRating = totalRating.divide(new BigDecimal(newCount), 2, RoundingMode.HALF_UP);
             }
             

@@ -26,9 +26,11 @@
             :key="post.id" 
             :post="post"
             :show-status="true"
+            :show-delete="true"
             @reply="handleReply" 
             @like="handleLike"
             @favorite="handleFavorite"
+            @delete="handleDelete"
           />
           
           <!-- 分页 -->
@@ -60,6 +62,7 @@ import { useUserStore } from '@/stores/user'
 import { Refresh } from '@element-plus/icons-vue'
 import PostCard from '@/components/forum/PostCard.vue'
 import { showByCode } from '@/utils/apiMessages'
+import { ElMessageBox } from 'element-plus'
 
 const router = useRouter()
 const forumStore = useForumStore()
@@ -177,6 +180,29 @@ const handleFavorite = async post => {
     }
   } catch (error) {
     console.error('收藏操作失败:', error)
+  }
+}
+
+// 删除帖子
+const handleDelete = async post => {
+  if (!post?.id) return
+  try {
+    await ElMessageBox.confirm(
+      '确定要删除该帖子吗？删除后将无法恢复。',
+      '删除确认',
+      {
+        confirmButtonText: '确定删除',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+    const res = await forumStore.deletePost(post.id)
+    showByCode(res.code)
+    await fetchPosts()
+  } catch (error) {
+    if (error !== 'cancel' && error !== 'close') {
+      console.error('删除帖子失败:', error)
+    }
   }
 }
 

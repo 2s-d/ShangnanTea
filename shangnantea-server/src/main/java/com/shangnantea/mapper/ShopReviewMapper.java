@@ -39,4 +39,12 @@ public interface ShopReviewMapper extends BaseMapper<ShopReview, Integer> {
      * @return 评价总数
      */
     int countByShopId(@Param("shopId") String shopId);
+    
+    /**
+     * 统计某个店铺所有评分的总和（用于重新计算平均分）
+     *
+     * @param shopId 店铺ID
+     * @return 评分总和
+     */
+    Integer sumRatingByShopId(@Param("shopId") String shopId);
 }

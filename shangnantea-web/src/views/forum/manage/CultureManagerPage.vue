@@ -876,7 +876,10 @@ const submitBannerForm = async () => {
       if (bannerForm.link_url) {
       formData.append('linkUrl', bannerForm.link_url)
       }
-      // sortOrder 在后端初始可以使用默认值，如需调整顺序用“排序拖拽+保存顺序”接口
+      // 将表单中的排序值一并传给后端，落库到 sort_order 字段
+      if (bannerForm.sort_order != null) {
+        formData.append('sortOrder', bannerForm.sort_order)
+      }
       res = await forumStore.uploadBanner(formData)
     }
     

@@ -38,7 +38,8 @@
           <SafeImage :src="post.cover" type="post" :alt="post.title" class="cover-img" style="width:100%;object-fit:cover;" />
         </div>
         
-        <div class="post-actions">
+        <!-- 仅在帖子为已发布状态时允许互动操作 -->
+        <div class="post-actions" v-if="canInteract">
           <el-button type="primary" plain @click="likePost" :loading="likeLoading" :class="{ 'liked': liked }">
             <el-icon class="like-icon">
               <svg v-if="liked" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
@@ -67,8 +68,8 @@
         </div>
       </div>
       
-      <!-- 回复区域 -->
-      <div class="reply-section" id="reply-section" v-if="post">
+      <!-- 回复区域：仅已发布帖子允许回复 -->
+      <div class="reply-section" id="reply-section" v-if="post && canInteract">
         <div class="section-header">
           <h2 class="section-title">全部回复 ({{ pagination.total !== undefined && pagination.total !== null ? pagination.total : (post.replyCount || 0) }})</h2>
           <div class="section-actions">
@@ -268,6 +269,8 @@ const favoriteLoading = ref(false)
 // 从Pinia获取帖子数据
 const post = computed(() => forumStore.currentPost)
 const loading = computed(() => forumStore.loading)
+// 是否允许互动（仅已发布帖子）
+const canInteract = computed(() => post.value && post.value.status === 1)
     
 // 获取帖子详情
 const fetchPostDetail = async () => {

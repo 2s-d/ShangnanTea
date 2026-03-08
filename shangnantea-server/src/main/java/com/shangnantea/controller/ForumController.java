@@ -81,10 +81,11 @@ public class ForumController {
      * 路径: POST /forum/banners
      * 成功码: 6001, 失败码: 6103, 6104, 6105
      *
-     * @param file Banner图片文件
-     * @param title Banner标题
-     * @param subtitle Banner副标题
-     * @param linkUrl 链接地址
+     * @param file      Banner图片文件
+     * @param title     Banner标题
+     * @param subtitle  Banner副标题
+     * @param linkUrl   链接地址
+     * @param sortOrder 排序值（可选）
      * @return 上传结果
      */
     @PostMapping("/banners")
@@ -92,9 +93,10 @@ public class ForumController {
     public Result<Object> uploadBanner(@RequestParam("file") MultipartFile file,
                                        @RequestParam("title") String title,
                                        @RequestParam(value = "subtitle", required = false) String subtitle,
-                                       @RequestParam(value = "linkUrl", required = false) String linkUrl) {
-        logger.info("上传Banner请求, title: {}, 文件名: {}", title, file.getOriginalFilename());
-        return forumService.uploadBanner(file, title, subtitle, linkUrl);
+                                       @RequestParam(value = "linkUrl", required = false) String linkUrl,
+                                       @RequestParam(value = "sortOrder", required = false) Integer sortOrder) {
+        logger.info("上传Banner请求, title: {}, sortOrder: {}, 文件名: {}", title, sortOrder, file.getOriginalFilename());
+        return forumService.uploadBanner(file, title, subtitle, linkUrl, sortOrder);
     }
 
     /**

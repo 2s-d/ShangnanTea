@@ -545,13 +545,8 @@ export const useForumStore = defineStore('forum', () => {
     
     try {
       const res = await updatePostApi(id, data)
-      const index = forumPosts.value.findIndex(p => p.id === id)
-      if (index !== -1) {
-        forumPosts.value.splice(index, 1, res.data)
-      }
-      if (currentPost.value && currentPost.value.id === id) {
-        currentPost.value = res.data
-      }
+      // 后端目前返回的 data 为 null，这里不直接依赖返回数据更新本地列表
+      // 为保证数据一致性，必要时可在调用处重新获取帖子详情或列表
       return res
     } catch (err) {
       error.value = err.message || '更新帖子失败'

@@ -50,6 +50,13 @@
         WHERE shop_id = #{shopId,jdbcType=VARCHAR}
     </select>
     
+    <!-- 统计店铺评分总和 -->
+    <select id="sumRatingByShopId" resultType="java.lang.Integer">
+        SELECT COALESCE(SUM(rating), 0)
+        FROM shop_reviews
+        WHERE shop_id = #{shopId,jdbcType=VARCHAR}
+    </select>
+    
     <!-- 插入评价 -->
     <insert id="insert" parameterType="com.shangnantea.model.entity.shop.ShopReview" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO shop_reviews (

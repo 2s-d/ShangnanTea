@@ -262,7 +262,7 @@ public class ForumServiceImpl implements ForumService {
     
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Result<Object> uploadBanner(MultipartFile file, String title, String subtitle, String linkUrl) {
+    public Result<Object> uploadBanner(MultipartFile file, String title, String subtitle, String linkUrl, Integer sortOrder) {
         try {
             logger.info("上传论坛轮播图请求, title: {}, 文件名: {}", title, file.getOriginalFilename());
             
@@ -278,6 +278,8 @@ public class ForumServiceImpl implements ForumService {
             content.setTitle(title);
             content.setSubTitle(subtitle);
             content.setContent(relativePath); // 存储相对路径
+            // 如果提供了排序值，则使用；否则默认0，后续可通过更新顺序接口调整
+            content.setSortOrder(sortOrder != null ? sortOrder : 0);
             content.setStatus(1); // 启用状态
             content.setCreateTime(new Date());
             content.setUpdateTime(new Date());
@@ -1519,6 +1521,29 @@ public class ForumServiceImpl implements ForumService {
                 return Result.failure(6122); // 获取帖子详情失败
             }
             
+            // 1.1 校验访问权限：
+            // - status=1（正常）: 所有人可见
+            // - status=0（待审核）、status=3（已拒绝）: 仅作者和管理员可见
+            // - status=2（已删除）: 任何人不可见
+            String currentUserId = UserContext.getCurrentUserId();
+            Integer status = post.getStatus();
+            boolean isAdmin = UserContext.isAdmin();
+            boolean isOwner = currentUserId != null && currentUserId.equals(post.getUserId());
+            
+            if (status != null) {
+                // 已删除：一律不可见
+                if (status == 2) {
+                    logger.warn("获取帖子详情失败: 帖子已删除, id: {}", id);
+                    return Result.failure(6122);
+                }
+                // 待审核或已拒绝：仅作者/管理员可见
+                if ((status == 0 || status == 3) && !(isAdmin || isOwner)) {
+                    logger.warn("获取帖子详情失败: 帖子处于非公开状态且当前用户无权限, id: {}, status: {}, currentUserId={}",
+                            id, status, currentUserId);
+                    return Result.failure(6122);
+                }
+            }
+            
             // 2. 增加浏览量
             post.setViewCount((post.getViewCount() != null ? post.getViewCount() : 0) + 1);
             postMapper.updateById(post);
@@ -1589,7 +1614,7 @@ public class ForumServiceImpl implements ForumService {
             vo.setUpdateTime(post.getUpdateTime());
             
             // 查询当前用户是否已点赞/收藏该帖子
-            String currentUserId = UserContext.getCurrentUserId();
+            currentUserId = UserContext.getCurrentUserId();
             if (currentUserId != null) {
                 try {
                     UserLike like = userLikeMapper.selectByUserIdAndTarget(currentUserId, "post", id);
@@ -1642,11 +1667,10 @@ public class ForumServiceImpl implements ForumService {
                 return Result.failure(6123); // 帖子更新失败
             }
             
-            // 3. 验证用户是否有权限修改（作者本人或管理员）
-            boolean isAdmin = UserContext.isAdmin();
-            if (!userId.equals(post.getUserId()) && !isAdmin) {
-                logger.warn("更新帖子失败: 无权限修改, userId: {}, postUserId: {}, isAdmin: {}", 
-                        userId, post.getUserId(), isAdmin);
+            // 3. 验证用户是否有权限修改（仅作者本人可以修改内容）
+            if (!userId.equals(post.getUserId())) {
+                logger.warn("更新帖子失败: 无权限修改, userId: {}, postUserId: {}", 
+                        userId, post.getUserId());
                 return Result.failure(6123); // 帖子更新失败
             }
             
@@ -1674,9 +1698,14 @@ public class ForumServiceImpl implements ForumService {
             if (dto.getImages() != null) {
                 post.setImages(dto.getImages());
             }
-            // 注意：修改已发布的帖子时，保持原有状态（status=1已发布），不需要重新审核
-            // 如果帖子是待审核状态（status=0），修改后仍然保持待审核状态
-            // 如果帖子是已拒绝状态（status=3），修改后可以重新设置为待审核状态（可选，这里保持原状态）
+            // 注意：帖子状态更新策略
+            // 业务约定：只要作者修改过内容并提交，帖子必须重新进入待审核状态
+            // - 作者编辑任何非删除状态的帖子：统统重置为 status=0（待审核）
+            // - 删除状态(status=2)的帖子不允许通过此接口“复活”，仍保持已删除
+            Integer oldStatus = post.getStatus();
+            if (oldStatus != null && oldStatus != 2) {
+                post.setStatus(0);
+            }
             post.setUpdateTime(new Date());
             
             // 5. 保存到数据库
@@ -2077,7 +2106,20 @@ public class ForumServiceImpl implements ForumService {
                 logger.error("审核通过失败: 数据库更新失败, id: {}", id);
                 return Result.failure(6134); // 审核失败
             }
-            
+
+            // 4. 创建帖子审核通过通知（站内信）
+            try {
+                NotificationUtils.createPostAuditResultNotification(
+                        post.getUserId(),
+                        post.getId(),
+                        post.getTitle(),
+                        true,
+                        null
+                );
+            } catch (Exception notifyEx) {
+                logger.warn("审核通过后创建帖子审核结果通知失败, postId={}, userId={}", post.getId(), post.getUserId(), notifyEx);
+            }
+
             logger.info("审核通过成功: id={}", id);
             return Result.success(6022, null); // 审核通过
             
@@ -2121,7 +2163,20 @@ public class ForumServiceImpl implements ForumService {
                 logger.error("审核拒绝失败: 数据库更新失败, id: {}", id);
                 return Result.failure(6135); // 审核拒绝失败
             }
-            
+
+            // 4. 创建帖子审核拒绝通知（站内信）
+            try {
+                NotificationUtils.createPostAuditResultNotification(
+                        post.getUserId(),
+                        post.getId(),
+                        post.getTitle(),
+                        false,
+                        dto.getReason()
+                );
+            } catch (Exception notifyEx) {
+                logger.warn("审核拒绝后创建帖子审核结果通知失败, postId={}, userId={}", post.getId(), post.getUserId(), notifyEx);
+            }
+
             logger.info("审核拒绝成功: id={}, reason={}", id, dto.getReason());
             return Result.success(6023, null); // 审核已拒绝
             

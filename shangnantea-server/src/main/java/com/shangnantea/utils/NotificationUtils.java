@@ -689,4 +689,51 @@ public class NotificationUtils {
             logger.error("创建商家认证审核结果通知失败: userId={}, approved={}", userId, approved, e);
         }
     }
+
+    /**
+     * 创建帖子审核结果通知（纯文本系统公告，可跳转到帖子详情）
+     *
+     * @param userId  发帖人用户ID
+     * @param postId  帖子ID
+     * @param title   帖子标题
+     * @param approved 是否通过
+     * @param reason  拒绝原因（可选）
+     */
+    public static void createPostAuditResultNotification(String userId, Long postId, String title,
+                                                         boolean approved, String reason) {
+        try {
+            if (userId == null || postId == null) {
+                return;
+            }
+            UserNotification notification = new UserNotification();
+            notification.setUserId(userId);
+            notification.setSenderId(null); // 系统通知
+            notification.setType("post_audit"); // 帖子审核结果，可在前端按类型跳转到帖子详情
+            notification.setTitle("帖子审核结果");
+
+            String safeTitle = (title != null && !title.trim().isEmpty())
+                    ? truncateContent(title.trim(), 50)
+                    : "你的帖子";
+
+            if (approved) {
+                notification.setContent("您发布的《" + safeTitle + "》已通过审核。");
+            } else {
+                String msg = (reason != null && !reason.trim().isEmpty())
+                        ? reason
+                        : "请根据提示修改内容后重新提交审核。";
+                notification.setContent("您发布的《" + safeTitle + "》未通过审核，原因：" + truncateContent(msg, 80));
+            }
+
+            notification.setTargetId(String.valueOf(postId));
+            notification.setTargetType("post");
+            notification.setExtraData(null);
+            notification.setIsRead(0);
+            notification.setCreateTime(new Date());
+
+            notificationMapper.insert(notification);
+            logger.info("创建帖子审核结果通知成功: userId={}, postId={}, approved={}", userId, postId, approved);
+        } catch (Exception e) {
+            logger.error("创建帖子审核结果通知失败: userId={}, postId={}, approved={}", userId, postId, approved, e);
+        }
+    }
 }

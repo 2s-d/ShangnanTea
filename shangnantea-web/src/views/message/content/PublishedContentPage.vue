@@ -73,7 +73,7 @@
                     </div>
                     
                     <div class="post-actions">
-                      <el-button type="primary" size="small" @click.stop="editPost(post.id)">
+                      <el-button type="primary" size="small" @click.stop="editPost(post)">
                         <el-icon><Edit /></el-icon> 编辑
                       </el-button>
                       <el-button type="danger" size="small" @click.stop="deletePost(post.id)">
@@ -149,6 +149,46 @@
         <el-button type="primary" @click="goHome">返回茶文化</el-button>
       </div>
     </div>
+
+    <!-- 编辑帖子弹窗 -->
+    <el-dialog
+      v-model="editDialogVisible"
+      title="编辑帖子"
+      width="600px"
+      destroy-on-close
+    >
+      <el-form :model="editForm" label-width="80px">
+        <el-form-item label="标题">
+          <el-input v-model="editForm.title" maxlength="100" show-word-limit />
+        </el-form-item>
+        <el-form-item label="摘要">
+          <el-input
+            v-model="editForm.summary"
+            type="textarea"
+            :rows="3"
+            maxlength="200"
+            show-word-limit
+          />
+        </el-form-item>
+        <el-form-item label="内容">
+          <el-input
+            v-model="editForm.content"
+            type="textarea"
+            :rows="6"
+            maxlength="10000"
+            show-word-limit
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="editDialogVisible = false">取 消</el-button>
+          <el-button type="primary" :loading="editLoading" @click="submitEdit">
+            保 存
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -156,6 +196,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMessageStore } from '@/stores/message'
+import { useForumStore } from '@/stores/forum'
 import { ElMessageBox } from 'element-plus'
 import { Timer, View, ChatDotRound, Star, Edit, Delete } from '@element-plus/icons-vue'
 import { showByCode } from '@/utils/apiMessages'
@@ -163,8 +204,19 @@ import { commonPromptMessages } from '@/utils/promptMessages'
 
 const router = useRouter()
 const messageStore = useMessageStore()
+const forumStore = useForumStore()
 const activeTab = ref('posts')
 const sortOption = ref('newest')
+
+// 编辑帖子弹窗相关状态
+const editDialogVisible = ref(false)
+const editingPostId = ref(null)
+const editForm = ref({
+  title: '',
+  content: '',
+  summary: ''
+})
+const editLoading = ref(false)
     
     // 从Pinia获取数据
     const posts = computed(() => messageStore.userPosts || [])
@@ -221,10 +273,38 @@ const sortOption = ref('newest')
       router.push(`/forum/${id}`)
     }
     
-    // 编辑帖子
-    const editPost = id => {
-      // 实际项目中跳转到编辑页面
-      commonPromptMessages.showProcessing()
+    // 编辑帖子：打开编辑弹窗，预填当前帖子数据
+    const editPost = post => {
+      if (!post) return
+      editingPostId.value = post.id
+      editForm.value = {
+        title: post.title || '',
+        // 个人中心列表没有富文本编辑，这里直接编辑纯文本内容
+        content: post.content || '',
+        summary: post.summary || ''
+      }
+      editDialogVisible.value = true
+    }
+    
+    const submitEdit = async () => {
+      if (!editingPostId.value) return
+      try {
+        editLoading.value = true
+        const payload = {
+          title: editForm.value.title,
+          content: editForm.value.content,
+          summary: editForm.value.summary
+        }
+        const res = await forumStore.updatePost(editingPostId.value, payload)
+        showByCode(res.code)
+        editDialogVisible.value = false
+        // 编辑后刷新“我的帖子”列表
+        await loadData()
+      } catch (error) {
+        console.error('更新帖子失败：', error)
+      } finally {
+        editLoading.value = false
+      }
     }
     
     // 删除帖子
@@ -239,12 +319,10 @@ const sortOption = ref('newest')
         }
       )
         .then(async () => {
-          // 实际项目中调用删除API
-          // const res = await store.dispatch('message/deletePost', id)
-          // showByCode(res.code)
-          commonPromptMessages.showProcessing()
+          const res = await forumStore.deletePost(id)
+          showByCode(res.code)
           // 重新加载数据
-          loadData()
+          await loadData()
         })
         .catch(() => {
           // 用户取消操作

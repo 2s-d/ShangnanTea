@@ -158,12 +158,10 @@
                 class="review-summary"
               >
                 <span class="review-summary-score">
-                  {{ ratingSummary.rating.toFixed(1) }}
+                 总评分： {{ ratingSummary.rating.toFixed(1) }}
                 </span>
                 <span class="review-summary-unit">分</span>
-                <span class="review-summary-count">
-                  {{ ratingSummary.ratingCount }}人评价
-                </span>
+            
               </div>
               
               <!-- 评价列表 -->
@@ -171,9 +169,13 @@
                 <div v-for="review in shopReviews" :key="review.id" class="review-item">
                   <div class="review-header">
                     <div class="review-user">
-                      <el-avatar :src="review.avatar" :size="40">{{ review.username?.charAt(0) }}</el-avatar>
+                      <el-avatar :src="review.avatar" :size="40">
+                        {{ (review.nickname || review.username || '').charAt(0) }}
+                      </el-avatar>
                       <div class="user-info">
-                        <div class="username">{{ review.username }}</div>
+                        <div class="user-name">
+                          {{ review.nickname || review.username || ('用户' + (review.userId || '')) }}
+                        </div>
                         <div class="review-time">{{ formatTime(review.createTime) }}</div>
                       </div>
                     </div>
@@ -226,7 +228,10 @@
                   </template>
                   <el-form :model="reviewForm" label-width="80px">
                     <el-form-item label="评分">
-                      <el-rate v-model="reviewForm.rating" />
+                      <div class="my-rating-row">
+                        <el-rate v-model="reviewForm.rating" />
+                        <span v-if="!hasUserRating" class="no-rating-badge">未评价</span>
+                      </div>
                     </el-form-item>
                     <el-form-item label="评价内容">
                       <el-input
@@ -319,7 +324,7 @@ defineOptions({
     
     // 店铺评价相关
     const shopReviews = computed(() => shopStore.shopReviews || [])
-    const ratingSummary = computed(() => shopStore.shopRatingSummary || { rating: 0, ratingCount: 0 })
+    const ratingSummary = computed(() => shopStore.shopRatingSummary || { rating: 0, ratingCount: 0, userRating: null })
     // 顶部评分：优先使用 reviews 接口的汇总数据，兜底用店铺详情里的原始字段
     const headerRating = computed(() => {
       const summary = ratingSummary.value
@@ -338,8 +343,13 @@ defineOptions({
     })
     const reviewPagination = computed(() => shopStore.reviewPagination)
     const reviewForm = ref({
-      rating: 5,
+      rating: 0,
       content: ''
+    })
+    // 当前用户是否已有评分
+    const hasUserRating = computed(() => {
+      const ur = ratingSummary.value?.userRating
+      return typeof ur === 'number' && ur > 0
     })
     const reviewSubmitting = ref(false)
     
@@ -360,10 +370,14 @@ defineOptions({
         await shopStore.fetchShopAnnouncements(shopId)
         // 注意：关注状态已由fetchShopDetail接口返回的isFollowed字段提供，无需单独调用checkFollowStatus
         // 加载店铺评价
-        await shopStore.fetchShopReviews({
+        const res = await shopStore.fetchShopReviews({
           shopId,
           params: { page: 1, size: 10 }
         })
+        // 根据后端返回的 userRating 初始化当前用户的评分
+        const data = res?.data
+        const ur = data?.userRating
+        reviewForm.value.rating = typeof ur === 'number' ? ur : 0
       } catch (error) {
         console.error('加载店铺详情失败:', error)
       }
@@ -437,10 +451,13 @@ defineOptions({
       const shopId = route.params.id
       if (!shopId) return
       try {
-        await shopStore.fetchShopReviews({
+        const res = await shopStore.fetchShopReviews({
           shopId,
           params: { page, size: reviewPagination.value.pageSize }
         })
+        const data = res?.data
+        const ur = data?.userRating
+        reviewForm.value.rating = typeof ur === 'number' ? ur : 0
       } catch (error) {
         console.error('加载评价失败:', error)
       }
@@ -471,15 +488,15 @@ defineOptions({
           }
         })
         showByCode(response.code)
-        reviewForm.value = {
-          rating: 5,
-          content: ''
-        }
-        // 重新加载评价列表
-        await shopStore.fetchShopReviews({
+        // 重新加载评价列表与当前用户评分
+        const res = await shopStore.fetchShopReviews({
           shopId,
           params: { page: 1, size: reviewPagination.value.pageSize }
         })
+        const data = res?.data
+        const ur = data?.userRating
+        reviewForm.value.rating = typeof ur === 'number' ? ur : 0
+        reviewForm.value.content = ''
       } catch (error) {
         console.error('提交评价失败:', error)
       } finally {
@@ -754,7 +771,7 @@ defineOptions({
     background-color: #fff;
     border-radius: 8px;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
-  padding: 20px;
+    padding: 20px;
     
     .shop-tabs {
       .products-container {
@@ -778,6 +795,74 @@ defineOptions({
       
       .shop-detail-info {
         padding: 20px 0;
+      }
+      
+      .shop-reviews-container {
+        padding: 10px 0 0;
+        
+        .reviews-list {
+          margin-top: 12px;
+        }
+        
+        .review-item {
+          padding: 16px 0;
+          border-bottom: 1px solid var(--el-border-color-lighter);
+          
+          &:last-child {
+            border-bottom: none;
+          }
+        }
+        
+        .review-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 8px;
+        }
+        
+        .review-user {
+          display: flex;
+          align-items: center;
+          
+          .user-info {
+            margin-left: 10px;
+            
+            .user-name {
+              font-weight: 500;
+              font-size: 14px;
+              color: var(--el-text-color-primary);
+            }
+            
+            .review-time {
+              margin-top: 4px;
+              font-size: 12px;
+              color: var(--el-text-color-secondary);
+            }
+          }
+        }
+        
+        .review-content {
+          margin: 6px 0 4px;
+          line-height: 1.6;
+          color: var(--el-text-color-regular);
+        }
+        
+        .my-rating-row {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 24px;
+          width: 260px;
+          margin: 0 auto;
+        }
+        
+        .no-rating-badge {
+          padding: 2px 10px;
+          border-radius: 12px;
+          border: 1px solid var(--el-border-color-lighter);
+          font-size: 12px;
+          color: var(--el-text-color-secondary);
+        }
       }
     }
   }
