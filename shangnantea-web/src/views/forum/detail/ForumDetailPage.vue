@@ -96,10 +96,10 @@
           <div v-for="reply in replyList" :key="reply.id" class="reply-item">
             <!-- 回复头部：头像、昵称/用户名、时间在同一行 -->
             <div class="reply-header">
-              <div class="author-avatar">
+              <div class="author-avatar" @click="goToUserProfile(reply.userId)">
                 <SafeImage :src="reply.avatar" type="avatar" :alt="getDisplayName(reply)" style="width:40px;height:40px;border-radius:50%;object-fit:cover;" />
               </div>
-              <div class="author-name">{{ getDisplayName(reply) }}</div>
+              <div class="author-name" @click="goToUserProfile(reply.userId)">{{ getDisplayName(reply) }}</div>
               <div class="reply-time">{{ formatDate(reply.createTime) }}</div>
             </div>
             
@@ -767,6 +767,7 @@ const getReplyContent = replyId => {
     .post-author {
       display: flex;
       align-items: center;
+      cursor: pointer;
       
       .author-avatar {
         width: 36px;
@@ -774,6 +775,11 @@ const getReplyContent = replyId => {
         border-radius: 50%;
         overflow: hidden;
         margin-right: 10px;
+        transition: opacity 0.2s;
+        
+        &:hover {
+          opacity: 0.8;
+        }
         
         img {
           width: 100%;
@@ -785,6 +791,11 @@ const getReplyContent = replyId => {
       .author-name {
         font-weight: 500;
         color: var(--el-text-color-primary);
+        transition: color 0.2s;
+        
+        &:hover {
+          color: var(--el-color-primary);
+        }
       }
     }
     
@@ -936,6 +947,12 @@ const getReplyContent = replyId => {
         overflow: hidden;
         flex-shrink: 0;
         margin-right: 10px;
+        cursor: pointer;
+        transition: opacity 0.2s;
+        
+        &:hover {
+          opacity: 0.8;
+        }
         
         img {
           width: 100%;
@@ -949,6 +966,12 @@ const getReplyContent = replyId => {
         font-weight: 500;
         color: var(--el-text-color-primary);
         margin-right: auto;
+        cursor: pointer;
+        transition: color 0.2s;
+        
+        &:hover {
+          color: var(--el-color-primary);
+        }
       }
       
       .reply-time {
