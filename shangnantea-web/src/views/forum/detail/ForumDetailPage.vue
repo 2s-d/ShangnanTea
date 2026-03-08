@@ -8,7 +8,7 @@
         </div>
         <h1 class="page-title">{{ post.title }}</h1>
         <div class="post-meta">
-          <div class="post-author">
+          <div class="post-author" @click="goToUserProfile(post.userId)">
             <span class="author-avatar">
               <SafeImage :src="post.userAvatar" type="avatar" :alt="getPostAuthorName(post)" style="width:40px;height:40px;border-radius:50%;object-fit:cover;" />
             </span>
@@ -682,6 +682,12 @@ const submitReply = async () => {
 // 查看帖子详情
 const viewPost = postId => {
   router.push(`/forum/${postId}`)
+}
+
+// 跳转到用户主页
+const goToUserProfile = userId => {
+  if (!userId) return
+  router.push(`/profile/${userId}`)
 }
 
 // 获取显示名称（优先昵称，没有昵称显示用户名）

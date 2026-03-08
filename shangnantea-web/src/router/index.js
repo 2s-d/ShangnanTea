@@ -346,7 +346,7 @@ const routes = [
   
   // 个人主页
   {
-    path: '/profile/:tab?',
+    path: '/profile/:userId?/:tab?',
     name: 'UserProfile',
     component: () => import('@/views/message/homepage/UserHomePage.vue'),
     meta: {

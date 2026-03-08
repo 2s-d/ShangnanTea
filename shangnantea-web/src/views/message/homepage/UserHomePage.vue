@@ -209,8 +209,41 @@ const route = useRoute()
 const messageStore = useMessageStore()
 const userStore = useUserStore()
     
-    // 从路由参数获取用户ID，如果没有则使用当前登录用户ID
-    const userId = computed(() => route.params.userId || 'current')
+    // 从路由参数获取用户ID和tab
+    // 路由格式：/profile/:userId?/:tab?
+    // 如果第一个参数是已知的tab（dynamic、published等），则当作tab，userId为undefined
+    // 如果第一个参数不是已知的tab，则当作userId
+    const userId = computed(() => {
+      const firstParam = route.params.userId
+      const secondParam = route.params.tab
+      
+      // 如果第一个参数是已知的tab，则它是tab，userId为undefined
+      if (firstParam && (componentMap[firstParam] || firstParam === 'dynamic')) {
+        return 'current'
+      }
+      
+      // 如果第一个参数不是已知的tab，则它是userId
+      if (firstParam && firstParam !== 'current') {
+        return firstParam
+      }
+      
+      // 默认返回current
+      return 'current'
+    })
+    
+    // 从路由参数获取tab
+    const routeTab = computed(() => {
+      const firstParam = route.params.userId
+      const secondParam = route.params.tab
+      
+      // 如果第一个参数是已知的tab，则它是tab
+      if (firstParam && (componentMap[firstParam] || firstParam === 'dynamic')) {
+        return firstParam
+      }
+      
+      // 否则使用第二个参数作为tab
+      return secondParam
+    })
     
     // 从Pinia获取用户信息（优先使用消息模块返回的数据，不足部分用全局用户信息补全）
     const userInfo = computed(() => {
@@ -302,10 +335,11 @@ const userStore = useUserStore()
     
     // 从路由参数初始化activeMenu
     onMounted(async () => {
-      if (route.params.tab && (componentMap[route.params.tab] || route.params.tab === 'dynamic')) {
-        activeMenu.value = route.params.tab
-        if (componentMap[route.params.tab]) {
-          currentComponent.value = componentMap[route.params.tab]
+      const tab = routeTab.value
+      if (tab && (componentMap[tab] || tab === 'dynamic')) {
+        activeMenu.value = tab
+        if (componentMap[tab]) {
+          currentComponent.value = componentMap[tab]
         }
       }
       
@@ -314,7 +348,7 @@ const userStore = useUserStore()
     })
     
     // 监听路由参数变化
-    watch(() => route.params.tab, newTab => {
+    watch(() => routeTab.value, newTab => {
       if (newTab && (componentMap[newTab] || newTab === 'dynamic')) {
         activeMenu.value = newTab
         if (componentMap[newTab]) {
@@ -339,11 +373,19 @@ const userStore = useUserStore()
         currentComponent.value = null
       }
       
-      // 更新路由参数（不刷新页面）
-      router.push({
-        path: `/profile/${key}`,
-        replace: true
-      })
+      // 更新路由参数（不刷新页面），保留userId参数
+      const currentUserId = userId.value
+      if (currentUserId && currentUserId !== 'current') {
+        router.push({
+          path: `/profile/${currentUserId}/${key}`,
+          replace: true
+        })
+      } else {
+        router.push({
+          path: `/profile/current/${key}`,
+          replace: true
+        })
+      }
     }
     
     // 处理编辑资料
