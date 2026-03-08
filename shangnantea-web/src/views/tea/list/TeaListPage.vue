@@ -494,16 +494,18 @@ defineOptions({
     // 监听路由参数变化
     watch(
       () => route.query,
-      query => {
-        // 从URL参数更新筛选条件
+      async query => {
+        // 如果正在通过applyFilters更新，跳过watch触发（避免重复加载）
+        if (isApplyingFilters.value) {
+          return
+        }
+        
+        // 先更新所有筛选条件（不触发请求）
         if (query.search) searchQuery.value = query.search
         else searchQuery.value = ''
         
         if (query.sort) sortOption.value = query.sort
         else sortOption.value = 'default'
-        
-        if (query.page) teaStore.setPage(parseInt(query.page))
-        else teaStore.setPage(1)
         
         if (query.categories) {
           try {
@@ -538,7 +540,14 @@ defineOptions({
           filters.rating = null
         }
         
-        loadTeas()
+        // 统一加载数据（updateFilters会重置页码为1并触发请求）
+        await loadTeas()
+        
+        // 如果URL中有页码参数且不是1，说明用户想翻页
+        // 但updateFilters已经重置页码为1了，所以需要再次设置页码并触发请求
+        if (query.page && parseInt(query.page) !== 1) {
+          teaStore.setPage(parseInt(query.page))
+        }
       },
       { immediate: true }
     )
@@ -563,10 +572,19 @@ defineOptions({
     
     // 应用筛选 - 直接应用，不再需要按钮
     const applyFilters = async () => {
-      // 直接更新筛选条件并加载数据（updateFilters会重置页码为1）
-      await loadTeas()
-      // 然后同步URL参数
-      updateQueryParams()
+      // 设置标志，防止watch重复触发
+      isApplyingFilters.value = true
+      try {
+        // 直接更新筛选条件并加载数据（updateFilters会重置页码为1）
+        await loadTeas()
+        // 然后同步URL参数（不会触发watch，因为isApplyingFilters=true）
+        updateQueryParams()
+      } finally {
+        // 延迟重置标志，确保URL更新完成
+        setTimeout(() => {
+          isApplyingFilters.value = false
+        }, 100)
+      }
     }
     
     // 重置筛选
