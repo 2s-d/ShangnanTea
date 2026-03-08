@@ -23,11 +23,6 @@ public class ReplyVO {
     private String userId;
     
     /**
-     * 回复用户名
-     */
-    private String username;
-    
-    /**
      * 回复用户昵称
      */
     private String nickname;
@@ -53,9 +48,9 @@ public class ReplyVO {
     private String toUserId;
     
     /**
-     * 回复目标用户名
+     * 回复目标用户昵称
      */
-    private String toUsername;
+    private String toNickname;
     
     /**
      * 点赞数

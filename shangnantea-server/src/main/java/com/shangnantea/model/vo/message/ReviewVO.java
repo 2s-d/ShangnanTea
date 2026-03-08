@@ -35,11 +35,6 @@ public class ReviewVO {
     private String userId;
     
     /**
-     * 用户名
-     */
-    private String username;
-    
-    /**
      * 用户昵称
      */
     private String nickname;

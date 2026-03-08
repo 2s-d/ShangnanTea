@@ -21,11 +21,6 @@ public class PostDetailVO {
     private String userId;
     
     /**
-     * 发帖用户名
-     */
-    private String userName;
-    
-    /**
      * 发帖用户昵称
      */
     private String nickname;
