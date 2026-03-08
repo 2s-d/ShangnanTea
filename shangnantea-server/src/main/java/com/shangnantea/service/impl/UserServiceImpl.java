@@ -627,7 +627,14 @@ public class UserServiceImpl implements UserService {
             boolean hasUpdate = false;
             
             if (userData.containsKey("nickname")) {
-                user.setNickname((String) userData.get("nickname"));
+                Object nicknameObj = userData.get("nickname");
+                String nickname = nicknameObj != null ? nicknameObj.toString().trim() : "";
+                // 昵称不允许为空：为空时兜底为旧昵称；旧昵称也为空则兜底为用户名（用户名不再用于展示位）
+                if (nickname.isEmpty()) {
+                    String oldNickname = user.getNickname() != null ? user.getNickname().trim() : "";
+                    nickname = !oldNickname.isEmpty() ? oldNickname : user.getUsername();
+                }
+                user.setNickname(nickname);
                 hasUpdate = true;
             }
             
@@ -683,6 +690,13 @@ public class UserServiceImpl implements UserService {
                         logger.warn("更新用户信息警告: 生日字段格式不正确, value={}", birthdayObj, e);
                     }
                 }
+            }
+
+            // 兜底：无论是否更新昵称，都确保昵称字段不为空（历史脏数据修复）
+            String finalNickname = user.getNickname() != null ? user.getNickname().trim() : "";
+            if (finalNickname.isEmpty()) {
+                user.setNickname(user.getUsername());
+                hasUpdate = true;
             }
             
             // 支持更新个人简介
@@ -2090,11 +2104,7 @@ public class UserServiceImpl implements UserService {
             
             // 3. 更新允许修改的字段
             boolean hasUpdate = false;
-            
-            if (updateUserDTO.getNickname() != null) {
-                user.setNickname(updateUserDTO.getNickname());
-                hasUpdate = true;
-            }
+            // 昵称：禁止管理员修改（展示位只使用昵称，避免被随意篡改导致用户识别混乱）
             
             if (updateUserDTO.getEmail() != null) {
                 user.setEmail(updateUserDTO.getEmail());
