@@ -26,6 +26,11 @@ public class PostVO {
     private String userName;
     
     /**
+     * 发帖用户昵称
+     */
+    private String nickname;
+    
+    /**
      * 用户头像
      */
     private String userAvatar;

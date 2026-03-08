@@ -28,6 +28,11 @@ public class ReplyVO {
     private String username;
     
     /**
+     * 回复用户昵称
+     */
+    private String nickname;
+    
+    /**
      * 回复用户头像
      */
     private String avatar;

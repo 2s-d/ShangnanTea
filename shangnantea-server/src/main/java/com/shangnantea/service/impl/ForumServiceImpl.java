@@ -1557,6 +1557,7 @@ public class ForumServiceImpl implements ForumService {
             vo.setId(post.getId());
             vo.setUserId(post.getUserId());
             vo.setUserName(user != null ? user.getUsername() : "未知用户");
+            vo.setNickname(user != null ? user.getNickname() : null);
             // 处理用户头像URL
             String userAvatar = user != null ? user.getAvatar() : null;
             if (userAvatar != null && !userAvatar.trim().isEmpty()) {
@@ -1889,6 +1890,7 @@ public class ForumServiceImpl implements ForumService {
                         User user = finalUserMap.get(reply.getUserId());
                         if (user != null) {
                             vo.setUsername(user.getUsername());
+                            vo.setNickname(user.getNickname());
                             String avatar = user.getAvatar();
                             if (avatar != null && !avatar.trim().isEmpty()) {
                                 if (avatar.startsWith("http://") || avatar.startsWith("https://")) {
