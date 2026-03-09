@@ -1,16 +1,19 @@
 package com.shangnantea.security.util;
 
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
-
 /**
- * 密码编码工具类
+ * 密码编码工具类（BCrypt）。
+ *
+ * 说明：
+ * - 该实现会直接改变数据库中 password 字段的存储格式。
+ * - 若数据库中仍是旧的 SHA-256/Base64 密文，则升级后将无法验证通过。
  */
 @Component
 public class PasswordEncoder {
+
+    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(10);
 
     /**
      * 加密密码
@@ -22,14 +25,8 @@ public class PasswordEncoder {
         if (rawPassword == null) {
             return null;
         }
-        
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            byte[] hash = md.digest(rawPassword.getBytes());
-            return Base64.getEncoder().encodeToString(hash);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("密码加密失败", e);
-        }
+
+        return encoder.encode(rawPassword);
     }
 
     /**
@@ -43,8 +40,7 @@ public class PasswordEncoder {
         if (rawPassword == null || encodedPassword == null) {
             return false;
         }
-        
-        String newEncoded = encode(rawPassword);
-        return encodedPassword.equals(newEncoded);
+
+        return encoder.matches(rawPassword, encodedPassword);
     }
 } 
