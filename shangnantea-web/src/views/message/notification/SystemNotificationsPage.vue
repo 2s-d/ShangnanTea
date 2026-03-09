@@ -168,10 +168,9 @@ const messageStore = useMessageStore()
     // 获取通知列表
     const fetchNotifications = async () => {
       // 同步分页参数到 Pinia
-      messageStore.pagination = {
-        total: messageStore.pagination.total,
-        currentPage: currentPage.value,
-        pageSize: pageSize.value
+      if (messageStore.pagination) {
+        messageStore.pagination.currentPage = currentPage.value
+        messageStore.pagination.pageSize = pageSize.value
       }
 
       const response = await messageStore.fetchNotifications({

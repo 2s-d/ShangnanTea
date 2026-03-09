@@ -557,8 +557,18 @@ const topicLoading = computed(() => forumStore.loading)
 const pendingPostsList = computed(() => forumStore.pendingPosts)
 const pendingPostsLoading = computed(() => forumStore.loading)
 const pendingPostsTotalCount = computed(() => forumStore.pendingPostsPagination.total)
-const pendingPostsCurrentPage = ref(1)
-const pendingPostsPageSize = ref(10)
+const pendingPostsCurrentPage = computed({
+  get: () => forumStore.pendingPostsPagination?.currentPage || 1,
+  set: val => {
+    if (forumStore.pendingPostsPagination) forumStore.pendingPostsPagination.currentPage = val
+  }
+})
+const pendingPostsPageSize = computed({
+  get: () => forumStore.pendingPostsPagination?.pageSize || 10,
+  set: val => {
+    if (forumStore.pendingPostsPagination) forumStore.pendingPostsPagination.pageSize = val
+  }
+})
     
 // 审核对话框相关
 const approveDialogVisible = ref(false)
@@ -595,8 +605,18 @@ const currentTopic = ref(null)
 const postsList = computed(() => forumStore.forumPosts)
 const postsLoading = ref(false)
 const postsTotalCount = computed(() => forumStore.postPagination?.total || 0)
-const postCurrentPage = ref(1)
-const postPageSize = ref(10)
+const postCurrentPage = computed({
+  get: () => forumStore.postPagination?.currentPage || 1,
+  set: val => {
+    if (forumStore.postPagination) forumStore.postPagination.currentPage = val
+  }
+})
+const postPageSize = computed({
+  get: () => forumStore.postPagination?.pageSize || 10,
+  set: val => {
+    if (forumStore.postPagination) forumStore.postPagination.pageSize = val
+  }
+})
 
 const topicForm = ref({
   name: '',
@@ -756,6 +776,7 @@ const searchPosts = () => {
 // 处理分页大小变化
 const handlePostsSizeChange = val => {
   postPageSize.value = val
+  postCurrentPage.value = 1
   loadPosts()
 }
 
@@ -867,6 +888,7 @@ const loadPendingPosts = async () => {
 // 处理待审核帖子分页大小变化
 const handlePendingPostsSizeChange = val => {
   pendingPostsPageSize.value = val
+  pendingPostsCurrentPage.value = 1
   loadPendingPosts()
 }
 

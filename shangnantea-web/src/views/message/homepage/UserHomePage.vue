@@ -729,8 +729,8 @@ const defaultImage = ''
         gap: 12px;
 
         .private-message-btn {
-          width: 104px;
-          height: 40px;
+          width: 95px;
+          height: 30px;
           padding: 0;
           border-radius: 8px;
           border: 1px solid #9fd7a8;
@@ -747,8 +747,8 @@ const defaultImage = ''
         }
 
         .follow-btn {
-          width: 104px;
-          height: 40px;
+          width: 95px;
+          height: 30px;
           padding: 0;
           border-radius: 8px;
           border: 1px solid #f56c6c;

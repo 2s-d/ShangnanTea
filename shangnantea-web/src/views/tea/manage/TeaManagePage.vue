@@ -1339,14 +1339,15 @@ defineOptions({
     
     // 页码变更
     const handlePageChange = async page => {
-      await teaStore.setPage(page)
+      teaStore.pagination.currentPage = page
+      await loadTeas()
     }
     
     // 每页条数变更
     const handleSizeChange = async size => {
       teaStore.pagination.pageSize = size
       teaStore.pagination.currentPage = 1
-      await teaStore.fetchTeas()
+      await loadTeas()
     }
     
     // 初始化
