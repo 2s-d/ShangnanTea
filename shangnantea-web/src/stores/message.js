@@ -196,14 +196,17 @@ export const useMessageStore = defineStore('message', () => {
       }
       
       const res = await getMessages(queryParams)
-      
+
+      const requestPage = Number(queryParams.page) || pagination.value.currentPage || 1
+      const requestPageSize = Number(queryParams.pageSize || queryParams.size) || pagination.value.pageSize || 10
+
       messages.value = res.data?.list || []
       pagination.value = {
         total: res.data?.total || 0,
-        currentPage: pagination.value.currentPage,
-        pageSize: pagination.value.pageSize
+        currentPage: Number(res.data?.pageNum || res.data?.page) || requestPage,
+        pageSize: Number(res.data?.pageSize || res.data?.size) || requestPageSize
       }
-      
+
       return res
     } finally {
       loading.value = false

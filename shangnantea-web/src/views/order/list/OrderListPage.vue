@@ -216,7 +216,12 @@ const orderStore = useOrderStore()
 const router = useRouter()
 const searchText = ref('')
 const activeTab = ref('all')
-const currentPage = ref(1)
+const currentPage = computed({
+  get: () => orderStore.pagination.currentPage,
+  set: val => {
+    orderStore.pagination.currentPage = val
+  }
+})
 
 // 退款相关（生产版：只负责收集输入并请求后端）
 const refundDialogVisible = ref(false)
@@ -225,7 +230,12 @@ const refundReason = ref('')
 const refundOrderId = ref('')
 
 const loading = computed(() => orderStore.loading)
-const pageSize = computed(() => orderStore.pagination.pageSize)
+const pageSize = computed({
+  get: () => orderStore.pagination.pageSize,
+  set: val => {
+    orderStore.pagination.pageSize = val
+  }
+})
 const total = computed(() => orderStore.pagination.total)
 const orders = computed(() => orderStore.orderList || [])
 
@@ -317,7 +327,6 @@ const filteredOrders = computed(() => orders.value)
     
     // 处理分页变化
     const handleCurrentChange = page => {
-      currentPage.value = page
       orderStore.setPage({ page })
     }
     
