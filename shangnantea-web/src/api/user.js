@@ -448,6 +448,18 @@ export function toggleUserStatus(userId, data) {
 }
 
 /**
+ * 强制退出用户（仅管理员）
+ * @param {String} userId 用户ID
+ * @returns {Promise} 操作结果
+ */
+export function forceLogout(userId) {
+  return request({
+    url: `${API.USER.ADMIN_USERS}/${userId}/force-logout`,
+    method: 'post'
+  })
+}
+
+/**
  * 获取商家认证申请列表（仅管理员）
  * @returns {Promise} 认证申请列表
  */

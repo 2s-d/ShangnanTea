@@ -548,10 +548,14 @@ const userFormRef = ref(null)
       }
     }
     
-    // 预留：强制下线（管理员）
+    // 强制退出（管理员）
     const handleForceLogout = async user => {
-      // 逻辑下一轮接入后端接口，这里先给出占位提示
-      userMessages.info.showFeaturePreparing && userMessages.info.showFeaturePreparing()
+      try {
+        const res = await userStore.forceLogout(user.id)
+        showByCode(res.code)
+      } catch (error) {
+        console.error('强制退出用户失败：', error)
+      }
     }
     
     // 提交用户表单
@@ -833,6 +837,11 @@ const userFormRef = ref(null)
     margin-left: 10px;
     font-size: 12px;
     color: var(--el-text-color-secondary);
+  }
+
+  .login-active-text {
+    color: #67c23a;
+    font-weight: 500;
   }
 
   .force-logout-btn {

@@ -36,6 +36,7 @@ import {
   updateUser as updateUserApi,
   deleteUser as deleteUserApi,
   toggleUserStatus as toggleUserStatusApi,
+  forceLogout as forceLogoutApi,
   getCertificationList,
   processCertification as processCertificationApi
 } from '@/api/user'
@@ -901,6 +902,20 @@ export const useUserStore = defineStore('user', () => {
       return res
     } catch (error) {
       console.error('切换用户状态失败', error)
+      throw error
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // 强制退出用户（管理员）
+  async function forceLogout(userId) {
+    loading.value = true
+    try {
+      const res = await forceLogoutApi(userId)
+      return res
+    } catch (error) {
+      console.error('强制退出用户失败', error)
       throw error
     } finally {
       loading.value = false
