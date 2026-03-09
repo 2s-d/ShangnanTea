@@ -1,6 +1,13 @@
 <template>
   <div class="user-home-page">
     <div class="container">
+      <!-- 页面标题横条 -->
+      <div class="page-title-bar">
+        <h1 class="page-title-text">
+          {{ isOwnProfile ? '我的主页' : `${userInfo.nickname || userInfo.username || '用户'}的个人主页` }}
+        </h1>
+      </div>
+      
       <el-card class="home-card" v-loading="loading">
         <!-- 上半部分：用户信息展示区 -->
         <div class="user-profile-section">
@@ -107,10 +114,6 @@
             class="home-menu-list"
             mode="horizontal"
             @select="handleMenuSelect">
-            <el-menu-item index="dynamic">
-              <el-icon><Clock /></el-icon>
-              <span>动态</span>
-            </el-menu-item>
             <el-menu-item index="published">
               <el-icon><Document /></el-icon>
               <span>发布</span>
@@ -128,48 +131,13 @@
           
         <!-- 下半部分：内容区域 -->
         <div class="home-content">
-          <!-- 用户动态 -->
-          <div v-if="activeMenu === 'dynamic'" class="dynamic-content">
-            <div class="dynamic-section">
-              <h3>最近发布</h3>
-              <div v-if="userDynamic.recentPosts && userDynamic.recentPosts.length > 0" class="posts-list">
-                <div v-for="post in userDynamic.recentPosts" :key="post.id" class="post-item">
-                  <div class="post-header">
-                    <h4 class="post-title">{{ post.title }}</h4>
-                    <span class="post-time">{{ formatDate(post.createTime) }}</span>
-                  </div>
-                  <p class="post-content">{{ post.content }}</p>
-                  <div class="post-stats">
-                    <span><el-icon><Star /></el-icon> {{ post.likeCount }}</span>
-                    <span><el-icon><ChatDotRound /></el-icon> {{ post.commentCount }}</span>
-                  </div>
-                </div>
-              </div>
-              <el-empty v-else description="暂无发布内容" :image-size="100"></el-empty>
-            </div>
-            
-            <div class="dynamic-section">
-              <h3>最近评论</h3>
-              <div v-if="userDynamic.recentComments && userDynamic.recentComments.length > 0" class="comments-list">
-                <div v-for="comment in userDynamic.recentComments" :key="comment.id" class="comment-item">
-                  <div class="comment-header">
-                    <span class="comment-post">回复：{{ comment.postTitle }}</span>
-                    <span class="comment-time">{{ formatDate(comment.createTime) }}</span>
-                  </div>
-                  <p class="comment-content">{{ comment.content }}</p>
-                </div>
-              </div>
-              <el-empty v-else description="暂无评论记录" :image-size="100"></el-empty>
-            </div>
-          </div>
-          
-          <!-- 其他标签页内容 -->
-          <keep-alive v-else>
+          <!-- 标签页内容 -->
+          <keep-alive>
             <component :is="currentComponent" />
           </keep-alive>
           
           <!-- 开发中的功能提示 -->
-          <template v-if="!hasComponent && activeMenu !== 'dynamic'">
+          <template v-if="!hasComponent">
             <div class="developing-feature">
               <el-empty 
                 description="该功能正在开发中，敬请期待..." 
@@ -197,7 +165,7 @@ import FollowsPage from '@/views/message/follows/FollowsPage.vue'
 import FavoritesPage from '@/views/message/favorites/FavoritesPage.vue'
 import PublishedContentPage from '@/views/message/content/PublishedContentPage.vue'
 import { 
-  User, UserFilled, Star, Document, Male, Female, Edit, Plus, Shop, Clock, ChatDotRound, Key, QuestionFilled, Location 
+  User, UserFilled, Star, Document, Male, Female, Edit, Plus, Shop, Key, QuestionFilled, Location 
 } from '@element-plus/icons-vue'
 import { formatLocationDisplay } from '@/utils/region'
 import SafeImage from '@/components/common/form/SafeImage.vue'
@@ -211,14 +179,14 @@ const userStore = useUserStore()
     
     // 从路由参数获取用户ID和tab
     // 路由格式：/profile/:userId?/:tab?
-    // 如果第一个参数是已知的tab（dynamic、published等），则当作tab，userId为undefined
+    // 如果第一个参数是已知的tab（published等），则当作tab，userId为undefined
     // 如果第一个参数不是已知的tab，则当作userId
     const userId = computed(() => {
       const firstParam = route.params.userId
       const secondParam = route.params.tab
       
       // 如果第一个参数是已知的tab，则它是tab，userId为undefined
-      if (firstParam && (componentMap[firstParam] || firstParam === 'dynamic')) {
+      if (firstParam && componentMap[firstParam]) {
         return 'current'
       }
       
@@ -237,7 +205,7 @@ const userStore = useUserStore()
       const secondParam = route.params.tab
       
       // 如果第一个参数是已知的tab，则它是tab
-      if (firstParam && (componentMap[firstParam] || firstParam === 'dynamic')) {
+      if (firstParam && componentMap[firstParam]) {
         return firstParam
       }
       
@@ -275,12 +243,6 @@ const userStore = useUserStore()
       return formatLocationDisplay(location)
     })
     
-    // 从Pinia获取用户动态
-    const userDynamic = computed(() => messageStore.userDynamic || {
-      recentPosts: [],
-      recentComments: []
-    })
-    
     // 从Pinia获取用户统计数据
     const userStatistics = computed(() => messageStore.userStatistics || {
       postCount: 0,
@@ -310,7 +272,6 @@ const userStore = useUserStore()
     
     // 菜单项和对应组件映射
     const menuOptions = {
-      dynamic: '动态',
       published: '我的发布',
       follows: '我的关注',
       favorites: '我的收藏'
@@ -323,8 +284,8 @@ const userStore = useUserStore()
       favorites: markRaw(FavoritesPage)
     }
     
-    // 活动菜单
-    const activeMenu = ref('dynamic')
+    // 活动菜单（默认显示"发布"）
+    const activeMenu = ref('published')
     // 当前显示的组件
     const currentComponent = ref(componentMap.published)
     
@@ -336,11 +297,9 @@ const userStore = useUserStore()
     // 从路由参数初始化activeMenu
     onMounted(async () => {
       const tab = routeTab.value
-      if (tab && (componentMap[tab] || tab === 'dynamic')) {
+      if (tab && componentMap[tab]) {
         activeMenu.value = tab
-        if (componentMap[tab]) {
-          currentComponent.value = componentMap[tab]
-        }
+        currentComponent.value = componentMap[tab]
       }
       
       // 加载用户信息
@@ -349,11 +308,9 @@ const userStore = useUserStore()
     
     // 监听路由参数变化
     watch(() => routeTab.value, newTab => {
-      if (newTab && (componentMap[newTab] || newTab === 'dynamic')) {
+      if (newTab && componentMap[newTab]) {
         activeMenu.value = newTab
-        if (componentMap[newTab]) {
-          currentComponent.value = componentMap[newTab]
-        }
+        currentComponent.value = componentMap[newTab]
       }
     })
     
@@ -450,10 +407,9 @@ const userStore = useUserStore()
           return
         }
         
-        // 并行加载用户信息、动态和统计数据
+        // 并行加载用户信息和统计数据
         await Promise.all([
           messageStore.fetchUserProfile(targetUserId),
-          messageStore.fetchUserDynamic(targetUserId),
           messageStore.fetchUserStatistics(targetUserId)
         ])
       } catch (error) {
@@ -481,6 +437,21 @@ const defaultImage = ''
     max-width: 1920px;
     margin: 0 auto;
     padding: 0;
+  }
+  
+  // 页面标题横条
+  .page-title-bar {
+    background: #fff;
+    padding: 20px 0;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #f0f0f0;
+    
+    .page-title-text {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--el-text-color-primary);
+    }
   }
   
   .home-card {
@@ -694,96 +665,6 @@ const defaultImage = ''
     .home-content {
       min-height: 300px;
       padding: 30px;
-      
-      .dynamic-content {
-        .dynamic-section {
-          margin-bottom: 30px;
-          
-          h3 {
-            margin-bottom: 20px;
-            color: var(--el-text-color-primary);
-            border-bottom: 2px solid var(--el-color-primary);
-            padding-bottom: 10px;
-          }
-          
-          .posts-list {
-            .post-item {
-              padding: 15px;
-              border: 1px solid #f0f0f0;
-              border-radius: 8px;
-              margin-bottom: 15px;
-              
-              .post-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 10px;
-                
-                .post-title {
-                  margin: 0;
-                  font-size: 16px;
-                  color: var(--el-text-color-primary);
-                }
-                
-                .post-time {
-                  font-size: 12px;
-                  color: #909399;
-                }
-              }
-              
-              .post-content {
-                color: #606266;
-                line-height: 1.6;
-                margin-bottom: 10px;
-              }
-              
-              .post-stats {
-                display: flex;
-                gap: 20px;
-                font-size: 14px;
-                color: #909399;
-                
-                span {
-                  display: flex;
-                  align-items: center;
-                  gap: 5px;
-                }
-              }
-            }
-          }
-          
-          .comments-list {
-            .comment-item {
-              padding: 15px;
-              border: 1px solid #f0f0f0;
-              border-radius: 8px;
-              margin-bottom: 15px;
-              
-              .comment-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 10px;
-                
-                .comment-post {
-                  font-size: 14px;
-                  color: var(--el-color-primary);
-                }
-                
-                .comment-time {
-                  font-size: 12px;
-                  color: #909399;
-                }
-              }
-              
-              .comment-content {
-                color: #606266;
-                line-height: 1.6;
-              }
-            }
-          }
-        }
-      }
     }
   }
   
