@@ -2131,7 +2131,20 @@ public class UserServiceImpl implements UserService {
             // 5. 转换为VO列表
             List<UserVO> userVOList = new ArrayList<>();
             for (User user : userList) {
-                userVOList.add(convertToUserVO(user));
+                UserVO vo = convertToUserVO(user);
+                // 读取登录会话缓存判断是否在线
+                boolean isOnline = false;
+                try {
+                    if (redisTemplate != null) {
+                        String sessionKey = "login:user:" + user.getId();
+                        isOnline = Boolean.TRUE.equals(redisTemplate.hasKey(sessionKey));
+                    }
+                } catch (Exception e) {
+                    logger.warn("检查用户在线状态失败，userId: {}, error: {}", user.getId(), e.getMessage());
+                }
+                // 通过扩展字段记录在线状态（不会影响现有字段兼容性）
+                vo.setOnline(isOnline);
+                userVOList.add(vo);
             }
             
             // 6. 构建分页结果
