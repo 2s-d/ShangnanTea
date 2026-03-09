@@ -439,11 +439,17 @@ onMounted(() => {
   .culture-articles {
     .article-item {
       display: flex;
-      border-bottom: 1px solid #f0f0f0;
-      padding: 20px 0;
-      
-      &:last-child {
-        border-bottom: none;
+      padding: 20px;
+      margin-bottom: 16px;
+      background-color: #fff;
+      border: 1px solid #ebeef5;
+      border-radius: 10px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+      transition: all 0.3s ease;
+
+      &:hover {
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+        transform: translateY(-2px);
       }
       
       .article-cover {
@@ -615,11 +621,17 @@ onMounted(() => {
     .post-item {
       display: flex;
       justify-content: space-between;
-      border-bottom: 1px solid #f0f0f0;
-      padding: 20px 0;
-      
-      &:last-child {
-        border-bottom: none;
+      padding: 20px;
+      margin-bottom: 16px;
+      background-color: #fff;
+      border: 1px solid #ebeef5;
+      border-radius: 10px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+      transition: all 0.3s ease;
+
+      &:hover {
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+        transform: translateY(-2px);
       }
       
       .post-info {
@@ -706,18 +718,14 @@ onMounted(() => {
 // 响应式样式
 @media (max-width: 768px) {
   .favorites-page {
-    .list-header {
+    .filter-bar {
       flex-direction: column;
       align-items: flex-start;
-      
-      .list-title {
-        margin-bottom: 10px;
-      }
-      
-      .list-actions {
+
+      .filter-actions {
         width: 100%;
         flex-wrap: wrap;
-        
+
         .el-input, .el-select {
           margin-bottom: 10px;
           width: 100%;
