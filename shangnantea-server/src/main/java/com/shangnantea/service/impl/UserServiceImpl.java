@@ -2132,11 +2132,11 @@ public class UserServiceImpl implements UserService {
             List<UserVO> userVOList = new ArrayList<>();
             for (User user : userList) {
                 UserVO vo = convertToUserVO(user);
-                // 读取登录会话缓存判断是否在线
+                // 读取在线状态缓存判断是否在线（最近5分钟内有请求）
                 boolean isOnline = false;
                 try {
                     if (redisTemplate != null) {
-                        String sessionKey = "login:user:" + user.getId();
+                        String sessionKey = "online:user:" + user.getId();
                         isOnline = Boolean.TRUE.equals(redisTemplate.hasKey(sessionKey));
                     }
                 } catch (Exception e) {

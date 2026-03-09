@@ -15,6 +15,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+import org.springframework.data.redis.core.StringRedisTemplate;
+import java.util.concurrent.TimeUnit;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.lang.reflect.Method;
@@ -31,6 +34,12 @@ public class JwtInterceptor implements HandlerInterceptor {
 
     @Autowired
     private JwtUtil jwtUtil;
+    
+    /**
+     * 在线状态缓存（可选，用于记录最近活跃用户）。
+     */
+    @Autowired(required = false)
+    private StringRedisTemplate redisTemplate;
     
     // 说明：为避免在应用启动阶段出现 Bean 装配问题，这里暂时不直接依赖 UserService，
     // 而是仅基于 JWT 中的载荷构造一个简化的 User 放入 UserContext。
@@ -82,6 +91,7 @@ public class JwtInterceptor implements HandlerInterceptor {
                         user.setRole(role);
                         UserContext.setCurrentUser(user);
                         logger.debug("可选认证成功，设置用户上下文: ID={}, 角色={}", userId, role);
+                        markUserOnline(userId);
                     }
                 } catch (Exception e) {
                     logger.debug("可选认证失败，忽略token: {}", e.getMessage());
@@ -122,6 +132,7 @@ public class JwtInterceptor implements HandlerInterceptor {
 
         UserContext.setCurrentUser(user);
         logger.debug("用户已认证（基于JWT），ID: {}, 角色: {}", userId, role);
+        markUserOnline(userId);
 
         // 验证角色
         if (requiresRoles != null && requiresRoles.value().length > 0) {
@@ -165,5 +176,21 @@ public class JwtInterceptor implements HandlerInterceptor {
             return bearerToken.substring(Constants.Security.JWT_TOKEN_PREFIX.length());
         }
         return null;
+    }
+    
+    /**
+     * 记录用户最近在线状态（基于任意一次通过JWT的请求）。
+     */
+    private void markUserOnline(String userId) {
+        if (redisTemplate == null || userId == null) {
+            return;
+        }
+        try {
+            String key = "online:user:" + userId;
+            // 这里设置一个短TTL，比如5分钟，期间有任何请求都会刷新这个TTL
+            redisTemplate.opsForValue().set(key, "1", 5, TimeUnit.MINUTES);
+        } catch (Exception e) {
+            logger.debug("记录用户在线状态失败，userId={}, error={}", userId, e.getMessage());
+        }
     }
 } 
