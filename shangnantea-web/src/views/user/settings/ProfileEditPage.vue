@@ -105,12 +105,19 @@
           </el-select>
         </el-form-item>
 
-        <!-- 个人主页可见性（UI预留，暂不接后端） -->
+        <!-- 别人是否可以查看我的主页（UI预留，暂不接后端） -->
         <el-form-item label="主页可见性">
-          <el-radio-group v-model="profileVisibility">
-            <el-radio-button :value="true">是</el-radio-button>
-            <el-radio-button :value="false">否</el-radio-button>
-          </el-radio-group>
+          <div class="profile-visibility-setting">
+            <span class="setting-label">别人是否可以查看我的主页</span>
+            <el-checkbox-group
+              v-model="profileVisibilitySelection"
+              class="visibility-checkboxes"
+              @change="handleProfileVisibilityChange"
+            >
+              <el-checkbox label="yes">是</el-checkbox>
+              <el-checkbox label="no">否</el-checkbox>
+            </el-checkbox-group>
+          </div>
         </el-form-item>
       </el-card>
       
@@ -136,8 +143,18 @@ const loading = ref(false)
 const submitting = ref(false)
 const userStore = useUserStore()
 
-// 是否允许别人查看我的个人主页（仅前端UI占位，不参与保存）
-const profileVisibility = ref(true)
+// 别人是否可以查看我的主页（仅前端UI占位，不参与保存）
+// 使用复选框样式，但交互上保持互斥（只能选一个）
+const profileVisibilitySelection = ref(['yes'])
+const handleProfileVisibilityChange = value => {
+  if (Array.isArray(value) && value.length > 1) {
+    profileVisibilitySelection.value = [value[value.length - 1]]
+    return
+  }
+  if (!value || value.length === 0) {
+    profileVisibilitySelection.value = ['yes']
+  }
+}
 
 // 默认主题色
 const DEFAULT_PRIMARY_COLOR = '#409EFF'
@@ -344,6 +361,24 @@ const preferences = reactive({
     margin-left: 10px;
     color: var(--el-text-color-secondary);
     font-size: 12px;
+  }
+
+  .profile-visibility-setting {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    .setting-label {
+      color: var(--el-text-color-regular);
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .visibility-checkboxes {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+    }
   }
   
   .form-actions {

@@ -120,10 +120,12 @@ export const useShopStore = defineStore('shop', () => {
       const total = data?.total || list.length || 0
       
       shopList.value = list
+      const requestPage = Number(params.page) || pagination.currentPage || 1
+      const requestPageSize = Number(params.size || params.pageSize) || pagination.pageSize || 10
       Object.assign(pagination, {
         total: total,
-        currentPage: data?.pageNum || pagination.currentPage,
-        pageSize: data?.pageSize || pagination.pageSize
+        currentPage: Number(data?.pageNum || data?.page) || requestPage,
+        pageSize: Number(data?.pageSize || data?.size) || requestPageSize
       })
       
       return res
@@ -149,9 +151,9 @@ export const useShopStore = defineStore('shop', () => {
   }
   
   // 更新筛选条件
-  async function updateFilters(newFilters) {
+  async function updateFilters(newFilters, targetPage = 1) {
     Object.assign(filters, newFilters)
-    pagination.currentPage = 1
+    pagination.currentPage = targetPage
     return await fetchShops({})
   }
   

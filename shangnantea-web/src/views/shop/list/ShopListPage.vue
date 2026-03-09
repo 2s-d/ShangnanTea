@@ -132,48 +132,27 @@ defineOptions({
     const ratingFilter = ref(null)
     const salesFilter = ref(null)
     const regionFilter = ref('')
-    const currentPage = ref(1)
+    const isApplyingQuery = ref(false)
 
     // 从store获取店铺列表/分页/加载态/筛选条件
     const shops = computed(() => shopStore.shopList || [])
     const totalCount = computed(() => shopStore.pagination.total || 0)
-    const pageSize = computed(() => shopStore.pagination.pageSize || 10)
+    const currentPage = computed({
+      get: () => shopStore.pagination.currentPage || 1,
+      set: val => {
+        shopStore.pagination.currentPage = val
+      }
+    })
+    const pageSize = computed({
+      get: () => shopStore.pagination.pageSize || 10,
+      set: val => {
+        shopStore.pagination.pageSize = val
+      }
+    })
     const loading = computed(() => shopStore.loading || false)
-    const currentPageFromStore = computed(() => shopStore.pagination.currentPage || 1)
     const filters = computed(() => shopStore.filters || {})
     const shopTeasPreviewMap = computed(() => shopStore.shopTeasPreviewMap || {})
     const shopProductCountMap = computed(() => shopStore.shopProductCountMap || {})
-    
-    // 同步Pinia分页到本地
-    watch(currentPageFromStore, newPage => {
-      if (newPage !== currentPage.value) {
-        currentPage.value = newPage
-      }
-    })
-    
-    // 任务组A：同步Pinia filters到本地
-    watch(filters, newFilters => {
-      if (newFilters.keyword !== searchQuery.value) {
-        searchQuery.value = newFilters.keyword || ''
-      }
-      if (newFilters.rating !== ratingFilter.value) {
-        ratingFilter.value = newFilters.rating
-      }
-      if (newFilters.salesCount !== salesFilter.value) {
-        salesFilter.value = newFilters.salesCount
-      }
-      if (newFilters.region !== regionFilter.value) {
-        regionFilter.value = newFilters.region || ''
-      }
-      // 映射sortBy到sortOption
-      if (newFilters.sortBy === 'rating') {
-        sortOption.value = 'rating'
-      } else if (newFilters.sortBy === 'salesCount') {
-        sortOption.value = 'sales'
-      } else {
-        sortOption.value = 'default'
-      }
-    }, { immediate: true })
     
     // 获取指定店铺的茶叶
     const getShopTeas = shopId => {
@@ -189,10 +168,10 @@ defineOptions({
     const loadShops = async () => {
       try {
         await shopStore.fetchShops({})
-        // 加载每个店铺的预览茶叶（最多3个），失败时忽略
+        // 加载每个店铺的预览茶叶（最多2个），失败时忽略
         shops.value.forEach(shop => {
           if (shop && shop.id && !shopTeasPreviewMap.value[shop.id]) {
-            shopStore.fetchShopTeasPreview(shop.id, 3).catch(() => {})
+            shopStore.fetchShopTeasPreview(shop.id, 2).catch(() => {})
           }
         })
       } catch (error) {
@@ -203,39 +182,55 @@ defineOptions({
     // 监听路由参数变化
     watch(
       () => route.query,
-      query => {
-        // 从URL参数更新筛选条件
-        if (query.search) {
-          searchQuery.value = query.search
-          shopStore.updateFilters({ keyword: query.search })
+      async (query, oldQuery) => {
+        if (isApplyingQuery.value) {
+          return
         }
-        if (query.sort) {
-          sortOption.value = query.sort
-          // 映射sortOption到sortBy
-          let sortBy = 'default'
-          if (query.sort === 'rating') sortBy = 'rating'
-          else if (query.sort === 'sales') sortBy = 'salesCount'
-          shopStore.updateFilters({ sortBy })
+
+        const filterKeys = ['search', 'sort', 'rating', 'sales', 'region', 'size']
+        const isFilterSame = oldQuery ? filterKeys.every(k => (query?.[k] ?? '') === (oldQuery?.[k] ?? '')) : false
+
+        const nextPage = query.page ? (parseInt(query.page) || 1) : 1
+        const nextSize = query.size ? (parseInt(query.size) || pageSize.value) : pageSize.value
+
+        // URL -> 本地筛选状态
+        searchQuery.value = query.search ? String(query.search) : ''
+        sortOption.value = query.sort ? String(query.sort) : 'default'
+        ratingFilter.value = query.rating !== undefined ? (parseFloat(query.rating) || null) : null
+        salesFilter.value = query.sales !== undefined ? (parseInt(query.sales) || null) : null
+        regionFilter.value = query.region ? String(query.region) : ''
+
+        // 同步 pageSize（即使没展示 size 选择器，也允许 URL 带 size）
+        pageSize.value = nextSize
+
+        // sortOption -> store filters
+        let sortBy = 'default'
+        if (sortOption.value === 'rating') sortBy = 'rating'
+        else if (sortOption.value === 'sales') sortBy = 'salesCount'
+
+        const storeFilters = {
+          keyword: searchQuery.value,
+          rating: ratingFilter.value,
+          salesCount: salesFilter.value,
+          region: regionFilter.value,
+          sortBy,
+          sortOrder: 'desc'
         }
-        if (query.rating) {
-          ratingFilter.value = parseFloat(query.rating)
-          shopStore.updateFilters({ rating: parseFloat(query.rating) })
-        }
-        if (query.sales) {
-          salesFilter.value = parseInt(query.sales)
-          shopStore.updateFilters({ salesCount: parseInt(query.sales) })
-        }
-        if (query.region) {
-          regionFilter.value = query.region
-          shopStore.updateFilters({ region: query.region })
-        }
-        if (query.page) {
-          const page = parseInt(query.page)
-          currentPage.value = page
-          shopStore.setPage({ page, extraParams: {} })
+
+        if (isFilterSame && oldQuery && (String(query.page ?? '') !== String(oldQuery.page ?? ''))) {
+          // 仅翻页：不重置 filters
+          await shopStore.setPage({ page: nextPage, extraParams: {} })
         } else {
-          loadShops()
+          // 筛选变更（或首次进入）：允许指定目标页
+          await shopStore.updateFilters(storeFilters, nextPage)
         }
+
+        // 预览茶叶
+        shops.value.forEach(shop => {
+          if (shop && shop.id && !shopTeasPreviewMap.value[shop.id]) {
+            shopStore.fetchShopTeasPreview(shop.id, 2).catch(() => {})
+          }
+        })
       },
       { immediate: true }
     )
@@ -243,7 +238,8 @@ defineOptions({
     // 任务组A：同步筛选条件到URL
     const updateQueryParams = () => {
       const query = {
-        page: currentPage.value
+        page: currentPage.value,
+        size: pageSize.value
       }
       
       if (searchQuery.value) query.search = searchQuery.value
@@ -252,13 +248,15 @@ defineOptions({
       if (salesFilter.value !== null) query.sales = salesFilter.value
       if (regionFilter.value) query.region = regionFilter.value
       
-      router.replace({ query })
+      isApplyingQuery.value = true
+      router.replace({ query }).finally(() => {
+        isApplyingQuery.value = false
+      })
     }
     
     // 任务组A：搜索处理（原有方法，保留用于兼容）
-    const handleSearch = async () => {
+    const handleSearch = () => {
       currentPage.value = 1
-      await shopStore.updateFilters({ keyword: searchQuery.value })
       updateQueryParams()
     }
     
@@ -270,48 +268,35 @@ defineOptions({
     }
     
     // 任务组A：排序变更处理
-    const handleSortChange = async () => {
+    const handleSortChange = () => {
       currentPage.value = 1
-      // 映射sortOption到sortBy
-      let sortBy = 'default'
-      if (sortOption.value === 'rating') sortBy = 'rating'
-      else if (sortOption.value === 'sales') sortBy = 'salesCount'
-      
-      await shopStore.updateFilters({ 
-        sortBy,
-        sortOrder: 'desc' // 默认降序
-      })
       updateQueryParams()
     }
     
     // 任务组A：筛选变更处理
-    const handleFilterChange = async () => {
+    const handleFilterChange = () => {
       currentPage.value = 1
-      await shopStore.updateFilters({
-        rating: ratingFilter.value,
-        salesCount: salesFilter.value,
-        region: regionFilter.value
-      })
       updateQueryParams()
     }
     
     // 任务组A：重置筛选条件
-    const handleResetFilters = async () => {
+    const handleResetFilters = () => {
       searchQuery.value = ''
       sortOption.value = 'default'
       ratingFilter.value = null
       salesFilter.value = null
       regionFilter.value = ''
       currentPage.value = 1
-      
-      await shopStore.resetFilters()
-      router.replace({ query: {} })
+
+      isApplyingQuery.value = true
+      router.replace({ query: {} }).finally(() => {
+        isApplyingQuery.value = false
+      })
     }
     
     // 页面变化
     const handlePageChange = page => {
       currentPage.value = page
-      shopStore.setPage({ page, extraParams: { search: searchQuery.value, sort: sortOption.value } })
       updateQueryParams()
     }
     
