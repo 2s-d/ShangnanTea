@@ -204,12 +204,20 @@ public class UserServiceImpl implements UserService {
                 try {
                     @SuppressWarnings("unchecked")
                     Map<String, Object> cachedRaw = objectMapper.readValue(cachedJson, Map.class);
-                    // 无论缓存里之前存了多少字段，这里统一只返回 weather 和 temperature
+                    // 返回所有缓存的天气字段（包括最高/最低温度）
                     Map<String, Object> normalized = new HashMap<>();
                     Object w = cachedRaw.get("weather");
                     Object t = cachedRaw.get("temperature");
+                    Object maxT = cachedRaw.get("maxTemperature");
+                    Object minT = cachedRaw.get("minTemperature");
                     normalized.put("weather", w != null ? w.toString() : "");
                     normalized.put("temperature", t != null ? t.toString() : "");
+                    if (maxT != null) {
+                        normalized.put("maxTemperature", maxT.toString());
+                    }
+                    if (minT != null) {
+                        normalized.put("minTemperature", minT.toString());
+                    }
                     logger.info("从缓存中读取天气数据: city={}, cacheKey={}", city, cacheKey);
                     return Result.success(2026, normalized);
                 } catch (Exception e) {
@@ -223,11 +231,11 @@ public class UserServiceImpl implements UserService {
                 return Result.failure(2152);
             }
 
-            // 5. 调用高德天气API
+            // 5. 调用高德天气API（使用all获取包含最高/最低温度的预报数据）
             String url = gaodeWeatherBaseUrl
                     + "?key=" + gaodeWeatherKey
                     + "&city=" + city
-                    + "&extensions=base";
+                    + "&extensions=all";
 
             logger.info("请求高德天气API: url={}", url);
             RestTemplate restTemplate = new RestTemplate();
@@ -244,17 +252,34 @@ public class UserServiceImpl implements UserService {
                 return Result.failure(2152);
             }
 
-            JsonNode lives = root.path("lives");
-            if (!lives.isArray() || lives.size() == 0) {
-                logger.warn("高德天气API未返回实时天气数据: city={}, resp={}", city, resp);
-                return Result.failure(2152);
-            }
-
-            JsonNode live = lives.get(0);
             Map<String, Object> result = new HashMap<>();
-            // 按需求只返回天气现象和温度，城市信息由前端自己处理
-            result.put("weather", live.path("weather").asText(""));
-            result.put("temperature", live.path("temperature").asText(""));
+            
+            // 获取实时天气数据
+            JsonNode lives = root.path("lives");
+            if (lives.isArray() && lives.size() > 0) {
+                JsonNode live = lives.get(0);
+                result.put("weather", live.path("weather").asText(""));
+                result.put("temperature", live.path("temperature").asText(""));
+            }
+            
+            // 获取预报数据（包含最高/最低温度）
+            JsonNode forecasts = root.path("forecasts");
+            if (forecasts.isArray() && forecasts.size() > 0) {
+                JsonNode forecast = forecasts.get(0);
+                JsonNode casts = forecast.path("casts");
+                if (casts.isArray() && casts.size() > 0) {
+                    // 取今天的预报数据（索引0）
+                    JsonNode todayCast = casts.get(0);
+                    String maxTemp = todayCast.path("daytemp").asText("");
+                    String minTemp = todayCast.path("nighttemp").asText("");
+                    if (!maxTemp.isEmpty()) {
+                        result.put("maxTemperature", maxTemp);
+                    }
+                    if (!minTemp.isEmpty()) {
+                        result.put("minTemperature", minTemp);
+                    }
+                }
+            }
 
             // 6. 写入Redis缓存
             try {
