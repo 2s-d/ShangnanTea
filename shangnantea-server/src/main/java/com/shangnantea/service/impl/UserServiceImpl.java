@@ -250,11 +250,24 @@ public class UserServiceImpl implements UserService {
             }
 
             // 打印完整API响应结构用于调试
+            JsonNode livesNode = root.path("lives");
+            JsonNode forecastsNode = root.path("forecasts");
             logger.info("高德API返回结构: hasLives={}, livesSize={}, hasForecasts={}, forecastsSize={}", 
                     root.has("lives"), 
-                    root.path("lives").isArray() ? root.path("lives").size() : 0,
+                    livesNode.isArray() ? livesNode.size() : 0,
                     root.has("forecasts"),
-                    root.path("forecasts").isArray() ? root.path("forecasts").size() : 0);
+                    forecastsNode.isArray() ? forecastsNode.size() : 0);
+            
+            // 如果lives存在，打印第一个元素的内容
+            if (livesNode.isArray() && livesNode.size() > 0) {
+                JsonNode firstLive = livesNode.get(0);
+                logger.info("lives[0]内容: weather={}, temperature={}, 完整节点={}", 
+                        firstLive.path("weather").asText(""), 
+                        firstLive.path("temperature").asText(""),
+                        firstLive.toString());
+            } else {
+                logger.warn("lives数组为空或不存在！完整响应: {}", resp);
+            }
 
             Map<String, Object> result = new HashMap<>();
             
