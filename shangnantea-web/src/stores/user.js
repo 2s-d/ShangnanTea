@@ -857,9 +857,22 @@ export const useUserStore = defineStore('user', () => {
     loading.value = true
     try {
       const res = await getAdminUserList(params)
-      const list = res?.data?.list || res?.list || res?.data || res || []
-      const total = res?.data?.total || res?.total || list.length
-      userList.value = list
+      const rawList = res?.data?.list || res?.list || res?.data || res || []
+      const total = res?.data?.total || res?.total || rawList.length
+
+      // 映射后端用户数据到前端表格所需结构
+      userList.value = rawList.map(user => {
+        const role = Number(user.role)
+        const roleName = role === 1 ? '管理员' : (role === 3 ? '商家' : '普通用户')
+        return {
+          ...user,
+          role,
+          roleName,
+          registerTime: user.createTime,
+          lastLoginTime: user.updateTime,
+          online: user.online === true
+        }
+      })
       // 保留请求参数对应的分页信息；若未显式传参则沿用当前分页状态
       Object.assign(userPagination, {
         page: Number(params.page) || userPagination.page || 1,
