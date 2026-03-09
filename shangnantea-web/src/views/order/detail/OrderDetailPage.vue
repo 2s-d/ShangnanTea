@@ -34,6 +34,11 @@
             <span class="label">订单号：</span>
             <span class="value">{{ orderDetail.id }}</span>
           </div>
+          <!-- 管理员/商户视角：显示买家信息 -->
+          <div v-if="isSellerView" class="info-item">
+            <span class="label">买家ID：</span>
+            <span class="value">{{ orderDetail.userId }}</span>
+          </div>
           <div class="info-item">
             <span class="label">下单时间：</span>
             <span class="value">{{ formatTime(orderDetail.createTime) }}</span>
@@ -159,23 +164,54 @@
           </div>
         </div>
         
-        <!-- 操作按钮区域：待收货时支持查看物流与确认收货；已完成时显示评价按钮；可申请退款 -->
+        <!-- 操作按钮区域 -->
         <div class="detail-section action-section">
-          <template v-if="orderDetail.status === 2">
-            <el-button type="primary" @click="viewLogistics">查看详细物流</el-button>
-            <el-button type="success" @click="confirmReceipt">确认收货</el-button>
+          <!-- 用户视角：买家操作 -->
+          <template v-if="!isSellerView">
+            <template v-if="orderDetail.status === 2">
+              <el-button type="primary" @click="viewLogistics">查看详细物流</el-button>
+              <el-button type="success" @click="confirmReceipt">确认收货</el-button>
+            </template>
+            <template v-else-if="canReview">
+              <el-button type="primary" @click="writeReview">待评价</el-button>
+              <el-button type="info" @click="viewLogistics">查看物流</el-button>
+            </template>
+            <el-button
+              v-if="canRequestRefund"
+              type="warning"
+              @click="openRefundDialog"
+            >
+              申请退款
+            </el-button>
           </template>
-          <template v-else-if="canReview">
-            <el-button type="primary" @click="writeReview">待评价</el-button>
-            <el-button type="info" @click="viewLogistics">查看物流</el-button>
+          
+          <!-- 管理员/商户视角：卖家操作 -->
+          <template v-else>
+            <!-- 待发货状态：显示发货按钮 -->
+            <el-button
+              v-if="orderDetail.status === 1"
+              type="primary"
+              @click="handleShipOrder"
+            >
+              发货
+            </el-button>
+            <!-- 已发货/待收货状态：显示物流信息查看 -->
+            <el-button
+              v-if="orderDetail.status === 2 || orderDetail.status === 3"
+              type="info"
+              @click="viewLogistics"
+            >
+              查看物流
+            </el-button>
+            <!-- 有退款申请时：显示处理退款按钮（需要后端接口支持） -->
+            <el-button
+              v-if="refundInfo.status === 'pending'"
+              type="warning"
+              @click="handleProcessRefund"
+            >
+              处理退款
+            </el-button>
           </template>
-          <el-button
-            v-if="canRequestRefund"
-            type="warning"
-            @click="openRefundDialog"
-          >
-            申请退款
-          </el-button>
         </div>
       </div>
 
@@ -218,6 +254,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useOrderStore } from '@/stores/order'
+import { useUserStore } from '@/stores/user'
 import { ElMessageBox } from 'element-plus'
 import { showByCode } from '@/utils/apiMessages'
 import { orderPromptMessages } from '@/utils/promptMessages'
@@ -230,7 +267,18 @@ defineOptions({
 const router = useRouter()
 const route = useRoute()
 const orderStore = useOrderStore()
+const userStore = useUserStore()
 const loading = computed(() => orderStore.loading)
+
+// 判断当前页面是管理端还是用户端
+const isManagePage = computed(() => route.path.includes('/order/manage/detail'))
+// 判断当前用户角色
+const userRole = computed(() => userStore.userInfo?.role || 0)
+const isAdmin = computed(() => userRole.value === 1)
+const isShop = computed(() => userRole.value === 3)
+const isUser = computed(() => userRole.value === 2)
+// 是否为卖家视角（管理员或商户）
+const isSellerView = computed(() => isManagePage.value && (isAdmin.value || isShop.value))
 
 // 从路由参数获取订单ID
 const orderId = route.params.id
@@ -321,7 +369,25 @@ const refundInfo = ref({
     
     // 返回订单列表
     const goBack = () => {
-      router.push('/order/list')
+      if (isManagePage.value) {
+        router.push('/order/manage')
+      } else {
+        router.push('/order/list')
+      }
+    }
+    
+    // 管理员/商户：发货操作
+    const handleShipOrder = () => {
+      router.push(`/order/manage/detail/${orderId}`)
+      // 实际应该打开发货对话框，这里先跳转到管理页，由管理页处理发货
+      // TODO: 如果管理端详情页有发货功能，应该在这里打开对话框
+    }
+    
+    // 管理员/商户：处理退款操作
+    const handleProcessRefund = () => {
+      router.push(`/order/manage/detail/${orderId}`)
+      // 实际应该打开退款处理对话框
+      // TODO: 如果管理端详情页有退款处理功能，应该在这里打开对话框
     }
     
     // 查看茶叶详情
@@ -494,19 +560,19 @@ const refundInfo = ref({
           // 同步收货地址和物流信息
           const addr = data?.address || {}
           address.value = {
-            name: addr.name || '',
-            phone: addr.phone || '',
+            name: addr.receiverName || addr.name || '',
+            phone: addr.receiverPhone || addr.phone || '',
             province: addr.province || '',
             city: addr.city || '',
             district: addr.district || '',
-            detail: addr.detail || ''
+            detail: addr.detailAddress || addr.detail || ''
           }
-          const logi = data?.logistics || {}
+          // 物流信息：后端返回的是 logisticsCompany/logisticsNumber/shippingTime，需要映射
           logistics.value = {
-            company: logi.company || '',
-            tracking_number: logi.tracking_number || '',
-            ship_time: logi.ship_time || '',
-            traces: logi.traces || []
+            company: data?.logisticsCompany || data?.logistics?.company || '',
+            tracking_number: data?.logisticsNumber || data?.logistics?.tracking_number || '',
+            ship_time: data?.shippingTime || data?.logistics?.ship_time || '',
+            traces: data?.logistics?.traces || []
           }
           // 拉取退款详情（如果有）
           orderStore.fetchRefundDetail(orderId)

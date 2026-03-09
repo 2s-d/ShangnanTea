@@ -1979,11 +1979,11 @@ public class UserServiceImpl implements UserService {
             
             // 2. 查询用户所有设置
             List<UserSetting> settings = userSettingMapper.selectByUserId(userId);
+            logger.info("获取偏好设置: userId: {}, 数据库设置数量: {}", userId, settings != null ? settings.size() : 0);
             
             // 3. 转换为VO
             UserPreferencesVO preferencesVO = convertToUserPreferencesVO(settings);
-            
-            logger.info("获取偏好设置成功: userId: {}", userId);
+            logger.info("获取偏好设置成功: userId: {}, VO: {}", userId, preferencesVO);
             return Result.success(200, preferencesVO); // 操作成功（静默）
             
         } catch (Exception e) {
@@ -2007,10 +2007,19 @@ public class UserServiceImpl implements UserService {
                 return Result.failure(2131); // 操作失败
             }
             
-            if (preferencesDTO == null || preferencesDTO.getItems() == null || preferencesDTO.getItems().isEmpty()) {
-                logger.warn("更新偏好设置失败: 设置项为空, userId: {}", userId);
+            logger.info("更新偏好设置请求: userId: {}, DTO: {}", userId, preferencesDTO);
+            
+            if (preferencesDTO == null) {
+                logger.warn("更新偏好设置失败: DTO为空, userId: {}", userId);
                 return Result.failure(2131);
             }
+            
+            if (preferencesDTO.getItems() == null || preferencesDTO.getItems().isEmpty()) {
+                logger.warn("更新偏好设置失败: 设置项为空, userId: {}, items: {}", userId, preferencesDTO.getItems());
+                return Result.failure(2131);
+            }
+            
+            logger.info("更新偏好设置: 接收到 {} 个设置项, userId: {}", preferencesDTO.getItems().size(), userId);
 
             // 2. 校验并归一化传入的设置项
             Map<UserPreferenceRegistry, String> incomingValues = new HashMap<>();
@@ -2054,6 +2063,8 @@ public class UserServiceImpl implements UserService {
 
             // 4. 首次保存创建5条，后续保存覆盖传入的项
             Date now = new Date();
+            logger.info("更新偏好设置: 开始保存, isFirstSave: {}, userId: {}", isFirstSave, userId);
+            int savedCount = 0;
             for (UserPreferenceRegistry registry : UserPreferenceRegistry.values()) {
                 String normalizedValue = incomingValues.get(registry);
                 if (normalizedValue == null) {
@@ -2063,6 +2074,7 @@ public class UserServiceImpl implements UserService {
                     normalizedValue = registry.getDefaultValue();
                 }
 
+                logger.debug("更新偏好设置: 保存项 key: {}, value: {}, userId: {}", registry.getKey(), normalizedValue, userId);
                 upsertSetting(
                     userId,
                     registry.getKey(),
@@ -2070,10 +2082,13 @@ public class UserServiceImpl implements UserService {
                     registry.getValueType().getDbType(),
                     now
                 );
+                savedCount++;
             }
+            
+            logger.info("更新偏好设置: 已保存 {} 个设置项, userId: {}", savedCount, userId);
 
             UserPreferencesVO preferencesVO = convertToUserPreferencesVO(userSettingMapper.selectByUserId(userId));
-            logger.info("更新偏好设置成功: userId: {}", userId);
+            logger.info("更新偏好设置成功: userId: {}, 返回VO: {}", userId, preferencesVO);
             return Result.success(2018, preferencesVO);
 
         } catch (Exception e) {
@@ -3110,7 +3125,8 @@ public class UserServiceImpl implements UserService {
             // 更新现有设置
             existingSetting.setSettingValue(value);
             existingSetting.setUpdateTime(now);
-            userSettingMapper.updateById(existingSetting);
+            int updateResult = userSettingMapper.updateById(existingSetting);
+            logger.debug("更新用户设置: key: {}, value: {}, userId: {}, result: {}", key, value, userId, updateResult);
         } else {
             // 插入新设置
             UserSetting newSetting = new UserSetting();
@@ -3120,7 +3136,8 @@ public class UserServiceImpl implements UserService {
             newSetting.setSettingType(type);
             newSetting.setCreateTime(now);
             newSetting.setUpdateTime(now);
-            userSettingMapper.insert(newSetting);
+            int insertResult = userSettingMapper.insert(newSetting);
+            logger.debug("插入用户设置: key: {}, value: {}, userId: {}, result: {}", key, value, userId, insertResult);
         }
     }
 }
