@@ -4,6 +4,7 @@ import com.shangnantea.websocket.handler.WebSocketHandler;
 import com.shangnantea.websocket.interceptor.WebSocketAuthInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.lang.NonNull;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
@@ -23,7 +24,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
     private WebSocketAuthInterceptor webSocketAuthInterceptor;
     
     @Override
-    public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
+    public void registerWebSocketHandlers(@NonNull WebSocketHandlerRegistry registry) {
         // 注册WebSocket处理器
         // 路径: /api/ws
         // 允许跨域

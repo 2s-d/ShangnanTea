@@ -263,7 +263,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, getCurrentInstance } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, getCurrentInstance } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { ElMessageBox } from 'element-plus'
@@ -656,8 +656,38 @@ const userFormRef = ref(null)
     // 默认头像
     const defaultAvatar = '/mock-images/avatar-default.jpg'
     
+    // WebSocket在线状态更新处理
+    const handleOnlineStatusUpdate = (message) => {
+      if (message.type === 'onlineStatus' && message.userId) {
+        // 更新用户列表中的在线状态
+        const index = userList.value.findIndex(u => u.id === message.userId)
+        if (index !== -1) {
+          userList.value[index].online = message.online
+        }
+      } else if (message.type === 'onlineUsersUpdate' && message.onlineUserIds) {
+        // 批量更新在线状态
+        const onlineUserIds = new Set(message.onlineUserIds)
+        userList.value.forEach(user => {
+          user.online = onlineUserIds.has(user.id)
+        })
+      }
+    }
+
     onMounted(() => {
       fetchUserList()
+      
+      // 连接WebSocket（只有管理员才需要监听在线状态更新）
+      if (userStore.userInfo && userStore.userInfo.role === 1) {
+        websocketManager.connect()
+        websocketManager.on('onlineStatus', handleOnlineStatusUpdate)
+        websocketManager.on('onlineUsersUpdate', handleOnlineStatusUpdate)
+      }
+    })
+    
+    // 组件卸载时断开WebSocket
+    onUnmounted(() => {
+      websocketManager.off('onlineStatus', handleOnlineStatusUpdate)
+      websocketManager.off('onlineUsersUpdate', handleOnlineStatusUpdate)
     })
 </script>
 

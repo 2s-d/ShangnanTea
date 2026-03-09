@@ -77,6 +77,22 @@ public class WebSocketHandler extends TextWebSocketHandler {
             sessionManager.removeSession(userId, session);
             logger.info("WebSocket连接关闭: userId={}, sessionId={}, status={}", 
                 userId, session.getId(), status);
+            
+            // 广播在线用户列表更新（通知所有管理员）
+            try {
+                org.springframework.context.ApplicationContext applicationContext = 
+                    org.springframework.web.context.support.WebApplicationContextUtils
+                        .getWebApplicationContext(session.getAttributes().get("servletContext"));
+                if (applicationContext != null) {
+                    com.shangnantea.websocket.service.WebSocketService webSocketService = 
+                        applicationContext.getBean(com.shangnantea.websocket.service.WebSocketService.class);
+                    if (webSocketService != null) {
+                        webSocketService.broadcastOnlineUsersUpdate();
+                    }
+                }
+            } catch (Exception e) {
+                logger.debug("广播在线用户列表更新失败，不影响断开: userId={}, error={}", userId, e.getMessage());
+            }
         }
     }
     

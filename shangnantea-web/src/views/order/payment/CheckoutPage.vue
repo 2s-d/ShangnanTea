@@ -20,7 +20,7 @@
             </el-button>
           </div>
           
-          <div class="address-list" v-if="addresses.length > 0">
+          <div class="address-list-container" v-if="addresses.length > 0">
             <el-radio-group v-model="selectedAddressId" class="address-radio-group">
               <div v-for="address in addresses" :key="address.id" class="address-item">
                 <el-radio :value="address.id" class="address-radio">

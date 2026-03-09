@@ -135,20 +135,8 @@ public class JwtInterceptor implements HandlerInterceptor {
         markUserOnline(userId);
         
         // 通过WebSocket推送在线状态更新（如果WebSocket连接存在）
-        try {
-            org.springframework.context.ApplicationContext applicationContext = 
-                org.springframework.web.context.support.WebApplicationContextUtils
-                    .getWebApplicationContext(((jakarta.servlet.http.HttpServletRequest) request).getServletContext());
-            if (applicationContext != null) {
-                com.shangnantea.websocket.service.WebSocketService webSocketService = 
-                    applicationContext.getBean(com.shangnantea.websocket.service.WebSocketService.class);
-                if (webSocketService != null) {
-                    webSocketService.pushOnlineStatus(userId, true);
-                }
-            }
-        } catch (Exception e) {
-            logger.debug("推送WebSocket在线状态失败，不影响主流程: userId={}, error={}", userId, e.getMessage());
-        }
+        // 注意：这里不直接注入WebSocketService，避免循环依赖
+        // WebSocket状态更新由WebSocketHandler在连接建立时处理
 
         // 验证角色
         if (requiresRoles != null && requiresRoles.value().length > 0) {
