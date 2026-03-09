@@ -553,6 +553,10 @@ const userFormRef = ref(null)
       try {
         const res = await userStore.forceLogout(user.id)
         showByCode(res.code)
+        if (isSuccess(res.code)) {
+          // 强制退出成功后刷新列表以更新在线状态
+          await fetchUserList()
+        }
       } catch (error) {
         console.error('强制退出用户失败：', error)
       }

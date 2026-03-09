@@ -1147,7 +1147,16 @@ public class OrderServiceImpl implements OrderService {
                 }
             }
             
-            // 5. 转换为VO
+            // 5. 查询支付单信息（如果存在）
+            Integer paymentStatus = null;
+            if (order.getPaymentId() != null && !order.getPaymentId().trim().isEmpty()) {
+                Payment payment = paymentMapper.selectById(order.getPaymentId());
+                if (payment != null) {
+                    paymentStatus = payment.getStatus();
+                }
+            }
+            
+            // 6. 转换为VO
             OrderDetailVO vo = new OrderDetailVO();
             vo.setId(order.getId());
             vo.setUserId(order.getUserId());

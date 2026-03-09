@@ -563,7 +563,7 @@ public class UserController {
     /**
      * 强制下线用户（管理员）
      * 路径: POST /user/admin/users/{userId}/force-logout
-     * 成功码: 200, 失败码: 2140
+     * 成功码: 2027, 失败码: 2153
      *
      * @param userId 用户ID
      * @return 操作结果

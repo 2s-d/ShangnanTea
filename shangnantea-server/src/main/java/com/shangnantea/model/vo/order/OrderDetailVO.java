@@ -22,7 +22,7 @@ public class OrderDetailVO {
     private String userId;
     
     /**
-     * 订单状态(0待付款,1待发货,2待收货,3已完成,4已取消)
+     * 订单状态(0待付款,1待发货,2待收货,3已完成,4已取消,5退款中,6已退款)
      */
     private Integer status;
     
@@ -125,4 +125,49 @@ public class OrderDetailVO {
      * 是否已评价(0未评价,1已评价)
      */
     private Integer isReviewed;
+    
+    /**
+     * 退款状态:0无退款申请,1申请中,2已同意,3已拒绝
+     */
+    private Integer refundStatus;
+    
+    /**
+     * 用户退款原因
+     */
+    private String refundReason;
+    
+    /**
+     * 商家/管理员拒绝原因
+     */
+    private String refundRejectReason;
+    
+    /**
+     * 退款申请时间
+     */
+    private Date refundApplyTime;
+    
+    /**
+     * 退款处理时间
+     */
+    private Date refundProcessTime;
+    
+    /**
+     * 支付单号（支付批次ID）
+     */
+    private String paymentId;
+    
+    /**
+     * 支付单状态：0待支付 1成功 2失败 3关闭
+     */
+    private Integer paymentStatus;
+    
+    /**
+     * 取消时间
+     */
+    private Date cancelTime;
+    
+    /**
+     * 取消原因
+     */
+    private String cancelReason;
 }
