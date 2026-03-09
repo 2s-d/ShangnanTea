@@ -144,10 +144,6 @@
           </el-tab-pane>
         </el-tabs>
       </div>
-      
-      <div class="coming-soon">
-        <el-button type="primary" @click="goHome">返回茶文化</el-button>
-      </div>
     </div>
 
     <!-- 编辑帖子弹窗 -->
@@ -356,11 +352,6 @@ const editLoading = ref(false)
         .catch(() => {
           // 用户取消操作
         })
-    }
-    
-    // 返回首页
-    const goHome = () => {
-      router.push('/')
     }
     
     // 加载数据
@@ -607,22 +598,6 @@ onMounted(() => {
     }
   }
   
-  .coming-soon {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 50px;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-    
-    p {
-      font-size: 1.2rem;
-      color: var(--text-regular);
-      margin-bottom: 30px;
-    }
-  }
 }
 
 @media (max-width: 768px) {
