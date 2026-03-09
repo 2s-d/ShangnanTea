@@ -318,15 +318,17 @@
     >
       <el-form label-width="80px">
         <el-form-item label="选择地址">
-          <el-radio-group v-model="selectedAddressId">
+          <el-radio-group v-model="selectedAddressId" v-if="userAddresses.length > 0">
             <el-radio
               v-for="addr in userAddresses"
               :key="addr.id"
               :label="addr.id"
+              style="display: block; margin-bottom: 12px; white-space: normal;"
             >
               {{ addr.receiverName }} {{ addr.receiverPhone }} （{{ addr.province }}{{ addr.city }}{{ addr.district }} {{ addr.detailAddress }}）
             </el-radio>
           </el-radio-group>
+          <el-empty v-else description="暂无收货地址，请先添加地址" :image-size="80" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -478,7 +480,11 @@ const userAddresses = computed(() => userStore.addressList || [])
     const openAddressDialog = async () => {
       // 确保用户地址列表已加载
       if (!userStore.addressList || userStore.addressList.length === 0) {
-        await userStore.fetchAddressList && userStore.fetchAddressList()
+        try {
+          await userStore.fetchAddresses()
+        } catch (error) {
+          console.error('获取地址列表失败:', error)
+        }
       }
       // 默认选中当前订单地址对应的地址簿ID（如果存在映射，则简单使用第一个地址）
       if (!selectedAddressId.value && userAddresses.value.length > 0) {
