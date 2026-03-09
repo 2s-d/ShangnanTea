@@ -29,6 +29,29 @@ const getApiBaseUrl = () => {
   return baseUrl || '/api'
 }
 
+// 自定义参数序列化函数，支持数组参数（Spring Boot格式：categoryIds=5&categoryIds=6）
+const paramsSerializer = (params) => {
+  const searchParams = new URLSearchParams()
+  
+  for (const [key, value] of Object.entries(params)) {
+    if (value === null || value === undefined) {
+      continue
+    }
+    
+    if (Array.isArray(value)) {
+      // 数组：使用重复参数名格式 categoryIds=5&categoryIds=6
+      value.forEach(item => {
+        searchParams.append(key, item)
+      })
+    } else {
+      // 非数组：直接添加
+      searchParams.append(key, value)
+    }
+  }
+  
+  return searchParams.toString()
+}
+
 // 创建axios实例
 const service = axios.create({
   baseURL: getApiBaseUrl(), // 使用安全的方法获取API基础路径
@@ -36,7 +59,9 @@ const service = axios.create({
   withCredentials: false, // 跨域请求是否携带cookie
   headers: {
     'Content-Type': 'application/json;charset=utf-8'
-  }
+  },
+  // 自定义参数序列化，支持数组参数（Spring Boot格式：categoryIds=5&categoryIds=6）
+  paramsSerializer: paramsSerializer
 })
 
 // 请求计数器，用于生成请求ID

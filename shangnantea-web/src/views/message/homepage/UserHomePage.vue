@@ -16,7 +16,8 @@
           
           <!-- 标题装饰和文字 -->
           <div class="title-wrapper">
-            <div class="title-decoration">
+            <!-- 只在查看自己的主页时显示"个人主页"装饰文字 -->
+            <div class="title-decoration" v-if="isOwnProfile">
               <span class="decoration-text">个人主页</span>
             </div>
             <h1 class="page-title-text">

@@ -124,6 +124,7 @@ export default {
   emits: ['reply', 'like', 'favorite', 'delete', 'edit'],
   setup(props, { emit }) {
     const router = useRouter()
+    const route = useRoute()
     const showFullContent = ref(false)
     
     // 判断内容是否超出两行

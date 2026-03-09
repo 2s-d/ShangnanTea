@@ -754,27 +754,59 @@ public class TeaServiceImpl implements TeaService {
         }
         
         // 处理多个分类ID（支持多选筛选）
+        // Spring Boot会将重复参数名（categoryIds=5&categoryIds=6）转换为数组或List
         Object categoryIdsObj = params.get("categoryIds");
         if (categoryIdsObj != null) {
+            java.util.List<Integer> categoryIds = new java.util.ArrayList<>();
+            
             if (categoryIdsObj instanceof java.util.List) {
-                // 如果是List，直接设置
+                // 如果是List，转换为Integer列表
                 @SuppressWarnings("unchecked")
-                java.util.List<Integer> categoryIds = (java.util.List<Integer>) categoryIdsObj;
-                if (!categoryIds.isEmpty()) {
-                    dto.setCategoryIds(categoryIds);
+                java.util.List<Object> list = (java.util.List<Object>) categoryIdsObj;
+                for (Object id : list) {
+                    if (id != null) {
+                        try {
+                            categoryIds.add(Integer.valueOf(id.toString()));
+                        } catch (NumberFormatException e) {
+                            logger.warn("无效的分类ID: {}", id);
+                        }
+                    }
                 }
             } else if (categoryIdsObj instanceof Object[]) {
                 // 如果是数组，转换为List
                 Object[] categoryIdsArray = (Object[]) categoryIdsObj;
-                java.util.List<Integer> categoryIds = new java.util.ArrayList<>();
                 for (Object id : categoryIdsArray) {
                     if (id != null) {
-                        categoryIds.add(Integer.valueOf(id.toString()));
+                        try {
+                            categoryIds.add(Integer.valueOf(id.toString()));
+                        } catch (NumberFormatException e) {
+                            logger.warn("无效的分类ID: {}", id);
+                        }
                     }
                 }
-                if (!categoryIds.isEmpty()) {
-                    dto.setCategoryIds(categoryIds);
+            } else if (categoryIdsObj instanceof String) {
+                // 如果是单个字符串（逗号分隔），解析为列表
+                String[] ids = categoryIdsObj.toString().split(",");
+                for (String id : ids) {
+                    if (id != null && !id.trim().isEmpty()) {
+                        try {
+                            categoryIds.add(Integer.valueOf(id.trim()));
+                        } catch (NumberFormatException e) {
+                            logger.warn("无效的分类ID: {}", id);
+                        }
+                    }
                 }
+            } else {
+                // 其他类型，尝试转换为Integer
+                try {
+                    categoryIds.add(Integer.valueOf(categoryIdsObj.toString()));
+                } catch (NumberFormatException e) {
+                    logger.warn("无效的分类ID: {}", categoryIdsObj);
+                }
+            }
+            
+            if (!categoryIds.isEmpty()) {
+                dto.setCategoryIds(categoryIds);
             }
         }
         if (params.get("keyword") != null) {
