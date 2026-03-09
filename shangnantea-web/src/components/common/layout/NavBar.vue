@@ -10,7 +10,7 @@
       </div>
 
       <el-menu
-        :default-active="activeIndex"
+        :default-active="computedActiveIndex"
         mode="horizontal"
         router
         background-color="#fff"
@@ -120,12 +120,28 @@ const route = useRoute()
 // 使用useAuth
 const { isAdmin, isShop, isUser, isLoggedIn, ROLES } = useAuth()
 
-// 当前激活的导航项
-const activeIndex = ref('/')
+// 计算激活的导航项（如果是从其他页面跳转到个人主页，保持之前的导航栏高亮）
+const computedActiveIndex = computed(() => {
+  // 如果当前路由是个人主页，且query中有from参数，使用from路径来决定导航栏高亮
+  if (route.path.startsWith('/profile') && route.query.from) {
+    const fromPath = route.query.from
+    // 检查from路径是否匹配某个导航项
+    const navPaths = ['/tea-culture', '/tea/mall', '/forum/list', '/order/list', '/order/manage', '/shop/manage', '/tea/manage', '/order/manage', '/forum/manage', '/user/manage', '/message/center', '/profile']
+    if (navPaths.some(path => fromPath.startsWith(path))) {
+      // 找到匹配的导航路径
+      for (const navPath of navPaths) {
+        if (fromPath.startsWith(navPath)) {
+          return navPath
+        }
+      }
+    }
+  }
+  // 否则使用当前路由路径
+  return route.path
+})
 
 // 当路由变化时更新激活项，并在「已登录」状态下刷新必要的全局数据
 onMounted(async () => {
-  activeIndex.value = route.path
   
   // 未登录时不请求需要鉴权的接口，避免在登录页/退出后刷新的 401 状态干扰逻辑
   if (!isLoggedIn.value) {

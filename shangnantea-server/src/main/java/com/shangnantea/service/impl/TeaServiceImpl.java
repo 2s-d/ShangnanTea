@@ -747,9 +747,35 @@ public class TeaServiceImpl implements TeaService {
         if (!pageSizeStr.isEmpty()) {
             dto.setPageSize(Integer.valueOf(pageSizeStr));
         }
+        // 处理单个分类ID（兼容旧代码）
         String categoryIdStr = getTrimmed(params.get("categoryId"));
         if (!categoryIdStr.isEmpty()) {
             dto.setCategoryId(Integer.valueOf(categoryIdStr));
+        }
+        
+        // 处理多个分类ID（支持多选筛选）
+        Object categoryIdsObj = params.get("categoryIds");
+        if (categoryIdsObj != null) {
+            if (categoryIdsObj instanceof java.util.List) {
+                // 如果是List，直接设置
+                @SuppressWarnings("unchecked")
+                java.util.List<Integer> categoryIds = (java.util.List<Integer>) categoryIdsObj;
+                if (!categoryIds.isEmpty()) {
+                    dto.setCategoryIds(categoryIds);
+                }
+            } else if (categoryIdsObj instanceof Object[]) {
+                // 如果是数组，转换为List
+                Object[] categoryIdsArray = (Object[]) categoryIdsObj;
+                java.util.List<Integer> categoryIds = new java.util.ArrayList<>();
+                for (Object id : categoryIdsArray) {
+                    if (id != null) {
+                        categoryIds.add(Integer.valueOf(id.toString()));
+                    }
+                }
+                if (!categoryIds.isEmpty()) {
+                    dto.setCategoryIds(categoryIds);
+                }
+            }
         }
         if (params.get("keyword") != null) {
             dto.setKeyword(params.get("keyword").toString());
@@ -806,6 +832,10 @@ public class TeaServiceImpl implements TeaService {
         queryMap.put("status", queryDTO.getStatus());
         queryMap.put("keyword", queryDTO.getKeyword());
         queryMap.put("categoryId", queryDTO.getCategoryId());
+        // 支持多个分类筛选
+        if (queryDTO.getCategoryIds() != null && !queryDTO.getCategoryIds().isEmpty()) {
+            queryMap.put("categoryIds", queryDTO.getCategoryIds());
+        }
         queryMap.put("shopId", queryDTO.getShopId());
         queryMap.put("priceMin", queryDTO.getPriceMin());
         queryMap.put("priceMax", queryDTO.getPriceMax());

@@ -682,7 +682,11 @@ const viewPost = postId => {
 // 跳转到用户主页
 const goToUserProfile = userId => {
   if (!userId) return
-  router.push(`/profile/${userId}`)
+  // 保存来源路由信息，用于导航栏高亮
+  router.push({
+    path: `/profile/${userId}`,
+    query: { from: route.path }
+  })
 }
 
 // 获取显示名称（使用昵称）

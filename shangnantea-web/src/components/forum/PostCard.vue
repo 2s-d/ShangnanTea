@@ -84,7 +84,7 @@
 
 <script>
 import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { View, ChatDotRound, Star, StarFilled, Collection, CollectionTag, Male, Female, Delete, Edit } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 
@@ -144,7 +144,11 @@ export default {
     
     // 跳转到用户主页
     const goToUserProfile = () => {
-      router.push(`/profile/${props.post.userId}`)
+      // 保存来源路由信息，用于导航栏高亮
+      router.push({
+        path: `/profile/${props.post.userId}`,
+        query: { from: route.path }
+      })
     }
     
     // 回复帖子

@@ -20,9 +20,14 @@ public class TeaQueryDTO {
     private Integer pageSize;
     
     /**
-     * 分类ID
+     * 分类ID（单个，兼容旧代码）
      */
     private Integer categoryId;
+    
+    /**
+     * 分类ID列表（多个，用于多选筛选）
+     */
+    private java.util.List<Integer> categoryIds;
     
     /**
      * 关键词（搜索茶叶名称、描述等）
