@@ -1,160 +1,166 @@
 <template>
   <div class="favorites-page">
-    <!-- 分类标签页 -->
-    <el-tabs v-model="activeTab">
-      <el-tab-pane label="茶文化内容" name="culture">
-        <!-- 茶文化内容列表 -->
-        <div class="list-header">
-          <div class="list-title">收藏的茶文化内容 ({{filteredCultureArticles.length}})</div>
-          <div class="list-actions">
-            <el-input
-              v-model="cultureSearchKeyword"
-              placeholder="搜索标题"
-              size="small"
-              clearable
-              style="width: 200px"
-            >
-              <template #suffix>
-                <el-icon><Search /></el-icon>
-              </template>
-            </el-input>
-            <el-select v-model="cultureSortOption" placeholder="排序方式" size="small" style="margin-left: 10px">
-              <el-option label="最近收藏" value="recent"></el-option>
-              <el-option label="最热内容" value="popular"></el-option>
-            </el-select>
+    <!-- 顶部横栏（同“关注”页样式）：统计放在横栏上 -->
+    <div class="filter-bar">
+      <div class="filter-tabs">
+        <el-radio-group v-model="activeTab">
+          <el-radio-button value="culture">茶文化内容 ({{ cultureArticles.length }})</el-radio-button>
+          <el-radio-button value="product">茶叶商品 ({{ products.length }})</el-radio-button>
+          <el-radio-button value="post">论坛帖子 ({{ posts.length }})</el-radio-button>
+        </el-radio-group>
+      </div>
+      <div class="filter-actions">
+        <template v-if="activeTab === 'culture'">
+          <el-input
+            v-model="cultureSearchKeyword"
+            placeholder="搜索标题"
+            size="small"
+            clearable
+            style="width: 200px"
+          >
+            <template #suffix>
+              <el-icon><Search /></el-icon>
+            </template>
+          </el-input>
+          <el-select v-model="cultureSortOption" placeholder="排序方式" size="small" style="margin-left: 10px">
+            <el-option label="最近收藏" value="recent"></el-option>
+            <el-option label="最热内容" value="popular"></el-option>
+          </el-select>
+        </template>
+
+        <template v-else-if="activeTab === 'product'">
+          <el-input
+            v-model="productSearchKeyword"
+            placeholder="搜索茶叶"
+            size="small"
+            clearable
+            style="width: 200px"
+          >
+            <template #suffix>
+              <el-icon><Search /></el-icon>
+            </template>
+          </el-input>
+          <el-select v-model="productSortOption" placeholder="排序方式" size="small" style="margin-left: 10px">
+            <el-option label="最近收藏" value="recent"></el-option>
+            <el-option label="价格从低到高" value="priceAsc"></el-option>
+            <el-option label="价格从高到低" value="priceDesc"></el-option>
+          </el-select>
+        </template>
+
+        <template v-else>
+          <el-input
+            v-model="postSearchKeyword"
+            placeholder="搜索帖子标题"
+            size="small"
+            clearable
+            style="width: 200px"
+          >
+            <template #suffix>
+              <el-icon><Search /></el-icon>
+            </template>
+          </el-input>
+          <el-select v-model="postSortOption" placeholder="排序方式" size="small" style="margin-left: 10px">
+            <el-option label="最近收藏" value="recent"></el-option>
+            <el-option label="热门讨论" value="hot"></el-option>
+          </el-select>
+        </template>
+      </div>
+    </div>
+
+    <!-- 茶文化内容 -->
+    <template v-if="activeTab === 'culture'">
+      <el-empty v-if="filteredCultureArticles.length === 0" description="暂无收藏内容" />
+
+      <div v-else class="culture-articles">
+        <div v-for="article in filteredCultureArticles" :key="article.id" class="article-item">
+          <div class="article-cover" @click="goToArticleDetail(article.id)">
+            <SafeImage :src="article.cover_image" type="post" :alt="article.title" style="width:100%;height:100%;object-fit:cover;" />
+          </div>
+          <div class="article-info">
+            <div class="article-title" @click="goToArticleDetail(article.id)">{{ article.title }}</div>
+            <div class="article-summary">{{ article.summary }}</div>
+            <div class="article-meta">
+              <span class="publish-time">发布于 {{ formatDate(article.publishTime) }}</span>
+              <span class="favorite-time">收藏于 {{ formatDate(article.favoriteTime) }}</span>
+              <span class="view-count"><el-icon><View /></el-icon> {{ article.viewCount }}</span>
+            </div>
+          </div>
+          <div class="article-actions">
+            <el-button size="small" plain type="danger" @click="cancelFavorite('tea_article', article.articleId)">
+              取消收藏
+            </el-button>
           </div>
         </div>
-        
-        <el-empty v-if="filteredCultureArticles.length === 0" description="暂无收藏内容" />
-        
-        <div v-else class="culture-articles">
-          <div v-for="article in filteredCultureArticles" :key="article.id" class="article-item">
-            <div class="article-cover" @click="goToArticleDetail(article.id)">
-              <SafeImage :src="article.cover_image" type="post" :alt="article.title" style="width:100%;height:100%;object-fit:cover;" />
+      </div>
+    </template>
+
+    <!-- 茶叶商品 -->
+    <template v-else-if="activeTab === 'product'">
+      <el-empty v-if="filteredProducts.length === 0" description="暂无收藏茶叶" />
+
+      <div v-else class="products-grid">
+        <div v-for="product in filteredProducts" :key="product.id" class="product-card">
+          <div class="product-cover" @click="goToProductDetail(product.id)">
+            <SafeImage :src="product.image" type="tea" :alt="product.name" style="width:100%;height:100%;object-fit:cover;" />
+          </div>
+          <div class="product-info">
+            <div class="product-title" @click="goToProductDetail(product.id)">{{ product.name }}</div>
+            <div class="product-shop" @click="goToShopDetail(product.shopId)">
+              <SafeImage
+                :src="product.shopLogo || product.shop?.logo"
+                type="banner"
+                :alt="product.shopName"
+                class="shop-logo"
+                style="width:20px;height:20px;border-radius:50%;object-fit:cover;"
+              />
+              <span>{{ product.shopName }}</span>
             </div>
-            <div class="article-info">
-              <div class="article-title" @click="goToArticleDetail(article.id)">{{ article.title }}</div>
-              <div class="article-summary">{{ article.summary }}</div>
-              <div class="article-meta">
-                <span class="publish-time">发布于 {{ formatDate(article.publishTime) }}</span>
-                <span class="favorite-time">收藏于 {{ formatDate(article.favoriteTime) }}</span>
-                <span class="view-count"><el-icon><View /></el-icon> {{ article.viewCount }}</span>
+            <div class="product-price">¥{{ product.price.toFixed(2) }}</div>
+            <div class="favorite-time">收藏于 {{ formatDate(product.favoriteTime) }}</div>
+          </div>
+          <div class="product-actions">
+            <el-button size="small" type="primary" @click="addToCart(product.id)">
+              <el-icon><ShoppingCart /></el-icon> 加入购物车
+            </el-button>
+            <el-button size="small" plain type="danger" @click="cancelFavorite('tea', product.teaId)">
+              取消收藏
+            </el-button>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <!-- 论坛帖子 -->
+    <template v-else>
+      <el-empty v-if="filteredPosts.length === 0" description="暂无收藏帖子" />
+
+      <div v-else class="post-list">
+        <div v-for="post in filteredPosts" :key="post.id" class="post-item">
+          <div class="post-info" @click="goToPostDetail(post.id)">
+            <div class="post-title">{{ post.title }}</div>
+            <div class="post-summary">{{ post.content }}</div>
+            <div class="post-meta">
+              <span class="author" @click.stop="goToUserProfile(post.userId)">
+                <SafeImage :src="post.userAvatar" type="avatar" :alt="post.nickname" class="author-avatar" style="width:24px;height:24px;border-radius:50%;object-fit:cover;" />
+                <span class="author-name">{{ post.nickname }}</span>
+              </span>
+              <span class="publish-time">发布于 {{ formatDate(post.publishTime) }}</span>
+              <span class="favorite-time">收藏于 {{ formatDate(post.favoriteTime) }}</span>
+              <div class="post-stats">
+                <span><el-icon><View /></el-icon> {{ post.viewCount }}</span>
+                <span><el-icon><ChatDotRound /></el-icon> {{ post.replyCount }}</span>
+                <span><el-icon><Star /></el-icon> {{ post.likeCount }}</span>
               </div>
             </div>
-            <div class="article-actions">
-              <el-button size="small" plain type="danger" @click="cancelFavorite('tea_article', article.articleId)">
-                取消收藏
-              </el-button>
-            </div>
+          </div>
+          <div class="post-actions">
+            <el-button size="small" plain type="danger" @click="cancelFavorite('post', post.postId)">
+              取消收藏
+            </el-button>
           </div>
         </div>
-      </el-tab-pane>
-      
-      <el-tab-pane label="茶叶商品" name="product">
-        <!-- 茶叶商品列表 -->
-        <div class="list-header">
-          <div class="list-title">收藏的茶叶商品 ({{filteredProducts.length}})</div>
-          <div class="list-actions">
-            <el-input
-              v-model="productSearchKeyword"
-              placeholder="搜索茶叶"
-              size="small"
-              clearable
-              style="width: 200px"
-            >
-              <template #suffix>
-                <el-icon><Search /></el-icon>
-              </template>
-            </el-input>
-            <el-select v-model="productSortOption" placeholder="排序方式" size="small" style="margin-left: 10px">
-              <el-option label="最近收藏" value="recent"></el-option>
-              <el-option label="价格从低到高" value="priceAsc"></el-option>
-              <el-option label="价格从高到低" value="priceDesc"></el-option>
-            </el-select>
-          </div>
-        </div>
-        
-        <el-empty v-if="filteredProducts.length === 0" description="暂无收藏茶叶" />
-        
-        <div v-else class="products-grid">
-          <div v-for="product in filteredProducts" :key="product.id" class="product-card">
-            <div class="product-cover" @click="goToProductDetail(product.id)">
-              <SafeImage :src="product.image" type="tea" :alt="product.name" style="width:100%;height:100%;object-fit:cover;" />
-            </div>
-            <div class="product-info">
-              <div class="product-title" @click="goToProductDetail(product.id)">{{ product.name }}</div>
-              <div class="product-shop" @click="goToShopDetail(product.shopId)">
-                <SafeImage :src="product.shopLogo || product.shop?.logo" type="banner" :alt="product.shopName" class="shop-logo" style="width:20px;height:20px;border-radius:50%;object-fit:cover;" />
-                <span>{{ product.shopName }}</span>
-              </div>
-              <div class="product-price">¥{{ product.price.toFixed(2) }}</div>
-              <div class="favorite-time">收藏于 {{ formatDate(product.favoriteTime) }}</div>
-            </div>
-            <div class="product-actions">
-              <el-button size="small" type="primary" @click="addToCart(product.id)">
-                <el-icon><ShoppingCart /></el-icon> 加入购物车
-              </el-button>
-              <el-button size="small" plain type="danger" @click="cancelFavorite('tea', product.teaId)">
-                取消收藏
-              </el-button>
-            </div>
-          </div>
-        </div>
-      </el-tab-pane>
-      
-      <el-tab-pane label="论坛帖子" name="post">
-        <!-- 论坛帖子列表 -->
-        <div class="list-header">
-          <div class="list-title">收藏的论坛帖子 ({{filteredPosts.length}})</div>
-          <div class="list-actions">
-            <el-input
-              v-model="postSearchKeyword"
-              placeholder="搜索帖子标题"
-              size="small"
-              clearable
-              style="width: 200px"
-            >
-              <template #suffix>
-                <el-icon><Search /></el-icon>
-              </template>
-            </el-input>
-            <el-select v-model="postSortOption" placeholder="排序方式" size="small" style="margin-left: 10px">
-              <el-option label="最近收藏" value="recent"></el-option>
-              <el-option label="热门讨论" value="hot"></el-option>
-            </el-select>
-          </div>
-        </div>
-        
-        <el-empty v-if="filteredPosts.length === 0" description="暂无收藏帖子" />
-        
-        <div v-else class="post-list">
-          <div v-for="post in filteredPosts" :key="post.id" class="post-item">
-            <div class="post-info" @click="goToPostDetail(post.id)">
-              <div class="post-title">{{ post.title }}</div>
-              <div class="post-summary">{{ post.content }}</div>
-              <div class="post-meta">
-                <span class="author" @click.stop="goToUserProfile(post.userId)">
-                  <SafeImage :src="post.userAvatar" type="avatar" :alt="post.nickname" class="author-avatar" style="width:24px;height:24px;border-radius:50%;object-fit:cover;" />
-                  <span class="author-name">{{ post.nickname }}</span>
-                </span>
-                <span class="publish-time">发布于 {{ formatDate(post.publishTime) }}</span>
-                <span class="favorite-time">收藏于 {{ formatDate(post.favoriteTime) }}</span>
-                <div class="post-stats">
-                  <span><el-icon><View /></el-icon> {{ post.viewCount }}</span>
-                  <span><el-icon><ChatDotRound /></el-icon> {{ post.replyCount }}</span>
-                  <span><el-icon><Star /></el-icon> {{ post.likeCount }}</span>
-                </div>
-              </div>
-            </div>
-            <div class="post-actions">
-              <el-button size="small" plain type="danger" @click="cancelFavorite('post', post.postId)">
-                取消收藏
-              </el-button>
-            </div>
-          </div>
-        </div>
-      </el-tab-pane>
-    </el-tabs>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -405,20 +411,25 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .favorites-page {
-  // 列表头部样式
-  .list-header {
+  // 顶部横栏样式（对齐“关注”页）
+  .filter-bar {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
-    
-    .list-title {
-      font-size: 16px;
-      font-weight: 500;
-      color: var(--el-text-color-primary);
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+
+    .filter-tabs {
+      .el-radio-group {
+        .el-radio-button {
+          margin-right: 0;
+        }
+      }
     }
-    
-    .list-actions {
+
+    .filter-actions {
       display: flex;
       align-items: center;
     }

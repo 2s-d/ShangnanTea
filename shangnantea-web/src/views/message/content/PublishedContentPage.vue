@@ -30,119 +30,113 @@
          - 搜索发布内容
       -->
       
-      <div class="content-tabs">
-        <el-tabs v-model="activeTab" @tab-change="handleTabChange" v-loading="loading">
-          <el-tab-pane label="论坛帖子" name="posts">
-            <div class="posts-list">
-              <!-- 帖子列表 -->
-              <el-empty v-if="posts.length === 0" description="暂无发布内容" />
-              
-              <div v-else>
-                <!-- 帖子列表筛选和排序 -->
-                <div class="list-header">
-                  <div class="list-title">发布的帖子 ({{posts.length}})</div>
-                  <div class="list-actions">
-                    <el-select v-model="sortOption" placeholder="排序方式" size="small" @change="handleSortChange">
-                      <el-option label="最新发布" value="newest"></el-option>
-                      <el-option label="最多浏览" value="mostViewed"></el-option>
-                      <el-option label="最多回复" value="mostReplied"></el-option>
-                    </el-select>
-                  </div>
-                </div>
-                
-                <!-- 帖子列表内容 -->
-                <div class="post-items">
-                  <div v-for="post in sortedPosts" :key="post.id" class="post-item" @click="viewPostDetail(post.id)">
-                    <div class="post-content">
-                      <div class="post-title">{{ post.title }}</div>
-                      <div class="post-summary">{{ post.summary }}</div>
-                      <div class="post-meta">
-                        <span class="post-time">
-                          <el-icon><Timer /></el-icon> {{ formatDate(post.createTime) }}
-                        </span>
-                        <span class="post-views">
-                          <el-icon><View /></el-icon> {{ post.viewCount }}
-                        </span>
-                        <span class="post-replies">
-                          <el-icon><ChatDotRound /></el-icon> {{ post.replyCount }}
-                        </span>
-                        <span class="post-likes">
-                          <el-icon><Star /></el-icon> {{ post.likeCount }}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    <div class="post-actions">
-                      <el-button type="primary" size="small" @click.stop="editPost(post)">
-                        <el-icon><Edit /></el-icon> 编辑
-                      </el-button>
-                      <el-button type="danger" size="small" @click.stop="deletePost(post.id)">
-                        <el-icon><Delete /></el-icon> 删除
-                      </el-button>
-                    </div>
-                  </div>
+      <div class="content-tabs" v-loading="loading">
+        <!-- 顶部横栏（同“关注”页样式）：统计放在横栏上，避免下方重复标题 -->
+        <div class="filter-bar">
+          <div class="filter-tabs">
+            <el-radio-group v-model="activeTab" @change="handleTabChange">
+              <el-radio-button value="posts">论坛帖子 ({{ posts.length }})</el-radio-button>
+              <el-radio-button value="reviews">茶叶评价 ({{ reviews.length }})</el-radio-button>
+            </el-radio-group>
+          </div>
+          <div class="filter-actions">
+            <el-select
+              v-if="activeTab === 'posts'"
+              v-model="sortOption"
+              placeholder="排序方式"
+              size="small"
+              style="width: 120px"
+              @change="handleSortChange"
+            >
+              <el-option label="最新发布" value="newest"></el-option>
+              <el-option label="最多浏览" value="mostViewed"></el-option>
+              <el-option label="最多回复" value="mostReplied"></el-option>
+            </el-select>
+          </div>
+        </div>
+
+        <!-- 论坛帖子 -->
+        <div v-if="activeTab === 'posts'" class="posts-list">
+          <el-empty v-if="posts.length === 0" description="暂无发布内容" />
+
+          <div v-else class="post-items">
+            <div v-for="post in sortedPosts" :key="post.id" class="post-item" @click="viewPostDetail(post.id)">
+              <div class="post-content">
+                <div class="post-title">{{ post.title }}</div>
+                <div class="post-summary">{{ post.summary }}</div>
+                <div class="post-meta">
+                  <span class="post-time">
+                    <el-icon><Timer /></el-icon> {{ formatDate(post.createTime) }}
+                  </span>
+                  <span class="post-views">
+                    <el-icon><View /></el-icon> {{ post.viewCount }}
+                  </span>
+                  <span class="post-replies">
+                    <el-icon><ChatDotRound /></el-icon> {{ post.replyCount }}
+                  </span>
+                  <span class="post-likes">
+                    <el-icon><Star /></el-icon> {{ post.likeCount }}
+                  </span>
                 </div>
               </div>
-            </div>
-          </el-tab-pane>
-          
-          <el-tab-pane label="茶叶评价" name="reviews">
-            <div class="reviews-list">
-              <!-- 评价列表 -->
-              <el-empty v-if="reviews.length === 0" description="暂无评价记录" />
-              
-              <div v-else>
-                <!-- 评价列表头部 -->
-                <div class="list-header">
-                  <div class="list-title">发布的评价 ({{reviews.length}})</div>
-                </div>
-                
-                <!-- 评价列表内容 -->
-                <div class="review-items">
-                  <div v-for="review in sortedReviews" :key="review.id" class="review-item">
-                    <div class="review-tea-info" @click="viewTeaDetail(review.teaId)">
-                      <img :src="review.teaImage" :alt="review.teaName" class="tea-image" />
-                      <div class="tea-details">
-                        <div class="tea-name">{{ review.teaName }}</div>
-                        <div class="shop-name">{{ review.shopName }}</div>
-                      </div>
-                    </div>
-                    
-                    <div class="review-content">
-                      <div class="review-rating">
-                        <el-rate v-model="review.rating" disabled show-score text-color="#ff9900" />
-                      </div>
-                      <div class="review-text">{{ review.content }}</div>
-                      <div class="review-meta">
-                        <span class="review-time">
-                          <el-icon><Timer /></el-icon> {{ formatDate(review.createTime) }}
-                        </span>
-                        <span class="shop-reply-status" v-if="review.hasShopReply">
-                          <el-icon><ChatDotRound /></el-icon> 商家已回复
-                        </span>
-                      </div>
-                      
-                      <!-- 商家回复 -->
-                      <div v-if="review.hasShopReply && review.shopReply" class="shop-reply">
-                        <div class="reply-header">
-                          <span class="reply-label">商家回复：</span>
-                          <span class="reply-time">{{ formatDate(review.shopReplyTime) }}</span>
-                        </div>
-                        <div class="reply-content">{{ review.shopReply }}</div>
-                      </div>
-                    </div>
-                    
-                    <div class="review-actions">
-                      <el-button type="danger" size="small" @click="deleteReview(review.id)">
-                        <el-icon><Delete /></el-icon> 删除
-                      </el-button>
-                    </div>
-                  </div>
-                </div>
+
+              <div class="post-actions">
+                <el-button type="primary" size="small" @click.stop="editPost(post)">
+                  <el-icon><Edit /></el-icon> 编辑
+                </el-button>
+                <el-button type="danger" size="small" @click.stop="deletePost(post.id)">
+                  <el-icon><Delete /></el-icon> 删除
+                </el-button>
               </div>
             </div>
-          </el-tab-pane>
-        </el-tabs>
+          </div>
+        </div>
+
+        <!-- 茶叶评价 -->
+        <div v-else class="reviews-list">
+          <el-empty v-if="reviews.length === 0" description="暂无评价记录" />
+
+          <div v-else class="review-items">
+            <div v-for="review in sortedReviews" :key="review.id" class="review-item">
+              <div class="review-tea-info" @click="viewTeaDetail(review.teaId)">
+                <img :src="review.teaImage" :alt="review.teaName" class="tea-image" />
+                <div class="tea-details">
+                  <div class="tea-name">{{ review.teaName }}</div>
+                  <div class="shop-name">{{ review.shopName }}</div>
+                </div>
+              </div>
+
+              <div class="review-content">
+                <div class="review-rating">
+                  <el-rate v-model="review.rating" disabled show-score text-color="#ff9900" />
+                </div>
+                <div class="review-text">{{ review.content }}</div>
+                <div class="review-meta">
+                  <span class="review-time">
+                    <el-icon><Timer /></el-icon> {{ formatDate(review.createTime) }}
+                  </span>
+                  <span class="shop-reply-status" v-if="review.hasShopReply">
+                    <el-icon><ChatDotRound /></el-icon> 商家已回复
+                  </span>
+                </div>
+
+                <div v-if="review.hasShopReply && review.shopReply" class="shop-reply">
+                  <div class="reply-header">
+                    <span class="reply-label">商家回复：</span>
+                    <span class="reply-time">{{ formatDate(review.shopReplyTime) }}</span>
+                  </div>
+                  <div class="reply-content">{{ review.shopReply }}</div>
+                </div>
+              </div>
+
+              <div class="review-actions">
+                <el-button type="danger" size="small" @click="deleteReview(review.id)">
+                  <el-icon><Delete /></el-icon> 删除
+                </el-button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -409,13 +403,37 @@ onMounted(() => {
   .content-tabs {
     margin-bottom: 20px;
   }
+
+  // 顶部横栏样式（对齐“关注”页）
+  .filter-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+
+    .filter-tabs {
+      .el-radio-group {
+        .el-radio-button {
+          margin-right: 0;
+        }
+      }
+    }
+
+    .filter-actions {
+      display: flex;
+      align-items: center;
+    }
+  }
   
   .list-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
-    
+
     .list-title {
       font-size: 16px;
       font-weight: 500;
