@@ -249,20 +249,36 @@ public class UserServiceImpl implements UserService {
                 return Result.failure(2152);
             }
 
+            // 打印完整API响应结构用于调试
+            logger.info("高德API返回结构: hasLives={}, livesSize={}, hasForecasts={}, forecastsSize={}", 
+                    root.has("lives"), 
+                    root.path("lives").isArray() ? root.path("lives").size() : 0,
+                    root.has("forecasts"),
+                    root.path("forecasts").isArray() ? root.path("forecasts").size() : 0);
+
             Map<String, Object> result = new HashMap<>();
             
             // 从高德API返回的数据中提取四个字段
             JsonNode lives = root.path("lives");
             JsonNode live = (lives.isArray() && lives.size() > 0) ? lives.get(0) : null;
-            result.put("weather", live != null ? live.path("weather").asText("") : "");
-            result.put("temperature", live != null ? live.path("temperature").asText("") : "");
+            String weather = live != null ? live.path("weather").asText("") : "";
+            String temperature = live != null ? live.path("temperature").asText("") : "";
+            result.put("weather", weather);
+            result.put("temperature", temperature);
             
             JsonNode forecasts = root.path("forecasts");
             JsonNode forecast = (forecasts.isArray() && forecasts.size() > 0) ? forecasts.get(0) : null;
             JsonNode casts = forecast != null ? forecast.path("casts") : null;
             JsonNode todayCast = (casts != null && casts.isArray() && casts.size() > 0) ? casts.get(0) : null;
-            result.put("maxTemperature", todayCast != null ? todayCast.path("daytemp").asText("") : "");
-            result.put("minTemperature", todayCast != null ? todayCast.path("nighttemp").asText("") : "");
+            String maxTemp = todayCast != null ? todayCast.path("daytemp").asText("") : "";
+            String minTemp = todayCast != null ? todayCast.path("nighttemp").asText("") : "";
+            result.put("maxTemperature", maxTemp);
+            result.put("minTemperature", minTemp);
+            
+            // 添加调试日志
+            logger.info("天气数据提取结果: weather={}, temperature={}, maxTemperature={}, minTemperature={}, lives存在={}, live存在={}, forecasts存在={}, todayCast存在={}", 
+                    weather, temperature, maxTemp, minTemp, 
+                    lives.isArray(), live != null, forecasts.isArray(), todayCast != null);
 
             // 6. 写入Redis缓存
             try {
