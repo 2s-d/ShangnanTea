@@ -175,7 +175,7 @@
             </template>
             <!-- 待发货：允许修改地址 -->
             <template v-else-if="orderDetail.status === 1">
-              <el-button type="primary" @click="modifyAddress">修改收货地址</el-button>
+              <el-button type="primary" @click="openAddressDialog">修改收货地址</el-button>
             </template>
             <!-- 待收货 -->
             <template v-else-if="orderDetail.status === 2">
@@ -272,6 +272,34 @@
         </el-button>
       </template>
     </el-dialog>
+    
+    <!-- 修改收货地址对话框（基于地址簿选择） -->
+    <el-dialog
+      v-model="addressDialogVisible"
+      title="修改收货地址"
+      width="520px"
+      :close-on-click-modal="false"
+    >
+      <el-form label-width="80px">
+        <el-form-item label="选择地址">
+          <el-radio-group v-model="selectedAddressId">
+            <el-radio
+              v-for="addr in userAddresses"
+              :key="addr.id"
+              :label="addr.id"
+            >
+              {{ addr.receiverName }} {{ addr.receiverPhone }} （{{ addr.province }}{{ addr.city }}{{ addr.district }} {{ addr.detailAddress }}）
+            </el-radio>
+          </el-radio-group>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="addressDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="addressSubmitting" @click="submitAddressChange">
+          保存
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -335,6 +363,12 @@ const refundInfo = ref({
   reason: '',
   process_reason: ''
 })
+
+// 修改订单地址对话框
+const addressDialogVisible = ref(false)
+const addressSubmitting = ref(false)
+const selectedAddressId = ref(null)
+const userAddresses = computed(() => userStore.addressList || [])
     
     // 获取订单状态文本
     const getStatusText = status => {
@@ -408,9 +442,17 @@ const refundInfo = ref({
       }
     }
     
-    // 修改收货地址：跳转到收货地址管理页
-    const modifyAddress = () => {
-      router.push('/user/address')
+    // 打开修改收货地址对话框
+    const openAddressDialog = async () => {
+      // 确保用户地址列表已加载
+      if (!userStore.addressList || userStore.addressList.length === 0) {
+        await userStore.fetchAddressList && userStore.fetchAddressList()
+      }
+      // 默认选中当前订单地址对应的地址簿ID（如果存在映射，则简单使用第一个地址）
+      if (!selectedAddressId.value && userAddresses.value.length > 0) {
+        selectedAddressId.value = userAddresses.value[0].id
+      }
+      addressDialogVisible.value = true
     }
     
     // 管理员/商户：发货操作
@@ -507,6 +549,32 @@ const refundInfo = ref({
         }
       } catch (error) {
         console.error('获取物流信息失败:', error)
+      }
+    }
+    
+    // 提交修改订单地址
+    const submitAddressChange = async () => {
+      if (!selectedAddressId.value) {
+        orderPromptMessages.showAddressRequired && orderPromptMessages.showAddressRequired()
+        return
+      }
+      addressSubmitting.value = true
+      try {
+        const res = await orderStore.updateOrderAddress({
+          orderId,
+          addressId: selectedAddressId.value
+        })
+        const code = res?.code
+        if (code) {
+          showByCode(code)
+        }
+        addressDialogVisible.value = false
+        // 重新加载订单详情，刷新地址快照
+        await loadOrderDetail()
+      } catch (error) {
+        showByCode(5147, error?.message || null)
+      } finally {
+        addressSubmitting.value = false
       }
     }
     
