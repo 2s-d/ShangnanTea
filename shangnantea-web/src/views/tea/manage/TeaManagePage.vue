@@ -1297,7 +1297,7 @@ defineOptions({
     }
     
     // 加载茶叶数据
-    const loadTeas = async () => {
+    const loadTeas = async (targetPage) => {
       try {
         // 构建筛选条件
         const filters = {}
@@ -1315,8 +1315,10 @@ defineOptions({
           filters.shopId = PLATFORM_SHOP_ID
         }
         
-        // 更新 Pinia filters 并获取数据
-        await teaStore.updateFilters(filters)
+        // 目标页：显式传入优先，否则使用当前分页
+        const page = targetPage ?? teaStore.pagination.currentPage ?? 1
+        // 更新 Pinia filters 并获取数据（内部会把 currentPage 设为 page）
+        await teaStore.updateFilters(filters, page)
       } catch (error) {
         // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
         if (process.env.NODE_ENV === 'development') {
@@ -1327,27 +1329,23 @@ defineOptions({
     
     // 搜索处理
     const handleSearch = async () => {
-      await teaStore.setPage(1)
-      await loadTeas()
+      await loadTeas(1)
     }
     
     // 筛选变更处理
     const handleFilterChange = async () => {
-      await teaStore.setPage(1)
-      await loadTeas()
+      await loadTeas(1)
     }
     
     // 页码变更
     const handlePageChange = async page => {
-      teaStore.pagination.currentPage = page
-      await loadTeas()
+      await loadTeas(page)
     }
     
     // 每页条数变更
     const handleSizeChange = async size => {
       teaStore.pagination.pageSize = size
-      teaStore.pagination.currentPage = 1
-      await loadTeas()
+      await loadTeas(1)
     }
     
     // 初始化
