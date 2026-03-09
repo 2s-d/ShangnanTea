@@ -161,11 +161,11 @@
               />
             </el-select>
           </el-form-item>
-
+          
           <el-form-item label="摘要">
-            <el-input
+            <el-input 
               v-model="postForm.summary"
-              type="textarea"
+              type="textarea" 
               :rows="3"
               maxlength="200"
               show-word-limit
@@ -899,7 +899,7 @@ const updatePagination = () => {
       router.push('/user/settings/posts')
     }
     
-// 显示发帖对话框
+    // 显示发帖对话框
     const showPostDialog = () => {
       // 重置表单
       postForm.title = ''
@@ -924,7 +924,7 @@ const updatePagination = () => {
       div.innerHTML = html
       return div.textContent || div.innerText || ''
     }
-
+    
     // 从HTML中提取图片URL列表（用于images字段）
     const extractImageUrls = html => {
       if (!html) return []
@@ -937,7 +937,7 @@ const updatePagination = () => {
       // 去重
       return Array.from(new Set(urls))
     }
-
+    
     // 取消发帖
     const cancelPost = () => {
       dialogVisible.post = false

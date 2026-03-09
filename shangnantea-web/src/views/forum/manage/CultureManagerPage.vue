@@ -878,7 +878,7 @@ const submitBannerForm = async () => {
       }
       // 将表单中的排序值一并传给后端，落库到 sort_order 字段
       if (bannerForm.sort_order != null) {
-        formData.append('sortOrder', bannerForm.sort_order)
+      formData.append('sortOrder', bannerForm.sort_order)
       }
       res = await forumStore.uploadBanner(formData)
     }

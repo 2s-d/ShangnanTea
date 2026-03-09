@@ -2121,7 +2121,7 @@ public class ForumServiceImpl implements ForumService {
             } catch (Exception notifyEx) {
                 logger.warn("审核通过后创建帖子审核结果通知失败, postId={}, userId={}", post.getId(), post.getUserId(), notifyEx);
             }
-
+            
             logger.info("审核通过成功: id={}", id);
             return Result.success(6022, null); // 审核通过
             
@@ -2178,7 +2178,7 @@ public class ForumServiceImpl implements ForumService {
             } catch (Exception notifyEx) {
                 logger.warn("审核拒绝后创建帖子审核结果通知失败, postId={}, userId={}", post.getId(), post.getUserId(), notifyEx);
             }
-
+            
             logger.info("审核拒绝成功: id={}, reason={}", id, dto.getReason());
             return Result.success(6023, null); // 审核已拒绝
             

@@ -100,7 +100,7 @@
                 <SafeImage :src="reply.avatar" type="avatar" :alt="getDisplayName(reply)" style="width:40px;height:40px;border-radius:50%;object-fit:cover;" />
               </div>
               <div class="author-name" @click="goToUserProfile(reply.userId)">{{ getDisplayName(reply) }}</div>
-              <div class="reply-time">{{ formatDate(reply.createTime) }}</div>
+                <div class="reply-time">{{ formatDate(reply.createTime) }}</div>
             </div>
             
             <div class="reply-content">
@@ -959,11 +959,11 @@ const getReplyContent = replyId => {
           object-fit: cover;
         }
       }
-      
-      .author-name {
-        font-size: 14px;
-        font-weight: 500;
-        color: var(--el-text-color-primary);
+        
+        .author-name {
+          font-size: 14px;
+          font-weight: 500;
+      color: var(--el-text-color-primary);
         margin-right: auto;
         cursor: pointer;
         transition: color 0.2s;
@@ -971,11 +971,11 @@ const getReplyContent = replyId => {
         &:hover {
           color: var(--el-color-primary);
         }
-      }
-      
-      .reply-time {
-        font-size: 12px;
-        color: var(--el-text-color-secondary);
+        }
+        
+        .reply-time {
+          font-size: 12px;
+          color: var(--el-text-color-secondary);
         position: absolute;
         right: 0;
         top: 50%;

@@ -419,7 +419,7 @@ export default {
     font-size: 16px;
     z-index: 1;
   }
-
+  
   .delete-button {
     position: absolute;
     top: 16px;
