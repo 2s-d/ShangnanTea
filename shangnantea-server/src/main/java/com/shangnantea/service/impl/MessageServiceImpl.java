@@ -1417,8 +1417,8 @@ public class MessageServiceImpl implements MessageService {
             userInfo.put("bio", user.getBio());
             userInfo.put("createTime", user.getCreateTime());
 
-            // 仅在本人或主页可见的情况下返回用户名等额外信息
-            if (isSelf || profileVisible) {
+            // 仅在本人查看时返回用户名；他人主页一律不暴露 username
+            if (isSelf) {
                 userInfo.put("username", user.getUsername());
             }
             
