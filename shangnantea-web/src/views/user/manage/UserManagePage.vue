@@ -734,6 +734,36 @@ const userFormRef = ref(null)
         margin-left: 10px;
       }
     }
+
+    .online-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #c0c4cc;
+      }
+
+      .status-text {
+        font-size: 13px;
+        color: #909399;
+      }
+
+      &.is-online {
+        .status-dot {
+          background-color: #67c23a;
+          box-shadow: 0 0 6px rgba(103, 194, 58, 0.9);
+        }
+
+        .status-text {
+          color: #67c23a;
+          font-weight: 500;
+        }
+      }
+    }
   }
   
   .pagination-container {
@@ -802,6 +832,18 @@ const userFormRef = ref(null)
     margin-left: 10px;
     font-size: 12px;
     color: var(--el-text-color-secondary);
+  }
+
+  .force-logout-btn {
+    background-color: #0f7fbf;
+    border-color: #0f7fbf;
+    color: #fff;
+
+    &:hover {
+      background-color: #0c6ba1;
+      border-color: #0c6ba1;
+      color: #fff;
+    }
   }
 }
 
