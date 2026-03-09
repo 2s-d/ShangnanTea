@@ -613,11 +613,11 @@ const orderList = ref([])
           sortOrder
         }
         await orderStore.updateFilters(filters)
-        const data = await orderStore.fetchOrders({
+        await orderStore.fetchOrders({
           page: currentPage.value,
           size: pageSize.value
         })
-        const rawList = data.list || orderStore.orderList || []
+        const rawList = orderStore.orderList || []
         // 后端字段统一使用 camelCase，直接使用
         orderList.value = rawList
         const p = orderStore.pagination
@@ -656,6 +656,7 @@ const orderList = ref([])
         query: {
           ...route.query,
           page: String(currentPage.value),
+          size: String(pageSize.value),
           orderId: searchForm.orderId || undefined,
           teaName: searchForm.teaName || undefined,
           status: searchForm.status !== '' ? String(searchForm.status) : undefined,
@@ -688,6 +689,8 @@ const orderList = ref([])
     // 处理分页大小变化
     const handleSizeChange = size => {
       pageSize.value = size
+      currentPage.value = 1
+      syncQueryToRoute()
       fetchOrders()
     }
     
@@ -950,9 +953,12 @@ const orderList = ref([])
     
 // 初始化：从 URL 恢复筛选条件
 onMounted(() => {
-  const { page, orderId, teaName, status, startDate, endDate, sort } = route.query
+  const { page, size, orderId, teaName, status, startDate, endDate, sort } = route.query
   if (page) {
     currentPage.value = Number(page) || 1
+  }
+  if (size) {
+    pageSize.value = Number(size) || 10
   }
   if (orderId) {
     searchForm.orderId = String(orderId)

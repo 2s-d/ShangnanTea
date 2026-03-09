@@ -96,11 +96,15 @@
               <el-icon><Edit /></el-icon>
               编辑资料
             </el-button>
-            <!-- 查看他人主页时显示关注按钮 -->
-            <el-button v-else type="primary" @click="handleFollow">
-              <el-icon><Plus /></el-icon>
-              {{ isFollowing ? '取消关注' : '关注' }}
-            </el-button>
+            <!-- 查看他人主页时显示私信+关注按钮 -->
+            <template v-else>
+              <el-button class="private-message-btn" @click="handlePrivateMessage">
+                私信
+              </el-button>
+              <el-button class="follow-btn" :class="{ 'is-following': isFollowing }" @click="handleFollow">
+                {{ isFollowing ? '√已关注' : '+关注' }}
+              </el-button>
+            </template>
           </div>
         </div>
         
@@ -186,7 +190,7 @@ import FollowsPage from '@/views/message/follows/FollowsPage.vue'
 import FavoritesPage from '@/views/message/favorites/FavoritesPage.vue'
 import PublishedContentPage from '@/views/message/content/PublishedContentPage.vue'
 import { 
-  User, UserFilled, Star, Document, Male, Female, Edit, Plus, Shop, Key, QuestionFilled, Location, ArrowLeft
+  User, UserFilled, Star, Document, Male, Female, Edit, Shop, Key, QuestionFilled, Location, ArrowLeft
 } from '@element-plus/icons-vue'
 import { formatLocationDisplay } from '@/utils/region'
 import SafeImage from '@/components/common/form/SafeImage.vue'
@@ -416,6 +420,11 @@ const userStore = useUserStore()
       } catch (error) {
         console.error('关注操作失败:', error)
       }
+    }
+
+    // 私信按钮预留：先保留入口，后续再接完整私信流程
+    const handlePrivateMessage = () => {
+      commonPromptMessages.showProcessing()
     }
     
     // 跳转到店铺
@@ -715,6 +724,51 @@ const defaultImage = ''
       
       .user-actions {
         align-self: flex-start;
+        margin-right: 24px;
+        display: flex;
+        gap: 12px;
+
+        .private-message-btn {
+          width: 96px;
+          height: 40px;
+          padding: 0;
+          border-radius: 8px;
+          border: 1px solid #9fd7a8;
+          background-color: #e4f7e8;
+          color: #2c8f4a;
+          font-size: 15px;
+          font-weight: 500;
+
+          &:hover {
+            border-color: #84cb92;
+            background-color: #d8f2de;
+            color: #237a3d;
+          }
+        }
+
+        .follow-btn {
+          width: 108px;
+          height: 40px;
+          padding: 0;
+          border-radius: 8px;
+          border: 1px solid #f56c6c;
+          background-color: #f56c6c;
+          color: #fff;
+          font-size: 15px;
+          font-weight: 600;
+
+          &:hover {
+            background-color: #f26363;
+            border-color: #f26363;
+            color: #fff;
+          }
+        }
+
+        .follow-btn.is-following {
+          background-color: #f78989;
+          border-color: #f78989;
+          color: #fff;
+        }
       }
     }
     

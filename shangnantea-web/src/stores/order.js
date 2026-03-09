@@ -224,10 +224,12 @@ const useDefaultSpecOnAdd = ref(false)
       const data = res.data
       
       orderList.value = data?.list || []
+      const requestPage = Number(queryParams.page) || pagination.currentPage || 1
+      const requestPageSize = Number(queryParams.size || queryParams.pageSize) || pagination.pageSize || 10
       Object.assign(pagination, {
         total: data?.total || 0,
-        currentPage: pagination.currentPage,
-        pageSize: pagination.pageSize
+        currentPage: Number(data?.page || data?.pageNum) || requestPage,
+        pageSize: Number(data?.pageSize) || requestPageSize
       })
       
       return res
