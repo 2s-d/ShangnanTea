@@ -168,6 +168,8 @@ const refreshPosts = () => {
 // 处理分页大小变更
 const handleSizeChange = size => {
   pagination.pageSize = size
+  // 切页大小时回到第一页，避免出现空页
+  pagination.currentPage = 1
   fetchPosts()
 }
 

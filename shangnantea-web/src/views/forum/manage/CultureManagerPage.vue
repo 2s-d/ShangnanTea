@@ -563,9 +563,14 @@ const filteredArticles = computed(() => {
       article.status === articleStatus.value
     )
   }
-  
+
+  // 更新总数（未分页前的总记录数）
   articlePagination.total = result.length
-  return result
+
+  // 本地分页切片：即使当前数据不够一页，逻辑也保持正确
+  const start = (articlePagination.currentPage - 1) * articlePagination.pageSize
+  const end = start + articlePagination.pageSize
+  return result.slice(start, end)
 })
 
 // 获取状态标签类型
