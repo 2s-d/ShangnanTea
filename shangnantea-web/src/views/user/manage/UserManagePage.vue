@@ -145,7 +145,7 @@
                 @click="handleForceLogout(scope.row)"
                 :disabled="scope.row.role === 1">
                 <el-icon><View /></el-icon>
-                下线
+                强制退出
               </el-button>
             </template>
           </el-table-column>

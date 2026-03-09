@@ -412,9 +412,9 @@ const filteredOrders = computed(() => orders.value)
       orderPromptMessages.showDeleteOrderDev()
     }
     
-    // 添加修改地址功能
+    // 修改订单地址：跳转到订单详情页进行修改
     const modifyAddress = orderId => {
-      orderPromptMessages.showModifyAddressDev()
+      router.push(`/order/detail/${orderId}`)
     }
     
     // 添加联系商家功能

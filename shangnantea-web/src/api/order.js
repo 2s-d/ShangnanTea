@@ -175,6 +175,18 @@ export function refundOrder(data) {
   })
 }
 
+/**
+ * 修改订单收货地址
+ * @param {Object} data { orderId, addressId }
+ */
+export function updateOrderAddress(data) {
+  return request({
+    url: API.ORDER.ADDRESS,
+    method: 'post',
+    data
+  })
+}
+
 // === 退款相关 API ===
 
 /**

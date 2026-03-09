@@ -1558,7 +1558,7 @@
 | 26 | submitShopReview | POST | /shop/{shopId}/reviews | 4017 | 4131, 4132 | 提交店铺评价 |
 
 
-## 四、订单模块接口 (order.js) - 共21个接口
+## 四、订单模块接口 (order.js) - 共22个接口
 
 ### 4.1 购物车相关 (5个)
 
@@ -1570,7 +1570,7 @@
 | 4 | removeFromCart | DELETE | /order/cart/remove | 5003 | 5108 | 移除商品 |
 | 5 | clearCart | DELETE | /order/cart/clear | 5004 | 5109 | 清空购物车 |
 
-### 4.2 订单基础操作 (7个)
+### 4.2 订单基础操作 (8个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
@@ -1581,30 +1581,31 @@
 | 10 | cancelOrder | POST | /order/cancel | 5008 | 5121, 5122, 5123 | 取消订单 |
 | 11 | confirmOrder | POST | /order/confirm | 5009 | 5124, 5125, 5126 | 确认收货 |
 | 12 | reviewOrder | POST | /order/review | 5010 | 5127 | 评价订单 |
+| 13 | updateOrderAddress | POST | /order/address | 5017 | 5147 | 修改订单地址 |
 
 ### 4.3 退款相关 (3个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 13 | refundOrder | POST | /order/refund | 5011 | 5128, 5129, 5130 | 申请退款 |
-| 14 | processRefund | POST | /order/{id}/refund/process | 5012, 5013 | 5131, 5132 | 审批退款 |
-| 15 | getRefundDetail | GET | /order/{id}/refund | 200 | 5133, 5134 | 获取退款详情 |
+| 14 | refundOrder | POST | /order/refund | 5011 | 5128, 5129, 5130 | 申请退款 |
+| 15 | processRefund | POST | /order/{id}/refund/process | 5012, 5013 | 5131, 5132 | 审批退款 |
+| 16 | getRefundDetail | GET | /order/{id}/refund | 200 | 5133, 5134 | 获取退款详情 |
 
 ### 4.4 发货与物流 (3个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 16 | shipOrder | POST | /order/{id}/ship | 5014 | 5135, 5136, 5137 | 发货 |
-| 17 | batchShipOrders | POST | /order/batch-ship | 5015 | 5138, 5139 | 批量发货 |
-| 18 | getOrderLogistics | GET | /order/{id}/logistics | 200 | 5140, 5141 | 获取物流信息 |
+| 17 | shipOrder | POST | /order/{id}/ship | 5014 | 5135, 5136, 5137 | 发货 |
+| 18 | batchShipOrders | POST | /order/batch-ship | 5015 | 5138, 5139 | 批量发货 |
+| 19 | getOrderLogistics | GET | /order/{id}/logistics | 200 | 5140, 5141 | 获取物流信息 |
 
 ### 4.5 统计与导出 (3个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 19 | getOrderStatistics | GET | /order/statistics | 200 | 5142 | 获取订单统计 |
-| 20 | exportOrders | GET | /order/export | 200 | 5143 | 导出订单数据 |
-| 21 | uploadReviewImage | POST | /order/review/image | 5016 | 5144, 5145, 5146 | 上传订单评价图片 |
+| 20 | getOrderStatistics | GET | /order/statistics | 200 | 5142 | 获取订单统计 |
+| 21 | exportOrders | GET | /order/export | 200 | 5143 | 导出订单数据 |
+| 22 | uploadReviewImage | POST | /order/review/image | 5016 | 5144, 5145, 5146 | 上传订单评价图片 |
 
 
 ## 五、论坛模块接口 (forum.js) - 共32个接口
@@ -1739,7 +1740,7 @@
 | 用户模块 | 37 | 2xxx |
 | 茶叶模块 | 24 | 3xxx |
 | 店铺模块 | 23 | 4xxx |
-| 订单模块 | 21 | 5xxx |
+| 订单模块 | 22 | 5xxx |
 | 论坛模块 | 32 | 6xxx |
 | 消息模块 | 22 | 7xxx |
 | **总计** | **158** | - |

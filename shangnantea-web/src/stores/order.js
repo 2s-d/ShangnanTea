@@ -8,6 +8,7 @@ import {
   cancelOrder as cancelOrderApi,
   confirmOrder as confirmOrderApi,
   refundOrder as refundOrderApi,
+  updateOrderAddress as updateOrderAddressApi,
   reviewOrder as reviewOrderApi,
   uploadReviewImage as uploadReviewImageApi,
   processRefund as processRefundApi,
@@ -350,6 +351,17 @@ const useDefaultSpecOnAdd = ref(false)
     }
   }
   
+  // 修改订单收货地址
+  async function updateOrderAddress({ orderId, addressId }) {
+    try {
+      loading.value = true
+      const res = await updateOrderAddressApi({ orderId, addressId })
+      return res
+    } finally {
+      loading.value = false
+    }
+  }
+  
   // 更新筛选条件
   function updateFilters(newFilters) {
     Object.assign(filters, newFilters)
@@ -539,6 +551,7 @@ const useDefaultSpecOnAdd = ref(false)
     confirmReceipt,
     submitOrderReview,
     applyRefund,
+    updateOrderAddress,
     updateFilters,
     shipOrder,
     batchShipOrders,
