@@ -518,6 +518,15 @@ public class UserServiceImpl implements UserService {
             // 记录登出日志
             logger.info("用户登出: userId: {}, username: {}", userId, username);
             
+            // 删除登录会话缓存（如果存在）
+            try {
+                String sessionKey = "login:user:" + userId;
+                Boolean removed = redisTemplate.delete(sessionKey);
+                logger.debug("清理登录会话缓存: key={}, removed={}", sessionKey, removed);
+            } catch (Exception e) {
+                logger.warn("清理登录会话缓存失败，不影响登出流程: userId={}, error={}", userId, e.getMessage());
+            }
+            
             // 清除用户上下文（虽然拦截器会自动清除，但显式清除更安全）
             UserContext.clear();
             

@@ -12,6 +12,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,6 +36,13 @@ public class JwtUtil {
     // 令牌过期时间（毫秒），默认24小时
     @Value("${jwt.expiration:86400000}")
     private long expiration;
+
+    /**
+     * 登录会话缓存（可选）。
+     * 如果未配置 Redis，则仅使用纯 JWT 验证，不做会话级别校验。
+     */
+    @Autowired(required = false)
+    private StringRedisTemplate redisTemplate;
     
     /**
      * 从令牌中获取用户ID
@@ -115,7 +125,8 @@ public class JwtUtil {
             }
             
             // 验证必要字段存在
-            if (claims.getSubject() == null) {
+            String userId = claims.getSubject();
+            if (userId == null) {
                 logger.warn("令牌缺少用户ID");
                 return false;
             }
@@ -129,12 +140,37 @@ public class JwtUtil {
                 logger.warn("令牌缺少用户名");
                 return false;
             }
+
+            String jti = claims.get("jti", String.class);
+            if (jti == null || jti.trim().isEmpty()) {
+                logger.warn("令牌缺少会话标识(jti)");
+                return false;
+            }
             
             // 验证角色值是否合法（只允许1-管理员，2-普通用户，3-商家）
             Integer role = claims.get("role", Integer.class);
             if (role == null || (role != 1 && role != 2 && role != 3)) {
                 logger.warn("令牌中角色值不合法: " + role);
                 return false;
+            }
+
+            // 会话级别校验：如果配置了 Redis，则校验当前 jti 是否与缓存中的会话一致
+            if (redisTemplate != null) {
+                try {
+                    String key = buildSessionKey(userId);
+                    String cachedJti = redisTemplate.opsForValue().get(key);
+                    if (cachedJti == null) {
+                        logger.warn("登录会话不存在或已失效: userId={}, jti={}", userId, jti);
+                        return false;
+                    }
+                    if (!jti.equals(cachedJti)) {
+                        logger.warn("登录会话已被更新或在其他终端登录: userId={}, 当前jti={}, 缓存jti={}", userId, jti, cachedJti);
+                        return false;
+                    }
+                } catch (Exception e) {
+                    logger.error("校验登录会话缓存失败，降级为仅JWT校验: userId={}, error={}", userId, e.getMessage());
+                    // 出现异常时不直接拒绝请求，保持 JWT 验证结果即可
+                }
             }
             
             return true;
@@ -182,11 +218,26 @@ public class JwtUtil {
             Map<String, Object> claims = new HashMap<>();
             claims.put("role", role);  // 用户角色
             claims.put("username", user.getUsername());  // 用户名
-            claims.put("jti", UUID.randomUUID().toString());  // JWT ID - 令牌唯一标识
+            String jti = UUID.randomUUID().toString();
+            claims.put("jti", jti);  // JWT ID - 令牌唯一标识
             
             // 生成令牌
             String token = doGenerateToken(claims, user.getId());
             logger.info("JWT令牌生成成功，长度: " + token.length());
+
+            // 写入登录会话缓存（如果配置了 Redis）
+            if (redisTemplate != null) {
+                try {
+                    String key = buildSessionKey(user.getId());
+                    long ttlMillis = expiration;
+                    // 将当前有效会话的 jti 写入缓存，设置与JWT相同的过期时间
+                    redisTemplate.opsForValue().set(key, jti, ttlMillis, java.util.concurrent.TimeUnit.MILLISECONDS);
+                    logger.debug("登录会话缓存已更新: key={}, jti={}", key, jti);
+                } catch (Exception e) {
+                    logger.error("写入登录会话缓存失败，不影响JWT本身: userId={}, error={}", user.getId(), e.getMessage());
+                }
+            }
+
             return token;
         } catch (Exception e) {
             logger.error("JWT令牌生成失败: " + e.getMessage(), e);
@@ -246,5 +297,12 @@ public class JwtUtil {
                 .issuer(Constants.Security.JWT_ISSUER)  // 发行者
                 .signWith(key)
                 .compact();
+    }
+
+    /**
+     * 构建登录会话缓存的键。
+     */
+    private String buildSessionKey(String userId) {
+        return "login:user:" + userId;
     }
 } 
