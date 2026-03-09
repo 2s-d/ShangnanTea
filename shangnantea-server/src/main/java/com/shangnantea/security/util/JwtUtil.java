@@ -9,7 +9,6 @@ import io.jsonwebtoken.security.Keys;
 import javax.crypto.SecretKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -198,40 +197,11 @@ public class JwtUtil {
     /**
      * 判断令牌是否过期
      *
-     * @param token 令牌
-     * @return 是否过期
-     */
-    private boolean isTokenExpired(String token) {
-        Date expiration = getExpirationDateFromToken(token);
-        return expiration != null && expiration.before(new Date());
-    }
-    
-    /**
-     * 判断令牌是否过期
-     *
      * @param claims 令牌声明
      * @return 是否过期
      */
     private boolean isTokenExpired(Claims claims) {
         return claims.getExpiration().before(new Date());
-    }
-    
-    /**
-     * 从令牌中获取过期时间
-     *
-     * @param token 令牌
-     * @return 过期时间
-     */
-    private Date getExpirationDateFromToken(String token) {
-        Date expiration;
-        try {
-            Claims claims = getClaimsFromToken(token);
-            expiration = claims.getExpiration();
-        } catch (Exception e) {
-            logger.error("获取过期时间失败: " + e.getMessage());
-            expiration = null;
-        }
-        return expiration;
     }
     
     /**
