@@ -151,11 +151,11 @@ public class MessageServiceImpl implements MessageService {
                 return Result.failure(7100);
             }
             
-            // 2. 解析查询参数
-            Integer page = params.get("page") != null ? 
+            // 2. 解析查询参数（兼容 pageSize / size）
+            Integer page = params.get("page") != null ?
                 Integer.parseInt(params.get("page").toString()) : 1;
-            Integer pageSize = params.get("pageSize") != null ? 
-                Integer.parseInt(params.get("pageSize").toString()) : 10;
+            Object pageSizeObj = params.get("pageSize") != null ? params.get("pageSize") : params.get("size");
+            Integer pageSize = pageSizeObj != null ? Integer.parseInt(pageSizeObj.toString()) : 10;
             String type = params.get("type") != null ? 
                 params.get("type").toString() : null;
             
@@ -204,6 +204,9 @@ public class MessageServiceImpl implements MessageService {
             Map<String, Object> resultData = new HashMap<>();
             resultData.put("list", messageList);
             resultData.put("total", total);
+            // 兼容前端分页回显（不影响老前端）
+            resultData.put("page", page);
+            resultData.put("pageSize", pageSize);
             
             logger.info("获取消息列表成功, userId: {}, type: {}, total: {}", userId, type, total);
             return Result.success(200, resultData);
@@ -682,11 +685,11 @@ public class MessageServiceImpl implements MessageService {
                 return Result.failure(7106);
             }
             
-            // 2. 解析查询参数
-            Integer page = params.get("page") != null ? 
+            // 2. 解析查询参数（兼容 pageSize / size）
+            Integer page = params.get("page") != null ?
                 Integer.parseInt(params.get("page").toString()) : 1;
-            Integer pageSize = params.get("pageSize") != null ? 
-                Integer.parseInt(params.get("pageSize").toString()) : 10;
+            Object pageSizeObj = params.get("pageSize") != null ? params.get("pageSize") : params.get("size");
+            Integer pageSize = pageSizeObj != null ? Integer.parseInt(pageSizeObj.toString()) : 10;
             String type = params.get("type") != null ? 
                 params.get("type").toString() : null;
             
@@ -717,6 +720,9 @@ public class MessageServiceImpl implements MessageService {
             Map<String, Object> resultData = new HashMap<>();
             resultData.put("list", notificationList);
             resultData.put("total", total);
+            // 兼容前端分页回显（不影响老前端）
+            resultData.put("page", page);
+            resultData.put("pageSize", pageSize);
             
             logger.info("获取通知列表成功, userId: {}, type: {}, total: {}", userId, type, total);
             return Result.success(200, resultData);

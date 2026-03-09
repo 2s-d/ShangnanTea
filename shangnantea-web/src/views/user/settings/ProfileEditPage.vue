@@ -104,6 +104,14 @@
             <el-option label="50条/页" :value="50" />
           </el-select>
         </el-form-item>
+
+        <!-- 个人主页可见性（UI预留，暂不接后端） -->
+        <el-form-item label="主页可见性">
+          <el-radio-group v-model="profileVisibility">
+            <el-radio-button :value="true">是</el-radio-button>
+            <el-radio-button :value="false">否</el-radio-button>
+          </el-radio-group>
+        </el-form-item>
       </el-card>
       
       <div class="form-actions">
@@ -127,6 +135,9 @@ const formRef = ref(null)
 const loading = ref(false)
 const submitting = ref(false)
 const userStore = useUserStore()
+
+// 是否允许别人查看我的个人主页（仅前端UI占位，不参与保存）
+const profileVisibility = ref(true)
 
 // 默认主题色
 const DEFAULT_PRIMARY_COLOR = '#409EFF'
