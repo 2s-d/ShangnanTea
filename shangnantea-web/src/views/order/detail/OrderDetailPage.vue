@@ -168,14 +168,27 @@
         <div class="detail-section action-section">
           <!-- 用户视角：买家操作 -->
           <template v-if="!isSellerView">
-            <template v-if="orderDetail.status === 2">
+            <!-- 待付款 -->
+            <template v-if="orderDetail.status === 0">
+              <el-button type="primary" @click="continuePay">立即支付</el-button>
+              <el-button type="default" @click="cancelOrder">取消订单</el-button>
+            </template>
+            <!-- 待收货 -->
+            <template v-else-if="orderDetail.status === 2">
               <el-button type="primary" @click="viewLogistics">查看详细物流</el-button>
               <el-button type="success" @click="confirmReceipt">确认收货</el-button>
             </template>
+            <!-- 已完成且未评价 -->
             <template v-else-if="canReview">
               <el-button type="primary" @click="writeReview">待评价</el-button>
               <el-button type="info" @click="viewLogistics">查看物流</el-button>
             </template>
+            <!-- 已完成且已评价：仅查看物流 -->
+            <template v-else-if="orderDetail.status === 3 && isReviewed">
+              <el-button type="success" plain disabled>已评价</el-button>
+              <el-button type="info" @click="viewLogistics">查看物流</el-button>
+            </template>
+            <!-- 退款相关 -->
             <el-button
               v-if="canRequestRefund"
               type="warning"
@@ -483,15 +496,23 @@ const refundInfo = ref({
     const canRequestRefund = computed(() => {
       if (!orderDetail.value) return false
       const status = orderDetail.value.status
-      if (status === 5) return false
+      // 待付款、退款中、已退款都不允许申请退款
+      if (status === 0 || status === 5 || status === 6) return false
       // 简单规则：待发货/待收货/已完成允许申请一次
       return status === 1 || status === 2 || status === 3
     })
     
-    // 是否可以评价（订单状态为已完成）
+    // 是否已评价
+    const isReviewed = computed(() => {
+      if (!orderDetail.value) return false
+      const flag = orderDetail.value.isReviewed ?? orderDetail.value.buyerRate
+      return flag === 1
+    })
+    
+    // 是否可以评价（订单状态为已完成且未评价）
     const canReview = computed(() => {
       if (!orderDetail.value) return false
-      return orderDetail.value.status === 3 // 已完成
+      return orderDetail.value.status === 3 && !isReviewed.value
     })
     
     const refundDialogVisible = ref(false)
