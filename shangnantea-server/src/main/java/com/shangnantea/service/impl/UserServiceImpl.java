@@ -68,7 +68,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -180,7 +179,6 @@ public class UserServiceImpl implements UserService {
      *
      * 成功码：2026，失败码：2152
      */
-    @Override
     /**
      * ⚠️⚠️⚠️ 严重警告：禁止修改此方法！⚠️⚠️⚠️
      * 
@@ -196,19 +194,9 @@ public class UserServiceImpl implements UserService {
      * 
      * 此方法已被修改超过5次，请勿随意改动！
      */
+    @Override
     public Result<Map<String, Object>> getTodayWeather(String cityAdcode) {
         try {
-            // 清除所有天气缓存（临时操作，确保获取最新数据）
-            try {
-                java.util.Set<String> keys = redisTemplate.keys("weather:today:*");
-                if (keys != null && !keys.isEmpty()) {
-                    redisTemplate.delete(keys);
-                    logger.info("已清除所有天气缓存，共{}条", keys.size());
-                }
-            } catch (Exception e) {
-                logger.warn("清除天气缓存失败: {}", e.getMessage());
-            }
-            
             // 1. 未开启真实天气查询时，直接返回失败，让前端知道没有真实数据
             if (!gaodeWeatherEnabled) {
                 logger.warn("高德天气查询未启用（gaode.weather.enabled=false），不返回占位数据");
