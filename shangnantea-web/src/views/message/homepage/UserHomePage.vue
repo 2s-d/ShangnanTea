@@ -1,13 +1,33 @@
 <template>
   <div class="user-home-page">
-    <div class="container">
-      <!-- 页面标题横条 -->
-      <div class="page-title-bar">
-        <h1 class="page-title-text">
-          {{ isOwnProfile ? '我的主页' : `${userInfo.nickname || userInfo.username || '用户'}的个人主页` }}
-        </h1>
+    <!-- 页面标题横条（100%宽度） -->
+    <div class="page-title-bar">
+      <div class="page-title-container">
+        <div class="page-title-content">
+          <!-- 返回按钮（仅当查看别人的主页时显示） -->
+          <el-button 
+            v-if="!isOwnProfile && canGoBack" 
+            class="back-button" 
+            text 
+            @click="handleGoBack">
+            <el-icon><ArrowLeft /></el-icon>
+            <span>返回上一页</span>
+          </el-button>
+          
+          <!-- 标题装饰和文字 -->
+          <div class="title-wrapper">
+            <div class="title-decoration">
+              <span class="decoration-text">个人主页</span>
+            </div>
+            <h1 class="page-title-text">
+              {{ isOwnProfile ? '我的主页' : `${userInfo.nickname || userInfo.username || '用户'}的个人主页` }}
+            </h1>
+          </div>
+        </div>
       </div>
-      
+    </div>
+    
+    <div class="container">
       <el-card class="home-card" v-loading="loading">
         <!-- 上半部分：用户信息展示区 -->
         <div class="user-profile-section">
@@ -165,7 +185,7 @@ import FollowsPage from '@/views/message/follows/FollowsPage.vue'
 import FavoritesPage from '@/views/message/favorites/FavoritesPage.vue'
 import PublishedContentPage from '@/views/message/content/PublishedContentPage.vue'
 import { 
-  User, UserFilled, Star, Document, Male, Female, Edit, Plus, Shop, Key, QuestionFilled, Location 
+  User, UserFilled, Star, Document, Male, Female, Edit, Plus, Shop, Key, QuestionFilled, Location, ArrowLeft
 } from '@element-plus/icons-vue'
 import { formatLocationDisplay } from '@/utils/region'
 import SafeImage from '@/components/common/form/SafeImage.vue'
@@ -266,6 +286,22 @@ const userStore = useUserStore()
     const isOwnProfile = computed(() => {
       return userId.value === 'current' || !route.params.userId
     })
+    
+    // 判断是否可以返回（检查是否有历史记录，且不是直接访问）
+    const canGoBack = computed(() => {
+      // 如果是从其他页面跳转过来的，可以返回
+      // 检查是否有referrer或者history.length > 1
+      if (typeof window !== 'undefined') {
+        // 如果有document.referrer且不是同源，或者history.length > 1，说明可以返回
+        return window.history.length > 1 || (document.referrer && !document.referrer.includes(window.location.origin))
+      }
+      return false
+    })
+    
+    // 返回上一页
+    const handleGoBack = () => {
+      router.back()
+    }
     
     // 关注状态（从接口返回的isFollowed字段获取）
     const isFollowing = computed(() => userInfo.value?.isFollowed || false)
@@ -439,18 +475,84 @@ const defaultImage = ''
     padding: 0;
   }
   
-  // 页面标题横条
+  // 页面标题横条（100%宽度）
   .page-title-bar {
-    background: #fff;
-    padding: 20px 0;
-    margin-bottom: 20px;
-    border-bottom: 1px solid #f0f0f0;
+    width: 100%;
+    background: linear-gradient(135deg, #f5f7fa 0%, #ffffff 100%);
+    padding: 24px 0;
+    margin-bottom: 24px;
+    border-bottom: 2px solid #e4e7ed;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     
-    .page-title-text {
-      margin: 0;
-      font-size: 24px;
-      font-weight: 600;
-      color: var(--el-text-color-primary);
+    .page-title-container {
+      width: 85%;
+      max-width: 1920px;
+      margin: 0 auto;
+      padding: 0;
+    }
+    
+    .page-title-content {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      
+      .back-button {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        color: var(--el-text-color-regular);
+        font-size: 14px;
+        transition: all 0.3s;
+        
+        &:hover {
+          color: var(--el-color-primary);
+          background-color: rgba(64, 158, 255, 0.1);
+        }
+        
+        .el-icon {
+          font-size: 16px;
+        }
+      }
+      
+      .title-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex: 1;
+        
+        .title-decoration {
+          display: flex;
+          align-items: center;
+          position: relative;
+          
+          &::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(180deg, var(--el-color-primary) 0%, rgba(64, 158, 255, 0.6) 100%);
+            border-radius: 2px;
+            margin-right: 12px;
+          }
+          
+          .decoration-text {
+            font-size: 14px;
+            color: var(--el-color-primary);
+            font-weight: 500;
+            letter-spacing: 1px;
+            opacity: 0.8;
+          }
+        }
+        
+        .page-title-text {
+          margin: 0;
+          font-size: 28px;
+          font-weight: 600;
+          color: var(--el-text-color-primary);
+          letter-spacing: 0.5px;
+          flex: 1;
+        }
+      }
     }
   }
   

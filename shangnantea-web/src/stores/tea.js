@@ -93,7 +93,16 @@ export const useTeaStore = defineStore('tea', () => {
         pageSize: pagination.pageSize
       }
       
-      if (filters.category) params.category = filters.category
+      // 支持多个分类筛选：如果filters.category是数组，传递categoryIds；否则传递categoryId
+      if (filters.category) {
+        if (Array.isArray(filters.category) && filters.category.length > 0) {
+          // 多个分类：传递categoryIds数组
+          params.categoryIds = filters.category
+        } else if (typeof filters.category === 'string' || typeof filters.category === 'number') {
+          // 单个分类：传递categoryId（兼容旧代码）
+          params.categoryId = filters.category
+        }
+      }
       if (filters.keyword) params.keyword = filters.keyword
       if (filters.priceRange && Array.isArray(filters.priceRange) && filters.priceRange.length === 2) {
         params.priceMin = filters.priceRange[0]

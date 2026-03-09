@@ -352,8 +352,8 @@ defineOptions({
         // 商品来源筛选：platform 表示平台直售（shopId='PLATFORM'），all 表示全部（shopId=''）
         await teaStore.updateFilters({
           keyword: searchQuery.value,
-          // 当前 store 只支持单个 category 字段，这里用"第一个选中分类"作为查询条件
-          category: filters.categories.length > 0 ? filters.categories[0] : '',
+          // 支持多个分类筛选：传递所有选中的分类ID数组
+          category: filters.categories.length > 0 ? filters.categories : '',
           priceRange: filters.priceRange,
           origin: '', // 暂时不支持产地筛选
           rating: filters.rating,
