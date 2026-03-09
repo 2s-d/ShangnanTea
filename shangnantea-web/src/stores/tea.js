@@ -140,10 +140,13 @@ export const useTeaStore = defineStore('tea', () => {
       const total = res.data?.total || list.length || 0
       
       teaList.value = list
+      const requestPage = Number(params.page) || pagination.currentPage || 1
+      const requestPageSize = Number(params.pageSize || params.size) || pagination.pageSize || 12
+      
       Object.assign(pagination, {
         total: total,
-        currentPage: res.data?.pageNum || pagination.currentPage,
-        pageSize: res.data?.pageSize || pagination.pageSize
+        currentPage: Number(res.data?.pageNum || res.data?.page) || requestPage,
+        pageSize: Number(res.data?.pageSize || res.data?.size) || requestPageSize
       })
       
       return res
@@ -152,8 +155,8 @@ export const useTeaStore = defineStore('tea', () => {
       teaList.value = []
       Object.assign(pagination, {
         total: 0,
-        currentPage: 1,
-        pageSize: pagination.pageSize
+        currentPage: requestPage,
+        pageSize: requestPageSize
       })
       throw error
     } finally {
@@ -230,10 +233,10 @@ export const useTeaStore = defineStore('tea', () => {
   }
   
   // 更新筛选条件
-  function updateFilters(newFilters) {
+  function updateFilters(newFilters, targetPage = 1) {
     Object.assign(filters, newFilters)
-    pagination.currentPage = 1
-    fetchTeas()
+    pagination.currentPage = targetPage
+    return fetchTeas()
   }
   
   // 重置筛选条件
@@ -259,7 +262,7 @@ export const useTeaStore = defineStore('tea', () => {
   // 设置分页
   function setPage(page) {
     pagination.currentPage = page
-    fetchTeas()
+    return fetchTeas()
   }
   
   // 设置排序

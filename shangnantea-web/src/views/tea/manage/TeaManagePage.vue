@@ -162,9 +162,9 @@
           background
           layout="total, sizes, prev, pager, next, jumper"
           :total="totalCount"
-          :page-size="pageSize"
+          v-model:page-size="pageSize"
           :page-sizes="[10, 20, 50, 100]"
-          :current-page="currentPage"
+          v-model:current-page="currentPage"
           @size-change="handleSizeChange"
           @current-change="handlePageChange"
           />
@@ -498,8 +498,18 @@ defineOptions({
     const loading = computed(() => teaStore.loading)
     const teas = computed(() => teaStore.teaList)
     const totalCount = computed(() => teaStore.pagination.total)
-    const currentPage = computed(() => teaStore.pagination.currentPage)
-    const pageSize = computed(() => teaStore.pagination.pageSize)
+    const currentPage = computed({
+      get: () => teaStore.pagination.currentPage,
+      set: val => {
+        teaStore.pagination.currentPage = val
+      }
+    })
+    const pageSize = computed({
+      get: () => teaStore.pagination.pageSize,
+      set: val => {
+        teaStore.pagination.pageSize = val
+      }
+    })
     const categoryOptions = computed(() => teaStore.categories)
     const categories = computed(() => teaStore.categories)
     

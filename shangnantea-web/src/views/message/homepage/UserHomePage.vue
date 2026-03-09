@@ -98,11 +98,11 @@
             </el-button>
             <!-- 查看他人主页时显示私信+关注按钮 -->
             <template v-else>
-              <el-button class="private-message-btn" @click="handlePrivateMessage">
-                私信
-              </el-button>
               <el-button class="follow-btn" :class="{ 'is-following': isFollowing }" @click="handleFollow">
                 {{ isFollowing ? '√已关注' : '+关注' }}
+              </el-button>
+              <el-button class="private-message-btn" @click="handlePrivateMessage">
+                私信
               </el-button>
             </template>
           </div>
@@ -729,7 +729,7 @@ const defaultImage = ''
         gap: 12px;
 
         .private-message-btn {
-          width: 96px;
+          width: 104px;
           height: 40px;
           padding: 0;
           border-radius: 8px;
@@ -747,7 +747,7 @@ const defaultImage = ''
         }
 
         .follow-btn {
-          width: 108px;
+          width: 104px;
           height: 40px;
           padding: 0;
           border-radius: 8px;
