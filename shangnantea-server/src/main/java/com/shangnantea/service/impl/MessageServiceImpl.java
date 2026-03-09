@@ -1437,24 +1437,8 @@ public class MessageServiceImpl implements MessageService {
             // 个人主页可见性
             userProfile.put("profileVisible", profileVisible || isSelf);
             
-            // 统计数据
-            Map<String, Object> statistics = new HashMap<>();
-            if (isSelf || profileVisible) {
-                long postCount = forumPostMapper.countByUserId(userId);
-                long followingCount = userFollowMapper.countFollowingByUserId(userId);
-                long followerCount = userFollowMapper.countFollowersByUserId(userId);
-                statistics.put("postCount", postCount);
-                statistics.put("followingCount", followingCount);
-                statistics.put("followerCount", followerCount);
-            } else {
-                statistics.put("postCount", 0L);
-                statistics.put("followingCount", 0L);
-                statistics.put("followerCount", 0L);
-            }
-            userProfile.put("statistics", statistics);
-            
-            logger.info("获取用户主页信息成功, userId: {}, statistics: {}", 
-                    userId, statistics);
+            logger.info("获取用户主页信息成功, userId: {}, profileVisible: {}, isFollowed: {}", 
+                    userId, profileVisible, isFollowed);
             return Result.success(200, userProfile);
             
         } catch (Exception e) {
