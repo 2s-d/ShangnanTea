@@ -1596,6 +1596,7 @@
 | 10 | cancelOrder | POST | /order/cancel | 5008 | 5121, 5122, 5123 | 取消订单 |
 | 11 | confirmOrder | POST | /order/confirm | 5009 | 5124, 5125, 5126 | 确认收货 |
 | 12 | reviewOrder | POST | /order/review | 5010 | 5127 | 评价订单 |
+| 13 | updateOrderAddress | POST | /order/address | 5017 | 5147 | 修改订单地址 |
 
 ### 4.3 退款相关 (3个)
 
