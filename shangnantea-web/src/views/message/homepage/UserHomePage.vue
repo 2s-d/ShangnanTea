@@ -58,7 +58,7 @@
                 <span class="user-gender">
                   <el-icon color="#409EFF" v-if="userInfo.gender === 1"><Male /></el-icon>
                   <el-icon color="#FF4949" v-else-if="userInfo.gender === 2"><Female /></el-icon>
-                  <el-tooltip v-else content="性别未填写/后端未返回gender字段" placement="top">
+                  <el-tooltip v-else content="性别保密" placement="top">
                     <el-icon color="#909399"><QuestionFilled /></el-icon>
                   </el-tooltip>
                 </span>

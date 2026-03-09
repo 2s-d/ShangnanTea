@@ -274,6 +274,10 @@ const handleCommand = command => {
   top: 0;
   z-index: 1000;
   width: 100%;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
 .navbar-container {

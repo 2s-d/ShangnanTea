@@ -754,21 +754,27 @@ public class TeaServiceImpl implements TeaService {
         }
         
         // 处理多个分类ID（支持多选筛选）
-        // Spring Boot会将重复参数名（categoryIds=5&categoryIds=6）转换为数组或List
+        // Controller已经将categoryIds转换为List<Integer>并放入params
         Object categoryIdsObj = params.get("categoryIds");
         if (categoryIdsObj != null) {
             java.util.List<Integer> categoryIds = new java.util.ArrayList<>();
             
+            // 如果已经是List<Integer>类型（从Controller传递过来的），直接使用
             if (categoryIdsObj instanceof java.util.List) {
-                // 如果是List，转换为Integer列表
                 @SuppressWarnings("unchecked")
-                java.util.List<Object> list = (java.util.List<Object>) categoryIdsObj;
+                java.util.List<?> list = (java.util.List<?>) categoryIdsObj;
                 for (Object id : list) {
                     if (id != null) {
-                        try {
-                            categoryIds.add(Integer.valueOf(id.toString()));
-                        } catch (NumberFormatException e) {
-                            logger.warn("无效的分类ID: {}", id);
+                        if (id instanceof Integer) {
+                            // 已经是Integer类型，直接添加
+                            categoryIds.add((Integer) id);
+                        } else {
+                            // 需要转换
+                            try {
+                                categoryIds.add(Integer.valueOf(id.toString()));
+                            } catch (NumberFormatException e) {
+                                logger.warn("无效的分类ID: {}", id);
+                            }
                         }
                     }
                 }
@@ -807,6 +813,7 @@ public class TeaServiceImpl implements TeaService {
             
             if (!categoryIds.isEmpty()) {
                 dto.setCategoryIds(categoryIds);
+                logger.debug("设置分类筛选: {}", categoryIds);
             }
         }
         if (params.get("keyword") != null) {

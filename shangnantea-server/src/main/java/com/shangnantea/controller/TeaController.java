@@ -36,11 +36,21 @@ public class TeaController {
      * 成功码: 3000, 失败码: 3100
      *
      * @param params 查询参数（keyword, categoryId, shopId, page, pageSize等）
+     * @param categoryIds 分类ID列表（支持多选筛选，Spring Boot会自动将重复参数名转换为List）
      * @return 茶叶列表
      */
     @GetMapping("/list")
-    public Result<Object> getTeas(@RequestParam Map<String, Object> params) {
-        logger.info("获取茶叶列表请求, params: {}", params);
+    public Result<Object> getTeas(
+            @RequestParam Map<String, Object> params,
+            @RequestParam(required = false) java.util.List<Integer> categoryIds) {
+        logger.info("获取茶叶列表请求, params: {}, categoryIds: {}", params, categoryIds);
+        
+        // 如果通过@RequestParam List接收到了categoryIds，将其添加到params中
+        // 这样Service层可以统一处理
+        if (categoryIds != null && !categoryIds.isEmpty()) {
+            params.put("categoryIds", categoryIds);
+        }
+        
         return teaService.getTeas(params);
     }
 
