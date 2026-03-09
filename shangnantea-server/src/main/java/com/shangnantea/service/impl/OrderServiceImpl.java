@@ -290,7 +290,7 @@ public class OrderServiceImpl implements OrderService {
                 );
             }
             
-            // 6. 如果是从购物车创建，删除对应的购物车项
+            // 7. 如果是从购物车创建，删除对应的购物车项
             if (fromCart != null && fromCart && !cartItemIdsToRemove.isEmpty()) {
                 for (String cartItemId : cartItemIdsToRemove) {
                     try {
@@ -1133,10 +1133,10 @@ public class OrderServiceImpl implements OrderService {
                 }
             }
             
-            // 4. 查询地址信息
+            // 4. 查询订单地址快照信息
             Map<String, Object> addressInfo = new HashMap<>();
             if (order.getAddressId() != null) {
-                UserAddress address = userAddressMapper.selectById(order.getAddressId());
+                OrderAddress address = orderAddressMapper.selectById(order.getAddressId());
                 if (address != null) {
                     addressInfo.put("receiverName", address.getReceiverName());
                     addressInfo.put("receiverPhone", address.getReceiverPhone());
