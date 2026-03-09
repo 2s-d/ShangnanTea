@@ -309,28 +309,84 @@
       </template>
     </el-dialog>
     
-    <!-- 修改收货地址对话框（基于地址簿选择） -->
+    <!-- 修改收货地址对话框（可编辑表单 + 地址簿选择） -->
     <el-dialog
       v-model="addressDialogVisible"
       title="修改收货地址"
-      width="520px"
+      width="600px"
       :close-on-click-modal="false"
+      destroy-on-close
     >
-      <el-form label-width="80px">
-        <el-form-item label="选择地址">
-          <el-radio-group v-model="selectedAddressId" v-if="userAddresses.length > 0">
-            <el-radio
-              v-for="addr in userAddresses"
+      <div class="address-edit-dialog">
+        <!-- 当前订单地址编辑表单 -->
+        <div class="address-form-section">
+          <div class="section-title">编辑地址信息</div>
+          <el-form 
+            :model="editAddressForm" 
+            label-width="80px"
+            ref="editAddressFormRef"
+          >
+            <el-form-item label="收货人">
+              <el-input v-model="editAddressForm.receiverName" placeholder="请输入收货人姓名" />
+            </el-form-item>
+            
+            <el-form-item label="手机号">
+              <el-input v-model="editAddressForm.receiverPhone" placeholder="请输入手机号码" />
+            </el-form-item>
+            
+            <el-form-item label="所在地区">
+              <el-cascader 
+                v-model="editAddressForm.region" 
+                :options="cascaderOptions" 
+                placeholder="请选择省/市/区"
+                :props="{
+                  expandTrigger: 'hover',
+                  checkStrictly: false
+                }"
+                style="width: 100%"
+                @change="handleRegionChange"
+              />
+            </el-form-item>
+            
+            <el-form-item label="详细地址">
+              <el-input 
+                v-model="editAddressForm.detailAddress" 
+                type="textarea" 
+                placeholder="街道、门牌号等"
+                :rows="3"
+              />
+            </el-form-item>
+          </el-form>
+        </div>
+        
+        <!-- 地址簿列表（可选择填充） -->
+        <div class="address-book-section">
+          <div class="section-title">从地址簿选择</div>
+          <div class="address-list-container">
+            <div 
+              v-for="addr in userAddresses" 
               :key="addr.id"
-              :label="addr.id"
-              style="display: block; margin-bottom: 12px; white-space: normal;"
+              class="address-item"
+              :class="{ 'selected': selectedAddressId === addr.id }"
+              @click="fillAddressFromBook(addr)"
             >
-              {{ addr.receiverName }} {{ addr.receiverPhone }} （{{ addr.province }}{{ addr.city }}{{ addr.district }} {{ addr.detailAddress }}）
-            </el-radio>
-          </el-radio-group>
-          <el-empty v-else description="暂无收货地址，请先添加地址" :image-size="80" />
-        </el-form-item>
-      </el-form>
+              <div class="address-content">
+                <div class="address-header">
+                  <span class="receiver-name">{{ addr.receiverName || addr.name }}</span>
+                  <span class="phone">{{ addr.receiverPhone || addr.phone }}</span>
+                  <el-tag v-if="addr.isDefault" type="success" size="small">默认</el-tag>
+                </div>
+                <div class="address-detail">
+                  {{ addr.province }}{{ addr.city }}{{ addr.district }} {{ addr.detailAddress || addr.detail }}
+                </div>
+              </div>
+              <el-icon class="select-icon" v-if="selectedAddressId === addr.id"><Check /></el-icon>
+            </div>
+            <el-empty v-if="userAddresses.length === 0" description="暂无收货地址" :image-size="60" />
+          </div>
+        </div>
+      </div>
+      
       <template #footer>
         <el-button @click="addressDialogVisible = false">取消</el-button>
         <el-button type="primary" :loading="addressSubmitting" @click="submitAddressChange">
@@ -347,8 +403,10 @@ import { useRouter, useRoute } from 'vue-router'
 import { useOrderStore } from '@/stores/order'
 import { useUserStore } from '@/stores/user'
 import { ElMessageBox } from 'element-plus'
+import { Check } from '@element-plus/icons-vue'
 import { showByCode } from '@/utils/apiMessages'
 import { orderPromptMessages } from '@/utils/promptMessages'
+import { regionData } from '@/utils/region'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 
 defineOptions({
@@ -403,6 +461,18 @@ const addressDialogVisible = ref(false)
 const addressSubmitting = ref(false)
 const selectedAddressId = ref(null)
 const userAddresses = computed(() => userStore.addressList || [])
+const editAddressFormRef = ref(null)
+
+// 地址编辑表单数据
+const editAddressForm = ref({
+  receiverName: '',
+  receiverPhone: '',
+  region: [],
+  detailAddress: ''
+})
+
+// 地区级联选择器数据
+const cascaderOptions = ref(regionData || [])
     
     // 获取订单状态文本
     const getStatusText = status => {
@@ -486,11 +556,63 @@ const userAddresses = computed(() => userStore.addressList || [])
           console.error('获取地址列表失败:', error)
         }
       }
-      // 默认选中当前订单地址对应的地址簿ID（如果存在映射，则简单使用第一个地址）
-      if (!selectedAddressId.value && userAddresses.value.length > 0) {
-        selectedAddressId.value = userAddresses.value[0].id
+      
+      // 初始化表单数据为当前订单地址
+      const currentAddr = address.value
+      editAddressForm.value = {
+        receiverName: currentAddr.name || '',
+        receiverPhone: currentAddr.phone || '',
+        region: [],
+        detailAddress: currentAddr.detail || ''
       }
+      
+      // 根据省市区设置级联选择器的值
+      if (currentAddr.province && currentAddr.city && currentAddr.district) {
+        // 需要从地区数据中找到对应的值
+        const province = cascaderOptions.value.find(p => p.label === currentAddr.province)
+        if (province) {
+          const city = province.children?.find(c => c.label === currentAddr.city)
+          if (city) {
+            const district = city.children?.find(d => d.label === currentAddr.district)
+            if (district) {
+              editAddressForm.value.region = [province.value, city.value, district.value]
+            }
+          }
+        }
+      }
+      
+      selectedAddressId.value = null
       addressDialogVisible.value = true
+    }
+    
+    // 从地址簿填充表单
+    const fillAddressFromBook = (addr) => {
+      selectedAddressId.value = addr.id
+      editAddressForm.value.receiverName = addr.receiverName || addr.name || ''
+      editAddressForm.value.receiverPhone = addr.receiverPhone || addr.phone || ''
+      editAddressForm.value.detailAddress = addr.detailAddress || addr.detail || ''
+      
+      // 设置地区级联选择器的值
+      if (addr.province && addr.city && addr.district) {
+        const province = cascaderOptions.value.find(p => p.label === addr.province)
+        if (province) {
+          const city = province.children?.find(c => c.label === addr.city)
+          if (city) {
+            const district = city.children?.find(d => d.label === addr.district)
+            if (district) {
+              editAddressForm.value.region = [province.value, city.value, district.value]
+            }
+          }
+        }
+      } else {
+        editAddressForm.value.region = []
+      }
+    }
+    
+    // 地区选择变化处理
+    const handleRegionChange = (value) => {
+      // 级联选择器值变化时，可以在这里做额外处理
+      // 当前不需要额外处理
     }
     
     // 管理员/商户：发货操作

@@ -2139,8 +2139,12 @@ public class UserServiceImpl implements UserService {
                     if (redisTemplate != null) {
                         String onlineKey = "online:user:" + user.getId();
                         String loginKey = "login:user:" + user.getId();
+                        // 检查在线状态：如果key存在，说明5分钟内有活动
                         isOnline = Boolean.TRUE.equals(redisTemplate.hasKey(onlineKey));
+                        // 检查登录会话：如果key存在，说明有有效的登录会话
                         hasLoginSession = Boolean.TRUE.equals(redisTemplate.hasKey(loginKey));
+                        logger.debug("用户状态检查: userId={}, isOnline={}, hasLoginSession={}", 
+                            user.getId(), isOnline, hasLoginSession);
                     }
                 } catch (Exception e) {
                     logger.warn("检查用户在线状态失败，userId: {}, error: {}", user.getId(), e.getMessage());
