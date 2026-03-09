@@ -43,20 +43,4 @@ public class PasswordEncoder {
 
         return encoder.matches(rawPassword, encodedPassword);
     }
-
-    /**
-     * 临时脚本：生成多组使用不同盐的 BCrypt 密文（明文: user1234）。
-     * 使用方式：
-     * 1. 在 IDE 里右键运行本类的 main 方法，或用 mvn 编译后直接运行。
-     * 2. 控制台会输出4行不同的 hash，把结果复制走后即可删除该 main 方法。
-     */
-    public static void main(String[] args) {
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(10);
-        String raw = "user1234";
-
-        for (int i = 1; i <= 4; i++) {
-            String hash = encoder.encode(raw);
-            System.out.println("hash" + i + ": " + hash);
-        }
-    }
 } 
