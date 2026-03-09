@@ -211,7 +211,7 @@ public class UserServiceImpl implements UserService {
             //  - "611023" (6位) -> 原样使用
             String city = normalizeWeatherCityCode(cityAdcode);
 
-            // 3. 先查Redis缓存
+            // 3. 先查Redis缓存，但必须检查四个字段是否都存在且非空
             String cacheKey = "weather:today:" + city;
             String cachedJson = redisTemplate.opsForValue().get(cacheKey);
             ObjectMapper objectMapper = new ObjectMapper();
@@ -219,19 +219,36 @@ public class UserServiceImpl implements UserService {
                 try {
                     @SuppressWarnings("unchecked")
                     Map<String, Object> cachedRaw = objectMapper.readValue(cachedJson, Map.class);
-                    // 返回所有缓存的天气字段（包括最高/最低温度），确保始终返回四个字段
-                    Map<String, Object> normalized = new HashMap<>();
+                    
+                    // 检查四个必需字段是否都存在且非空
                     Object w = cachedRaw.get("weather");
                     Object t = cachedRaw.get("temperature");
                     Object maxT = cachedRaw.get("maxTemperature");
                     Object minT = cachedRaw.get("minTemperature");
-                    // 始终设置所有四个字段，即使缓存中没有也设置为空字符串
-                    normalized.put("weather", w != null ? w.toString() : "");
-                    normalized.put("temperature", t != null ? t.toString() : "");
-                    normalized.put("maxTemperature", maxT != null ? maxT.toString() : "");
-                    normalized.put("minTemperature", minT != null ? minT.toString() : "");
-                    logger.info("从缓存中读取天气数据: city={}, cacheKey={}, fields={}", city, cacheKey, normalized.keySet());
-                    return Result.success(2026, normalized);
+                    
+                    // 如果任何一个字段缺失或为空，跳过缓存，重新请求API
+                    String weatherStr = (w != null) ? w.toString() : "";
+                    String tempStr = (t != null) ? t.toString() : "";
+                    String maxTempStr = (maxT != null) ? maxT.toString() : "";
+                    String minTempStr = (minT != null) ? minT.toString() : "";
+                    
+                    boolean hasAllFields = !weatherStr.isEmpty() && !tempStr.isEmpty() && 
+                                          !maxTempStr.isEmpty() && !minTempStr.isEmpty();
+                    
+                    if (hasAllFields) {
+                        // 所有字段都存在且非空，返回缓存数据
+                        Map<String, Object> normalized = new HashMap<>();
+                        normalized.put("weather", weatherStr);
+                        normalized.put("temperature", tempStr);
+                        normalized.put("maxTemperature", maxTempStr);
+                        normalized.put("minTemperature", minTempStr);
+                        logger.info("从缓存中读取天气数据: city={}, cacheKey={}, fields={}", city, cacheKey, normalized.keySet());
+                        return Result.success(2026, normalized);
+                    } else {
+                        // 缓存数据不完整，记录日志并继续请求API
+                        logger.warn("缓存数据不完整，缺少必需字段，将重新请求API: city={}, cacheKey={}, weather={}, temperature={}, maxTemperature={}, minTemperature={}", 
+                                city, cacheKey, weatherStr, tempStr, maxTempStr, minTempStr);
+                    }
                 } catch (Exception e) {
                     logger.warn("解析缓存天气数据失败，将重新请求高德API: city={}, error={}", city, e.getMessage());
                 }

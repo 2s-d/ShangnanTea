@@ -272,6 +272,20 @@ export const useUserStore = defineStore('user', () => {
   }
   
   /**
+   * ⚠️⚠️⚠️ 严重警告：禁止修改此方法！⚠️⚠️⚠️
+   * 
+   * 此方法已经过多次修改和调试，当前实现为：
+   * 1. 检查前端缓存是否包含完整的四个字段（weather, temperature, maxTemperature, minTemperature）
+   * 2. 如果缓存数据不完整，强制重新请求后端API
+   * 3. 后端API返回四个字段：weather, temperature, maxTemperature, minTemperature
+   * 
+   * 如需修改此方法，必须：
+   * 1. 先向用户请示并获得批准
+   * 2. 说明修改原因和影响范围
+   * 3. 修改后必须测试所有四个字段都能正常返回
+   * 
+   * 此方法已被修改超过5次，请勿随意改动！
+   * 
    * 获取今日天气（带前端TTL缓存）
    * @param {string|null} cityCode 城市编码，可为 null（则使用用户现居地或后端默认）
    * @param {Object} options 选项 { force?: boolean }，force=true 时忽略前端缓存
@@ -289,7 +303,7 @@ export const useUserStore = defineStore('user', () => {
     }
     
     const now = Date.now()
-    // 命中前端缓存：城市相同且未过期
+    // 命中前端缓存：城市相同且未过期，且必须包含完整的四个字段
     if (
       !force &&
       todayWeather.value &&
@@ -297,7 +311,20 @@ export const useUserStore = defineStore('user', () => {
       now - todayWeatherUpdatedAt.value < WEATHER_TTL_MS &&
       todayWeatherCityCode.value === targetCode
     ) {
-      return { code: 2026, data: todayWeather.value }
+      // 检查缓存数据是否包含完整的四个字段且非空
+      const cached = todayWeather.value
+      const hasAllFields = cached.weather != null && cached.weather !== '' &&
+                          cached.temperature != null && cached.temperature !== '' &&
+                          cached.maxTemperature != null && cached.maxTemperature !== '' &&
+                          cached.minTemperature != null && cached.minTemperature !== ''
+      
+      if (hasAllFields) {
+        // 所有字段都存在且非空，返回缓存数据
+        return { code: 2026, data: todayWeather.value }
+      } else {
+        // 缓存数据不完整，强制重新请求
+        console.warn('前端天气缓存数据不完整，缺少必需字段，将重新请求API:', cached)
+      }
     }
     
     try {

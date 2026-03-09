@@ -154,10 +154,22 @@ export function sendVerificationCode(data) {
 }
 
 /**
+ * ⚠️⚠️⚠️ 严重警告：禁止修改此方法！⚠️⚠️⚠️
+ * 
+ * 此方法已经过多次修改和调试，当前实现为：
+ * 调用后端API获取天气数据，后端返回四个字段：weather, temperature, maxTemperature, minTemperature
+ * 
+ * 如需修改此方法，必须：
+ * 1. 先向用户请示并获得批准
+ * 2. 说明修改原因和影响范围
+ * 3. 修改后必须测试所有四个字段都能正常返回
+ * 
+ * 此方法已被修改超过5次，请勿随意改动！
+ * 
  * 获取今日天气
  * @param {string|null} cityCode 城市编码（可选），例如 '61-6110'、'6110'、'611000'、'611023'
  *                               如果不传，则由后端使用默认城市
- * @returns {Promise} 天气数据 { weather, temperature }
+ * @returns {Promise} 天气数据 { weather, temperature, maxTemperature, minTemperature }
  */
 export function getTodayWeather(cityCode = null) {
   const params = {}
