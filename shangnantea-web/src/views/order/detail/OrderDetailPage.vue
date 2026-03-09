@@ -685,16 +685,8 @@ const userAddresses = computed(() => userStore.addressList || [])
           showByCode(res.code)
         }
         refundDialogVisible.value = false
-        // 重新获取退款详情
-        const detailRes = await orderStore.fetchRefundDetail(orderId)
-        const detail = detailRes?.data || detailRes
-        if (detail) {
-          refundInfo.value = {
-            status: detail.status || '',
-            reason: detail.reason || '',
-            process_reason: detail.process_reason || ''
-          }
-        }
+        // 重新加载订单详情，退款信息会从 orderDetail 中获取
+        await loadOrderDetail()
       } catch (error) {
         // 5128: 退款申请提交失败（使用状态码消息系统；customMessage 仅用于补充异常信息）
         showByCode(5128, error?.message || null)
