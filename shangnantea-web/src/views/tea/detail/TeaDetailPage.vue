@@ -239,7 +239,7 @@
               <div v-else class="review-items">
                 <div v-for="review in teaReviews" :key="review.id" class="review-item">
                   <div class="review-header">
-                    <div class="user-info">
+                    <div class="user-info" @click="goToUserProfile(review.userId)">
                       <SafeImage :src="review.avatar" type="avatar" :alt="review.nickname" style="width:40px;height:40px;border-radius:50%;object-fit:cover;" class="user-avatar" />
                       <span class="user-name">{{ review.nickname }}</span>
                     </div>
@@ -801,6 +801,16 @@ defineOptions({
       router.push('/tea/list')
     }
     
+    // 跳转到用户主页
+    const goToUserProfile = userId => {
+      if (!userId) return
+      // 保存来源路由信息，用于导航栏高亮
+      router.push({
+        path: `/profile/${userId}`,
+        query: { from: route.path }
+      })
+    }
+    
     const defaultAvatar = '@/assets/images/avatars/default.jpg'
     
     onMounted(() => {
@@ -1171,13 +1181,25 @@ defineOptions({
             .user-info {
               display: flex;
               align-items: center;
+              cursor: pointer;
+              transition: opacity 0.2s;
+              
+              &:hover {
+                opacity: 0.8;
+              }
               
               .user-avatar {
                 margin-right: 10px;
+                transition: opacity 0.2s;
               }
               
               .user-name {
                 font-weight: 500;
+                transition: color 0.2s;
+              }
+              
+              &:hover .user-name {
+                color: var(--el-color-primary);
               }
             }
             

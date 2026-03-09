@@ -169,7 +169,7 @@
               <div v-if="shopReviews.length > 0" class="reviews-list">
                 <div v-for="review in shopReviews" :key="review.id" class="review-item">
                   <div class="review-header">
-                    <div class="review-user">
+                    <div class="review-user" @click="goToUserProfile(review.userId)">
                       <el-avatar :src="review.avatar" :size="40">
                         {{ (review.nickname || '').charAt(0) }}
                       </el-avatar>
@@ -521,6 +521,16 @@ defineOptions({
       router.push('/shop/list')
     }
     
+    // 跳转到用户主页
+    const goToUserProfile = userId => {
+      if (!userId) return
+      // 保存来源路由信息，用于导航栏高亮
+      router.push({
+        path: `/profile/${userId}`,
+        query: { from: route.path }
+      })
+    }
+    
     onMounted(() => {
       loadShopDetail(route.params.id)
     })
@@ -824,6 +834,12 @@ defineOptions({
         .review-user {
           display: flex;
           align-items: center;
+          cursor: pointer;
+          transition: opacity 0.2s;
+          
+          &:hover {
+            opacity: 0.8;
+          }
           
           .user-info {
             margin-left: 10px;
@@ -832,6 +848,11 @@ defineOptions({
               font-weight: 500;
               font-size: 14px;
               color: var(--el-text-color-primary);
+              transition: color 0.2s;
+            }
+            
+            &:hover .user-name {
+              color: var(--el-color-primary);
             }
             
             .review-time {
