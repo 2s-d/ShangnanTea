@@ -324,7 +324,14 @@ export const useShopStore = defineStore('shop', () => {
     try {
       loading.value = true
       const res = await addShopTeaApi(shopId, teaData)
-      await fetchShopTeas({ shopId, params: {} })
+      // 重新加载时使用当前的分页设置
+      await fetchShopTeas({ 
+        shopId, 
+        params: {
+          page: pagination.currentPage,
+          size: pagination.pageSize
+        }
+      })
       return res
     } catch (error) {
       console.error('添加茶叶失败:', error)
