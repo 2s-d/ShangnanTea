@@ -61,7 +61,7 @@
           <div class="filter-card">
             <h3 class="filter-title">茶叶分类</h3>
             <el-checkbox-group v-model="filters.categories" @change="applyFilters">
-              <el-checkbox v-for="category in categoryOptions" :key="category.id" :label="category.id">
+              <el-checkbox v-for="category in categoryOptions" :key="category.id" :value="category.id">
                 {{ category.name }}
               </el-checkbox>
             </el-checkbox-group>
@@ -278,6 +278,8 @@ defineOptions({
     const viewMode = ref('grid')
     // 标志：是否正在通过applyFilters更新，避免watch重复触发
     const isApplyingFilters = ref(false)
+    // 保存上一次的query，用于判断是否只是翻页
+    const previousQuery = ref(null)
     // 是否直接使用默认规格加入购物车（从全局orderStore读写，避免切页后丢失）
     const useDefaultSpecOnAdd = computed({
       get() {
@@ -326,8 +328,11 @@ defineOptions({
     })
     
     // 加载茶叶数据（提前定义，避免 watch 中调用时未定义）
-    const loadTeas = async () => {
+    const loadTeas = async (preservePage = false) => {
       try {
+        // 如果保留页码，先保存目标页码（从URL获取）
+        const targetPage = preservePage && route.query.page ? parseInt(route.query.page) : 1
+        
         // 解析排序选项
         let sortBy = ''
         let sortOrder = 'asc'
@@ -360,6 +365,14 @@ defineOptions({
           status: 1, // 任务组E：只显示上架茶叶
           shopId: filters.source === 'platform' ? 'PLATFORM' : '' // 平台直售筛选
         })
+        
+        // 如果保留页码且目标页码不是1，恢复页码并重新请求
+        // 注意：updateFilters已经触发了请求（页码为1），这里需要再次请求正确的页码
+        if (preservePage && targetPage !== 1) {
+          // 等待updateFilters的请求完成
+          await new Promise(resolve => setTimeout(resolve, 100))
+          teaStore.setPage(targetPage)
+        }
       } catch (error) {
         // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
         if (process.env.NODE_ENV === 'development') {
@@ -497,10 +510,38 @@ defineOptions({
       async query => {
         // 如果正在通过applyFilters更新，跳过watch触发（避免重复加载）
         if (isApplyingFilters.value) {
+          previousQuery.value = { ...query }
           return
         }
         
-        // 先更新所有筛选条件（不触发请求）
+        // 判断是否只是翻页（其他筛选条件没变，只有页码变了）
+        const isOnlyPageChange = previousQuery.value && 
+          query.page !== previousQuery.value.page &&
+          JSON.stringify({
+            search: query.search || '',
+            sort: query.sort || 'default',
+            categories: query.categories || '',
+            price: query.price || '',
+            source: query.source || 'all',
+            rating: query.rating || ''
+          }) === JSON.stringify({
+            search: previousQuery.value.search || '',
+            sort: previousQuery.value.sort || 'default',
+            categories: previousQuery.value.categories || '',
+            price: previousQuery.value.price || '',
+            source: previousQuery.value.source || 'all',
+            rating: previousQuery.value.rating || ''
+          })
+        
+        // 如果只是翻页，直接设置页码并请求，不更新筛选条件
+        if (isOnlyPageChange) {
+          const targetPage = query.page ? parseInt(query.page) : 1
+          teaStore.setPage(targetPage)
+          previousQuery.value = { ...query }
+          return
+        }
+        
+        // 筛选条件变化了，更新所有筛选条件
         if (query.search) searchQuery.value = query.search
         else searchQuery.value = ''
         
@@ -540,14 +581,17 @@ defineOptions({
           filters.rating = null
         }
         
-        // 统一加载数据（updateFilters会重置页码为1并触发请求）
+        // 统一加载数据（会重置页码为1）
         await loadTeas()
         
-        // 如果URL中有页码参数且不是1，说明用户想翻页
-        // 但updateFilters已经重置页码为1了，所以需要再次设置页码并触发请求
-        if (query.page && parseInt(query.page) !== 1) {
-          teaStore.setPage(parseInt(query.page))
+        // 如果URL中有页码参数且不是1，恢复页码
+        const targetPage = query.page ? parseInt(query.page) : 1
+        if (targetPage !== 1) {
+          teaStore.setPage(targetPage)
         }
+        
+        // 保存当前query
+        previousQuery.value = { ...query }
       },
       { immediate: true }
     )
@@ -606,9 +650,13 @@ defineOptions({
     
     // 页面变化
     const handlePageChange = page => {
-      teaStore.setPage(page)
-      // setPage 会触发 fetchTeas，这里更新 URL 参数以保持同步
-      updateQueryParams()
+      // 只更新URL，让watch统一处理，避免重复请求
+      router.replace({ 
+        query: { 
+          ...route.query, 
+          page: page 
+        } 
+      })
     }
     
     // 处理排序变更
