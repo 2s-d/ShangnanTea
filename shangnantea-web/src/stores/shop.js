@@ -217,12 +217,19 @@ export const useShopStore = defineStore('shop', () => {
       const list = data?.list || data?.records || (Array.isArray(data) ? data : [])
       shopTeas.value = list
       
+      // 更新分页信息
       if (data?.total !== undefined) {
+        // 保留用户设置的 pageSize，不因后端返回值而重置
+        const savedPageSize = pagination.pageSize
         Object.assign(pagination, {
           total: data.total,
-          currentPage: data.pageNum || 1,
-          pageSize: data.pageSize || 10
+          currentPage: data.pageNum || data.page || 1
+          // 不更新 pageSize，保留用户设置的值
         })
+        // 如果后端返回的 pageSize 与当前设置不一致，说明后端可能有问题，但我们仍然保留用户设置
+        if (data.pageSize && data.pageSize !== savedPageSize) {
+          console.warn(`后端返回的 pageSize (${data.pageSize}) 与请求的 pageSize (${savedPageSize}) 不一致`)
+        }
       }
       
       return res
@@ -339,7 +346,14 @@ export const useShopStore = defineStore('shop', () => {
       } else {
         const shopId = myShop.value?.id || currentShop.value?.id
         if (shopId) {
-          await fetchShopTeas({ shopId, params: {} })
+          // 重新加载时使用当前的分页设置
+          await fetchShopTeas({ 
+            shopId, 
+            params: {
+              page: pagination.currentPage,
+              size: pagination.pageSize
+            }
+          })
         }
       }
       
@@ -360,7 +374,14 @@ export const useShopStore = defineStore('shop', () => {
       shopTeas.value = shopTeas.value.filter(tea => tea.id !== teaId)
       
       if (shopId) {
-        await fetchShopTeas({ shopId, params: {} })
+        // 重新加载时使用当前的分页设置
+        await fetchShopTeas({ 
+          shopId, 
+          params: {
+            page: pagination.currentPage,
+            size: pagination.pageSize
+          }
+        })
       }
       
       return res

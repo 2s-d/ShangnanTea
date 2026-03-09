@@ -439,10 +439,17 @@ defineOptions({
     const searchQuery = ref('')
     const statusFilter = ref('')
     const categoryFilter = ref('')
-    const currentPage = ref(1)
-    const pageSize = ref(10)
+    // 使用 store 的分页信息，确保同步
+    const currentPage = computed({
+      get: () => shopStore.pagination.currentPage,
+      set: (val) => { shopStore.pagination.currentPage = val }
+    })
+    const pageSize = computed({
+      get: () => shopStore.pagination.pageSize,
+      set: (val) => { shopStore.pagination.pageSize = val }
+    })
     const shopTeas = computed(() => shopStore.shopTeas || [])
-    const totalCount = computed(() => shopTeas.value.length) // 暂时使用列表长度，后续可添加分页
+    const totalCount = computed(() => shopStore.pagination.total || 0) // 使用后端返回的总数
     
     // 对话框相关状态
     const dialogVisible = ref(false)
@@ -481,8 +488,8 @@ defineOptions({
       teaLoading.value = true
       try {
         const params = {
-          page: currentPage.value,
-          size: pageSize.value
+          page: shopStore.pagination.currentPage,
+          size: shopStore.pagination.pageSize  // 后端期望的参数名是 size
         }
         
         if (statusFilter.value) {
@@ -568,8 +575,8 @@ defineOptions({
         showByCode(response.code)
         
         // 如果当前页没有数据了，回到前一页
-        if (shopTeas.value.length === 0 && currentPage.value > 1) {
-          currentPage.value--
+        if (shopTeas.value.length === 0 && shopStore.pagination.currentPage > 1) {
+          shopStore.pagination.currentPage--
           await loadShopTeas()
         }
       } catch (error) {
@@ -698,26 +705,26 @@ defineOptions({
     
     // 任务组C：搜索处理
     const handleSearch = async () => {
-      currentPage.value = 1
+      shopStore.pagination.currentPage = 1
       await loadShopTeas()
     }
     
     // 任务组C：筛选变更处理
     const handleFilterChange = async () => {
-      currentPage.value = 1
+      shopStore.pagination.currentPage = 1
       await loadShopTeas()
     }
     
     // 任务组C：页码变更
     const handlePageChange = async page => {
-      currentPage.value = page
+      shopStore.pagination.currentPage = page
       await loadShopTeas()
     }
     
     // 任务组C：每页条数变更
     const handleSizeChange = async size => {
-      pageSize.value = size
-      currentPage.value = 1
+      shopStore.pagination.pageSize = size
+      shopStore.pagination.currentPage = 1
       await loadShopTeas()
     }
     
