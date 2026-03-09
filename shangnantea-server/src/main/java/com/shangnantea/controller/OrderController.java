@@ -215,6 +215,21 @@ public class OrderController {
     }
 
     /**
+     * 修改订单收货地址
+     * 路径: POST /order/address
+     * 成功码: 5017, 失败码: 5147
+     *
+     * @param data 修改数据 {orderId, addressId}
+     * @return 修改结果
+     */
+    @PostMapping("/address")
+    @RequiresLogin
+    public Result<Boolean> updateOrderAddress(@RequestBody Map<String, Object> data) {
+        logger.info("修改订单收货地址请求");
+        return orderService.updateOrderAddress(data);
+    }
+
+    /**
      * 批量发货
      * 路径: POST /order/batch-ship
      * 成功码: 5015, 失败码: 5138, 5139

@@ -1718,6 +1718,112 @@ public class OrderServiceImpl implements OrderService {
             return Result.failure(5128);
         }
     }
+
+    @Override
+    @Transactional
+    public Result<Boolean> updateOrderAddress(Map<String, Object> data) {
+        logger.info("修改订单收货地址请求: data={}", data);
+        
+        try {
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("修改订单地址失败: 用户未登录");
+                return Result.failure(5147);
+            }
+            
+            // 2. 解析请求参数
+            String orderId = (String) data.get("orderId");
+            Object addressIdObj = data.get("addressId");
+            
+            if (orderId == null || orderId.isEmpty()) {
+                logger.warn("修改订单地址失败: 订单ID为空");
+                return Result.failure(5147);
+            }
+            if (addressIdObj == null) {
+                logger.warn("修改订单地址失败: 地址簿ID为空");
+                return Result.failure(5147);
+            }
+            
+            Integer addressId;
+            try {
+                addressId = Integer.parseInt(addressIdObj.toString());
+            } catch (NumberFormatException e) {
+                logger.warn("修改订单地址失败: 地址簿ID格式错误: {}", addressIdObj);
+                return Result.failure(5147);
+            }
+            
+            // 3. 查询订单
+            Order order = orderMapper.selectById(orderId);
+            if (order == null) {
+                logger.warn("修改订单地址失败: 订单不存在: orderId={}", orderId);
+                return Result.failure(5147);
+            }
+            
+            // 4. 验证订单是否属于当前用户
+            if (!userId.equals(order.getUserId())) {
+                logger.warn("修改订单地址失败: 无权限: orderId={}, userId={}, orderUserId={}",
+                        orderId, userId, order.getUserId());
+                return Result.failure(5147);
+            }
+            
+            // 5. 仅在待付款和待发货状态允许修改地址
+            if (order.getStatus() == null ||
+                    (order.getStatus() != Order.STATUS_PENDING_PAYMENT &&
+                     order.getStatus() != Order.STATUS_PENDING_SHIPMENT)) {
+                logger.warn("修改订单地址失败: 订单状态不允许修改地址: orderId={}, status={}", orderId, order.getStatus());
+                return Result.failure(5147);
+            }
+            
+            // 6. 查询并校验地址簿地址
+            UserAddress baseAddress = userAddressMapper.selectById(addressId);
+            if (baseAddress == null || !userId.equals(baseAddress.getUserId())) {
+                logger.warn("修改订单地址失败: 收货地址不存在或不属于当前用户: addressId={}, userId={}", addressId, userId);
+                return Result.failure(5147);
+            }
+            
+            Date now = new Date();
+            
+            // 7. 查询订单地址快照，如不存在则创建一条新的
+            OrderAddress orderAddress = null;
+            if (order.getAddressId() != null) {
+                orderAddress = orderAddressMapper.selectById(order.getAddressId());
+            }
+            
+            if (orderAddress == null) {
+                orderAddress = new OrderAddress();
+                orderAddress.setOrderId(order.getId());
+                orderAddress.setUserId(userId);
+                orderAddress.setCreateTime(now);
+            }
+            
+            // 复制地址簿信息到订单地址快照
+            orderAddress.setReceiverName(baseAddress.getReceiverName());
+            orderAddress.setReceiverPhone(baseAddress.getReceiverPhone());
+            orderAddress.setProvince(baseAddress.getProvince());
+            orderAddress.setCity(baseAddress.getCity());
+            orderAddress.setDistrict(baseAddress.getDistrict());
+            orderAddress.setDetailAddress(baseAddress.getDetailAddress());
+            orderAddress.setUpdateTime(now);
+            
+            if (orderAddress.getId() == null) {
+                orderAddressMapper.insert(orderAddress);
+                // 同步更新订单的 addressId
+                order.setAddressId(orderAddress.getId());
+                order.setUpdateTime(now);
+                orderMapper.updateById(order);
+            } else {
+                orderAddressMapper.updateById(orderAddress);
+            }
+            
+            logger.info("修改订单地址成功: orderId={}, userId={}, newAddressId={}", orderId, userId, addressId);
+            return Result.success(5017);
+            
+        } catch (Exception e) {
+            logger.error("修改订单地址失败: 系统异常", e);
+            return Result.failure(5147);
+        }
+    }
     
     @Override
     @Transactional

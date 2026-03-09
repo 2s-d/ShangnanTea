@@ -144,6 +144,14 @@ public interface OrderService {
     Result<Object> getRefundDetail(String id);
     
     /**
+     * 修改订单收货地址
+     *
+     * @param data 修改数据 {orderId, addressId}
+     * @return 修改结果
+     */
+    Result<Boolean> updateOrderAddress(Map<String, Object> data);
+    
+    /**
      * 发货
      *
      * @param id 订单ID
