@@ -3,37 +3,33 @@ package com.shangnantea.model.vo.user;
 import lombok.Data;
 
 /**
- * 用户偏好设置视图对象
+ * 用户偏好设置视图对象。
  */
 @Data
 public class UserPreferencesVO {
+
     /**
-     * 语言设置
+     * 主题模式。
      */
-    private String language;
-    
+    private String themeMode;
+
     /**
-     * 主题设置
+     * 字体大小。
      */
-    private String theme;
-    
+    private Integer fontSize;
+
     /**
-     * 是否接收系统通知
+     * 字体选择。
      */
-    private Boolean systemNotification;
-    
+    private String fontFamily;
+
     /**
-     * 是否接收订单通知
+     * 是否启用界面动画效果。
      */
-    private Boolean orderNotification;
-    
+    private Boolean enableAnimation;
+
     /**
-     * 是否接收评论通知
+     * 是否允许他人查看个人主页。
      */
-    private Boolean commentNotification;
-    
-    /**
-     * 是否接收点赞通知
-     */
-    private Boolean likeNotification;
+    private Boolean profileVisible;
 }

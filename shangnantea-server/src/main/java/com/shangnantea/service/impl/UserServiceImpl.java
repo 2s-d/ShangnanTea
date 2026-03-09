@@ -23,6 +23,7 @@ import com.shangnantea.model.dto.LoginDTO;
 import com.shangnantea.model.dto.RegisterDTO;
 import com.shangnantea.model.dto.SendVerificationCodeDTO;
 import com.shangnantea.model.dto.SubmitShopCertificationDTO;
+import com.shangnantea.model.dto.UserPreferenceItemDTO;
 import com.shangnantea.model.dto.UpdateUserPreferencesDTO;
 import com.shangnantea.model.dto.UpdateUserDTO;
 import com.shangnantea.model.dto.ProcessCertificationDTO;
@@ -49,6 +50,7 @@ import com.shangnantea.security.util.PasswordEncoder;
 import com.shangnantea.service.UserService;
 import com.shangnantea.utils.FileUploadUtils;
 import com.shangnantea.utils.NotificationUtils;
+import com.shangnantea.utils.UserPreferenceRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,9 +67,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -2003,36 +2007,75 @@ public class UserServiceImpl implements UserService {
                 return Result.failure(2131); // 操作失败
             }
             
-            // 2. 更新各项设置
+            if (preferencesDTO == null || preferencesDTO.getItems() == null || preferencesDTO.getItems().isEmpty()) {
+                logger.warn("更新偏好设置失败: 设置项为空, userId: {}", userId);
+                return Result.failure(2131);
+            }
+
+            // 2. 校验并归一化传入的设置项
+            Map<UserPreferenceRegistry, String> incomingValues = new HashMap<>();
+            for (UserPreferenceItemDTO itemDTO : preferencesDTO.getItems()) {
+                if (itemDTO == null || itemDTO.getCode() == null) {
+                    logger.warn("更新偏好设置失败: 存在空设置项, userId: {}", userId);
+                    return Result.failure(2131);
+                }
+
+                UserPreferenceRegistry registry = UserPreferenceRegistry.fromCode(itemDTO.getCode());
+                if (registry == null) {
+                    logger.warn("更新偏好设置失败: 未注册的设置编号, userId: {}, code: {}", userId, itemDTO.getCode());
+                    return Result.failure(2131);
+                }
+
+                try {
+                    incomingValues.put(registry, registry.normalizeValue(itemDTO.getValue()));
+                } catch (Exception e) {
+                    logger.warn(
+                        "更新偏好设置失败: 设置值非法, userId: {}, code: {}, reason: {}",
+                        userId,
+                        itemDTO.getCode(),
+                        e.getMessage()
+                    );
+                    return Result.failure(2131);
+                }
+            }
+
+            // 3. 获取当前已存在的设置项，判断是否是首次保存
+            List<UserSetting> existingSettings = userSettingMapper.selectByUserId(userId);
+            Set<String> existingRegisteredKeys = new HashSet<>();
+            if (existingSettings != null) {
+                for (UserSetting setting : existingSettings) {
+                    UserPreferenceRegistry registry = UserPreferenceRegistry.fromKey(setting.getSettingKey());
+                    if (registry != null) {
+                        existingRegisteredKeys.add(registry.getKey());
+                    }
+                }
+            }
+            boolean isFirstSave = existingRegisteredKeys.isEmpty();
+
+            // 4. 首次保存创建5条，后续保存覆盖传入的项
             Date now = new Date();
-            
-            if (preferencesDTO.getLanguage() != null) {
-                upsertSetting(userId, "language", preferencesDTO.getLanguage(), "string", now);
+            for (UserPreferenceRegistry registry : UserPreferenceRegistry.values()) {
+                String normalizedValue = incomingValues.get(registry);
+                if (normalizedValue == null) {
+                    if (!isFirstSave) {
+                        continue;
+                    }
+                    normalizedValue = registry.getDefaultValue();
+                }
+
+                upsertSetting(
+                    userId,
+                    registry.getKey(),
+                    normalizedValue,
+                    registry.getValueType().getDbType(),
+                    now
+                );
             }
-            
-            if (preferencesDTO.getTheme() != null) {
-                upsertSetting(userId, "theme", preferencesDTO.getTheme(), "string", now);
-            }
-            
-            if (preferencesDTO.getSystemNotification() != null) {
-                upsertSetting(userId, "systemNotification", preferencesDTO.getSystemNotification().toString(), "boolean", now);
-            }
-            
-            if (preferencesDTO.getOrderNotification() != null) {
-                upsertSetting(userId, "orderNotification", preferencesDTO.getOrderNotification().toString(), "boolean", now);
-            }
-            
-            if (preferencesDTO.getCommentNotification() != null) {
-                upsertSetting(userId, "commentNotification", preferencesDTO.getCommentNotification().toString(), "boolean", now);
-            }
-            
-            if (preferencesDTO.getLikeNotification() != null) {
-                upsertSetting(userId, "likeNotification", preferencesDTO.getLikeNotification().toString(), "boolean", now);
-            }
-            
+
+            UserPreferencesVO preferencesVO = convertToUserPreferencesVO(userSettingMapper.selectByUserId(userId));
             logger.info("更新偏好设置成功: userId: {}", userId);
-            return Result.success(2018); // 偏好设置已更新
-            
+            return Result.success(2018, preferencesVO);
+
         } catch (Exception e) {
             logger.error("更新偏好设置失败: 系统异常", e);
             return Result.failure(2131); // 操作失败
@@ -2997,66 +3040,63 @@ public class UserServiceImpl implements UserService {
      */
     private UserPreferencesVO convertToUserPreferencesVO(List<UserSetting> settings) {
         UserPreferencesVO preferencesVO = new UserPreferencesVO();
-        
+
+        // 先填充注册表默认值
+        for (UserPreferenceRegistry registry : UserPreferenceRegistry.values()) {
+            applyPreferenceToVO(preferencesVO, registry, registry.getDefaultValue());
+        }
+
         if (settings == null || settings.isEmpty()) {
-            // 返回默认值
-            preferencesVO.setLanguage("zh-CN");
-            preferencesVO.setTheme("light");
-            preferencesVO.setSystemNotification(true);
-            preferencesVO.setOrderNotification(true);
-            preferencesVO.setCommentNotification(true);
-            preferencesVO.setLikeNotification(true);
             return preferencesVO;
         }
-        
-        // 从设置列表中提取各项配置
+
+        // 再用数据库中的注册项覆盖默认值
         for (UserSetting setting : settings) {
-            String key = setting.getSettingKey();
-            String value = setting.getSettingValue();
-            
-            switch (key) {
-                case "language":
-                    preferencesVO.setLanguage(value);
-                    break;
-                case "theme":
-                    preferencesVO.setTheme(value);
-                    break;
-                case "systemNotification":
-                    preferencesVO.setSystemNotification(Boolean.parseBoolean(value));
-                    break;
-                case "orderNotification":
-                    preferencesVO.setOrderNotification(Boolean.parseBoolean(value));
-                    break;
-                case "commentNotification":
-                    preferencesVO.setCommentNotification(Boolean.parseBoolean(value));
-                    break;
-                case "likeNotification":
-                    preferencesVO.setLikeNotification(Boolean.parseBoolean(value));
-                    break;
+            UserPreferenceRegistry registry = UserPreferenceRegistry.fromKey(setting.getSettingKey());
+            if (registry == null) {
+                continue;
             }
+            applyPreferenceToVO(preferencesVO, registry, setting.getSettingValue());
         }
-        
-        // 设置默认值（如果某些配置不存在）
-        if (preferencesVO.getLanguage() == null) {
-            preferencesVO.setLanguage("zh-CN");
-        }
-        if (preferencesVO.getTheme() == null) {
-            preferencesVO.setTheme("light");
-        }
-        if (preferencesVO.getSystemNotification() == null) {
-            preferencesVO.setSystemNotification(true);
-        }
-        if (preferencesVO.getOrderNotification() == null) {
-            preferencesVO.setOrderNotification(true);
-        }
-        if (preferencesVO.getCommentNotification() == null) {
-            preferencesVO.setCommentNotification(true);
-        }
-        if (preferencesVO.getLikeNotification() == null) {
-            preferencesVO.setLikeNotification(true);
-        }
-        
+
         return preferencesVO;
+    }
+
+    /**
+     * 将单个设置项应用到用户偏好视图对象。
+     */
+    private void applyPreferenceToVO(UserPreferencesVO preferencesVO, UserPreferenceRegistry registry, String storedValue) {
+        Object parsedValue;
+        try {
+            parsedValue = registry.parseStoredValue(storedValue);
+        } catch (Exception e) {
+            logger.warn(
+                "解析用户偏好设置失败，回退默认值: key: {}, value: {}, reason: {}",
+                registry.getKey(),
+                storedValue,
+                e.getMessage()
+            );
+            parsedValue = registry.parseStoredValue(registry.getDefaultValue());
+        }
+        switch (registry) {
+            case THEME_MODE:
+                preferencesVO.setThemeMode((String) parsedValue);
+                break;
+            case THEME_FONT_SIZE:
+                preferencesVO.setFontSize((Integer) parsedValue);
+                break;
+            case THEME_FONT_FAMILY:
+                preferencesVO.setFontFamily((String) parsedValue);
+                break;
+            case THEME_ENABLE_ANIMATION:
+                preferencesVO.setEnableAnimation((Boolean) parsedValue);
+                break;
+            case DISPLAY_PROFILE_VISIBLE:
+                preferencesVO.setProfileVisible((Boolean) parsedValue);
+                break;
+            default:
+                break;
+        }
     }
     
     /**

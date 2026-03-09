@@ -42,6 +42,11 @@ import {
 import { useTokenStorage } from '@/composables/useStorage'
 import { userPromptMessages } from '@/utils/promptMessages'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
+import {
+  DEFAULT_USER_PREFERENCES,
+  normalizeUserPreferences,
+  buildUserPreferencePayload
+} from '@/utils/userPreferences'
 
 // 地址字段映射辅助函数
 const mapAddressFromBackend = address => {
@@ -86,15 +91,7 @@ export const useUserStore = defineStore('user', () => {
   const loading = ref(false)
   
   // 用户偏好设置
-  const preferences = reactive({
-    theme: 'light',
-    primaryColor: '#409EFF',
-    fontSize: 14,
-    fontFamily: '',
-    enableAnimation: true,
-    listMode: 'grid',
-    pageSize: 20
-  })
+  const preferences = reactive({ ...DEFAULT_USER_PREFERENCES })
   
   // 地址相关状态
   const addressList = ref([])
@@ -392,7 +389,7 @@ export const useUserStore = defineStore('user', () => {
     loading.value = true
     try {
       const res = await getUserPreferencesApi()
-      const prefs = res?.data || res?.preferences || res
+      const prefs = normalizeUserPreferences(res?.data || res?.preferences || res)
       Object.assign(preferences, prefs || {})
       return res
     } finally {
@@ -404,8 +401,9 @@ export const useUserStore = defineStore('user', () => {
   async function saveUserPreferences(prefs) {
     loading.value = true
     try {
-      const res = await updateUserPreferencesApi(prefs)
-      const saved = res?.data || res?.preferences || res || prefs
+      const payload = buildUserPreferencePayload(prefs)
+      const res = await updateUserPreferencesApi(payload)
+      const saved = normalizeUserPreferences(res?.data || res?.preferences || prefs)
       Object.assign(preferences, saved)
       return res
     } finally {

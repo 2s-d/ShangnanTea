@@ -12,7 +12,7 @@
         
         <!-- 主题模式选择 -->
         <el-form-item label="主题模式">
-          <el-radio-group v-model="preferences.theme">
+          <el-radio-group v-model="preferences.themeMode">
             <el-radio-button value="light">
               <el-icon><Sunny /></el-icon> 浅色
             </el-radio-button>
@@ -24,15 +24,7 @@
             </el-radio-button>
           </el-radio-group>
         </el-form-item>
-        
-        <!-- 主题色选择 -->
-        <el-form-item label="主题色">
-          <div class="color-picker-container">
-            <el-color-picker v-model="preferences.primaryColor" show-alpha />
-            <el-button size="small" @click="resetThemeColor">恢复默认</el-button>
-          </div>
-        </el-form-item>
-        
+
         <!-- 字体大小设置 -->
         <el-form-item label="字体大小">
           <div class="font-size-container">
@@ -83,29 +75,7 @@
           </div>
         </template>
         
-        <!-- 列表展示模式 -->
-        <el-form-item label="展示模式">
-          <el-radio-group v-model="preferences.listMode">
-            <el-radio-button value="grid">
-              <el-icon><Grid /></el-icon> 网格
-            </el-radio-button>
-            <el-radio-button value="list">
-              <el-icon><List /></el-icon> 列表
-            </el-radio-button>
-          </el-radio-group>
-        </el-form-item>
-        
-        <!-- 每页商品数 -->
-        <el-form-item label="每页商品数">
-          <el-select v-model="preferences.pageSize">
-            <el-option label="10条/页" :value="10" />
-            <el-option label="20条/页" :value="20" />
-            <el-option label="30条/页" :value="30" />
-            <el-option label="50条/页" :value="50" />
-          </el-select>
-        </el-form-item>
-
-        <!-- 别人是否可以查看我的主页（UI预留，暂不接后端） -->
+        <!-- 别人是否可以查看我的主页 -->
         <el-form-item label="主页可见性">
           <div class="profile-visibility-setting">
             <span class="setting-label">别人是否可以查看我的主页</span>
@@ -133,18 +103,22 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { useRouter } from 'vue-router'
-import { Sunny, Moon, MagicStick, Grid, List } from '@element-plus/icons-vue'
+import { Sunny, Moon, MagicStick } from '@element-plus/icons-vue'
 
 import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { userPromptMessages as userMessages } from '@/utils/promptMessages'
+import {
+  DEFAULT_USER_PREFERENCES,
+  normalizeUserPreferences
+} from '@/utils/userPreferences'
 
 const formRef = ref(null)
 const loading = ref(false)
 const submitting = ref(false)
 const userStore = useUserStore()
 
-// 别人是否可以查看我的主页（仅前端UI占位，不参与保存）
-// 使用复选框样式，但交互上保持互斥（只能选一个）
+// 别人是否可以查看我的主页
+// 视觉上使用复选框，但交互上保持互斥（只能选一个）
 const profileVisibilitySelection = ref(['yes'])
 const handleProfileVisibilityChange = value => {
   if (Array.isArray(value) && value.length > 1) {
@@ -156,19 +130,8 @@ const handleProfileVisibilityChange = value => {
   }
 }
 
-// 默认主题色
-const DEFAULT_PRIMARY_COLOR = '#409EFF'
-
 // 个性化偏好设置（页面内编辑用副本；保存时统一走 Pinia）
-const preferences = reactive({
-  theme: 'light',
-  primaryColor: DEFAULT_PRIMARY_COLOR,
-  fontSize: 14,
-  fontFamily: '',
-  enableAnimation: true,
-  listMode: 'grid',
-  pageSize: 20
-})
+const preferences = reactive({ ...DEFAULT_USER_PREFERENCES })
     
     // 应用主题设置
     const applyThemeSettings = theme => {
@@ -198,16 +161,14 @@ const preferences = reactive({
       }
     }
     
-    // 重置主题色
-    const resetThemeColor = () => {
-      preferences.primaryColor = DEFAULT_PRIMARY_COLOR
-    }
-    
     // 保存设置
     const savePreferences = async () => {
       try {
         submitting.value = true
-        const payload = { ...preferences }
+        const payload = normalizeUserPreferences({
+          ...preferences,
+          profileVisible: profileVisibilitySelection.value.includes('yes')
+        })
         const response = await userStore.saveUserPreferences(payload)
         
         // 显示API响应消息（成功或失败都通过状态码映射显示）
@@ -216,10 +177,11 @@ const preferences = reactive({
         // 只有成功时才应用设置
         if (isSuccess(response.code)) {
           // 应用主题设置
-          applyThemeSettings(preferences.theme)
+          Object.assign(preferences, normalizeUserPreferences(response.data || payload))
+          syncProfileVisibilitySelection(preferences.profileVisible)
+          applyThemeSettings(preferences.themeMode)
           
-          // 应用颜色和字体设置
-          document.documentElement.style.setProperty('--el-color-primary', preferences.primaryColor)
+          // 应用字体设置
           document.documentElement.style.setProperty('--el-font-size-base', preferences.fontSize + 'px')
           
           // 如果设置了字体，应用字体设置
@@ -263,16 +225,15 @@ const preferences = reactive({
     
     // 重置所有设置
     const resetPreferences = () => {
-      preferences.theme = 'light'
-      preferences.primaryColor = DEFAULT_PRIMARY_COLOR
-      preferences.fontSize = 14
-      preferences.fontFamily = ''
-      preferences.enableAnimation = true
-      preferences.listMode = 'grid'
-      preferences.pageSize = 20
+      Object.assign(preferences, DEFAULT_USER_PREFERENCES)
+      syncProfileVisibilitySelection(preferences.profileVisible)
       
       // 本地操作，使用 userMessages 是正确的（不涉及API调用）
       userMessages.success.showSettingsRestored()
+    }
+
+    const syncProfileVisibilitySelection = profileVisible => {
+      profileVisibilitySelection.value = [profileVisible ? 'yes' : 'no']
     }
     
     // 路由
@@ -288,12 +249,12 @@ const preferences = reactive({
           const response = await userStore.fetchUserPreferences()
           
           if (isSuccess(response.code)) {
-            const source = response.data || userStore.preferences
+            const source = normalizeUserPreferences(response.data || userStore.preferences)
             Object.assign(preferences, source || {})
+            syncProfileVisibilitySelection(preferences.profileVisible)
             // 初始化时应用主题设置
-            applyThemeSettings(preferences.theme)
-            // 初始化时应用颜色/字体设置
-            document.documentElement.style.setProperty('--el-color-primary', preferences.primaryColor)
+            applyThemeSettings(preferences.themeMode)
+            // 初始化时应用字体设置
             document.documentElement.style.setProperty('--el-font-size-base', preferences.fontSize + 'px')
             if (preferences.fontFamily) {
               document.documentElement.style.setProperty('--el-font-family', preferences.fontFamily)
