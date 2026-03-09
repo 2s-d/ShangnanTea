@@ -328,6 +328,13 @@
 | 2026 | 获取今日天气成功 | 获取今日天气成功 | [静默] |
 | 2152 | 获取今日天气失败 | 获取今日天气失败 | 显示 |
 
+#### 接口38: forceLogout - /user/admin/users/{userId}/force-logout (2个状态码)
+
+| Code | 消息 | 场景 | 显示 |
+|------|------|------|------|
+| 2027 | 用户已强制退出 | 强制退出用户成功 | 显示 |
+| 2153 | 强制退出失败 | 强制退出用户失败 | 显示 |
+
 ### 二、茶叶模块接口 (tea.js) - 共24个接口
 
 #### 接口1: getTeas - /tea/list (2个状态码)
@@ -1418,7 +1425,7 @@
 | 26 | getUserPreferences | GET | /user/preferences | 200 | 2130 | 获取用户偏好设置 |
 | 27 | updateUserPreferences | PUT | /user/preferences | 2018 | 2131 | 更新用户偏好设置 |
 
-### 1.7 管理员用户管理 (8个)
+### 1.7 管理员用户管理 (9个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
@@ -1430,6 +1437,7 @@
 | 33 | getCertificationList | GET | /user/admin/certifications | 200 | 2142, 2143 | 获取认证列表 |
 | 34 | processCertification | PUT | /user/admin/certifications/{id} | 2023 | 2144, 2145 | 审核认证 |
 | 35 | uploadCertificationImage | POST | /user/merchant/certification/image | 2024 | 2146, 2147, 2148 | 上传商家认证图片 |
+| 38 | forceLogout | POST | /user/admin/users/{userId}/force-logout | 2027 | 2153 | 强制退出用户 |
 
 ### 1.8 验证码相关 (1个)
 
@@ -1737,7 +1745,7 @@
 
 | 模块 | 接口数量 | 状态码范围 |
 |------|----------|------------|
-| 用户模块 | 37 | 2xxx |
+| 用户模块 | 38 | 2xxx |
 | 茶叶模块 | 24 | 3xxx |
 | 店铺模块 | 23 | 4xxx |
 | 订单模块 | 22 | 5xxx |

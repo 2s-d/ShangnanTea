@@ -218,6 +218,10 @@ export const CODE_MAP = {
   2026: '获取今日天气成功',
   2152: '获取今日天气失败',
   
+  // 接口38: forceLogout - /user/admin/users/{userId}/force-logout
+  2027: '用户已强制退出',
+  2153: '强制退出失败',
+  
   // ========== 茶叶模块 (3xxx) ==========
   // 接口1: getTeas - /tea/list
   3000: '茶叶列表加载成功',
