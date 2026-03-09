@@ -862,10 +862,11 @@ export const useUserStore = defineStore('user', () => {
       const list = res?.data?.list || res?.list || res?.data || res || []
       const total = res?.data?.total || res?.total || list.length
       userList.value = list
-      Object.assign(userPagination, { 
-        page: params.page || 1, 
-        pageSize: params.pageSize || 20, 
-        total 
+      // 保留请求参数对应的分页信息；若未显式传参则沿用当前分页状态
+      Object.assign(userPagination, {
+        page: Number(params.page) || userPagination.page || 1,
+        pageSize: Number(params.pageSize || params.size) || userPagination.pageSize || 20,
+        total
       })
       return res
     } catch (error) {

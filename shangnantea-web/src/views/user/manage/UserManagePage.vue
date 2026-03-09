@@ -279,13 +279,13 @@ const userFormRef = ref(null)
     const currentPage = computed({
       get: () => userPagination.value.page,
       set: val => {
-        userStore.userPagination = { ...userStore.userPagination, page: val }
+        userStore.userPagination.page = val
       }
     })
     const pageSize = computed({
       get: () => userPagination.value.pageSize,
       set: val => {
-        userStore.userPagination = { ...userStore.userPagination, pageSize: val }
+        userStore.userPagination.pageSize = val
       }
     })
     const userFilters = computed(() => userStore.userFilters || {})
@@ -488,6 +488,7 @@ const userFormRef = ref(null)
     // 分页处理
     const handleSizeChange = size => {
       pageSize.value = size
+      currentPage.value = 1
       fetchUserList()
     }
     

@@ -875,6 +875,7 @@ const updatePagination = () => {
     // 处理分页大小变更
     const handleSizeChange = size => {
       pagination.pageSize = size
+      pagination.currentPage = 1
       fetchPosts()
     }
     

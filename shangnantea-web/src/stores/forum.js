@@ -478,9 +478,12 @@ export const useForumStore = defineStore('forum', () => {
       // 后端返回结构：{ list: [...], total: number }
       const posts = Array.isArray(data.list) ? data.list : (Array.isArray(data.posts) ? data.posts : [])
       forumPosts.value = posts
-      // 更新分页信息（使用内存分页结果）
-      postPagination.current = params.page || 1
-      postPagination.pageSize = params.pageSize || 10
+      // 兼容 pageSize / size 两种入参，当前页面使用 size
+      const requestPage = Number(params.page) || postPagination.current || 1
+      const requestPageSize = Number(params.size || params.pageSize) || postPagination.pageSize || 10
+      // 更新分页信息
+      postPagination.current = requestPage
+      postPagination.pageSize = requestPageSize
       postPagination.total = typeof data.total === 'number' ? data.total : posts.length
       return res
     } catch (err) {
