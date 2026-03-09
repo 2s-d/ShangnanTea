@@ -99,15 +99,13 @@
             </template>
           </el-table-column>
           
-          <el-table-column prop="status" label="状态" width="80" align="center">
+          <!-- 在线状态 -->
+          <el-table-column prop="online" label="在线状态" width="110" align="center">
             <template #default="scope">
-              <el-switch
-                v-model="scope.row.status"
-                :active-value="1"
-                :inactive-value="0"
-                @change="handleStatusChange(scope.row)"
-                :disabled="scope.row.role === 1">
-              </el-switch>
+              <span class="online-status" :class="{ 'is-online': scope.row.online }">
+                <span class="status-dot"></span>
+                <span class="status-text">{{ scope.row.online ? '在线' : '离线' }}</span>
+              </span>
             </template>
           </el-table-column>
           
@@ -123,7 +121,7 @@
             </template>
           </el-table-column>
           
-          <el-table-column label="操作" width="200" fixed="right">
+          <el-table-column label="操作" width="260" fixed="right">
             <template #default="scope">
               <el-button
                 size="small"
@@ -140,6 +138,14 @@
                 :disabled="scope.row.id === 1 || currentUser.id === scope.row.id">
                 <el-icon><Delete /></el-icon>
                 删除
+              </el-button>
+              <el-button
+                size="small"
+                class="force-logout-btn"
+                @click="handleForceLogout(scope.row)"
+                :disabled="scope.row.role === 1">
+                <el-icon><View /></el-icon>
+                下线
               </el-button>
             </template>
           </el-table-column>
@@ -541,20 +547,10 @@ const userFormRef = ref(null)
       }
     }
     
-    // 修改用户状态
-    const handleStatusChange = async user => {
-      try {
-        const newStatus = user.status === 1 ? 0 : 1
-        const res = await userStore.toggleUserStatus({
-          userId: user.id,
-          status: newStatus
-        })
-        showByCode(res.code)
-      } catch (error) {
-        console.error('修改用户状态失败：', error)
-        // 恢复原状态
-        user.status = user.status === 1 ? 0 : 1
-      }
+    // 预留：强制下线（管理员）
+    const handleForceLogout = async user => {
+      // 逻辑下一轮接入后端接口，这里先给出占位提示
+      userMessages.info.showFeaturePreparing && userMessages.info.showFeaturePreparing()
     }
     
     // 提交用户表单
