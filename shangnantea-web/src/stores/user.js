@@ -870,7 +870,8 @@ export const useUserStore = defineStore('user', () => {
           roleName,
           registerTime: user.createTime,
           lastLoginTime: user.updateTime,
-          online: user.online === true
+          online: user.online === true,
+          loginActive: user.loginActive === true
         }
       })
       // 保留请求参数对应的分页信息；若未显式传参则沿用当前分页状态

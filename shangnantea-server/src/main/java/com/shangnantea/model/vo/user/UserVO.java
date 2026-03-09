@@ -216,4 +216,17 @@ public class UserVO {
     public void setOnline(Boolean online) {
         this.online = online;
     }
+
+    /**
+     * 是否存在登录会话（管理员用户列表中使用）。
+     */
+    private Boolean loginActive;
+
+    public Boolean getLoginActive() {
+        return loginActive;
+    }
+
+    public void setLoginActive(Boolean loginActive) {
+        this.loginActive = loginActive;
+    }
 } 

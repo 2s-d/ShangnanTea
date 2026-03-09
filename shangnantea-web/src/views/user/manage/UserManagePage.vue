@@ -117,7 +117,8 @@
           
           <el-table-column prop="lastLoginTime" label="最后登录" min-width="140" show-overflow-tooltip>
             <template #default="scope">
-              {{ formatDate(scope.row.lastLoginTime) }}
+              <span v-if="scope.row.loginActive" class="login-active-text">正在登录</span>
+              <span v-else>{{ formatDate(scope.row.lastLoginTime) }}</span>
             </template>
           </el-table-column>
           

@@ -2134,16 +2134,20 @@ public class UserServiceImpl implements UserService {
                 UserVO vo = convertToUserVO(user);
                 // 读取在线状态缓存判断是否在线（最近5分钟内有请求）
                 boolean isOnline = false;
+                boolean hasLoginSession = false;
                 try {
                     if (redisTemplate != null) {
-                        String sessionKey = "online:user:" + user.getId();
-                        isOnline = Boolean.TRUE.equals(redisTemplate.hasKey(sessionKey));
+                        String onlineKey = "online:user:" + user.getId();
+                        String loginKey = "login:user:" + user.getId();
+                        isOnline = Boolean.TRUE.equals(redisTemplate.hasKey(onlineKey));
+                        hasLoginSession = Boolean.TRUE.equals(redisTemplate.hasKey(loginKey));
                     }
                 } catch (Exception e) {
                     logger.warn("检查用户在线状态失败，userId: {}, error: {}", user.getId(), e.getMessage());
                 }
-                // 通过扩展字段记录在线状态（不会影响现有字段兼容性）
+                // 通过扩展字段记录在线状态和登录状态（不会影响现有字段兼容性）
                 vo.setOnline(isOnline);
+                vo.setLoginActive(hasLoginSession);
                 userVOList.add(vo);
             }
             
