@@ -4,6 +4,7 @@ import com.shangnantea.common.api.PageParam;
 import com.shangnantea.common.api.PageResult;
 import com.shangnantea.common.api.Result;
 import com.shangnantea.mapper.OrderMapper;
+import com.shangnantea.mapper.OrderAddressMapper;
 import com.shangnantea.mapper.PaymentMapper;
 import com.shangnantea.mapper.ShopMapper;
 import com.shangnantea.mapper.ShoppingCartMapper;
@@ -13,6 +14,7 @@ import com.shangnantea.mapper.TeaSpecificationMapper;
 import com.shangnantea.mapper.UserAddressMapper;
 import com.shangnantea.model.entity.order.Order;
 import com.shangnantea.model.entity.order.Payment;
+import com.shangnantea.model.entity.order.OrderAddress;
 import com.shangnantea.model.entity.order.ShoppingCart;
 import com.shangnantea.model.entity.shop.Shop;
 import com.shangnantea.model.entity.tea.Tea;
@@ -72,6 +74,9 @@ public class OrderServiceImpl implements OrderService {
     private UserAddressMapper userAddressMapper;
     
     @Autowired
+    private OrderAddressMapper orderAddressMapper;
+    
+    @Autowired
     private TeaReviewMapper teaReviewMapper;
     
     @Autowired
@@ -124,7 +129,14 @@ public class OrderServiceImpl implements OrderService {
                 return Result.failure(5110);
             }
             
-            // 3. 验证每个商品并计算总价（用于生成支付单）
+            // 3. 查询并校验地址簿地址
+            UserAddress baseAddress = userAddressMapper.selectById(addressId);
+            if (baseAddress == null || !userId.equals(baseAddress.getUserId())) {
+                logger.warn("创建订单失败: 收货地址不存在或不属于当前用户: addressId={}, userId={}", addressId, userId);
+                return Result.failure(5110);
+            }
+            
+            // 4. 验证每个商品并计算总价（用于生成支付单）
             BigDecimal totalPrice = BigDecimal.ZERO;
             List<Order> orderList = new ArrayList<>();
             List<String> cartItemIdsToRemove = new ArrayList<>(); // 需要删除的购物车项ID
@@ -228,7 +240,7 @@ public class OrderServiceImpl implements OrderService {
                 totalPrice = totalPrice.add(order.getTotalAmount());
             }
             
-            // 4. 生成支付单（支付批次），支持多订单一次支付
+            // 5. 生成支付单（支付批次），支持多订单一次支付
             String paymentId = generatePaymentId();
             Date now = new Date();
 
@@ -249,9 +261,25 @@ public class OrderServiceImpl implements OrderService {
             logger.info("支付单已创建: paymentId={}, userId={}, totalAmount={}, orderCount={}",
                     paymentId, userId, totalPrice, orderList.size());
 
-            // 5. 插入订单到数据库，并写入 paymentId
+            // 6. 插入订单地址快照和订单数据
             for (Order order : orderList) {
+                // 为当前订单创建地址快照
+                OrderAddress orderAddress = new OrderAddress();
+                orderAddress.setOrderId(order.getId());
+                orderAddress.setUserId(userId);
+                orderAddress.setReceiverName(baseAddress.getReceiverName());
+                orderAddress.setReceiverPhone(baseAddress.getReceiverPhone());
+                orderAddress.setProvince(baseAddress.getProvince());
+                orderAddress.setCity(baseAddress.getCity());
+                orderAddress.setDistrict(baseAddress.getDistrict());
+                orderAddress.setDetailAddress(baseAddress.getDetailAddress());
+                orderAddress.setCreateTime(now);
+                orderAddress.setUpdateTime(now);
+                orderAddressMapper.insert(orderAddress);
+
                 order.setPaymentId(paymentId);
+                // 订单地址ID指向订单地址快照
+                order.setAddressId(orderAddress.getId());
                 orderMapper.insert(order);
                 logger.info("订单已创建: orderId={}, paymentId={}, teaId={}, quantity={}, totalAmount={}",
                         order.getId(), paymentId, order.getTeaId(), order.getQuantity(), order.getTotalAmount());

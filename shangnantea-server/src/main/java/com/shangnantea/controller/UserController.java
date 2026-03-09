@@ -561,6 +561,21 @@ public class UserController {
     }
 
     /**
+     * 强制下线用户（管理员）
+     * 路径: POST /user/admin/users/{userId}/force-logout
+     * 成功码: 200, 失败码: 2140
+     *
+     * @param userId 用户ID
+     * @return 操作结果
+     */
+    @PostMapping("/admin/users/{userId}/force-logout")
+    @RequiresRoles({1}) // 管理员角色
+    public Result<Boolean> forceLogout(@PathVariable String userId) {
+        logger.info("强制下线用户请求(管理员): {}", userId);
+        return userService.forceLogout(userId);
+    }
+
+    /**
      * 获取商家认证申请列表（管理员）
      * 路径: GET /user/admin/certifications
      * 成功码: 200, 失败码: 2142, 2143

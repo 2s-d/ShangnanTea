@@ -203,4 +203,17 @@ public class UserVO {
     public void setIsFollowed(Boolean isFollowed) {
         this.isFollowed = isFollowed;
     }
+
+    /**
+     * 是否在线（管理员用户列表中使用）。
+     */
+    private Boolean online;
+
+    public Boolean getOnline() {
+        return online;
+    }
+
+    public void setOnline(Boolean online) {
+        this.online = online;
+    }
 } 

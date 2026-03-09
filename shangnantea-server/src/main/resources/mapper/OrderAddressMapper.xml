@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shangnantea.mapper.OrderAddressMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.shangnantea.model.entity.order.OrderAddress">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="order_id" property="orderId" jdbcType="VARCHAR"/>
+        <result column="user_id" property="userId" jdbcType="VARCHAR"/>
+        <result column="receiver_name" property="receiverName" jdbcType="VARCHAR"/>
+        <result column="receiver_phone" property="receiverPhone" jdbcType="VARCHAR"/>
+        <result column="province" property="province" jdbcType="VARCHAR"/>
+        <result column="city" property="city" jdbcType="VARCHAR"/>
+        <result column="district" property="district" jdbcType="VARCHAR"/>
+        <result column="detail_address" property="detailAddress" jdbcType="VARCHAR"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!-- 公共列 -->
+    <sql id="Base_Column_List">
+        id, order_id, user_id, receiver_name, receiver_phone, province, city, district,
+        detail_address, create_time, update_time
+    </sql>
+
+    <!-- 根据主键查询 -->
+    <select id="selectById" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM order_addresses
+        WHERE id = #{id,jdbcType=INTEGER}
+    </select>
+
+    <!-- 根据订单ID查询 -->
+    <select id="selectByOrderId" resultMap="BaseResultMap" parameterType="java.lang.String">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM order_addresses
+        WHERE order_id = #{orderId,jdbcType=VARCHAR}
+        LIMIT 1
+    </select>
+
+    <!-- 插入 -->
+    <insert id="insert" parameterType="com.shangnantea.model.entity.order.OrderAddress" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO order_addresses (
+            order_id, user_id, receiver_name, receiver_phone, province, city, district,
+            detail_address, create_time, update_time
+        ) VALUES (
+            #{orderId,jdbcType=VARCHAR},
+            #{userId,jdbcType=VARCHAR},
+            #{receiverName,jdbcType=VARCHAR},
+            #{receiverPhone,jdbcType=VARCHAR},
+            #{province,jdbcType=VARCHAR},
+            #{city,jdbcType=VARCHAR},
+            #{district,jdbcType=VARCHAR},
+            #{detailAddress,jdbcType=VARCHAR},
+            #{createTime,jdbcType=TIMESTAMP},
+            #{updateTime,jdbcType=TIMESTAMP}
+        )
+    </insert>
+
+    <!-- 根据主键更新 -->
+    <update id="updateById" parameterType="com.shangnantea.model.entity.order.OrderAddress">
+        UPDATE order_addresses
+        <set>
+            <if test="receiverName != null">receiver_name = #{receiverName,jdbcType=VARCHAR},</if>
+            <if test="receiverPhone != null">receiver_phone = #{receiverPhone,jdbcType=VARCHAR},</if>
+            <if test="province != null">province = #{province,jdbcType=VARCHAR},</if>
+            <if test="city != null">city = #{city,jdbcType=VARCHAR},</if>
+            <if test="district != null">district = #{district,jdbcType=VARCHAR},</if>
+            <if test="detailAddress != null">detail_address = #{detailAddress,jdbcType=VARCHAR},</if>
+            <if test="updateTime != null">update_time = #{updateTime,jdbcType=TIMESTAMP},</if>
+        </set>
+        WHERE id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <!-- 根据主键删除 -->
+    <delete id="deleteById" parameterType="java.lang.Integer">
+        DELETE FROM order_addresses WHERE id = #{id}
+    </delete>
+
+</mapper>
+

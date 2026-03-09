@@ -310,6 +310,14 @@ public interface UserService {
      * @return 更新结果
      */
     Result<Boolean> toggleUserStatus(String userId, Map<String, Object> statusData);
+
+    /**
+     * 强制下线用户（管理员）。
+     *
+     * @param userId 用户ID
+     * @return 操作结果
+     */
+    Result<Boolean> forceLogout(String userId);
     
     /**
      * 获取商家认证申请列表（管理员）

@@ -2411,6 +2411,32 @@ public class UserServiceImpl implements UserService {
         }
     }
     
+    /**
+     * 强制下线用户（管理员）。
+     */
+    @Override
+    public Result<Boolean> forceLogout(String userId) {
+        try {
+            if (userId == null || userId.trim().isEmpty()) {
+                logger.warn("强制下线失败(管理员): 用户ID为空");
+                return Result.failure(2140);
+            }
+            
+            if (redisTemplate == null) {
+                logger.warn("强制下线失败(管理员): 未配置Redis，无法管理登录会话");
+                return Result.failure(2140);
+            }
+            
+            String sessionKey = "login:user:" + userId;
+            Boolean removed = redisTemplate.delete(sessionKey);
+            logger.info("管理员强制下线用户: userId={}, removed={}", userId, removed);
+            return Result.success(200, Boolean.TRUE.equals(removed));
+        } catch (Exception e) {
+            logger.error("强制下线失败(管理员): 系统异常, userId={}", userId, e);
+            return Result.failure(2140);
+        }
+    }
+    
     @Override
     public Result<Object> getCertificationList(Integer status, Integer page, Integer pageSize) {
         try {
