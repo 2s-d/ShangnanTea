@@ -143,24 +143,60 @@
         </div>
         
         <!-- 退款信息 -->
-        <div v-if="refundInfo.status" class="detail-section">
+        <div v-if="orderDetail.refundStatus && orderDetail.refundStatus > 0" class="detail-section">
           <div class="section-title">退款信息</div>
           <div class="info-item">
             <span class="label">退款状态：</span>
             <span class="value">
-              <el-tag v-if="refundInfo.status === 'pending'" type="warning">待审核</el-tag>
-              <el-tag v-else-if="refundInfo.status === 'approved'" type="success">已同意</el-tag>
-              <el-tag v-else-if="refundInfo.status === 'rejected'" type="danger">已拒绝</el-tag>
-              <span v-else>{{ refundInfo.status }}</span>
+              <el-tag v-if="orderDetail.refundStatus === 1" type="warning">申请中</el-tag>
+              <el-tag v-else-if="orderDetail.refundStatus === 2" type="success">已同意</el-tag>
+              <el-tag v-else-if="orderDetail.refundStatus === 3" type="danger">已拒绝</el-tag>
+              <span v-else>未知状态</span>
             </span>
           </div>
-          <div class="info-item">
+          <div class="info-item" v-if="orderDetail.refundReason">
             <span class="label">退款原因：</span>
-            <span class="value">{{ refundInfo.reason || '未填写' }}</span>
+            <span class="value">{{ orderDetail.refundReason }}</span>
           </div>
-          <div class="info-item" v-if="refundInfo.process_reason">
-            <span class="label">审核意见：</span>
-            <span class="value">{{ refundInfo.process_reason }}</span>
+          <div class="info-item" v-if="orderDetail.refundRejectReason">
+            <span class="label">拒绝原因：</span>
+            <span class="value">{{ orderDetail.refundRejectReason }}</span>
+          </div>
+          <div class="info-item" v-if="orderDetail.refundApplyTime">
+            <span class="label">申请时间：</span>
+            <span class="value">{{ formatTime(orderDetail.refundApplyTime) }}</span>
+          </div>
+          <div class="info-item" v-if="orderDetail.refundProcessTime">
+            <span class="label">处理时间：</span>
+            <span class="value">{{ formatTime(orderDetail.refundProcessTime) }}</span>
+          </div>
+        </div>
+        
+        <!-- 取消信息 -->
+        <div v-if="orderDetail.status === 4 && orderDetail.cancelTime" class="detail-section">
+          <div class="section-title">取消信息</div>
+          <div class="info-item">
+            <span class="label">取消时间：</span>
+            <span class="value">{{ formatTime(orderDetail.cancelTime) }}</span>
+          </div>
+          <div class="info-item" v-if="orderDetail.cancelReason">
+            <span class="label">取消原因：</span>
+            <span class="value">{{ orderDetail.cancelReason }}</span>
+          </div>
+        </div>
+        
+        <!-- 支付状态信息（仅在待付款状态显示） -->
+        <div v-if="orderDetail.status === 0 && orderDetail.paymentStatus !== null" class="detail-section">
+          <div class="section-title">支付状态</div>
+          <div class="info-item">
+            <span class="label">支付单状态：</span>
+            <span class="value">
+              <el-tag v-if="orderDetail.paymentStatus === 0" type="warning">待支付</el-tag>
+              <el-tag v-else-if="orderDetail.paymentStatus === 1" type="success">支付成功</el-tag>
+              <el-tag v-else-if="orderDetail.paymentStatus === 2" type="danger">支付失败</el-tag>
+              <el-tag v-else-if="orderDetail.paymentStatus === 3" type="info">已关闭</el-tag>
+              <span v-else>未知状态</span>
+            </span>
           </div>
         </div>
         
@@ -228,9 +264,9 @@
             >
               查看物流
             </el-button>
-            <!-- 有退款申请时：显示处理退款按钮（需要后端接口支持） -->
+            <!-- 有退款申请时：显示处理退款按钮 -->
             <el-button
-              v-if="refundInfo.status === 'pending'"
+              v-if="orderDetail.refundStatus === 1"
               type="warning"
               @click="handleProcessRefund"
             >
@@ -358,11 +394,7 @@ const logistics = ref({
   traces: []
 })
 
-const refundInfo = ref({
-  status: '',
-  reason: '',
-  process_reason: ''
-})
+// 退款信息现在直接从 orderDetail 中读取，不再需要单独的 refundInfo
 
 // 修改订单地址对话框
 const addressDialogVisible = ref(false)
@@ -580,21 +612,23 @@ const userAddresses = computed(() => userStore.addressList || [])
     
     // 查看退款详情/进度：当前简单弹出提示，后续可跳转到专门页面
     const viewRefundDetail = () => {
-      if (!refundInfo.value.status) {
+      if (!orderDetail.value || !orderDetail.value.refundStatus || orderDetail.value.refundStatus === 0) {
         orderPromptMessages.showNoRefundInfo && orderPromptMessages.showNoRefundInfo()
         return
       }
       // 暂时直接弹出一个基础信息，后续可以换成对话框或独立页
       const statusTextMap = {
-        pending: '退款申请中',
-        approved: '退款已同意',
-        rejected: '退款已拒绝'
+        1: '退款申请中',
+        2: '退款已同意',
+        3: '退款已拒绝'
       }
-      const statusText = statusTextMap[refundInfo.value.status] || '退款处理中'
-      const reason = refundInfo.value.reason || '无'
-      const processReason = refundInfo.value.process_reason || '无'
+      const statusText = statusTextMap[orderDetail.value.refundStatus] || '退款处理中'
+      const reason = orderDetail.value.refundReason || '无'
+      const rejectReason = orderDetail.value.refundRejectReason || '无'
+      const applyTime = orderDetail.value.refundApplyTime ? formatTime(orderDetail.value.refundApplyTime) : '无'
+      const processTime = orderDetail.value.refundProcessTime ? formatTime(orderDetail.value.refundProcessTime) : '无'
       ElMessageBox.alert(
-        `状态：${statusText}\n申请原因：${reason}\n审核意见：${processReason}`,
+        `状态：${statusText}\n申请原因：${reason}\n拒绝原因：${rejectReason}\n申请时间：${applyTime}\n处理时间：${processTime}`,
         '退款详情',
         { confirmButtonText: '我知道了' }
       )
@@ -709,18 +743,7 @@ const userAddresses = computed(() => userStore.addressList || [])
             ship_time: data?.shippingTime || data?.logistics?.ship_time || '',
             traces: data?.logistics?.traces || []
           }
-          // 拉取退款详情（如果有）
-          orderStore.fetchRefundDetail(orderId)
-            .then(detailRes => {
-              const detail = detailRes?.data || detailRes
-              if (detail) {
-                refundInfo.value = {
-                  status: detail.status || '',
-                  reason: detail.reason || '',
-                  process_reason: detail.process_reason || ''
-                }
-              }
-            })
+          // 退款信息现在直接从 orderDetail 中读取，不再需要单独调用 fetchRefundDetail
         })
         .catch(error => {
           // 5116: 获取订单详情失败（使用状态码消息系统；customMessage 仅用于补充异常信息）

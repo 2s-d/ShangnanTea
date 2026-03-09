@@ -1192,6 +1192,21 @@ public class OrderServiceImpl implements OrderService {
             vo.setShopId(order.getShopId());
             vo.setIsReviewed(order.getBuyerRate());
             
+            // 退款相关字段
+            vo.setRefundStatus(order.getRefundStatus());
+            vo.setRefundReason(order.getRefundReason());
+            vo.setRefundRejectReason(order.getRefundRejectReason());
+            vo.setRefundApplyTime(order.getRefundApplyTime());
+            vo.setRefundProcessTime(order.getRefundProcessTime());
+            
+            // 支付相关字段
+            vo.setPaymentId(order.getPaymentId());
+            vo.setPaymentStatus(paymentStatus);
+            
+            // 取消相关字段
+            vo.setCancelTime(order.getCancelTime());
+            vo.setCancelReason(order.getCancelReason());
+            
             logger.info("获取订单详情成功: orderId={}, userId={}", id, userId);
             return Result.success(200, vo);
             
