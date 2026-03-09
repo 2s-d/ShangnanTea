@@ -298,9 +298,23 @@ const userStore = useUserStore()
       return avatar.toLowerCase().endsWith('.gif')
     })
     
+    // 当前登录用户ID（从全局用户信息里拿）
+    const currentUserId = computed(() => {
+      const base = userStore.userInfo || {}
+      return base.id || base.userId || null
+    })
+    
     // 判断是否是查看自己的主页
     const isOwnProfile = computed(() => {
-      return userId.value === 'current' || !route.params.userId
+      // 路由参数显式指向 current 时，一定是自己的主页
+      if (userId.value === 'current' || !route.params.userId) {
+        return true
+      }
+      // 当路由上带的是实际用户ID时，如果与当前登录用户ID一致，也视为自己的主页
+      if (currentUserId.value && userId.value === currentUserId.value) {
+        return true
+      }
+      return false
     })
 
     // 是否允许查看当前用户的个人主页（自己永远允许）
