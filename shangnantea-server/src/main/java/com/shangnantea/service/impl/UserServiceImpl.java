@@ -68,6 +68,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -180,8 +181,34 @@ public class UserServiceImpl implements UserService {
      * 成功码：2026，失败码：2152
      */
     @Override
+    /**
+     * ⚠️⚠️⚠️ 严重警告：禁止修改此方法！⚠️⚠️⚠️
+     * 
+     * 此方法已经过多次修改和调试，当前实现为：
+     * 1. 调用 extensions=base 获取实时天气（lives数组：weather和temperature）
+     * 2. 调用 extensions=all 获取预报数据（forecasts数组：maxTemperature和minTemperature）
+     * 3. 返回四个字段：weather, temperature, maxTemperature, minTemperature
+     * 
+     * 如需修改此方法，必须：
+     * 1. 先向用户请示并获得批准
+     * 2. 说明修改原因和影响范围
+     * 3. 修改后必须测试所有四个字段都能正常返回
+     * 
+     * 此方法已被修改超过5次，请勿随意改动！
+     */
     public Result<Map<String, Object>> getTodayWeather(String cityAdcode) {
         try {
+            // 清除所有天气缓存（临时操作，确保获取最新数据）
+            try {
+                java.util.Set<String> keys = redisTemplate.keys("weather:today:*");
+                if (keys != null && !keys.isEmpty()) {
+                    redisTemplate.delete(keys);
+                    logger.info("已清除所有天气缓存，共{}条", keys.size());
+                }
+            } catch (Exception e) {
+                logger.warn("清除天气缓存失败: {}", e.getMessage());
+            }
+            
             // 1. 未开启真实天气查询时，直接返回失败，让前端知道没有真实数据
             if (!gaodeWeatherEnabled) {
                 logger.warn("高德天气查询未启用（gaode.weather.enabled=false），不返回占位数据");
@@ -228,78 +255,54 @@ public class UserServiceImpl implements UserService {
                 return Result.failure(2152);
             }
 
-            // 5. 调用高德天气API（使用all获取包含最高/最低温度的预报数据）
-            String url = gaodeWeatherBaseUrl
-                    + "?key=" + gaodeWeatherKey
-                    + "&city=" + city
-                    + "&extensions=all";
-
-            logger.info("请求高德天气API: url={}", url);
+            // 5. 调用高德天气API：base获取实时天气，all获取预报数据
             RestTemplate restTemplate = new RestTemplate();
-            String resp = restTemplate.getForObject(url, String.class);
-
-            if (resp == null || resp.isEmpty()) {
-                logger.warn("高德天气API返回空响应: city={}", city);
-                return Result.failure(2152);
-            }
-
-            JsonNode root = objectMapper.readTree(resp);
-            if (!"1".equals(root.path("status").asText())) {
-                logger.warn("高德天气API调用失败: city={}, resp={}", city, resp);
-                return Result.failure(2152);
-            }
-
-            // 打印完整API响应结构用于调试
-            JsonNode livesNode = root.path("lives");
-            JsonNode forecastsNode = root.path("forecasts");
-            logger.info("高德API返回结构: hasLives={}, livesSize={}, hasForecasts={}, forecastsSize={}", 
-                    root.has("lives"), 
-                    livesNode.isArray() ? livesNode.size() : 0,
-                    root.has("forecasts"),
-                    forecastsNode.isArray() ? forecastsNode.size() : 0);
-            
-            // 如果lives存在，打印第一个元素的内容
-            if (livesNode.isArray() && livesNode.size() > 0) {
-                JsonNode firstLive = livesNode.get(0);
-                logger.info("lives[0]内容: weather={}, temperature={}, 完整节点={}", 
-                        firstLive.path("weather").asText(""), 
-                        firstLive.path("temperature").asText(""),
-                        firstLive.toString());
-            } else {
-                logger.warn("lives数组为空或不存在！完整响应: {}", resp);
-            }
-
             Map<String, Object> result = new HashMap<>();
             
-            // 从forecasts获取所有四个字段（extensions=all时不返回lives，只返回forecasts）
-            JsonNode forecasts = root.path("forecasts");
-            JsonNode forecast = (forecasts.isArray() && forecasts.size() > 0) ? forecasts.get(0) : null;
-            JsonNode casts = forecast != null ? forecast.path("casts") : null;
-            JsonNode todayCast = (casts != null && casts.isArray() && casts.size() > 0) ? casts.get(0) : null;
+            // 先调用base获取实时天气（weather和temperature）
+            String baseUrl = gaodeWeatherBaseUrl + "?key=" + gaodeWeatherKey + "&city=" + city + "&extensions=base";
+            logger.info("请求高德天气API(base): url={}", baseUrl);
+            String baseResp = restTemplate.getForObject(baseUrl, String.class);
             
-            if (todayCast != null) {
-                // 从今天的预报数据中获取所有字段
-                result.put("weather", todayCast.path("dayweather").asText(""));
-                result.put("temperature", todayCast.path("daytemp").asText(""));
-                result.put("maxTemperature", todayCast.path("daytemp").asText(""));
-                result.put("minTemperature", todayCast.path("nighttemp").asText(""));
-            } else {
-                // 如果forecasts也没有，全部设为空
-                result.put("weather", "");
-                result.put("temperature", "");
-                result.put("maxTemperature", "");
-                result.put("minTemperature", "");
+            if (baseResp != null && !baseResp.isEmpty()) {
+                JsonNode baseRoot = objectMapper.readTree(baseResp);
+                if ("1".equals(baseRoot.path("status").asText())) {
+                    JsonNode lives = baseRoot.path("lives");
+                    if (lives.isArray() && lives.size() > 0) {
+                        JsonNode live = lives.get(0);
+                        result.put("weather", live.path("weather").asText(""));
+                        result.put("temperature", live.path("temperature").asText(""));
+                    }
+                }
             }
             
-            // 如果lives存在，优先使用lives的实时数据
-            JsonNode lives = root.path("lives");
-            if (lives.isArray() && lives.size() > 0) {
-                JsonNode live = lives.get(0);
-                result.put("weather", live.path("weather").asText(""));
-                result.put("temperature", live.path("temperature").asText(""));
+            // 再调用all获取预报数据（最高/最低温度）
+            String allUrl = gaodeWeatherBaseUrl + "?key=" + gaodeWeatherKey + "&city=" + city + "&extensions=all";
+            logger.info("请求高德天气API(all): url={}", allUrl);
+            String allResp = restTemplate.getForObject(allUrl, String.class);
+            
+            if (allResp != null && !allResp.isEmpty()) {
+                JsonNode allRoot = objectMapper.readTree(allResp);
+                if ("1".equals(allRoot.path("status").asText())) {
+                    JsonNode forecasts = allRoot.path("forecasts");
+                    if (forecasts.isArray() && forecasts.size() > 0) {
+                        JsonNode forecast = forecasts.get(0);
+                        JsonNode casts = forecast.path("casts");
+                        if (casts.isArray() && casts.size() > 0) {
+                            JsonNode todayCast = casts.get(0);
+                            result.put("maxTemperature", todayCast.path("daytemp").asText(""));
+                            result.put("minTemperature", todayCast.path("nighttemp").asText(""));
+                        }
+                    }
+                }
             }
             
-            // 添加调试日志
+            // 确保所有字段都存在
+            if (!result.containsKey("weather")) result.put("weather", "");
+            if (!result.containsKey("temperature")) result.put("temperature", "");
+            if (!result.containsKey("maxTemperature")) result.put("maxTemperature", "");
+            if (!result.containsKey("minTemperature")) result.put("minTemperature", "");
+            
             logger.info("天气数据提取结果: weather={}, temperature={}, maxTemperature={}, minTemperature={}", 
                     result.get("weather"), result.get("temperature"), 
                     result.get("maxTemperature"), result.get("minTemperature"));

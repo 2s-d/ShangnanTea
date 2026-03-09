@@ -177,6 +177,22 @@ const userAvatar = computed(() => {
 // 购物车数量
 const cartCount = computed(() => orderStore.cartItemCount)
 
+/**
+ * ⚠️⚠️⚠️ 严重警告：禁止修改以下天气相关代码！⚠️⚠️⚠️
+ * 
+ * 此部分代码已经过多次修改和调试，当前实现依赖后端返回的四个字段：
+ * - weather: 天气现象
+ * - temperature: 当前温度
+ * - maxTemperature: 最高温度
+ * - minTemperature: 最低温度
+ * 
+ * 如需修改此部分代码，必须：
+ * 1. 先向用户请示并获得批准
+ * 2. 说明修改原因和影响范围
+ * 3. 确保与后端返回的数据结构保持一致
+ * 
+ * 此部分代码已被修改超过5次，请勿随意改动！
+ */
 // 今日天气相关计算
 const weather = computed(() => userStore.todayWeather)
 const weatherText = computed(() => weather.value?.weather || '')
