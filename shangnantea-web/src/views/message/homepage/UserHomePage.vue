@@ -467,7 +467,7 @@ const defaultImage = ''
 
 <style lang="scss" scoped>
 .user-home-page {
-  padding: 40px 0;
+  padding: 0 0 40px 0;
   
   .container {
     width: 85%;
@@ -480,9 +480,9 @@ const defaultImage = ''
   .page-title-bar {
     width: 100%;
     background: linear-gradient(135deg, #f5f7fa 0%, #ffffff 100%);
-    padding: -10px 0;
+    padding: 12px 0;
     margin-top: 0;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
     border-bottom: 2px solid #e4e7ed;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     
