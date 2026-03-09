@@ -192,6 +192,14 @@
               <el-button type="success" plain disabled>已评价</el-button>
               <el-button type="info" @click="viewLogistics">查看物流</el-button>
             </template>
+            <!-- 退款中 -->
+            <template v-else-if="orderDetail.status === 5">
+              <el-button type="info" @click="viewRefundDetail">查看退款进度</el-button>
+            </template>
+            <!-- 已退款 -->
+            <template v-else-if="orderDetail.status === 6">
+              <el-button type="info" @click="viewRefundDetail">查看退款详情</el-button>
+            </template>
             <!-- 退款相关 -->
             <el-button
               v-if="canRequestRefund"
@@ -500,6 +508,28 @@ const refundInfo = ref({
       } catch (error) {
         console.error('获取物流信息失败:', error)
       }
+    }
+    
+    // 查看退款详情/进度：当前简单弹出提示，后续可跳转到专门页面
+    const viewRefundDetail = () => {
+      if (!refundInfo.value.status) {
+        orderPromptMessages.showNoRefundInfo && orderPromptMessages.showNoRefundInfo()
+        return
+      }
+      // 暂时直接弹出一个基础信息，后续可以换成对话框或独立页
+      const statusTextMap = {
+        pending: '退款申请中',
+        approved: '退款已同意',
+        rejected: '退款已拒绝'
+      }
+      const statusText = statusTextMap[refundInfo.value.status] || '退款处理中'
+      const reason = refundInfo.value.reason || '无'
+      const processReason = refundInfo.value.process_reason || '无'
+      ElMessageBox.alert(
+        `状态：${statusText}\n申请原因：${reason}\n审核意见：${processReason}`,
+        '退款详情',
+        { confirmButtonText: '我知道了' }
+      )
     }
     
     const canRequestRefund = computed(() => {
