@@ -319,7 +319,8 @@ const refundInfo = ref({
         2: '待收货',
         3: '已完成',
         4: '已取消',
-        5: '已退款'
+        5: '退款中',
+        6: '已退款'
       }
       return statusMap[status] || '未知状态'
     }
@@ -332,7 +333,8 @@ const refundInfo = ref({
         2: 'status-shipped',
         3: 'status-completed',
         4: 'status-cancelled',
-        5: 'status-refunded'
+        5: 'status-refunding',
+        6: 'status-refunded'
       }
       return classMap[status] || ''
     }
@@ -344,6 +346,11 @@ const refundInfo = ref({
         'wechat': '微信支付',
         'unionpay': '银联支付'
       }
+      // 待付款且没有支付方式时，显示“待选择”
+      if (!method && orderDetail.value && orderDetail.value.status === 0) {
+        return '待选择'
+      }
+      if (!method) return '未设置'
       return methodMap[method] || '未知方式'
     }
     

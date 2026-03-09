@@ -161,7 +161,8 @@ const getStatusText = status => {
     2: '待收货',
     3: '已完成',
     4: '已取消',
-    5: '已退款'
+    5: '退款中',
+    6: '已退款'
   }
   return map[status] || '未知状态'
 }
@@ -173,7 +174,8 @@ const getStatusType = status => {
     2: 'success',
     3: 'info',
     4: 'danger',
-    5: 'info'
+    5: 'warning',
+    6: 'info'
   }
   return map[status] || 'info'
 }

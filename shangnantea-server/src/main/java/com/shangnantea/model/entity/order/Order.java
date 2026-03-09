@@ -13,12 +13,13 @@ public class Order {
     /**
      * 订单状态常量
      */
-    public static final Integer STATUS_PENDING_PAYMENT = 0;  // 待付款
-    public static final Integer STATUS_PENDING_SHIPMENT = 1; // 待发货
-    public static final Integer STATUS_PENDING_RECEIPT = 2;  // 待收货
-    public static final Integer STATUS_COMPLETED = 3;        // 已完成
-    public static final Integer STATUS_CANCELLED = 4;        // 已取消
-    public static final Integer STATUS_REFUNDED = 5;         // 已退款
+    public static final Integer STATUS_PENDING_PAYMENT = 0;   // 待付款
+    public static final Integer STATUS_PENDING_SHIPMENT = 1;  // 待发货
+    public static final Integer STATUS_PENDING_RECEIPT = 2;   // 待收货
+    public static final Integer STATUS_COMPLETED = 3;         // 已完成
+    public static final Integer STATUS_CANCELLED = 4;         // 已取消
+    public static final Integer STATUS_REFUNDING = 5;         // 退款中
+    public static final Integer STATUS_REFUNDED = 6;          // 已退款
 
     /**
      * 订单编号
@@ -86,7 +87,7 @@ public class Order {
     private Integer addressId;
     
     /**
-     * 订单状态(0待付款,1待发货,2待收货,3已完成,4已取消,5已退款)
+     * 订单状态(0待付款,1待发货,2待收货,3已完成,4已取消,5退款中,6已退款)
      */
     private Integer status;
     
@@ -146,6 +147,11 @@ public class Order {
     private Integer refundStatus;
     
     /**
+     * 退款前订单状态(1待发货,2待收货,3已完成)，用于退款被拒绝时恢复
+     */
+    private Integer refundBeforeStatus;
+    
+    /**
      * 用户退款原因
      */
     private String refundReason;
@@ -187,7 +193,8 @@ public class Order {
             case 2: return "待收货";
             case 3: return "已完成";
             case 4: return "已取消";
-            case 5: return "已退款";
+            case 5: return "退款中";
+            case 6: return "已退款";
             default: return "未知状态";
         }
     }

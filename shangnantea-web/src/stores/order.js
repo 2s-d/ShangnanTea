@@ -60,7 +60,8 @@ const useDefaultSpecOnAdd = ref(false)
       2: '待收货',
       3: '已完成',
       4: '已取消',
-      5: '已退款'
+      5: '退款中',
+      6: '已退款'
     }
     return statusMap[status] || '未知状态'
   })

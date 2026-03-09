@@ -1661,7 +1661,9 @@ public class OrderServiceImpl implements OrderService {
                 return Result.failure(5128);
             }
             
-            // 7. 更新订单退款信息
+            // 7. 更新订单退款信息（记录退款前状态，并将订单状态置为退款中）
+            order.setRefundBeforeStatus(order.getStatus());
+            order.setStatus(Order.STATUS_REFUNDING);
             order.setRefundStatus(1); // 1:申请中
             order.setRefundReason(reason);
             order.setRefundApplyTime(new Date());
@@ -1788,8 +1790,11 @@ public class OrderServiceImpl implements OrderService {
                     return Result.failure(5131);
                 }
             } else {
-                // 拒绝退款
+                // 拒绝退款：恢复到退款前的订单状态（如果有记录），并更新退款状态
                 order.setRefundStatus(3); // 3:已拒绝
+                if (order.getRefundBeforeStatus() != null) {
+                    order.setStatus(order.getRefundBeforeStatus());
+                }
                 order.setRefundRejectReason(rejectReason);
                 order.setRefundProcessTime(new Date());
                 order.setUpdateTime(new Date());

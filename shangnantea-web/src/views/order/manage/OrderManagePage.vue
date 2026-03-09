@@ -541,7 +541,7 @@ const trendTableData = computed(() => {
 })
 
 // 状态分布表格数据
-const statusTableData = computed(() => {
+  const statusTableData = computed(() => {
   const dist = orderStatistics.value?.statusDistribution || orderStatistics.value?.status_distribution
   if (!dist) return []
   const statusNames = {
@@ -550,7 +550,8 @@ const statusTableData = computed(() => {
     2: '待收货',
     3: '已完成',
     4: '已取消',
-    5: '已退款'
+    5: '退款中',
+    6: '已退款'
   }
   const total = Object.values(dist).reduce((sum, v) => sum + Number(v || 0), 0) || 1
   return Object.keys(statusNames).map(code => {
