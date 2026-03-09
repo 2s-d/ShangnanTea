@@ -328,11 +328,8 @@ defineOptions({
     })
     
     // 加载茶叶数据（提前定义，避免 watch 中调用时未定义）
-    const loadTeas = async (preservePage = false) => {
+    const loadTeas = async () => {
       try {
-        // 如果保留页码，先保存目标页码（从URL获取）
-        const targetPage = preservePage && route.query.page ? parseInt(route.query.page) : 1
-        
         // 解析排序选项
         let sortBy = ''
         let sortOrder = 'asc'
@@ -365,14 +362,6 @@ defineOptions({
           status: 1, // 任务组E：只显示上架茶叶
           shopId: filters.source === 'platform' ? 'PLATFORM' : '' // 平台直售筛选
         })
-        
-        // 如果保留页码且目标页码不是1，恢复页码并重新请求
-        // 注意：updateFilters已经触发了请求（页码为1），这里需要再次请求正确的页码
-        if (preservePage && targetPage !== 1) {
-          // 等待updateFilters的请求完成
-          await new Promise(resolve => setTimeout(resolve, 100))
-          teaStore.setPage(targetPage)
-        }
       } catch (error) {
         // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
         if (process.env.NODE_ENV === 'development') {
