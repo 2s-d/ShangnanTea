@@ -173,6 +173,10 @@
               <el-button type="primary" @click="continuePay">立即支付</el-button>
               <el-button type="default" @click="cancelOrder">取消订单</el-button>
             </template>
+            <!-- 待发货：允许修改地址 -->
+            <template v-else-if="orderDetail.status === 1">
+              <el-button type="primary" @click="modifyAddress">修改收货地址</el-button>
+            </template>
             <!-- 待收货 -->
             <template v-else-if="orderDetail.status === 2">
               <el-button type="primary" @click="viewLogistics">查看详细物流</el-button>
@@ -394,6 +398,11 @@ const refundInfo = ref({
       } else {
         router.push('/order/list')
       }
+    }
+    
+    // 修改收货地址：跳转到收货地址管理页
+    const modifyAddress = () => {
+      router.push('/user/address')
     }
     
     // 管理员/商户：发货操作
