@@ -15,6 +15,7 @@ import com.shangnantea.model.vo.message.UnreadCountVO;
 import com.shangnantea.security.context.UserContext;
 import com.shangnantea.service.MessageService;
 import com.shangnantea.utils.FileUploadUtils;
+import com.shangnantea.utils.UserPreferenceRegistry;
 import com.shangnantea.utils.NotificationUtils;
 import com.shangnantea.utils.StatisticsUtils;
 import org.slf4j.Logger;
@@ -64,6 +65,9 @@ public class MessageServiceImpl implements MessageService {
     
     @Autowired
     private com.shangnantea.mapper.UserFavoriteMapper userFavoriteMapper;
+
+    @Autowired
+    private com.shangnantea.mapper.UserSettingMapper userSettingMapper;
     
     @Autowired
     private ShopMapper shopMapper;
@@ -1361,16 +1365,32 @@ public class MessageServiceImpl implements MessageService {
             // 3. 获取当前登录用户ID，检查是否已关注
             String currentUserId = UserContext.getCurrentUserId();
             boolean isFollowed = false;
-            if (currentUserId != null && !currentUserId.equals(userId)) {
+            boolean isSelf = currentUserId != null && currentUserId.equals(userId);
+            if (currentUserId != null && !isSelf) {
                 com.shangnantea.model.entity.user.UserFollow follow = 
                     userFollowMapper.selectByFollowerAndFollowed(currentUserId, userId);
                 isFollowed = (follow != null);
             }
             
-            // 4. 统计数据
-            long postCount = forumPostMapper.countByUserId(userId);
-            long followingCount = userFollowMapper.countFollowingByUserId(userId);
-            long followerCount = userFollowMapper.countFollowersByUserId(userId);
+            // 4. 读取个人主页可见性（默认允许查看）
+            boolean profileVisible = true;
+            if (!isSelf) {
+                String visibilityKey = UserPreferenceRegistry.DISPLAY_PROFILE_VISIBLE.getKey();
+                com.shangnantea.model.entity.user.UserSetting setting =
+                    userSettingMapper.selectByUserIdAndKey(userId, visibilityKey);
+                if (setting != null) {
+                    Object parsed = UserPreferenceRegistry.DISPLAY_PROFILE_VISIBLE.parseStoredValue(
+                        setting.getSettingValue()
+                    );
+                    profileVisible = parsed instanceof Boolean ? (Boolean) parsed : true;
+                } else {
+                    // 未设置时使用默认值
+                    Object parsed = UserPreferenceRegistry.DISPLAY_PROFILE_VISIBLE.parseStoredValue(
+                        UserPreferenceRegistry.DISPLAY_PROFILE_VISIBLE.getDefaultValue()
+                    );
+                    profileVisible = parsed instanceof Boolean ? (Boolean) parsed : true;
+                }
+            }
             
             // 5. 组装返回数据
             Map<String, Object> userProfile = new HashMap<>();
@@ -1378,7 +1398,6 @@ public class MessageServiceImpl implements MessageService {
             // 用户基本信息
             Map<String, Object> userInfo = new HashMap<>();
             userInfo.put("id", user.getId());
-            userInfo.put("username", user.getUsername());
             userInfo.put("nickname", user.getNickname());
             // 头像字段：数据库中可能是相对路径，这里统一转换为前端可直接访问的完整URL
             String avatar = user.getAvatar();
@@ -1392,9 +1411,16 @@ public class MessageServiceImpl implements MessageService {
                 userInfo.put("avatar", null);
             }
             userInfo.put("role", user.getRole());
-            userInfo.put("bio", user.getBio());
             userInfo.put("gender", user.getGender());
+            userInfo.put("currentLocation", user.getCurrentLocation());
+            userInfo.put("bio", user.getBio());
+            userInfo.put("bio", user.getBio());
             userInfo.put("createTime", user.getCreateTime());
+
+            // 仅在本人或主页可见的情况下返回用户名等额外信息
+            if (isSelf || profileVisible) {
+                userInfo.put("username", user.getUsername());
+            }
             
             // 如果是商家角色，附带店铺信息
             if (user.getRole() != null && user.getRole() == 3) {
@@ -1408,16 +1434,27 @@ public class MessageServiceImpl implements MessageService {
             
             // 是否已关注
             userProfile.put("isFollowed", isFollowed);
+            // 个人主页可见性
+            userProfile.put("profileVisible", profileVisible || isSelf);
             
             // 统计数据
             Map<String, Object> statistics = new HashMap<>();
-            statistics.put("postCount", postCount);
-            statistics.put("followingCount", followingCount);
-            statistics.put("followerCount", followerCount);
+            if (isSelf || profileVisible) {
+                long postCount = forumPostMapper.countByUserId(userId);
+                long followingCount = userFollowMapper.countFollowingByUserId(userId);
+                long followerCount = userFollowMapper.countFollowersByUserId(userId);
+                statistics.put("postCount", postCount);
+                statistics.put("followingCount", followingCount);
+                statistics.put("followerCount", followerCount);
+            } else {
+                statistics.put("postCount", 0L);
+                statistics.put("followingCount", 0L);
+                statistics.put("followerCount", 0L);
+            }
             userProfile.put("statistics", statistics);
             
-            logger.info("获取用户主页信息成功, userId: {}, postCount: {}, followingCount: {}, followerCount: {}", 
-                    userId, postCount, followingCount, followerCount);
+            logger.info("获取用户主页信息成功, userId: {}, statistics: {}", 
+                    userId, statistics);
             return Result.success(200, userProfile);
             
         } catch (Exception e) {
@@ -1495,13 +1532,41 @@ public class MessageServiceImpl implements MessageService {
                 return Result.failure(7122);
             }
             
-            // 2. 统计各项数据
-            long postCount = forumPostMapper.countByUserId(userId);
-            long followingCount = userFollowMapper.countFollowingByUserId(userId);
-            long followerCount = userFollowMapper.countFollowersByUserId(userId);
-            long favoriteCount = userFavoriteMapper.countByUserId(userId);
+            // 2. 检查主页可见性（默认允许查看）
+            String currentUserId = UserContext.getCurrentUserId();
+            boolean isSelf = currentUserId != null && currentUserId.equals(userId);
+            boolean profileVisible = true;
+            if (!isSelf) {
+                String visibilityKey = UserPreferenceRegistry.DISPLAY_PROFILE_VISIBLE.getKey();
+                com.shangnantea.model.entity.user.UserSetting setting =
+                    userSettingMapper.selectByUserIdAndKey(userId, visibilityKey);
+                if (setting != null) {
+                    Object parsed = UserPreferenceRegistry.DISPLAY_PROFILE_VISIBLE.parseStoredValue(
+                        setting.getSettingValue()
+                    );
+                    profileVisible = parsed instanceof Boolean ? (Boolean) parsed : true;
+                } else {
+                    Object parsed = UserPreferenceRegistry.DISPLAY_PROFILE_VISIBLE.parseStoredValue(
+                        UserPreferenceRegistry.DISPLAY_PROFILE_VISIBLE.getDefaultValue()
+                    );
+                    profileVisible = parsed instanceof Boolean ? (Boolean) parsed : true;
+                }
+            }
             
-            // 3. 组装返回数据
+            long postCount = 0L;
+            long followingCount = 0L;
+            long followerCount = 0L;
+            long favoriteCount = 0L;
+            
+            if (isSelf || profileVisible) {
+                // 3. 统计各项数据
+                postCount = forumPostMapper.countByUserId(userId);
+                followingCount = userFollowMapper.countFollowingByUserId(userId);
+                followerCount = userFollowMapper.countFollowersByUserId(userId);
+                favoriteCount = userFavoriteMapper.countByUserId(userId);
+            }
+            
+            // 4. 组装返回数据
             Map<String, Object> statistics = new HashMap<>();
             statistics.put("postCount", postCount);
             statistics.put("followingCount", followingCount);

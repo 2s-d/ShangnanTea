@@ -108,8 +108,8 @@
           </div>
         </div>
         
-        <!-- 用户统计数据 -->
-        <div class="user-statistics">
+        <!-- 用户统计数据（当对方主页设置为私密时不展示统计） -->
+        <div class="user-statistics" v-if="isProfileVisible || isOwnProfile">
           <div class="stat-item">
             <div class="stat-number">{{ userStatistics.postCount }}</div>
             <div class="stat-label">发帖</div>
@@ -156,22 +156,33 @@
           
         <!-- 下半部分：内容区域 -->
         <div class="home-content">
-          <!-- 标签页内容 -->
-          <keep-alive>
-            <component :is="currentComponent" />
-          </keep-alive>
-          
-          <!-- 开发中的功能提示 -->
-          <template v-if="!hasComponent">
-            <div class="developing-feature">
-              <el-empty 
-                description="该功能正在开发中，敬请期待..." 
-                :image-size="200">
-                <template #image>
-                  <SafeImage :src="defaultImage" type="banner" class="dev-logo" />
-                </template>
-              </el-empty>
+          <!-- 他人主页设置为私密时，只提示，不展示具体内容 -->
+          <template v-if="!isOwnProfile && !isProfileVisible">
+            <div class="profile-locked">
+              <el-empty
+                description="该用户已将个人主页设置为私密，目前无法查看其发布、关注和收藏等详细内容"
+                :image-size="200"
+              />
             </div>
+          </template>
+          <template v-else>
+            <!-- 标签页内容 -->
+            <keep-alive>
+              <component :is="currentComponent" />
+            </keep-alive>
+            
+            <!-- 开发中的功能提示 -->
+            <template v-if="!hasComponent">
+              <div class="developing-feature">
+                <el-empty 
+                  description="该功能正在开发中，敬请期待..." 
+                  :image-size="200">
+                  <template #image>
+                    <SafeImage :src="defaultImage" type="banner" class="dev-logo" />
+                  </template>
+                </el-empty>
+              </div>
+            </template>
           </template>
         </div>
       </el-card>
@@ -290,6 +301,15 @@ const userStore = useUserStore()
     // 判断是否是查看自己的主页
     const isOwnProfile = computed(() => {
       return userId.value === 'current' || !route.params.userId
+    })
+
+    // 是否允许查看当前用户的个人主页（自己永远允许）
+    const isProfileVisible = computed(() => {
+      if (isOwnProfile.value) return true
+      const profile = messageStore.userProfile || {}
+      // 后端没有返回该字段时默认可见
+      if (profile.profileVisible === undefined || profile.profileVisible === null) return true
+      return !!profile.profileVisible
     })
     
     // 判断是否可以返回（检查是否有历史记录，且不是直接访问）

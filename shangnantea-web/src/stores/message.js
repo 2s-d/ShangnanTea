@@ -360,11 +360,13 @@ export const useMessageStore = defineStore('message', () => {
         bio: rawUser.bio,
         role: Number(rawUser.role) || null, // 确保是数字类型
         gender: Number(rawUser.gender) || 0, // 确保是数字类型，默认0（未知）
+        currentLocation: rawUser.currentLocation || '',
         // 主页额外字段
         isFollowed: data.isFollowed || false,
         registerTime: rawUser.createTime || rawUser.registerTime || null,
         shopId: rawUser.shopId || null,
-        shopName: rawUser.shopName || null
+        shopName: rawUser.shopName || null,
+        profileVisible: data.profileVisible !== false
       }
       return res
     } finally {

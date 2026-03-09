@@ -48,98 +48,98 @@
               style="width: 120px"
               @change="handleSortChange"
             >
-              <el-option label="最新发布" value="newest"></el-option>
-              <el-option label="最多浏览" value="mostViewed"></el-option>
-              <el-option label="最多回复" value="mostReplied"></el-option>
-            </el-select>
-          </div>
-        </div>
-
+                      <el-option label="最新发布" value="newest"></el-option>
+                      <el-option label="最多浏览" value="mostViewed"></el-option>
+                      <el-option label="最多回复" value="mostReplied"></el-option>
+                    </el-select>
+                  </div>
+                </div>
+                
         <!-- 论坛帖子 -->
         <div v-if="activeTab === 'posts'" class="posts-list">
           <el-empty v-if="posts.length === 0" description="暂无发布内容" />
 
           <div v-else class="post-items">
-            <div v-for="post in sortedPosts" :key="post.id" class="post-item" @click="viewPostDetail(post.id)">
-              <div class="post-content">
-                <div class="post-title">{{ post.title }}</div>
-                <div class="post-summary">{{ post.summary }}</div>
-                <div class="post-meta">
-                  <span class="post-time">
-                    <el-icon><Timer /></el-icon> {{ formatDate(post.createTime) }}
-                  </span>
-                  <span class="post-views">
-                    <el-icon><View /></el-icon> {{ post.viewCount }}
-                  </span>
-                  <span class="post-replies">
-                    <el-icon><ChatDotRound /></el-icon> {{ post.replyCount }}
-                  </span>
-                  <span class="post-likes">
-                    <el-icon><Star /></el-icon> {{ post.likeCount }}
-                  </span>
+                  <div v-for="post in sortedPosts" :key="post.id" class="post-item" @click="viewPostDetail(post.id)">
+                    <div class="post-content">
+                      <div class="post-title">{{ post.title }}</div>
+                      <div class="post-summary">{{ post.summary }}</div>
+                      <div class="post-meta">
+                        <span class="post-time">
+                          <el-icon><Timer /></el-icon> {{ formatDate(post.createTime) }}
+                        </span>
+                        <span class="post-views">
+                          <el-icon><View /></el-icon> {{ post.viewCount }}
+                        </span>
+                        <span class="post-replies">
+                          <el-icon><ChatDotRound /></el-icon> {{ post.replyCount }}
+                        </span>
+                        <span class="post-likes">
+                          <el-icon><Star /></el-icon> {{ post.likeCount }}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div class="post-actions">
+                <el-button type="primary" size="small" @click.stop="editPost(post)">
+                        <el-icon><Edit /></el-icon> 编辑
+                      </el-button>
+                      <el-button type="danger" size="small" @click.stop="deletePost(post.id)">
+                        <el-icon><Delete /></el-icon> 删除
+                      </el-button>
+                    </div>
+                  </div>
                 </div>
               </div>
-
-              <div class="post-actions">
-                <el-button type="primary" size="small" @click.stop="editPost(post)">
-                  <el-icon><Edit /></el-icon> 编辑
-                </el-button>
-                <el-button type="danger" size="small" @click.stop="deletePost(post.id)">
-                  <el-icon><Delete /></el-icon> 删除
-                </el-button>
-              </div>
-            </div>
-          </div>
-        </div>
-
+          
         <!-- 茶叶评价 -->
         <div v-else class="reviews-list">
-          <el-empty v-if="reviews.length === 0" description="暂无评价记录" />
-
+              <el-empty v-if="reviews.length === 0" description="暂无评价记录" />
+              
           <div v-else class="review-items">
-            <div v-for="review in sortedReviews" :key="review.id" class="review-item">
-              <div class="review-tea-info" @click="viewTeaDetail(review.teaId)">
-                <img :src="review.teaImage" :alt="review.teaName" class="tea-image" />
-                <div class="tea-details">
-                  <div class="tea-name">{{ review.teaName }}</div>
-                  <div class="shop-name">{{ review.shopName }}</div>
-                </div>
-              </div>
-
-              <div class="review-content">
-                <div class="review-rating">
-                  <el-rate v-model="review.rating" disabled show-score text-color="#ff9900" />
-                </div>
-                <div class="review-text">{{ review.content }}</div>
-                <div class="review-meta">
-                  <span class="review-time">
-                    <el-icon><Timer /></el-icon> {{ formatDate(review.createTime) }}
-                  </span>
-                  <span class="shop-reply-status" v-if="review.hasShopReply">
-                    <el-icon><ChatDotRound /></el-icon> 商家已回复
-                  </span>
-                </div>
-
-                <div v-if="review.hasShopReply && review.shopReply" class="shop-reply">
-                  <div class="reply-header">
-                    <span class="reply-label">商家回复：</span>
-                    <span class="reply-time">{{ formatDate(review.shopReplyTime) }}</span>
+                  <div v-for="review in sortedReviews" :key="review.id" class="review-item">
+                    <div class="review-tea-info" @click="viewTeaDetail(review.teaId)">
+                      <img :src="review.teaImage" :alt="review.teaName" class="tea-image" />
+                      <div class="tea-details">
+                        <div class="tea-name">{{ review.teaName }}</div>
+                        <div class="shop-name">{{ review.shopName }}</div>
+                      </div>
+                    </div>
+                    
+                    <div class="review-content">
+                      <div class="review-rating">
+                        <el-rate v-model="review.rating" disabled show-score text-color="#ff9900" />
+                      </div>
+                      <div class="review-text">{{ review.content }}</div>
+                      <div class="review-meta">
+                        <span class="review-time">
+                          <el-icon><Timer /></el-icon> {{ formatDate(review.createTime) }}
+                        </span>
+                        <span class="shop-reply-status" v-if="review.hasShopReply">
+                          <el-icon><ChatDotRound /></el-icon> 商家已回复
+                        </span>
+                      </div>
+                      
+                      <div v-if="review.hasShopReply && review.shopReply" class="shop-reply">
+                        <div class="reply-header">
+                          <span class="reply-label">商家回复：</span>
+                          <span class="reply-time">{{ formatDate(review.shopReplyTime) }}</span>
+                        </div>
+                        <div class="reply-content">{{ review.shopReply }}</div>
+                      </div>
+                    </div>
+                    
+                    <div class="review-actions">
+                      <el-button type="danger" size="small" @click="deleteReview(review.id)">
+                        <el-icon><Delete /></el-icon> 删除
+                      </el-button>
+                    </div>
                   </div>
-                  <div class="reply-content">{{ review.shopReply }}</div>
                 </div>
-              </div>
-
-              <div class="review-actions">
-                <el-button type="danger" size="small" @click="deleteReview(review.id)">
-                  <el-icon><Delete /></el-icon> 删除
-                </el-button>
               </div>
             </div>
-          </div>
-        </div>
       </div>
-    </div>
-
+      
     <!-- 编辑帖子弹窗 -->
     <el-dialog
       v-model="editDialogVisible"
@@ -433,7 +433,7 @@ onMounted(() => {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
-
+    
     .list-title {
       font-size: 16px;
       font-weight: 500;
