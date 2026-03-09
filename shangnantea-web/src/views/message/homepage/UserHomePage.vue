@@ -16,9 +16,9 @@
           
           <!-- 标题装饰和文字 -->
           <div class="title-wrapper">
-            <!-- 只在查看自己的主页时显示"个人主页"装饰文字 -->
-            <div class="title-decoration" v-if="isOwnProfile">
-              <span class="decoration-text">个人主页</span>
+            <!-- 蓝色竖杠始终显示，文字只在查看自己的主页时显示 -->
+            <div class="title-decoration">
+              <span class="decoration-text" v-if="isOwnProfile">个人主页</span>
             </div>
             <h1 class="page-title-text">
               {{ isOwnProfile ? '我的主页' : `${userInfo.nickname || userInfo.username || '用户'}的个人主页` }}
@@ -480,8 +480,9 @@ const defaultImage = ''
   .page-title-bar {
     width: 100%;
     background: linear-gradient(135deg, #f5f7fa 0%, #ffffff 100%);
-    padding: 24px 0;
-    margin-bottom: 24px;
+    padding: -10px 0;
+    margin-top: 0;
+    margin-bottom: 20px;
     border-bottom: 2px solid #e4e7ed;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     
@@ -529,11 +530,12 @@ const defaultImage = ''
           
           &::before {
             content: '';
-            width: 4px;
-            height: 24px;
+            width: 6px;
+            height: 32px;
             background: linear-gradient(180deg, var(--el-color-primary) 0%, rgba(64, 158, 255, 0.6) 100%);
-            border-radius: 2px;
+            border-radius: 3px;
             margin-right: 12px;
+            flex-shrink: 0;
           }
           
           .decoration-text {

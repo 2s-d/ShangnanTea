@@ -93,16 +93,28 @@ export const useTeaStore = defineStore('tea', () => {
         pageSize: pagination.pageSize
       }
       
-      // 支持多个分类筛选：如果filters.category是数组，传递categoryIds；否则传递categoryId
+      // 支持多个分类筛选：
+      // - 如果filters.category是数组且长度>0，传递categoryIds数组
+      // - 如果filters.category是单个值，传递categoryId（兼容旧代码）
+      // - 如果filters.category为空字符串、空数组或null，不传递参数（显示所有分类）
       if (filters.category) {
-        if (Array.isArray(filters.category) && filters.category.length > 0) {
-          // 多个分类：传递categoryIds数组
-          params.categoryIds = filters.category
-        } else if (typeof filters.category === 'string' || typeof filters.category === 'number') {
-          // 单个分类：传递categoryId（兼容旧代码）
+        if (Array.isArray(filters.category)) {
+          // 数组：只有非空数组才传递
+          if (filters.category.length > 0) {
+            params.categoryIds = filters.category
+          }
+          // 空数组不传递参数，表示显示所有分类
+        } else if (typeof filters.category === 'string') {
+          // 字符串：非空字符串才传递
+          if (filters.category.trim() !== '') {
+            params.categoryId = filters.category
+          }
+        } else if (typeof filters.category === 'number') {
+          // 数字：直接传递
           params.categoryId = filters.category
         }
       }
+      // 如果filters.category为空、null或undefined，不传递参数，显示所有分类
       if (filters.keyword) params.keyword = filters.keyword
       if (filters.priceRange && Array.isArray(filters.priceRange) && filters.priceRange.length === 2) {
         params.priceMin = filters.priceRange[0]

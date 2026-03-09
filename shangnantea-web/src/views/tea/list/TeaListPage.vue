@@ -350,10 +350,23 @@ defineOptions({
         // 将UI筛选条件映射到 store.filters
         // 任务组E：只显示上架茶叶（status=1）
         // 商品来源筛选：platform 表示平台直售（shopId='PLATFORM'），all 表示全部（shopId=''）
+        
+        // 分类筛选逻辑：
+        // - 如果没选或全选了所有分类，不传递categoryIds（显示所有分类）
+        // - 如果选了部分分类，传递categoryIds数组（只显示选中的分类）
+        const totalCategories = categoryOptions.value.length
+        const selectedCount = filters.categories.length
+        let categoryFilter = ''
+        
+        if (selectedCount > 0 && selectedCount < totalCategories) {
+          // 选了部分分类，传递选中的分类ID数组
+          categoryFilter = filters.categories
+        }
+        // 如果 selectedCount === 0 或 selectedCount === totalCategories，categoryFilter 保持为空字符串（显示所有）
+        
         await teaStore.updateFilters({
           keyword: searchQuery.value,
-          // 支持多个分类筛选：传递所有选中的分类ID数组
-          category: filters.categories.length > 0 ? filters.categories : '',
+          category: categoryFilter,
           priceRange: filters.priceRange,
           origin: '', // 暂时不支持产地筛选
           rating: filters.rating,
