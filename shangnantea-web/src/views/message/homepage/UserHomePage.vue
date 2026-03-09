@@ -100,7 +100,7 @@
             <template v-else>
               <el-button class="follow-btn" :class="{ 'is-following': isFollowing }" @click="handleFollow">
                 {{ isFollowing ? '√已关注' : '+关注' }}
-              </el-button>
+            </el-button>
               <el-button class="private-message-btn" @click="handlePrivateMessage">
                 私信
               </el-button>
@@ -163,25 +163,25 @@
                 description="该用户已将个人主页设置为私密，目前无法查看其发布、关注和收藏等详细内容"
                 :image-size="200"
               />
-            </div>
+                  </div>
           </template>
           <template v-else>
             <!-- 标签页内容 -->
             <keep-alive>
-              <component :is="currentComponent" />
-            </keep-alive>
-            
-            <!-- 开发中的功能提示 -->
+            <component :is="currentComponent" />
+          </keep-alive>
+          
+          <!-- 开发中的功能提示 -->
             <template v-if="!hasComponent">
-              <div class="developing-feature">
-                <el-empty 
-                  description="该功能正在开发中，敬请期待..." 
-                  :image-size="200">
-                  <template #image>
-                    <SafeImage :src="defaultImage" type="banner" class="dev-logo" />
-                  </template>
-                </el-empty>
-              </div>
+            <div class="developing-feature">
+              <el-empty 
+                description="该功能正在开发中，敬请期待..." 
+                :image-size="200">
+                <template #image>
+                  <SafeImage :src="defaultImage" type="banner" class="dev-logo" />
+                </template>
+              </el-empty>
+            </div>
             </template>
           </template>
         </div>
@@ -385,7 +385,7 @@ const userStore = useUserStore()
     watch(() => routeTab.value, newTab => {
       if (newTab && componentMap[newTab]) {
         activeMenu.value = newTab
-        currentComponent.value = componentMap[newTab]
+          currentComponent.value = componentMap[newTab]
       }
     })
     
@@ -408,15 +408,15 @@ const userStore = useUserStore()
       // 更新路由参数（不刷新页面），保留userId参数
       const currentUserId = userId.value
       if (currentUserId && currentUserId !== 'current') {
-        router.push({
+      router.push({
           path: `/profile/${currentUserId}/${key}`,
           replace: true
         })
       } else {
         router.push({
           path: `/profile/current/${key}`,
-          replace: true
-        })
+        replace: true
+      })
       }
     }
     
