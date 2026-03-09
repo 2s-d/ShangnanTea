@@ -273,6 +273,7 @@ import {
 import SafeImage from '@/components/common/form/SafeImage.vue'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { userPromptMessages as userMessages } from '@/utils/promptMessages'
+import websocketManager from '@/utils/websocket'
 
 const router = useRouter()
 const userStore = useUserStore()

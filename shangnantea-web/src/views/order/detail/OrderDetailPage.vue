@@ -714,15 +714,80 @@ const cascaderOptions = ref(regionData || [])
     
     // 提交修改订单地址
     const submitAddressChange = async () => {
-      if (!selectedAddressId.value) {
+      // 验证表单数据
+      if (!editAddressForm.value.receiverName || !editAddressForm.value.receiverPhone) {
         orderPromptMessages.showAddressRequired && orderPromptMessages.showAddressRequired()
         return
       }
+      
+      if (!editAddressForm.value.region || editAddressForm.value.region.length !== 3) {
+        showByCode(5147, '请选择完整的省市区')
+        return
+      }
+      
+      if (!editAddressForm.value.detailAddress) {
+        showByCode(5147, '请输入详细地址')
+        return
+      }
+      
       addressSubmitting.value = true
       try {
+        let finalAddressId = selectedAddressId.value
+        
+        // 如果用户手动编辑了地址（没有选择地址簿中的地址，或者编辑后的内容与选中的地址不一致）
+        if (!finalAddressId || !isFormMatchSelectedAddress()) {
+          // 需要创建新地址或更新地址
+          // 从级联选择器获取省市区名称
+          const province = cascaderOptions.value.find(p => p.value === editAddressForm.value.region[0])
+          const city = province?.children?.find(c => c.value === editAddressForm.value.region[1])
+          const district = city?.children?.find(d => d.value === editAddressForm.value.region[2])
+          
+          const addressData = {
+            receiverName: editAddressForm.value.receiverName,
+            receiverPhone: editAddressForm.value.receiverPhone,
+            province: province?.label || '',
+            city: city?.label || '',
+            district: district?.label || '',
+            detailAddress: editAddressForm.value.detailAddress,
+            isDefault: false
+          }
+          
+          // 创建新地址
+          const addRes = await userStore.addAddress(addressData)
+          if (addRes && addRes.code !== 200) {
+            showByCode(addRes.code)
+            return
+          }
+          
+          // 获取新创建的地址ID（从响应中获取，或者从地址列表中找到）
+          const newAddress = userStore.addressList.find(addr => 
+            addr.receiverName === addressData.receiverName &&
+            addr.receiverPhone === addressData.receiverPhone &&
+            addr.province === addressData.province &&
+            addr.city === addressData.city &&
+            addr.district === addressData.district &&
+            addr.detailAddress === addressData.detailAddress
+          )
+          
+          if (newAddress) {
+            finalAddressId = newAddress.id
+          } else {
+            // 如果找不到，重新获取地址列表
+            await userStore.fetchAddresses()
+            const latestAddress = userStore.addressList[userStore.addressList.length - 1]
+            finalAddressId = latestAddress?.id
+          }
+        }
+        
+        if (!finalAddressId) {
+          showByCode(5147, '无法获取地址ID')
+          return
+        }
+        
+        // 调用修改订单地址接口
         const res = await orderStore.updateOrderAddress({
           orderId,
-          addressId: selectedAddressId.value
+          addressId: finalAddressId
         })
         const code = res?.code
         if (code) {
@@ -736,6 +801,20 @@ const cascaderOptions = ref(regionData || [])
       } finally {
         addressSubmitting.value = false
       }
+    }
+    
+    // 检查表单数据是否与选中的地址簿地址一致
+    const isFormMatchSelectedAddress = () => {
+      if (!selectedAddressId.value) return false
+      const selectedAddr = userAddresses.value.find(addr => addr.id === selectedAddressId.value)
+      if (!selectedAddr) return false
+      
+      return selectedAddr.receiverName === editAddressForm.value.receiverName &&
+             selectedAddr.receiverPhone === editAddressForm.value.receiverPhone &&
+             selectedAddr.province === (cascaderOptions.value.find(p => p.value === editAddressForm.value.region[0])?.label || '') &&
+             selectedAddr.city === (cascaderOptions.value.find(p => p.value === editAddressForm.value.region[0])?.children?.find(c => c.value === editAddressForm.value.region[1])?.label || '') &&
+             selectedAddr.district === (cascaderOptions.value.find(p => p.value === editAddressForm.value.region[0])?.children?.find(c => c.value === editAddressForm.value.region[1])?.children?.find(d => d.value === editAddressForm.value.region[2])?.label || '') &&
+             selectedAddr.detailAddress === editAddressForm.value.detailAddress
     }
     
     // 查看退款详情/进度：当前简单弹出提示，后续可跳转到专门页面
@@ -1168,5 +1247,92 @@ onMounted(() => {
       }
     }
   }
+}
+
+/* 修改地址对话框样式 */
+.address-edit-dialog .address-form-section {
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.address-edit-dialog .address-form-section .section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303133;
+  margin-bottom: 16px;
+}
+
+.address-edit-dialog .address-book-section .section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303133;
+  margin-bottom: 12px;
+}
+
+.address-edit-dialog .address-list-container {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+  padding: 8px;
+}
+
+.address-edit-dialog .address-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  margin-bottom: 8px;
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.address-edit-dialog .address-item:hover {
+  border-color: #409eff;
+  background-color: #ecf5ff;
+}
+
+.address-edit-dialog .address-item.selected {
+  border-color: #409eff;
+  background-color: #ecf5ff;
+}
+
+.address-edit-dialog .address-item:last-child {
+  margin-bottom: 0;
+}
+
+.address-edit-dialog .address-content {
+  flex: 1;
+}
+
+.address-edit-dialog .address-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.address-edit-dialog .receiver-name {
+  font-weight: 500;
+  color: #303133;
+}
+
+.address-edit-dialog .phone {
+  color: #606266;
+  font-size: 13px;
+}
+
+.address-edit-dialog .address-detail {
+  color: #606266;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.address-edit-dialog .select-icon {
+  color: #409eff;
+  font-size: 18px;
 }
 </style> 
