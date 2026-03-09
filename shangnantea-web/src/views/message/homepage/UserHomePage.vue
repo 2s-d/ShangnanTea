@@ -578,8 +578,8 @@ const defaultImage = ''
         
         .page-title-text {
           margin: 0;
-          font-size: 28px;
-          font-weight: 600;
+          font-size: 22px;
+          font-weight: 500;
           color: var(--el-text-color-primary);
           letter-spacing: 0.5px;
           flex: 1;
