@@ -487,11 +487,25 @@ const userStore = useUserStore()
           return
         }
         
-        // 并行加载用户信息和统计数据
-        await Promise.all([
-          messageStore.fetchUserProfile(targetUserId),
-          messageStore.fetchUserStatistics(targetUserId)
-        ])
+        // 先加载主页基础信息（用于判断 profileVisible），再决定是否需要请求统计接口
+        await messageStore.fetchUserProfile(targetUserId)
+        
+        const isSelf = currentUserId.value && String(targetUserId) === String(currentUserId.value)
+        const profileVisible = messageStore.userProfile?.profileVisible !== false
+        
+        // 仅在本人或对方允许查看时才请求统计接口；否则直接置零并不发请求
+        if (isSelf || profileVisible) {
+          await messageStore.fetchUserStatistics(targetUserId)
+        } else {
+          messageStore.userStatistics = {
+            postCount: 0,
+            likeCount: 0,
+            favoriteCount: 0,
+            followingCount: 0,
+            followerCount: 0,
+            commentCount: 0
+          }
+        }
       } catch (error) {
         console.error('加载用户数据失败：', error)
       }
