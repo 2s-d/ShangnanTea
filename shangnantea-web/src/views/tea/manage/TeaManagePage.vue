@@ -22,7 +22,7 @@
     <div class="container main-content">
       <!-- 标签页 -->
       <el-tabs v-model="activeTab" class="manage-tabs">
-      <el-tab-pane label="茶叶管理" name="tea">
+      <el-tab-pane label="平台茶叶管理" name="tea">
         <!-- 搜索和筛选区域 -->
         <div class="search-filter-container">
       <div class="search-box">
@@ -58,11 +58,6 @@
           />
         </el-select>
 
-        <!-- 平台直售筛选：只查看平台自营茶叶 -->
-        <el-select v-model="sourceFilter" placeholder="来源筛选" @change="handleFilterChange">
-          <el-option label="全部来源" value="" />
-          <el-option label="仅平台直售" value="platform" />
-        </el-select>
         </div>
         </div>
 
@@ -524,7 +519,6 @@ defineOptions({
     const searchQuery = ref('')
     const statusFilter = ref('')
     const categoryFilter = ref('')
-    const sourceFilter = ref('') // ''=全部，'platform'=仅平台直售
     
     // 对话框相关状态
     const dialogVisible = ref(false)
@@ -1310,10 +1304,8 @@ defineOptions({
         if (categoryFilter.value !== '') {
           filters.category = parseInt(categoryFilter.value)
         }
-        // 管理员专用：仅查看平台直售茶叶（shop_id 为平台自营店）
-        if (sourceFilter.value === 'platform') {
-          filters.shopId = PLATFORM_SHOP_ID
-        }
+        // 管理员平台业务页：始终只管理平台直售茶叶
+        filters.shopId = PLATFORM_SHOP_ID
         
         // 目标页：显式传入优先，否则使用当前分页
         const page = targetPage ?? teaStore.pagination.currentPage ?? 1
