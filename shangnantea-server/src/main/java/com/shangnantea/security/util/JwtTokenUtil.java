@@ -24,7 +24,8 @@ public class JwtTokenUtil {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JwtTokenUtil.class);
 
-    @Value("${jwt.secret:shangnantea-default-secret-key-for-jwt-signature}")
+    // 与 JwtUtil 共享同一套密钥配置，从配置或环境变量中注入
+    @Value("${jwt.secret}")
     private String secret;
 
     @Value("${jwt.expiration:86400000}")

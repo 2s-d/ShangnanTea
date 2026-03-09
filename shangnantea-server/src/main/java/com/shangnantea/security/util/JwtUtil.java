@@ -27,8 +27,8 @@ public class JwtUtil {
     
     private static final Logger logger = LoggerFactory.getLogger(JwtUtil.class);
     
-    // JWT密钥
-    @Value("${jwt.secret:shangnantea-default-secret-key}")
+    // JWT密钥（从配置或环境变量中注入，不再使用硬编码默认值）
+    @Value("${jwt.secret}")
     private String secret;
     
     // 令牌过期时间（毫秒），默认24小时

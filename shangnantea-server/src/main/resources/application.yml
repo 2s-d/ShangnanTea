@@ -70,9 +70,9 @@ logging:
     # 后端日志落盘位置（与现有 shangnantea-server.log 保持一致）
     name: logs/shangnantea-server.log
 
-# JWT配置
+# JWT配置（密钥支持从环境变量 JWT_SECRET 注入，未配置时使用一个较长的默认值）
 jwt:
-  secret: shangnantea-secure-jwt-secret-key-2025
+  secret: ${JWT_SECRET:shangnantea-secure-jwt-secret-key-2025}
   expiration: 86400000 
 
 # 应用配置
