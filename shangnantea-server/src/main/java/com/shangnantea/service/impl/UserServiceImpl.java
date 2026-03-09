@@ -271,27 +271,38 @@ public class UserServiceImpl implements UserService {
 
             Map<String, Object> result = new HashMap<>();
             
-            // 从高德API返回的数据中提取四个字段
-            JsonNode lives = root.path("lives");
-            JsonNode live = (lives.isArray() && lives.size() > 0) ? lives.get(0) : null;
-            String weather = live != null ? live.path("weather").asText("") : "";
-            String temperature = live != null ? live.path("temperature").asText("") : "";
-            result.put("weather", weather);
-            result.put("temperature", temperature);
-            
+            // 从forecasts获取所有四个字段（extensions=all时不返回lives，只返回forecasts）
             JsonNode forecasts = root.path("forecasts");
             JsonNode forecast = (forecasts.isArray() && forecasts.size() > 0) ? forecasts.get(0) : null;
             JsonNode casts = forecast != null ? forecast.path("casts") : null;
             JsonNode todayCast = (casts != null && casts.isArray() && casts.size() > 0) ? casts.get(0) : null;
-            String maxTemp = todayCast != null ? todayCast.path("daytemp").asText("") : "";
-            String minTemp = todayCast != null ? todayCast.path("nighttemp").asText("") : "";
-            result.put("maxTemperature", maxTemp);
-            result.put("minTemperature", minTemp);
+            
+            if (todayCast != null) {
+                // 从今天的预报数据中获取所有字段
+                result.put("weather", todayCast.path("dayweather").asText(""));
+                result.put("temperature", todayCast.path("daytemp").asText(""));
+                result.put("maxTemperature", todayCast.path("daytemp").asText(""));
+                result.put("minTemperature", todayCast.path("nighttemp").asText(""));
+            } else {
+                // 如果forecasts也没有，全部设为空
+                result.put("weather", "");
+                result.put("temperature", "");
+                result.put("maxTemperature", "");
+                result.put("minTemperature", "");
+            }
+            
+            // 如果lives存在，优先使用lives的实时数据
+            JsonNode lives = root.path("lives");
+            if (lives.isArray() && lives.size() > 0) {
+                JsonNode live = lives.get(0);
+                result.put("weather", live.path("weather").asText(""));
+                result.put("temperature", live.path("temperature").asText(""));
+            }
             
             // 添加调试日志
-            logger.info("天气数据提取结果: weather={}, temperature={}, maxTemperature={}, minTemperature={}, lives存在={}, live存在={}, forecasts存在={}, todayCast存在={}", 
-                    weather, temperature, maxTemp, minTemp, 
-                    lives.isArray(), live != null, forecasts.isArray(), todayCast != null);
+            logger.info("天气数据提取结果: weather={}, temperature={}, maxTemperature={}, minTemperature={}", 
+                    result.get("weather"), result.get("temperature"), 
+                    result.get("maxTemperature"), result.get("minTemperature"));
 
             // 6. 写入Redis缓存
             try {
