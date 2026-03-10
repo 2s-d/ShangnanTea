@@ -1089,4 +1089,114 @@ onMounted(() => {
     margin-top: 5px;
   }
 }
+
+/* 修改收货地址对话框样式（与订单详情页保持一致体验） */
+.address-edit-dialog-wrapper :deep(.el-dialog__body) {
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.address-edit-dialog {
+  display: flex;
+  flex-direction: column;
+  max-height: 70vh;
+}
+
+.address-edit-dialog .address-form-section {
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #ebeef5;
+  flex-shrink: 0;
+}
+
+.address-edit-dialog .address-form-section .section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303133;
+  margin-bottom: 16px;
+}
+
+.address-edit-dialog .address-book-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.address-edit-dialog .address-book-section .section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303133;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.address-edit-dialog .address-list-container {
+  flex: 1;
+  min-height: 0;
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+  padding: 8px;
+}
+
+.address-edit-dialog .address-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  margin-bottom: 8px;
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.address-edit-dialog .address-item:hover {
+  border-color: #409eff;
+  background-color: #ecf5ff;
+}
+
+.address-edit-dialog .address-item.selected {
+  border-color: #409eff;
+  background-color: #ecf5ff;
+}
+
+.address-edit-dialog .address-item:last-child {
+  margin-bottom: 0;
+}
+
+.address-edit-dialog .address-content {
+  flex: 1;
+}
+
+.address-edit-dialog .address-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.address-edit-dialog .receiver-name {
+  font-weight: 500;
+  color: #303133;
+}
+
+.address-edit-dialog .phone {
+  color: #606266;
+  font-size: 13px;
+}
+
+.address-edit-dialog .address-detail {
+  color: #606266;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.address-edit-dialog .select-icon {
+  color: #409eff;
+  font-size: 18px;
+}
 </style> 
