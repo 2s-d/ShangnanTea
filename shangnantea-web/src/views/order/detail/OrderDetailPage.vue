@@ -364,7 +364,7 @@
           <div class="section-title">从地址簿选择</div>
           <div class="address-list-container">
             <div 
-              v-for="addr in userAddresses.filter(addr => addr && addr.id)" 
+              v-for="addr in userAddresses" 
               :key="addr.id"
               class="address-item"
               :class="{ 'selected': selectedAddressId === addr.id }"
@@ -460,7 +460,7 @@ const logistics = ref({
 const addressDialogVisible = ref(false)
 const addressSubmitting = ref(false)
 const selectedAddressId = ref(null)
-const userAddresses = computed(() => userStore.addressList || [])
+const userAddresses = computed(() => (userStore.addressList || []).filter(addr => addr && addr.id))
 const editAddressFormRef = ref(null)
 
 // 地址编辑表单数据
@@ -567,26 +567,35 @@ const cascaderOptions = ref(regionData || [])
       
       // 初始化表单数据为当前订单地址
       const currentAddr = address.value
-      editAddressForm.value = {
-        receiverName: currentAddr.name || '',
-        receiverPhone: currentAddr.phone || '',
-        region: [],
-        detailAddress: currentAddr.detail || ''
-      }
+      const initialRegion = []
       
       // 根据省市区设置级联选择器的值
       if (currentAddr.province && currentAddr.city && currentAddr.district) {
-        // 需要从地区数据中找到对应的值
         const province = cascaderOptions.value.find(p => p.label === currentAddr.province)
         if (province) {
           const city = province.children?.find(c => c.label === currentAddr.city)
           if (city) {
             const district = city.children?.find(d => d.label === currentAddr.district)
             if (district) {
-              editAddressForm.value.region = [province.value, city.value, district.value]
+              initialRegion.push(province.value, city.value, district.value)
             }
           }
         }
+      }
+      
+      editAddressForm.value = {
+        receiverName: currentAddr.name || '',
+        receiverPhone: currentAddr.phone || '',
+        region: initialRegion,
+        detailAddress: currentAddr.detail || ''
+      }
+      
+      // 保存初始值（深拷贝）
+      initialAddressForm.value = {
+        receiverName: currentAddr.name || '',
+        receiverPhone: currentAddr.phone || '',
+        region: [...initialRegion],
+        detailAddress: currentAddr.detail || ''
       }
       
       selectedAddressId.value = null
@@ -720,8 +729,45 @@ const cascaderOptions = ref(regionData || [])
       }
     }
     
+    // 检查表单是否被修改
+    const isFormModified = () => {
+      return editAddressForm.value.receiverName !== initialAddressForm.value.receiverName ||
+             editAddressForm.value.receiverPhone !== initialAddressForm.value.receiverPhone ||
+             JSON.stringify(editAddressForm.value.region) !== JSON.stringify(initialAddressForm.value.region) ||
+             editAddressForm.value.detailAddress !== initialAddressForm.value.detailAddress
+    }
+    
     // 提交修改订单地址
     const submitAddressChange = async () => {
+      // 如果既没选择地址簿地址，也没修改表单，则保持原样（不提交）
+      if (!selectedAddressId.value && !isFormModified()) {
+        addressDialogVisible.value = false
+        return
+      }
+      
+      // 如果选择了地址簿地址，直接用这个ID（忽略表单内容）
+      if (selectedAddressId.value) {
+        addressSubmitting.value = true
+        try {
+          const res = await orderStore.updateOrderAddress({
+            orderId,
+            addressId: selectedAddressId.value
+          })
+          const code = res?.code
+          if (code) {
+            showByCode(code)
+          }
+          addressDialogVisible.value = false
+          await loadOrderDetail()
+        } catch (error) {
+          showByCode(5147, error?.message || null)
+        } finally {
+          addressSubmitting.value = false
+        }
+        return
+      }
+      
+      // 如果没有选择地址簿地址，但修改了表单，需要创建新地址
       // 验证表单数据
       if (!editAddressForm.value.receiverName || !editAddressForm.value.receiverPhone) {
         orderPromptMessages.showAddressRequired && orderPromptMessages.showAddressRequired()
@@ -740,89 +786,60 @@ const cascaderOptions = ref(regionData || [])
       
       addressSubmitting.value = true
       try {
-        let finalAddressId = selectedAddressId.value
+        // 从级联选择器获取省市区名称
+        const province = cascaderOptions.value.find(p => p.value === editAddressForm.value.region[0])
+        const city = province?.children?.find(c => c.value === editAddressForm.value.region[1])
+        const district = city?.children?.find(d => d.value === editAddressForm.value.region[2])
         
-        // 如果用户手动编辑了地址（没有选择地址簿中的地址，或者编辑后的内容与选中的地址不一致）
-        if (!finalAddressId || !isFormMatchSelectedAddress()) {
-          // 需要创建新地址或更新地址
-          // 从级联选择器获取省市区名称
-          const province = cascaderOptions.value.find(p => p.value === editAddressForm.value.region[0])
-          const city = province?.children?.find(c => c.value === editAddressForm.value.region[1])
-          const district = city?.children?.find(d => d.value === editAddressForm.value.region[2])
-          
-          const addressData = {
-            receiverName: editAddressForm.value.receiverName,
-            receiverPhone: editAddressForm.value.receiverPhone,
-            province: province?.label || '',
-            city: city?.label || '',
-            district: district?.label || '',
-            detailAddress: editAddressForm.value.detailAddress,
-            isDefault: false
-          }
-          
-          // 创建新地址
-          const addRes = await userStore.addAddress(addressData)
-          if (addRes && addRes.code !== 200) {
-            showByCode(addRes.code)
-            return
-          }
-          
-          // 获取新创建的地址ID（从响应中获取，或者从地址列表中找到）
-          const newAddress = userStore.addressList.find(addr => 
-            addr.receiverName === addressData.receiverName &&
-            addr.receiverPhone === addressData.receiverPhone &&
-            addr.province === addressData.province &&
-            addr.city === addressData.city &&
-            addr.district === addressData.district &&
-            addr.detailAddress === addressData.detailAddress
-          )
-          
-          if (newAddress) {
-            finalAddressId = newAddress.id
-          } else {
-            // 如果找不到，重新获取地址列表
-            await userStore.fetchAddresses()
-            const latestAddress = userStore.addressList[userStore.addressList.length - 1]
-            finalAddressId = latestAddress?.id
-          }
+        const addressData = {
+          receiverName: editAddressForm.value.receiverName,
+          receiverPhone: editAddressForm.value.receiverPhone,
+          province: province?.label || '',
+          city: city?.label || '',
+          district: district?.label || '',
+          detailAddress: editAddressForm.value.detailAddress,
+          isDefault: false
         }
         
-        if (!finalAddressId) {
-          showByCode(5147, '无法获取地址ID')
+        // 创建新地址
+        const addRes = await userStore.addAddress(addressData)
+        if (addRes && addRes.code !== 200) {
+          showByCode(addRes.code)
+          return
+        }
+        
+        // 获取新创建的地址ID
+        await userStore.fetchAddresses()
+        const newAddress = userStore.addressList.find(addr => 
+          addr && addr.receiverName === addressData.receiverName &&
+          addr.receiverPhone === addressData.receiverPhone &&
+          addr.province === addressData.province &&
+          addr.city === addressData.city &&
+          addr.district === addressData.district &&
+          (addr.detailAddress || addr.detail) === addressData.detailAddress
+        )
+        
+        if (!newAddress) {
+          showByCode(5147, '无法获取新创建的地址ID')
           return
         }
         
         // 调用修改订单地址接口
         const res = await orderStore.updateOrderAddress({
           orderId,
-          addressId: finalAddressId
+          addressId: newAddress.id
         })
         const code = res?.code
         if (code) {
           showByCode(code)
         }
         addressDialogVisible.value = false
-        // 重新加载订单详情，刷新地址快照
         await loadOrderDetail()
       } catch (error) {
         showByCode(5147, error?.message || null)
       } finally {
         addressSubmitting.value = false
       }
-    }
-    
-    // 检查表单数据是否与选中的地址簿地址一致
-    const isFormMatchSelectedAddress = () => {
-      if (!selectedAddressId.value) return false
-      const selectedAddr = userAddresses.value.find(addr => addr.id === selectedAddressId.value)
-      if (!selectedAddr) return false
-      
-      return selectedAddr.receiverName === editAddressForm.value.receiverName &&
-             selectedAddr.receiverPhone === editAddressForm.value.receiverPhone &&
-             selectedAddr.province === (cascaderOptions.value.find(p => p.value === editAddressForm.value.region[0])?.label || '') &&
-             selectedAddr.city === (cascaderOptions.value.find(p => p.value === editAddressForm.value.region[0])?.children?.find(c => c.value === editAddressForm.value.region[1])?.label || '') &&
-             selectedAddr.district === (cascaderOptions.value.find(p => p.value === editAddressForm.value.region[0])?.children?.find(c => c.value === editAddressForm.value.region[1])?.children?.find(d => d.value === editAddressForm.value.region[2])?.label || '') &&
-             selectedAddr.detailAddress === editAddressForm.value.detailAddress
     }
     
     // 查看退款详情/进度：当前简单弹出提示，后续可跳转到专门页面
