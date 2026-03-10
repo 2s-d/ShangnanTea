@@ -53,7 +53,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
             
             // 广播在线用户列表更新（通知所有管理员）
             try {
-                webSocketService.broadcastOnlineUsersUpdate();
+                webSocketService.notifyUserOnlineChanged(userId, true);
             } catch (Exception e) {
                 logger.debug("广播在线用户列表更新失败，不影响连接: userId={}, error={}", userId, e.getMessage());
             }
@@ -103,7 +103,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
             
             // 广播在线用户列表更新（通知所有管理员）
             try {
-                webSocketService.broadcastOnlineUsersUpdate();
+                webSocketService.notifyUserOnlineChanged(userId, false);
             } catch (Exception e) {
                 logger.debug("广播在线用户列表更新失败，不影响断开: userId={}, error={}", userId, e.getMessage());
             }

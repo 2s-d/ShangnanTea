@@ -125,4 +125,12 @@
         WHERE user_id = #{followerId} AND follow_id = #{followedId} AND follow_type = 'user'
         LIMIT 1
     </select>
+    
+    <!-- 查询粉丝用户ID列表 -->
+    <select id="selectFollowerIdsByFollow" resultType="java.lang.String">
+        SELECT user_id
+        FROM user_follows
+        WHERE follow_type = #{followType,jdbcType=VARCHAR}
+        AND follow_id = #{followId,jdbcType=VARCHAR}
+    </select>
 </mapper> 

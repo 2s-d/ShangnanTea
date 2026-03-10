@@ -108,4 +108,16 @@
         AND status = 1
         LIMIT 1
     </select>
+    
+    <!-- 查询与指定用户有会话关系的对方用户ID列表（去重） -->
+    <select id="selectRelatedUserIds" resultType="java.lang.String">
+        SELECT DISTINCT
+            CASE
+                WHEN initiator_id = #{userId} THEN receiver_id
+                ELSE initiator_id
+            END AS related_user_id
+        FROM chat_sessions
+        WHERE (initiator_id = #{userId} OR receiver_id = #{userId})
+        AND status = 1
+    </select>
 </mapper> 

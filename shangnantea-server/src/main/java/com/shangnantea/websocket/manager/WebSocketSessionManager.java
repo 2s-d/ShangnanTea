@@ -7,6 +7,7 @@ import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -118,6 +119,34 @@ public class WebSocketSessionManager {
             }
         }
         logger.debug("广播消息完成: 发送给{}个会话", totalSent);
+    }
+    
+    /**
+     * 广播消息给管理员（role=1）。
+     * 注意：role 来源于 WebSocket 握手时写入的 session attributes。
+     */
+    public void broadcastToAdmins(String message) {
+        int totalSent = 0;
+        for (Map.Entry<String, java.util.Set<WebSocketSession>> entry : userSessions.entrySet()) {
+            Set<WebSocketSession> sessions = entry.getValue();
+            for (WebSocketSession session : sessions) {
+                if (!session.isOpen()) {
+                    continue;
+                }
+                Object roleObj = session.getAttributes().get("role");
+                Integer role = roleObj instanceof Integer ? (Integer) roleObj : null;
+                if (role == null || role != 1) {
+                    continue;
+                }
+                try {
+                    session.sendMessage(new org.springframework.web.socket.TextMessage(message));
+                    totalSent++;
+                } catch (IOException e) {
+                    logger.error("广播给管理员失败: sessionId={}, error={}", session.getId(), e.getMessage());
+                }
+            }
+        }
+        logger.debug("广播给管理员完成: 发送给{}个会话", totalSent);
     }
     
     /**

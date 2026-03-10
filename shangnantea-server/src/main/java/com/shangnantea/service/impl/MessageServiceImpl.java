@@ -21,6 +21,7 @@ import com.shangnantea.utils.StatisticsUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,6 +72,9 @@ public class MessageServiceImpl implements MessageService {
     
     @Autowired
     private ShopMapper shopMapper;
+    
+    @Autowired(required = false)
+    private StringRedisTemplate redisTemplate;
     
     @Autowired
     private StatisticsUtils statisticsUtils;
@@ -1005,6 +1009,18 @@ public class MessageServiceImpl implements MessageService {
                 String targetUserId = userId.equals(session.getInitiatorId()) ? 
                     session.getReceiverId() : session.getInitiatorId();
                 sessionVO.put("targetUserId", targetUserId);
+                
+                // 补充在线状态（由WebSocket维护online:user:* key）
+                boolean targetOnline = false;
+                try {
+                    if (redisTemplate != null && targetUserId != null) {
+                        String onlineKey = "online:user:" + targetUserId;
+                        targetOnline = Boolean.TRUE.equals(redisTemplate.hasKey(onlineKey));
+                    }
+                } catch (Exception e) {
+                    targetOnline = false;
+                }
+                sessionVO.put("targetOnline", targetOnline);
                 
                 // 查询对方用户信息
                 com.shangnantea.model.entity.user.User targetUser = userMapper.selectById(targetUserId);

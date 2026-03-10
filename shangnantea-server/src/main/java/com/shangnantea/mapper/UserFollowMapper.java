@@ -80,4 +80,14 @@ public interface UserFollowMapper extends BaseMapper<UserFollow, Integer> {
      * @return 删除的记录数
      */
     int deleteByUserId(@Param("userId") String userId);
+    
+    /**
+     * 查询关注了某个对象的用户ID列表（粉丝列表）。
+     * 用于上线/下线时精准推送在线状态。
+     *
+     * @param followType 关注类型（user/shop）
+     * @param followId 被关注对象ID（userId 或 shopId）
+     * @return 粉丝用户ID列表
+     */
+    List<String> selectFollowerIdsByFollow(@Param("followType") String followType, @Param("followId") String followId);
 } 

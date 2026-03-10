@@ -547,6 +547,10 @@ export const CODE_MAP = {
   5144: '图片上传失败',
   5145: '不支持的文件类型',
   5146: '文件大小超限',
+
+  // 接口22: updateOrderAddress - /order/address
+  5017: '修改订单地址成功',
+  5147: '修改订单地址失败',
   
   // ========== 论坛模块 (6xxx) ==========
   // 接口1: getHomeData - /forum/home

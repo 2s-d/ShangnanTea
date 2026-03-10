@@ -47,6 +47,17 @@ public class FollowVO {
      */
     private Date createTime;
     
+    /**
+     * 在线状态（当 targetType=user 时表示该用户在线；当 targetType=shop 时表示店主在线）。
+     */
+    private Boolean online;
+    
+    /**
+     * 目标店铺的店主用户ID（仅 targetType=shop 时有效）。
+     * 用于前端聊天列表构造“关注店铺店主ID”。
+     */
+    private String targetOwnerId;
+    
     public Integer getId() {
         return id;
     }
@@ -109,5 +120,21 @@ public class FollowVO {
     
     public void setCreateTime(Date createTime) {
         this.createTime = createTime;
+    }
+    
+    public Boolean getOnline() {
+        return online;
+    }
+    
+    public void setOnline(Boolean online) {
+        this.online = online;
+    }
+    
+    public String getTargetOwnerId() {
+        return targetOwnerId;
+    }
+    
+    public void setTargetOwnerId(String targetOwnerId) {
+        this.targetOwnerId = targetOwnerId;
     }
 }

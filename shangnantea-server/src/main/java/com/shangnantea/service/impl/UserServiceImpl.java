@@ -125,7 +125,7 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
     
-    @Autowired
+    @Autowired(required = false)
     private StringRedisTemplate redisTemplate;
     
     @Autowired
@@ -2737,7 +2737,31 @@ public class UserServiceImpl implements UserService {
                     }
                     // 设置店铺描述
                     followVO.setTargetDescription(shop.getDescription());
+                    // 输出店主ID，供前端做“关注店铺店主”聊天列表
+                    followVO.setTargetOwnerId(shop.getOwnerId());
                 }
+            }
+            
+            // 补充在线状态（由WebSocket维护online:user:* key）
+            try {
+                if (redisTemplate != null) {
+                    String onlineUserId = null;
+                    if ("user".equals(follow.getFollowType())) {
+                        onlineUserId = follow.getFollowId();
+                    } else if ("shop".equals(follow.getFollowType())) {
+                        onlineUserId = followVO.getTargetOwnerId();
+                    }
+                    if (onlineUserId != null && !onlineUserId.trim().isEmpty()) {
+                        String onlineKey = "online:user:" + onlineUserId;
+                        followVO.setOnline(Boolean.TRUE.equals(redisTemplate.hasKey(onlineKey)));
+                    } else {
+                        followVO.setOnline(false);
+                    }
+                } else {
+                    followVO.setOnline(false);
+                }
+            } catch (Exception e) {
+                followVO.setOnline(false);
             }
             
             followVO.setCreateTime(follow.getCreateTime());
