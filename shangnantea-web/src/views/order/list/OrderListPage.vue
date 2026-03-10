@@ -360,12 +360,17 @@ const orders = computed(() => orderStore.orderList || [])
 // 列表直接来自 Pinia，筛选交给后端
 const filteredOrders = computed(() => orders.value)
 
-// 打开修改地址对话框时，隐藏页面滚动条，只保留弹窗内部滚动
+// 打开修改地址对话框时，隐藏整页滚动条（只保留对话框内部滚动），不改对话框本身
 watch(addressDialogVisible, (visible) => {
   if (typeof window === 'undefined') return
   const body = document.body
-  if (!body) return
-  body.style.overflowY = visible ? 'hidden' : ''
+  const html = document.documentElement
+  if (body) {
+    body.style.overflowY = visible ? 'hidden' : ''
+  }
+  if (html) {
+    html.style.overflowY = visible ? 'hidden' : ''
+  }
 })
 
     const openRefundDialog = orderId => {
