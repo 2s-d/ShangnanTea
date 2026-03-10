@@ -32,7 +32,16 @@
         </div>
         
         <div class="session-info">
-          <div class="session-name">{{ session.name }}</div>
+          <div class="session-name">
+            <span class="name-text">{{ session.name }}</span>
+            <span class="online-status">
+              <span
+                class="status-dot"
+                :class="session.online ? 'online' : 'offline'"
+              ></span>
+              <span class="status-text">{{ session.online ? '在线' : '离线' }}</span>
+            </span>
+          </div>
           <div class="session-preview">{{ session.lastMessage }}</div>
         </div>
         
@@ -171,6 +180,44 @@ export default {
           font-weight: 500;
           color: var(--text-primary);
           margin-bottom: 4px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          
+          .name-text {
+            flex: 1;
+            min-width: 0;
+            margin-right: 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+          
+          .online-status {
+            display: inline-flex;
+            align-items: center;
+            flex-shrink: 0;
+            
+            .status-dot {
+              width: 8px;
+              height: 8px;
+              border-radius: 50%;
+              margin-right: 4px;
+              
+              &.online {
+                background-color: #52c41a;
+              }
+              
+              &.offline {
+                background-color: #d9d9d9;
+              }
+            }
+            
+            .status-text {
+              font-size: 12px;
+              color: var(--text-secondary);
+            }
+          }
         }
         
         .session-preview {

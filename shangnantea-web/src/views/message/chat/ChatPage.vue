@@ -303,6 +303,7 @@ import {
 } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 import { timeFormat } from '@/utils/timeFormat'
+import websocketManager from '@/utils/websocket'
 
 const route = useRoute()
 const router = useRouter()
@@ -353,32 +354,32 @@ const userStore = useUserStore()
           return
         }
 
-        // 从 Pinia 获取会话列表数据
+        // 从 Pinia 获取会话列表数据（后端已转换为VO结构）
         const sessions = messageStore.chatSessions || []
-        const currentUserId = userStore.userInfo?.id
         
         // 转换数据格式以匹配 UI 组件的期望格式：
-        // - receiverId 始终表示“对端用户”的 ID
-        // - unreadCount 根据当前用户是发起者/接收者选择对应未读字段
+        // - receiverId 始终表示“对端用户”的 ID（targetUserId）
+        // - unreadCount 来自后端的未读字段
         mockSessions.value = sessions.map(session => {
-          const isInitiator = currentUserId && session.initiatorId === currentUserId
-          const targetId = isInitiator ? session.receiverId : session.initiatorId
-          const unreadCount = isInitiator
-            ? (session.initiatorUnread ?? 0)
-            : (session.receiverUnread ?? 0)
-
-          const isCustomerService = session.sessionType === 'customer'
+          const targetId = session.targetUserId
+          const unreadCount = session.unreadCount ?? 0
+          const isCustomerService = session.sessionType === 'customer' || session.sessionType === 'shop'
+          const name =
+            isCustomerService
+              ? (session.shopName || session.targetNickname || `店铺${targetId}客服`)
+              : (session.targetNickname || session.targetUsername || `用户${targetId}`)
 
           return {
-          sessionId: session.id,
+            sessionId: session.id,
             receiverId: targetId, // 对端用户ID
             targetType: isCustomerService ? 'shop' : 'user',
-            name: isCustomerService ? (session.shopName || `店铺${targetId}客服`) : (session.nickname || `用户${targetId}`),
+            name,
             avatar: session.targetAvatar || `https://via.placeholder.com/50x50?text=${isCustomerService ? '店铺' : '用户'}`,
-          lastMessage: session.lastMessage || '',
-          lastTime: session.lastMessageTime,
+            lastMessage: session.lastMessage || '',
+            lastTime: session.lastMessageTime,
             unreadCount,
             isPinned: session.isPinned || false,
+            online: !!session.targetOnline,
             raw: session
           }
         })
@@ -777,10 +778,23 @@ const userStore = useUserStore()
       }
     }
     
-    // 在组件挂载时初始化：先加载会话，再根据路由参数选择目标
+    // WebSocket 在线状态增量更新处理
+    const handleOnlineStatusUpdate = messageData => {
+      if (!messageData || messageData.type !== 'onlineStatus' || !messageData.userId) return
+      const targetId = messageData.userId
+      mockSessions.value.forEach(session => {
+        if (session.receiverId === targetId) {
+          session.online = !!messageData.online
+        }
+      })
+    }
+
+    // 在组件挂载时初始化：先加载会话，再根据路由参数选择目标，并接入WebSocket
     onMounted(async () => {
       await fetchSessions()
       await initializeChatFromRouteParams()
+      websocketManager.connect()
+      websocketManager.on('onlineStatus', handleOnlineStatusUpdate)
     })
     
     // 监听路由参数变化
@@ -796,6 +810,11 @@ watch(() => route.query.userId, newUserId => {
     initializeChatFromRouteParams()
   }
 })
+
+    // 组件卸载时取消WebSocket监听
+    onBeforeUnmount(() => {
+      websocketManager.off('onlineStatus', handleOnlineStatusUpdate)
+    })
 
     // 引导按钮：跳转到茶叶商城
     const goToTeaMall = () => {
