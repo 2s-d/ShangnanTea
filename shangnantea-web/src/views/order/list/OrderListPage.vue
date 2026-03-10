@@ -1,5 +1,5 @@
 <template>
-  <div class="order-list-page">
+  <div class="order-list-page" :class="{ 'no-scroll': addressDialogVisible }">
     <div class="container main-content">
       <el-card class="list-card" shadow="hover">
       <template #header>
@@ -274,7 +274,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useOrderStore } from '@/stores/order'
 import { useUserStore } from '@/stores/user'
@@ -359,19 +359,6 @@ const orders = computed(() => orderStore.orderList || [])
 
 // 列表直接来自 Pinia，筛选交给后端
 const filteredOrders = computed(() => orders.value)
-
-// 打开修改地址对话框时，隐藏整页滚动条（只保留对话框内部滚动），不改对话框本身
-watch(addressDialogVisible, (visible) => {
-  if (typeof window === 'undefined') return
-  const body = document.body
-  const html = document.documentElement
-  if (body) {
-    body.style.overflowY = visible ? 'hidden' : ''
-  }
-  if (html) {
-    html.style.overflowY = visible ? 'hidden' : ''
-  }
-})
 
     const openRefundDialog = orderId => {
       refundOrderId.value = orderId
