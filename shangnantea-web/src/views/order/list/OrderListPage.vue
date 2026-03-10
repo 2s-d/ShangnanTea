@@ -154,6 +154,93 @@
       </div>
     </el-card>
 
+    <!-- 修改收货地址对话框（可编辑表单 + 地址簿选择） -->
+    <el-dialog
+      v-model="addressDialogVisible"
+      title="修改收货地址"
+      width="600px"
+      :close-on-click-modal="false"
+      destroy-on-close
+      class="address-edit-dialog-wrapper"
+    >
+      <div class="address-edit-dialog">
+        <!-- 当前订单地址编辑表单 -->
+        <div class="address-form-section">
+          <div class="section-title">编辑地址信息</div>
+          <el-form 
+            :model="editAddressForm" 
+            label-width="80px"
+            ref="editAddressFormRef"
+          >
+            <el-form-item label="收货人">
+              <el-input v-model="editAddressForm.receiverName" placeholder="请输入收货人姓名" />
+            </el-form-item>
+            
+            <el-form-item label="手机号">
+              <el-input v-model="editAddressForm.receiverPhone" placeholder="请输入手机号码" />
+            </el-form-item>
+            
+            <el-form-item label="所在地区">
+              <el-cascader 
+                v-model="editAddressForm.region" 
+                :options="cascaderOptions" 
+                placeholder="请选择省/市/区"
+                :props="{
+                  expandTrigger: 'hover',
+                  checkStrictly: false
+                }"
+                style="width: 100%"
+                @change="handleRegionChange"
+              />
+            </el-form-item>
+            
+            <el-form-item label="详细地址">
+              <el-input 
+                v-model="editAddressForm.detailAddress" 
+                type="textarea" 
+                placeholder="街道、门牌号等"
+                :rows="3"
+              />
+            </el-form-item>
+          </el-form>
+        </div>
+        
+        <!-- 地址簿列表（可选择填充） -->
+        <div class="address-book-section">
+          <div class="section-title">从地址簿选择</div>
+          <div class="address-list-container">
+            <div 
+              v-for="addr in userAddresses" 
+              :key="addr.id"
+              class="address-item"
+              :class="{ 'selected': selectedAddressId === addr.id }"
+              @click="fillAddressFromBook(addr)"
+            >
+              <div class="address-content">
+                <div class="address-header">
+                  <span class="receiver-name">{{ addr.receiverName || addr.name }}</span>
+                  <span class="phone">{{ addr.receiverPhone || addr.phone }}</span>
+                  <el-tag v-if="addr.isDefault" type="success" size="small">默认</el-tag>
+                </div>
+                <div class="address-detail">
+                  {{ addr.province }}{{ addr.city }}{{ addr.district }} {{ addr.detailAddress || addr.detail }}
+                </div>
+              </div>
+              <el-icon class="select-icon" v-if="selectedAddressId === addr.id"><Check /></el-icon>
+            </div>
+            <el-empty v-if="userAddresses.length === 0" description="暂无收货地址" :image-size="60" />
+          </div>
+        </div>
+      </div>
+      
+      <template #footer>
+        <el-button @click="addressDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="addressSubmitting" @click="submitAddressChange">
+          保存
+        </el-button>
+      </template>
+    </el-dialog>
+
     <!-- 申请退款对话框（生产版：提交到后端，不在前端模拟状态） -->
     <el-dialog
       v-model="refundDialogVisible"
@@ -190,7 +277,10 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useOrderStore } from '@/stores/order'
+import { useUserStore } from '@/stores/user'
 import { ElMessageBox } from 'element-plus'
+import { Check } from '@element-plus/icons-vue'
+import { regionData } from '@/utils/region'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 import { showByCode } from '@/utils/apiMessages'
 import { orderPromptMessages } from '@/utils/promptMessages'
@@ -213,6 +303,7 @@ defineOptions({
  * 后端验证：API根据token中的userId/shopId自动过滤数据
  */
 const orderStore = useOrderStore()
+const userStore = useUserStore()
 const router = useRouter()
 const searchText = ref('')
 const activeTab = ref('all')
@@ -228,6 +319,33 @@ const refundDialogVisible = ref(false)
 const refundSubmitting = ref(false)
 const refundReason = ref('')
 const refundOrderId = ref('')
+
+// 修改地址对话框相关
+const addressDialogVisible = ref(false)
+const addressSubmitting = ref(false)
+const selectedAddressId = ref(null)
+const currentOrderId = ref(null)
+const userAddresses = computed(() => (userStore.addressList || []).filter(addr => addr && addr.id))
+const editAddressFormRef = ref(null)
+
+// 地址编辑表单数据
+const editAddressForm = ref({
+  receiverName: '',
+  receiverPhone: '',
+  region: [],
+  detailAddress: ''
+})
+
+// 初始表单值（用于判断是否修改）
+const initialAddressForm = ref({
+  receiverName: '',
+  receiverPhone: '',
+  region: [],
+  detailAddress: ''
+})
+
+// 地区级联选择器数据
+const cascaderOptions = ref(regionData || [])
 
 const loading = computed(() => orderStore.loading)
 const pageSize = computed({
@@ -412,9 +530,211 @@ const filteredOrders = computed(() => orders.value)
       orderPromptMessages.showDeleteOrderDev()
     }
     
-    // 修改订单地址：跳转到订单详情页进行修改
-    const modifyAddress = orderId => {
-      router.push(`/order/detail/${orderId}`)
+    // 修改订单地址：打开修改地址对话框
+    const modifyAddress = async (orderId) => {
+      currentOrderId.value = orderId
+      
+      // 确保用户地址列表已加载
+      if (!userStore.addressList || userStore.addressList.length === 0) {
+        try {
+          await userStore.fetchAddresses()
+        } catch (error) {
+          console.error('获取地址列表失败:', error)
+        }
+      }
+      
+      // 获取订单详情以获取当前地址
+      try {
+        const res = await orderStore.fetchOrderDetail(orderId)
+        const orderDetail = res?.data || res
+        if (orderDetail && orderDetail.address) {
+          const currentAddr = orderDetail.address
+          const initialRegion = []
+          
+          // 根据省市区设置级联选择器的值
+          if (currentAddr.province && currentAddr.city && currentAddr.district) {
+            const province = cascaderOptions.value.find(p => p.label === currentAddr.province)
+            if (province) {
+              const city = province.children?.find(c => c.label === currentAddr.city)
+              if (city) {
+                const district = city.children?.find(d => d.label === currentAddr.district)
+                if (district) {
+                  initialRegion.push(province.value, city.value, district.value)
+                }
+              }
+            }
+          }
+          
+          editAddressForm.value = {
+            receiverName: currentAddr.receiverName || currentAddr.name || '',
+            receiverPhone: currentAddr.receiverPhone || currentAddr.phone || '',
+            region: initialRegion,
+            detailAddress: currentAddr.detailAddress || currentAddr.detail || ''
+          }
+          
+          // 保存初始值（深拷贝）
+          initialAddressForm.value = {
+            receiverName: currentAddr.receiverName || currentAddr.name || '',
+            receiverPhone: currentAddr.receiverPhone || currentAddr.phone || '',
+            region: [...initialRegion],
+            detailAddress: currentAddr.detailAddress || currentAddr.detail || ''
+          }
+        }
+      } catch (error) {
+        console.error('获取订单详情失败:', error)
+      }
+      
+      selectedAddressId.value = null
+      addressDialogVisible.value = true
+    }
+    
+    // 从地址簿填充表单
+    const fillAddressFromBook = (addr) => {
+      selectedAddressId.value = addr.id
+      editAddressForm.value.receiverName = addr.receiverName || addr.name || ''
+      editAddressForm.value.receiverPhone = addr.receiverPhone || addr.phone || ''
+      editAddressForm.value.detailAddress = addr.detailAddress || addr.detail || ''
+      
+      // 设置地区级联选择器的值
+      if (addr.province && addr.city && addr.district) {
+        const province = cascaderOptions.value.find(p => p.label === addr.province)
+        if (province) {
+          const city = province.children?.find(c => c.label === addr.city)
+          if (city) {
+            const district = city.children?.find(d => d.label === addr.district)
+            if (district) {
+              editAddressForm.value.region = [province.value, city.value, district.value]
+            }
+          }
+        }
+      } else {
+        editAddressForm.value.region = []
+      }
+    }
+    
+    // 地区选择变化处理
+    const handleRegionChange = (value) => {
+      // 级联选择器值变化时，可以在这里做额外处理
+    }
+    
+    // 检查表单是否被修改
+    const isFormModified = () => {
+      return editAddressForm.value.receiverName !== initialAddressForm.value.receiverName ||
+             editAddressForm.value.receiverPhone !== initialAddressForm.value.receiverPhone ||
+             JSON.stringify(editAddressForm.value.region) !== JSON.stringify(initialAddressForm.value.region) ||
+             editAddressForm.value.detailAddress !== initialAddressForm.value.detailAddress
+    }
+    
+    // 提交修改订单地址
+    const submitAddressChange = async () => {
+      if (!currentOrderId.value) {
+        showByCode(5147, '订单ID不存在')
+        return
+      }
+      
+      // 如果既没选择地址簿地址，也没修改表单，则保持原样（不提交）
+      if (!selectedAddressId.value && !isFormModified()) {
+        addressDialogVisible.value = false
+        return
+      }
+      
+      // 如果选择了地址簿地址，直接用这个ID（忽略表单内容）
+      if (selectedAddressId.value) {
+        addressSubmitting.value = true
+        try {
+          const res = await orderStore.updateOrderAddress({
+            orderId: currentOrderId.value,
+            addressId: selectedAddressId.value
+          })
+          const code = res?.code
+          if (code) {
+            showByCode(code)
+          }
+          addressDialogVisible.value = false
+          // 刷新订单列表
+          await orderStore.fetchOrders({ page: currentPage.value, size: pageSize.value, keyword: searchText.value })
+        } catch (error) {
+          showByCode(5147, error?.message || null)
+        } finally {
+          addressSubmitting.value = false
+        }
+        return
+      }
+      
+      // 如果没有选择地址簿地址，但修改了表单，需要创建新地址
+      // 验证表单数据
+      if (!editAddressForm.value.receiverName || !editAddressForm.value.receiverPhone) {
+        orderPromptMessages.showAddressRequired && orderPromptMessages.showAddressRequired()
+        return
+      }
+      
+      if (!editAddressForm.value.region || editAddressForm.value.region.length !== 3) {
+        showByCode(5147, '请选择完整的省市区')
+        return
+      }
+      
+      if (!editAddressForm.value.detailAddress) {
+        showByCode(5147, '请输入详细地址')
+        return
+      }
+      
+      addressSubmitting.value = true
+      try {
+        // 从级联选择器获取省市区名称
+        const province = cascaderOptions.value.find(p => p.value === editAddressForm.value.region[0])
+        const city = province?.children?.find(c => c.value === editAddressForm.value.region[1])
+        const district = city?.children?.find(d => d.value === editAddressForm.value.region[2])
+        
+        const addressData = {
+          receiverName: editAddressForm.value.receiverName,
+          receiverPhone: editAddressForm.value.receiverPhone,
+          province: province?.label || '',
+          city: city?.label || '',
+          district: district?.label || '',
+          detailAddress: editAddressForm.value.detailAddress,
+          isDefault: false
+        }
+        
+        // 创建新地址
+        const addRes = await userStore.addAddress(addressData)
+        if (addRes && addRes.code !== 200) {
+          showByCode(addRes.code)
+          return
+        }
+        
+        // 获取新创建的地址ID
+        await userStore.fetchAddresses()
+        const newAddress = userStore.addressList.find(addr => 
+          addr && addr.receiverName === addressData.receiverName &&
+          addr.receiverPhone === addressData.receiverPhone &&
+          addr.province === addressData.province &&
+          addr.city === addressData.city &&
+          addr.district === addressData.district &&
+          (addr.detailAddress || addr.detail) === addressData.detailAddress
+        )
+        
+        if (!newAddress) {
+          showByCode(5147, '无法获取新创建的地址ID')
+          return
+        }
+        
+        // 调用修改订单地址接口
+        const res = await orderStore.updateOrderAddress({
+          orderId: currentOrderId.value,
+          addressId: newAddress.id
+        })
+        const code = res?.code
+        if (code) {
+          showByCode(code)
+        }
+        addressDialogVisible.value = false
+        // 刷新订单列表
+        await orderStore.fetchOrders({ page: currentPage.value, size: pageSize.value, keyword: searchText.value })
+      } catch (error) {
+        showByCode(5147, error?.message || null)
+      } finally {
+        addressSubmitting.value = false
+      }
     }
     
     // 添加联系商家功能
