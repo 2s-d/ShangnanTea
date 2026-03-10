@@ -401,6 +401,61 @@
         </el-button>
       </template>
     </el-dialog>
+
+    <!-- 卖家发货对话框 -->
+    <el-dialog
+      v-model="shipDialogVisible"
+      title="订单发货"
+      width="480px"
+      :close-on-click-modal="false"
+    >
+      <el-form label-width="90px">
+        <el-form-item label="物流公司">
+          <el-input v-model="shipForm.company" placeholder="例如：顺丰速运" />
+        </el-form-item>
+        <el-form-item label="快递单号">
+          <el-input v-model="shipForm.trackingNumber" placeholder="请输入快递单号" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="shipDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="shipSubmitting" @click="confirmShipFromDetail">
+          确认发货
+        </el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 卖家处理退款对话框 -->
+    <el-dialog
+      v-model="processRefundDialogVisible"
+      title="处理退款申请"
+      width="520px"
+      :close-on-click-modal="false"
+    >
+      <div class="refund-process-info">
+        <p>申请原因：{{ refundProcessInfo?.reason || orderDetail?.refundReason || '无' }}</p>
+        <p>申请时间：{{ refundProcessInfo?.applyTime || orderDetail?.refundApplyTime || '无' }}</p>
+      </div>
+      <el-form label-width="80px" style="margin-top: 10px;">
+        <el-form-item label="拒绝理由">
+          <el-input
+            v-model="rejectReason"
+            type="textarea"
+            :rows="3"
+            placeholder="同意退款可不填，拒绝退款时必须填写理由"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="processRefundDialogVisible = false">取消</el-button>
+        <el-button type="danger" :loading="processRefundSubmitting" @click="submitProcessRefund(false)">
+          拒绝退款
+        </el-button>
+        <el-button type="success" :loading="processRefundSubmitting" @click="submitProcessRefund(true)">
+          同意退款
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -491,9 +546,6 @@ const initialAddressForm = ref({
 
 // 地区级联选择器数据
 const cascaderOptions = ref(regionData || [])
-// 新增地址创建阶段 & ID：用于两步流程（先创建地址，再更新订单）
-const addressActionStage = ref('initial') // 'initial' | 'created'
-const createdAddressId = ref(null)
 
 // 卖家发货对话框
 const shipDialogVisible = ref(false)
@@ -790,6 +842,47 @@ const rejectReason = ref('')
         }
       } catch (error) {
         console.error('获取物流信息失败:', error)
+      }
+    }
+
+    // 卖家：打开处理退款对话框（展示申请理由 + 审批按钮）
+    const openProcessRefundDialog = async () => {
+      if (!orderDetail.value) return
+      processRefundDialogVisible.value = true
+      rejectReason.value = ''
+      refundProcessInfo.value = null
+      try {
+        const res = await orderStore.fetchRefundDetail(orderId)
+        showByCode(res?.code)
+        refundProcessInfo.value = res?.data || res
+      } catch (error) {
+        console.error('获取退款详情失败:', error)
+      }
+    }
+
+    // 卖家：提交退款审批（approve=true 同意，false 拒绝）
+    const submitProcessRefund = async approve => {
+      if (!orderDetail.value) return
+      if (!approve && !rejectReason.value.trim()) {
+        showByCode(5147, '请填写拒绝退款的理由')
+        return
+      }
+      processRefundSubmitting.value = true
+      try {
+        const res = await orderStore.processRefund({
+          orderId,
+          approve,
+          reason: approve
+            ? (refundProcessInfo.value?.reason || '同意退款')
+            : rejectReason.value.trim()
+        })
+        showByCode(res?.code)
+        processRefundDialogVisible.value = false
+        await loadOrderDetail()
+      } catch (error) {
+        console.error('处理退款失败:', error)
+      } finally {
+        processRefundSubmitting.value = false
       }
     }
     
