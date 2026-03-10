@@ -482,6 +482,19 @@ const initialAddressForm = ref({
 
 // 地区级联选择器数据
 const cascaderOptions = ref(regionData || [])
+
+// 打开修改地址对话框时，隐藏整页滚动条（只保留对话框内部滚动），不改对话框本身
+watch(addressDialogVisible, (visible) => {
+  if (typeof window === 'undefined') return
+  const body = document.body
+  const html = document.documentElement
+  if (body) {
+    body.style.overflowY = visible ? 'hidden' : ''
+  }
+  if (html) {
+    html.style.overflowY = visible ? 'hidden' : ''
+  }
+})
     
     // 获取订单状态文本
     const getStatusText = status => {

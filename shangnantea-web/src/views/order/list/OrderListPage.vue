@@ -1090,13 +1090,6 @@ onMounted(() => {
   }
 }
 
-/* 修改收货地址对话框样式（与订单详情页保持一致体验） */
-.address-edit-dialog-wrapper :deep(.el-dialog__body) {
-  max-height: 70vh;
-  overflow-y: auto;
-  padding: 20px;
-}
-
 .address-edit-dialog {
   display: flex;
   flex-direction: column;
