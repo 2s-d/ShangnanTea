@@ -64,8 +64,14 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
                 return false;
             }
             
+            // 从token中获取用户角色（用于后续按角色推送消息）
+            Integer role = jwtUtil.getRoleFromToken(token);
+            
             // 将用户ID存入session属性，供后续使用
             attributes.put("userId", userId);
+            if (role != null) {
+                attributes.put("role", role);
+            }
             logger.info("WebSocket握手成功: userId={}", userId);
             return true;
         }
