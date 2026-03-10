@@ -2144,24 +2144,6 @@ public class UserServiceImpl implements UserService {
                         // 检查登录会话：如果key存在，说明有有效的登录会话
                         hasLoginSession = Boolean.TRUE.equals(redisTemplate.hasKey(loginKey));
                         
-                        // 同时检查WebSocket连接状态（更实时）
-                        try {
-                            org.springframework.context.ApplicationContext applicationContext = 
-                                org.springframework.beans.BeansException.class.getPackage() != null ? 
-                                org.springframework.web.context.support.WebApplicationContextUtils
-                                    .getWebApplicationContext(((jakarta.servlet.ServletContext) null)) : null;
-                            if (applicationContext != null) {
-                                com.shangnantea.websocket.manager.WebSocketSessionManager sessionManager = 
-                                    applicationContext.getBean(com.shangnantea.websocket.manager.WebSocketSessionManager.class);
-                                if (sessionManager != null && sessionManager.isUserOnline(user.getId())) {
-                                    isOnline = true; // WebSocket连接存在，用户一定在线
-                                }
-                            }
-                        } catch (Exception wsEx) {
-                            // WebSocket检查失败，使用Redis状态
-                            logger.debug("WebSocket状态检查失败，使用Redis状态: userId={}", user.getId());
-                        }
-                        
                         logger.debug("用户状态检查: userId={}, isOnline={}, hasLoginSession={}", 
                             user.getId(), isOnline, hasLoginSession);
                     }

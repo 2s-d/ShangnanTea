@@ -861,7 +861,19 @@ export const useUserStore = defineStore('user', () => {
     loading.value = true
     try {
       const res = await getAdminUserList(params)
-      const rawList = res?.data?.list || res?.list || res?.data || res || []
+      
+      // 确保rawList是数组，处理500错误的情况
+      let rawList = []
+      if (res?.data?.list && Array.isArray(res.data.list)) {
+        rawList = res.data.list
+      } else if (res?.list && Array.isArray(res.list)) {
+        rawList = res.list
+      } else if (Array.isArray(res?.data)) {
+        rawList = res.data
+      } else if (Array.isArray(res)) {
+        rawList = res
+      }
+      
       const total = res?.data?.total || res?.total || rawList.length
 
       // 映射后端用户数据到前端表格所需结构
