@@ -129,22 +129,6 @@ service.interceptors.request.use(
     // 生成请求ID，用于日志追踪
     config.requestId = `req_${++requestCounter}`
     
-    // 检查token是否被其他窗口更新（多窗口登录冲突检测）
-    if (tokenStorage.isTokenChangedByOtherWindow && tokenStorage.isTokenChangedByOtherWindow()) {
-      console.warn('[API] 检测到token被其他窗口更新，当前请求可能使用无效token')
-      // 清除本地token，强制重新登录
-      tokenStorage.removeToken()
-      const userStore = useUserStore()
-      userStore.userInfo = null
-      userStore.isLoggedIn = false
-      // 跳转到登录页
-      if (router.currentRoute.value.path !== '/login') {
-        apiMessage.warning('检测到其他窗口重新登录，当前窗口需要重新登录')
-        router.push(`/login?redirect=${router.currentRoute.value.path}`)
-      }
-      return Promise.reject(new Error('Token已被其他窗口更新'))
-    }
-    
     // 从token存储中获取token
     const token = tokenStorage.getToken()
     
@@ -189,9 +173,8 @@ service.interceptors.response.use(
       
       // 已在登录页时，不再反复弹"认证失败"提示，避免刷新时干扰体验
       if (router.currentRoute.value.path !== '/login') {
-        // 显示错误信息（可能是token被其他窗口登录挤掉）
-        const errorMsg = res.message || '登录已失效，可能在其他窗口重新登录，请重新登录'
-        apiMessage.error(errorMsg)
+        // 显示错误信息
+        apiMessage.error(res.message || '认证失败，请重新登录')
         // 跳转到登录页
         router.push(`/login?redirect=${router.currentRoute.value.path}`)
       }

@@ -283,9 +283,6 @@ export function useTokenStorage() {
   // 使用通用存储函数创建token存储
   const { value: token, setValue: setTokenValue, removeValue: removeTokenValue } = useStorage('token')
   
-  // 存储当前窗口的token值，用于检测其他窗口的登录
-  let currentWindowToken = token.value
-  
   /**
    * 获取本地存储的token
    * @returns {string|null} token或null
@@ -296,49 +293,12 @@ export function useTokenStorage() {
    * 设置token到本地存储
    * @param {string} newToken token字符串
    */
-  const setToken = newToken => {
-    currentWindowToken = newToken
-    setTokenValue(newToken)
-  }
+  const setToken = newToken => setTokenValue(newToken)
   
   /**
    * 移除本地存储的token
    */
-  const removeToken = () => {
-    currentWindowToken = null
-    removeTokenValue()
-  }
-  
-  /**
-   * 检查token是否被其他窗口更新（用于检测多窗口登录冲突）
-   * @returns {boolean} 如果token被其他窗口更新，返回true
-   */
-  const isTokenChangedByOtherWindow = () => {
-    const storedToken = token.value
-    if (storedToken !== currentWindowToken) {
-      // token被其他窗口更新了，说明其他窗口重新登录了
-      currentWindowToken = storedToken
-      return true
-    }
-    return false
-  }
-  
-  // 监听storage事件，检测其他窗口的token更新
-  if (typeof window !== 'undefined') {
-    window.addEventListener('storage', (event) => {
-      if (event.key === 'shangnantea_token' || event.key?.endsWith('token')) {
-        const newToken = event.newValue
-        const oldToken = event.oldValue
-        
-        // 如果token被更新，且不是当前窗口更新的
-        if (newToken !== oldToken && newToken !== currentWindowToken) {
-          console.warn('[Token] 检测到其他窗口更新了token，当前窗口的登录可能已失效')
-          // 可以在这里触发重新验证或提示用户
-          // 注意：storage事件只在其他窗口触发，不在当前窗口触发
-        }
-      }
-    })
-  }
+  const removeToken = () => removeTokenValue()
   
   /**
    * 从token中解析用户信息，统一JWT解析结构
@@ -487,7 +447,6 @@ export function useTokenStorage() {
     isTokenValid,
     decodeToken,
     getUserFromToken,
-    verifyToken,
-    isTokenChangedByOtherWindow
+    verifyToken
   }
 } 
