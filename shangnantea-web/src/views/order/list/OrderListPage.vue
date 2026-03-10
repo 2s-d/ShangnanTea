@@ -695,10 +695,10 @@ const filteredOrders = computed(() => orders.value)
           isDefault: false
         }
         
-        // 创建新地址
+        // 创建新地址（成功码为 2007，而不是 200）
         const addRes = await userStore.addAddress(addressData)
-        if (addRes && addRes.code !== 200) {
-          showByCode(addRes.code)
+        if (!addRes || (addRes.code !== 200 && addRes.code !== 2007)) {
+          showByCode(addRes?.code || 5147)
           return
         }
         
