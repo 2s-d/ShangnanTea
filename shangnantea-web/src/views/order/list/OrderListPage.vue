@@ -1090,6 +1090,13 @@ onMounted(() => {
   }
 }
 
+/* 仅针对修改地址对话框本身，调整外边距位置，不影响内部结构 */
+:deep(.address-edit-dialog-wrapper) {
+  margin: 0 auto !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+}
+
 .address-edit-dialog {
   display: flex;
   flex-direction: column;
