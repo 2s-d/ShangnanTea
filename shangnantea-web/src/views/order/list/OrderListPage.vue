@@ -236,7 +236,7 @@
       <template #footer>
         <el-button @click="addressDialogVisible = false">取消</el-button>
         <el-button type="primary" :loading="addressSubmitting" @click="submitAddressChange">
-          保存
+          {{ addressSubmitText }}
         </el-button>
       </template>
     </el-dialog>
