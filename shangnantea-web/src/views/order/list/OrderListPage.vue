@@ -325,6 +325,9 @@ const addressDialogVisible = ref(false)
 const addressSubmitting = ref(false)
 const selectedAddressId = ref(null)
 const currentOrderId = ref(null)
+// 新增地址创建阶段 & ID：用于两步流程（先创建地址，再更新订单）
+const addressActionStage = ref('initial') // 'initial' | 'created'
+const createdAddressId = ref(null)
 const userAddresses = computed(() => (userStore.addressList || []).filter(addr => addr && addr.id))
 const editAddressFormRef = ref(null)
 
@@ -468,7 +471,12 @@ const filteredOrders = computed(() => orders.value)
     
     // 查看订单详情
     const viewOrderDetail = orderId => {
-      router.push(`/order/detail/${orderId}`)
+      currentOrderId.value = orderId
+      selectedAddressId.value = null
+      addressActionStage.value = 'initial'
+      createdAddressId.value = null
+      // 原来这里是跳转详情页，现在已经改成直接在列表里弹框
+      // router.push(`/order/detail/${orderId}`)
     }
     
     // 继续支付
@@ -625,6 +633,18 @@ const filteredOrders = computed(() => orders.value)
              editAddressForm.value.detailAddress !== initialAddressForm.value.detailAddress
     }
     
+    // 按钮文案：根据当前状态和是否修改决定显示“保存”还是“修改地址”
+    const addressSubmitText = computed(() => {
+      // 选了地址簿：始终是保存（直接更新订单地址）
+      if (selectedAddressId.value) return '保存'
+      // 已经创建过新地址：下一步就是保存到订单
+      if (addressActionStage.value === 'created') return '保存'
+      // 表单有改动但还没创建地址：先走“修改地址”（触发新增地址）
+      if (isFormModified()) return '修改地址'
+      // 默认：保存（什么都不做直接关闭）
+      return '保存'
+    })
+    
     // 提交修改订单地址
     const submitAddressChange = async () => {
       if (!currentOrderId.value) {
@@ -632,13 +652,13 @@ const filteredOrders = computed(() => orders.value)
         return
       }
       
-      // 如果既没选择地址簿地址，也没修改表单，则保持原样（不提交）
-      if (!selectedAddressId.value && !isFormModified()) {
+      // 1）既没选地址簿，也没改表单：什么都不做，直接关
+      if (!selectedAddressId.value && !isFormModified() && addressActionStage.value === 'initial') {
         addressDialogVisible.value = false
         return
       }
       
-      // 如果选择了地址簿地址，直接用这个ID（忽略表单内容）
+      // 2）选了地址簿：直接更新订单地址
       if (selectedAddressId.value) {
         addressSubmitting.value = true
         try {
@@ -651,7 +671,6 @@ const filteredOrders = computed(() => orders.value)
             showByCode(code)
           }
           addressDialogVisible.value = false
-          // 刷新订单列表
           await orderStore.fetchOrders({ page: currentPage.value, size: pageSize.value, keyword: searchText.value })
         } catch (error) {
           showByCode(5147, error?.message || null)
@@ -661,18 +680,41 @@ const filteredOrders = computed(() => orders.value)
         return
       }
       
-      // 如果没有选择地址簿地址，但修改了表单，需要创建新地址
+      // 3）已经创建过新地址：这次点击是真正“保存到订单”
+      if (addressActionStage.value === 'created' && createdAddressId.value) {
+        addressSubmitting.value = true
+        try {
+          const res = await orderStore.updateOrderAddress({
+            orderId: currentOrderId.value,
+            addressId: createdAddressId.value
+          })
+          const code = res?.code
+          if (code) {
+            showByCode(code)
+          }
+          addressDialogVisible.value = false
+          await orderStore.fetchOrders({ page: currentPage.value, size: pageSize.value, keyword: searchText.value })
+        } catch (error) {
+          showByCode(5147, error?.message || null)
+        } finally {
+          addressSubmitting.value = false
+          // 重置阶段
+          addressActionStage.value = 'initial'
+          createdAddressId.value = null
+        }
+        return
+      }
+      
+      // 4）表单有改动，但还没创建地址：当前点击是“修改地址”（触发新增地址）
       // 验证表单数据
       if (!editAddressForm.value.receiverName || !editAddressForm.value.receiverPhone) {
         orderPromptMessages.showAddressRequired && orderPromptMessages.showAddressRequired()
         return
       }
-      
       if (!editAddressForm.value.region || editAddressForm.value.region.length !== 3) {
         showByCode(5147, '请选择完整的省市区')
         return
       }
-      
       if (!editAddressForm.value.detailAddress) {
         showByCode(5147, '请输入详细地址')
         return
@@ -680,7 +722,6 @@ const filteredOrders = computed(() => orders.value)
       
       addressSubmitting.value = true
       try {
-        // 从级联选择器获取省市区名称
         const province = cascaderOptions.value.find(p => p.value === editAddressForm.value.region[0])
         const city = province?.children?.find(c => c.value === editAddressForm.value.region[1])
         const district = city?.children?.find(d => d.value === editAddressForm.value.region[2])
@@ -718,18 +759,10 @@ const filteredOrders = computed(() => orders.value)
           return
         }
         
-        // 调用修改订单地址接口
-        const res = await orderStore.updateOrderAddress({
-          orderId: currentOrderId.value,
-          addressId: newAddress.id
-        })
-        const code = res?.code
-        if (code) {
-          showByCode(code)
-        }
-        addressDialogVisible.value = false
-        // 刷新订单列表
-        await orderStore.fetchOrders({ page: currentPage.value, size: pageSize.value, keyword: searchText.value })
+        createdAddressId.value = newAddress.id
+        addressActionStage.value = 'created'
+        // 此时不关闭对话框，只提示“地址添加成功”，按钮文案自动变回“保存”
+        showByCode(addRes.code)
       } catch (error) {
         showByCode(5147, error?.message || null)
       } finally {
