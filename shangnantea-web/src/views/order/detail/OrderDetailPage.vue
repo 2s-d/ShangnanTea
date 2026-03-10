@@ -582,6 +582,7 @@ const cascaderOptions = ref(regionData || [])
       }
       
       selectedAddressId.value = null
+      saveToAddressBook.value = false
       addressDialogVisible.value = true
     }
     
@@ -732,34 +733,42 @@ const cascaderOptions = ref(regionData || [])
       
       addressSubmitting.value = true
       try {
+        // 从级联选择器获取省市区名称
+        const province = cascaderOptions.value.find(p => p.value === editAddressForm.value.region[0])
+        const city = province?.children?.find(c => c.value === editAddressForm.value.region[1])
+        const district = city?.children?.find(d => d.value === editAddressForm.value.region[2])
+        
+        const addressData = {
+          receiverName: editAddressForm.value.receiverName,
+          receiverPhone: editAddressForm.value.receiverPhone,
+          province: province?.label || '',
+          city: city?.label || '',
+          district: district?.label || '',
+          detailAddress: editAddressForm.value.detailAddress,
+          isDefault: false
+        }
+        
         let finalAddressId = selectedAddressId.value
         
-        // 如果用户手动编辑了地址（没有选择地址簿中的地址，或者编辑后的内容与选中的地址不一致）
-        if (!finalAddressId || !isFormMatchSelectedAddress()) {
-          // 需要创建新地址或更新地址
-          // 从级联选择器获取省市区名称
-          const province = cascaderOptions.value.find(p => p.value === editAddressForm.value.region[0])
-          const city = province?.children?.find(c => c.value === editAddressForm.value.region[1])
-          const district = city?.children?.find(d => d.value === editAddressForm.value.region[2])
+        // 如果用户选择了地址簿中的地址且表单内容与选中地址一致，直接使用该地址ID
+        if (finalAddressId && isFormMatchSelectedAddress()) {
+          // 如果勾选了"保存到地址簿"，但地址已存在，不需要重复创建
+          // 直接使用选中的地址ID即可
+        } else {
+          // 需要创建新地址的情况：
+          // 1. 没有选择地址簿中的地址
+          // 2. 选择了地址簿中的地址但编辑后内容不一致
+          // 3. 勾选了"保存到地址簿"
           
-          const addressData = {
-            receiverName: editAddressForm.value.receiverName,
-            receiverPhone: editAddressForm.value.receiverPhone,
-            province: province?.label || '',
-            city: city?.label || '',
-            district: district?.label || '',
-            detailAddress: editAddressForm.value.detailAddress,
-            isDefault: false
-          }
-          
-          // 创建新地址
+          // 创建新地址到地址簿
           const addRes = await userStore.addAddress(addressData)
           if (addRes && addRes.code !== 200) {
             showByCode(addRes.code)
             return
           }
           
-          // 获取新创建的地址ID（从响应中获取，或者从地址列表中找到）
+          // 获取新创建的地址ID
+          await userStore.fetchAddresses()
           const newAddress = userStore.addressList.find(addr => 
             addr.receiverName === addressData.receiverName &&
             addr.receiverPhone === addressData.receiverPhone &&
@@ -772,11 +781,22 @@ const cascaderOptions = ref(regionData || [])
           if (newAddress) {
             finalAddressId = newAddress.id
           } else {
-            // 如果找不到，重新获取地址列表
-            await userStore.fetchAddresses()
+            // 如果找不到，使用最新的地址
             const latestAddress = userStore.addressList[userStore.addressList.length - 1]
             finalAddressId = latestAddress?.id
           }
+        }
+        
+        // 如果勾选了"保存到地址簿"但还没有创建地址，则创建
+        if (saveToAddressBook.value && !finalAddressId) {
+          const addRes = await userStore.addAddress(addressData)
+          if (addRes && addRes.code !== 200) {
+            showByCode(addRes.code)
+            return
+          }
+          await userStore.fetchAddresses()
+          const latestAddress = userStore.addressList[userStore.addressList.length - 1]
+          finalAddressId = latestAddress?.id
         }
         
         if (!finalAddressId) {

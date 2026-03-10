@@ -621,10 +621,29 @@ defineOptions({
 }
 
 // 地址部分样式
-.address-list {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+.address-list-container {
+  max-height: calc(4 * (80px + 15px)); // 4个地址项的高度（每个约80px + 15px间距）
+  overflow-y: auto;
+  padding-right: 8px;
+  
+  // 自定义滚动条样式
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+    
+    &:hover {
+      background: #a8a8a8;
+    }
+  }
 }
 
 .address-radio-group {
@@ -639,6 +658,7 @@ defineOptions({
   border: 1px solid #dcdfe6;
   border-radius: 4px;
   transition: all 0.3s;
+  flex-shrink: 0; // 防止地址项被压缩
   
   &:hover {
     border-color: #409eff;
@@ -649,6 +669,7 @@ defineOptions({
   width: 100%;
   padding: 15px;
   height: auto;
+  min-height: 80px; // 确保每个地址项有最小高度
   
   :deep(.el-radio__label) {
     padding-right: 15px;

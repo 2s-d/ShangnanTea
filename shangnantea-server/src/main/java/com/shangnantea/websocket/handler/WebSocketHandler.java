@@ -1,10 +1,11 @@
 package com.shangnantea.websocket.handler;
 
-import com.shangnantea.security.util.JwtUtil;
 import com.shangnantea.websocket.manager.WebSocketSessionManager;
+import com.shangnantea.websocket.service.WebSocketService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -12,7 +13,6 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
-import java.util.Map;
 
 /**
  * WebSocket消息处理器
@@ -27,13 +27,13 @@ public class WebSocketHandler extends TextWebSocketHandler {
     private WebSocketSessionManager sessionManager;
     
     @Autowired
-    private JwtUtil jwtUtil;
+    private WebSocketService webSocketService;
     
     /**
      * 连接建立后触发
      */
     @Override
-    public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+    public void afterConnectionEstablished(@NonNull WebSocketSession session) throws Exception {
         // 从session属性中获取用户ID（由拦截器设置）
         String userId = (String) session.getAttributes().get("userId");
         if (userId != null) {
@@ -42,6 +42,13 @@ public class WebSocketHandler extends TextWebSocketHandler {
             
             // 发送连接成功消息
             sendMessage(session, "{\"type\":\"connected\",\"message\":\"连接成功\"}");
+            
+            // 广播在线用户列表更新（通知所有管理员）
+            try {
+                webSocketService.broadcastOnlineUsersUpdate();
+            } catch (Exception e) {
+                logger.debug("广播在线用户列表更新失败，不影响连接: userId={}, error={}", userId, e.getMessage());
+            }
         } else {
             logger.warn("WebSocket连接建立失败: 未找到用户ID, sessionId={}", session.getId());
             session.close(CloseStatus.BAD_DATA.withReason("未找到用户ID"));
@@ -52,7 +59,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
      * 接收客户端消息
      */
     @Override
-    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+    protected void handleTextMessage(@NonNull WebSocketSession session, @NonNull TextMessage message) throws Exception {
         String userId = (String) session.getAttributes().get("userId");
         String payload = message.getPayload();
         logger.debug("收到WebSocket消息: userId={}, message={}", userId, payload);
@@ -71,7 +78,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
      * 连接关闭后触发
      */
     @Override
-    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
+    public void afterConnectionClosed(@NonNull WebSocketSession session, @NonNull CloseStatus status) throws Exception {
         String userId = (String) session.getAttributes().get("userId");
         if (userId != null) {
             sessionManager.removeSession(userId, session);
@@ -80,16 +87,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
             
             // 广播在线用户列表更新（通知所有管理员）
             try {
-                org.springframework.context.ApplicationContext applicationContext = 
-                    org.springframework.web.context.support.WebApplicationContextUtils
-                        .getWebApplicationContext(session.getAttributes().get("servletContext"));
-                if (applicationContext != null) {
-                    com.shangnantea.websocket.service.WebSocketService webSocketService = 
-                        applicationContext.getBean(com.shangnantea.websocket.service.WebSocketService.class);
-                    if (webSocketService != null) {
-                        webSocketService.broadcastOnlineUsersUpdate();
-                    }
-                }
+                webSocketService.broadcastOnlineUsersUpdate();
             } catch (Exception e) {
                 logger.debug("广播在线用户列表更新失败，不影响断开: userId={}, error={}", userId, e.getMessage());
             }
@@ -99,7 +97,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
     /**
      * 发送消息给指定session
      */
-    private void sendMessage(WebSocketSession session, String message) {
+    private void sendMessage(WebSocketSession session, @NonNull String message) {
         try {
             if (session.isOpen()) {
                 session.sendMessage(new TextMessage(message));
