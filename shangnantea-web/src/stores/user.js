@@ -637,15 +637,18 @@ export const useUserStore = defineStore('user', () => {
       const backendData = mapAddressToBackend(addressData)
       const res = await addAddressApi(backendData)
       const newAddress = mapAddressFromBackend(res.data)
-      addressList.value.push(newAddress)
       
-      if (newAddress.isDefault) {
-        addressList.value.forEach(addr => {
-          if (addr.id !== newAddress.id) {
-            addr.isDefault = false
-          }
-        })
-        defaultAddressId.value = newAddress.id
+      if (newAddress) {
+        addressList.value.push(newAddress)
+        
+        if (newAddress.isDefault) {
+          addressList.value.forEach(addr => {
+            if (addr && addr.id !== newAddress.id) {
+              addr.isDefault = false
+            }
+          })
+          defaultAddressId.value = newAddress.id
+        }
       }
       
       return res
