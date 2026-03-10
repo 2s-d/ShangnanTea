@@ -248,30 +248,36 @@
           
           <!-- 管理员/商户视角：卖家操作 -->
           <template v-else>
-            <!-- 待发货状态：显示发货按钮 -->
-            <el-button
-              v-if="orderDetail.status === 1"
-              type="primary"
-              @click="handleShipOrder"
-            >
-              发货
-            </el-button>
-            <!-- 已发货/待收货状态：显示物流信息查看 -->
-            <el-button
-              v-if="orderDetail.status === 2 || orderDetail.status === 3"
-              type="info"
-              @click="viewLogistics"
-            >
-              查看物流
-            </el-button>
-            <!-- 有退款申请时：显示处理退款按钮 -->
-            <el-button
-              v-if="orderDetail.refundStatus === 1"
-              type="warning"
-              @click="handleProcessRefund"
-            >
-              处理退款
-            </el-button>
+            <!-- 待发货(1)：发货 -->
+            <template v-if="orderDetail.status === 1">
+              <el-button type="primary" @click="openShipDialog">
+                发货
+              </el-button>
+            </template>
+
+            <!-- 待收货(2) / 已完成(3)：查看物流 -->
+            <template v-if="orderDetail.status === 2 || orderDetail.status === 3">
+              <el-button type="info" @click="viewLogistics">
+                查看物流
+              </el-button>
+            </template>
+
+            <!-- 退款中(5)：同意退款 / 拒绝退款 / 查看退款进度 -->
+            <template v-if="orderDetail.status === 5">
+              <el-button type="success" @click="openProcessRefundDialog">
+                同意退款 / 拒绝退款
+              </el-button>
+              <el-button type="info" @click="viewRefundDetail">
+                查看退款进度
+              </el-button>
+            </template>
+
+            <!-- 已退款(6)：查看退款详情 -->
+            <template v-else-if="orderDetail.status === 6">
+              <el-button type="info" @click="viewRefundDetail">
+                查看退款详情
+              </el-button>
+            </template>
           </template>
         </div>
       </div>
@@ -399,7 +405,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, reactive } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useOrderStore } from '@/stores/order'
 import { useUserStore } from '@/stores/user'
@@ -485,6 +491,23 @@ const initialAddressForm = ref({
 
 // 地区级联选择器数据
 const cascaderOptions = ref(regionData || [])
+// 新增地址创建阶段 & ID：用于两步流程（先创建地址，再更新订单）
+const addressActionStage = ref('initial') // 'initial' | 'created'
+const createdAddressId = ref(null)
+
+// 卖家发货对话框
+const shipDialogVisible = ref(false)
+const shipSubmitting = ref(false)
+const shipForm = reactive({
+  company: '',
+  trackingNumber: ''
+})
+
+// 卖家处理退款对话框
+const processRefundDialogVisible = ref(false)
+const processRefundSubmitting = ref(false)
+const refundProcessInfo = ref(null)
+const rejectReason = ref('')
     
     // 获取订单状态文本
     const getStatusText = status => {
@@ -549,6 +572,43 @@ const cascaderOptions = ref(regionData || [])
       return num < 10 ? `0${num}` : num
     }
     
+    // 卖家：打开发货对话框
+    const openShipDialog = () => {
+      if (!orderDetail.value) return
+      shipForm.company = ''
+      shipForm.trackingNumber = ''
+      shipDialogVisible.value = true
+    }
+
+    // 卖家：确认发货（调用 shipOrder 接口）
+    const confirmShipFromDetail = async () => {
+      if (!orderDetail.value) return
+      if (!shipForm.company) {
+        orderPromptMessages.showLogisticsCompanyRequired && orderPromptMessages.showLogisticsCompanyRequired()
+        return
+      }
+      if (!shipForm.trackingNumber) {
+        orderPromptMessages.showLogisticsNumberRequired && orderPromptMessages.showLogisticsNumberRequired()
+        return
+      }
+
+      shipSubmitting.value = true
+      try {
+        const res = await orderStore.shipOrder({
+          id: orderDetail.value.id,
+          logisticsCompany: shipForm.company,
+          logisticsNumber: shipForm.trackingNumber
+        })
+        showByCode(res?.code)
+        shipDialogVisible.value = false
+        await loadOrderDetail()
+      } catch (error) {
+        console.error('发货失败:', error)
+      } finally {
+        shipSubmitting.value = false
+      }
+    }
+
     // 返回订单列表
     const goBack = () => {
       if (isManagePage.value) {
@@ -881,28 +941,40 @@ const cascaderOptions = ref(regionData || [])
       }
     }
     
-    // 查看退款详情/进度：当前简单弹出提示，后续可跳转到专门页面
-    const viewRefundDetail = () => {
-      if (!orderDetail.value || !orderDetail.value.refundStatus || orderDetail.value.refundStatus === 0) {
+    // 查看退款详情/进度：统一从后端 getRefundDetail 拉取最新数据
+    const viewRefundDetail = async () => {
+      if (!orderDetail.value) {
         orderPromptMessages.showNoRefundInfo && orderPromptMessages.showNoRefundInfo()
         return
       }
-      // 暂时直接弹出一个基础信息，后续可以换成对话框或独立页
-      const statusTextMap = {
-        1: '退款申请中',
-        2: '退款已同意',
-        3: '退款已拒绝'
+      try {
+        const res = await orderStore.fetchRefundDetail(orderId)
+        showByCode(res?.code)
+        const data = res?.data || res
+        if (!data) {
+          orderPromptMessages.showNoRefundInfo && orderPromptMessages.showNoRefundInfo()
+          return
+        }
+        const statusTextMap = {
+          1: '退款申请中',
+          2: '退款已同意',
+          3: '退款已拒绝'
+        }
+        const status = data.status ?? orderDetail.value.refundStatus
+        const statusText = statusTextMap[status] || '退款处理中'
+        const reason = data.reason || orderDetail.value.refundReason || '无'
+        const rejectReason = data.rejectReason || orderDetail.value.refundRejectReason || '无'
+        const applyTime = data.applyTime || orderDetail.value.refundApplyTime
+        const processTime = data.processTime || orderDetail.value.refundProcessTime
+        ElMessageBox.alert(
+          `状态：${statusText}\n申请原因：${reason}\n拒绝原因：${rejectReason}\n申请时间：${applyTime || '无'}\n处理时间：${processTime || '无'}`,
+          '退款详情',
+          { confirmButtonText: '我知道了' }
+        )
+      } catch (error) {
+        console.error('获取退款详情失败:', error)
+        orderPromptMessages.showNoRefundInfo && orderPromptMessages.showNoRefundInfo()
       }
-      const statusText = statusTextMap[orderDetail.value.refundStatus] || '退款处理中'
-      const reason = orderDetail.value.refundReason || '无'
-      const rejectReason = orderDetail.value.refundRejectReason || '无'
-      const applyTime = orderDetail.value.refundApplyTime ? formatTime(orderDetail.value.refundApplyTime) : '无'
-      const processTime = orderDetail.value.refundProcessTime ? formatTime(orderDetail.value.refundProcessTime) : '无'
-      ElMessageBox.alert(
-        `状态：${statusText}\n申请原因：${reason}\n拒绝原因：${rejectReason}\n申请时间：${applyTime}\n处理时间：${processTime}`,
-        '退款详情',
-        { confirmButtonText: '我知道了' }
-      )
     }
     
     const canRequestRefund = computed(() => {
