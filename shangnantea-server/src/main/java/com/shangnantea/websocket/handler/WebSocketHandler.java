@@ -5,6 +5,7 @@ import com.shangnantea.websocket.service.WebSocketService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -13,6 +14,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * WebSocket消息处理器
@@ -29,6 +31,9 @@ public class WebSocketHandler extends TextWebSocketHandler {
     @Autowired
     private WebSocketService webSocketService;
     
+    @Autowired(required = false)
+    private StringRedisTemplate redisTemplate;
+    
     /**
      * 连接建立后触发
      */
@@ -39,6 +44,9 @@ public class WebSocketHandler extends TextWebSocketHandler {
         if (userId != null) {
             sessionManager.addSession(userId, session);
             logger.info("WebSocket连接建立: userId={}, sessionId={}", userId, session.getId());
+            
+            // 记录在线状态（基于WebSocket连接）
+            markUserOnline(userId);
             
             // 发送连接成功消息
             sendMessage(session, "{\"type\":\"connected\",\"message\":\"连接成功\"}");
@@ -64,6 +72,11 @@ public class WebSocketHandler extends TextWebSocketHandler {
         String payload = message.getPayload();
         logger.debug("收到WebSocket消息: userId={}, message={}", userId, payload);
         
+        // 收到任何消息都视为活跃，刷新在线TTL
+        if (userId != null) {
+            markUserOnline(userId);
+        }
+        
         // 处理心跳消息
         if ("ping".equals(payload)) {
             sendMessage(session, "pong");
@@ -85,6 +98,9 @@ public class WebSocketHandler extends TextWebSocketHandler {
             logger.info("WebSocket连接关闭: userId={}, sessionId={}, status={}", 
                 userId, session.getId(), status);
             
+            // 连接关闭时清理在线状态（兜底依然有TTL）
+            clearUserOnline(userId);
+            
             // 广播在线用户列表更新（通知所有管理员）
             try {
                 webSocketService.broadcastOnlineUsersUpdate();
@@ -105,6 +121,38 @@ public class WebSocketHandler extends TextWebSocketHandler {
         } catch (IOException e) {
             logger.error("发送WebSocket消息失败: sessionId={}, error={}", 
                 session.getId(), e.getMessage());
+        }
+    }
+    
+    /**
+     * 标记用户在线（基于WebSocket活动），并设置短TTL。
+     */
+    private void markUserOnline(String userId) {
+        if (redisTemplate == null || userId == null) {
+            return;
+        }
+        try {
+            String key = "online:user:" + userId;
+            // WebSocket心跳为30秒，这里给一个较短的兜底TTL，例如2分钟
+            redisTemplate.opsForValue().set(key, "1", 2, TimeUnit.MINUTES);
+        } catch (Exception e) {
+            logger.debug("记录用户在线状态失败(WebSocket), userId={}, error={}", userId, e.getMessage());
+        }
+    }
+    
+    /**
+     * 清理用户在线状态（在WebSocket连接关闭或显式下线时调用）。
+     */
+    private void clearUserOnline(String userId) {
+        if (redisTemplate == null || userId == null) {
+            return;
+        }
+        try {
+            String key = "online:user:" + userId;
+            Boolean removed = redisTemplate.delete(key);
+            logger.debug("清理用户在线状态(WebSocket): userId={}, key={}, removed={}", userId, key, removed);
+        } catch (Exception e) {
+            logger.debug("清理用户在线状态失败(WebSocket), userId={}, error={}", userId, e.getMessage());
         }
     }
 }

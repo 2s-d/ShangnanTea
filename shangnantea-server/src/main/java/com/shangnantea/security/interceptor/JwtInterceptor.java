@@ -91,7 +91,6 @@ public class JwtInterceptor implements HandlerInterceptor {
                         user.setRole(role);
                         UserContext.setCurrentUser(user);
                         logger.debug("可选认证成功，设置用户上下文: ID={}, 角色={}", userId, role);
-                        markUserOnline(userId);
                     }
                 } catch (Exception e) {
                     logger.debug("可选认证失败，忽略token: {}", e.getMessage());
@@ -132,12 +131,7 @@ public class JwtInterceptor implements HandlerInterceptor {
 
         UserContext.setCurrentUser(user);
         logger.debug("用户已认证（基于JWT），ID: {}, 角色: {}", userId, role);
-        markUserOnline(userId);
         
-        // 通过WebSocket推送在线状态更新（如果WebSocket连接存在）
-        // 注意：这里不直接注入WebSocketService，避免循环依赖
-        // WebSocket状态更新由WebSocketHandler在连接建立时处理
-
         // 验证角色
         if (requiresRoles != null && requiresRoles.value().length > 0) {
             int userRole = user.getRole();
@@ -182,19 +176,4 @@ public class JwtInterceptor implements HandlerInterceptor {
         return null;
     }
     
-    /**
-     * 记录用户最近在线状态（基于任意一次通过JWT的请求）。
-     */
-    private void markUserOnline(String userId) {
-        if (redisTemplate == null || userId == null) {
-            return;
-        }
-        try {
-            String key = "online:user:" + userId;
-            // 这里设置一个短TTL，比如5分钟，期间有任何请求都会刷新这个TTL
-            redisTemplate.opsForValue().set(key, "1", 5, TimeUnit.MINUTES);
-        } catch (Exception e) {
-            logger.debug("记录用户在线状态失败，userId={}, error={}", userId, e.getMessage());
-        }
-    }
-} 
+}
