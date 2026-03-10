@@ -850,14 +850,20 @@ const cascaderOptions = ref(regionData || [])
         
         // 获取新创建的地址ID
         await userStore.fetchAddresses()
-        const newAddress = userStore.addressList.find(addr => 
-          addr && addr.receiverName === addressData.receiverName &&
-          addr.receiverPhone === addressData.receiverPhone &&
-          addr.province === addressData.province &&
-          addr.city === addressData.city &&
-          addr.district === addressData.district &&
-          (addr.detailAddress || addr.detail) === addressData.detailAddress
-        )
+        const newAddress = userStore.addressList.find(addr => {
+          if (!addr) return false
+          const name = addr.receiverName || addr.name
+          const phone = addr.receiverPhone || addr.phone
+          const detail = addr.detailAddress || addr.detail
+          return (
+            name === addressData.receiverName &&
+            phone === addressData.receiverPhone &&
+            addr.province === addressData.province &&
+            addr.city === addressData.city &&
+            addr.district === addressData.district &&
+            detail === addressData.detailAddress
+          )
+        })
         
         if (!newAddress) {
           showByCode(5147, '无法获取新创建的地址ID')
