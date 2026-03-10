@@ -69,15 +69,23 @@ const mapAddressFromBackend = address => {
 
 const mapAddressToBackend = address => {
   if (!address) return null
+  
+  // 兼容两种前端字段命名：
+  // - 旧：name / phone / detail
+  // - 新：receiverName / receiverPhone / detailAddress
+  const receiverName = address.receiverName || address.name
+  const receiverPhone = address.receiverPhone || address.phone
+  const detailAddress = address.detailAddress || address.detail
+
   return {
     id: address.id,
     userId: address.userId,
-    receiverName: address.name,
-    receiverPhone: address.phone,
+    receiverName,
+    receiverPhone,
     province: address.province,
     city: address.city,
     district: address.district,
-    detailAddress: address.detail,
+    detailAddress,
     isDefault: address.isDefault === true || address.isDefault === 1 ? 1 : 0
   }
 }
