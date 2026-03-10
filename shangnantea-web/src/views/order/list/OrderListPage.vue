@@ -469,14 +469,9 @@ const filteredOrders = computed(() => orders.value)
       })
     }
     
-    // 查看订单详情
+    // 查看订单详情：跳转到订单详情页
     const viewOrderDetail = orderId => {
-      currentOrderId.value = orderId
-      selectedAddressId.value = null
-      addressActionStage.value = 'initial'
-      createdAddressId.value = null
-      // 原来这里是跳转详情页，现在已经改成直接在列表里弹框
-      // router.push(`/order/detail/${orderId}`)
+      router.push(`/order/detail/${orderId}`)
     }
     
     // 继续支付
