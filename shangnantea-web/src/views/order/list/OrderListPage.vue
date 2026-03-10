@@ -1,5 +1,5 @@
 <template>
-  <div class="order-list-page" :class="{ 'no-scroll': addressDialogVisible }">
+  <div class="order-list-page">
     <div class="container main-content">
       <el-card class="list-card" shadow="hover">
       <template #header>
