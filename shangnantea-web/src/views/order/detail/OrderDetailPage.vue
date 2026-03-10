@@ -316,6 +316,7 @@
       width="600px"
       :close-on-click-modal="false"
       destroy-on-close
+      class="address-edit-dialog-wrapper"
     >
       <div class="address-edit-dialog">
         <!-- 当前订单地址编辑表单 -->
@@ -1275,10 +1276,23 @@ onMounted(() => {
 }
 
 /* 修改地址对话框样式 */
+.address-edit-dialog-wrapper :deep(.el-dialog__body) {
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.address-edit-dialog {
+  display: flex;
+  flex-direction: column;
+  max-height: 70vh;
+}
+
 .address-edit-dialog .address-form-section {
   margin-bottom: 24px;
   padding-bottom: 20px;
   border-bottom: 1px solid #ebeef5;
+  flex-shrink: 0;
 }
 
 .address-edit-dialog .address-form-section .section-title {
@@ -1288,14 +1302,24 @@ onMounted(() => {
   margin-bottom: 16px;
 }
 
+.address-edit-dialog .address-book-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
 .address-edit-dialog .address-book-section .section-title {
   font-size: 14px;
   font-weight: 600;
   color: #303133;
   margin-bottom: 12px;
+  flex-shrink: 0;
 }
 
 .address-edit-dialog .address-list-container {
+  flex: 1;
+  min-height: 0;
   max-height: 300px;
   overflow-y: auto;
   border: 1px solid #ebeef5;
