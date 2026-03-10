@@ -399,7 +399,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useOrderStore } from '@/stores/order'
 import { useUserStore } from '@/stores/user'
@@ -482,6 +482,14 @@ const initialAddressForm = ref({
 
 // 地区级联选择器数据
 const cascaderOptions = ref(regionData || [])
+
+// 打开修改地址对话框时，隐藏页面滚动条，只保留弹窗内部滚动
+watch(addressDialogVisible, (visible) => {
+  if (typeof window === 'undefined') return
+  const body = document.body
+  if (!body) return
+  body.style.overflowY = visible ? 'hidden' : ''
+})
     
     // 获取订单状态文本
     const getStatusText = status => {

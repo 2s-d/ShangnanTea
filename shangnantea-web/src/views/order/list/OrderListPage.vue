@@ -274,7 +274,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useOrderStore } from '@/stores/order'
 import { useUserStore } from '@/stores/user'
@@ -359,6 +359,14 @@ const orders = computed(() => orderStore.orderList || [])
 
 // 列表直接来自 Pinia，筛选交给后端
 const filteredOrders = computed(() => orders.value)
+
+// 打开修改地址对话框时，隐藏页面滚动条，只保留弹窗内部滚动
+watch(addressDialogVisible, (visible) => {
+  if (typeof window === 'undefined') return
+  const body = document.body
+  if (!body) return
+  body.style.overflowY = visible ? 'hidden' : ''
+})
 
     const openRefundDialog = orderId => {
       refundOrderId.value = orderId
