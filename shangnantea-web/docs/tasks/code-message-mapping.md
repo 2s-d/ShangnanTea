@@ -1183,19 +1183,19 @@
 
 ### 六、消息模块接口 (message.js) - 共22个接口
 
-#### 接口1: getMessages - /message/list (2个状态码)
+#### 接口1: getContacts - /message/contacts (2个状态码)
 
 | Code | 消息 | 场景 | 显示 |
 |------|------|------|------|
-| 200 | 操作成功 | 获取消息列表成功 | [静默] |
-| 7100 | 加载失败 | 获取消息列表失败 | 显示 |
+| 200 | 操作成功 | 获取联系人列表成功 | [静默] |
+| 7100 | 加载失败 | 获取联系人列表失败 | 显示 |
 
-#### 接口2: getMessageDetail - /message/{id} (2个状态码)
+#### 接口2: searchUsers - /message/search-users (2个状态码)
 
 | Code | 消息 | 场景 | 显示 |
 |------|------|------|------|
-| 200 | 操作成功 | 获取消息详情成功 | [静默] |
-| 7101 | 加载失败 | 获取消息详情失败 | 显示 |
+| 200 | 操作成功 | 搜索用户成功 | [静默] |
+| 7101 | 加载失败 | 搜索用户失败 | 显示 |
 
 #### 接口3: sendMessage - /message/send (2个状态码)
 
@@ -1703,8 +1703,8 @@
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
-| 1 | getMessages | GET | /message/list | 200 | 7100 | 获取消息列表 |
-| 2 | getMessageDetail | GET | /message/{id} | 200 | 7101 | 获取消息详情 |
+| 1 | getContacts | GET | /message/contacts | 200 | 7100 | 获取联系人列表 |
+| 2 | searchUsers | GET | /message/search-users | 200 | 7101 | 全局用户搜索 |
 | 3 | sendMessage | POST | /message/send | 7000 | 7102 | 发送消息 |
 | 4 | markAsRead | POST | /message/read | 7001 | 7103 | 标记已读 |
 | 5 | deleteMessages | POST | /message/delete | 7002 | 7104 | 删除消息 |

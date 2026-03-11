@@ -36,12 +36,12 @@
               <span class="label">买家信息：</span>
               <div class="buyer-content" @click="goToUserProfile(orderDetail.userId)">
                 <SafeImage
-                  :src="orderDetail.userAvatar || orderDetail.avatar || ''"
+                  :src="buyerDisplayInfo.avatar"
                   type="avatar"
-                  :alt="orderDetail.userNickname || orderDetail.nickname || '用户'"
+                  :alt="buyerDisplayInfo.nickname"
                   class="buyer-avatar"
                 />
-                <span class="buyer-nickname">{{ orderDetail.userNickname || orderDetail.nickname || `用户${orderDetail.userId}` }}</span>
+                <span class="buyer-nickname">{{ buyerDisplayInfo.nickname }}</span>
               </div>
             </div>
             <div class="info-item">
@@ -242,9 +242,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted, reactive } from 'vue'
+import { ref, onMounted, reactive, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useOrderStore } from '@/stores/order'
+import { useMessageStore } from '@/stores/message'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 import { showByCode } from '@/utils/apiMessages'
 import { ElMessageBox } from 'element-plus'
@@ -253,10 +254,33 @@ import { orderPromptMessages } from '@/utils/promptMessages'
 const router = useRouter()
 const route = useRoute()
 const orderStore = useOrderStore()
+const messageStore = useMessageStore()
 
 const loading = ref(false)
 const orderDetail = ref(null)
+const buyerInfo = ref(null)
 const orderId = route.params.id
+
+// 计算买家显示信息
+const buyerDisplayInfo = computed(() => {
+  if (buyerInfo.value) {
+    return {
+      nickname: buyerInfo.value.nickname || `用户${orderDetail.value?.userId || ''}`,
+      avatar: buyerInfo.value.avatar || ''
+    }
+  }
+  // 如果订单详情中有用户信息，使用订单详情中的
+  if (orderDetail.value) {
+    return {
+      nickname: orderDetail.value.userNickname || orderDetail.value.nickname || `用户${orderDetail.value.userId || ''}`,
+      avatar: orderDetail.value.userAvatar || orderDetail.value.avatar || ''
+    }
+  }
+  return {
+    nickname: `用户${orderDetail.value?.userId || ''}`,
+    avatar: ''
+  }
+})
 
 // 发货对话框
 const shipDialogVisible = ref(false)
@@ -339,9 +363,24 @@ const loadDetail = async () => {
     showByCode(res?.code)
     const data = res?.data || res
     orderDetail.value = data
-    // 调试：打印地址信息
-    console.log('订单详情数据:', data)
-    console.log('地址信息:', data?.address)
+    
+    // 如果有userId，获取用户信息
+    if (data?.userId) {
+      try {
+        await messageStore.fetchUserProfile(data.userId)
+        // fetchUserProfile会将用户信息存储到userProfile中
+        const userProfile = messageStore.userProfile
+        if (userProfile && userProfile.id === data.userId) {
+          buyerInfo.value = {
+            nickname: userProfile.nickname,
+            avatar: userProfile.avatar
+          }
+        }
+      } catch (e) {
+        console.error('获取用户信息失败:', e)
+        // 获取失败不影响订单详情显示
+      }
+    }
   } catch (e) {
     console.error('加载订单详情失败:', e)
     orderDetail.value = null
@@ -359,7 +398,9 @@ const viewTeaDetail = teaId => {
 }
 
 const goToUserProfile = userId => {
-  router.push(`/user/${userId}`)
+  if (userId) {
+    router.push(`/profile/${userId}`)
+  }
 }
 
 // 打开发货对话框

@@ -2,31 +2,26 @@ import request from './index'
 import { API } from './apiConstants'
 
 /**
- * TODO: 冗余接口，需要删除
- * 获取消息列表（兼容：历史实现）
- * 说明：前端已使用更具体的接口（getNotifications, getChatHistory），此接口未被调用
- * @param {Object} params 查询参数
- * @returns {Promise} 消息列表
+ * 获取联系人列表（包含在线状态）
+ * @returns {Promise} 联系人列表（关注的人+店铺，包含在线状态）
  */
-export function getMessages(params) {
+export function getContacts() {
   return request({
-    url: API.MESSAGE.LIST,
-    method: 'get',
-    params
+    url: API.MESSAGE.CONTACTS,
+    method: 'get'
   })
 }
 
 /**
- * TODO: 冗余接口，需要删除
- * 获取消息详情（兼容：历史实现）
- * 说明：前端已使用更具体的接口（getNotificationDetail），此接口未被调用
- * @param {number} id 消息ID
- * @returns {Promise} 消息详情
+ * 全局用户搜索（支持ID和昵称搜索）
+ * @param {Object} params 查询参数 {keyword, page, pageSize}
+ * @returns {Promise} 用户列表（包含昵称、头像、在线状态）
  */
-export function getMessageDetail(id) {
+export function searchUsers(params) {
   return request({
-    url: API.MESSAGE.DETAIL.replace('{id}', id),
-    method: 'get'
+    url: API.MESSAGE.SEARCH_USERS,
+    method: 'get',
+    params
   })
 }
 

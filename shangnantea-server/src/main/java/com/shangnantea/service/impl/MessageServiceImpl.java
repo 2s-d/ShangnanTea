@@ -148,79 +148,80 @@ public class MessageServiceImpl implements MessageService {
     }
     
     @Override
-    public Result<Object> getMessages(Map<String, Object> params) {
+    @Override
+    public Result<Object> getContacts() {
         try {
-            logger.info("获取消息列表请求, params: {}", params);
+            logger.info("获取联系人列表请求");
             
             // 1. 获取当前用户ID
             String userId = UserContext.getCurrentUserId();
             if (userId == null) {
-                logger.warn("获取消息列表失败：用户未登录");
+                logger.warn("获取联系人列表失败：用户未登录");
                 return Result.failure(7100);
             }
             
-            // 2. 解析查询参数（兼容 pageSize / size）
-            Integer page = params.get("page") != null ?
-                Integer.parseInt(params.get("page").toString()) : 1;
-            Object pageSizeObj = params.get("pageSize") != null ? params.get("pageSize") : params.get("size");
-            Integer pageSize = pageSizeObj != null ? Integer.parseInt(pageSizeObj.toString()) : 10;
-            String type = params.get("type") != null ? 
-                params.get("type").toString() : null;
+            // 2. 查询关注列表（用户+店铺）
+            List<com.shangnantea.model.entity.user.UserFollow> followList = userFollowMapper.selectByUserId(userId, null);
             
-            // 3. 参数验证和修正
-            if (page < 1) {
-                page = 1;
-            }
-            if (pageSize < 1) {
-                pageSize = 10;
-            }
-            if (pageSize > 100) {
-                pageSize = 100; // 限制最大页大小
-            }
-            
-            Integer offset = (page - 1) * pageSize;
-            
-            // 4. 根据type查询不同类型的消息
-            List<MessageVO> messageList = new ArrayList<>();
-            long total = 0;
-            
-            if (type == null || "system".equals(type) || "notification".equals(type)) {
-                // 查询通知消息（system和notification都从UserNotification表查询）
-                String notificationType = "system".equals(type) ? "system" : type;
-                List<UserNotification> notifications = notificationMapper.selectByUserIdAndType(
-                    userId, notificationType, offset, pageSize);
-                total = notificationMapper.countByUserIdAndType(userId, notificationType);
+            // 3. 转换为联系人VO列表（包含在线状态）
+            List<Map<String, Object>> contactList = new ArrayList<>();
+            for (com.shangnantea.model.entity.user.UserFollow follow : followList) {
+                Map<String, Object> contact = new HashMap<>();
+                contact.put("id", follow.getFollowId());
+                contact.put("type", follow.getFollowType()); // "user" 或 "shop"
+                contact.put("name", follow.getTargetName());
                 
-                // 转换为MessageVO
-                messageList = notifications.stream().map(this::convertNotificationToVO)
-                    .collect(Collectors.toList());
-            } else if ("chat".equals(type)) {
-                // 查询聊天消息
-                List<ChatMessage> chatMessages = messageMapper.selectByUserId(userId, offset, pageSize);
-                total = messageMapper.countByUserId(userId);
+                // 处理头像/Logo
+                String avatar = follow.getTargetAvatar();
+                if (avatar != null && !avatar.trim().isEmpty()) {
+                    if (avatar.startsWith("http://") || avatar.startsWith("https://")) {
+                        contact.put("avatar", avatar);
+                    } else {
+                        contact.put("avatar", FileUploadUtils.generateAccessUrl(avatar, baseUrl));
+                    }
+                } else {
+                    contact.put("avatar", null);
+                }
                 
-                // 转换为MessageVO
-                messageList = chatMessages.stream().map(this::convertChatMessageToVO)
-                    .collect(Collectors.toList());
-            } else {
-                // 无效的type参数
-                logger.warn("获取消息列表失败：无效的消息类型, type: {}", type);
-                return Result.failure(7100);
+                // 如果是店铺，查询店铺信息获取logo和店主ID
+                String onlineUserId = null;
+                if ("shop".equals(follow.getFollowType())) {
+                    Shop shop = shopMapper.selectById(follow.getFollowId());
+                    if (shop != null) {
+                        String logo = shop.getLogo();
+                        if (logo != null && !logo.trim().isEmpty()) {
+                            if (logo.startsWith("http://") || logo.startsWith("https://")) {
+                                contact.put("logo", logo);
+                            } else {
+                                contact.put("logo", FileUploadUtils.generateAccessUrl(logo, baseUrl));
+                            }
+                        }
+                        onlineUserId = shop.getOwnerId(); // 店铺的在线状态看店主
+                    }
+                } else {
+                    onlineUserId = follow.getFollowId(); // 用户的在线状态看自己
+                }
+                
+                // 查询在线状态（由WebSocket维护online:user:* key）
+                boolean online = false;
+                try {
+                    if (redisTemplate != null && onlineUserId != null && !onlineUserId.trim().isEmpty()) {
+                        String onlineKey = "online:user:" + onlineUserId;
+                        online = Boolean.TRUE.equals(redisTemplate.hasKey(onlineKey));
+                    }
+                } catch (Exception e) {
+                    logger.debug("查询在线状态失败，不影响流程: userId={}, error={}", onlineUserId, e.getMessage());
+                }
+                contact.put("online", online);
+                
+                contactList.add(contact);
             }
             
-            // 5. 构造返回数据
-            Map<String, Object> resultData = new HashMap<>();
-            resultData.put("list", messageList);
-            resultData.put("total", total);
-            // 兼容前端分页回显（不影响老前端）
-            resultData.put("page", page);
-            resultData.put("pageSize", pageSize);
-            
-            logger.info("获取消息列表成功, userId: {}, type: {}, total: {}", userId, type, total);
-            return Result.success(200, resultData);
+            logger.info("获取联系人列表成功, userId: {}, count: {}", userId, contactList.size());
+            return Result.success(200, contactList);
             
         } catch (Exception e) {
-            logger.error("获取消息列表失败，系统异常", e);
+            logger.error("获取联系人列表失败，系统异常", e);
             return Result.failure(7100);
         }
     }
@@ -254,79 +255,103 @@ public class MessageServiceImpl implements MessageService {
     }
     
     @Override
-    public Result<Object> getMessageDetail(String id) {
+    public Result<Object> searchUsers(String keyword, Integer page, Integer pageSize) {
         try {
-            logger.info("获取消息详情请求, id: {}", id);
+            logger.info("全局用户搜索请求, keyword: {}, page: {}, pageSize: {}", keyword, page, pageSize);
             
             // 1. 获取当前用户ID
             String userId = UserContext.getCurrentUserId();
             if (userId == null) {
-                logger.warn("获取消息详情失败：用户未登录");
+                logger.warn("搜索用户失败：用户未登录");
                 return Result.failure(7101);
             }
             
-            // 2. 解析消息ID
-            Long messageId;
-            try {
-                messageId = Long.parseLong(id);
-            } catch (NumberFormatException e) {
-                logger.warn("获取消息详情失败：无效的消息ID, id: {}", id);
-                return Result.failure(7101);
+            // 2. 参数验证和修正
+            if (page == null || page < 1) {
+                page = 1;
+            }
+            if (pageSize == null || pageSize < 1) {
+                pageSize = 10;
+            }
+            if (pageSize > 50) {
+                pageSize = 50; // 限制最大页大小
             }
             
-            // 3. 先尝试从ChatMessage表查询
-            ChatMessage chatMessage = messageMapper.selectById(messageId);
-            if (chatMessage != null) {
-                // 验证权限：用户必须是发送者或接收者
-                if (!userId.equals(chatMessage.getSenderId()) && !userId.equals(chatMessage.getReceiverId())) {
-                    logger.warn("获取消息详情失败：无权限访问, userId: {}, messageId: {}", userId, messageId);
-                    return Result.failure(7101);
-                }
-                
-                // 如果是接收者且消息未读，标记为已读
-                if (userId.equals(chatMessage.getReceiverId()) && 
-                    (chatMessage.getIsRead() == null || chatMessage.getIsRead() == 0)) {
-                    chatMessage.setIsRead(1);
-                    chatMessage.setReadTime(new Date());
-                    messageMapper.updateById(chatMessage);
-                    logger.info("消息已标记为已读, messageId: {}", messageId);
-                }
-                
-                // 转换为VO并返回
-                MessageVO vo = convertChatMessageToVO(chatMessage);
-                logger.info("获取消息详情成功（聊天消息）, userId: {}, messageId: {}", userId, messageId);
-                return Result.success(200, vo);
+            Integer offset = (page - 1) * pageSize;
+            
+            // 3. 如果关键词为空，返回空列表
+            if (keyword == null || keyword.trim().isEmpty()) {
+                Map<String, Object> resultData = new HashMap<>();
+                resultData.put("list", new ArrayList<>());
+                resultData.put("total", 0);
+                resultData.put("page", page);
+                resultData.put("pageSize", pageSize);
+                return Result.success(200, resultData);
             }
             
-            // 4. 如果不是聊天消息，尝试从UserNotification表查询
-            UserNotification notification = notificationMapper.selectById(messageId);
-            if (notification != null) {
-                // 验证权限：用户必须是接收者
-                if (!userId.equals(notification.getUserId())) {
-                    logger.warn("获取消息详情失败：无权限访问, userId: {}, messageId: {}", userId, messageId);
-                    return Result.failure(7101);
+            // 4. 搜索用户（支持ID和昵称搜索）
+            // 使用UserMapper的selectByPage方法，但只搜索用户（role和status传null）
+            List<com.shangnantea.model.entity.user.User> users = userMapper.selectByPage(
+                keyword.trim(), null, null, offset, pageSize);
+            long total = userMapper.countByCondition(keyword.trim(), null, null);
+            
+            // 5. 转换为VO列表（包含在线状态）
+            List<Map<String, Object>> userList = new ArrayList<>();
+            for (com.shangnantea.model.entity.user.User user : users) {
+                // 排除自己
+                if (user.getId().equals(userId)) {
+                    continue;
                 }
                 
-                // 如果通知未读，标记为已读
-                if (notification.getIsRead() == null || notification.getIsRead() == 0) {
-                    notification.setIsRead(1);
-                    notification.setReadTime(new Date());
-                    notificationMapper.updateById(notification);
-                    logger.info("通知已标记为已读, messageId: {}", messageId);
+                Map<String, Object> userVO = new HashMap<>();
+                userVO.put("id", user.getId());
+                userVO.put("username", user.getUsername());
+                userVO.put("nickname", user.getNickname());
+                
+                // 处理头像URL
+                String avatar = user.getAvatar();
+                if (avatar != null && !avatar.trim().isEmpty()) {
+                    if (avatar.startsWith("http://") || avatar.startsWith("https://")) {
+                        userVO.put("avatar", avatar);
+                    } else {
+                        userVO.put("avatar", FileUploadUtils.generateAccessUrl(avatar, baseUrl));
+                    }
+                } else {
+                    userVO.put("avatar", null);
                 }
                 
-                // 转换为VO并返回
-                MessageVO vo = convertNotificationToVO(notification);
-                logger.info("获取消息详情成功（通知）, userId: {}, messageId: {}", userId, messageId);
-                return Result.success(200, vo);
+                // 查询在线状态（由WebSocket维护online:user:* key）
+                boolean online = false;
+                try {
+                    if (redisTemplate != null) {
+                        String onlineKey = "online:user:" + user.getId();
+                        online = Boolean.TRUE.equals(redisTemplate.hasKey(onlineKey));
+                    }
+                } catch (Exception e) {
+                    logger.debug("查询在线状态失败，不影响流程: userId={}, error={}", user.getId(), e.getMessage());
+                }
+                userVO.put("online", online);
+                
+                // 检查是否已关注
+                com.shangnantea.model.entity.user.UserFollow follow = userFollowMapper.selectByUserIdAndFollowId(
+                    userId, user.getId(), "user");
+                userVO.put("isFollowed", follow != null);
+                
+                userList.add(userVO);
             }
             
-            // 5. 消息不存在
-            logger.warn("获取消息详情失败：消息不存在, messageId: {}", messageId);
-            return Result.failure(7101);
+            // 6. 构造返回数据
+            Map<String, Object> resultData = new HashMap<>();
+            resultData.put("list", userList);
+            resultData.put("total", total);
+            resultData.put("page", page);
+            resultData.put("pageSize", pageSize);
+            
+            logger.info("全局用户搜索成功, userId: {}, keyword: {}, total: {}", userId, keyword, total);
+            return Result.success(200, resultData);
             
         } catch (Exception e) {
-            logger.error("获取消息详情失败，系统异常", e);
+            logger.error("全局用户搜索失败，系统异常", e);
             return Result.failure(7101);
         }
     }

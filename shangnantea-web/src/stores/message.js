@@ -1,8 +1,8 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import {
-  getMessages,
-  getMessageDetail,
+  getContacts,
+  searchUsers,
   sendMessage,
   markAsRead,
   deleteMessages,
@@ -181,32 +181,13 @@ export const useMessageStore = defineStore('message', () => {
   }
 
   /**
-   * 获取消息列表
-   * @param {Object} params 查询参数
-   * @returns {Promise<Object>} 消息数据
+   * 获取联系人列表（包含在线状态）
+   * @returns {Promise<Object>} 联系人列表数据
    */
-  async function fetchMessages(params = {}) {
+  async function fetchContacts() {
     try {
       loading.value = true
-      
-      const queryParams = {
-        page: pagination.value.currentPage,
-        size: pagination.value.pageSize,
-        ...params
-      }
-      
-      const res = await getMessages(queryParams)
-
-      const requestPage = Number(queryParams.page) || pagination.value.currentPage || 1
-      const requestPageSize = Number(queryParams.pageSize || queryParams.size) || pagination.value.pageSize || 10
-
-      messages.value = res.data?.list || []
-      pagination.value = {
-        total: res.data?.total || 0,
-        currentPage: Number(res.data?.pageNum || res.data?.page) || requestPage,
-        pageSize: Number(res.data?.pageSize || res.data?.size) || requestPageSize
-      }
-
+      const res = await getContacts()
       return res
     } finally {
       loading.value = false
@@ -214,20 +195,14 @@ export const useMessageStore = defineStore('message', () => {
   }
   
   /**
-   * 获取消息详情
-   * @param {number} id 消息ID
-   * @returns {Promise<Object>} 消息详情
+   * 全局用户搜索（支持ID和昵称搜索）
+   * @param {Object} params 查询参数 {keyword, page, pageSize}
+   * @returns {Promise<Object>} 用户列表数据
    */
-  async function fetchMessageDetail(id) {
+  async function fetchSearchUsers(params = {}) {
     try {
       loading.value = true
-      
-      const res = await getMessageDetail(id)
-      currentMessage.value = res.data
-      
-      // 标记为已读
-      markAsRead(id)
-      
+      const res = await searchUsers(params)
       return res
     } finally {
       loading.value = false

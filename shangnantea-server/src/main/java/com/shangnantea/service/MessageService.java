@@ -22,24 +22,25 @@ public interface MessageService {
     Result<Object> sendImageMessage(String sessionId, String receiverId, MultipartFile image);
     
     /**
-     * 获取消息列表
-     * 路径: GET /message/list
+     * 获取联系人列表（包含在线状态）
+     * 路径: GET /message/contacts
      * 成功码: 200, 失败码: 7100
      *
-     * @param params 查询参数（page, pageSize, type）
-     * @return 消息列表
+     * @return 联系人列表（关注的人+店铺，包含在线状态）
      */
-    Result<Object> getMessages(Map<String, Object> params);
+    Result<Object> getContacts();
     
     /**
-     * 获取消息详情
-     * 路径: GET /message/{id}
+     * 全局用户搜索（支持ID和昵称搜索）
+     * 路径: GET /message/search-users
      * 成功码: 200, 失败码: 7101
      *
-     * @param id 消息ID
-     * @return 消息详情
+     * @param keyword 搜索关键词（用户ID或昵称）
+     * @param page 页码
+     * @param pageSize 每页数量
+     * @return 用户列表（包含昵称、头像、在线状态）
      */
-    Result<Object> getMessageDetail(String id);
+    Result<Object> searchUsers(String keyword, Integer page, Integer pageSize);
     
     /**
      * 发送消息

@@ -134,8 +134,8 @@ export const API = {
 
   // === 消息模块API ===
   MESSAGE: {
-    LIST: '/message/list',
-    DETAIL: '/message/{id}',
+    CONTACTS: '/message/contacts',
+    SEARCH_USERS: '/message/search-users',
     SEND: '/message/send',
     READ: '/message/read',
     DELETE: '/message/delete',
