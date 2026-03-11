@@ -202,19 +202,56 @@
         
         <!-- 操作按钮区域 -->
         <div class="detail-section action-section">
-          <!-- 用户视角：买家操作 -->
-          <template v-if="!isSellerView">
+          <!-- 管理员/商户视角：卖家操作（管理端） -->
+          <template v-if="isManagePage">
+            <!-- 待发货(1)：发货 -->
+            <el-button 
+              v-if="orderDetail && Number(orderDetail.status) === 1" 
+              type="primary" 
+              @click="openShipDialog"
+            >
+              发货
+            </el-button>
+            <!-- 待收货(2) / 已完成(3)：查看物流 -->
+            <el-button 
+              v-else-if="orderDetail && (Number(orderDetail.status) === 2 || Number(orderDetail.status) === 3)" 
+              type="info" 
+              @click="viewLogistics"
+            >
+              查看物流
+            </el-button>
+            <!-- 退款中(5)：同意退款 / 拒绝退款 / 查看退款进度 -->
+            <template v-else-if="orderDetail && Number(orderDetail.status) === 5">
+              <el-button type="success" @click="openProcessRefundDialog">
+                同意退款 / 拒绝退款
+              </el-button>
+              <el-button type="info" @click="viewRefundDetail">
+                查看退款进度
+              </el-button>
+            </template>
+            <!-- 已退款(6)：查看退款详情 -->
+            <el-button 
+              v-else-if="orderDetail && Number(orderDetail.status) === 6" 
+              type="info" 
+              @click="viewRefundDetail"
+            >
+              查看退款详情
+            </el-button>
+          </template>
+          
+          <!-- 用户视角：买家操作（用户端） -->
+          <template v-else>
             <!-- 待付款 -->
-            <template v-if="orderDetail.status === 0">
+            <template v-if="orderDetail && orderDetail.status === 0">
               <el-button type="primary" @click="continuePay">立即支付</el-button>
               <el-button type="default" @click="cancelOrder">取消订单</el-button>
             </template>
             <!-- 待发货：允许修改地址 -->
-            <template v-else-if="orderDetail.status === 1">
+            <template v-else-if="orderDetail && orderDetail.status === 1">
               <el-button type="primary" @click="openAddressDialog">修改收货地址</el-button>
             </template>
             <!-- 待收货 -->
-            <template v-else-if="orderDetail.status === 2">
+            <template v-else-if="orderDetail && orderDetail.status === 2">
               <el-button type="primary" @click="viewLogistics">查看详细物流</el-button>
               <el-button type="success" @click="confirmReceipt">确认收货</el-button>
             </template>
@@ -224,16 +261,16 @@
               <el-button type="info" @click="viewLogistics">查看物流</el-button>
             </template>
             <!-- 已完成且已评价：仅查看物流 -->
-            <template v-else-if="orderDetail.status === 3 && isReviewed">
+            <template v-else-if="orderDetail && orderDetail.status === 3 && isReviewed">
               <el-button type="success" plain disabled>已评价</el-button>
               <el-button type="info" @click="viewLogistics">查看物流</el-button>
             </template>
             <!-- 退款中 -->
-            <template v-else-if="orderDetail.status === 5">
+            <template v-else-if="orderDetail && orderDetail.status === 5">
               <el-button type="info" @click="viewRefundDetail">查看退款进度</el-button>
             </template>
             <!-- 已退款 -->
-            <template v-else-if="orderDetail.status === 6">
+            <template v-else-if="orderDetail && orderDetail.status === 6">
               <el-button type="info" @click="viewRefundDetail">查看退款详情</el-button>
             </template>
             <!-- 退款相关 -->
@@ -244,41 +281,6 @@
             >
               申请退款
             </el-button>
-          </template>
-          
-          <!-- 管理员/商户视角：卖家操作 -->
-          <template v-else-if="isSellerView">
-            <!-- 待付款(0)：管理端不显示操作按钮 -->
-            <template v-if="orderDetail && orderDetail.status === 0">
-              <!-- 待付款状态在管理端不显示任何操作按钮 -->
-            </template>
-            <!-- 待发货(1)：发货 -->
-            <template v-else-if="orderDetail && orderDetail.status === 1">
-              <el-button type="primary" @click="openShipDialog">
-                发货
-              </el-button>
-            </template>
-            <!-- 待收货(2) / 已完成(3)：查看物流 -->
-            <template v-else-if="orderDetail && (orderDetail.status === 2 || orderDetail.status === 3)">
-              <el-button type="info" @click="viewLogistics">
-                查看物流
-              </el-button>
-            </template>
-            <!-- 退款中(5)：同意退款 / 拒绝退款 / 查看退款进度 -->
-            <template v-else-if="orderDetail && orderDetail.status === 5">
-              <el-button type="success" @click="openProcessRefundDialog">
-                同意退款 / 拒绝退款
-              </el-button>
-              <el-button type="info" @click="viewRefundDetail">
-                查看退款进度
-              </el-button>
-            </template>
-            <!-- 已退款(6)：查看退款详情 -->
-            <template v-else-if="orderDetail && orderDetail.status === 6">
-              <el-button type="info" @click="viewRefundDetail">
-                查看退款详情
-              </el-button>
-            </template>
           </template>
         </div>
       </div>
