@@ -1,3 +1,4 @@
+<!-- eslint-disable indent, vue/html-indent, vue/script-indent -->
 <template>
   <div class="chat-page">
     <!-- 
@@ -435,15 +436,22 @@ const userStore = useUserStore()
                 return
             }
             const rawList = res.data || []
-            contacts.value = (Array.isArray(rawList) ? rawList : []).map(item => ({
+            contacts.value = (Array.isArray(rawList) ? rawList : []).map(item => {
+                const type = item.type || 'user'
+                const ownerId = item.ownerId || null
+                const id = item.id
+                const chatPeerId = type === 'shop' ? ownerId : id
+                return {
                 key: `${item.type || 'user'}:${item.id}`,
-                id: item.id,
-                type: item.type || 'user',
+                id,
+                type,
                 name: item.name || '',
                 avatar: item.logo || item.avatar || defaultAvatar,
-                ownerId: item.ownerId || null,
+                ownerId,
+                chatPeerId,
                 online: item.online === true
-            }))
+                }
+            })
         } catch (e) {
             if (process.env.NODE_ENV === 'development') {
                 console.error('[开发调试] 获取联系人列表失败：', e)
@@ -455,10 +463,11 @@ const userStore = useUserStore()
         if (!contact) return
         const targetType = contact.type
         const targetId = contact.id
-        const existing = mockSessions.value.find(session =>
-            session.targetType === targetType &&
-            String(session.receiverId) === String(targetId)
-        )
+        const existing = mockSessions.value.find(session => {
+            if (session.targetType !== targetType) return false
+            const peerId = contact.chatPeerId || targetId
+            return String(session.receiverId) === String(peerId)
+        })
         if (existing) {
             selectSession(existing)
             return
@@ -470,10 +479,11 @@ const userStore = useUserStore()
                 return
             }
             await fetchSessions()
-            const created = mockSessions.value.find(session =>
-                session.targetType === targetType &&
-                String(session.receiverId) === String(targetId)
-            )
+            const created = mockSessions.value.find(session => {
+                if (session.targetType !== targetType) return false
+                const peerId = contact.chatPeerId || targetId
+                return String(session.receiverId) === String(peerId)
+            })
             if (created) {
                 selectSession(created)
             }
