@@ -247,23 +247,25 @@
           </template>
           
           <!-- 管理员/商户视角：卖家操作 -->
-          <template v-else>
+          <template v-else-if="isSellerView">
+            <!-- 待付款(0)：管理端不显示操作按钮 -->
+            <template v-if="orderDetail && orderDetail.status === 0">
+              <!-- 待付款状态在管理端不显示任何操作按钮 -->
+            </template>
             <!-- 待发货(1)：发货 -->
-            <template v-if="orderDetail.status === 1">
+            <template v-else-if="orderDetail && orderDetail.status === 1">
               <el-button type="primary" @click="openShipDialog">
                 发货
               </el-button>
             </template>
-
             <!-- 待收货(2) / 已完成(3)：查看物流 -->
-            <template v-else-if="orderDetail.status === 2 || orderDetail.status === 3">
+            <template v-else-if="orderDetail && (orderDetail.status === 2 || orderDetail.status === 3)">
               <el-button type="info" @click="viewLogistics">
                 查看物流
               </el-button>
             </template>
-
             <!-- 退款中(5)：同意退款 / 拒绝退款 / 查看退款进度 -->
-            <template v-else-if="orderDetail.status === 5">
+            <template v-else-if="orderDetail && orderDetail.status === 5">
               <el-button type="success" @click="openProcessRefundDialog">
                 同意退款 / 拒绝退款
               </el-button>
@@ -271,9 +273,8 @@
                 查看退款进度
               </el-button>
             </template>
-
             <!-- 已退款(6)：查看退款详情 -->
-            <template v-else-if="orderDetail.status === 6">
+            <template v-else-if="orderDetail && orderDetail.status === 6">
               <el-button type="info" @click="viewRefundDetail">
                 查看退款详情
               </el-button>
@@ -489,7 +490,12 @@ const isAdmin = computed(() => userRole.value === 1)
 const isShop = computed(() => userRole.value === 3)
 const isUser = computed(() => userRole.value === 2)
 // 是否为卖家视角（管理员或商户）
-const isSellerView = computed(() => isManagePage.value && (isAdmin.value || isShop.value))
+const isSellerView = computed(() => {
+  const isManage = route.path.includes('/order/manage/detail')
+  const role = userStore.userInfo?.role || 0
+  const isAdminOrShop = role === 1 || role === 3
+  return isManage && isAdminOrShop
+})
 
 // 从路由参数获取订单ID
 const orderId = route.params.id
