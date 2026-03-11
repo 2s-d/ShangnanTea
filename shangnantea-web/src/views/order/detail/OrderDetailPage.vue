@@ -256,14 +256,14 @@
             </template>
 
             <!-- 待收货(2) / 已完成(3)：查看物流 -->
-            <template v-if="orderDetail.status === 2 || orderDetail.status === 3">
+            <template v-else-if="orderDetail.status === 2 || orderDetail.status === 3">
               <el-button type="info" @click="viewLogistics">
                 查看物流
               </el-button>
             </template>
 
             <!-- 退款中(5)：同意退款 / 拒绝退款 / 查看退款进度 -->
-            <template v-if="orderDetail.status === 5">
+            <template v-else-if="orderDetail.status === 5">
               <el-button type="success" @click="openProcessRefundDialog">
                 同意退款 / 拒绝退款
               </el-button>
