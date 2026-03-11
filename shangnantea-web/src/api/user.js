@@ -277,14 +277,21 @@ export function getShopCertificationStatus() {
 
 /**
  * 获取关注列表
- * @param {String} type 关注类型（user/shop），可选
+ * @param {Object} params 查询参数
+ * @param {String} params.type 关注类型（user/shop），可选
+ * @param {String} params.fields 需要返回的字段，可选。如 'minimal' 表示只返回最小字段集（用于联系人列表）
  * @returns {Promise} 关注列表
  */
-export function getFollowList(type = null) {
+export function getFollowList(params = {}) {
+  const { type, fields, ...restParams } = params
   return request({
     url: API.USER.FOLLOWS,
     method: 'get',
-    params: type ? { type } : {}
+    params: {
+      ...(type ? { type } : {}),
+      ...(fields ? { fields } : {}),
+      ...restParams
+    }
   })
 }
 
