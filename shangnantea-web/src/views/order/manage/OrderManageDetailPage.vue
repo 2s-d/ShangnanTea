@@ -36,11 +36,19 @@
               <span class="label">买家信息：</span>
               <div class="buyer-content" @click="goToUserProfile(orderDetail.userId)">
                 <SafeImage
+                  v-if="buyerDisplayInfo.avatar"
                   :src="buyerDisplayInfo.avatar"
                   type="avatar"
                   :alt="buyerDisplayInfo.nickname"
                   class="buyer-avatar"
                 />
+                <el-avatar
+                  v-else
+                  :size="32"
+                  class="buyer-avatar-placeholder"
+                >
+                  {{ (buyerDisplayInfo.nickname || '用').charAt(0) }}
+                </el-avatar>
                 <span class="buyer-nickname">{{ buyerDisplayInfo.nickname }}</span>
               </div>
             </div>
@@ -363,6 +371,7 @@ const loadDetail = async () => {
     showByCode(res?.code)
     const data = res?.data || res
     orderDetail.value = data
+    buyerInfo.value = null
     
     // 如果有userId，获取用户信息
     if (data?.userId) {
@@ -791,6 +800,10 @@ onMounted(() => {
       border-radius: 50%;
       object-fit: cover;
     }
+
+    .buyer-avatar-placeholder {
+      flex: 0 0 32px;
+    }
     
     .buyer-nickname {
       color: #303133;
@@ -806,3 +819,4 @@ onMounted(() => {
   }
 }
 </style>
+

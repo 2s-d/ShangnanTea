@@ -148,7 +148,6 @@ public class MessageServiceImpl implements MessageService {
     }
     
     @Override
-    @Override
     public Result<Object> getContacts() {
         try {
             logger.info("获取联系人列表请求");
@@ -224,34 +223,6 @@ public class MessageServiceImpl implements MessageService {
             logger.error("获取联系人列表失败，系统异常", e);
             return Result.failure(7100);
         }
-    }
-    
-    /**
-     * 将UserNotification转换为MessageVO
-     */
-    private MessageVO convertNotificationToVO(UserNotification notification) {
-        MessageVO vo = new MessageVO();
-        vo.setId(notification.getId());
-        vo.setType(notification.getType() != null ? notification.getType() : "notification");
-        vo.setTitle(notification.getTitle());
-        vo.setContent(notification.getContent());
-        vo.setIsRead(notification.getIsRead() != null && notification.getIsRead() == 1);
-        vo.setCreateTime(notification.getCreateTime());
-        return vo;
-    }
-    
-    /**
-     * 将ChatMessage转换为MessageVO
-     */
-    private MessageVO convertChatMessageToVO(ChatMessage message) {
-        MessageVO vo = new MessageVO();
-        vo.setId(message.getId());
-        vo.setType("chat");
-        vo.setTitle(null); // 聊天消息没有标题
-        vo.setContent(message.getContent());
-        vo.setIsRead(message.getIsRead() != null && message.getIsRead() == 1);
-        vo.setCreateTime(message.getCreateTime());
-        return vo;
     }
     
     @Override
