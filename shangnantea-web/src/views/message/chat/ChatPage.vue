@@ -38,74 +38,122 @@
           </el-input>
         </div>
         
-        <div class="session-list">
-          <div 
-            v-for="session in filteredSessions" 
-            :key="session.sessionId"
-            class="session-item"
-            :class="{ 'session-active': currentSessionId === session.sessionId }"
-            @click="selectSession(session)">
-            
-            <div class="session-avatar">
-              <el-badge 
-                :value="session.unreadCount" 
-                :hidden="!session.unreadCount"
-                type="danger">
-                <SafeImage :src="session.avatar || ''" type="avatar" :alt="session.name" style="width:40px;height:40px;border-radius:50%;object-fit:cover;" />
-              </el-badge>
-            </div>
-            
-            <div class="session-info">
-              <div class="session-name">
-                {{ session.name }}
-                <el-icon v-if="session.isPinned" class="pin-icon" title="已置顶">
-                  <Top />
-                </el-icon>
-              </div>
-              <div class="session-preview">{{ session.lastMessage }}</div>
-            </div>
-            
-            <div class="session-meta">
-              <div class="session-time">{{ formatTime(session.lastTime) }}</div>
-              <div class="session-actions">
-                <el-popover
-                  placement="top"
-                  width="auto"
-                  trigger="click"
-                  @show="stopPropagation">
-                  <template #reference>
-                    <el-button 
-                      circle
-                      size="small"
-                      class="more-action"
-                      @click.stop>
-                      <el-icon><MoreFilled /></el-icon>
-                    </el-button>
-                  </template>
-                  <div class="action-buttons">
-                    <el-button 
-                      size="small" 
-                      @click="togglePinSession(session.sessionId)">
-                      {{ session.isPinned ? '取消置顶' : '置顶会话' }}
-                    </el-button>
-                    <el-button 
-                      size="small" 
-                      type="danger" 
-                      @click="deleteSession(session.sessionId)">
-                      删除会话
-                    </el-button>
+        <div class="left-panels">
+          <el-collapse v-model="leftCollapseActive" class="left-collapse">
+            <el-collapse-item name="contacts">
+              <template #title>
+                <div class="panel-title">
+                  <span>联系人</span>
+                  <span class="panel-count">{{ filteredContactCount }}</span>
+                </div>
+              </template>
+
+              <div class="contacts-list">
+                <template v-if="filteredContactGroups.length">
+                  <div v-for="group in filteredContactGroups" :key="group.key" class="contact-group">
+                    <div class="contact-group-header">{{ group.key }}</div>
+                    <div
+                      v-for="contact in group.items"
+                      :key="contact.key"
+                      class="contact-item"
+                      @click="openContact(contact)"
+                    >
+                      <div class="contact-avatar">
+                        <SafeImage
+                          :src="contact.avatar || ''"
+                          type="avatar"
+                          :alt="contact.name"
+                          style="width:40px;height:40px;border-radius:50%;object-fit:cover;"
+                        />
+                      </div>
+                      <div class="contact-info">
+                        <div class="contact-name">
+                          <span class="contact-name-text">{{ contact.name }}</span>
+                          <span class="online-status" :class="{ online: contact.online }">
+                            <span class="dot"></span>
+                            <span class="text">{{ contact.online ? '在线' : '离线' }}</span>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </el-popover>
+                </template>
+                <div v-else class="empty-panel">
+                  <el-empty description="暂无联系人" :image-size="80" />
+                </div>
               </div>
-            </div>
-          </div>
-          
-          <!-- 无会话时显示 -->
-          <el-empty 
-            v-if="filteredSessions.length === 0" 
-            description="暂无聊天会话"
-            :image-size="100">
-          </el-empty>
+            </el-collapse-item>
+
+            <el-collapse-item name="recent">
+              <template #title>
+                <div class="panel-title">
+                  <span>最近会话</span>
+                  <span class="panel-count">{{ filteredSessions.length }}</span>
+                </div>
+              </template>
+
+              <div class="session-list">
+                <div
+                  v-for="session in filteredSessions"
+                  :key="session.sessionId"
+                  class="session-item"
+                  :class="{ 'session-active': currentSessionId === session.sessionId }"
+                  @click="selectSession(session)"
+                >
+                  <div class="session-avatar">
+                    <el-badge :value="session.unreadCount" :hidden="!session.unreadCount" type="danger">
+                      <SafeImage
+                        :src="session.avatar || ''"
+                        type="avatar"
+                        :alt="session.name"
+                        style="width:40px;height:40px;border-radius:50%;object-fit:cover;"
+                      />
+                    </el-badge>
+                  </div>
+
+                  <div class="session-info">
+                    <div class="session-name">
+                      {{ session.name }}
+                      <span class="online-status" :class="{ online: session.online }">
+                        <span class="dot"></span>
+                      </span>
+                      <el-icon v-if="session.isPinned" class="pin-icon" title="已置顶">
+                        <Top />
+                      </el-icon>
+                    </div>
+                    <div class="session-preview">{{ session.lastMessage }}</div>
+                  </div>
+
+                  <div class="session-meta">
+                    <div class="session-time">{{ formatTime(session.lastTime) }}</div>
+                    <div class="session-actions">
+                      <el-popover placement="top" width="auto" trigger="click" @show="stopPropagation">
+                        <template #reference>
+                          <el-button circle size="small" class="more-action" @click.stop>
+                            <el-icon><MoreFilled /></el-icon>
+                          </el-button>
+                        </template>
+                        <div class="action-buttons">
+                          <el-button size="small" @click="togglePinSession(session.sessionId)">
+                            {{ session.isPinned ? '取消置顶' : '置顶会话' }}
+                          </el-button>
+                          <el-button size="small" type="danger" @click="deleteSession(session.sessionId)">
+                            删除会话
+                          </el-button>
+                        </div>
+                      </el-popover>
+                    </div>
+                  </div>
+                </div>
+
+                <el-empty
+                  v-if="filteredSessions.length === 0"
+                  description="暂无聊天会话"
+                  :image-size="100"
+                />
+              </div>
+            </el-collapse-item>
+          </el-collapse>
         </div>
       </div>
       
@@ -190,7 +238,7 @@
                 
                 <!-- 头像（自己） -->
                 <div class="message-avatar" v-if="message.isSelf">
-                  <SafeImage src="/images/avatars/default.jpg" type="avatar" alt="我" style="width:40px;height:40px;border-radius:50%;object-fit:cover;" />
+                  <SafeImage :src="currentUserAvatar" type="avatar" alt="我" style="width:40px;height:40px;border-radius:50%;object-fit:cover;" />
                 </div>
               </div>
             </div>
@@ -314,7 +362,7 @@ const userStore = useUserStore()
     const messagesContainer = ref(null)
     const imageInput = ref(null)
     
-    // 搜索关键词
+    // 搜索关键词（同时用于联系人/最近会话过滤）
     const searchQuery = ref('')
     
     // 会话管理
@@ -328,7 +376,11 @@ const userStore = useUserStore()
     const hasMoreMessages = ref(false)
     const showEmojiPicker = ref(false)
     const defaultAvatar = '/images/avatars/default.jpg'
-    const currentUserAvatar = '/images/avatars/default.jpg'
+    const currentUserAvatar = computed(() => userStore.userInfo?.avatar || defaultAvatar)
+    
+    // 联系人（来自 /message/contacts）
+    const contacts = ref([])
+    const leftCollapseActive = ref(['contacts', 'recent'])
     
     // 表情列表
     const emojiList = [
@@ -340,6 +392,97 @@ const userStore = useUserStore()
       '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗',
       '👋', '👍', '👎', '❤️', '💋', '👏', '🙏', '🤝', '💪', '✌️'
     ]
+
+    const getGroupKey = name => {
+        const s = (name || '').trim()
+        if (!s) return '#'
+        const ch = s[0].toUpperCase()
+        return /^[A-Z]$/.test(ch) ? ch : '#'
+    }
+    
+    const filteredContacts = computed(() => {
+        const q = (searchQuery.value || '').trim().toLowerCase()
+        if (!q) return contacts.value
+        return contacts.value.filter(c => (c.name || '').toLowerCase().includes(q))
+    })
+    
+    const filteredContactGroups = computed(() => {
+        const map = new Map()
+        filteredContacts.value.forEach(c => {
+            const k = getGroupKey(c.name)
+            if (!map.has(k)) map.set(k, [])
+            map.get(k).push(c)
+        })
+        const keys = Array.from(map.keys()).sort((a, b) => {
+            if (a === '#') return 1
+            if (b === '#') return -1
+            return a.localeCompare(b)
+        })
+        return keys.map(k => ({
+            key: k,
+            items: map.get(k).sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+        }))
+    })
+    
+    const filteredContactCount = computed(() => filteredContacts.value.length)
+
+    const fetchContacts = async () => {
+        try {
+            const res = await messageStore.fetchContacts()
+            if (!isSuccess(res.code)) {
+                showByCode(res.code)
+                contacts.value = []
+                return
+            }
+            const rawList = res.data || []
+            contacts.value = (Array.isArray(rawList) ? rawList : []).map(item => ({
+                key: `${item.type || 'user'}:${item.id}`,
+                id: item.id,
+                type: item.type || 'user',
+                name: item.name || '',
+                avatar: item.logo || item.avatar || defaultAvatar,
+                ownerId: item.ownerId || null,
+                online: item.online === true
+            }))
+        } catch (e) {
+            if (process.env.NODE_ENV === 'development') {
+                console.error('[开发调试] 获取联系人列表失败：', e)
+            }
+        }
+    }
+
+    const openContact = async contact => {
+        if (!contact) return
+        const targetType = contact.type
+        const targetId = contact.id
+        const existing = mockSessions.value.find(session =>
+            session.targetType === targetType &&
+            String(session.receiverId) === String(targetId)
+        )
+        if (existing) {
+            selectSession(existing)
+            return
+        }
+        try {
+            const res = await messageStore.createChatSession({ targetId, targetType })
+            if (!isSuccess(res.code)) {
+                showByCode(res.code)
+                return
+            }
+            await fetchSessions()
+            const created = mockSessions.value.find(session =>
+                session.targetType === targetType &&
+                String(session.receiverId) === String(targetId)
+            )
+            if (created) {
+                selectSession(created)
+            }
+        } catch (e) {
+            if (process.env.NODE_ENV === 'development') {
+                console.error('[开发调试] 打开联系人会话失败：', e)
+            }
+        }
+    }
     
     // 获取所有会话列表（使用后端真实数据）
     const fetchSessions = async () => {
@@ -428,7 +571,7 @@ const userStore = useUserStore()
             type: msg.contentType || 'text',
             createTime: msg.createTime,
             status: msg.isRead ? 'read' : 'sent',
-            isSelf: msg.senderId === userStore.userInfo?.id,
+            isSelf: String(msg.senderId) === String(userStore.userInfo?.id),
             showTimeDivider: false
           }))
 
@@ -780,21 +923,29 @@ const userStore = useUserStore()
     
     // WebSocket 在线状态增量更新处理
     const handleOnlineStatusUpdate = messageData => {
-      if (!messageData || messageData.type !== 'onlineStatus' || !messageData.userId) return
-      const targetId = messageData.userId
-      mockSessions.value.forEach(session => {
-        if (session.receiverId === targetId) {
-          session.online = !!messageData.online
-        }
-      })
+        if (!messageData || messageData.type !== 'onlineStatus' || !messageData.userId) return
+        const targetId = messageData.userId
+        mockSessions.value.forEach(session => {
+            if (String(session.receiverId) === String(targetId)) {
+                session.online = !!messageData.online
+            }
+        })
+        contacts.value.forEach(contact => {
+            // user联系人：id=用户id；shop联系人：ownerId=店主id
+            const matchId = contact.type === 'shop' ? contact.ownerId : contact.id
+            if (String(matchId) === String(targetId)) {
+                contact.online = !!messageData.online
+            }
+        })
     }
 
     // 在组件挂载时初始化：先加载会话，再根据路由参数选择目标，并接入WebSocket
     onMounted(async () => {
-      await fetchSessions()
-      await initializeChatFromRouteParams()
-      websocketManager.connect()
-      websocketManager.on('onlineStatus', handleOnlineStatusUpdate)
+        await fetchContacts()
+        await fetchSessions()
+        await initializeChatFromRouteParams()
+        websocketManager.connect()
+        websocketManager.on('onlineStatus', handleOnlineStatusUpdate)
     })
     
     // 监听路由参数变化
@@ -847,10 +998,97 @@ watch(() => route.query.userId, newUserId => {
         border-bottom: 1px solid #eee;
         background-color: #fff;
       }
-      
+
+      .left-panels {
+        flex: 1;
+        overflow: hidden;
+        background-color: #f7f7f7;
+      }
+
+      .left-collapse {
+        height: 100%;
+        overflow: hidden;
+
+        :deep(.el-collapse-item__header) {
+          padding: 0 12px;
+          background: #fff;
+          border-bottom: 1px solid #eee;
+          height: 44px;
+        }
+
+        :deep(.el-collapse-item__content) {
+          padding: 0;
+        }
+      }
+
+      .panel-title {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+
+      .panel-count {
+        font-size: 12px;
+        color: var(--text-secondary);
+      }
+
+      .contacts-list {
+        max-height: 240px;
+        overflow-y: auto;
+        background: #f7f7f7;
+      }
+
+      .contact-group-header {
+        padding: 6px 12px;
+        font-size: 12px;
+        color: var(--text-secondary);
+      }
+
+      .contact-item {
+        display: flex;
+        padding: 10px 12px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        align-items: center;
+
+        &:hover {
+          background-color: #eef5ff;
+        }
+      }
+
+      .contact-info {
+        flex: 1;
+        margin-left: 10px;
+        min-width: 0;
+      }
+
+      .contact-name {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 14px;
+        color: var(--text-primary);
+
+        .contact-name-text {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          margin-right: 8px;
+        }
+      }
+
+      .empty-panel {
+        padding: 12px 0;
+        background: #f7f7f7;
+      }
+
       .session-list {
         flex: 1;
         overflow-y: auto;
+        background-color: #f7f7f7;
         
         .session-item {
           display: flex;
@@ -948,6 +1186,34 @@ watch(() => route.query.userId, newUserId => {
           &:hover .session-actions {
             visibility: visible;
           }
+        }
+      }
+
+      .online-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-left: 8px;
+        font-size: 12px;
+        color: var(--text-secondary);
+
+        .dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: #c0c4cc;
+        }
+
+        &.online {
+          color: #2ecc71;
+
+          .dot {
+            background: #2ecc71;
+          }
+        }
+
+        .text {
+          white-space: nowrap;
         }
       }
     }

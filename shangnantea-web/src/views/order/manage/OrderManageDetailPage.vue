@@ -232,7 +232,7 @@
             v-model="rejectReason"
             type="textarea"
             :rows="3"
-            placeholder="同意退款可不填，拒绝退款时必须填写理由"
+            placeholder="拒绝退款时填写"
           />
         </el-form-item>
       </el-form>

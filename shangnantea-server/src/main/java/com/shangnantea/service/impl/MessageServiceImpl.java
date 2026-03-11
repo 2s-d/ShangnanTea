@@ -195,6 +195,8 @@ public class MessageServiceImpl implements MessageService {
                                 contact.put("logo", FileUploadUtils.generateAccessUrl(logo, baseUrl));
                             }
                         }
+                        // 店铺联系人需要 ownerId 用于WebSocket在线状态增量更新
+                        contact.put("ownerId", shop.getOwnerId());
                         onlineUserId = shop.getOwnerId(); // 店铺的在线状态看店主
                     }
                 } else {
