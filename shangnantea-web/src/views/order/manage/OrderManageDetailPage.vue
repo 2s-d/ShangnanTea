@@ -115,18 +115,18 @@
             </div>
           </div>
 
-          <!-- 物流信息 -->
-          <div v-if="orderDetail.status === 2 || orderDetail.status === 3 || orderDetail.logisticsCompany" class="detail-section">
+          <!-- 物流信息 (仅在待收货和已完成状态显示) -->
+          <div v-if="orderDetail.status === 2 || orderDetail.status === 3" class="detail-section">
             <div class="section-title">物流信息</div>
-            <div class="info-row">
+            <div class="info-item">
               <span class="label">物流公司：</span>
               <span class="value">{{ orderDetail.logisticsCompany || '-' }}</span>
             </div>
-            <div class="info-row">
+            <div class="info-item">
               <span class="label">物流单号：</span>
               <span class="value">{{ orderDetail.logisticsNumber || '-' }}</span>
             </div>
-            <div class="info-row" v-if="orderDetail.shippingTime">
+            <div class="info-item" v-if="orderDetail.shippingTime">
               <span class="label">发货时间：</span>
               <span class="value">{{ formatTime(orderDetail.shippingTime) }}</span>
             </div>
@@ -175,6 +175,61 @@
           <el-button @click="goBack">返回订单管理</el-button>
         </div>
       </el-card>
+
+    <!-- 卖家发货对话框 -->
+    <el-dialog
+      v-model="shipDialogVisible"
+      title="订单发货"
+      width="480px"
+      :close-on-click-modal="false"
+    >
+      <el-form label-width="90px">
+        <el-form-item label="物流公司">
+          <el-input v-model="shipForm.company" placeholder="例如：顺丰速运" />
+        </el-form-item>
+        <el-form-item label="快递单号">
+          <el-input v-model="shipForm.trackingNumber" placeholder="请输入快递单号" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="shipDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="shipSubmitting" @click="confirmShip">
+          确认发货
+        </el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 卖家处理退款对话框 -->
+    <el-dialog
+      v-model="processRefundDialogVisible"
+      title="处理退款申请"
+      width="520px"
+      :close-on-click-modal="false"
+    >
+      <div class="refund-process-info">
+        <p>申请原因：{{ refundProcessInfo?.reason || orderDetail?.refundReason || '无' }}</p>
+        <p>申请时间：{{ refundProcessInfo?.applyTime || orderDetail?.refundApplyTime || '无' }}</p>
+      </div>
+      <el-form label-width="80px" style="margin-top: 10px;">
+        <el-form-item label="拒绝理由">
+          <el-input
+            v-model="rejectReason"
+            type="textarea"
+            :rows="3"
+            placeholder="同意退款可不填，拒绝退款时必须填写理由"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="processRefundDialogVisible = false">取消</el-button>
+        <el-button type="danger" :loading="processRefundSubmitting" @click="submitProcessRefund(false)">
+          拒绝退款
+        </el-button>
+        <el-button type="success" :loading="processRefundSubmitting" @click="submitProcessRefund(true)">
+          同意退款
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -295,6 +350,140 @@ const viewTeaDetail = teaId => {
   router.push(`/tea/${teaId}`)
 }
 
+// 打开发货对话框
+const openShipDialog = () => {
+  if (!orderDetail.value) return
+  shipForm.company = ''
+  shipForm.trackingNumber = ''
+  shipDialogVisible.value = true
+}
+
+// 确认发货
+const confirmShip = async () => {
+  if (!orderDetail.value) return
+  if (!shipForm.company) {
+    orderPromptMessages.showLogisticsCompanyRequired && orderPromptMessages.showLogisticsCompanyRequired()
+    return
+  }
+  if (!shipForm.trackingNumber) {
+    orderPromptMessages.showLogisticsNumberRequired && orderPromptMessages.showLogisticsNumberRequired()
+    return
+  }
+
+  shipSubmitting.value = true
+  try {
+    const res = await orderStore.shipOrder({
+      id: orderDetail.value.id,
+      logisticsCompany: shipForm.company,
+      logisticsNumber: shipForm.trackingNumber
+    })
+    showByCode(res?.code)
+    shipDialogVisible.value = false
+    await loadDetail()
+  } catch (error) {
+    console.error('发货失败:', error)
+  } finally {
+    shipSubmitting.value = false
+  }
+}
+
+// 查看物流
+const viewLogistics = async () => {
+  try {
+    const res = await orderStore.fetchOrderLogistics(orderId)
+    showByCode(res?.code)
+    const data = res?.data || res
+    if (data) {
+      ElMessageBox.alert(
+        `物流公司：${data.company || orderDetail.value?.logisticsCompany || '--'}\n物流单号：${data.tracking_number || orderDetail.value?.logisticsNumber || '--'}\n发货时间：${data.ship_time || orderDetail.value?.shippingTime || '--'}`,
+        '物流信息',
+        { confirmButtonText: '我知道了' }
+      )
+    } else {
+      orderPromptMessages.showNoLogisticsInfo && orderPromptMessages.showNoLogisticsInfo()
+    }
+  } catch (error) {
+    console.error('获取物流信息失败:', error)
+  }
+}
+
+// 打开处理退款对话框
+const openProcessRefundDialog = async () => {
+  if (!orderDetail.value) return
+  processRefundDialogVisible.value = true
+  rejectReason.value = ''
+  refundProcessInfo.value = null
+  try {
+    const res = await orderStore.fetchRefundDetail(orderId)
+    showByCode(res?.code)
+    refundProcessInfo.value = res?.data || res
+  } catch (error) {
+    console.error('获取退款详情失败:', error)
+  }
+}
+
+// 提交退款审批
+const submitProcessRefund = async approve => {
+  if (!orderDetail.value) return
+  if (!approve && !rejectReason.value.trim()) {
+    showByCode(5147, '请填写拒绝退款的理由')
+    return
+  }
+  processRefundSubmitting.value = true
+  try {
+    const res = await orderStore.processRefund({
+      orderId,
+      approve,
+      reason: approve
+        ? (refundProcessInfo.value?.reason || '同意退款')
+        : rejectReason.value.trim()
+    })
+    showByCode(res?.code)
+    processRefundDialogVisible.value = false
+    await loadDetail()
+  } catch (error) {
+    console.error('处理退款失败:', error)
+  } finally {
+    processRefundSubmitting.value = false
+  }
+}
+
+// 查看退款详情
+const viewRefundDetail = async () => {
+  if (!orderDetail.value) {
+    orderPromptMessages.showNoRefundInfo && orderPromptMessages.showNoRefundInfo()
+    return
+  }
+  try {
+    const res = await orderStore.fetchRefundDetail(orderId)
+    showByCode(res?.code)
+    const data = res?.data || res
+    if (!data) {
+      orderPromptMessages.showNoRefundInfo && orderPromptMessages.showNoRefundInfo()
+      return
+    }
+    const statusTextMap = {
+      1: '退款申请中',
+      2: '退款已同意',
+      3: '退款已拒绝'
+    }
+    const status = data.status ?? orderDetail.value.refundStatus
+    const statusText = statusTextMap[status] || '退款处理中'
+    const reason = data.reason || orderDetail.value.refundReason || '无'
+    const rejectReason = data.rejectReason || orderDetail.value.refundRejectReason || '无'
+    const applyTime = data.applyTime || orderDetail.value.refundApplyTime
+    const processTime = data.processTime || orderDetail.value.refundProcessTime
+    ElMessageBox.alert(
+      `状态：${statusText}\n申请原因：${reason}\n拒绝原因：${rejectReason}\n申请时间：${applyTime || '无'}\n处理时间：${processTime || '无'}`,
+      '退款详情',
+      { confirmButtonText: '我知道了' }
+    )
+  } catch (error) {
+    console.error('获取退款详情失败:', error)
+    orderPromptMessages.showNoRefundInfo && orderPromptMessages.showNoRefundInfo()
+  }
+}
+
 onMounted(() => {
   loadDetail()
 })
@@ -302,106 +491,239 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .order-manage-detail-page {
-  min-height: 100vh;
+  padding: 20px;
   background-color: #f5f7fa;
-}
-
-.container {
-  width: 85%;
-  max-width: 1920px;
-  margin: 0 auto;
-  padding: 20px 0;
+  min-height: calc(100vh - 60px);
 }
 
 .detail-card {
-  background-color: #fff;
+  max-width: 1000px;
+  margin: 0 auto;
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-
+  
   .left {
     display: flex;
     align-items: center;
-    gap: 12px;
-
-    .title {
-      font-size: 18px;
-      font-weight: 600;
+    gap: 15px;
+  }
+  
+  .title {
+    font-size: 18px;
+    font-weight: bold;
+  }
+  
+  .status {
+    .status-tag {
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: bold;
+    }
+    
+    .status-unpaid {
+      color: #e6a23c;
+      background-color: rgba(230, 162, 60, 0.1);
+    }
+    
+    .status-unshipped {
+      color: #409eff;
+      background-color: rgba(64, 158, 255, 0.1);
+    }
+    
+    .status-shipped {
+      color: #67c23a;
+      background-color: rgba(103, 194, 58, 0.1);
+    }
+    
+    .status-completed {
+      color: #909399;
+      background-color: rgba(144, 147, 153, 0.1);
+    }
+    
+    .status-cancelled {
+      color: #f56c6c;
+      background-color: rgba(245, 108, 108, 0.1);
+    }
+    
+    .status-refunding {
+      color: #e6a23c;
+      background-color: rgba(230, 162, 60, 0.1);
+    }
+    
+    .status-refunded {
+      color: #909399;
+      background-color: rgba(144, 147, 153, 0.1);
     }
   }
 }
 
-.detail-content {
-  padding: 10px 0 20px;
+.order-detail-content {
+  padding: 10px;
 }
 
 .detail-section {
-  margin-bottom: 24px;
-  padding-bottom: 16px;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
   border-bottom: 1px solid #ebeef5;
-
+  
+  &:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+  
   .section-title {
     font-size: 16px;
-    font-weight: 600;
-    margin-bottom: 12px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #303133;
   }
-
-  .info-row {
-    margin-bottom: 8px;
-
-    .label {
-      color: #909399;
-      margin-right: 8px;
+  
+  .info-item {
+    display: flex;
+    margin-bottom: 10px;
+    
+    &:last-child {
+      margin-bottom: 0;
     }
-
+    
+    .label {
+      width: 100px;
+      color: #606266;
+    }
+    
     .value {
+      flex: 1;
       color: #303133;
+    }
+  }
+}
 
-      &.emphasis {
+.products-list {
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+  overflow: hidden;
+  
+  .product-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    cursor: pointer;
+    
+    &:hover {
+      background-color: #f8f9fa;
+    }
+    
+    .product-image {
+      width: 80px;
+      height: 80px;
+      margin-right: 15px;
+    }
+    
+    .product-info {
+      flex: 1;
+      
+      .product-name {
+        font-weight: 500;
+        color: #303133;
+        margin-bottom: 5px;
+      }
+      
+      .product-spec {
+        color: #909399;
+        font-size: 12px;
+      }
+    }
+    
+    .product-price,
+    .product-quantity,
+    .product-subtotal {
+      width: 100px;
+      text-align: center;
+      color: #606266;
+    }
+    
+    .product-subtotal {
+      color: #f56c6c;
+      font-weight: 500;
+    }
+  }
+}
+
+.amount-info {
+  background-color: #f8f9fa;
+  padding: 15px;
+  border-radius: 4px;
+  
+  .amount-item {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 10px;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+    
+    .label {
+      width: auto;
+      margin-right: 10px;
+      color: #606266;
+    }
+    
+    .value {
+      width: 120px;
+      text-align: right;
+      color: #303133;
+    }
+    
+    &.total {
+      margin-top: 15px;
+      border-top: 1px dashed #dcdfe6;
+      padding-top: 15px;
+      
+      .label {
+        font-weight: bold;
+        color: #303133;
+      }
+      
+      .value {
         font-size: 18px;
-        font-weight: 600;
+        font-weight: bold;
         color: #f56c6c;
       }
     }
   }
 }
 
-.product-item {
+.empty-detail {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 16px;
-
-  .product-info {
-    flex: 1;
-
-    .name {
-      font-size: 15px;
-      font-weight: 500;
-      margin-bottom: 4px;
-    }
-
-    .spec {
-      font-size: 13px;
-      color: #909399;
-    }
-  }
-
-  .product-extra {
-    text-align: right;
-    font-size: 13px;
-    color: #606266;
-
-    > div + div {
-      margin-top: 4px;
-    }
+  padding: 40px 0;
+  
+  .el-button {
+    margin-top: 20px;
   }
 }
 
-.empty-detail {
+.action-section {
   text-align: center;
-  padding: 40px 0;
+  padding-top: 20px;
+  
+  .el-button {
+    margin: 0 10px 10px 0;
+  }
+}
+
+.refund-process-info {
+  p {
+    margin: 8px 0;
+    color: #606266;
+  }
 }
 </style>
