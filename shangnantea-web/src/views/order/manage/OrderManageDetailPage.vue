@@ -1,80 +1,76 @@
 <template>
   <div class="order-manage-detail-page" v-loading="loading">
-    <div class="container main-content">
-      <el-card class="detail-card" shadow="hover">
-        <template #header>
-          <div class="card-header">
-            <div class="left">
-              <el-button text type="primary" @click="goBack">
-                返回订单管理
-              </el-button>
-              <span class="title">订单详情（管理端）</span>
-            </div>
-            <div class="status" v-if="orderDetail">
-              <el-tag :type="getStatusType(orderDetail.status)" effect="light">
-                {{ getStatusText(orderDetail.status) }}
-              </el-tag>
-            </div>
+    <el-card class="detail-card" shadow="hover">
+      <template #header>
+        <div class="card-header">
+          <div class="left">
+            <el-button icon="ArrowLeft" @click="goBack" text>返回订单管理</el-button>
+            <span class="title">订单详情（管理端）</span>
           </div>
-        </template>
+          <div class="status">
+            <span
+              v-if="orderDetail"
+              :class="['status-tag', getStatusClass(orderDetail.status)]"
+            >
+              {{ getStatusText(orderDetail.status) }}
+            </span>
+            <span
+              v-else
+              class="status-tag status-unpaid"
+            >
+              加载中...
+            </span>
+          </div>
+        </div>
+      </template>
 
-        <div v-if="orderDetail" class="detail-content">
+        <div v-if="orderDetail" class="order-detail-content">
           <!-- 订单信息 -->
           <div class="detail-section">
             <div class="section-title">订单信息</div>
-            <div class="info-row">
+            <div class="info-item">
               <span class="label">订单号：</span>
               <span class="value">{{ orderDetail.id }}</span>
             </div>
-            <div class="info-row">
+            <div class="info-item">
+              <span class="label">买家ID：</span>
+              <span class="value">{{ orderDetail.userId }}</span>
+            </div>
+            <div class="info-item">
               <span class="label">下单时间：</span>
               <span class="value">{{ formatTime(orderDetail.createTime) }}</span>
             </div>
-            <div class="info-row">
-              <span class="label">订单状态：</span>
-              <span class="value">{{ getStatusText(orderDetail.status) }}</span>
-            </div>
-            <div class="info-row">
+            <div class="info-item">
               <span class="label">支付方式：</span>
               <span class="value">{{ getPaymentMethodText(orderDetail.paymentMethod) }}</span>
             </div>
-            <div class="info-row" v-if="orderDetail.paymentTime">
-              <span class="label">支付时间：</span>
+            <div class="info-item" v-if="orderDetail.status >= 2 && orderDetail.paymentTime">
+              <span class="label">付款时间：</span>
               <span class="value">{{ formatTime(orderDetail.paymentTime) }}</span>
-            </div>
-            <div class="info-row" v-if="orderDetail.completionTime">
-              <span class="label">完成时间：</span>
-              <span class="value">{{ formatTime(orderDetail.completionTime) }}</span>
             </div>
           </div>
 
-          <!-- 收货地址 -->
-          <div class="detail-section" v-if="orderDetail.address && Object.keys(orderDetail.address).length > 0">
+          <!-- 收货信息 -->
+          <div class="detail-section">
             <div class="section-title">收货信息</div>
-            <div class="info-row">
+            <div class="info-item" v-if="orderDetail.address && orderDetail.address.receiverName">
               <span class="label">收货人：</span>
-              <span class="value">{{ orderDetail.address.receiverName || '--' }}</span>
+              <span class="value">{{ orderDetail.address.receiverName }}</span>
             </div>
-            <div class="info-row">
+            <div class="info-item" v-if="orderDetail.address && orderDetail.address.receiverPhone">
               <span class="label">联系电话：</span>
-              <span class="value">{{ orderDetail.address.receiverPhone || '--' }}</span>
+              <span class="value">{{ orderDetail.address.receiverPhone }}</span>
             </div>
-            <div class="info-row">
+            <div class="info-item" v-if="orderDetail.address">
               <span class="label">收货地址：</span>
               <span class="value">{{ formatAddressDetail(orderDetail.address) }}</span>
-            </div>
-          </div>
-          <div class="detail-section" v-else-if="orderDetail">
-            <div class="section-title">收货信息</div>
-            <div class="info-row">
-              <span class="value" style="color: #909399;">暂无收货地址信息</span>
             </div>
           </div>
 
           <!-- 买家留言 -->
           <div class="detail-section" v-if="orderDetail.buyerMessage">
             <div class="section-title">买家留言</div>
-            <div class="info-row">
+            <div class="info-item">
               <span class="value">{{ orderDetail.buyerMessage }}</span>
             </div>
           </div>
@@ -82,33 +78,40 @@
           <!-- 商品信息 -->
           <div class="detail-section">
             <div class="section-title">商品信息</div>
-            <div class="product-item">
-              <div class="product-image">
-                <SafeImage
-                  :src="orderDetail.teaImage"
-                  type="tea"
-                  :alt="orderDetail.teaName"
-                  style="width:80px;height:80px;object-fit:cover;"
-                />
-              </div>
-              <div class="product-info">
-                <div class="name">{{ orderDetail.teaName }}</div>
-                <div class="spec">规格：{{ orderDetail.specName }}</div>
-              </div>
-              <div class="product-extra">
-                <div>单价：¥{{ (orderDetail.price || 0).toFixed(2) }}</div>
-                <div>数量：x{{ orderDetail.quantity }}</div>
-                <div>小计：¥{{ ((orderDetail.price || 0) * (orderDetail.quantity || 0)).toFixed(2) }}</div>
+            <div class="products-list">
+              <div class="product-item" @click="viewTeaDetail(orderDetail.teaId)">
+                <div class="product-image">
+                  <SafeImage
+                    :src="orderDetail.teaImage"
+                    type="tea"
+                    :alt="orderDetail.teaName"
+                    style="width:80px;height:80px;object-fit:cover;"
+                  />
+                </div>
+                <div class="product-info">
+                  <div class="product-name">{{ orderDetail.teaName }}</div>
+                  <div class="product-spec">规格：{{ orderDetail.specName }}</div>
+                </div>
+                <div class="product-price">¥{{ orderDetail.price }}</div>
+                <div class="product-quantity">x{{ orderDetail.quantity }}</div>
+                <div class="product-subtotal">¥{{ (orderDetail.price * orderDetail.quantity).toFixed(2) }}</div>
               </div>
             </div>
           </div>
 
           <!-- 金额信息 -->
-          <div class="detail-section">
-            <div class="section-title">金额信息</div>
-            <div class="info-row">
+          <div class="detail-section amount-info">
+            <div class="amount-item">
+              <span class="label">商品金额：</span>
+              <span class="value">¥{{ (orderDetail.price * orderDetail.quantity).toFixed(2) }}</span>
+            </div>
+            <div class="amount-item">
+              <span class="label">运费：</span>
+              <span class="value">¥0.00</span>
+            </div>
+            <div class="amount-item total">
               <span class="label">实付金额：</span>
-              <span class="value emphasis">¥{{ (orderDetail.totalPrice || 0).toFixed(2) }}</span>
+              <span class="value">¥{{ (orderDetail.totalPrice || 0).toFixed(2) }}</span>
             </div>
           </div>
 
@@ -172,7 +175,6 @@
           <el-button @click="goBack">返回订单管理</el-button>
         </div>
       </el-card>
-    </div>
   </div>
 </template>
 
@@ -220,17 +222,17 @@ const getStatusText = status => {
   return map[status] || '未知状态'
 }
 
-const getStatusType = status => {
-  const map = {
-    0: 'warning',
-    1: 'primary',
-    2: 'success',
-    3: 'info',
-    4: 'danger',
-    5: 'warning',
-    6: 'info'
+const getStatusClass = status => {
+  const classMap = {
+    0: 'status-unpaid',
+    1: 'status-unshipped',
+    2: 'status-shipped',
+    3: 'status-completed',
+    4: 'status-cancelled',
+    5: 'status-refunding',
+    6: 'status-refunded'
   }
-  return map[status] || 'info'
+  return classMap[status] || ''
 }
 
 const getPaymentMethodText = method => {
@@ -287,6 +289,10 @@ const loadDetail = async () => {
 
 const goBack = () => {
   router.push('/order/manage')
+}
+
+const viewTeaDetail = teaId => {
+  router.push(`/tea/${teaId}`)
 }
 
 onMounted(() => {

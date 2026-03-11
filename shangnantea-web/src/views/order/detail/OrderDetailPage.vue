@@ -34,11 +34,6 @@
             <span class="label">订单号：</span>
             <span class="value">{{ orderDetail.id }}</span>
           </div>
-          <!-- 管理员/商户视角：显示买家信息 -->
-          <div v-if="isSellerView" class="info-item">
-            <span class="label">买家ID：</span>
-            <span class="value">{{ orderDetail.userId }}</span>
-          </div>
           <div class="info-item">
             <span class="label">下单时间：</span>
             <span class="value">{{ formatTime(orderDetail.createTime) }}</span>
@@ -67,6 +62,14 @@
           <div class="info-item">
             <span class="label">收货地址：</span>
             <span class="value">{{ address.province }} {{ address.city }} {{ address.district }} {{ address.detail }}</span>
+          </div>
+        </div>
+
+        <!-- 买家留言 -->
+        <div v-if="orderDetail.buyerMessage" class="detail-section">
+          <div class="section-title">买家留言</div>
+          <div class="info-item">
+            <span class="value">{{ orderDetail.buyerMessage }}</span>
           </div>
         </div>
 
@@ -202,86 +205,46 @@
         
         <!-- 操作按钮区域 -->
         <div class="detail-section action-section">
-          <!-- 管理员/商户视角：卖家操作（管理端） -->
-          <template v-if="isManagePage">
-            <!-- 待发货(1)：发货 -->
-            <el-button 
-              v-if="orderDetail && Number(orderDetail.status) === 1" 
-              type="primary" 
-              @click="openShipDialog"
-            >
-              发货
-            </el-button>
-            <!-- 待收货(2) / 已完成(3)：查看物流 -->
-            <el-button 
-              v-else-if="orderDetail && (Number(orderDetail.status) === 2 || Number(orderDetail.status) === 3)" 
-              type="info" 
-              @click="viewLogistics"
-            >
-              查看物流
-            </el-button>
-            <!-- 退款中(5)：同意退款 / 拒绝退款 / 查看退款进度 -->
-            <template v-else-if="orderDetail && Number(orderDetail.status) === 5">
-              <el-button type="success" @click="openProcessRefundDialog">
-                同意退款 / 拒绝退款
-              </el-button>
-              <el-button type="info" @click="viewRefundDetail">
-                查看退款进度
-              </el-button>
-            </template>
-            <!-- 已退款(6)：查看退款详情 -->
-            <el-button 
-              v-else-if="orderDetail && Number(orderDetail.status) === 6" 
-              type="info" 
-              @click="viewRefundDetail"
-            >
-              查看退款详情
-            </el-button>
+          <!-- 待付款 -->
+          <template v-if="orderDetail && orderDetail.status === 0">
+            <el-button type="primary" @click="continuePay">立即支付</el-button>
+            <el-button type="default" @click="cancelOrder">取消订单</el-button>
           </template>
-          
-          <!-- 用户视角：买家操作（用户端） -->
-          <template v-else>
-            <!-- 待付款 -->
-            <template v-if="orderDetail && orderDetail.status === 0">
-              <el-button type="primary" @click="continuePay">立即支付</el-button>
-              <el-button type="default" @click="cancelOrder">取消订单</el-button>
-            </template>
-            <!-- 待发货：允许修改地址 -->
-            <template v-else-if="orderDetail && orderDetail.status === 1">
-              <el-button type="primary" @click="openAddressDialog">修改收货地址</el-button>
-            </template>
-            <!-- 待收货 -->
-            <template v-else-if="orderDetail && orderDetail.status === 2">
-              <el-button type="primary" @click="viewLogistics">查看详细物流</el-button>
-              <el-button type="success" @click="confirmReceipt">确认收货</el-button>
-            </template>
-            <!-- 已完成且未评价 -->
-            <template v-else-if="canReview">
-              <el-button type="primary" @click="writeReview">待评价</el-button>
-              <el-button type="info" @click="viewLogistics">查看物流</el-button>
-            </template>
-            <!-- 已完成且已评价：仅查看物流 -->
-            <template v-else-if="orderDetail && orderDetail.status === 3 && isReviewed">
-              <el-button type="success" plain disabled>已评价</el-button>
-              <el-button type="info" @click="viewLogistics">查看物流</el-button>
-            </template>
-            <!-- 退款中 -->
-            <template v-else-if="orderDetail && orderDetail.status === 5">
-              <el-button type="info" @click="viewRefundDetail">查看退款进度</el-button>
-            </template>
-            <!-- 已退款 -->
-            <template v-else-if="orderDetail && orderDetail.status === 6">
-              <el-button type="info" @click="viewRefundDetail">查看退款详情</el-button>
-            </template>
-            <!-- 退款相关 -->
-            <el-button
-              v-if="canRequestRefund"
-              type="warning"
-              @click="openRefundDialog"
-            >
-              申请退款
-            </el-button>
+          <!-- 待发货：允许修改地址 -->
+          <template v-else-if="orderDetail && orderDetail.status === 1">
+            <el-button type="primary" @click="openAddressDialog">修改收货地址</el-button>
           </template>
+          <!-- 待收货 -->
+          <template v-else-if="orderDetail && orderDetail.status === 2">
+            <el-button type="primary" @click="viewLogistics">查看详细物流</el-button>
+            <el-button type="success" @click="confirmReceipt">确认收货</el-button>
+          </template>
+          <!-- 已完成且未评价 -->
+          <template v-else-if="canReview">
+            <el-button type="primary" @click="writeReview">待评价</el-button>
+            <el-button type="info" @click="viewLogistics">查看物流</el-button>
+          </template>
+          <!-- 已完成且已评价：仅查看物流 -->
+          <template v-else-if="orderDetail && orderDetail.status === 3 && isReviewed">
+            <el-button type="success" plain disabled>已评价</el-button>
+            <el-button type="info" @click="viewLogistics">查看物流</el-button>
+          </template>
+          <!-- 退款中 -->
+          <template v-else-if="orderDetail && orderDetail.status === 5">
+            <el-button type="info" @click="viewRefundDetail">查看退款进度</el-button>
+          </template>
+          <!-- 已退款 -->
+          <template v-else-if="orderDetail && orderDetail.status === 6">
+            <el-button type="info" @click="viewRefundDetail">查看退款详情</el-button>
+          </template>
+          <!-- 退款相关 -->
+          <el-button
+            v-if="canRequestRefund"
+            type="warning"
+            @click="openRefundDialog"
+          >
+            申请退款
+          </el-button>
         </div>
       </div>
 
@@ -405,60 +368,6 @@
       </template>
     </el-dialog>
 
-    <!-- 卖家发货对话框 -->
-    <el-dialog
-      v-model="shipDialogVisible"
-      title="订单发货"
-      width="480px"
-      :close-on-click-modal="false"
-    >
-      <el-form label-width="90px">
-        <el-form-item label="物流公司">
-          <el-input v-model="shipForm.company" placeholder="例如：顺丰速运" />
-        </el-form-item>
-        <el-form-item label="快递单号">
-          <el-input v-model="shipForm.trackingNumber" placeholder="请输入快递单号" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="shipDialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="shipSubmitting" @click="confirmShipFromDetail">
-          确认发货
-        </el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 卖家处理退款对话框 -->
-    <el-dialog
-      v-model="processRefundDialogVisible"
-      title="处理退款申请"
-      width="520px"
-      :close-on-click-modal="false"
-    >
-      <div class="refund-process-info">
-        <p>申请原因：{{ refundProcessInfo?.reason || orderDetail?.refundReason || '无' }}</p>
-        <p>申请时间：{{ refundProcessInfo?.applyTime || orderDetail?.refundApplyTime || '无' }}</p>
-      </div>
-      <el-form label-width="80px" style="margin-top: 10px;">
-        <el-form-item label="拒绝理由">
-          <el-input
-            v-model="rejectReason"
-            type="textarea"
-            :rows="3"
-            placeholder="同意退款可不填，拒绝退款时必须填写理由"
-          />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="processRefundDialogVisible = false">取消</el-button>
-        <el-button type="danger" :loading="processRefundSubmitting" @click="submitProcessRefund(false)">
-          拒绝退款
-        </el-button>
-        <el-button type="success" :loading="processRefundSubmitting" @click="submitProcessRefund(true)">
-          同意退款
-        </el-button>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
@@ -483,21 +392,6 @@ const route = useRoute()
 const orderStore = useOrderStore()
 const userStore = useUserStore()
 const loading = computed(() => orderStore.loading)
-
-// 判断当前页面是管理端还是用户端
-const isManagePage = computed(() => route.path.includes('/order/manage/detail'))
-// 判断当前用户角色
-const userRole = computed(() => userStore.userInfo?.role || 0)
-const isAdmin = computed(() => userRole.value === 1)
-const isShop = computed(() => userRole.value === 3)
-const isUser = computed(() => userRole.value === 2)
-// 是否为卖家视角（管理员或商户）
-const isSellerView = computed(() => {
-  const isManage = route.path.includes('/order/manage/detail')
-  const role = userStore.userInfo?.role || 0
-  const isAdminOrShop = role === 1 || role === 3
-  return isManage && isAdminOrShop
-})
 
 // 从路由参数获取订单ID
 const orderId = route.params.id
@@ -555,20 +449,6 @@ const initialAddressForm = ref({
 // 地区级联选择器数据
 const cascaderOptions = ref(regionData || [])
 
-// 卖家发货对话框
-const shipDialogVisible = ref(false)
-const shipSubmitting = ref(false)
-const shipForm = reactive({
-  company: '',
-  trackingNumber: ''
-})
-
-// 卖家处理退款对话框
-const processRefundDialogVisible = ref(false)
-const processRefundSubmitting = ref(false)
-const refundProcessInfo = ref(null)
-const rejectReason = ref('')
-    
     // 获取订单状态文本
     const getStatusText = status => {
       const statusMap = {
@@ -632,50 +512,9 @@ const rejectReason = ref('')
       return num < 10 ? `0${num}` : num
     }
     
-    // 卖家：打开发货对话框
-    const openShipDialog = () => {
-      if (!orderDetail.value) return
-      shipForm.company = ''
-      shipForm.trackingNumber = ''
-      shipDialogVisible.value = true
-    }
-
-    // 卖家：确认发货（调用 shipOrder 接口）
-    const confirmShipFromDetail = async () => {
-      if (!orderDetail.value) return
-      if (!shipForm.company) {
-        orderPromptMessages.showLogisticsCompanyRequired && orderPromptMessages.showLogisticsCompanyRequired()
-        return
-      }
-      if (!shipForm.trackingNumber) {
-        orderPromptMessages.showLogisticsNumberRequired && orderPromptMessages.showLogisticsNumberRequired()
-        return
-      }
-
-      shipSubmitting.value = true
-      try {
-        const res = await orderStore.shipOrder({
-          id: orderDetail.value.id,
-          logisticsCompany: shipForm.company,
-          logisticsNumber: shipForm.trackingNumber
-        })
-        showByCode(res?.code)
-        shipDialogVisible.value = false
-        await loadOrderDetail()
-      } catch (error) {
-        console.error('发货失败:', error)
-      } finally {
-        shipSubmitting.value = false
-      }
-    }
-
     // 返回订单列表
     const goBack = () => {
-      if (isManagePage.value) {
-        router.push('/order/manage')
-      } else {
-        router.push('/order/list')
-      }
+      router.push('/order/list')
     }
     
     // 打开修改收货地址对话框
@@ -853,47 +692,6 @@ const rejectReason = ref('')
       }
     }
 
-    // 卖家：打开处理退款对话框（展示申请理由 + 审批按钮）
-    const openProcessRefundDialog = async () => {
-      if (!orderDetail.value) return
-      processRefundDialogVisible.value = true
-      rejectReason.value = ''
-      refundProcessInfo.value = null
-      try {
-        const res = await orderStore.fetchRefundDetail(orderId)
-        showByCode(res?.code)
-        refundProcessInfo.value = res?.data || res
-      } catch (error) {
-        console.error('获取退款详情失败:', error)
-      }
-    }
-
-    // 卖家：提交退款审批（approve=true 同意，false 拒绝）
-    const submitProcessRefund = async approve => {
-      if (!orderDetail.value) return
-      if (!approve && !rejectReason.value.trim()) {
-        showByCode(5147, '请填写拒绝退款的理由')
-        return
-      }
-      processRefundSubmitting.value = true
-      try {
-        const res = await orderStore.processRefund({
-          orderId,
-          approve,
-          reason: approve
-            ? (refundProcessInfo.value?.reason || '同意退款')
-            : rejectReason.value.trim()
-        })
-        showByCode(res?.code)
-        processRefundDialogVisible.value = false
-        await loadOrderDetail()
-      } catch (error) {
-        console.error('处理退款失败:', error)
-      } finally {
-        processRefundSubmitting.value = false
-      }
-    }
-    
     // 检查表单是否被修改
     const isFormModified = () => {
       return editAddressForm.value.receiverName !== initialAddressForm.value.receiverName ||
