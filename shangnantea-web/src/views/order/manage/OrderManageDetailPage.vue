@@ -32,9 +32,17 @@
               <span class="label">订单号：</span>
               <span class="value">{{ orderDetail.id }}</span>
             </div>
-            <div class="info-item">
-              <span class="label">买家ID：</span>
-              <span class="value">{{ orderDetail.userId }}</span>
+            <div class="info-item buyer-info">
+              <span class="label">买家信息：</span>
+              <div class="buyer-content" @click="goToUserProfile(orderDetail.userId)">
+                <SafeImage
+                  :src="orderDetail.userAvatar || orderDetail.avatar || ''"
+                  type="avatar"
+                  :alt="orderDetail.userNickname || orderDetail.nickname || '用户'"
+                  class="buyer-avatar"
+                />
+                <span class="buyer-nickname">{{ orderDetail.userNickname || orderDetail.nickname || `用户${orderDetail.userId}` }}</span>
+              </div>
             </div>
             <div class="info-item">
               <span class="label">下单时间：</span>
@@ -348,6 +356,10 @@ const goBack = () => {
 
 const viewTeaDetail = teaId => {
   router.push(`/tea/${teaId}`)
+}
+
+const goToUserProfile = userId => {
+  router.push(`/user/${userId}`)
 }
 
 // 打开发货对话框
@@ -717,6 +729,32 @@ onMounted(() => {
   
   .el-button {
     margin: 0 10px 10px 0;
+  }
+}
+
+.buyer-info {
+  .buyer-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: opacity 0.3s;
+    
+    &:hover {
+      opacity: 0.8;
+    }
+    
+    .buyer-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    
+    .buyer-nickname {
+      color: #303133;
+      font-weight: 500;
+    }
   }
 }
 

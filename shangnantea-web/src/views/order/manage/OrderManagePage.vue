@@ -222,22 +222,13 @@
                   查看详情
                 </el-button>
                 
-                <!-- 待发货状态 -->
+                <!-- 联系买家按钮 -->
                 <el-button 
-                  v-if="scope.row.status === 1 && scope.row.refundStatus !== 1"
-                  type="primary" 
+                  type="info" 
                   size="small" 
-                  @click="shipOrder(scope.row)"
+                  @click="contactBuyer(scope.row)"
                 >
-                  发货
-                </el-button>
-                <el-button 
-                  v-if="scope.row.status === 1 && scope.row.refundStatus === 1"
-                  type="warning" 
-                  size="small" 
-                  @click="openRefundDetail(scope.row)"
-                >
-                  处理退款
+                  联系买家
                 </el-button>
               </div>
             </template>
@@ -731,6 +722,15 @@ const orderList = ref([])
     // 查看订单详情（跳转到管理端详情页）
     const viewOrderDetail = orderId => {
       router.push(`/order/manage/detail/${orderId}`)
+    }
+    
+    // 联系买家（跳转到聊天页面）
+    const contactBuyer = order => {
+      if (order.userId) {
+        router.push(`/message/chat?userId=${order.userId}`)
+      } else {
+        orderPromptMessages.showOrderNotFound && orderPromptMessages.showOrderNotFound()
+      }
     }
     
     // 跳转发货对话框
