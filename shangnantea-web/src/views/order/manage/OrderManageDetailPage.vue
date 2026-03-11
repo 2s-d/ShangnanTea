@@ -128,6 +128,43 @@
               <span class="value">{{ formatTime(orderDetail.shippingTime) }}</span>
             </div>
           </div>
+
+          <!-- 操作按钮区域 -->
+          <div class="detail-section action-section">
+            <!-- 待发货(1)：发货 -->
+            <el-button 
+              v-if="Number(orderDetail.status) === 1" 
+              type="primary" 
+              @click="openShipDialog"
+            >
+              发货
+            </el-button>
+            <!-- 待收货(2) / 已完成(3)：查看物流 -->
+            <el-button 
+              v-else-if="Number(orderDetail.status) === 2 || Number(orderDetail.status) === 3" 
+              type="info" 
+              @click="viewLogistics"
+            >
+              查看物流
+            </el-button>
+            <!-- 退款中(5)：同意退款 / 拒绝退款 / 查看退款进度 -->
+            <template v-else-if="Number(orderDetail.status) === 5">
+              <el-button type="success" @click="openProcessRefundDialog">
+                同意退款 / 拒绝退款
+              </el-button>
+              <el-button type="info" @click="viewRefundDetail">
+                查看退款进度
+              </el-button>
+            </template>
+            <!-- 已退款(6)：查看退款详情 -->
+            <el-button 
+              v-else-if="Number(orderDetail.status) === 6" 
+              type="info" 
+              @click="viewRefundDetail"
+            >
+              查看退款详情
+            </el-button>
+          </div>
         </div>
 
         <div v-else-if="!loading" class="empty-detail">
@@ -140,11 +177,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, reactive } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useOrderStore } from '@/stores/order'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 import { showByCode } from '@/utils/apiMessages'
+import { ElMessageBox } from 'element-plus'
+import { orderPromptMessages } from '@/utils/promptMessages'
 
 const router = useRouter()
 const route = useRoute()
@@ -153,6 +192,20 @@ const orderStore = useOrderStore()
 const loading = ref(false)
 const orderDetail = ref(null)
 const orderId = route.params.id
+
+// 发货对话框
+const shipDialogVisible = ref(false)
+const shipSubmitting = ref(false)
+const shipForm = reactive({
+  company: '',
+  trackingNumber: ''
+})
+
+// 处理退款对话框
+const processRefundDialogVisible = ref(false)
+const processRefundSubmitting = ref(false)
+const refundProcessInfo = ref(null)
+const rejectReason = ref('')
 
 const getStatusText = status => {
   const map = {
