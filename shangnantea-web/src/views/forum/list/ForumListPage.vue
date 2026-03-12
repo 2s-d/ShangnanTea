@@ -169,14 +169,12 @@ import { useRouter, useRoute } from 'vue-router'
 import { useForumStore } from '@/stores/forum'
 import { useUserStore } from '@/stores/user'
 
-import { Refresh, ArrowDown, Grid, EditPen, Delete, Male, Female, Plus, Search } from '@element-plus/icons-vue'
+import { Refresh, ArrowDown, Grid, EditPen, Delete, Male, Female, Search } from '@element-plus/icons-vue'
 import PostCard from '@/components/forum/PostCard.vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 import { showByCode } from '@/utils/apiMessages'
 import { forumPromptMessages } from '@/utils/promptMessages'
-import { QuillEditor } from '@vueup/vue-quill'
-import '@vueup/vue-quill/dist/vue-quill.snow.css'
-import forumAPI from '@/api/forum'
+import PostEditorDialog from '@/components/forum/PostEditorDialog.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -227,109 +225,8 @@ const dialogVisible = reactive({
   delete: false
 })
 
-// 发帖表单
-const postFormRef = ref(null)
-const postForm = reactive({
-  title: '',
-  categoryId: '',
-  content: '',
-  summary: '',
-  coverImage: ''
-})
-
-// 发帖表单验证规则
-const postRules = {
-  title: [
-    { required: true, message: '请输入帖子标题', trigger: 'blur' },
-    { min: 5, max: 100, message: '标题长度在 5 到 100 个字符', trigger: 'blur' }
-  ],
-  categoryId: [
-    { required: true, message: '请选择分类', trigger: 'change' }
-  ],
-  content: [
-    { required: true, message: '请输入帖子内容', trigger: 'change' }
-  ]
-}
-
-// Quill 编辑器配置（帖子）
-const postEditorOptions = {
-  modules: {
-    toolbar: {
-      container: [
-        [{ header: [1, 2, 3, false] }],
-        ['bold', 'italic', 'underline', 'strike'],
-        [{ list: 'ordered' }, { list: 'bullet' }],
-        [{ color: [] }, { background: [] }],
-        [{ align: [] }],
-        ['link', 'image'],
-        ['clean']
-      ],
-      handlers: {
-        image: imageHandler
-      }
-    }
-  },
-  placeholder: '请输入帖子内容，可在正文中插入图片…',
-  theme: 'snow'
-}
-
-let quillInstance = null
-
-const onPostEditorReady = quill => {
-  quillInstance = quill
-}
-
-function imageHandler() {
-  const input = document.createElement('input')
-  input.setAttribute('type', 'file')
-  input.setAttribute('accept', 'image/*')
-  input.click()
-
-  input.onchange = async () => {
-    const file = input.files[0]
-    if (!file) return
-    if (!quillInstance) {
-      forumPromptMessages.showCommonError('编辑器未准备好，请稍后重试')
-      return
-    }
-    try {
-      const res = await forumAPI.uploadPostImage(file)
-      if (res?.code === 6028 && res.data?.url) {
-        const url = res.data.url
-        const range = quillInstance.getSelection(true)
-        const index = range && range.index != null ? range.index : quillInstance.getLength() - 1
-        quillInstance.insertEmbed(index, 'image', url)
-        quillInstance.setSelection(index + 1)
-        quillInstance.update()
-      } else {
-        forumPromptMessages.showImageFormatInvalid()
-      }
-    } catch (e) {
-      console.error('上传帖子图片失败:', e)
-      forumPromptMessages.showImageFormatInvalid()
-    }
-  }
-}
-
-// 封面上传
-const coverUploading = ref(false)
-
-const handleCoverUpload = async ({ file }) => {
-  try {
-    coverUploading.value = true
-    const res = await forumAPI.uploadPostImage(file)
-    if (res?.code === 6028 && res.data?.url) {
-      postForm.coverImage = res.data.url
-    } else {
-      forumPromptMessages.showImageFormatInvalid()
-    }
-  } catch (e) {
-    console.error('封面上传失败:', e)
-    forumPromptMessages.showImageFormatInvalid()
-  } finally {
-    coverUploading.value = false
-  }
-}
+// 发布帖子弹窗：通过 initialData 预填（复用统一编辑组件）
+const postDialogInitialData = ref({})
 
 // 排序选项
 const currentSort = ref('latest')
@@ -828,100 +725,20 @@ const updatePagination = () => {
       router.push('/user/settings/posts')
     }
     
-    // 显示发帖对话框
+    // 显示发帖对话框（复用统一编辑组件）
     const showPostDialog = () => {
-      // 重置表单
-      postForm.title = ''
-      postForm.content = ''
-      postForm.summary = ''
-      postForm.coverImage = ''
-      
-      // 如果当前在具体版块，自动选中该版块；如果在"全部帖子"，则为空（需要用户手动选择）
-      if (currentTopicId.value && currentTopicId.value !== 'all') {
-        postForm.categoryId = currentTopicId.value
-      } else {
-        postForm.categoryId = ''
+      postDialogInitialData.value = {
+        title: '',
+        content: '',
+        summary: '',
+        coverImage: '',
+        topicId: currentTopicId.value && currentTopicId.value !== 'all' ? currentTopicId.value : null
       }
-      
       dialogVisible.post = true
     }
     
-    // 从HTML中提取纯文本（用于自动生成摘要）
-    const extractPlainText = html => {
-      if (!html) return ''
-      const div = document.createElement('div')
-      div.innerHTML = html
-      return div.textContent || div.innerText || ''
-    }
-    
-    // 从HTML中提取图片URL列表（用于images字段）
-    const extractImageUrls = html => {
-      if (!html) return []
-      const div = document.createElement('div')
-      div.innerHTML = html
-      const imgs = Array.from(div.querySelectorAll('img'))
-      const urls = imgs
-        .map(img => img.getAttribute('src'))
-        .filter(u => !!u)
-      // 去重
-      return Array.from(new Set(urls))
-    }
-    
-    // 取消发帖
-    const cancelPost = () => {
-      dialogVisible.post = false
-      // 重置表单
-      if (postFormRef.value) {
-        postFormRef.value.resetFields()
-      }
-    }
-    
-    // 提交发帖
-    const submitPost = async () => {
-      if (!postFormRef.value) return
-      
-      // 验证表单
-      const valid = await postFormRef.value.validate().catch(() => false)
-      if (!valid) return
-      
-      localLoading.submit = true
-      
-      try {
-        // 1) 从富文本中提取图片URL列表
-        const imageUrls = extractImageUrls(postForm.content)
-
-        // 2) 生成摘要（优先使用用户填写的摘要，否则从正文前200字自动生成）
-        const plainText = extractPlainText(postForm.content)
-        const autoSummary = plainText.slice(0, 200)
-
-        // 3) 准备提交数据（后端 CreatePostDTO: topicId, title, content, summary, coverImage, images）
-        const submitData = {
-          title: postForm.title,
-          topicId: postForm.categoryId ? parseInt(postForm.categoryId, 10) : null,
-          content: postForm.content,
-          summary: postForm.summary || autoSummary || null,
-          coverImage: postForm.coverImage || (imageUrls.length > 0 ? imageUrls[0] : null),
-          images: imageUrls.length > 0 ? JSON.stringify(imageUrls) : null
-        }
-        
-        // 调用API
-        const res = await forumStore.createPost(submitData)
-        showByCode(res.code)
-        
-        // 提交成功（等待审核）
-        if (res.code === 6011) {
-          dialogVisible.post = false
-          // 重置表单
-          postFormRef.value.resetFields()
-          postForm.images = []
-          
-          // 不需要刷新帖子列表（因为待审核的帖子不会显示在列表中）
-        }
-      } catch (error) {
-        console.error('发布帖子失败:', error)
-      } finally {
-        localLoading.submit = false
-      }
+    const handlePostSubmitted = () => {
+      // 发布成功后不刷新列表：待审核帖子不会出现在列表中（与旧逻辑一致）
     }
     
     // 帖子回复

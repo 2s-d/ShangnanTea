@@ -54,45 +54,14 @@
       </div>
     </div>
 
-    <!-- 编辑帖子弹窗 -->
-    <el-dialog
+    <!-- 编辑帖子弹窗：复用“发布新帖”同款编辑组件 -->
+    <PostEditorDialog
       v-model="editDialogVisible"
-      title="编辑帖子"
-      width="600px"
-      destroy-on-close
-    >
-      <el-form :model="editForm" label-width="80px">
-        <el-form-item label="标题">
-          <el-input v-model="editForm.title" maxlength="100" show-word-limit />
-        </el-form-item>
-        <el-form-item label="摘要">
-          <el-input
-            v-model="editForm.summary"
-            type="textarea"
-            :rows="3"
-            maxlength="200"
-            show-word-limit
-          />
-        </el-form-item>
-        <el-form-item label="内容">
-          <el-input
-            v-model="editForm.content"
-            type="textarea"
-            :rows="6"
-            maxlength="10000"
-            show-word-limit
-          />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="editDialogVisible = false">取 消</el-button>
-          <el-button type="primary" :loading="editLoading" @click="submitEdit">
-            保 存
-          </el-button>
-        </span>
-      </template>
-    </el-dialog>
+      mode="edit"
+      :post-id="editingPostId"
+      :topic-list="topicList"
+      @submitted="afterEditSubmitted"
+    />
   </div>
 </template>
 
@@ -105,6 +74,7 @@ import { Refresh } from '@element-plus/icons-vue'
 import PostCard from '@/components/forum/PostCard.vue'
 import { showByCode } from '@/utils/apiMessages'
 import { ElMessageBox } from 'element-plus'
+import PostEditorDialog from '@/components/forum/PostEditorDialog.vue'
 
 const router = useRouter()
 const forumStore = useForumStore()
@@ -122,16 +92,11 @@ const postList = computed(() => forumStore.forumPosts)
 const loading = computed(() => forumStore.loading)
 const paginationData = computed(() => forumStore.postPagination)
 const currentUser = computed(() => userStore.userInfo)
+const topicList = computed(() => forumStore.forumTopics || [])
 
 // 编辑帖子弹窗状态
 const editDialogVisible = ref(false)
 const editingPostId = ref(null)
-const editForm = ref({
-  title: '',
-  content: '',
-  summary: ''
-})
-const editLoading = ref(false)
 
 // 更新本地分页状态
 const updatePagination = () => {
@@ -241,32 +206,11 @@ const handleFavorite = async post => {
 const handleEdit = post => {
   if (!post?.id) return
   editingPostId.value = post.id
-  editForm.value = {
-    title: post.title || '',
-    content: post.content || '',
-    summary: post.summary || ''
-  }
   editDialogVisible.value = true
 }
 
-const submitEdit = async () => {
-  if (!editingPostId.value) return
-  try {
-    editLoading.value = true
-    const payload = {
-      title: editForm.value.title,
-      content: editForm.value.content,
-      summary: editForm.value.summary
-    }
-    const res = await forumStore.updatePost(editingPostId.value, payload)
-    showByCode(res.code)
-    editDialogVisible.value = false
-    await fetchPosts()
-  } catch (error) {
-    console.error('更新帖子失败:', error)
-  } finally {
-    editLoading.value = false
-  }
+const afterEditSubmitted = async () => {
+  await fetchPosts()
 }
 
 // 删除帖子
@@ -294,6 +238,10 @@ const handleDelete = async post => {
 
 // 页面初始化
 onMounted(async () => {
+  // 编辑弹窗需要分类下拉：确保 topicList 已加载
+  if (!topicList.value || topicList.value.length === 0) {
+    forumStore.fetchForumTopics().catch(() => {})
+  }
   await fetchPosts()
 })
 </script>
