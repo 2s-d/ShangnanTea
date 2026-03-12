@@ -134,87 +134,15 @@
         </el-col>
       </el-row>
       
-      <!-- 新建帖子对话框 -->
-      <el-dialog
-        title="发布新帖"
+      <!-- 新建帖子对话框（复用统一编辑组件） -->
+      <PostEditorDialog
         v-model="dialogVisible.post"
-        width="720px"
-        :close-on-click-modal="false"
-      >
-        <el-form :model="postForm" :rules="postRules" ref="postFormRef" label-width="80px">
-          <el-form-item label="标题" prop="title">
-            <el-input 
-              v-model="postForm.title" 
-              placeholder="请输入帖子标题（5-100字）"
-              maxlength="100"
-              show-word-limit
-            />
-          </el-form-item>
-          
-          <el-form-item label="分类" prop="categoryId">
-            <el-select v-model="postForm.categoryId" placeholder="请选择分类" style="width: 100%">
-              <el-option 
-                v-for="topic in topicList" 
-                :key="topic.id" 
-                :label="topic.name" 
-                :value="topic.id"
-              />
-            </el-select>
-          </el-form-item>
-          
-          <el-form-item label="摘要">
-            <el-input 
-              v-model="postForm.summary"
-              type="textarea" 
-              :rows="3"
-              maxlength="200"
-              show-word-limit
-              placeholder="可选：不填时将自动从正文前200字生成"
-            />
-          </el-form-item>
-          
-          <el-form-item label="内容" prop="content">
-            <QuillEditor
-              v-model:content="postForm.content"
-              contentType="html"
-              :options="postEditorOptions"
-              style="height: 320px"
-              @ready="onPostEditorReady"
-            />
-          </el-form-item>
-          
-          <el-form-item label="封面图">
-            <el-upload
-              class="cover-uploader"
-              :show-file-list="false"
-              :http-request="handleCoverUpload"
-              accept="image/*"
-            >
-              <SafeImage
-                v-if="postForm.coverImage"
-                :src="postForm.coverImage"
-                type="post"
-                alt="封面图片"
-                class="cover-image-preview"
-              />
-              <template v-else>
-                <el-icon class="cover-uploader-icon"><Plus /></el-icon>
-                <div class="cover-uploader-text">上传封面（可选）</div>
-              </template>
-            </el-upload>
-            <div class="el-upload__tip">
-              建议比例 16:9，用于列表和详情页顶部展示
-            </div>
-          </el-form-item>
-        </el-form>
-        
-        <template #footer>
-          <span class="dialog-footer">
-            <el-button @click="cancelPost">取消</el-button>
-            <el-button type="primary" @click="submitPost" :loading="localLoading.submit">发布</el-button>
-          </span>
-        </template>
-      </el-dialog>
+        mode="create"
+        :topic-list="topicList"
+        :default-topic-id="currentTopicId"
+        :initial-data="postDialogInitialData"
+        @submitted="handlePostSubmitted"
+      />
       
       <!-- 删除帖子确认对话框 -->
       <el-dialog
