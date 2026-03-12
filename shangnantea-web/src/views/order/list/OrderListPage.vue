@@ -41,6 +41,9 @@
               <div class="order-info">
                 <span class="order-time">{{ formatTime(order.createTime) }}</span>
                 <span class="order-id">订单号：{{ order.id }}</span>
+                <span v-if="order.status === 0 && order.paymentId" class="payment-id-hint">
+                  所属支付单：{{ order.paymentId }}
+                </span>
               </div>
               <div class="order-status">
                 <span :class="['status-tag', getStatusClass(order.status)]">
@@ -77,7 +80,7 @@
               <div class="order-actions">
                 <template v-if="order.status === 0">
                   <!-- 待付款 -->
-                  <el-button type="primary" size="small" @click="continuePay(order.id)">
+                  <el-button type="primary" size="small" @click="continuePay(order)">
                     去支付
                   </el-button>
                   <el-button size="small" @click="cancelOrder(order.id)">
@@ -278,7 +281,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useOrderStore } from '@/stores/order'
 import { useUserStore } from '@/stores/user'
-import { ElMessageBox } from 'element-plus'
+import { ElMessageBox, ElMessage } from 'element-plus'
 import { Check } from '@element-plus/icons-vue'
 import { regionData } from '@/utils/region'
 import SafeImage from '@/components/common/form/SafeImage.vue'
@@ -474,9 +477,69 @@ const filteredOrders = computed(() => orders.value)
       router.push(`/order/detail/${orderId}`)
     }
     
-    // 继续支付
-    const continuePay = orderId => {
-      router.push(`/order/payment?orderIds=${orderId}`)
+    // 提交支付表单（自动跳转到支付宝）
+    const submitAlipayForm = formHtml => {
+      const div = document.createElement('div')
+      div.innerHTML = formHtml
+      document.body.appendChild(div)
+      const form = div.querySelector('form')
+      if (form) {
+        form.submit()
+      } else {
+        console.error('支付表单格式错误')
+        ElMessage.error('支付表单格式错误，请重试')
+      }
+    }
+    
+    // 继续支付：使用 paymentId 直接调用支付API，自动跳转到支付宝
+    const continuePay = async order => {
+      // 兼容：order 可能是 orderId 字符串（旧调用方式）或订单对象
+      const orderId = typeof order === 'string' ? order : order?.id
+      const paymentId = typeof order === 'object' ? order?.paymentId : null
+      
+      if (!paymentId && !orderId) {
+        ElMessage.error('订单信息异常，无法发起支付')
+        return
+      }
+      
+      try {
+        // 直接调用支付 API（优先使用 paymentId）
+        const payRes = await orderStore.payOrder({
+          paymentId: paymentId || undefined,
+          orderId: orderId || undefined,
+          paymentMethod: 'alipay' // 默认使用支付宝
+        })
+        
+        // 检查支付接口返回的状态码
+        if (payRes?.code === 5007) {
+          // 5007 - 支付表单生成成功，正在跳转...
+          showByCode(payRes.code)
+          
+          // 获取支付表单HTML并自动提交
+          const formHtml = payRes?.data?.formHtml || payRes?.data
+          if (formHtml) {
+            submitAlipayForm(formHtml)
+          } else {
+            console.error('未返回支付表单')
+            ElMessage.error('支付表单生成失败，请重试')
+          }
+        } else if (payRes?.code === 5006) {
+          // 5006 - 订单已支付
+          showByCode(payRes.code)
+          // 重新加载订单列表，刷新状态
+          await orderStore.fetchOrders({ page: currentPage.value, size: pageSize.value, keyword: searchText.value })
+        } else {
+          // 其他状态码（失败）
+          if (payRes?.code) {
+            showByCode(payRes.code)
+          } else {
+            ElMessage.error('支付发起失败，请重试')
+          }
+        }
+      } catch (error) {
+        console.error('发起支付失败:', error)
+        ElMessage.error('支付发起失败，请重试')
+      }
     }
     
     // 取消订单
@@ -877,7 +940,19 @@ onMounted(() => {
       }
       
       .order-id {
-        color: #606266;
+        margin-right: 12px;
+      }
+      
+      .payment-id-hint {
+        font-size: 12px;
+        color: #909399;
+        margin-left: 8px;
+        
+        &::before {
+          content: '|';
+          margin-right: 8px;
+          color: #dcdfe6;
+        }
       }
     }
     
