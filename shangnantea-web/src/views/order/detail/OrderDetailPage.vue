@@ -205,7 +205,17 @@
               <span v-else>未知状态</span>
             </span>
           </div>
-          <div class="info-item payment-tip">
+          <div class="info-item" v-if="orderDetail.paymentTotalAmount !== null && orderDetail.paymentTotalAmount !== undefined">
+            <span class="label">支付单总金额：</span>
+            <span class="value payment-total-amount">¥{{ Number(orderDetail.paymentTotalAmount).toFixed(2) }}</span>
+          </div>
+          <div class="info-item payment-tip" v-if="orderDetail.paymentTotalAmount && orderDetail.paymentTotalAmount !== orderDetail.totalPrice">
+            <span class="tip-text">
+              <el-icon><InfoFilled /></el-icon>
+              本次支付包含多个订单，支付金额为支付单总金额 ¥{{ Number(orderDetail.paymentTotalAmount).toFixed(2) }}，而非本订单金额 ¥{{ orderDetail.totalPrice.toFixed(2) }}
+            </span>
+          </div>
+          <div class="info-item payment-tip" v-else-if="orderDetail.paymentId">
             <span class="tip-text">
               <el-icon><InfoFilled /></el-icon>
               本次支付可能包含多个订单，支付金额为支付单内所有订单的总金额
@@ -1205,6 +1215,12 @@ onMounted(() => {
           font-size: 14px;
         }
       }
+    }
+    
+    .payment-total-amount {
+      color: #f56c6c;
+      font-size: 16px;
+      font-weight: bold;
     }
   }
 }

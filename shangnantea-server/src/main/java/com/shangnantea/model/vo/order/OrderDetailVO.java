@@ -162,6 +162,11 @@ public class OrderDetailVO {
     private Integer paymentStatus;
     
     /**
+     * 支付单总金额（支付批次内所有订单的总金额）
+     */
+    private BigDecimal paymentTotalAmount;
+    
+    /**
      * 取消时间
      */
     private Date cancelTime;

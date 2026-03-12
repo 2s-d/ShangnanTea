@@ -69,4 +69,9 @@ public class OrderVO {
      * 是否已评价(0未评价,1已评价)
      */
     private Integer isReviewed;
+    
+    /**
+     * 支付单号（支付批次ID）
+     */
+    private String paymentId;
 }

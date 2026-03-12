@@ -493,12 +493,17 @@ const filteredOrders = computed(() => orders.value)
     
     // 继续支付：使用 paymentId 直接调用支付API，自动跳转到支付宝
     const continuePay = async order => {
-      // 兼容：order 可能是 orderId 字符串（旧调用方式）或订单对象
-      const orderId = typeof order === 'string' ? order : order?.id
-      const paymentId = typeof order === 'object' ? order?.paymentId : null
-      
-      if (!paymentId && !orderId) {
+      // order 必须是订单对象，包含 id 和 paymentId
+      if (!order || !order.id) {
         ElMessage.error('订单信息异常，无法发起支付')
+        return
+      }
+      
+      const orderId = order.id
+      const paymentId = order.paymentId
+      
+      if (!paymentId) {
+        ElMessage.error('订单缺少支付单信息，无法发起支付')
         return
       }
       

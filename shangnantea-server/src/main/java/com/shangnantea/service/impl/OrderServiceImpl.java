@@ -1070,6 +1070,7 @@ public class OrderServiceImpl implements OrderService {
                 vo.setPrice(order.getPrice());
                 vo.setShopId(order.getShopId());
                 vo.setIsReviewed(order.getBuyerRate());
+                vo.setPaymentId(order.getPaymentId());
                 orderVOList.add(vo);
             }
             
@@ -1147,10 +1148,12 @@ public class OrderServiceImpl implements OrderService {
             
             // 5. 查询支付单信息（如果存在）
             Integer paymentStatus = null;
+            BigDecimal paymentTotalAmount = null;
             if (order.getPaymentId() != null && !order.getPaymentId().trim().isEmpty()) {
                 Payment payment = paymentMapper.selectById(order.getPaymentId());
                 if (payment != null) {
                     paymentStatus = payment.getStatus();
+                    paymentTotalAmount = payment.getTotalAmount();
                 }
             }
             
@@ -1200,6 +1203,7 @@ public class OrderServiceImpl implements OrderService {
             // 支付相关字段
             vo.setPaymentId(order.getPaymentId());
             vo.setPaymentStatus(paymentStatus);
+            vo.setPaymentTotalAmount(paymentTotalAmount);
             
             // 取消相关字段
             vo.setCancelTime(order.getCancelTime());
