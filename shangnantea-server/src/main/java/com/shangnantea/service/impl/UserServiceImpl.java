@@ -1704,34 +1704,26 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public Result<Object> getFavoriteList(String type) {
-        return getFavoriteList(type, null);
-    }
-
-    @Override
-    public Result<Object> getFavoriteList(String type, String userId) {
         try {
-            // 1. 获取当前登录用户ID
-            String currentUserId = UserContext.getCurrentUserId();
-            if (currentUserId == null) {
+            // 1. 获取当前用户ID
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
                 logger.warn("获取收藏列表失败: 用户未登录");
                 return Result.failure(2125); // 加载失败
             }
             
-            // 2. 目标用户：为空则默认当前登录用户
-            String targetUserId = (userId == null || userId.trim().isEmpty()) ? currentUserId : userId.trim();
-            
             // 2. 查询收藏列表
             List<UserFavorite> favoriteList;
             if (type != null && !type.trim().isEmpty()) {
-                favoriteList = userFavoriteMapper.selectByUserIdAndType(targetUserId, type);
+                favoriteList = userFavoriteMapper.selectByUserIdAndType(userId, type);
             } else {
-                favoriteList = userFavoriteMapper.selectByUserId(targetUserId);
+                favoriteList = userFavoriteMapper.selectByUserId(userId);
             }
             
             // 3. 转换为VO列表
             List<FavoriteVO> favoriteVOList = convertToFavoriteVOList(favoriteList);
             
-            logger.info("获取收藏列表成功: userId: {}, type: {}, count: {}", targetUserId, type, favoriteVOList.size());
+            logger.info("获取收藏列表成功: userId: {}, type: {}, count: {}", userId, type, favoriteVOList.size());
             return Result.success(200, favoriteVOList); // 操作成功（静默）
             
         } catch (Exception e) {
