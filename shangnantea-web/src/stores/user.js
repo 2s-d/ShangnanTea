@@ -778,10 +778,24 @@ export const useUserStore = defineStore('user', () => {
   }
   
   // 获取收藏列表
-  async function fetchFavoriteList(type = null) {
+  async function fetchFavoriteList(options = null) {
     loading.value = true
     try {
-      const res = await getFavoriteList(type)
+      // 兼容旧用法：如果 options 是字符串，当作 type
+      let type = null
+      let userId = null
+      if (options === null || options === undefined) {
+        // 无参数：使用默认值
+      } else if (typeof options === 'string') {
+        // 旧用法：直接传 type 字符串
+        type = options
+      } else if (typeof options === 'object') {
+        // 新用法：传对象 { type, userId }
+        type = options.type || null
+        userId = options.userId || null
+      }
+      
+      const res = await getFavoriteList(type, userId)
       favoriteList.value = res.data || res || []
       return res
     } catch (error) {

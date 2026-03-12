@@ -1704,26 +1704,42 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public Result<Object> getFavoriteList(String type) {
+        return getFavoriteList(type, null);
+    }
+
+    /**
+     * 获取收藏列表（可指定目标用户）
+     * 成功码：200，失败码：2125
+     *
+     * @param type 收藏类型（tea/post/tea_article），可选
+     * @param userId 指定用户ID（可选），为空时默认当前登录用户
+     */
+    @Override
+    public Result<Object> getFavoriteList(String type, String userId) {
         try {
-            // 1. 获取当前用户ID
-            String userId = UserContext.getCurrentUserId();
-            if (userId == null) {
-                logger.warn("获取收藏列表失败: 用户未登录");
-                return Result.failure(2125); // 加载失败
+            // 1. 确定目标用户ID
+            String targetUserId = userId;
+            if (targetUserId == null || targetUserId.trim().isEmpty()) {
+                // 未指定userId时，使用当前登录用户
+                targetUserId = UserContext.getCurrentUserId();
+                if (targetUserId == null) {
+                    logger.warn("获取收藏列表失败: 用户未登录");
+                    return Result.failure(2125); // 加载失败
+                }
             }
             
             // 2. 查询收藏列表
             List<UserFavorite> favoriteList;
             if (type != null && !type.trim().isEmpty()) {
-                favoriteList = userFavoriteMapper.selectByUserIdAndType(userId, type);
+                favoriteList = userFavoriteMapper.selectByUserIdAndType(targetUserId, type);
             } else {
-                favoriteList = userFavoriteMapper.selectByUserId(userId);
+                favoriteList = userFavoriteMapper.selectByUserId(targetUserId);
             }
             
             // 3. 转换为VO列表
             List<FavoriteVO> favoriteVOList = convertToFavoriteVOList(favoriteList);
             
-            logger.info("获取收藏列表成功: userId: {}, type: {}, count: {}", userId, type, favoriteVOList.size());
+            logger.info("获取收藏列表成功: targetUserId: {}, type: {}, count: {}", targetUserId, type, favoriteVOList.size());
             return Result.success(200, favoriteVOList); // 操作成功（静默）
             
         } catch (Exception e) {

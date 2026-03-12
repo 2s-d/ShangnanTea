@@ -85,7 +85,7 @@
                 <span class="view-count"><el-icon><View /></el-icon> {{ article.viewCount }}</span>
               </div>
             </div>
-            <div class="article-actions">
+            <div class="article-actions" v-if="isOwnProfile">
               <el-button size="small" plain type="danger" @click="cancelFavorite('tea_article', article.articleId)">
                 取消收藏
               </el-button>
@@ -122,7 +122,7 @@
               <el-button size="small" type="primary" @click="addToCart(product.id)">
                 <el-icon><ShoppingCart /></el-icon> 加入购物车
               </el-button>
-              <el-button size="small" plain type="danger" @click="cancelFavorite('tea', product.teaId)">
+              <el-button v-if="isOwnProfile" size="small" plain type="danger" @click="cancelFavorite('tea', product.teaId)">
                 取消收藏
               </el-button>
             </div>
@@ -153,7 +153,7 @@
                 </div>
               </div>
             </div>
-            <div class="post-actions">
+            <div class="post-actions" v-if="isOwnProfile">
               <el-button size="small" plain type="danger" @click="cancelFavorite('post', post.postId)">
                 取消收藏
               </el-button>
@@ -394,6 +394,11 @@ const activeTab = ref('culture')
       if (!firstParam || firstParam === 'current') return null
       if (firstParam === 'published' || firstParam === 'follows' || firstParam === 'favorites') return null
       return firstParam
+    })
+    
+    // 是否为查看自己的主页
+    const isOwnProfile = computed(() => {
+      return !profileUserId.value || profileUserId.value === userStore.userInfo?.id
     })
     
     // 加载收藏列表：若带 profileUserId，则只取该用户的收藏（否则为当前登录用户）
