@@ -8,6 +8,7 @@ import com.shangnantea.mapper.ChatSessionMapper;
 import com.shangnantea.mapper.UserNotificationMapper;
 import com.shangnantea.model.entity.message.ChatMessage;
 import com.shangnantea.model.entity.message.ChatSession;
+import com.shangnantea.model.entity.shop.Shop;
 import com.shangnantea.model.entity.message.UserNotification;
 import com.shangnantea.model.vo.message.MessageVO;
 import com.shangnantea.model.vo.message.NotificationVO;
@@ -1055,6 +1056,34 @@ public class MessageServiceImpl implements MessageService {
                 sessionVO.put("sessionType", session.getSessionType());
                 sessionVO.put("createTime", session.getCreateTime());
                 
+                // 对于店铺会话，查询并返回店铺信息（店铺LOGO、名称等）
+                if ("shop".equals(session.getSessionType()) || "customer".equals(session.getSessionType())) {
+                    try {
+                        Shop shop = shopMapper.selectByOwnerId(targetUserId);
+                        if (shop != null) {
+                            sessionVO.put("shopId", shop.getId());
+                            sessionVO.put("shopName", shop.getShopName());
+                            // 店铺会话显示店铺LOGO，而不是店主头像
+                            String shopLogo = shop.getLogo();
+                            if (shopLogo != null && !shopLogo.trim().isEmpty()) {
+                                if (shopLogo.startsWith("http://") || shopLogo.startsWith("https://")) {
+                                    sessionVO.put("shopAvatar", shopLogo);
+                                } else {
+                                    sessionVO.put("shopAvatar", FileUploadUtils.generateAccessUrl(shopLogo, baseUrl));
+                                }
+                            } else {
+                                sessionVO.put("shopAvatar", null);
+                            }
+                            // 店铺会话的名称使用店铺名称
+                            sessionVO.put("targetNickname", shop.getShopName());
+                            // 店铺会话的头像使用店铺LOGO
+                            sessionVO.put("targetAvatar", sessionVO.get("shopAvatar"));
+                        }
+                    } catch (Exception e) {
+                        logger.warn("查询店铺信息失败, ownerId: {}, error: {}", targetUserId, e.getMessage());
+                    }
+                }
+                
                 sessionList.add(sessionVO);
             }
             
@@ -1175,77 +1204,116 @@ public class MessageServiceImpl implements MessageService {
     public Result<Object> createChatSession(String targetId, String targetType) {
         try {
             logger.info("创建聊天会话请求, targetId: {}, targetType: {}", targetId, targetType);
-            
-            // 1. 获取当前用户ID
+
             String userId = UserContext.getCurrentUserId();
             if (userId == null) {
                 logger.warn("创建聊天会话失败：用户未登录");
                 return Result.failure(7113);
             }
-            
-            // 2. 验证参数
             if (targetId == null || targetId.trim().isEmpty()) {
-                logger.warn("创建聊天会话失败：目标用户ID为空");
+                logger.warn("创建聊天会话失败：目标ID为空");
                 return Result.failure(7113);
             }
-            
-            // 3. 验证不能和自己创建会话
-            if (userId.equals(targetId)) {
-                logger.warn("创建聊天会话失败：不能和自己创建会话, userId: {}", userId);
+
+            String type = targetType != null ? targetType.trim().toLowerCase() : "private";
+            boolean isCustomer = "shop".equals(type) || "customer".equals(type);
+
+            if (!isCustomer && userId.equals(targetId)) {
+                logger.warn("创建聊天会话失败：不能和自己创建会话");
                 return Result.failure(7113);
             }
-            
-            // 4. 检查是否已存在会话
-            ChatSession existingSession = sessionMapper.selectByUserIds(userId, targetId);
+
+            ChatSession existingSession = null;
+            String sessionId;
+            String initiatorId;
+            String receiverId;
+            String normalizedType;
+
+            if (isCustomer) {
+                // 店铺客服会话：sessionId = shopId_userId_customer，initiator/receiver 均为用户ID（店主代为回复）
+                Shop shop = shopMapper.selectById(targetId);
+                if (shop == null) {
+                    logger.warn("创建聊天会话失败：店铺不存在, shopId: {}", targetId);
+                    return Result.failure(7113);
+                }
+                String ownerId = shop.getOwnerId();
+                if (ownerId == null || userId.equals(ownerId)) {
+                    logger.warn("创建聊天会话失败：无效客服会话");
+                    return Result.failure(7113);
+                }
+                sessionId = ChatSessionIdBuilder.customerSessionId(targetId, userId);
+                initiatorId = userId;
+                receiverId = ownerId;
+                normalizedType = "customer";
+                existingSession = sessionMapper.selectById(sessionId);
+                if (existingSession == null) {
+                    existingSession = sessionMapper.selectByUserIdsAnyStatus(userId, ownerId);
+                    if (existingSession != null && !"customer".equals(existingSession.getSessionType())) {
+                        existingSession = null;
+                    }
+                }
+            } else {
+                // 私聊：userId_userId_private，双方均为用户ID
+                sessionId = ChatSessionIdBuilder.privateSessionId(userId, targetId);
+                initiatorId = userId.compareTo(targetId) <= 0 ? userId : targetId;
+                receiverId = userId.compareTo(targetId) <= 0 ? targetId : userId;
+                normalizedType = "private";
+                existingSession = sessionMapper.selectById(sessionId);
+                if (existingSession == null) {
+                    existingSession = sessionMapper.selectByUserIdsAnyStatus(userId, targetId);
+                    if (existingSession != null && !"private".equals(existingSession.getSessionType())) {
+                        existingSession = null;
+                    }
+                }
+            }
+
             if (existingSession != null) {
-                logger.info("会话已存在，返回现有会话, sessionId: {}", existingSession.getId());
-                
-                // 构造返回数据
-                Map<String, Object> sessionVO = new HashMap<>();
+                if (existingSession.getStatus() != null && existingSession.getStatus() == 0) {
+                    existingSession.setStatus(1);
+                    existingSession.setUpdateTime(new Date());
+                    sessionMapper.updateById(existingSession);
+                    logger.info("恢复已隐藏的会话, sessionId: {}", existingSession.getId());
+                }
+                                Map<String, Object> sessionVO = new HashMap<>();
                 sessionVO.put("id", existingSession.getId());
-                sessionVO.put("targetUserId", targetId);
+                String otherUserId = existingSession.getInitiatorId().equals(userId)
+                    ? existingSession.getReceiverId() : existingSession.getInitiatorId();
+                sessionVO.put("targetUserId", otherUserId);
                 sessionVO.put("lastMessage", existingSession.getLastMessage());
                 sessionVO.put("lastMessageTime", existingSession.getLastMessageTime());
                 sessionVO.put("sessionType", existingSession.getSessionType());
                 sessionVO.put("createTime", existingSession.getCreateTime());
-                
-                return Result.success(7006, sessionVO);
-            }
-            
-            // 5. 创建新会话
+                return Result.success(7006, sessionVO);            }
+
             ChatSession session = new ChatSession();
-            session.setId(UUID.randomUUID().toString());
-            session.setInitiatorId(userId);
-            session.setReceiverId(targetId);
-            session.setSessionType(targetType != null ? targetType : "private");
+            session.setId(sessionId);
+            session.setInitiatorId(initiatorId);
+            session.setReceiverId(receiverId);
+            session.setSessionType(normalizedType);
             session.setLastMessage("");
             session.setLastMessageTime(new Date());
             session.setInitiatorUnread(0);
             session.setReceiverUnread(0);
-            session.setIsPinned(0); // 默认不置顶
+            session.setIsPinned(0);
             session.setStatus(1);
             session.setCreateTime(new Date());
             session.setUpdateTime(new Date());
-            
+
             int result = sessionMapper.insert(session);
             if (result <= 0) {
-                logger.error("创建聊天会话失败：数据库插入失败, userId: {}, targetId: {}", userId, targetId);
+                logger.error("创建聊天会话失败：数据库插入失败");
                 return Result.failure(7113);
             }
-            
-            // 6. 构造返回数据
+
             Map<String, Object> sessionVO = new HashMap<>();
             sessionVO.put("id", session.getId());
-            sessionVO.put("targetUserId", targetId);
+            sessionVO.put("targetUserId", isCustomer ? shopMapper.selectById(targetId).getOwnerId() : targetId);
             sessionVO.put("lastMessage", session.getLastMessage());
             sessionVO.put("lastMessageTime", session.getLastMessageTime());
             sessionVO.put("sessionType", session.getSessionType());
             sessionVO.put("createTime", session.getCreateTime());
-            
-            logger.info("创建聊天会话成功, userId: {}, targetId: {}, sessionId: {}", 
-                    userId, targetId, session.getId());
+            logger.info("创建聊天会话成功, sessionId: {}", session.getId());
             return Result.success(7006, sessionVO);
-            
         } catch (Exception e) {
             logger.error("创建聊天会话失败，系统异常", e);
             return Result.failure(7113);
@@ -1586,9 +1654,9 @@ public class MessageServiceImpl implements MessageService {
         try {
             logger.info("获取用户帖子列表请求, params: {}", params);
             
-            // 1. 获取当前用户ID
-            String userId = UserContext.getCurrentUserId();
-            if (userId == null) {
+            // 1. 获取当前登录用户ID（用于权限校验）
+            String currentUserId = UserContext.getCurrentUserId();
+            if (currentUserId == null) {
                 logger.warn("获取用户帖子列表失败：用户未登录");
                 return Result.failure(7123);
             }
@@ -1600,20 +1668,28 @@ public class MessageServiceImpl implements MessageService {
                 Integer.parseInt(params.get("size").toString()) : 10;
             String sortBy = params.get("sortBy") != null ? 
                 params.get("sortBy").toString() : "latest";
+
+            // 3. 目标用户ID：可选参数 userId，未传时默认当前登录用户
+            String targetUserId = params.get("userId") != null 
+                    ? params.get("userId").toString().trim() 
+                    : currentUserId;
+            if (targetUserId == null || targetUserId.isEmpty()) {
+                targetUserId = currentUserId;
+            }
             
-            // 3. 参数验证和修正
+            // 4. 参数验证和修正
             if (page < 1) page = 1;
             if (size < 1) size = 10;
             if (size > 100) size = 100;
             
             Integer offset = (page - 1) * size;
             
-            // 4. 查询用户帖子列表
+            // 5. 查询用户帖子列表
             List<com.shangnantea.model.entity.forum.ForumPost> posts = 
-                forumPostMapper.selectByUserId(userId, offset, size, "latest");
-            long total = forumPostMapper.countByUserId(userId);
+                forumPostMapper.selectByUserId(targetUserId, offset, size, "latest");
+            long total = forumPostMapper.countByUserId(targetUserId);
             
-            // 5. 转换为VO
+            // 6. 转换为VO
             List<Map<String, Object>> postList = new ArrayList<>();
             for (com.shangnantea.model.entity.forum.ForumPost post : posts) {
                 Map<String, Object> postVO = new HashMap<>();
@@ -1646,13 +1722,13 @@ public class MessageServiceImpl implements MessageService {
                 postList.add(postVO);
             }
             
-            // 6. 构造返回数据
+            // 7. 构造返回数据
             Map<String, Object> result = new HashMap<>();
             result.put("list", postList);
             result.put("total", total);
             
             logger.info("获取用户帖子列表成功, userId: {}, page: {}, size: {}, sortBy: {}, total: {}", 
-                    userId, page, size, sortBy, total);
+                    targetUserId, page, size, sortBy, total);
             return Result.success(200, result);
             
         } catch (Exception e) {
@@ -1666,9 +1742,9 @@ public class MessageServiceImpl implements MessageService {
         try {
             logger.info("获取用户评价记录请求, params: {}", params);
             
-            // 1. 获取当前用户ID
-            String userId = UserContext.getCurrentUserId();
-            if (userId == null) {
+            // 1. 获取当前登录用户ID
+            String currentUserId = UserContext.getCurrentUserId();
+            if (currentUserId == null) {
                 logger.warn("获取用户评价记录失败：用户未登录");
                 return Result.failure(7124);
             }
@@ -1679,17 +1755,25 @@ public class MessageServiceImpl implements MessageService {
             Integer size = params.get("size") != null ? 
                 Integer.parseInt(params.get("size").toString()) : 10;
             
-            // 3. 参数验证和修正
+            // 3. 目标用户ID：可选参数 userId，未传时默认当前登录用户
+            String targetUserId = params.get("userId") != null 
+                    ? params.get("userId").toString().trim() 
+                    : currentUserId;
+            if (targetUserId == null || targetUserId.isEmpty()) {
+                targetUserId = currentUserId;
+            }
+            
+            // 4. 参数验证和修正
             if (page < 1) page = 1;
             if (size < 1) size = 10;
             if (size > 100) size = 100;
             
             Integer offset = (page - 1) * size;
             
-            // 4. 查询用户评价记录
+            // 5. 查询用户评价记录
             List<com.shangnantea.model.entity.tea.TeaReview> reviews = 
-                teaReviewMapper.selectByUserId(userId, offset, size);
-            long total = teaReviewMapper.countByUserId(userId);
+                teaReviewMapper.selectByUserId(targetUserId, offset, size);
+            long total = teaReviewMapper.countByUserId(targetUserId);
             
             // 5. 转换为VO
             List<Map<String, Object>> reviewList = new ArrayList<>();
@@ -1735,7 +1819,7 @@ public class MessageServiceImpl implements MessageService {
             result.put("total", total);
             
             logger.info("获取用户评价记录成功, userId: {}, page: {}, size: {}, total: {}", 
-                    userId, page, size, total);
+                    targetUserId, page, size, total);
             return Result.success(200, result);
             
         } catch (Exception e) {

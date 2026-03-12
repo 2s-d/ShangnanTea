@@ -92,5 +92,14 @@
     <select id="count" resultType="java.lang.Long">
         SELECT COUNT(*) FROM payments
     </select>
+
+    <!-- 查询指定时间之前创建、且仍处于待支付状态的支付单 -->
+    <select id="selectPendingBefore" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM payments
+        WHERE status = 0
+          AND create_time &lt; #{cutoff}
+        ORDER BY create_time ASC
+    </select>
 </mapper>
 

@@ -22,6 +22,15 @@ public class AlipayServiceImpl implements AlipayService {
     
     @Autowired
     private AlipayConfig alipayConfig;
+
+    /**
+     * 支付超时表达式（支付宝参数 timeout_express）
+     * <p>
+     * 不配置则走支付宝默认超时策略（当前代码此前未传 timeout_express）。
+     * </p>
+     */
+    @org.springframework.beans.factory.annotation.Value("${alipay.timeout-express:15m}")
+    private String timeoutExpress;
     
     /**
      * 获取支付宝客户端
@@ -53,10 +62,11 @@ public class AlipayServiceImpl implements AlipayService {
             
             // 设置请求参数
             String bizContent = String.format(
-                "{\"out_trade_no\":\"%s\",\"product_code\":\"FAST_INSTANT_TRADE_PAY\",\"total_amount\":\"%s\",\"subject\":\"%s\"}",
+                "{\"out_trade_no\":\"%s\",\"product_code\":\"FAST_INSTANT_TRADE_PAY\",\"total_amount\":\"%s\",\"subject\":\"%s\",\"timeout_express\":\"%s\"}",
                 orderId,
                 totalAmount,
-                subject
+                subject,
+                timeoutExpress
             );
             request.setBizContent(bizContent);
             

@@ -108,6 +108,15 @@
         AND status = 1
         LIMIT 1
     </select>
+
+    <select id="selectByUserIdsAnyStatus" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM chat_sessions
+        WHERE ((initiator_id = #{userId1} AND receiver_id = #{userId2})
+           OR (initiator_id = #{userId2} AND receiver_id = #{userId1}))
+        ORDER BY status DESC, update_time DESC
+        LIMIT 1
+    </select>
     
     <!-- 查询与指定用户有会话关系的对方用户ID列表（去重） -->
     <select id="selectRelatedUserIds" resultType="java.lang.String">

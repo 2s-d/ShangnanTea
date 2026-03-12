@@ -128,11 +128,29 @@ export function payOrder(data) {
  * @param {number|string} id 订单ID
  * @returns {Promise} 取消结果
  */
-export function cancelOrder(id) {
+/**
+ * 任务组A：取消订单
+ * @param {{id: string|number, reason: string}} payload 取消数据
+ * @returns {Promise} 取消结果
+ */
+export function cancelOrder(payload) {
+  if (!payload || typeof payload !== 'object') {
+    throw new Error('cancelOrder payload must be an object: { id, reason }')
+  }
+  if (!payload.id) {
+    throw new Error('cancelOrder requires payload.id')
+  }
+  if (!payload.reason || !String(payload.reason).trim()) {
+    throw new Error('cancelOrder requires payload.reason')
+  }
+  const data = {
+    id: payload.id,
+    reason: String(payload.reason).trim()
+  }
   return request({
     url: API.ORDER.CANCEL,
     method: 'post',
-    data: { id }
+    data
   })
 }
 

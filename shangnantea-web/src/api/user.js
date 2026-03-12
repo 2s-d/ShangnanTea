@@ -280,11 +280,14 @@ export function getShopCertificationStatus() {
  * @param {String} type 关注类型（user/shop），可选
  * @returns {Promise} 关注列表
  */
-export function getFollowList(type = null) {
+export function getFollowList(type = null, userId = null) {
   return request({
     url: API.USER.FOLLOWS,
     method: 'get',
-    params: type ? { type } : {}
+    params: {
+      ...(type ? { type } : {}),
+      ...(userId ? { userId } : {})
+    }
   })
 }
 
@@ -319,11 +322,14 @@ export function removeFollow(followData) {
  * @param {String} type 收藏类型（tea/post/article），可选
  * @returns {Promise} 收藏列表
  */
-export function getFavoriteList(type = null) {
+export function getFavoriteList(type = null, userId = null) {
   return request({
     url: API.USER.FAVORITES,
     method: 'get',
-    params: type ? { type } : {}
+    params: {
+      ...(type ? { type } : {}),
+      ...(userId ? { userId } : {})
+    }
   })
 }
 

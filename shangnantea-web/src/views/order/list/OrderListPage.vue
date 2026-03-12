@@ -482,13 +482,19 @@ const filteredOrders = computed(() => orders.value)
     // 取消订单
     const cancelOrder = async orderId => {
       try {
-        await ElMessageBox.confirm('确定要取消该订单吗？取消后无法恢复', '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
+        const { value } = await ElMessageBox.prompt('请输入取消原因（必填）', '取消订单', {
+          confirmButtonText: '提交取消',
+          cancelButtonText: '返回',
+          inputPlaceholder: '例如：不想要了 / 地址填错了 / 重复下单',
+          inputType: 'textarea',
+          inputValidator: (val) => {
+            if (!val || !String(val).trim()) return '取消原因不能为空'
+            if (String(val).trim().length > 120) return '取消原因最多120字'
+            return true
+          }
         })
-      
-        const { code } = await orderStore.cancelOrder(orderId)
+
+        const { code } = await orderStore.cancelOrder({ id: orderId, reason: String(value).trim() })
         showByCode(code)
         orderStore.fetchOrders({ page: currentPage.value, size: pageSize.value, keyword: searchText.value })
       } catch (error) {

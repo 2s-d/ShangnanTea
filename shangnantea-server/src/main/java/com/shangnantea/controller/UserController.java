@@ -314,9 +314,9 @@ public class UserController {
      */
     @GetMapping("/follows")
     @RequiresLogin
-    public Result<Object> getFollowList(@RequestParam(required = false) String type) {
-        logger.info("获取关注列表请求, type: {}", type);
-        return userService.getFollowList(type);
+    public Result<Object> getFollowList(@RequestParam(required = false) String type, @RequestParam(required = false) String userId) {
+        logger.info("获取关注列表请求, type: {}, userId: {}", type, userId);
+        return userService.getFollowList(type, userId);
     }
 
     /**
@@ -355,13 +355,15 @@ public class UserController {
      * 成功码: 200, 失败码: 2125
      *
      * @param type 收藏类型（tea/post/article），可选
+     * @param userId 指定用户ID（可选），为空时默认当前登录用户
      * @return 收藏列表
      */
     @GetMapping("/favorites")
     @RequiresLogin
-    public Result<Object> getFavoriteList(@RequestParam(required = false) String type) {
-        logger.info("获取收藏列表请求, type: {}", type);
-        return userService.getFavoriteList(type);
+    public Result<Object> getFavoriteList(@RequestParam(required = false) String type,
+                                          @RequestParam(required = false) String userId) {
+        logger.info("获取收藏列表请求, type: {}, userId: {}", type, userId);
+        return userService.getFavoriteList(type, userId);
     }
 
     /**

@@ -102,6 +102,13 @@ alipay:
   return-url: https://tea.paku.uno/order/payment
   # 异步回调地址（后端接口 - 需要公网地址）
   notify-url: https://tea.paku.uno/api/order/alipay/notify
+  # 支付有效期（支付宝收银台倒计时），建议与业务支付单超时保持一致
+  timeout-express: 15m
+
+# 订单/支付单业务规则
+order:
+  # 支付单创建后未支付的超时时长（分钟），到期自动关闭支付单并取消关联订单
+  payment-timeout-minutes: 15
 
 # 高德天气配置（Web服务 API）
 gaode:

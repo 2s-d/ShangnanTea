@@ -57,14 +57,17 @@
                       v-for="contact in group.items"
                       :key="contact.key"
                       class="contact-item"
-                      @click="openContact(contact)"
+                      @click="openContact(contact)" @dblclick.prevent="openContact(contact)"
                     >
-                      <div class="contact-avatar">
+                      <!-- 类型标识竖条 -->
+                      <div class="contact-type-bar" :class="{ 'type-user': contact.type === 'user', 'type-shop': contact.type === 'shop' }"></div>
+                      
+                      <div class="contact-avatar" @click.stop="goToUserProfile(contact.id, contact.type)">
                         <SafeImage
                           :src="contact.avatar || ''"
                           type="avatar"
                           :alt="contact.name"
-                          style="width:40px;height:40px;border-radius:50%;object-fit:cover;"
+                          style="width:40px;height:40px;border-radius:50%;object-fit:cover;cursor:pointer;"
                         />
                       </div>
                       <div class="contact-info">
@@ -101,13 +104,13 @@
                   :class="{ 'session-active': currentSessionId === session.sessionId }"
                   @click="selectSession(session)"
                 >
-                  <div class="session-avatar">
+                  <div class="session-avatar" @click.stop="goToUserProfile(session, session.targetType)">
                     <el-badge :value="session.unreadCount" :hidden="!session.unreadCount" type="danger">
                       <SafeImage
                         :src="session.avatar || ''"
                         type="avatar"
                         :alt="session.name"
-                        style="width:40px;height:40px;border-radius:50%;object-fit:cover;"
+                        style="width:40px;height:40px;border-radius:50%;object-fit:cover;cursor:pointer;"
                       />
                     </el-badge>
                   </div>
@@ -162,6 +165,9 @@
       <div class="chat-content">
         <!-- 聊天头部 -->
         <div class="chat-header" v-if="currentSession">
+          <div class="chat-header-avatar" @click="goToUserProfile(currentSession, currentSession.targetType)">
+            <SafeImage :src="currentSession.avatar || ''" type="avatar" :alt="currentSession.name" style="width:40px;height:40px;border-radius:50%;object-fit:cover;cursor:pointer;margin-right:12px;" />
+          </div>
           <h3 class="chat-title">{{ currentSession.name }}</h3>
         </div>
         
@@ -209,38 +215,55 @@
               
               <!-- 消息内容 -->
               <div class="message-container">
-                <!-- 头像（对方） -->
-                <div class="message-avatar" v-if="!message.isSelf">
-                  <SafeImage :src="currentSession?.avatar || ''" type="avatar" :alt="currentSession?.name" style="width:40px;height:40px;border-radius:50%;object-fit:cover;" />
-                </div>
-                
-                <!-- 消息气泡 -->
-                <div class="message-content">
-                  <div class="message-bubble">
-                    <!-- 文本消息 -->
-                    <div class="message-text" v-if="message.type === 'text'">
-                      {{ message.content }}
+                <!-- 对方消息：头像在左，消息在右 -->
+                <template v-if="!message.isSelf">
+                  <div class="message-avatar" @click="goToUserProfile(currentSession, currentSession?.targetType)">
+                    <SafeImage :src="currentSession?.avatar || ''" type="avatar" :alt="currentSession?.name" style="width:40px;height:40px;border-radius:50%;object-fit:cover;cursor:pointer;" />
+                  </div>
+                  
+                  <div class="message-content">
+                    <div class="message-bubble">
+                      <!-- 文本消息 -->
+                      <div class="message-text" v-if="message.type === 'text'">
+                        {{ message.content }}
+                      </div>
+                      
+                      <!-- 图片消息 -->
+                      <div class="message-image" v-else-if="message.type === 'image'">
+                        <SafeImage :src="message.content" type="post" :alt="`图片消息`" style="max-width:200px;max-height:200px;border-radius:4px;" />
+                      </div>
                     </div>
-                    
-                    <!-- 图片消息 -->
-                    <div class="message-image" v-else-if="message.type === 'image'">
-                      <SafeImage :src="message.content" type="post" :alt="`图片消息`" style="max-width:200px;max-height:200px;border-radius:4px;" />
+                  </div>
+                </template>
+                
+                <!-- 自己消息：消息在左，头像在右 -->
+                <template v-else>
+                  <div class="message-content">
+                    <div class="message-bubble">
+                      <!-- 文本消息 -->
+                      <div class="message-text" v-if="message.type === 'text'">
+                        {{ message.content }}
+                      </div>
+                      
+                      <!-- 图片消息 -->
+                      <div class="message-image" v-else-if="message.type === 'image'">
+                        <SafeImage :src="message.content" type="post" :alt="`图片消息`" style="max-width:200px;max-height:200px;border-radius:4px;" />
+                      </div>
+                      
+                      <!-- 消息状态 - 放在消息框左下角 -->
+                      <div class="message-status">
+                        <el-icon v-if="message.status === 'sending'" style="font-size: 12px;"><Loading /></el-icon>
+                        <el-icon v-else-if="message.status === 'sent'" style="font-size: 12px;"><Check /></el-icon>
+                        <el-icon v-else-if="message.status === 'read'" style="font-size: 12px;"><CircleCheck /></el-icon>
+                        <el-icon v-else-if="message.status === 'failed'" class="status-failed" style="font-size: 12px;"><Warning /></el-icon>
+                      </div>
                     </div>
                   </div>
                   
-                  <!-- 消息状态 -->
-                  <div class="message-status" v-if="message.isSelf">
-                    <el-icon v-if="message.status === 'sending'"><Loading /></el-icon>
-                    <el-icon v-else-if="message.status === 'sent'"><Check /></el-icon>
-                    <el-icon v-else-if="message.status === 'read'"><CircleCheck /></el-icon>
-                    <el-icon v-else-if="message.status === 'failed'" class="status-failed"><Warning /></el-icon>
+                  <div class="message-avatar" @click="goToUserProfile(userStore.userInfo?.id, 'user')">
+                    <SafeImage :src="currentUserAvatar" type="avatar" alt="我" style="width:40px;height:40px;border-radius:50%;object-fit:cover;cursor:pointer;" />
                   </div>
-                </div>
-                
-                <!-- 头像（自己） -->
-                <div class="message-avatar" v-if="message.isSelf">
-                  <SafeImage :src="currentUserAvatar" type="avatar" alt="我" style="width:40px;height:40px;border-radius:50%;object-fit:cover;" />
-                </div>
+                </template>
               </div>
             </div>
           </div>
@@ -459,41 +482,66 @@ const userStore = useUserStore()
         }
     }
 
-    const openContact = async contact => {
+        /**
+     * 消息页仅以用户身份发起：点用户 → private + 用户ID；点店铺 → customer + 店铺ID
+     * 单击/双击均打开或创建会话；列表删除为软隐藏，再次进入会恢复
+     */
+    const openContact = async (contact) => {
         if (!contact) return
-        const targetType = contact.type
-        const targetId = contact.id
-        const existing = mockSessions.value.find(session => {
-            if (session.targetType !== targetType) return false
-            const peerId = contact.chatPeerId || targetId
-            return String(session.receiverId) === String(peerId)
+
+        let targetType
+        let targetId
+
+        if (contact.type === 'shop') {
+            targetType = 'customer'
+            targetId = contact.id
+        } else {
+            targetType = 'private'
+            targetId = contact.id || contact.chatPeerId
+        }
+
+        if (!targetId) {
+            message.warning('无法识别联系人，无法打开会话')
+            return
+        }
+
+        const existing = mockSessions.value.find((session) => {
+            if (contact.type === 'shop') {
+                return session.targetType === 'shop' && String(session.shopId) === String(targetId)
+            }
+            return session.targetType === 'user' && String(session.receiverId) === String(targetId)
         })
         if (existing) {
             selectSession(existing)
             return
         }
+
         try {
             const res = await messageStore.createChatSession({ targetId, targetType })
             if (!isSuccess(res.code)) {
                 showByCode(res.code)
                 return
             }
+            const sessionId = res.data && res.data.id
             await fetchSessions()
-            const created = mockSessions.value.find(session => {
-                if (session.targetType !== targetType) return false
-                const peerId = contact.chatPeerId || targetId
-                return String(session.receiverId) === String(peerId)
-            })
-            if (created) {
-                selectSession(created)
+            if (sessionId) {
+                const created = mockSessions.value.find((s) => String(s.sessionId) === String(sessionId))
+                if (created) {
+                    selectSession(created)
+                    return
+                }
             }
+            const created2 = mockSessions.value.find((s) => {
+                if (contact.type === 'shop') return s.targetType === 'shop' && String(s.shopId) === String(targetId)
+                return s.targetType === 'user' && String(s.receiverId) === String(targetId)
+            })
+            if (created2) selectSession(created2)
         } catch (e) {
             if (process.env.NODE_ENV === 'development') {
                 console.error('[开发调试] 打开联系人会话失败：', e)
             }
         }
     }
-    
     // 获取所有会话列表（使用后端真实数据）
     const fetchSessions = async () => {
       try {
@@ -517,17 +565,27 @@ const userStore = useUserStore()
           const targetId = session.targetUserId
           const unreadCount = session.unreadCount ?? 0
           const isCustomerService = session.sessionType === 'customer' || session.sessionType === 'shop'
-          const name =
-            isCustomerService
-              ? (session.shopName || session.targetNickname || `店铺${targetId}客服`)
-              : (session.targetNickname || session.targetUsername || `用户${targetId}`)
+          
+          // 店铺会话：显示店铺名称和店铺LOGO
+          // 用户会话：显示用户昵称和用户头像
+          const name = isCustomerService
+            ? (session.shopName || `店铺${targetId}客服`)
+            : (session.targetNickname || session.targetUsername || `用户${targetId}`)
+          
+          // 店铺会话：使用店铺LOGO（shopAvatar），用户会话：使用用户头像（targetAvatar）
+          const avatar = isCustomerService
+            ? (session.shopAvatar || session.targetAvatar || `https://via.placeholder.com/50x50?text=店铺`)
+            : (session.targetAvatar || `https://via.placeholder.com/50x50?text=用户`)
 
           return {
             sessionId: session.id,
-            receiverId: targetId, // 对端用户ID
+            receiverId: targetId, // 对端用户ID（对于店铺会话，这是店主ID，但显示的是店铺信息）
             targetType: isCustomerService ? 'shop' : 'user',
+            // 对于店铺会话，保存店铺ID（后端已返回）
+            shopId: isCustomerService ? (session.shopId || null) : null,
+            ownerId: isCustomerService ? targetId : null, // 店主ID（用于查询店铺）
             name,
-            avatar: session.targetAvatar || `https://via.placeholder.com/50x50?text=${isCustomerService ? '店铺' : '用户'}`,
+            avatar,
             lastMessage: session.lastMessage || '',
             lastTime: session.lastMessageTime,
             unreadCount,
@@ -848,6 +906,52 @@ const userStore = useUserStore()
       return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
     }
     
+    // 跳转到用户/店铺个人主页
+    // 参数可以是 (targetId, targetType) 或 (session对象)
+    const goToUserProfile = (targetIdOrSession, targetType) => {
+      let targetId, targetTypeValue
+      
+      // 判断第一个参数是会话对象还是targetId
+      if (typeof targetIdOrSession === 'object' && targetIdOrSession !== null) {
+        // 是会话对象
+        const session = targetIdOrSession
+        targetId = session.receiverId || session.id
+        targetTypeValue = session.targetType
+        
+        // 对于店铺会话，targetId是店主ID，需要查询店铺ID
+        if (targetTypeValue === 'shop') {
+          // 如果有保存的店铺ID，直接使用
+          if (session.shopId) {
+            router.push(`/shop/${session.shopId}`)
+            return
+          }
+          // 否则，根据店主ID查询店铺ID（需要调用API）
+          // 这里先尝试从raw数据中获取，如果没有则使用ownerId查询
+          const ownerId = session.ownerId || session.receiverId
+          if (ownerId) {
+            // 暂时使用ownerId作为店铺ID（这是临时方案，应该调用API查询）
+            // TODO: 调用API根据ownerId查询店铺ID
+            router.push(`/shop/${ownerId}`)
+            return
+          }
+        }
+      } else {
+        // 是targetId和targetType
+        targetId = targetIdOrSession
+        targetTypeValue = targetType
+      }
+      
+      if (!targetId || !targetTypeValue) return
+      
+      if (targetTypeValue === 'shop') {
+        // 跳转到店铺详情页
+        router.push(`/shop/${targetId}`)
+      } else if (targetTypeValue === 'user') {
+        // 跳转到用户个人主页
+        router.push(`/profile/${targetId}`)
+      }
+    }
+    
     // 过滤会话列表
     const filteredSessions = computed(() => {
       if (!searchQuery.value.trim()) {
@@ -874,6 +978,7 @@ const userStore = useUserStore()
       return messagesMap[currentSessionId.value] || []
     })
     
+    // 消息页路由仅用户身份：shopId->customer+店铺ID；userId->private+用户ID
     // 初始化函数：根据路由参数自动打开特定会话（店铺 / 用户）
     const initializeChatFromRouteParams = async () => {
       const shopId = route.query.shopId
@@ -888,38 +993,32 @@ const userStore = useUserStore()
         return
       }
 
-      const targetType = shopId ? 'shop' : 'user'
+      const targetType = shopId ? 'customer' : 'private'
       const targetId = shopId || userId
 
-      // 1. 先在现有会话中查找
-      const existing = mockSessions.value.find(session =>
-        session.targetType === targetType &&
-        session.receiverId?.toString() === targetId.toString()
-        )
-        
+      const findSessionByRoute = () => {
+        if (shopId) {
+          return mockSessions.value.find(s => s.targetType === 'shop' && String(s.shopId) === String(shopId))
+        }
+        return mockSessions.value.find(s => s.targetType === 'user' && String(s.receiverId) === String(userId))
+      }
+
+      const existing = findSessionByRoute()
       if (existing) {
         selectSession(existing)
         return
-    }
-    
-      // 2. 若不存在，则通过后端创建/获取会话
-      try {
-        const res = await messageStore.createChatSession({
-          targetId,
-          targetType
-        })
+      }
 
+      try {
+        const res = await messageStore.createChatSession({ targetId, targetType })
         if (!isSuccess(res.code)) {
           showByCode(res.code)
           return
-      }
-      
-        // 3. 重新拉取会话列表并选中目标会话
+        }
+
         await fetchSessions()
-        const created = mockSessions.value.find(session =>
-          session.targetType === targetType &&
-          session.receiverId?.toString() === targetId.toString()
-        )
+        const created = findSessionByRoute() ||
+          (res.data && res.data.id && mockSessions.value.find(s => String(s.sessionId) === String(res.data.id)))
 
         if (created) {
           selectSession(created)
@@ -989,7 +1088,8 @@ watch(() => route.query.userId, newUserId => {
   
   .chat-layout {
     display: flex;
-    height: 650px;
+    height: calc(100vh - 280px);
+    min-height: 650px;
     background-color: #fff;
     border-radius: 8px;
     box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
@@ -1063,9 +1163,44 @@ watch(() => route.query.userId, newUserId => {
         cursor: pointer;
         transition: background-color 0.2s;
         align-items: center;
+        position: relative;
 
         &:hover {
           background-color: #eef5ff;
+        }
+
+        .contact-type-bar {
+          position: absolute;
+          left: 0;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 3px;
+          height: 32px;
+          border-radius: 0 2px 2px 0;
+          transition: all 0.3s ease;
+          
+          &.type-user {
+            background: linear-gradient(180deg, #52c41a 0%, #73d13d 100%);
+            box-shadow: 0 0 6px rgba(82, 196, 26, 0.3);
+          }
+          
+          &.type-shop {
+            background: linear-gradient(180deg, #ff4d4f 0%, #ff7875 100%);
+            box-shadow: 0 0 6px rgba(255, 77, 79, 0.3);
+          }
+        }
+
+        &:hover .contact-type-bar {
+          width: 3.5px;
+          box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+          
+          &.type-user {
+            box-shadow: 0 0 10px rgba(82, 196, 26, 0.5);
+          }
+          
+          &.type-shop {
+            box-shadow: 0 0 10px rgba(255, 77, 79, 0.5);
+          }
         }
       }
 
@@ -1240,9 +1375,13 @@ watch(() => route.query.userId, newUserId => {
         border-bottom: 1px solid #eee;
         background-color: #fff;
         display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: flex-start;
+        flex-direction: row;
+        justify-content: flex-start;
+        align-items: center;
+        
+        .chat-header-avatar {
+          flex-shrink: 0;
+        }
         
         .chat-title {
           margin: 0;
@@ -1278,6 +1417,75 @@ watch(() => route.query.userId, newUserId => {
           
           .message-item {
             margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            
+            &.message-self {
+              align-items: flex-end;
+              
+              .message-container {
+                display: flex;
+                flex-direction: row;
+                justify-content: flex-end;
+                align-items: flex-start;
+                
+                .message-content {
+                  margin-right: 8px;
+                  display: flex;
+                  flex-direction: column;
+                  align-items: flex-end;
+                  
+                  .message-bubble {
+                    background-color: #95ec69;
+                    position: relative;
+                    padding-bottom: 18px;
+                    
+                    .message-status {
+                      position: absolute;
+                      left: 8px;
+                      bottom: 4px;
+                      font-size: 10px;
+                      color: var(--text-placeholder);
+                      display: flex;
+                      align-items: center;
+                      line-height: 1;
+                      
+                      .status-failed {
+                        color: #f56c6c;
+                      }
+                    }
+                  }
+                }
+                
+                .message-avatar {
+                  flex-shrink: 0;
+                }
+              }
+            }
+            
+            &.message-other {
+              align-items: flex-start;
+              
+              .message-container {
+                display: flex;
+                flex-direction: row;
+                justify-content: flex-start;
+                align-items: flex-start;
+                
+                .message-avatar {
+                  flex-shrink: 0;
+                  margin-right: 8px;
+                }
+                
+                .message-content {
+                  align-items: flex-start;
+                  
+                  .message-bubble {
+                    background-color: #fff;
+                  }
+                }
+              }
+            }
             
             .message-time-divider {
               text-align: center;
@@ -1295,10 +1503,7 @@ watch(() => route.query.userId, newUserId => {
             
             .message-container {
               display: flex;
-              
-              &.message-self {
-                justify-content: flex-end;
-              }
+              align-items: flex-start;
               
               .message-avatar {
                 width: 36px;

@@ -701,7 +701,8 @@ const orderList = ref([])
         2: '待收货',
         3: '已完成',
         4: '已取消',
-        5: '已退款'
+        5: '退款中',
+        6: '已退款'
       }
       return statusMap[status] || '未知状态'
     }
@@ -714,7 +715,8 @@ const orderList = ref([])
         2: 'success',  // 待收货：绿色成功
         3: 'info',     // 已完成：灰色信息
         4: 'danger',   // 已取消：红色危险
-        5: 'info'      // 已退款：灰色信息
+        5: 'warning',  // 退款中：黄色警告
+        6: 'info'      // 已退款：灰色信息
       }
       return statusMap[status] || 'info'
     }

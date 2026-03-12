@@ -456,9 +456,19 @@ const userStore = useUserStore()
       }
     }
 
-    // 私信按钮预留：先保留入口，后续再接完整私信流程
+    // 私信：个人主页场景只允许用户→用户私聊
     const handlePrivateMessage = () => {
-      commonPromptMessages.showProcessing()
+      if (isOwnProfile.value) return
+      const targetId = userInfo.value.id
+      if (!targetId) {
+        console.warn("无法获取目标用户ID，暂时无法发起私信")
+        return
+      }
+      // 跳转到消息页，由 ChatPage 按 userId=对方ID 创建/恢复 private 会话
+      router.push({
+        path: "/message/chat",
+        query: { userId: String(targetId) }
+      })
     }
     
     // 跳转到店铺

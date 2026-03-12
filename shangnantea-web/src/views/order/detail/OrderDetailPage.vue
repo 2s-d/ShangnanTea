@@ -621,21 +621,24 @@ const cascaderOptions = ref(regionData || [])
     
     // 取消订单
     const cancelOrder = () => {
-      ElMessageBox.confirm('确定要取消该订单吗？取消后无法恢复', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        orderStore.cancelOrder(orderId)
+      ElMessageBox.prompt('请输入取消原因（必填）', '取消订单', {
+        confirmButtonText: '提交取消',
+        cancelButtonText: '返回',
+        inputPlaceholder: '例如：不想要了 / 地址填错了 / 重复下单',
+        inputType: 'textarea',
+        inputValidator: (val) => {
+          if (!val || !String(val).trim()) return '取消原因不能为空'
+          if (String(val).trim().length > 120) return '取消原因最多120字'
+          return true
+        }
+      }).then(({ value }) => {
+        const reason = String(value).trim()
+        orderStore.cancelOrder({ id: orderId, reason })
           .then(res => {
-            // res = {code, data}
-            if (res && res.code !== 200) {
-              showByCode(res.code)
-            }
+            if (res && res.code) showByCode(res.code)
             loadOrderDetail()
           })
           .catch(error => {
-            // 网络错误等已由响应拦截器处理，这里只记录日志
             if (process.env.NODE_ENV === 'development') {
               console.error('取消订单失败:', error)
             }

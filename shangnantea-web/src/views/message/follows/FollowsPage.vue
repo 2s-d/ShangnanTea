@@ -52,12 +52,19 @@
                 <div class="item-desc">{{ item.bio || '这个用户很懒，什么都没有留下...' }}</div>
                 <div class="follow-time">关注于 {{ formatDate(item.followTime) }}</div>
               </div>
-              <div class="item-actions">
-                <el-button size="small" @click="sendMessage(item.userId)">
-                  <el-icon><Message /></el-icon> 发消息
+              <div class="item-actions" v-if="item.userId !== currentUserId">
+                <el-button class="action-btn action-btn-private" size="small" @click="privateMessage(item.userId)">
+                  <el-icon><Message /></el-icon> 私信
                 </el-button>
-                <el-button size="small" plain type="danger" @click="unfollowUser(item.id)">
-                  取消关注
+                <el-button
+                  class="action-btn"
+                  :class="{ 'action-btn-follow': !isLocallyFollowed('user', item.userId) }"
+                  size="small"
+                  plain
+                  :type="isLocallyFollowed('user', item.userId) ? 'danger' : 'primary'"
+                  @click="toggleFollowUser(item)"
+                >
+                  {{ isLocallyFollowed('user', item.userId) ? '取消关注' : '+关注' }}
                 </el-button>
               </div>
             </template>
@@ -74,11 +81,18 @@
                 <div class="follow-time">关注于 {{ formatDate(item.followTime) }}</div>
               </div>
               <div class="item-actions">
-                <el-button size="small" type="primary" @click="contactShop(item.shopId)">
+                <el-button class="action-btn action-btn-contact" size="small" type="primary" @click="contactShop(item.shopId)">
                   <el-icon><Service /></el-icon> 联系客服
                 </el-button>
-                <el-button size="small" plain type="danger" @click="unfollowShop(item.id)">
-                  取消关注
+                <el-button
+                  class="action-btn"
+                  :class="{ 'action-btn-follow': !isLocallyFollowed('shop', item.shopId) }"
+                  size="small"
+                  plain
+                  :type="isLocallyFollowed('shop', item.shopId) ? 'danger' : 'primary'"
+                  @click="toggleFollowShop(item)"
+                >
+                  {{ isLocallyFollowed('shop', item.shopId) ? '取消关注' : '+关注' }}
                 </el-button>
               </div>
             </template>
@@ -105,12 +119,19 @@
               <div class="user-bio">{{ user.bio || '这个用户很懒，什么都没有留下...' }}</div>
               <div class="follow-time">关注于 {{ formatDate(user.followTime) }}</div>
             </div>
-            <div class="user-actions">
-              <el-button size="small" @click="sendMessage(user.userId)">
-                <el-icon><Message /></el-icon> 发消息
+            <div class="user-actions" v-if="user.userId !== currentUserId">
+              <el-button class="action-btn action-btn-private" size="small" @click="privateMessage(user.userId)">
+                <el-icon><Message /></el-icon> 私信
               </el-button>
-              <el-button size="small" plain type="danger" @click="unfollowUser(user.userId)">
-                取消关注
+              <el-button
+                class="action-btn"
+                :class="{ 'action-btn-follow': !isLocallyFollowed('user', user.userId) }"
+                size="small"
+                plain
+                :type="isLocallyFollowed('user', user.userId) ? 'danger' : 'primary'"
+                @click="toggleFollowUser(user)"
+              >
+                {{ isLocallyFollowed('user', user.userId) ? '取消关注' : '+关注' }}
               </el-button>
             </div>
           </div>
@@ -127,7 +148,9 @@
             </div>
             <div class="shop-content">
               <div class="shop-logo">
-                <SafeImage :src="shop.logo" type="banner" :alt="shop.name" style="width:50px;height:50px;border-radius:8px;object-fit:cover;" />
+                <div class="shop-logo-click" @click="goToShopDetail(shop.shopId)">
+                  <SafeImage :src="shop.logo" type="banner" :alt="shop.name" style="width:50px;height:50px;border-radius:8px;object-fit:cover;cursor:pointer;" />
+                </div>
               </div>
               <div class="shop-info" @click="goToShopDetail(shop.shopId)">
                 <div class="shop-name">{{ shop.name }}</div>
@@ -136,11 +159,18 @@
               </div>
             </div>
             <div class="shop-actions">
-              <el-button size="small" type="primary" @click="contactShop(shop.shopId)">
+              <el-button class="action-btn action-btn-contact" size="small" type="primary" @click="contactShop(shop.shopId)">
                 <el-icon><Service /></el-icon> 联系客服
               </el-button>
-              <el-button size="small" plain type="danger" @click="unfollowShop(shop.shopId)">
-                取消关注
+              <el-button
+                class="action-btn"
+                :class="{ 'action-btn-follow': !isLocallyFollowed('shop', shop.shopId) }"
+                size="small"
+                plain
+                :type="isLocallyFollowed('shop', shop.shopId) ? 'danger' : 'primary'"
+                @click="toggleFollowShop(shop)"
+              >
+                {{ isLocallyFollowed('shop', shop.shopId) ? '取消关注' : '+关注' }}
               </el-button>
             </div>
           </div>
@@ -151,24 +181,83 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
 import { Search, Male, Female, Message, Service } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 import { showByCode } from '@/utils/apiMessages'
+import { getFollowList } from '@/api/user'
 
 const router = useRouter()
+const route = useRoute()
 const userStore = useUserStore()
+
+/**
+ * 本地关注态：用于“取消关注后不立即从列表消失”，但按钮文案/样式立刻切换
+ * 下次刷新（重新进入页面/刷新页面）后才会从列表消失
+ */
+const localFollowState = ref({})
+
+/**
+ * 关注列表本地快照：避免 userStore.removeFollow() 立即改动 Pinia 列表导致 UI 立刻消失。
+ * - 首次进入/手动刷新：用后端最新数据覆盖快照（此时取消关注的会消失）
+ * - 点击取消关注/关注：仅切 localFollowState，不改快照内容
+ */
+const localFollowList = ref([])
+// 当前登录用户的关注快照：用于计算“我是否关注了该条目”
+const viewerFollowList = ref([])
+
+const localKey = (type, targetId) => `${type}:${String(targetId)}`
+
+const viewerFollowSet = computed(() => {
+  const set = new Set()
+  ;(viewerFollowList.value || []).forEach((item) => {
+    if (!item) return
+    set.add(localKey(item.targetType, item.targetId))
+  })
+  return set
+})
+
+/**
+ * 当前登录用户是否关注该目标（按钮状态的唯一依据）
+ * - 默认来自 viewerFollowSet
+ * - 若本页做过切换，则用 localFollowState 覆盖（乐观更新 + 回滚）
+ */
+const isLocallyFollowed = (type, targetId) => {
+  const key = localKey(type, targetId)
+  if (Object.prototype.hasOwnProperty.call(localFollowState.value, key)) {
+    return !!localFollowState.value[key]
+  }
+  return viewerFollowSet.value.has(key)
+}
+
+const setLocallyFollowed = (type, targetId, followed) => {
+  localFollowState.value[localKey(type, targetId)] = !!followed
+}
+
+// 当前登录用户ID（用于处理 /profile/current/*）
+const currentUserId = computed(() => {
+  const base = userStore.userInfo || {}
+  return base.id || base.userId || null
+})
+
+// 当前正在查看的主页用户ID：查看别人的主页时，关注列表应该是“对方的关注”
+const profileUserId = computed(() => {
+  const firstParam = route.params.userId
+  if (!firstParam || firstParam === 'current') return currentUserId.value
+  if (firstParam === 'published' || firstParam === 'follows' || firstParam === 'favorites') return currentUserId.value
+  return firstParam
+})
     
     // 筛选类型：all（全部）、user（用户）、shop（店铺）
     const filterType = ref('all')
     const searchKeyword = ref('')
     const sortOption = ref('recent')
     
-    // 从Pinia获取关注列表
-    const followList = computed(() => userStore.followList || [])
+    // 使用本地快照渲染（避免取消关注立即从列表消失）
+    const followList = computed(() => localFollowList.value || [])
     
     // 关注的用户（从Pinia筛选）
     const followedUsers = computed(() => {
@@ -319,84 +408,111 @@ const userStore = useUserStore()
       router.push(`/profile/${userId}`)
     }
     
-    // 发送私信
-    const sendMessage = userId => {
-      // 跳转到消息中心的私信聊天页面，传递用户ID
-      router.push(`/message/center/chat?userId=${userId}`)
+    /**
+     * 私信：关注页只允许“用户身份”发起用户→用户私聊
+     */
+    const privateMessage = (userId) => {
+      if (!userId) return
+      router.push({
+        path: '/message/chat',
+        query: { userId: String(userId) }
+      })
     }
     
-    // 取消关注用户
-    const unfollowUser = async userId => {
-      // 找到对应的关注记录
-      const followItem = followList.value.find(item => 
-        item.targetType === 'user' && item.targetId === userId
-      )
-      if (!followItem) {
-        // 异常情况：数据不同步。开发环境记录错误，生产环境静默处理
-        if (process.env.NODE_ENV === 'development') {
-          console.error('[异常] 未找到关注记录，userId:', userId, 'followList:', followList.value)
-        }
-        return
-      }
-      
+    // 切换关注用户（不刷新列表，仅切按钮态）
+    const toggleFollowUser = async (user) => {
+      const userId = user?.userId
+      if (!userId) return
+      const currentlyFollowed = isLocallyFollowed('user', userId)
+      // 先乐观更新UI，避免“接口成功但按钮样式不变”
+      setLocallyFollowed('user', userId, !currentlyFollowed)
       try {
-        const res = await userStore.removeFollow({
-          targetId: userId,
-          targetType: 'user'
-        })
-        // 使用状态码消息系统，符合项目规范
-        showByCode(res.code)
-        // 重新加载关注列表以更新状态
-        await loadFollowList()
-      } catch (error) {
-        // 网络错误等已由响应拦截器处理，这里只记录日志
-        if (process.env.NODE_ENV === 'development') {
-          console.error('取消关注失败:', error)
+        if (currentlyFollowed) {
+          const res = await userStore.removeFollow({ targetId: userId, targetType: 'user' })
+          showByCode(res.code)
+          // 2013: 已取消关注；2124: 关注记录不存在/已删除（幂等视为已取消）
+          if (!(res.code === 2013 || res.code === 2124)) setLocallyFollowed('user', userId, true)
+        } else {
+          const res = await userStore.addFollow({
+            targetId: userId,
+            targetType: 'user',
+            targetName: user?.nickname,
+            targetAvatar: user?.avatar
+          })
+          showByCode(res.code)
+          // 2012: 已关注；如果后端返回其它成功码，也一律视为已关注
+          if (!(res.code === 2012 || String(res.code).startsWith('7'))) setLocallyFollowed('user', userId, false)
         }
+      } catch (error) {
+        // 网络/异常：回滚UI
+        setLocallyFollowed('user', userId, currentlyFollowed)
+        if (process.env.NODE_ENV === 'development') console.error('关注用户切换失败:', error)
       }
     }
+
+    // 兼容旧方法名
+    const unfollowUser = async (userId) => toggleFollowUser({ userId })
     
     // 跳转到店铺详情
     const goToShopDetail = shopId => {
       router.push(`/shop/${shopId}`)
     }
     
-    // 联系店铺客服
-    const contactShop = shopId => {
-      // 跳转到消息中心的私信聊天页面，传递店铺ID
-      router.push(`/message/center/chat?shopId=${shopId}`)
+    // 联系店铺客服（用户身份发起 customer 会话）
+    const contactShop = (shopId) => {
+      if (!shopId) return
+      router.push({
+        path: '/message/chat',
+        query: { shopId: String(shopId) }
+      })
     }
     
-    // 取消关注店铺
-    const unfollowShop = async shopId => {
+    // 切换关注店铺（不刷新列表，仅切按钮态）
+    const toggleFollowShop = async (shop) => {
+      const shopId = shop?.shopId
+      if (!shopId) return
+      const currentlyFollowed = isLocallyFollowed('shop', shopId)
+      setLocallyFollowed('shop', shopId, !currentlyFollowed)
       try {
-        const res = await userStore.removeFollow({
-          targetId: shopId,
-          targetType: 'shop'
-        })
-        // 使用状态码消息系统，符合项目规范
-        showByCode(res.code)
-        // 重新加载关注列表以更新状态
-        await loadFollowList()
-      } catch (error) {
-        // 网络错误等已由响应拦截器处理，这里只记录日志
-        if (process.env.NODE_ENV === 'development') {
-          console.error('取消关注失败:', error)
+        if (currentlyFollowed) {
+          const res = await userStore.removeFollow({ targetId: shopId, targetType: 'shop' })
+          showByCode(res.code)
+          if (!(res.code === 2013 || res.code === 2124)) setLocallyFollowed('shop', shopId, true)
+        } else {
+          const res = await userStore.addFollow({
+            targetId: shopId,
+            targetType: 'shop',
+            targetName: shop?.name,
+            targetAvatar: shop?.logo
+          })
+          showByCode(res.code)
+          if (!(res.code === 2012 || String(res.code).startsWith('7'))) setLocallyFollowed('shop', shopId, false)
         }
+      } catch (error) {
+        setLocallyFollowed('shop', shopId, currentlyFollowed)
+        if (process.env.NODE_ENV === 'development') console.error('关注店铺切换失败:', error)
       }
     }
+
+    // 兼容旧方法名
+    const unfollowShop = async (shopId) => toggleFollowShop({ shopId })
     
     // 返回首页
     const goHome = () => {
       router.push('/')
     }
     
-    // 加载关注列表
+    // 加载关注列表（主页用户 + 当前登录用户）
     const loadFollowList = async () => {
       try {
-        const response = await userStore.fetchFollowList()
-        // 显示API响应消息（成功或失败都通过状态码映射显示）
-        showByCode(response.code)
+        // 1) 主页用户的关注：用于渲染“他关注了谁/哪家店”
+        const resOwner = await getFollowList(null, profileUserId.value)
+        showByCode(resOwner.code)
+        localFollowList.value = (resOwner.data || []).map(i => ({ ...i }))
+
+        // 2) 当前登录用户的关注：用于按钮状态（我是否关注该条目）
+        const resViewer = await getFollowList()
+        viewerFollowList.value = (resViewer.data || []).map(i => ({ ...i }))
       } catch (error) {
         // 捕获意外的运行时错误（非API业务错误）
         // API业务失败已通过 showByCode 显示，网络错误已在响应拦截器显示
@@ -409,6 +525,12 @@ const userStore = useUserStore()
     
 // 组件挂载时加载数据
 onMounted(() => {
+  loadFollowList()
+})
+
+// 查看不同用户主页时，刷新关注快照并清空本页的本地切换态
+watch(() => profileUserId.value, () => {
+  localFollowState.value = {}
   loadFollowList()
 })
 </script>
@@ -562,6 +684,46 @@ onMounted(() => {
         display: flex;
         gap: 10px;
       }
+    }
+  }
+
+  // 统一操作按钮尺寸与私信配色（参考个人主页私信按钮）
+  .action-btn {
+    width: 95px;
+    height: 30px;
+    padding: 0;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+  }
+
+  .action-btn-private {
+    border: 1px solid #9fd7a8;
+    background-color: #e4f7e8;
+    color: #2c8f4a;
+
+    &:hover {
+      border-color: #84cb92;
+      background-color: #d8f2de;
+      color: #237a3d;
+    }
+  }
+
+  .action-btn-contact {
+    // primary按钮保持原主题色，仅做尺寸统一
+    font-weight: 600;
+  }
+
+  // “+关注”按钮浅绿色底色（覆盖 ElementPlus plain primary 的默认样式，让状态一眼可见）
+  .action-btn-follow {
+    border-color: #9fd7a8 !important;
+    background-color: #e4f7e8 !important;
+    color: #2c8f4a !important;
+
+    &:hover {
+      border-color: #84cb92 !important;
+      background-color: #d8f2de !important;
+      color: #237a3d !important;
     }
   }
   

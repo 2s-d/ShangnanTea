@@ -284,12 +284,17 @@ const useDefaultSpecOnAdd = ref(false)
     }
   }
   
-  // 取消订单
-  async function cancelOrder(id) {
+  /**
+   * 取消订单（必须提供取消原因）
+   *
+   * @param {{id: string|number, reason: string}} payload
+   */
+  async function cancelOrder(payload) {
     try {
       loading.value = true
-      const res = await cancelOrderApi(id)
+      const res = await cancelOrderApi(payload)
       
+      const id = payload?.id
       const order = orderList.value.find(o => o.id === id)
       if (order) {
         order.status = 4

@@ -189,6 +189,15 @@ public interface UserService {
      * @return 关注列表
      */
     Result<Object> getFollowList(String type);
+
+    /**
+     * 获取关注列表（可指定目标用户）
+     *
+     * @param type 关注类型（user/shop），可选
+     * @param userId 指定用户ID（可选）。为空时默认当前登录用户
+     * @return 关注列表
+     */
+    Result<Object> getFollowList(String type, String userId);
     
     /**
      * 添加关注
@@ -213,6 +222,15 @@ public interface UserService {
      * @return 收藏列表
      */
     Result<Object> getFavoriteList(String type);
+
+    /**
+     * 获取收藏列表（可指定目标用户）
+     *
+     * @param type 收藏类型
+     * @param userId 目标用户ID（可选），为空默认当前登录用户
+     * @return 收藏列表
+     */
+    Result<Object> getFavoriteList(String type, String userId);
     
     /**
      * 添加收藏

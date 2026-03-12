@@ -725,10 +725,12 @@ export const useUserStore = defineStore('user', () => {
   // ========== 用户互动功能 Actions ==========
   
   // 获取关注列表
-  async function fetchFollowList(type = null) {
+  async function fetchFollowList(options = null) {
     loading.value = true
     try {
-      const res = await getFollowList(type)
+      const type = typeof options === 'string' ? options : (options && options.type ? options.type : null)
+      const userId = typeof options === 'object' && options ? options.userId : null
+      const res = await getFollowList(type, userId)
       followList.value = res.data || res || []
       return res
     } catch (error) {

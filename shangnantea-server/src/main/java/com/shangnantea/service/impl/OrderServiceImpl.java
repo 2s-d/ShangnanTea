@@ -1,7 +1,5 @@
 package com.shangnantea.service.impl;
 
-import com.shangnantea.common.api.PageParam;
-import com.shangnantea.common.api.PageResult;
 import com.shangnantea.common.api.Result;
 import com.shangnantea.mapper.OrderMapper;
 import com.shangnantea.mapper.OrderAddressMapper;
@@ -678,7 +676,7 @@ public class OrderServiceImpl implements OrderService {
                 }
                 
                 // 验证库存
-                if (stock < quantity) {
+                if (quantity == null || stock < quantity.intValue()) {
                     logger.warn("更新购物车失败: 库存不足: stock={}, quantity={}", stock, quantity);
                     return Result.failure(5106);
                 }
@@ -1413,6 +1411,50 @@ public class OrderServiceImpl implements OrderService {
                  order.getStatus() != Order.STATUS_PENDING_SHIPMENT)) {
                 logger.warn("取消订单失败: 订单状态不允许取消: orderId={}, status={}", orderId, order.getStatus());
                 return Result.failure(5121);
+            }
+
+            // 5.1 待付款取消：按“支付单批次”整体取消，避免多订单支付单出现“部分取消导致金额不一致/无法再次支付”
+            if (order.getStatus() == Order.STATUS_PENDING_PAYMENT) {
+                if (cancelReason == null || cancelReason.trim().isEmpty()) {
+                    // 手动取消要求必须填原因（前端会强制输入，这里再兜底一次）
+                    cancelReason = "用户手动取消";
+                }
+
+                String paymentId = order.getPaymentId();
+                if (paymentId != null && !paymentId.isEmpty()) {
+                    Payment payment = paymentMapper.selectById(paymentId);
+                    // 关闭支付单（仅在待支付时关闭）
+                    if (payment != null && payment.getStatus() != null && payment.getStatus() == Payment.STATUS_PENDING) {
+                        payment.setStatus(Payment.STATUS_CLOSED);
+                        payment.setRemark(cancelReason);
+                        payment.setUpdateTime(new Date());
+                        paymentMapper.updateById(payment);
+                    }
+
+                    // 取消该支付单下所有待付款订单
+                    List<Order> batchOrders = orderMapper.selectByPaymentId(paymentId);
+                    Date now = new Date();
+                    int cancelledCount = 0;
+                    if (batchOrders != null && !batchOrders.isEmpty()) {
+                        for (Order o : batchOrders) {
+                            if (o == null) continue;
+                            // 仅取消待付款订单，其他状态不动
+                            if (o.getStatus() != null && o.getStatus() == Order.STATUS_PENDING_PAYMENT) {
+                                o.setStatus(Order.STATUS_CANCELLED);
+                                o.setCancelReason(cancelReason);
+                                o.setCancelTime(now);
+                                o.setUpdateTime(now);
+                                orderMapper.updateById(o);
+                                cancelledCount++;
+                            }
+                        }
+                    }
+
+                    logger.info("待付款订单按支付单批次取消成功: paymentId={}, cancelledOrders={}, userId={}, reason={}",
+                            paymentId, cancelledCount, userId, cancelReason);
+                    return Result.success(5008);
+                }
+                // 极端情况：缺少paymentId，则继续走单笔取消（保持兼容）
             }
             
             // 6. 如果订单已支付（待发货状态），需要恢复库存
@@ -2397,7 +2439,7 @@ public class OrderServiceImpl implements OrderService {
             String endDate = (String) params.get("endDate");
             Integer status = params.get("status") != null ? Integer.parseInt(params.get("status").toString()) : null;
             String shopId = (String) params.get("shopId");
-            String format = (String) params.get("format"); // excel 或 csv
+            // String format = (String) params.get("format"); // excel 或 csv（当前未使用，预留扩展）
             
             // 根据用户角色确定查询范围
             String userId = null;

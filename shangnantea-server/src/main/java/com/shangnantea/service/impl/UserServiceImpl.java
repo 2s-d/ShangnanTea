@@ -1547,21 +1547,33 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public Result<Object> getFollowList(String type) {
+        return getFollowList(type, null);
+    }
+
+    /**
+     * 获取关注列表（可指定目标用户）
+     * 成功码：200，失败码：2122
+     */
+    @Override
+    public Result<Object> getFollowList(String type, String userId) {
         try {
-            // 1. 获取当前用户ID
-            String userId = UserContext.getCurrentUserId();
-            if (userId == null) {
+            // 1. 获取当前用户ID（用于登录校验）
+            String currentUserId = UserContext.getCurrentUserId();
+            if (currentUserId == null) {
                 logger.warn("获取关注列表失败: 用户未登录");
                 return Result.failure(2122); // 加载失败
             }
+
+            // 2. 目标用户：为空则默认当前登录用户
+            String targetUserId = (userId == null || userId.trim().isEmpty()) ? currentUserId : userId.trim();
             
-            // 2. 查询关注列表
-            List<UserFollow> followList = userFollowMapper.selectByUserId(userId, type);
+            // 3. 查询关注列表
+            List<UserFollow> followList = userFollowMapper.selectByUserId(targetUserId, type);
             
-            // 3. 转换为VO列表
+            // 4. 转换为VO列表
             List<FollowVO> followVOList = convertToFollowVOList(followList);
             
-            logger.info("获取关注列表成功: userId: {}, type: {}, count: {}", userId, type, followVOList.size());
+            logger.info("获取关注列表成功: userId: {}, type: {}, count: {}", targetUserId, type, followVOList.size());
             return Result.success(200, followVOList); // 操作成功（静默）
             
         } catch (Exception e) {
@@ -1692,26 +1704,34 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public Result<Object> getFavoriteList(String type) {
+        return getFavoriteList(type, null);
+    }
+
+    @Override
+    public Result<Object> getFavoriteList(String type, String userId) {
         try {
-            // 1. 获取当前用户ID
-            String userId = UserContext.getCurrentUserId();
-            if (userId == null) {
+            // 1. 获取当前登录用户ID
+            String currentUserId = UserContext.getCurrentUserId();
+            if (currentUserId == null) {
                 logger.warn("获取收藏列表失败: 用户未登录");
                 return Result.failure(2125); // 加载失败
             }
             
+            // 2. 目标用户：为空则默认当前登录用户
+            String targetUserId = (userId == null || userId.trim().isEmpty()) ? currentUserId : userId.trim();
+            
             // 2. 查询收藏列表
             List<UserFavorite> favoriteList;
             if (type != null && !type.trim().isEmpty()) {
-                favoriteList = userFavoriteMapper.selectByUserIdAndType(userId, type);
+                favoriteList = userFavoriteMapper.selectByUserIdAndType(targetUserId, type);
             } else {
-                favoriteList = userFavoriteMapper.selectByUserId(userId);
+                favoriteList = userFavoriteMapper.selectByUserId(targetUserId);
             }
             
             // 3. 转换为VO列表
             List<FavoriteVO> favoriteVOList = convertToFavoriteVOList(favoriteList);
             
-            logger.info("获取收藏列表成功: userId: {}, type: {}, count: {}", userId, type, favoriteVOList.size());
+            logger.info("获取收藏列表成功: userId: {}, type: {}, count: {}", targetUserId, type, favoriteVOList.size());
             return Result.success(200, favoriteVOList); // 操作成功（静默）
             
         } catch (Exception e) {

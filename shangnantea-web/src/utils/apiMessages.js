@@ -137,7 +137,7 @@ export const CODE_MAP = {
   2122: '加载失败',
   
   // 接口19: addFollow - /user/follows
-  2012: '已关注店铺',
+  2012: '已关注',
   2123: '操作失败',
   
   // 接口20: removeFollow - /user/follows/{id}

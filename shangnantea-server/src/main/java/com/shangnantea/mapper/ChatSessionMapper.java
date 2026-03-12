@@ -27,6 +27,8 @@ public interface ChatSessionMapper extends BaseMapper<ChatSession, String> {
      * @return 会话对象
      */
     ChatSession selectByUserIds(@Param("userId1") String userId1, @Param("userId2") String userId2);
+
+    ChatSession selectByUserIdsAnyStatus(@Param("userId1") String userId1, @Param("userId2") String userId2);
     
     /**
      * 查询与指定用户有会话关系的“对方用户ID列表”（去重）。

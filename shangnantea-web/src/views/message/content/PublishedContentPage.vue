@@ -183,8 +183,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useMessageStore } from '@/stores/message'
 import { useForumStore } from '@/stores/forum'
 import { ElMessageBox } from 'element-plus'
@@ -193,6 +193,7 @@ import { showByCode } from '@/utils/apiMessages'
 import { commonPromptMessages } from '@/utils/promptMessages'
 
 const router = useRouter()
+const route = useRoute()
 const messageStore = useMessageStore()
 const forumStore = useForumStore()
 const activeTab = ref('posts')
@@ -207,6 +208,21 @@ const editForm = ref({
   summary: ''
 })
 const editLoading = ref(false)
+
+// 当前登录用户 & 正在查看的主页用户
+const currentUserId = computed(() => {
+  const base = messageStore?.userProfile || {}
+  // userProfile 在 UserHomePage 里已通过 messageStore.fetchUserProfile 初始化
+  return base?.currentUserId || null
+})
+
+// 直接用路由参数推导当前查看的 userId（与 FollowsPage / UserHomePage 规则一致）
+const profileUserId = computed(() => {
+  const firstParam = route.params.userId
+  if (!firstParam || firstParam === 'current') return null
+  if (firstParam === 'published' || firstParam === 'follows' || firstParam === 'favorites') return null
+  return firstParam
+})
     
     // 从Pinia获取数据
     const posts = computed(() => messageStore.userPosts || [])
@@ -352,10 +368,14 @@ const editLoading = ref(false)
     const loadData = async () => {
       try {
         let res
+        const paramsBase = {}
+        if (profileUserId.value) {
+          paramsBase.userId = profileUserId.value
+        }
         if (activeTab.value === 'posts') {
-          res = await messageStore.fetchUserPosts({ sortBy: sortOption.value })
+          res = await messageStore.fetchUserPosts({ ...paramsBase, sortBy: sortOption.value })
         } else if (activeTab.value === 'reviews') {
-          res = await messageStore.fetchUserReviews()
+          res = await messageStore.fetchUserReviews(paramsBase)
         }
         if (res) showByCode(res.code)
       } catch (error) {
@@ -376,8 +396,12 @@ const editLoading = ref(false)
       }
     }
     
-// 组件挂载时加载数据
+// 组件挂载 & 路由变更时加载数据
 onMounted(() => {
+  loadData()
+})
+
+watch(() => route.params.userId, () => {
   loadData()
 })
 </script>

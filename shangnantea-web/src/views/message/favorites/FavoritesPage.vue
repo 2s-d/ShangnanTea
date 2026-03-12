@@ -165,8 +165,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useOrderStore } from '@/stores/order'
 
@@ -175,11 +175,12 @@ import SafeImage from '@/components/common/form/SafeImage.vue'
 import { showByCode } from '@/utils/apiMessages'
 
 const router = useRouter()
+const route = useRoute()
 const userStore = useUserStore()
 const orderStore = useOrderStore()
 const activeTab = ref('culture')
     
-    // 从Pinia获取收藏列表
+    // 从Pinia获取收藏列表（当前 userStore.favoriteList 仍存“当前登录用户”的收藏）
     const favoriteList = computed(() => userStore.favoriteList || [])
     
     // 茶文化文章相关数据（从Pinia筛选）
@@ -387,10 +388,18 @@ const activeTab = ref('culture')
       }
     }
     
-    // 加载收藏列表
+    // 当前查看的主页用户ID：与 UserHomePage / FollowsPage 规则保持一致
+    const profileUserId = computed(() => {
+      const firstParam = route.params.userId
+      if (!firstParam || firstParam === 'current') return null
+      if (firstParam === 'published' || firstParam === 'follows' || firstParam === 'favorites') return null
+      return firstParam
+    })
+    
+    // 加载收藏列表：若带 profileUserId，则只取该用户的收藏（否则为当前登录用户）
     const loadFavoriteList = async () => {
       try {
-        const response = await userStore.fetchFavoriteList()
+        const response = await userStore.fetchFavoriteList(profileUserId.value ? { userId: profileUserId.value } : null)
         // 显示API响应消息（成功或失败都通过状态码映射显示）
         showByCode(response.code)
       } catch (error) {
@@ -403,8 +412,12 @@ const activeTab = ref('culture')
       }
     }
     
-// 组件挂载时加载数据
+// 组件挂载&路由变更时加载数据
 onMounted(() => {
+  loadFavoriteList()
+})
+
+watch(() => route.params.userId, () => {
   loadFavoriteList()
 })
 </script>
