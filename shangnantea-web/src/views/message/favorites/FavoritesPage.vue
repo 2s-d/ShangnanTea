@@ -85,9 +85,14 @@
                 <span class="view-count"><el-icon><View /></el-icon> {{ article.viewCount }}</span>
               </div>
             </div>
-            <div class="article-actions" v-if="isOwnProfile">
-              <el-button size="small" plain type="danger" @click="cancelFavorite('tea_article', article.articleId)">
-                取消收藏
+            <div class="article-actions">
+              <el-button
+                size="small"
+                plain
+                :type="isLocallyFavorited('tea_article', article.articleId) ? 'danger' : 'primary'"
+                @click="toggleFavorite('tea_article', article.articleId, article.title, article.cover_image)"
+              >
+                {{ isLocallyFavorited('tea_article', article.articleId) ? '取消收藏' : '收藏' }}
               </el-button>
             </div>
           </div>
@@ -122,8 +127,13 @@
               <el-button size="small" type="primary" @click="addToCart(product.id)">
                 <el-icon><ShoppingCart /></el-icon> 加入购物车
               </el-button>
-              <el-button v-if="isOwnProfile" size="small" plain type="danger" @click="cancelFavorite('tea', product.teaId)">
-                取消收藏
+              <el-button
+                size="small"
+                plain
+                :type="isLocallyFavorited('tea', product.teaId) ? 'danger' : 'primary'"
+                @click="toggleFavorite('tea', product.teaId, product.name, product.image)"
+              >
+                {{ isLocallyFavorited('tea', product.teaId) ? '取消收藏' : '收藏' }}
               </el-button>
             </div>
           </div>
@@ -153,9 +163,14 @@
                 </div>
               </div>
             </div>
-            <div class="post-actions" v-if="isOwnProfile">
-              <el-button size="small" plain type="danger" @click="cancelFavorite('post', post.postId)">
-                取消收藏
+            <div class="post-actions">
+              <el-button
+                size="small"
+                plain
+                :type="isLocallyFavorited('post', post.postId) ? 'danger' : 'primary'"
+                @click="toggleFavorite('post', post.postId, post.title, '')"
+              >
+                {{ isLocallyFavorited('post', post.postId) ? '取消收藏' : '收藏' }}
               </el-button>
             </div>
           </div>
@@ -179,9 +194,62 @@ const route = useRoute()
 const userStore = useUserStore()
 const orderStore = useOrderStore()
 const activeTab = ref('culture')
-    
-    // 从Pinia获取收藏列表（当前 userStore.favoriteList 仍存“当前登录用户”的收藏）
-    const favoriteList = computed(() => userStore.favoriteList || [])
+
+// 当前查看的主页用户ID：与 UserHomePage / FollowsPage 规则保持一致
+const profileUserId = computed(() => {
+  const firstParam = route.params.userId
+  if (!firstParam || firstParam === 'current') return null
+  if (firstParam === 'published' || firstParam === 'follows' || firstParam === 'favorites') return null
+  return firstParam
+})
+
+// 当前登录用户ID
+const currentUserId = computed(() => {
+  const base = userStore.userInfo || {}
+  return base.id || base.userId || null
+})
+
+/**
+ * 收藏列表本地状态管理（参考关注页逻辑）
+ * - profileFavoriteList: 被查看用户的收藏列表（用于显示列表内容）
+ * - viewerFavoriteList: 当前登录用户的收藏列表（用于判断按钮状态）
+ * - localFavoriteState: 本地乐观更新状态（用于按钮即时切换）
+ */
+const profileFavoriteList = ref([]) // 被查看用户的收藏列表
+const viewerFavoriteList = ref([]) // 当前登录用户的收藏列表
+const localFavoriteState = ref({}) // 本地状态：{ "tea_article:123": true, "tea:456": false }
+
+const favoriteKey = (itemType, itemId) => `${itemType}:${String(itemId)}`
+
+// 当前登录用户的收藏集合（用于判断按钮状态）
+const viewerFavoriteSet = computed(() => {
+  const set = new Set()
+  ;(viewerFavoriteList.value || []).forEach((item) => {
+    if (!item) return
+    set.add(favoriteKey(item.itemType, item.itemId))
+  })
+  return set
+})
+
+/**
+ * 当前登录用户是否收藏该项目（按钮状态的唯一依据）
+ * - 默认来自 viewerFavoriteSet
+ * - 若本页做过切换，则用 localFavoriteState 覆盖（乐观更新 + 回滚）
+ */
+const isLocallyFavorited = (itemType, itemId) => {
+  const key = favoriteKey(itemType, itemId)
+  if (Object.prototype.hasOwnProperty.call(localFavoriteState.value, key)) {
+    return !!localFavoriteState.value[key]
+  }
+  return viewerFavoriteSet.value.has(key)
+}
+
+const setLocallyFavorited = (itemType, itemId, favorited) => {
+  localFavoriteState.value[favoriteKey(itemType, itemId)] = !!favorited
+}
+
+// 使用被查看用户的收藏列表渲染（列表内容来自"他"）
+const favoriteList = computed(() => profileFavoriteList.value || [])
     
     // 茶文化文章相关数据（从Pinia筛选）
     const cultureSearchKeyword = ref('')
@@ -369,60 +437,97 @@ const activeTab = ref('culture')
       }
     }
     
-    // 取消收藏
-    const cancelFavorite = async (itemType, itemId) => {
+    /**
+     * 切换收藏状态（参考关注页的 toggleFollowUser/toggleFollowShop 逻辑）
+     * - 改变的是"当前登录用户"和"该项目"的关系
+     * - 列表项不会消失（因为列表是"他的收藏"，不是"我的收藏"）
+     */
+    const toggleFavorite = async (itemType, itemId, targetName = '', targetImage = '') => {
+      const currentlyFavorited = isLocallyFavorited(itemType, itemId)
+      // 先乐观更新UI，避免"接口成功但按钮样式不变"
+      setLocallyFavorited(itemType, itemId, !currentlyFavorited)
       try {
-        const res = await userStore.removeFavorite({
-          itemId: String(itemId),
-          itemType: itemType
-        })
-        // 使用状态码消息系统，符合项目规范
-        showByCode(res.code)
-        // 重新加载收藏列表以更新状态
-        await loadFavoriteList()
+        if (currentlyFavorited) {
+          // 取消收藏
+          const res = await userStore.removeFavorite({
+            itemId: String(itemId),
+            itemType: itemType
+          })
+          showByCode(res.code)
+          // 如果失败，回滚UI状态
+          if (!(res.code === 2015 || String(res.code).startsWith('7'))) {
+            setLocallyFavorited(itemType, itemId, true)
+          }
+        } else {
+          // 添加收藏
+          const res = await userStore.addFavorite({
+            itemId: String(itemId),
+            itemType: itemType,
+            targetName: targetName,
+            targetImage: targetImage
+          })
+          showByCode(res.code)
+          // 如果失败，回滚UI状态
+          if (!(res.code === 2014 || String(res.code).startsWith('7'))) {
+            setLocallyFavorited(itemType, itemId, false)
+          }
+        }
       } catch (error) {
-        // 网络错误等已由响应拦截器处理，这里只记录日志
+        // 网络/异常：回滚UI
+        setLocallyFavorited(itemType, itemId, currentlyFavorited)
         if (process.env.NODE_ENV === 'development') {
-          console.error('取消收藏失败:', error)
+          console.error('切换收藏状态失败:', error)
         }
       }
     }
     
-    // 当前查看的主页用户ID：与 UserHomePage / FollowsPage 规则保持一致
-    const profileUserId = computed(() => {
-      const firstParam = route.params.userId
-      if (!firstParam || firstParam === 'current') return null
-      if (firstParam === 'published' || firstParam === 'follows' || firstParam === 'favorites') return null
-      return firstParam
-    })
+    // 兼容旧方法名（取消收藏）
+    const cancelFavorite = async (itemType, itemId) => {
+      await toggleFavorite(itemType, itemId)
+    }
     
-    // 是否为查看自己的主页
-    const isOwnProfile = computed(() => {
-      return !profileUserId.value || profileUserId.value === userStore.userInfo?.id
-    })
-    
-    // 加载收藏列表：若带 profileUserId，则只取该用户的收藏（否则为当前登录用户）
+    /**
+     * 加载收藏列表：同时加载两份数据
+     * 1. 被查看用户的收藏列表（用于显示列表内容）
+     * 2. 当前登录用户的收藏列表（用于判断按钮状态）
+     */
     const loadFavoriteList = async () => {
       try {
-        const response = await userStore.fetchFavoriteList(profileUserId.value ? { userId: profileUserId.value } : null)
-        // 显示API响应消息（成功或失败都通过状态码映射显示）
-        showByCode(response.code)
+        // 1. 加载被查看用户的收藏列表（列表内容）
+        if (profileUserId.value) {
+          const profileResponse = await userStore.fetchFavoriteList({ userId: profileUserId.value })
+          profileFavoriteList.value = profileResponse.data || profileResponse || []
+        } else {
+          // 看自己的主页：列表和按钮状态都用当前登录用户的收藏
+          const currentResponse = await userStore.fetchFavoriteList(null)
+          profileFavoriteList.value = currentResponse.data || currentResponse || []
+          viewerFavoriteList.value = profileFavoriteList.value // 看自己时，两份数据相同
+        }
+        
+        // 2. 加载当前登录用户的收藏列表（按钮状态）
+        if (profileUserId.value && profileUserId.value !== currentUserId.value) {
+          // 看别人的主页：需要单独加载当前登录用户的收藏来判断按钮状态
+          const viewerResponse = await userStore.fetchFavoriteList(null)
+          viewerFavoriteList.value = viewerResponse.data || viewerResponse || []
+        }
+        
+        // 清空本地状态（切换用户时重置）
+        localFavoriteState.value = {}
       } catch (error) {
-        // 捕获意外的运行时错误（非API业务错误）
-        // API业务失败已通过 showByCode 显示，网络错误已在响应拦截器显示
-        // 这里只记录日志用于开发调试
         if (process.env.NODE_ENV === 'development') {
           console.error('[开发调试] 加载收藏列表时发生意外错误：', error)
         }
       }
     }
     
-// 组件挂载&路由变更时加载数据
+// 组件挂载时加载数据
 onMounted(() => {
   loadFavoriteList()
 })
 
-watch(() => route.params.userId, () => {
+// 查看不同用户主页时，刷新收藏列表并清空本页的本地切换态
+watch(() => profileUserId.value, () => {
+  localFavoriteState.value = {}
   loadFavoriteList()
 })
 </script>
@@ -790,4 +895,5 @@ watch(() => route.params.userId, () => {
     }
   }
 }
+</style> 
 </style> 

@@ -188,10 +188,14 @@
           </div>
         </div>
         
-        <!-- 支付状态信息（仅在待付款状态显示） -->
-        <div v-if="orderDetail.status === 0 && orderDetail.paymentStatus !== null" class="detail-section">
-          <div class="section-title">支付状态</div>
+        <!-- 支付单信息（仅在待付款状态显示） -->
+        <div v-if="orderDetail.status === 0 && orderDetail.paymentId" class="detail-section">
+          <div class="section-title">支付单信息</div>
           <div class="info-item">
+            <span class="label">支付单号：</span>
+            <span class="value">{{ orderDetail.paymentId }}</span>
+          </div>
+          <div class="info-item" v-if="orderDetail.paymentStatus !== null">
             <span class="label">支付单状态：</span>
             <span class="value">
               <el-tag v-if="orderDetail.paymentStatus === 0" type="warning">待支付</el-tag>
@@ -199,6 +203,12 @@
               <el-tag v-else-if="orderDetail.paymentStatus === 2" type="danger">支付失败</el-tag>
               <el-tag v-else-if="orderDetail.paymentStatus === 3" type="info">已关闭</el-tag>
               <span v-else>未知状态</span>
+            </span>
+          </div>
+          <div class="info-item payment-tip">
+            <span class="tip-text">
+              <el-icon><InfoFilled /></el-icon>
+              本次支付可能包含多个订单，支付金额为支付单内所有订单的总金额
             </span>
           </div>
         </div>
@@ -376,8 +386,8 @@ import { ref, onMounted, computed, reactive } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useOrderStore } from '@/stores/order'
 import { useUserStore } from '@/stores/user'
-import { ElMessageBox } from 'element-plus'
-import { Check } from '@element-plus/icons-vue'
+import { ElMessageBox, ElMessage } from 'element-plus'
+import { Check, InfoFilled } from '@element-plus/icons-vue'
 import { showByCode } from '@/utils/apiMessages'
 import { orderPromptMessages } from '@/utils/promptMessages'
 import { regionData } from '@/utils/region'
@@ -614,9 +624,73 @@ const cascaderOptions = ref(regionData || [])
       router.push(`/tea/${teaId}`)
     }
     
-    // 继续支付
-    const continuePay = () => {
-      router.push(`/order/payment?orderIds=${orderDetail.value.order_id}`)
+    // 提交支付表单（自动跳转到支付宝）
+    const submitAlipayForm = formHtml => {
+      const div = document.createElement('div')
+      div.innerHTML = formHtml
+      document.body.appendChild(div)
+      const form = div.querySelector('form')
+      if (form) {
+        form.submit()
+      } else {
+        console.error('支付表单格式错误')
+        ElMessage.error('支付表单格式错误，请重试')
+      }
+    }
+    
+    // 继续支付：使用 paymentId 而非 orderId，因为支付是针对整个支付单的
+    const continuePay = async () => {
+      if (!orderDetail.value) {
+        ElMessage.error('订单信息异常，无法发起支付')
+        return
+      }
+      
+      const paymentId = orderDetail.value.paymentId
+      const orderId = orderDetail.value.id
+      
+      if (!paymentId && !orderId) {
+        ElMessage.error('订单信息异常，无法发起支付')
+        return
+      }
+      
+      try {
+        // 直接调用支付 API（优先使用 paymentId）
+        const payRes = await orderStore.payOrder({
+          paymentId: paymentId || undefined,
+          orderId: orderId || undefined,
+          paymentMethod: 'alipay' // 默认使用支付宝
+        })
+        
+        // 检查支付接口返回的状态码
+        if (payRes?.code === 5007) {
+          // 5007 - 支付表单生成成功，正在跳转...
+          showByCode(payRes.code)
+          
+          // 获取支付表单HTML并自动提交
+          const formHtml = payRes?.data?.formHtml || payRes?.data
+          if (formHtml) {
+            submitAlipayForm(formHtml)
+          } else {
+            console.error('未返回支付表单')
+            ElMessage.error('支付表单生成失败，请重试')
+          }
+        } else if (payRes?.code === 5006) {
+          // 5006 - 订单已支付
+          showByCode(payRes.code)
+          // 重新加载订单详情，刷新状态
+          loadOrderDetail()
+        } else {
+          // 其他状态码（失败）
+          if (payRes?.code) {
+            showByCode(payRes.code)
+          } else {
+            ElMessage.error('支付发起失败，请重试')
+          }
+        }
+      } catch (error) {
+        console.error('发起支付失败:', error)
+        ElMessage.error('支付发起失败，请重试')
+      }
     }
     
     // 取消订单
@@ -1110,6 +1184,27 @@ onMounted(() => {
     .value {
       flex: 1;
       color: #303133;
+    }
+    
+    &.payment-tip {
+      justify-content: flex-start;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px dashed #e4e7ed;
+      
+      .tip-text {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: #909399;
+        font-size: 12px;
+        line-height: 1.5;
+        
+        .el-icon {
+          color: #409eff;
+          font-size: 14px;
+        }
+      }
     }
   }
 }
