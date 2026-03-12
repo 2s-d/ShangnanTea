@@ -140,45 +140,14 @@
             </div>
       </div>
       
-    <!-- 编辑帖子弹窗 -->
-    <el-dialog
+    <!-- 编辑帖子弹窗：复用“发布新帖”同款编辑组件 -->
+    <PostEditorDialog
       v-model="editDialogVisible"
-      title="编辑帖子"
-      width="600px"
-      destroy-on-close
-    >
-      <el-form :model="editForm" label-width="80px">
-        <el-form-item label="标题">
-          <el-input v-model="editForm.title" maxlength="100" show-word-limit />
-        </el-form-item>
-        <el-form-item label="摘要">
-          <el-input
-            v-model="editForm.summary"
-            type="textarea"
-            :rows="3"
-            maxlength="200"
-            show-word-limit
-          />
-        </el-form-item>
-        <el-form-item label="内容">
-          <el-input
-            v-model="editForm.content"
-            type="textarea"
-            :rows="6"
-            maxlength="10000"
-            show-word-limit
-          />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="editDialogVisible = false">取 消</el-button>
-          <el-button type="primary" :loading="editLoading" @click="submitEdit">
-            保 存
-          </el-button>
-        </span>
-      </template>
-    </el-dialog>
+      mode="edit"
+      :post-id="editingPostId"
+      :topic-list="topicList"
+      @submitted="afterEditSubmitted"
+    />
   </div>
 </template>
 
@@ -191,6 +160,7 @@ import { ElMessageBox } from 'element-plus'
 import { Timer, View, ChatDotRound, Star, Edit, Delete } from '@element-plus/icons-vue'
 import { showByCode } from '@/utils/apiMessages'
 import { commonPromptMessages } from '@/utils/promptMessages'
+import PostEditorDialog from '@/components/forum/PostEditorDialog.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -202,12 +172,7 @@ const sortOption = ref('newest')
 // 编辑帖子弹窗相关状态
 const editDialogVisible = ref(false)
 const editingPostId = ref(null)
-const editForm = ref({
-  title: '',
-  content: '',
-  summary: ''
-})
-const editLoading = ref(false)
+const topicList = computed(() => forumStore.forumTopics || [])
 
 // 当前登录用户 & 正在查看的主页用户
 const currentUserId = computed(() => {
@@ -283,34 +248,11 @@ const profileUserId = computed(() => {
     const editPost = post => {
       if (!post) return
       editingPostId.value = post.id
-      editForm.value = {
-        title: post.title || '',
-        // 个人中心列表没有富文本编辑，这里直接编辑纯文本内容
-        content: post.content || '',
-        summary: post.summary || ''
-      }
       editDialogVisible.value = true
     }
     
-    const submitEdit = async () => {
-      if (!editingPostId.value) return
-      try {
-        editLoading.value = true
-        const payload = {
-          title: editForm.value.title,
-          content: editForm.value.content,
-          summary: editForm.value.summary
-        }
-        const res = await forumStore.updatePost(editingPostId.value, payload)
-        showByCode(res.code)
-        editDialogVisible.value = false
-        // 编辑后刷新“我的帖子”列表
-        await loadData()
-      } catch (error) {
-        console.error('更新帖子失败：', error)
-      } finally {
-        editLoading.value = false
-      }
+    const afterEditSubmitted = async () => {
+      await loadData()
     }
     
     // 删除帖子
@@ -398,6 +340,10 @@ const profileUserId = computed(() => {
     
 // 组件挂载 & 路由变更时加载数据
 onMounted(() => {
+  // 编辑弹窗需要分类下拉：确保 topicList 已加载
+  if (!topicList.value || topicList.value.length === 0) {
+    forumStore.fetchForumTopics().catch(() => {})
+  }
   loadData()
 })
 
