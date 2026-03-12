@@ -184,6 +184,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useOrderStore } from '@/stores/order'
+import { getFavoriteList } from '@/api/user'
 
 import { Search, View, ChatDotRound, Star, ShoppingCart } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
@@ -493,25 +494,27 @@ const favoriteList = computed(() => profileFavoriteList.value || [])
      */
     const loadFavoriteList = async () => {
       try {
-        // 1. 加载被查看用户的收藏列表（列表内容）
+        // 1) 被查看用户的收藏：用于渲染“他收藏了什么”
         if (profileUserId.value) {
-          const profileResponse = await userStore.fetchFavoriteList({ userId: profileUserId.value })
-          profileFavoriteList.value = profileResponse.data || profileResponse || []
+          const resOwner = await getFavoriteList(null, profileUserId.value)
+          profileFavoriteList.value = (resOwner.data || []).map(i => ({ ...i }))
         } else {
-          // 看自己的主页：列表和按钮状态都用当前登录用户的收藏
-          const currentResponse = await userStore.fetchFavoriteList(null)
-          profileFavoriteList.value = currentResponse.data || currentResponse || []
-          viewerFavoriteList.value = profileFavoriteList.value // 看自己时，两份数据相同
+          // 看自己的主页：列表内容直接是当前登录用户
+          const resOwner = await getFavoriteList()
+          profileFavoriteList.value = (resOwner.data || []).map(i => ({ ...i }))
         }
-        
-        // 2. 加载当前登录用户的收藏列表（按钮状态）
+
+        // 2) 当前登录用户的收藏：用于按钮状态（我是否收藏该条目）
+        // - 看别人的主页才需要单独再拉一份
         if (profileUserId.value && profileUserId.value !== currentUserId.value) {
-          // 看别人的主页：需要单独加载当前登录用户的收藏来判断按钮状态
-          const viewerResponse = await userStore.fetchFavoriteList(null)
-          viewerFavoriteList.value = viewerResponse.data || viewerResponse || []
+          const resViewer = await getFavoriteList()
+          viewerFavoriteList.value = (resViewer.data || []).map(i => ({ ...i }))
+        } else {
+          // 看自己：两份相同，但仍做快照拷贝，避免被后续 Pinia 状态变更影响
+          viewerFavoriteList.value = (profileFavoriteList.value || []).map(i => ({ ...i }))
         }
-        
-        // 清空本地状态（切换用户时重置）
+
+        // 切换用户/刷新时：清空本页的本地切换态，让“矫正”以最新后端结果为准
         localFavoriteState.value = {}
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
