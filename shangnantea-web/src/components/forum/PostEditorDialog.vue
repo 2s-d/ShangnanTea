@@ -50,7 +50,7 @@
                     v-model:content="postForm.content"
                     contentType="html"
                     :options="postEditorOptions"
-                    style="height: 320px"
+                    style="height: 320px;width: 100%;"
                     @ready="onEditorReady"
                 />
             </el-form-item>
@@ -202,7 +202,11 @@ const handleCoverUpload = async ({ file }) => {
         const res = await forumStore.uploadPostImage(file)
         if (res?.code) showByCode(res.code)
         const url = res?.data?.url
-        if (url) {
+        const path = res?.data?.path
+        // 存库使用相对路径，预览仍然可以使用完整URL
+        if (path) {
+            postForm.coverImage = path
+        } else if (url) {
             postForm.coverImage = url
         }
     } catch (e) {

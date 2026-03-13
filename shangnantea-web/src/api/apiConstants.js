@@ -51,6 +51,7 @@ export const API = {
     SPECIFICATION_DETAIL: '/tea/specifications/{specId}',
     SPECIFICATION_DEFAULT: '/tea/specifications/{specId}/default',
     IMAGES: '/tea/{teaId}/images',
+    IMAGES_UPLOAD: '/tea/images/upload',
     IMAGE_DETAIL: '/tea/images/{imageId}',
     IMAGE_MAIN: '/tea/images/{imageId}/main',
     IMAGE_ORDER: '/tea/images/order',

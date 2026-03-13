@@ -279,7 +279,8 @@ export function createAnnouncement(shopId, announcementData) {
  */
 export function updateAnnouncement(announcementId, announcementData) {
   return request({
-    url: API.SHOP.ANNOUNCEMENTS + '/' + announcementId,
+    // 正确路径：/shop/announcements/{announcementId}
+    url: API.SHOP.ANNOUNCEMENT_DETAIL.replace('{announcementId}', announcementId),
     method: 'put',
     data: announcementData
   })
@@ -292,7 +293,8 @@ export function updateAnnouncement(announcementId, announcementData) {
  */
 export function deleteAnnouncement(announcementId) {
   return request({
-    url: API.SHOP.ANNOUNCEMENTS + '/' + announcementId,
+    // 正确路径：/shop/announcements/{announcementId}
+    url: API.SHOP.ANNOUNCEMENT_DETAIL.replace('{announcementId}', announcementId),
     method: 'delete'
   })
 } 

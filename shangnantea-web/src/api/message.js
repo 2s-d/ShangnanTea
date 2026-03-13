@@ -27,7 +27,10 @@ export function searchUsers(params) {
 
 /**
  * 发送消息
- * @param {Object} data 消息数据 {receiverId, content, type}
+ * @param {Object} data 消息数据 {sessionId, content, type, receiverId?}
+ * 说明：
+ * - 新协议：推荐始终传 sessionId，由后端根据会话确定接收者
+ * - 兼容旧协议：如果暂时没有 sessionId，则需要提供 receiverId，后端会按用户私聊处理
  * @returns {Promise} 发送结果
  */
 export function sendMessage(data) {

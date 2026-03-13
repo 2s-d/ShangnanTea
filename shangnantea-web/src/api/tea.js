@@ -238,9 +238,9 @@ export function setDefaultSpecification(specId) {
  * @param {FormData} formData 包含图片文件的FormData
  * @returns {Promise} 上传结果（包含图片列表）
  */
-export function uploadTeaImages(teaId, formData) {
+export function uploadTeaImages(formData) {
   return request({
-    url: API.TEA.IMAGES.replace('{teaId}', teaId),
+    url: API.TEA.IMAGES_UPLOAD,
     method: 'post',
     data: formData,
     headers: {

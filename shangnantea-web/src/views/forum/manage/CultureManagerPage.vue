@@ -175,8 +175,7 @@
                 </template>
               </el-table-column>
               <el-table-column label="标题" prop="title" min-width="150" />
-              <el-table-column label="副标题" prop="subtitle" min-width="200" />
-              <el-table-column label="链接" prop="link_url" min-width="200" show-overflow-tooltip />
+              <el-table-column label="链接" prop="link_url" min-width="260" show-overflow-tooltip />
               <el-table-column label="排序" prop="sort_order" width="80" />
               <el-table-column label="操作" width="180" fixed="right">
                 <template #default="scope">
@@ -225,7 +224,7 @@
                 v-model:content="articleForm.content"
                 contentType="html"
                 :options="editorOptions"
-                style="height: 400px"
+                style="height: 400px;width: 100%;"
                 @ready="onEditorReady"
               />
             </el-form-item>
@@ -259,6 +258,40 @@
               <el-form-item label="标签" prop="tags">
                 <el-input v-model="articleForm.tags" placeholder="用逗号分隔" />
                 <div class="form-tip">多个标签用英文逗号分隔</div>
+              </el-form-item>
+              
+              <el-form-item label="封面图片">
+                <div class="cover-uploader">
+                  <el-upload
+                    class="cover-upload"
+                    :show-file-list="false"
+                    :http-request="handleArticleCoverUpload"
+                    accept="image/*"
+                  >
+                    <template v-if="articleForm.coverImage">
+                      <SafeImage
+                        :src="articleForm.coverImage"
+                        type="post"
+                        alt="封面图片预览"
+                        class="cover-preview-image"
+                      />
+                    </template>
+                    <template v-else>
+                      <el-button type="primary" size="small">上传封面图片</el-button>
+                    </template>
+                  </el-upload>
+                  <el-button
+                    v-if="articleForm.coverImage"
+                    type="text"
+                    size="small"
+                    @click="articleForm.coverImage = ''"
+                  >
+                    清除封面
+                  </el-button>
+                  <div class="form-tip">
+                    建议尺寸 800×400 左右，用于文章列表与分享展示；不上传则后端会从正文图片中自动选择。
+                  </div>
+                </div>
               </el-form-item>
               
               <el-divider />
@@ -355,12 +388,8 @@
           <el-input v-model="bannerForm.title" placeholder="请输入标题" />
         </el-form-item>
         
-        <el-form-item label="副标题">
-          <el-input v-model="bannerForm.subtitle" placeholder="请输入副标题" />
-        </el-form-item>
-        
-        <el-form-item label="链接地址">
-          <el-input v-model="bannerForm.link_url" placeholder="点击后跳转的链接" />
+        <el-form-item label="跳转链接">
+          <el-input v-model="bannerForm.link_url" placeholder="点击后跳转的链接（可选）" />
         </el-form-item>
         
         <el-form-item label="排序">
@@ -508,6 +537,29 @@ function imageHandler() {
   }
 }
 
+// 文章封面上传
+const handleArticleCoverUpload = async ({ file }) => {
+  if (!file) return
+  try {
+    const res = await forumAPI.uploadArticleImage(file)
+    if (res?.code) showByCode(res.code)
+    const url = res?.data?.url
+    const path = res?.data?.path
+    // 存库使用相对路径（path），预览仍然可以用完整URL
+    if (path) {
+      articleForm.coverImage = path
+    } else if (url) {
+      // 兜底：旧接口没有path字段时，仍然使用url
+      articleForm.coverImage = url
+    } else {
+      ElMessage.error('封面上传失败：返回数据缺少URL')
+    }
+  } catch (error) {
+    console.error('封面上传失败:', error)
+    ElMessage.error('封面上传失败，请重试')
+  }
+}
+
 // 文章表单数据
 const articleForm = reactive({
   id: null,
@@ -517,6 +569,7 @@ const articleForm = reactive({
   category: '',
   content: '',
   summary: '',
+  coverImage: '',
   video_url: '',
   tags: '',
   source: '',
@@ -602,6 +655,7 @@ const handleCreateArticle = () => {
     category: '',
     content: '',
     summary: '',
+    coverImage: '',
     video_url: '',
     tags: '',
     source: '',
@@ -627,6 +681,7 @@ const handleEditArticle = async (article) => {
         category: detail.category || '',
         content: detail.content || '',
         summary: detail.summary || '',
+        coverImage: detail.coverImage || detail.cover_image || '',
         video_url: detail.videoUrl || detail.video_url || '',
         tags: Array.isArray(detail.tags) ? detail.tags.join(',') : (detail.tags || ''),
         source: detail.source || '',
@@ -719,6 +774,7 @@ const submitArticleForm = () => {
         subtitle: formData.subtitle,
         content: formData.content,
         summary: formData.summary,
+        coverImage: formData.coverImage,
         category: formData.category,
         tags: formData.tags,
         source: formData.source,
@@ -795,7 +851,6 @@ const bannerForm = reactive({
   id: null,
   image_url: '',
   title: '',
-  subtitle: '',
   link_url: '',
   sort_order: 1
 })
@@ -809,7 +864,6 @@ const handleAddBanner = () => {
     id: null,
     image_url: '',
     title: '',
-    subtitle: '',
     link_url: '',
     sort_order: 1
   })
@@ -818,7 +872,16 @@ const handleAddBanner = () => {
 
 // 编辑轮播图
 const handleEditBanner = (banner) => {
-  Object.assign(bannerForm, banner)
+  // 兼容字段回填：subtitle 旧字段不再使用；link_url 存储跳转链接
+  Object.assign(bannerForm, {
+    id: banner.id,
+    image_url: banner.image_url || '',
+    title: banner.title || '',
+    link_url: banner.link_url || '',
+    sort_order: banner.sort_order ?? 1
+  })
+  // 编辑时允许不重新上传文件：bannerUploadFile 保持 null
+  bannerUploadFile.value = null
   bannerFormVisible.value = true
 }
 
@@ -860,7 +923,8 @@ const handleBannerImageUpload = async ({ file }) => {
 
 // 提交轮播图表单
 const submitBannerForm = async () => {
-  if (!bannerUploadFile.value) {
+  // 新增必须上传图片；编辑模式可不换图
+  if (!bannerForm.id && !bannerUploadFile.value) {
     ElMessage.warning('请上传轮播图片')
     return
   }
@@ -870,16 +934,28 @@ const submitBannerForm = async () => {
   try {
     let res
     if (bannerForm.id) {
-      res = await forumStore.updateBanner({ id: bannerForm.id, data: bannerForm })
+      // 编辑：使用FormData，保证后端接收 @RequestParam 的 linkUrl/sortOrder（file可选）
+      const formData = new FormData()
+      if (bannerUploadFile.value) {
+        formData.append('file', bannerUploadFile.value)
+      }
+      formData.append('title', bannerForm.title || '')
+      if (bannerForm.link_url) {
+        formData.append('linkUrl', bannerForm.link_url)
+      } else {
+        formData.append('linkUrl', '')
+      }
+      if (bannerForm.sort_order != null) {
+        formData.append('sortOrder', bannerForm.sort_order)
+      }
+      res = await forumStore.updateBanner({ id: bannerForm.id, data: formData })
     } else {
       const formData = new FormData()
       formData.append('file', bannerUploadFile.value)
       formData.append('title', bannerForm.title || '')
-      if (bannerForm.subtitle) {
-      formData.append('subtitle', bannerForm.subtitle)
-      }
+      // 跳转链接：复用后端 sub_title 存储，参数名仍用 linkUrl
       if (bannerForm.link_url) {
-      formData.append('linkUrl', bannerForm.link_url)
+        formData.append('linkUrl', bannerForm.link_url)
       }
       // 将表单中的排序值一并传给后端，落库到 sort_order 字段
       if (bannerForm.sort_order != null) {
@@ -1216,6 +1292,52 @@ onMounted(async () => {
   
   .el-form-item {
     margin-bottom: 20px;
+  }
+}
+
+// Quill 编辑器外观对齐表单输入框
+:deep(.ql-toolbar.ql-snow) {
+  border-radius: 4px 4px 0 0;
+  border-color: #dcdfe6;
+  width: 100%;
+}
+
+:deep(.ql-container.ql-snow) {
+  border-radius: 0 0 4px 4px;
+  border-color: #dcdfe6;
+  min-height: 480px;
+}
+
+// 富文本编辑器内容区域：长字符串自动换行，避免撑破布局
+:deep(.ql-editor) {
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.cover-uploader {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .cover-upload {
+    :deep(.el-upload) {
+      border: 1px dashed #d9d9d9;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px;
+    }
+  }
+
+  .cover-preview-image {
+    width: 100%;
+    max-height: 160px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid #ebeef5;
   }
 }
 

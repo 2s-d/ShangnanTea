@@ -2126,13 +2126,14 @@ public class ShopServiceImpl implements ShopService {
     }
     
     /**
-     * 生成茶叶ID：TEA + 8位数字
+     * 生成茶叶ID：TEA + 7位数字
+     * 说明：数据库 teas.id 字段长度为10，因此必须是TEA开头+7位数字（例如 TEA0000001）
      * @return 茶叶ID
      */
     private String generateTeaId() {
         Random random = new Random();
         StringBuilder sb = new StringBuilder("TEA");
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < 7; i++) {
             sb.append(random.nextInt(10));
         }
         String teaId = sb.toString();

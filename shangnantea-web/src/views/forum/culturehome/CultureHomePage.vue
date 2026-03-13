@@ -4,10 +4,17 @@
     <div class="banner-section">
       <el-carousel height="400px" indicator-position="outside" :interval="5000">
         <el-carousel-item v-for="(item, index) in bannerData" :key="index">
-          <div class="banner-content" :style="{ backgroundImage: `url(${item.imageUrl})` }">
-            <div class="banner-text">
-              <h1>{{ item.title }}</h1>
-              <p>{{ item.subtitle }}</p>
+          <div
+            class="banner-content"
+            :style="{ backgroundImage: `url(${item.image_url || item.imageUrl})` }"
+            @click="handleBannerClick(item)"
+          >
+            <!-- 悬停时右下角显示标题 -->
+            <div
+              class="banner-title-tooltip"
+              v-if="(item.title || item.alt) && hoverBannerIndex === index"
+            >
+              {{ item.title || item.alt }}
             </div>
           </div>
         </el-carousel-item>
@@ -118,6 +125,9 @@ const teaCategories = computed(() => forumStore.teaCategories)
 const latestNews = computed(() => forumStore.latestNews)
 const partners = computed(() => forumStore.partners)
 const loading = computed(() => forumStore.loading)
+
+// 轮播图悬停索引
+const hoverBannerIndex = ref(-1)
     
 // 随机打乱数组（Fisher-Yates 洗牌）
 function shuffleArray(arr) {
@@ -303,6 +313,18 @@ const startARTasting = () => {
   forumPromptMessages.showARDeveloping()
 }
 
+// 轮播图点击跳转：使用我们在后台配置的 link_url
+const handleBannerClick = (item) => {
+  const link = item.link_url || item.linkUrl
+  if (!link) return
+  // 简单处理：站内路由以 / 开头时用 router 跳转，其它当作外链
+  if (link.startsWith('/')) {
+    router.push(link)
+  } else {
+    window.open(link, '_blank')
+  }
+}
+
 // 默认图片（生产形态：不使用 mock-images）
 const defaultTeaImage = ''
 const defaultCover = ''
@@ -328,35 +350,21 @@ const articleList = ref([])
       background-position: center;
       position: relative;
       
-      &::before {
-        content: '';
+      // 轮播标题悬停提示
+      .banner-title-tooltip {
         position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.2);
-      }
-      
-      .banner-text {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        text-align: center;
+        right: 20px;
+        bottom: 20px;
+        padding: 6px 10px;
+        background: rgba(0, 0, 0, 0.55);
         color: #fff;
-        z-index: 2;
-        width: 80%;
-        
-        h1 {
-          font-size: 36px;
-          margin-bottom: 10px;
-          font-weight: 500;
-        }
-        
-        p {
-          font-size: 18px;
-        }
+        border-radius: 4px;
+        font-size: 14px;
+        max-width: 40%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        pointer-events: none;
       }
     }
   }

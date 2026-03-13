@@ -73,11 +73,11 @@
         
         <div v-else class="culture-articles">
           <div v-for="article in filteredCultureArticles" :key="article.id" class="article-item">
-            <div class="article-cover" @click="goToArticleDetail(article.id)">
+            <div class="article-cover" @click="goToArticleDetail(article.articleId)">
               <SafeImage :src="article.cover_image" type="post" :alt="article.title" style="width:100%;height:100%;object-fit:cover;" />
             </div>
             <div class="article-info">
-              <div class="article-title" @click="goToArticleDetail(article.id)">{{ article.title }}</div>
+              <div class="article-title" @click="goToArticleDetail(article.articleId)">{{ article.title }}</div>
               <div class="article-summary">{{ article.summary }}</div>
               <div class="article-meta">
                 <span class="publish-time">发布于 {{ formatDate(article.publishTime) }}</span>
@@ -105,26 +105,39 @@
         
         <div v-else class="products-grid">
           <div v-for="product in filteredProducts" :key="product.id" class="product-card">
-            <div class="product-cover" @click="goToProductDetail(product.id)">
+            <div class="product-cover" @click="goToProductDetail(product.teaId)">
               <SafeImage :src="product.image" type="tea" :alt="product.name" style="width:100%;height:100%;object-fit:cover;" />
             </div>
             <div class="product-info">
-              <div class="product-title" @click="goToProductDetail(product.id)">{{ product.name }}</div>
-              <div class="product-shop" @click="goToShopDetail(product.shopId)">
-              <SafeImage
-                :src="product.shopLogo || product.shop?.logo"
-                type="banner"
-                :alt="product.shopName"
-                class="shop-logo"
-                style="width:20px;height:20px;border-radius:50%;object-fit:cover;"
-              />
+              <div class="product-title" @click="goToProductDetail(product.teaId)">{{ product.name }}</div>
+              <!-- 平台直售：不跳转店铺，展示平台信息（对齐 TeaDetailPage） -->
+              <div v-if="isPlatformTea(product)" class="product-shop platform-shop">
+                <SafeImage
+                  src="/images/tea-logo.png"
+                  type="avatar"
+                  :alt="'平台直售'"
+                  class="shop-logo"
+                  style="width:20px;height:20px;border-radius:50%;object-fit:cover;"
+                />
+                <span>商南茶文化平台</span>
+                <el-tag class="platform-tag" type="danger" size="small">平台直售</el-tag>
+              </div>
+              <!-- 店铺茶叶：允许跳转店铺详情 -->
+              <div v-else class="product-shop" @click="goToShopDetail(product.shopId)">
+                <SafeImage
+                  :src="product.shopLogo || product.shop?.logo"
+                  type="banner"
+                  :alt="product.shopName"
+                  class="shop-logo"
+                  style="width:20px;height:20px;border-radius:50%;object-fit:cover;"
+                />
                 <span>{{ product.shopName }}</span>
               </div>
               <div class="product-price">¥{{ product.price.toFixed(2) }}</div>
               <div class="favorite-time">收藏于 {{ formatDate(product.favoriteTime) }}</div>
             </div>
             <div class="product-actions">
-              <el-button size="small" type="primary" @click="addToCart(product.id)">
+              <el-button size="small" type="primary" @click="addToCart(product.teaId)">
                 <el-icon><ShoppingCart /></el-icon> 加入购物车
               </el-button>
               <el-button
@@ -146,7 +159,7 @@
         
         <div v-else class="post-list">
           <div v-for="post in filteredPosts" :key="post.id" class="post-item">
-            <div class="post-info" @click="goToPostDetail(post.id)">
+            <div class="post-info" @click="goToPostDetail(post.postId)">
               <div class="post-title">{{ post.title }}</div>
               <div class="post-summary">{{ post.content }}</div>
               <div class="post-meta">
@@ -159,7 +172,7 @@
                 <div class="post-stats">
                   <span><el-icon><View /></el-icon> {{ post.viewCount }}</span>
                   <span><el-icon><ChatDotRound /></el-icon> {{ post.replyCount }}</span>
-                  <span><el-icon><Star /></el-icon> {{ post.likeCount }}</span>
+                  <span><el-icon><Star /></el-icon> {{ post.favoriteCount }}</span>
                 </div>
               </div>
             </div>
@@ -252,7 +265,7 @@ const setLocallyFavorited = (itemType, itemId, favorited) => {
 // 使用被查看用户的收藏列表渲染（列表内容来自"他"）
 const favoriteList = computed(() => profileFavoriteList.value || [])
     
-    // 茶文化文章相关数据（从Pinia筛选）
+    // 茶文化文章相关数据
     const cultureSearchKeyword = ref('')
     const cultureSortOption = ref('recent')
     const cultureArticles = computed(() => {
@@ -261,13 +274,13 @@ const favoriteList = computed(() => profileFavoriteList.value || [])
         .map(item => ({
           id: item.id,
           articleId: item.itemId,
-          title: item.targetName || '未知文章',
-          coverImg: item.targetImage || 'https://via.placeholder.com/400x200?text=文章',
-          cover_image: item.targetImage || 'https://via.placeholder.com/400x200?text=文章',
-          summary: '', // 后端未提供，使用默认值
-          publishTime: item.createTime,
+          title: item.articleTitle || item.targetName || '未知文章',
+          coverImg: item.articleCoverImage || item.targetImage || 'https://via.placeholder.com/400x200?text=文章',
+          cover_image: item.articleCoverImage || item.targetImage || 'https://via.placeholder.com/400x200?text=文章',
+          summary: item.articleSummary || '',
+          publishTime: item.articlePublishTime || item.createTime,
           favoriteTime: item.createTime,
-          viewCount: 0 // 后端未提供，使用默认值
+          viewCount: item.articleViewCount ?? 0
         }))
     })
     
@@ -294,7 +307,7 @@ const favoriteList = computed(() => profileFavoriteList.value || [])
       return result
     })
     
-    // 茶叶商品相关数据（从Pinia筛选）
+    // 茶叶商品相关数据
     const productSearchKeyword = ref('')
     const productSortOption = ref('recent')
     const products = computed(() => {
@@ -303,12 +316,12 @@ const favoriteList = computed(() => profileFavoriteList.value || [])
         .map(item => ({
           id: item.id,
           teaId: item.itemId,
-          name: item.targetName || '未知茶叶',
-          image: item.targetImage || 'https://via.placeholder.com/200x200?text=茶叶',
-          price: 0, // 后端未提供，使用默认值
-          shopId: '', // 后端未提供，使用默认值
-          shopName: '', // 后端未提供，使用默认值
-          shopLogo: '', // 后端未提供，使用默认值
+          name: item.teaName || item.targetName || '未知茶叶',
+          image: item.teaMainImage || item.targetImage || 'https://via.placeholder.com/200x200?text=茶叶',
+          price: item.teaPrice ?? 0,
+          shopId: item.teaShopId || '',
+          shopName: item.teaShopName || '',
+          shopLogo: item.teaShopLogo || '',
           favoriteTime: item.createTime
         }))
     })
@@ -338,7 +351,7 @@ const favoriteList = computed(() => profileFavoriteList.value || [])
       return result
     })
     
-    // 论坛帖子相关数据（从Pinia筛选）
+    // 论坛帖子相关数据
     const postSearchKeyword = ref('')
     const postSortOption = ref('recent')
     const posts = computed(() => {
@@ -347,16 +360,17 @@ const favoriteList = computed(() => profileFavoriteList.value || [])
         .map(item => ({
           id: item.id,
           postId: item.itemId,
-          title: item.targetName || '未知帖子',
-          content: '', // 后端未提供，使用默认值
-          userId: '', // 后端未提供，使用默认值
-          userName: '', // 后端未提供，使用默认值
-          userAvatar: '', // 后端未提供，使用默认值
-          publishTime: item.createTime,
+          title: item.postTitle || item.targetName || '未知帖子',
+          content: item.postSummary || '',
+          userId: item.postUserId || '',
+          userName: item.postNickname || '',
+          userAvatar: item.postUserAvatar || '',
+          publishTime: item.postPublishTime || item.createTime,
           favoriteTime: item.createTime,
-          viewCount: 0, // 后端未提供，使用默认值
-          replyCount: 0, // 后端未提供，使用默认值
-          likeCount: 0 // 后端未提供，使用默认值
+          viewCount: item.postViewCount ?? 0,
+          replyCount: item.postReplyCount ?? 0,
+          favoriteCount: item.postFavoriteCount ?? 0,
+          likeCount: item.postLikeCount ?? 0
         }))
     })
     
@@ -393,7 +407,7 @@ const favoriteList = computed(() => profileFavoriteList.value || [])
     
     // 跳转到文章详情
     const goToArticleDetail = articleId => {
-      router.push(`/culture/article/${articleId}`)
+      router.push(`/article/${articleId}`)
     }
     
     // 跳转到商品详情
@@ -527,6 +541,16 @@ const favoriteList = computed(() => profileFavoriteList.value || [])
 onMounted(() => {
   loadFavoriteList()
 })
+
+/**
+ * 是否为平台直售茶叶（对齐 TeaDetailPage 的判定逻辑）
+ * @param {Object} product 收藏页茶叶卡片数据
+ * @returns {boolean} 是否平台直售
+ */
+const isPlatformTea = (product) => {
+  const sid = product?.shopId
+  return !sid || sid === '0' || sid === 'PLATFORM'
+}
 
 // 查看不同用户主页时，刷新收藏列表并清空本页的本地切换态
 watch(() => profileUserId.value, () => {

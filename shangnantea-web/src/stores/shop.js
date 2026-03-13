@@ -502,16 +502,19 @@ export const useShopStore = defineStore('shop', () => {
   // ========== Banner 管理 Actions ==========
   
   // 获取店铺Banner列表
-  async function fetchShopBanners() {
-    const shopId = myShop.value?.id
-    if (!shopId) {
+  // shopId 可选：
+  // - 店铺详情页：传入目标店铺ID，展示该店铺的轮播图
+  // - 店铺设置页：不传则使用当前商家的 myShop.id
+  async function fetchShopBanners(shopId) {
+    const targetShopId = shopId || myShop.value?.id
+    if (!targetShopId) {
       shopBanners.value = []
       return { code: 200, data: [] }
     }
     
     try {
       loading.value = true
-      const res = await getShopBanners(shopId)
+      const res = await getShopBanners(targetShopId)
       shopBanners.value = Array.isArray(res.data) ? res.data : []
       return res
     } catch (error) {
@@ -586,7 +589,7 @@ export const useShopStore = defineStore('shop', () => {
     try {
       loading.value = true
       const res = await deleteBannerApi(bannerId)
-      shopBanners.value = shopBanners.value.filter(b => b.id !== bannerId)
+      shopBanners.value = shopBanners.value.filter(b => String(b.id) !== String(bannerId))
       return res
     } catch (error) {
       console.error('删除Banner失败:', error)
@@ -597,18 +600,14 @@ export const useShopStore = defineStore('shop', () => {
   }
   
   // 更新Banner排序
-  async function updateShopBannerOrder(bannerIds) {
-    const shopId = myShop.value?.id
-    if (!shopId) {
-      throw new Error('店铺ID不能为空')
-    }
-    
+  // orderData: [{ id, order }, ...]
+  async function updateShopBannerOrder(orderData) {
     try {
       loading.value = true
-      const res = await updateBannerOrderApi(shopId, bannerIds)
-      const orderedBanners = bannerIds.map(id => 
-        shopBanners.value.find(b => b.id === id)
-      ).filter(Boolean)
+      const res = await updateBannerOrderApi(orderData)
+      const orderedBanners = orderData
+        .map(o => shopBanners.value.find(b => String(b.id) === String(o.id)))
+        .filter(Boolean)
       shopBanners.value = orderedBanners
       return res
     } catch (error) {
@@ -653,12 +652,15 @@ export const useShopStore = defineStore('shop', () => {
     try {
       loading.value = true
       const res = await createAnnouncementApi(shopId, announcementData)
-      shopAnnouncements.value.push(res.data)
-      shopAnnouncements.value.sort((a, b) => {
-        if (a.isTop && !b.isTop) return -1
-        if (!a.isTop && b.isTop) return 1
-        return new Date(b.createTime) - new Date(a.createTime)
-      })
+      // 后端在服务器错误时可能返回 data=undefined，防止把 undefined 推进列表导致渲染异常
+      if (res && res.data) {
+        shopAnnouncements.value.push(res.data)
+        shopAnnouncements.value.sort((a, b) => {
+          if (a.isTop && !b.isTop) return -1
+          if (!a.isTop && b.isTop) return 1
+          return new Date(b.createTime) - new Date(a.createTime)
+        })
+      }
       return res
     } catch (error) {
       console.error('创建公告失败:', error)
@@ -673,14 +675,16 @@ export const useShopStore = defineStore('shop', () => {
     try {
       loading.value = true
       const res = await updateAnnouncementApi(announcementId, announcementData)
-      const index = shopAnnouncements.value.findIndex(a => a.id === announcementId)
-      if (index !== -1) {
-        shopAnnouncements.value[index] = res.data
-        shopAnnouncements.value.sort((a, b) => {
-          if (a.isTop && !b.isTop) return -1
-          if (!a.isTop && b.isTop) return 1
-          return new Date(b.createTime) - new Date(a.createTime)
-        })
+      if (res && res.data) {
+        const index = shopAnnouncements.value.findIndex(a => a.id === announcementId)
+        if (index !== -1) {
+          shopAnnouncements.value[index] = res.data
+          shopAnnouncements.value.sort((a, b) => {
+            if (a.isTop && !b.isTop) return -1
+            if (!a.isTop && b.isTop) return 1
+            return new Date(b.createTime) - new Date(a.createTime)
+          })
+        }
       }
       return res
     } catch (error) {
@@ -817,9 +821,14 @@ export const useShopStore = defineStore('shop', () => {
     deleteShopBanner,
     updateShopBannerOrder,
     fetchShopAnnouncements,
+    // 公告管理：对外同时暴露语义清晰的方法名和兼容旧调用的方法名
     createShopAnnouncement,
     updateShopAnnouncement,
     deleteShopAnnouncement,
+    // 兼容旧代码中使用的 createAnnouncement/updateAnnouncement/deleteAnnouncement
+    createAnnouncement: createShopAnnouncement,
+    updateAnnouncement: updateShopAnnouncement,
+    deleteAnnouncement: deleteShopAnnouncement,
     fetchShopReviews,
     submitShopReview
   }

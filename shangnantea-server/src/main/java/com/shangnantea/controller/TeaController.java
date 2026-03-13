@@ -366,12 +366,11 @@ public class TeaController {
      * @param files 图片文件（支持多文件上传）
      * @return 上传结果（包含图片列表）
      */
-    @PostMapping("/{teaId}/images")
+    @PostMapping("/images/upload")
     @RequiresLogin
-    public Result<Object> uploadTeaImages(@PathVariable String teaId, 
-                                          @RequestParam("files") MultipartFile[] files) {
-        logger.info("上传茶叶图片请求: {}, 文件数量: {}", teaId, files.length);
-        return teaService.uploadTeaImages(teaId, files);
+    public Result<Object> uploadTeaImages(@RequestParam("files") MultipartFile[] files) {
+        logger.info("上传茶叶图片请求, 文件数量: {}", files.length);
+        return teaService.uploadTeaImages(files);
     }
 
     /**

@@ -791,6 +791,7 @@ const userStore = useUserStore()
         }
 
         const sendResponse = await messageStore.sendMessage({
+          sessionId: currentSessionId.value,
           receiverId: currentTargetUserId.value,
           content: messageContent,
           type: messageType
@@ -1004,29 +1005,9 @@ const userStore = useUserStore()
       }
 
       const existing = findSessionByRoute()
+      // 仅在已存在会话时根据路由进行选中；不再在进入消息页时自动创建新会话
       if (existing) {
         selectSession(existing)
-        return
-      }
-
-      try {
-        const res = await messageStore.createChatSession({ targetId, targetType })
-        if (!isSuccess(res.code)) {
-          showByCode(res.code)
-          return
-        }
-
-        await fetchSessions()
-        const created = findSessionByRoute() ||
-          (res.data && res.data.id && mockSessions.value.find(s => String(s.sessionId) === String(res.data.id)))
-
-        if (created) {
-          selectSession(created)
-        }
-      } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          console.error('[开发调试] 根据路由参数初始化聊天会话失败：', error)
-        }
       }
     }
     

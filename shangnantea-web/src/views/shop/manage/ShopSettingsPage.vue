@@ -480,10 +480,7 @@ const handleDeleteBanner = async banner => {
         type: 'warning'
       }
     )
-    const res = await shopStore.deleteBanner({
-      bannerId: banner.id,
-      shopId: shop.value.id
-    })
+    const res = await shopStore.deleteShopBanner(banner.id)
     showByCode(res.code)
   } catch (error) {
     if (error !== 'cancel') {
@@ -503,10 +500,7 @@ const moveBanner = async (index, direction) => {
     order: i + 1
   }))
   try {
-    const res = await shopStore.updateBannerOrder({
-      orderData,
-      shopId: shop.value.id
-    })
+    const res = await shopStore.updateShopBannerOrder(orderData)
     showByCode(res.code)
   } catch (error) {
     console.error('更新Banner排序失败:', error)
@@ -565,15 +559,14 @@ const handleSaveAnnouncement = async () => {
     }
     let res
     if (isEditAnnouncement.value) {
+      // 更新公告：仅传公告ID和公告数据，shopId 由后端通过公告记录反查
       res = await shopStore.updateAnnouncement({
         announcementId: currentAnnouncement.value.id,
         announcementData
       })
     } else {
-      res = await shopStore.createAnnouncement({
-        shopId: shop.value.id,
-        announcementData
-      })
+      // 创建公告：只传公告数据，店铺ID由 store 中的 myShop 自动获取
+      res = await shopStore.createAnnouncement(announcementData)
     }
     showByCode(res.code)
     if (isSuccess(res.code)) {

@@ -178,7 +178,17 @@ export const useForumStore = defineStore('forum', () => {
     
     try {
       const res = await getBanners()
-      banners.value = res.data || []
+      // 统一Banner字段命名，兼容后端 BannerVO（imageUrl/linkUrl/sortOrder）以及旧数据字段
+      const list = res.data || []
+      banners.value = (Array.isArray(list) ? list : []).map((b) => ({
+        id: b.id,
+        // 后端返回 imageUrl；旧实现可能是 image_url/url
+        image_url: b.imageUrl || b.image_url || b.url || '',
+        title: b.title || '',
+        // 按约定：linkUrl = 跳转链接；旧实现可能叫 link_url/subTitle
+        link_url: b.linkUrl || b.link_url || b.subTitle || b.subtitle || '',
+        sort_order: b.sortOrder ?? b.sort_order ?? 0
+      }))
       return res
     } catch (err) {
       error.value = err.message || '获取Banner列表失败'

@@ -473,22 +473,15 @@ export const useTeaStore = defineStore('tea', () => {
   
   // ========== 图片管理 Actions ==========
   
-  // 上传茶叶图片
-  async function uploadTeaImages({ teaId, files }) {
+  // 上传茶叶图片（只上传文件，返回路径，不存入数据库）
+  async function uploadTeaImages({ files }) {
     try {
       const formData = new FormData()
       files.forEach(file => {
         formData.append('files', file)
       })
       
-      const res = await uploadTeaImagesApi(teaId, formData)
-      const images = res.data || []
-      teaImages.value = images
-      
-      if (currentTea.value && currentTea.value.id === teaId) {
-        currentTea.value.images = images
-      }
-      
+      const res = await uploadTeaImagesApi(formData)
       return res
     } catch (error) {
       console.error('上传图片失败:', error)

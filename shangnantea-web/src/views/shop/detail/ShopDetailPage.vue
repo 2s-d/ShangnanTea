@@ -90,7 +90,7 @@
           <el-carousel-item v-for="banner in shopBanners" :key="banner.id">
             <div class="banner-item" @click="handleBannerClick(banner)">
               <SafeImage 
-                :src="banner.image_url" 
+                :src="banner.imageUrl" 
                 type="banner" 
                 :alt="banner.title"
                 style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;"
@@ -386,8 +386,8 @@ defineOptions({
     
     // 任务组B：Banner点击处理
     const handleBannerClick = banner => {
-      if (banner.link_url) {
-        router.push(banner.link_url)
+      if (banner.linkUrl) {
+        router.push(banner.linkUrl)
       }
     }
     

@@ -43,7 +43,8 @@
       
       <div class="filter-box">
         <el-select v-model="statusFilter" placeholder="状态筛选" @change="handleFilterChange">
-          <el-option label="全部" value="" />
+          <!-- 前端使用 -1 表示“全部状态”，后端不加 status 条件；空值仅用于初始化不发起筛选 -->
+          <el-option label="全部" value="-1" />
           <el-option label="已上架" value="1" />
           <el-option label="已下架" value="0" />
         </el-select>
@@ -355,11 +356,10 @@
             <el-upload
               action="#"
               list-type="picture-card"
-              :auto-upload="false"
               :file-list="teaImages"
-              :on-change="handleImageChange"
               :on-remove="handleImageRemove"
               :on-preview="handleImagePreview"
+              :http-request="handleImageUpload"
               multiple
               :limit="5"
             >
@@ -474,7 +474,7 @@
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useTeaStore } from '@/stores/tea'
-import { ElMessageBox } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Plus } from '@element-plus/icons-vue'
 import { useImageUpload } from '@/composables/useImageUpload'
 import SafeImage from '@/components/common/form/SafeImage.vue'
@@ -517,7 +517,8 @@ defineOptions({
 
     // 筛选相关状态
     const searchQuery = ref('')
-    const statusFilter = ref('')
+    // 状态筛选：'-1' 表示“全部状态”（不加 status 条件），与后端 Mapper 中的约定保持一致
+    const statusFilter = ref('-1')
     const categoryFilter = ref('')
     
     // 对话框相关状态
@@ -591,9 +592,35 @@ defineOptions({
     
     // 分类数据从Pinia获取（已在computed中定义）
     
-    // 图片上传相关
-    const handleImageChange = (file, fileList) => {
-      teaImages.value = fileList
+    // 图片上传相关：选择图片后立即上传获取路径（参考文章封面上传）
+    const handleImageUpload = async (options) => {
+      const { file } = options
+      if (!file) return
+      try {
+        const res = await teaStore.uploadTeaImages({ files: [file.raw] })
+        if (res?.code) showByCode(res.code)
+        // 后端返回格式：{ images: [{ url: 完整URL, path: 相对路径 }] }（与文章图片上传保持一致）
+        const uploadedImage = res?.data?.images?.[0]
+        const url = uploadedImage?.url
+        const path = uploadedImage?.path
+        // 存库使用相对路径（path），预览仍然可以用完整URL
+        if (path) {
+          file.path = path
+          file.url = url || path
+          file.status = 'success'
+        } else if (url) {
+          file.path = url
+          file.url = url
+          file.status = 'success'
+        } else {
+          file.status = 'fail'
+          ElMessage.error('图片上传失败：返回数据缺少路径')
+        }
+      } catch (error) {
+        console.error('图片上传失败:', error)
+        file.status = 'fail'
+        ElMessage.error('图片上传失败，请重试')
+      }
     }
     
     const handleImageRemove = (file, fileList) => {
@@ -721,48 +748,89 @@ defineOptions({
       isEdit.value = true
       currentTea.value = JSON.parse(JSON.stringify(tea)) // 深拷贝避免直接修改列表数据
       
-      // 任务组C：加载规格列表
-      try {
-        await teaStore.fetchTeaSpecifications(tea.id)
-        // 如果Pinia中有规格数据，使用Pinia的数据
-        const specs = teaStore.currentTeaSpecs
-        if (specs && specs.length > 0) {
-          currentTea.value.specifications = specs.map(spec => ({
-            id: spec.id,
-            specName: spec.specName,
-            price: spec.price,
-            stock: spec.stock,
-            isDefault: spec.isDefault === 1 || spec.isDefault === true ? 1 : 0
-          }))
-        }
-      } catch (error) {
-        // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
-        if (process.env.NODE_ENV === 'development') {
-          console.error('加载规格列表失败:', error)
-        }
-        // 如果加载失败，使用tea中的规格数据
-        if (!currentTea.value.specifications || currentTea.value.specifications.length === 0) {
-          currentTea.value.specifications = [{
-            id: Date.now(),
-            specName: '默认规格',
-            price: tea.price || 0,
-            stock: tea.stock || 0,
-            isDefault: 1
-          }]
+      // 如果列表数据没有图片或规格，调用详情接口获取完整数据
+      const needFetchDetail = !tea.images || tea.images.length === 0 || !tea.specifications || tea.specifications.length === 0
+      
+      if (needFetchDetail) {
+        try {
+          const detailRes = await teaStore.fetchTeaDetail(tea.id)
+          if (detailRes && detailRes.code === 200 && detailRes.data) {
+            const detailData = detailRes.data
+            // 更新基本信息（保留列表数据中的字段，补充详情数据）
+            if (detailData.specifications && detailData.specifications.length > 0) {
+              currentTea.value.specifications = detailData.specifications.map(spec => ({
+                id: spec.id,
+                specName: spec.specName,
+                price: spec.price,
+                stock: spec.stock,
+                isDefault: spec.isDefault === 1 || spec.isDefault === true ? 1 : 0
+              }))
+            }
+            if (detailData.images && detailData.images.length > 0) {
+              teaImages.value = detailData.images.map(img => ({
+                name: img.url?.split('/').pop() || 'image',
+                url: img.url,
+                is_main: img.isMain === 1 || img.isMain === true || img.is_main === 1 || img.is_main === true,
+                uid: img.id,
+                id: img.id
+              }))
+            } else {
+              teaImages.value = []
+            }
+          }
+        } catch (error) {
+          if (process.env.NODE_ENV === 'development') {
+            console.error('获取茶叶详情失败:', error)
+          }
         }
       }
       
-      // 任务组D：设置图片列表（从tea.images获取）
-      if (tea.images && tea.images.length > 0) {
-        teaImages.value = tea.images.map(img => ({
-          name: img.url?.split('/').pop() || 'image',
-          url: img.url,
-          is_main: img.is_main === 1 || img.is_main === true,
-          uid: img.id,
-          id: img.id
-        }))
-      } else {
-        teaImages.value = []
+      // 任务组C：加载规格列表（如果详情接口没有返回规格，则单独加载）
+      if (!currentTea.value.specifications || currentTea.value.specifications.length === 0) {
+        try {
+          await teaStore.fetchTeaSpecifications(tea.id)
+          // 如果Pinia中有规格数据，使用Pinia的数据
+          const specs = teaStore.currentTeaSpecs
+          if (specs && specs.length > 0) {
+            currentTea.value.specifications = specs.map(spec => ({
+              id: spec.id,
+              specName: spec.specName,
+              price: spec.price,
+              stock: spec.stock,
+              isDefault: spec.isDefault === 1 || spec.isDefault === true ? 1 : 0
+            }))
+          }
+        } catch (error) {
+          // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
+          if (process.env.NODE_ENV === 'development') {
+            console.error('加载规格列表失败:', error)
+          }
+          // 如果加载失败，使用tea中的规格数据或创建默认规格
+          if (!currentTea.value.specifications || currentTea.value.specifications.length === 0) {
+            currentTea.value.specifications = [{
+              id: Date.now(),
+              specName: '默认规格',
+              price: tea.price || 0,
+              stock: tea.stock || 0,
+              isDefault: 1
+            }]
+          }
+        }
+      }
+      
+      // 任务组D：设置图片列表（如果详情接口没有返回图片，则使用列表数据）
+      if (!teaImages.value || teaImages.value.length === 0) {
+        if (tea.images && tea.images.length > 0) {
+          teaImages.value = tea.images.map(img => ({
+            name: img.url?.split('/').pop() || 'image',
+            url: img.url,
+            is_main: img.is_main === 1 || img.is_main === true || img.isMain === 1 || img.isMain === true,
+            uid: img.id,
+            id: img.id
+          }))
+        } else {
+          teaImages.value = []
+        }
       }
       
       // 设置主图索引
@@ -972,16 +1040,24 @@ defineOptions({
             categoryId: parseInt(currentTea.value.categoryId)
           }
           
-          // 设置主图
+          // 设置图片路径：选择图片后已立即上传获取路径，这里直接使用path（相对路径）存入数据库
           if (teaImages.value.length > 0 && mainImageIndex.value >= 0) {
-            formData.mainImage = teaImages.value[mainImageIndex.value].url
+            const mainImg = teaImages.value[mainImageIndex.value]
+            // 使用path（相对路径）存入数据库
+            if (mainImg.path) {
+              formData.mainImage = mainImg.path
+            } else if (mainImg.url && !mainImg.url.startsWith('blob:')) {
+              // 兼容已有真实URL的图片（编辑时）
+              formData.mainImage = mainImg.url
+            }
             
-            // 更新images中的is_main标记
-            formData.images = teaImages.value.map((img, idx) => ({
-              id: img.uid || Date.now() + idx,
-              url: img.url,
-              is_main: idx === mainImageIndex.value
-            }))
+            // 设置图片列表，使用path（相对路径）
+            formData.images = teaImages.value
+              .filter(img => img.path || (img.url && !img.url.startsWith('blob:') && !(img.raw instanceof File)))
+              .map((img, idx) => ({
+                url: img.path || img.url,
+                is_main: idx === mainImageIndex.value
+              }))
           }
           
           // 计算总库存
@@ -1054,43 +1130,7 @@ defineOptions({
               // 规格同步失败不影响主流程，只记录错误
             }
             
-            // 任务组D：同步图片数据到后端
-            try {
-              // 找出新上传的图片（File对象）
-              const newFiles = teaImages.value.filter(img => img.raw instanceof File).map(img => img.raw)
-              if (newFiles.length > 0) {
-                await teaStore.uploadTeaImages({ teaId, files: newFiles })
-              }
-              
-              // 找出已删除的图片（有id但不在当前列表中的）
-              const originalImages = currentTea.value.images || []
-              const currentImageIds = teaImages.value.filter(img => img.id).map(img => img.id)
-              for (const originalImg of originalImages) {
-                if (originalImg.id && !currentImageIds.includes(originalImg.id)) {
-                  await teaStore.deleteTeaImage({ teaId, imageId: originalImg.id })
-                }
-              }
-              
-              // 更新图片顺序（如果有变化）
-              const orders = teaImages.value.map((img, index) => ({
-                imageId: img.id || img.uid,
-                order: index + 1
-              }))
-              if (orders.length > 0) {
-                await teaStore.updateImageOrder({ teaId, orders })
-              }
-              
-              // 设置主图
-              if (mainImageIndex.value >= 0 && teaImages.value[mainImageIndex.value]) {
-                const mainImageId = teaImages.value[mainImageIndex.value].id || teaImages.value[mainImageIndex.value].uid
-                if (mainImageId) {
-                  await teaStore.setMainImage({ teaId, imageId: mainImageId })
-                }
-              }
-            } catch (error) {
-              console.error('同步图片数据失败:', error)
-              // 图片同步失败不影响主流程，只记录错误
-            }
+            // 图片已在选择时立即上传获取路径，updateTea时已一起提交，这里不需要再处理
             
             showByCode(response.code)
           } else {
@@ -1098,8 +1138,15 @@ defineOptions({
             // 权限规则：只有管理员(role=1)可以管理平台直售茶叶
             // shopId='PLATFORM'表示平台直售，区别于商家店铺茶叶(shopId为店铺ID)
             formData.shopId = 'PLATFORM'
+            
+            // 新增茶叶：先创建茶叶获取teaId，然后上传图片
             const result = await teaStore.addTea(formData)
             const newTeaId = result.id || result.data?.id
+            
+            if (!newTeaId) {
+              ElMessage.error('创建茶叶失败，无法上传图片')
+              return
+            }
             
             // 任务组C：添加新茶叶的规格
             if (newTeaId && formData.specifications) {
@@ -1135,32 +1182,7 @@ defineOptions({
               }
             }
             
-            // 任务组D：上传新茶叶的图片
-            if (newTeaId && teaImages.value.length > 0) {
-              try {
-                const newFiles = teaImages.value.filter(img => img.raw instanceof File).map(img => img.raw)
-                if (newFiles.length > 0) {
-                  await teaStore.uploadTeaImages({ teaId: newTeaId, files: newFiles })
-                  
-                  // 设置主图
-                  if (mainImageIndex.value >= 0 && teaImages.value[mainImageIndex.value]) {
-                    const uploadedImages = teaStore.teaImages || []
-                    if (uploadedImages.length > 0 && mainImageIndex.value < uploadedImages.length) {
-                      const mainImageId = uploadedImages[mainImageIndex.value].id
-                      if (mainImageId) {
-                        await teaStore.setMainImage({ teaId: newTeaId, imageId: mainImageId })
-                      }
-                    }
-                  }
-                }
-              } catch (error) {
-                // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
-                if (process.env.NODE_ENV === 'development') {
-                  console.error('上传图片失败:', error)
-                }
-                // 图片上传失败不影响主流程
-              }
-            }
+            // 图片已在选择时立即上传获取路径，addTea时已一起提交，这里不需要再处理
             
             showByCode(result.code)
           }

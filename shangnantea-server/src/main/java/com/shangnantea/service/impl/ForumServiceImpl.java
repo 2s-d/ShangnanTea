@@ -34,6 +34,7 @@ import com.shangnantea.service.ForumService;
 import com.shangnantea.utils.FileUploadUtils;
 import com.shangnantea.utils.NotificationUtils;
 import com.shangnantea.utils.StatisticsUtils;
+import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,8 +46,12 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -239,13 +244,17 @@ public class ForumServiceImpl implements ForumService {
                     .map(content -> {
                         ForumHomeVO.BannerVO bannerVO = new ForumHomeVO.BannerVO();
                         bannerVO.setId(content.getId());
-                        // 生成图片访问URL
+                        // 生成图片访问URL（兼容已是完整URL的情况）
                         String imageUrl = content.getContent();
                         if (imageUrl != null && !imageUrl.isEmpty()) {
-                            imageUrl = FileUploadUtils.generateAccessUrl(imageUrl, baseUrl);
+                            if (!(imageUrl.startsWith("http://") || imageUrl.startsWith("https://"))) {
+                                imageUrl = FileUploadUtils.generateAccessUrl(imageUrl, baseUrl);
+                            }
                         }
                         bannerVO.setImageUrl(imageUrl);
                         bannerVO.setTitle(content.getTitle());
+                        // 轮播图跳转链接：按约定复用 home_contents.sub_title 字段存储
+                        bannerVO.setLinkUrl(content.getSubTitle());
                         bannerVO.setSortOrder(content.getSortOrder());
                         return bannerVO;
                     })
@@ -276,7 +285,9 @@ public class ForumServiceImpl implements ForumService {
             HomeContent content = new HomeContent();
             content.setSection("banner"); // 轮播图板块
             content.setTitle(title);
-            content.setSubTitle(subtitle);
+            // 轮播图跳转链接：按约定复用 home_contents.sub_title 字段存储
+            // subtitle 参数保留仅用于兼容旧调用，不再写入数据库
+            content.setSubTitle(linkUrl);
             content.setContent(relativePath); // 存储相对路径
             // 如果提供了排序值，则使用；否则默认0，后续可通过更新顺序接口调整
             content.setSortOrder(sortOrder != null ? sortOrder : 0);
@@ -297,7 +308,7 @@ public class ForumServiceImpl implements ForumService {
             responseData.put("url", accessUrl);
             responseData.put("path", relativePath);
             responseData.put("title", title);
-            responseData.put("subtitle", subtitle);
+            responseData.put("linkUrl", linkUrl);
             
             logger.info("论坛轮播图上传成功: id: {}, path: {}", content.getId(), relativePath);
             return Result.success(6001, responseData); // Banner上传成功
@@ -349,6 +360,10 @@ public class ForumServiceImpl implements ForumService {
             if (title != null && !title.trim().isEmpty()) {
                 content.setTitle(title);
             }
+            if (linkUrl != null) {
+                // 允许清空：传空字符串时也覆盖为 ""
+                content.setSubTitle(linkUrl.trim());
+            }
             if (sortOrder != null) {
                 content.setSortOrder(sortOrder);
             }
@@ -365,11 +380,14 @@ public class ForumServiceImpl implements ForumService {
             Map<String, Object> responseData = new HashMap<>();
             responseData.put("id", content.getId());
             responseData.put("title", content.getTitle());
+            responseData.put("linkUrl", content.getSubTitle());
             responseData.put("sortOrder", content.getSortOrder());
             // 生成图片访问URL
             String imageUrl = content.getContent();
             if (imageUrl != null && !imageUrl.isEmpty()) {
-                imageUrl = FileUploadUtils.generateAccessUrl(imageUrl, baseUrl);
+                if (!(imageUrl.startsWith("http://") || imageUrl.startsWith("https://"))) {
+                    imageUrl = FileUploadUtils.generateAccessUrl(imageUrl, baseUrl);
+                }
             }
             responseData.put("imageUrl", imageUrl);
             
@@ -651,7 +669,21 @@ public class ForumServiceImpl implements ForumService {
             String summary = (String) data.get("summary");
             String coverImage = (String) data.get("coverImage");
             String category = (String) data.get("category");
-            String tags = (String) data.get("tags");
+            // tags 可能是前端传来的字符串，也可能是数组，这里统一转换为用逗号分隔的字符串，避免 ClassCastException
+            Object rawTags = data.get("tags");
+            String tags = null;
+            if (rawTags instanceof String) {
+                tags = ((String) rawTags).trim();
+            } else if (rawTags instanceof java.util.List<?>) {
+                @SuppressWarnings("unchecked")
+                java.util.List<Object> list = (java.util.List<Object>) rawTags;
+                tags = list.stream()
+                        .filter(Objects::nonNull)
+                        .map(Object::toString)
+                        .map(String::trim)
+                        .filter(s -> !s.isEmpty())
+                        .collect(Collectors.joining(","));
+            }
             String source = (String) data.get("source");
             
             // 2. 参数验证
@@ -687,14 +719,13 @@ public class ForumServiceImpl implements ForumService {
             article.setTags(tags);
             article.setSource(source);
             
-            // 获取当前用户作为作者
-            String currentUserId = UserContext.getCurrentUserId();
-            String authorName = "管理员"; // 默认值
-            if (currentUserId != null) {
-                User author = userMapper.selectById(currentUserId);
-                if (author != null && author.getUsername() != null) {
-                    authorName = author.getUsername();
-                }
+            // 作者字段：允许前端显式填写作者名；为空时使用固定默认值“商南茶文化编辑部”
+            String authorFromRequest = (String) data.get("author");
+            String authorName;
+            if (authorFromRequest != null && !authorFromRequest.trim().isEmpty()) {
+                authorName = authorFromRequest.trim();
+            } else {
+                authorName = "商南茶文化编辑部";
             }
             article.setAuthor(authorName);
             
@@ -706,6 +737,10 @@ public class ForumServiceImpl implements ForumService {
             article.setPublishTime(new Date());
             article.setCreateTime(new Date());
             article.setUpdateTime(new Date());
+            
+            // 图片索引：文章保存时根据最终内容与封面统一抽取
+            String articleImages = buildImageIndex(content, coverImage, null);
+            article.setImages(articleImages);
             
             // 4. 保存到数据库
             articleMapper.insert(article);
@@ -789,6 +824,11 @@ public class ForumServiceImpl implements ForumService {
                     return Result.failure(6112, "内容不能为空");
                 }
                 article.setContent(content);
+                
+                // 当正文发生变更时，需要重新抽取图片索引
+                String cover = article.getCoverImage();
+                String imagesIndex = buildImageIndex(content, cover, null);
+                article.setImages(imagesIndex);
             }
             if (data.containsKey("summary")) {
                 String summary = (String) data.get("summary");
@@ -799,7 +839,11 @@ public class ForumServiceImpl implements ForumService {
                 article.setSummary(summary);
             }
             if (data.containsKey("coverImage")) {
-                article.setCoverImage((String) data.get("coverImage"));
+                String coverImage = (String) data.get("coverImage");
+                article.setCoverImage(coverImage);
+                // 封面变更时，同步刷新图片索引（使用最新正文）
+                String imagesIndex = buildImageIndex(article.getContent(), coverImage, null);
+                article.setImages(imagesIndex);
             }
             if (data.containsKey("category")) {
                 article.setCategory((String) data.get("category"));
@@ -845,7 +889,13 @@ public class ForumServiceImpl implements ForumService {
                 }
             }
             if (data.containsKey("author")) {
-                article.setAuthor((String) data.get("author"));
+                String authorFromRequest = (String) data.get("author");
+                if (authorFromRequest != null && !authorFromRequest.trim().isEmpty()) {
+                    article.setAuthor(authorFromRequest.trim());
+                } else {
+                    // 编辑时清空作者，恢复为默认“商南茶文化编辑部”
+                    article.setAuthor("商南茶文化编辑部");
+                }
             }
             article.setUpdateTime(new Date());
             
@@ -893,6 +943,84 @@ public class ForumServiceImpl implements ForumService {
             logger.error("更新文章失败: 系统异常, id: {}", id, e);
             return Result.failure(6112); // 文章更新失败
         }
+    }
+    
+    /**
+     * 从富文本内容与封面中抽取图片索引，生成用于存库的字符串。
+     * 当前实现使用逗号分隔的URL列表，以兼容历史数据与读取逻辑。
+     *
+     * @param content    富文本内容（可能包含&lt;img src="..."&gt;）
+     * @param coverImage 封面图片URL（可为空）
+     * @param rawImages  旧实现传入的images字段（可为空，兼容用）
+     * @return 逗号分隔的图片URL字符串，若无图片则返回null
+     */
+    private String buildImageIndex(String content, String coverImage, String rawImages) {
+        Set<String> urlSet = new HashSet<>();
+
+        // 1. 从富文本内容中解析 <img src="...">
+        if (content != null && !content.isEmpty()) {
+            Pattern pattern = Pattern.compile("<img[^>]+src\\s*=\\s*['\\\"]([^'\\\"]+)['\\\"]", Pattern.CASE_INSENSITIVE);
+            Matcher matcher = pattern.matcher(content);
+            while (matcher.find()) {
+                String url = matcher.group(1);
+                if (url != null && !url.trim().isEmpty()) {
+                    urlSet.add(normalizeImagePath(url.trim()));
+                }
+            }
+        }
+
+        // 2. 加入封面图片
+        if (coverImage != null && !coverImage.trim().isEmpty()) {
+            urlSet.add(normalizeImagePath(coverImage.trim()));
+        }
+
+        // 3. 兼容旧实现：如果前端已经传入了images字段，则一并合并进来
+        if (rawImages != null && !rawImages.trim().isEmpty()) {
+            String[] parts = rawImages.split(",");
+            for (String part : parts) {
+                if (part != null && !part.trim().isEmpty()) {
+                    urlSet.add(normalizeImagePath(part.trim()));
+                }
+            }
+        }
+
+        if (urlSet.isEmpty()) {
+            return null;
+        }
+
+        return String.join(",", urlSet);
+    }
+
+    /**
+     * 将图片URL统一转换为相对路径存库：
+     * - 如果是本系统生成的完整访问URL（以baseUrl开头），则裁剪掉baseUrl前缀，只保留相对路径
+     * - 如果是以 /files/ 开头的绝对路径，则去掉前导斜杠
+     * - 其它第三方完整URL保持不变
+     */
+    private String normalizeImagePath(String url) {
+        if (url == null || url.isEmpty()) {
+            return url;
+        }
+
+        String trimmed = url.trim();
+
+        // 1. 裁剪掉本系统的访问前缀（http://.../api）
+        if (baseUrl != null && !baseUrl.isEmpty() && trimmed.startsWith(baseUrl)) {
+            String relative = trimmed.substring(baseUrl.length());
+            // 通常是 /files/xxx，去掉前导 /
+            if (relative.startsWith("/")) {
+                relative = relative.substring(1);
+            }
+            return relative;
+        }
+
+        // 2. 已经是 /files/... 这种绝对路径，去掉前导 /
+        if (trimmed.startsWith("/files/")) {
+            return trimmed.substring(1);
+        }
+
+        // 3. 其它情况（第三方URL等）原样返回
+        return trimmed;
     }
     
     @Override
@@ -1358,7 +1486,9 @@ public class ForumServiceImpl implements ForumService {
             post.setContent(dto.getContent());
             post.setSummary(dto.getSummary());
             post.setCoverImage(dto.getCoverImage());
-            post.setImages(dto.getImages());
+            // 图片索引：在后端根据最终内容与封面统一抽取，避免依赖前端拼接
+            String imageIndex = buildImageIndex(dto.getContent(), dto.getCoverImage(), dto.getImages());
+            post.setImages(imageIndex);
             post.setViewCount(0);
             post.setReplyCount(0);
             // likeCount和favoriteCount已从数据库删除，使用动态计算

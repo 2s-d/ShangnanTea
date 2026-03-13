@@ -39,8 +39,8 @@
             publish_time, create_time, update_time
         ) VALUES (
             #{id}, #{title}, #{subtitle}, #{author}, #{content}, #{summary}, #{coverImage}, #{images}, 
-            #{videoUrl}, #{category}, #{tags}, #{source}, #{viewCount}, #{likeCount}, #{favoriteCount}, 
-            #{isTop}, #{isRecommend}, #{status}, #{publishTime}, #{createTime}, #{updateTime}
+            #{videoUrl}, #{category}, #{tags}, #{source}, #{viewCount}, #{isTop}, #{isRecommend}, 
+            #{status}, #{publishTime}, #{createTime}, #{updateTime}
         )
     </insert>
 

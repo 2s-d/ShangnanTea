@@ -157,20 +157,40 @@ const shareDialogVisible = ref(false)
 const likeLoading = ref(false)
 const favoriteLoading = ref(false)
     
-// 从Pinia获取当前文章
-const article = computed(() => forumStore.currentArticle || {
-  id: 0,
-  title: '文章标题加载中...',
-  subtitle: '',
-  content: '内容加载中...',
-  author: '未知',
-  publishTime: new Date(),
-  viewCount: 0,
-  likeCount: 0,
-  tags: [],
-  source: '',
-  coverImage: '',
-  videoUrl: ''
+// 从Pinia获取当前文章，并对 tags 做兼容处理：
+// 后端可能返回字符串 "古树红茶,烘焙"，也可能返回数组，我们统一转成字符串数组给模板使用
+const article = computed(() => {
+  const raw = forumStore.currentArticle || {
+    id: 0,
+    title: '文章标题加载中...',
+    subtitle: '',
+    content: '内容加载中...',
+    author: '未知',
+    publishTime: new Date(),
+    viewCount: 0,
+    likeCount: 0,
+    tags: [],
+    source: '',
+    coverImage: '',
+    videoUrl: ''
+  }
+
+  let tags = []
+  if (Array.isArray(raw.tags)) {
+    tags = raw.tags
+      .map(t => (t == null ? '' : String(t).trim()))
+      .filter(t => t.length > 0)
+  } else if (typeof raw.tags === 'string' && raw.tags.trim()) {
+    tags = raw.tags
+      .split(',')
+      .map(t => t.trim())
+      .filter(t => t.length > 0)
+  }
+
+  return {
+    ...raw,
+    tags
+  }
 })
 
 // 相关文章（从文章列表中筛选同分类的其他文章）

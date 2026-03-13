@@ -102,4 +102,12 @@ public interface TeaMapper extends BaseMapper<Tea, String> {
      * @return 影响行数
      */
     int restoreStockAndSales(@Param("id") String id, @Param("quantity") Integer quantity);
+
+    /**
+     * 批量根据ID查询茶叶列表
+     *
+     * @param ids 茶叶ID列表
+     * @return 茶叶列表
+     */
+    List<Tea> selectByIds(@Param("ids") List<String> ids);
 }

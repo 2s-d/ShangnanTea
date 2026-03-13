@@ -211,17 +211,20 @@ export const useMessageStore = defineStore('message', () => {
   
   /**
    * 发送消息
-   * @param {Object} messageData 消息数据
+   * @param {Object} messageData 消息数据 { sessionId, content, type, receiverId? }
+   * 说明：
+   * - 会话内发送消息时必须包含 sessionId
+   * - receiverId 仅用于兼容旧逻辑，推荐前端直接依赖 sessionId
    * @returns {Promise<Object>} 发送结果
    */
   async function sendMessageAction(messageData) {
     const res = await sendMessage(messageData)
-    
-    // 如果是发送给当前聊天用户，添加到聊天历史
-    if (messageData.receiverId === currentChatUserId.value && res.data) {
+
+    // 如果当前已选中会话，且本次发送使用的就是该会话ID，则将消息追加到本地聊天记录
+    if (messageData.sessionId && chatHistory.value && res.data) {
       chatHistory.value.push(res.data)
     }
-    
+
     return res
   }
   

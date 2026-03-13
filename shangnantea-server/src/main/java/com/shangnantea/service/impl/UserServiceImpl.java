@@ -5,6 +5,7 @@ import com.shangnantea.exception.BusinessException;
 import com.shangnantea.mapper.ShopCertificationMapper;
 import com.shangnantea.mapper.ShopMapper;
 import com.shangnantea.mapper.TeaMapper;
+import com.shangnantea.mapper.TeaImageMapper;
 import com.shangnantea.mapper.ForumPostMapper;
 import com.shangnantea.mapper.ForumReplyMapper;
 import com.shangnantea.mapper.TeaArticleMapper;
@@ -27,8 +28,12 @@ import com.shangnantea.model.dto.UserPreferenceItemDTO;
 import com.shangnantea.model.dto.UpdateUserPreferencesDTO;
 import com.shangnantea.model.dto.UpdateUserDTO;
 import com.shangnantea.model.dto.ProcessCertificationDTO;
+import com.shangnantea.model.entity.forum.ForumPost;
+import com.shangnantea.model.entity.forum.TeaArticle;
 import com.shangnantea.model.entity.shop.Shop;
 import com.shangnantea.model.entity.shop.ShopCertification;
+import com.shangnantea.model.entity.tea.TeaImage;
+import com.shangnantea.model.entity.tea.Tea;
 import com.shangnantea.model.entity.user.User;
 import com.shangnantea.model.entity.user.UserAddress;
 import com.shangnantea.model.entity.user.UserFavorite;
@@ -112,6 +117,9 @@ public class UserServiceImpl implements UserService {
     
     @Autowired
     private TeaMapper teaMapper;
+    
+    @Autowired
+    private TeaImageMapper teaImageMapper;
     
     @Autowired
     private ForumPostMapper forumPostMapper;
@@ -3122,14 +3130,14 @@ public class UserServiceImpl implements UserService {
         if (favoriteList == null || favoriteList.isEmpty()) {
             return favoriteVOList;
         }
-        
+
         for (UserFavorite favorite : favoriteList) {
             FavoriteVO favoriteVO = new FavoriteVO();
             favoriteVO.setId(favorite.getId());
             favoriteVO.setItemType(favorite.getItemType());
             favoriteVO.setItemId(favorite.getItemId());
             favoriteVO.setTargetName(favorite.getTargetName());
-            // 处理图片URL
+            // 处理基础图片URL（兼容旧字段）
             String targetImage = favorite.getTargetImage();
             if (targetImage != null && !targetImage.trim().isEmpty()) {
                 if (targetImage.startsWith("http://") || targetImage.startsWith("https://")) {
@@ -3141,9 +3149,176 @@ public class UserServiceImpl implements UserService {
                 favoriteVO.setTargetImage(null);
             }
             favoriteVO.setCreateTime(favorite.getCreateTime());
+
+            // 根据不同收藏类型补充富展示字段
+            String itemType = favorite.getItemType();
+            String itemId = favorite.getItemId();
+
+            try {
+                if ("tea".equals(itemType)) {
+                    // 茶叶收藏：补充价格、主图、店铺信息
+                    Tea tea = teaMapper.selectById(itemId);
+                    if (tea != null) {
+                        favoriteVO.setTeaName(tea.getName());
+                        // 主图：优先使用 tea_images 表的主图/第一张，保证与详情页图片口径一致
+                        String resolvedMainImage = null;
+                        try {
+                            List<TeaImage> teaImages = teaImageMapper.selectByTeaId(itemId);
+                            if (teaImages != null && !teaImages.isEmpty()) {
+                                TeaImage main = null;
+                                for (TeaImage img : teaImages) {
+                                    if (img != null && img.getIsMain() != null && img.getIsMain() == 1) {
+                                        main = img;
+                                        break;
+                                    }
+                                }
+                                if (main == null) {
+                                    // 没有显式主图时按 sortOrder 最小作为主图
+                                    teaImages.sort((a, b) -> {
+                                        int ao = a != null && a.getSortOrder() != null ? a.getSortOrder() : 0;
+                                        int bo = b != null && b.getSortOrder() != null ? b.getSortOrder() : 0;
+                                        return Integer.compare(ao, bo);
+                                    });
+                                    main = teaImages.get(0);
+                                }
+                                resolvedMainImage = main != null ? main.getUrl() : null;
+                            }
+                        } catch (Exception ignore) {
+                            // ignore
+                        }
+                        if (resolvedMainImage == null || resolvedMainImage.trim().isEmpty()) {
+                            resolvedMainImage = tea.getMainImage();
+                        }
+                        if (resolvedMainImage != null && !resolvedMainImage.trim().isEmpty()) {
+                            if (resolvedMainImage.startsWith("http://") || resolvedMainImage.startsWith("https://")) {
+                                favoriteVO.setTeaMainImage(resolvedMainImage);
+                            } else {
+                                favoriteVO.setTeaMainImage(FileUploadUtils.generateAccessUrl(resolvedMainImage, baseUrl));
+                            }
+                        }
+                        favoriteVO.setTeaPrice(tea.getPrice());
+                        favoriteVO.setTeaShopId(tea.getShopId());
+
+                        if (tea.getShopId() != null && !tea.getShopId().trim().isEmpty()) {
+                            Shop shop = shopMapper.selectById(tea.getShopId());
+                            if (shop != null) {
+                                favoriteVO.setTeaShopName(shop.getShopName());
+                                String logo = shop.getLogo();
+                                if (logo != null && !logo.trim().isEmpty()) {
+                                    if (logo.startsWith("http://") || logo.startsWith("https://")) {
+                                        favoriteVO.setTeaShopLogo(logo);
+                                    } else {
+                                        favoriteVO.setTeaShopLogo(FileUploadUtils.generateAccessUrl(logo, baseUrl));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else if ("tea_article".equals(itemType)) {
+                    // 茶文化文章收藏：补充标题、摘要、封面、发布时间、阅读量
+                    Long articleId;
+                    try {
+                        articleId = Long.parseLong(itemId);
+                    } catch (NumberFormatException e) {
+                        articleId = null;
+                    }
+                    if (articleId != null) {
+                        TeaArticle article = teaArticleMapper.selectById(articleId);
+                        if (article != null) {
+                            favoriteVO.setArticleTitle(article.getTitle());
+                            favoriteVO.setArticleSummary(article.getSummary());
+                            String cover = article.getCoverImage();
+                            if (cover != null && !cover.trim().isEmpty()) {
+                                if (cover.startsWith("http://") || cover.startsWith("https://")) {
+                                    favoriteVO.setArticleCoverImage(cover);
+                                } else {
+                                    favoriteVO.setArticleCoverImage(FileUploadUtils.generateAccessUrl(cover, baseUrl));
+                                }
+                            }
+                            favoriteVO.setArticlePublishTime(article.getPublishTime());
+                            favoriteVO.setArticleViewCount(article.getViewCount());
+                        }
+                    }
+                } else if ("post".equals(itemType)) {
+                    // 论坛帖子收藏：补充帖子摘要、封面、作者信息、阅读/回复数据
+                    Long postId;
+                    try {
+                        postId = Long.parseLong(itemId);
+                    } catch (NumberFormatException e) {
+                        postId = null;
+                    }
+                    if (postId != null) {
+                        ForumPost post = forumPostMapper.selectById(postId);
+                        if (post != null) {
+                            favoriteVO.setPostTitle(post.getTitle());
+                            favoriteVO.setPostSummary(post.getSummary());
+                            String cover = post.getCoverImage();
+                            if (cover != null && !cover.trim().isEmpty()) {
+                                if (cover.startsWith("http://") || cover.startsWith("https://")) {
+                                    favoriteVO.setPostCoverImage(cover);
+                                } else {
+                                    favoriteVO.setPostCoverImage(FileUploadUtils.generateAccessUrl(cover, baseUrl));
+                                }
+                            }
+                            favoriteVO.setPostPublishTime(post.getCreateTime());
+                            favoriteVO.setPostViewCount(post.getViewCount());
+                            
+                            // 回复数：与详情页口径一致（仅统计 status=1 的回复）
+                            int replyCount = 0;
+                            try {
+                                List<com.shangnantea.model.entity.forum.ForumReply> replies = forumReplyMapper.selectByPostId(postId);
+                                if (replies != null && !replies.isEmpty()) {
+                                    for (com.shangnantea.model.entity.forum.ForumReply r : replies) {
+                                        if (r != null && r.getStatus() != null && r.getStatus() == 1) {
+                                            replyCount++;
+                                        }
+                                    }
+                                }
+                            } catch (Exception e) {
+                                replyCount = post.getReplyCount() != null ? post.getReplyCount() : 0;
+                            }
+                            favoriteVO.setPostReplyCount(replyCount);
+                            
+                            // 点赞数/收藏数：从关系表统计，保证与真实业务一致
+                            try {
+                                favoriteVO.setPostLikeCount(userLikeMapper.countByTarget("post", String.valueOf(postId)));
+                            } catch (Exception e) {
+                                favoriteVO.setPostLikeCount(0);
+                            }
+                            try {
+                                favoriteVO.setPostFavoriteCount(userFavoriteMapper.countByItem("post", String.valueOf(postId)));
+                            } catch (Exception e) {
+                                favoriteVO.setPostFavoriteCount(0);
+                            }
+
+                            // 作者信息
+                            if (post.getUserId() != null && !post.getUserId().trim().isEmpty()) {
+                                User author = getUserEntityById(post.getUserId());
+                                if (author != null) {
+                                    favoriteVO.setPostUserId(author.getId());
+                                    favoriteVO.setPostNickname(author.getNickname());
+                                    String avatar = author.getAvatar();
+                                    if (avatar != null && !avatar.trim().isEmpty()) {
+                                        if (avatar.startsWith("http://") || avatar.startsWith("https://")) {
+                                            favoriteVO.setPostUserAvatar(avatar);
+                                        } else {
+                                            favoriteVO.setPostUserAvatar(FileUploadUtils.generateAccessUrl(avatar, baseUrl));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                // 单条数据补充失败不影响整体列表返回，记录日志即可
+                logger.warn("转换收藏视图对象时发生异常, itemType: {}, itemId: {}, error: {}",
+                        itemType, itemId, e.getMessage());
+            }
+
             favoriteVOList.add(favoriteVO);
         }
-        
+
         return favoriteVOList;
     }
     

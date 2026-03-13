@@ -440,11 +440,37 @@ public class TeaServiceImpl implements TeaService {
             }
             
             // 6. 处理图片：取第一张作为主图
-            if (teaData.get("images") != null && teaData.get("images") instanceof List) {
-                @SuppressWarnings("unchecked")
-                List<String> images = (List<String>) teaData.get("images");
-                if (!images.isEmpty()) {
-                    tea.setMainImage(images.get(0));
+            // 前端传入的 images 可能是：
+            // - List<String> 直接是URL列表
+            // - List<Map> 形如 { id, url, is_main } 的对象列表
+            Object imagesObj = teaData.get("images");
+            if (imagesObj instanceof List) {
+                @SuppressWarnings("rawtypes")
+                List rawImages = (List) imagesObj;
+                String mainImageUrl = null;
+                for (Object item : rawImages) {
+                    if (item == null) {
+                        continue;
+                    }
+                    String url = null;
+                    if (item instanceof String) {
+                        url = ((String) item).trim();
+                    } else if (item instanceof java.util.Map) {
+                        @SuppressWarnings("rawtypes")
+                        java.util.Map map = (java.util.Map) item;
+                        Object urlObj = map.get("url");
+                        if (urlObj != null) {
+                            url = urlObj.toString().trim();
+                        }
+                    }
+                    // 过滤掉 blob: 协议的临时URL，不应该存储到数据库
+                    if (url != null && !url.isEmpty() && !url.startsWith("blob:")) {
+                        mainImageUrl = url;
+                        break;
+                    }
+                }
+                if (mainImageUrl != null && !mainImageUrl.isEmpty()) {
+                    tea.setMainImage(mainImageUrl);
                 }
             }
             
@@ -453,14 +479,145 @@ public class TeaServiceImpl implements TeaService {
             tea.setCreateTime(now);
             tea.setUpdateTime(now);
             
-            // 8. 插入数据库
+            // 8. 插入数据库（主表）
             int result = teaMapper.insert(tea);
             if (result <= 0) {
                 logger.error("添加茶叶失败: 数据库插入失败");
                 return Result.failure(3101);
             }
             
-            // 9. 转换为VO返回
+            // 9. 同步规格表：如果前端传了specifications就按传入写入；否则自动创建一条“默认规格”
+            try {
+                Object specsObj = teaData.get("specifications");
+                Date specNow = now;
+                List<TeaSpecification> specList = new ArrayList<>();
+                
+                if (specsObj instanceof List && !((List<?>) specsObj).isEmpty()) {
+                    @SuppressWarnings("rawtypes")
+                    List rawSpecs = (List) specsObj;
+                    boolean hasDefault = false;
+                    int index = 0;
+                    for (Object item : rawSpecs) {
+                        if (!(item instanceof java.util.Map)) {
+                            continue;
+                        }
+                        @SuppressWarnings("rawtypes")
+                        java.util.Map map = (java.util.Map) item;
+                        Object specNameObj = map.get("specName");
+                        String specName = specNameObj != null ? specNameObj.toString().trim() : "默认规格";
+                        Object priceObj = map.get("price");
+                        BigDecimal specPrice;
+                        if (priceObj != null) {
+                            specPrice = new BigDecimal(priceObj.toString());
+                        } else {
+                            specPrice = price;
+                        }
+                        Object stockObj = map.get("stock");
+                        Integer specStock;
+                        if (stockObj != null) {
+                            specStock = Integer.valueOf(stockObj.toString());
+                        } else {
+                            specStock = stock;
+                        }
+                        Object isDefaultObj = map.get("isDefault");
+                        int isDefault = (isDefaultObj != null && ("1".equals(isDefaultObj.toString()) || Boolean.TRUE.toString().equalsIgnoreCase(isDefaultObj.toString())))
+                                ? 1 : 0;
+                        if (isDefault == 1) {
+                            hasDefault = true;
+                        }
+                        
+                        TeaSpecification spec = new TeaSpecification();
+                        spec.setTeaId(tea.getId());
+                        spec.setSpecName(specName);
+                        spec.setPrice(specPrice);
+                        spec.setStock(specStock);
+                        spec.setIsDefault(isDefault);
+                        spec.setCreateTime(specNow);
+                        spec.setUpdateTime(specNow);
+                        specList.add(spec);
+                        index++;
+                    }
+                    // 如果前端没显式标默认规格，但有规格列表，则默认第一条为默认规格
+                    if (!specList.isEmpty() && specList.stream().noneMatch(s -> s.getIsDefault() != null && s.getIsDefault() == 1)) {
+                        specList.get(0).setIsDefault(1);
+                    }
+                } else {
+                    // 前端未提供规格列表时，自动生成一条默认规格
+                    TeaSpecification defaultSpec = new TeaSpecification();
+                    defaultSpec.setTeaId(tea.getId());
+                    defaultSpec.setSpecName("默认规格");
+                    defaultSpec.setPrice(price);
+                    defaultSpec.setStock(stock);
+                    defaultSpec.setIsDefault(1);
+                    defaultSpec.setCreateTime(specNow);
+                    defaultSpec.setUpdateTime(specNow);
+                    specList.add(defaultSpec);
+                }
+                
+                if (!specList.isEmpty()) {
+                    for (TeaSpecification spec : specList) {
+                        teaSpecificationMapper.insert(spec);
+                    }
+                }
+            } catch (Exception specEx) {
+                // 规格写入失败不影响主流程，但记录详细日志
+                logger.error("添加茶叶时写入规格信息失败, teaId: {}", tea.getId(), specEx);
+            }
+            
+            // 10. 同步图片表：如果有传图片URL列表，则全部写入tea_images，并根据mainImage设置主图
+            try {
+                List<TeaImage> imageEntities = new ArrayList<>();
+                Date imgNow = now;
+                String mainImageUrl = tea.getMainImage();
+                
+                Object imagesObjForTable = teaData.get("images");
+                if (imagesObjForTable instanceof List && !((List<?>) imagesObjForTable).isEmpty()) {
+                    @SuppressWarnings("rawtypes")
+                    List rawImages = (List) imagesObjForTable;
+                    int order = 1;
+                    for (Object item : rawImages) {
+                        String url = null;
+                        if (item instanceof String) {
+                            url = ((String) item).trim();
+                        } else if (item instanceof java.util.Map) {
+                            @SuppressWarnings("rawtypes")
+                            java.util.Map map = (java.util.Map) item;
+                            Object urlObj = map.get("url");
+                            if (urlObj != null) {
+                                url = urlObj.toString().trim();
+                            }
+                        }
+                        // 过滤掉 blob: 协议的临时URL和空URL，不应该存储到数据库
+                        if (url == null || url.isEmpty() || url.startsWith("blob:")) {
+                            continue;
+                        }
+                        TeaImage img = new TeaImage();
+                        img.setTeaId(tea.getId());
+                        img.setUrl(url);
+                        img.setSortOrder(order++);
+                        // 与主表mainImage对齐：如果等于主图URL，则标记为主图；否则0
+                        img.setIsMain((mainImageUrl != null && !mainImageUrl.isEmpty() && mainImageUrl.equals(url)) ? 1 : 0);
+                        img.setCreateTime(imgNow);
+                        imageEntities.add(img);
+                    }
+                }
+                
+                if (!imageEntities.isEmpty()) {
+                    for (TeaImage img : imageEntities) {
+                        teaImageMapper.insert(img);
+                    }
+                    // 如果主表还没设置mainImage，但图片表里已经有图片，则用第一张做主图
+                    if (tea.getMainImage() == null || tea.getMainImage().trim().isEmpty()) {
+                        TeaImage first = imageEntities.get(0);
+                        tea.setMainImage(first.getUrl());
+                        teaMapper.updateById(tea);
+                    }
+                }
+            } catch (Exception imgEx) {
+                logger.error("添加茶叶时写入图片信息失败, teaId: {}", tea.getId(), imgEx);
+            }
+            
+            // 11. 转换为VO返回
             TeaVO teaVO = convertToTeaVO(tea);
             
             logger.info("添加茶叶成功, teaId: {}, name: {}", tea.getId(), tea.getName());
@@ -901,12 +1058,15 @@ public class TeaServiceImpl implements TeaService {
         // 统一处理主图：数据库中存的是相对路径，这里转换为前端可直接访问的完整URL
         String mainImage = vo.getMainImage();
         if (mainImage != null && !mainImage.trim().isEmpty()) {
-            if (mainImage.startsWith("http://") || mainImage.startsWith("https://")) {
-                // 已经是完整URL（兼容历史/外链数据）
-                vo.setMainImage(mainImage);
+            String trimmed = mainImage.trim();
+            // 排除 blob: 协议和完整URL，避免重复拼接
+            if (trimmed.startsWith("blob:") || trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+                // blob: 协议或已经是完整URL（兼容历史/外链数据）
+                // 如果是 blob: 协议，说明是前端临时URL，不应该存储到数据库，这里直接返回原值
+                vo.setMainImage(trimmed);
             } else {
                 // 相对路径 -> 补全为 http://host[:port]/context/files/...
-                vo.setMainImage(FileUploadUtils.generateAccessUrl(mainImage, baseUrl));
+                vo.setMainImage(FileUploadUtils.generateAccessUrl(trimmed, baseUrl));
             }
         }
         
@@ -974,10 +1134,12 @@ public class TeaServiceImpl implements TeaService {
         // 茶叶图片URL同样可能是相对路径，这里统一转换为完整URL
         String url = image.getUrl();
         if (url != null && !url.trim().isEmpty()) {
-            if (url.startsWith("http://") || url.startsWith("https://")) {
-                vo.setUrl(url);
+            String trimmed = url.trim();
+            // 排除 blob: 协议和完整URL，避免重复拼接
+            if (trimmed.startsWith("blob:") || trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+                vo.setUrl(trimmed);
             } else {
-                vo.setUrl(FileUploadUtils.generateAccessUrl(url, baseUrl));
+                vo.setUrl(FileUploadUtils.generateAccessUrl(trimmed, baseUrl));
             }
         } else {
             vo.setUrl(null);
@@ -989,93 +1151,80 @@ public class TeaServiceImpl implements TeaService {
     }
     
     @Override
-    public Result<Object> uploadTeaImages(String teaId, MultipartFile[] files) {
+    public Result<Object> uploadTeaImages(MultipartFile[] files) {
         try {
-            logger.info("上传茶叶图片请求, teaId: {}, 文件数量: {}", teaId, files.length);
+            logger.info("上传茶叶图片请求, 文件数量: {}", files != null ? files.length : 0);
             
             // 1. 参数验证
-            if (teaId == null || teaId.trim().isEmpty()) {
-                logger.warn("上传茶叶图片失败: 茶叶ID不能为空");
-                return Result.failure(3120);
-            }
             if (files == null || files.length == 0) {
                 logger.warn("上传茶叶图片失败: 文件列表为空");
                 return Result.failure(3120);
             }
             
-            // 2. 验证茶叶是否存在
-            Tea tea = teaMapper.selectById(teaId);
-            if (tea == null) {
-                logger.warn("上传茶叶图片失败: 茶叶不存在, teaId: {}", teaId);
-                return Result.failure(3121);
-            }
-            
-            // 3. 验证茶叶是否已删除
-            if (tea.getIsDeleted() != null && tea.getIsDeleted() == 1) {
-                logger.warn("上传茶叶图片失败: 茶叶已删除, teaId: {}", teaId);
-                return Result.failure(3121);
-            }
-            
-            // 4. 权限验证：验证茶叶是否属于当前用户的店铺
-            String currentUserId = UserContext.getCurrentUserId();
-            if (currentUserId == null) {
-                logger.warn("上传茶叶图片失败: 用户未登录");
+            // 验证baseUrl是否配置
+            if (baseUrl == null || baseUrl.trim().isEmpty()) {
+                logger.error("上传茶叶图片失败: baseUrl未配置");
                 return Result.failure(3120);
             }
             
-            Shop shop = shopMapper.selectById(tea.getShopId());
-            if (shop == null) {
-                logger.warn("上传茶叶图片失败: 店铺不存在, shopId: {}", tea.getShopId());
-                return Result.failure(3120);
-            }
-            if (!currentUserId.equals(shop.getOwnerId())) {
-                logger.warn("上传茶叶图片失败: 无权限上传图片, userId: {}, shopOwnerId: {}", 
-                        currentUserId, shop.getOwnerId());
-                return Result.failure(3120);
-            }
-            
-            // 5. 批量上传图片并存储到tea_images表
+            // 2. 批量上传图片，只返回路径，不存入数据库
             List<Map<String, Object>> uploadedImages = new ArrayList<>();
             for (MultipartFile file : files) {
-                if (file.isEmpty()) {
+                if (file == null || file.isEmpty()) {
+                    logger.warn("跳过空文件");
+                    continue;
+                }
+                
+                // 验证文件类型
+                String contentType = file.getContentType();
+                if (contentType == null || !contentType.startsWith("image/")) {
+                    logger.warn("上传茶叶图片失败: 文件类型不正确, contentType: {}, filename: {}", 
+                            contentType, file.getOriginalFilename());
+                    continue;
+                }
+                
+                // 验证文件大小（限制5MB）
+                if (file.getSize() > 5 * 1024 * 1024) {
+                    logger.warn("上传茶叶图片失败: 文件大小超过限制, size: {}, filename: {}", 
+                            file.getSize(), file.getOriginalFilename());
                     continue;
                 }
                 
                 // 调用工具类上传（硬编码type为"teas"）
                 String relativePath = FileUploadUtils.uploadImage(file, "teas");
+                if (relativePath == null || relativePath.isEmpty()) {
+                    logger.error("上传茶叶图片失败: 文件上传失败, filename: {}", file.getOriginalFilename());
+                    continue;
+                }
                 
                 // 生成访问URL
                 String accessUrl = FileUploadUtils.generateAccessUrl(relativePath, baseUrl);
                 
-                // 创建茶叶图片记录
-                TeaImage teaImage = new TeaImage();
-                teaImage.setTeaId(teaId);
-                teaImage.setUrl(relativePath); // 存储相对路径
-                teaImage.setCreateTime(new Date());
-                
-                // 保存到数据库
-                teaImageMapper.insert(teaImage);
-                
-                // 添加到返回列表
+                // 只返回路径，不存入数据库（参考文章图片上传的返回格式）
                 Map<String, Object> imageInfo = new HashMap<>();
-                imageInfo.put("id", teaImage.getId());
-                imageInfo.put("url", relativePath);
-                imageInfo.put("accessUrl", accessUrl);
+                imageInfo.put("url", accessUrl); // 完整URL，用于前端预览（与文章图片上传保持一致）
+                imageInfo.put("path", relativePath); // 相对路径，用于存入数据库（与文章图片上传保持一致）
+                
                 uploadedImages.add(imageInfo);
                 
-                logger.info("茶叶图片上传成功: teaId: {}, imageId: {}, path: {}", teaId, teaImage.getId(), relativePath);
+                logger.info("茶叶图片上传成功: path: {}, url: {}", relativePath, accessUrl);
             }
             
-            // 6. 返回上传的图片列表
+            if (uploadedImages.isEmpty()) {
+                logger.warn("上传茶叶图片失败: 没有成功上传的图片");
+                return Result.failure(3120);
+            }
+            
+            // 3. 返回上传的图片路径列表
             Map<String, Object> resultData = new HashMap<>();
             resultData.put("images", uploadedImages);
             resultData.put("count", uploadedImages.size());
             
-            logger.info("批量上传茶叶图片成功, teaId: {}, 成功数量: {}", teaId, uploadedImages.size());
+            logger.info("批量上传茶叶图片成功, 成功数量: {}", uploadedImages.size());
             return Result.success(3014, resultData);
             
         } catch (Exception e) {
-            logger.error("上传茶叶图片失败: 系统异常, teaId: {}", teaId, e);
+            logger.error("上传茶叶图片失败: 系统异常", e);
             return Result.failure(3120);
         }
     }
@@ -2565,13 +2714,14 @@ public class TeaServiceImpl implements TeaService {
     }
     
     /**
-     * 生成茶叶ID：TEA + 8位数字
+     * 生成茶叶ID：TEA + 7位数字
+     * 说明：数据库 teas.id 字段长度为10，因此必须是TEA开头+7位数字（例如 TEA0000001）
      * @return 茶叶ID
      */
     private String generateTeaId() {
         Random random = new Random();
         StringBuilder sb = new StringBuilder("TEA");
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < 7; i++) {
             sb.append(random.nextInt(10));
         }
         String teaId = sb.toString();

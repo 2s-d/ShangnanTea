@@ -209,13 +209,12 @@ public interface TeaService {
     Result<Boolean> setDefaultSpecification(String specId);
     
     /**
-     * 上传茶叶图片
+     * 上传茶叶图片（只上传文件，返回路径，不存入数据库）
      *
-     * @param teaId 茶叶ID
      * @param files 图片文件数组
-     * @return 上传结果
+     * @return 上传结果，包含图片路径列表
      */
-    Result<Object> uploadTeaImages(String teaId, MultipartFile[] files);
+    Result<Object> uploadTeaImages(MultipartFile[] files);
     
     /**
      * 删除茶叶图片
