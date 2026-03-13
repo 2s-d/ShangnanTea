@@ -599,27 +599,23 @@ defineOptions({
       try {
         const res = await teaStore.uploadTeaImages({ files: [file.raw] })
         if (res?.code) showByCode(res.code)
-        // 后端返回格式：{ images: [{ url: 完整URL, path: 相对路径 }] }（与文章图片上传保持一致）
         const uploadedImage = res?.data?.images?.[0]
         const url = uploadedImage?.url
         const path = uploadedImage?.path
-        // 存库使用相对路径（path），预览仍然可以用完整URL
-        if (path) {
+        if (path && url) {
           file.path = path
-          file.url = url || path
-          file.status = 'success'
-        } else if (url) {
-          file.path = url
           file.url = url
           file.status = 'success'
         } else {
           file.status = 'fail'
           ElMessage.error('图片上传失败：返回数据缺少路径')
+          teaImages.value = teaImages.value.filter(img => img.uid !== file.uid)
         }
       } catch (error) {
         console.error('图片上传失败:', error)
         file.status = 'fail'
         ElMessage.error('图片上传失败，请重试')
+        teaImages.value = teaImages.value.filter(img => img.uid !== file.uid)
       }
     }
     
@@ -1042,22 +1038,20 @@ defineOptions({
           
           // 设置图片路径：选择图片后已立即上传获取路径，这里直接使用path（相对路径）存入数据库
           if (teaImages.value.length > 0 && mainImageIndex.value >= 0) {
-            const mainImg = teaImages.value[mainImageIndex.value]
-            // 使用path（相对路径）存入数据库
-            if (mainImg.path) {
-              formData.mainImage = mainImg.path
-            } else if (mainImg.url && !mainImg.url.startsWith('blob:')) {
-              // 兼容已有真实URL的图片（编辑时）
-              formData.mainImage = mainImg.url
+            const validImages = teaImages.value.filter(img => img.path && img.status === 'success')
+            if (validImages.length === 0) {
+              ElMessage.error('请确保所有图片都已成功上传')
+              submitting.value = false
+              return
             }
             
-            // 设置图片列表，使用path（相对路径）
-            formData.images = teaImages.value
-              .filter(img => img.path || (img.url && !img.url.startsWith('blob:') && !(img.raw instanceof File)))
-              .map((img, idx) => ({
-                url: img.path || img.url,
-                is_main: idx === mainImageIndex.value
-              }))
+            const mainImg = validImages[mainImageIndex.value] || validImages[0]
+            formData.mainImage = mainImg.path
+            
+            formData.images = validImages.map((img, idx) => ({
+              url: img.path,
+              is_main: (validImages[mainImageIndex.value] === img) || (idx === 0 && mainImageIndex.value < 0)
+            }))
           }
           
           // 计算总库存

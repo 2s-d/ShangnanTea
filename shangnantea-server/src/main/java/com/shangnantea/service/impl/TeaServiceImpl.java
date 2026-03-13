@@ -463,8 +463,8 @@ public class TeaServiceImpl implements TeaService {
                             url = urlObj.toString().trim();
                         }
                     }
-                    // 过滤掉 blob: 协议的临时URL，不应该存储到数据库
-                    if (url != null && !url.isEmpty() && !url.startsWith("blob:")) {
+                    // 只接受有效的URL路径
+                    if (url != null && !url.isEmpty()) {
                         mainImageUrl = url;
                         break;
                     }
@@ -587,8 +587,8 @@ public class TeaServiceImpl implements TeaService {
                                 url = urlObj.toString().trim();
                             }
                         }
-                        // 过滤掉 blob: 协议的临时URL和空URL，不应该存储到数据库
-                        if (url == null || url.isEmpty() || url.startsWith("blob:")) {
+                        // 只接受有效的URL路径
+                        if (url == null || url.isEmpty()) {
                             continue;
                         }
                         TeaImage img = new TeaImage();
@@ -1059,10 +1059,8 @@ public class TeaServiceImpl implements TeaService {
         String mainImage = vo.getMainImage();
         if (mainImage != null && !mainImage.trim().isEmpty()) {
             String trimmed = mainImage.trim();
-            // 排除 blob: 协议和完整URL，避免重复拼接
-            if (trimmed.startsWith("blob:") || trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-                // blob: 协议或已经是完整URL（兼容历史/外链数据）
-                // 如果是 blob: 协议，说明是前端临时URL，不应该存储到数据库，这里直接返回原值
+            // 如果已经是完整URL（兼容历史/外链数据），直接使用
+            if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
                 vo.setMainImage(trimmed);
             } else {
                 // 相对路径 -> 补全为 http://host[:port]/context/files/...
@@ -1135,8 +1133,8 @@ public class TeaServiceImpl implements TeaService {
         String url = image.getUrl();
         if (url != null && !url.trim().isEmpty()) {
             String trimmed = url.trim();
-            // 排除 blob: 协议和完整URL，避免重复拼接
-            if (trimmed.startsWith("blob:") || trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+            // 如果已经是完整URL，直接使用
+            if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
                 vo.setUrl(trimmed);
             } else {
                 vo.setUrl(FileUploadUtils.generateAccessUrl(trimmed, baseUrl));
