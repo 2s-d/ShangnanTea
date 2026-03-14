@@ -15,8 +15,7 @@ public class RejectPostDTO {
     private String selectedReason;
     
     /**
-     * 管理员自定义拒绝原因（必填）
+     * 管理员自定义拒绝原因（可选）
      */
-    @NotBlank(message = "拒绝原因不能为空")
     private String customReason;
 }

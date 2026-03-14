@@ -9,6 +9,7 @@ import com.shangnantea.mapper.TeaArticleMapper;
 import com.shangnantea.mapper.UserFavoriteMapper;
 import com.shangnantea.mapper.UserLikeMapper;
 import com.shangnantea.mapper.UserMapper;
+import com.shangnantea.model.dto.forum.ApprovePostDTO;
 import com.shangnantea.model.dto.forum.CreatePostDTO;
 import com.shangnantea.model.dto.forum.CreateTopicDTO;
 import com.shangnantea.model.dto.forum.RejectPostDTO;
@@ -2210,9 +2211,9 @@ public class ForumServiceImpl implements ForumService {
     
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Result<Object> approvePost(String id) {
+    public Result<Object> approvePost(String id, ApprovePostDTO dto) {
         try {
-            logger.info("审核通过帖子请求: id={}", id);
+            logger.info("审核通过帖子请求: id={}, reason={}", id, dto != null ? dto.getReason() : null);
             
             // 1. 查询帖子是否存在
             Long postId = Long.parseLong(id);
@@ -2241,12 +2242,15 @@ public class ForumServiceImpl implements ForumService {
 
             // 4. 创建帖子审核通过通知（站内信）
             try {
+                String approveReason = (dto != null && dto.getReason() != null && !dto.getReason().trim().isEmpty()) 
+                    ? dto.getReason().trim() 
+                    : null;
                 NotificationUtils.createPostAuditResultNotification(
                         post.getUserId(),
                         post.getId(),
                         post.getTitle(),
                         true,
-                        null, // approveReason 将在方法调用时传入
+                        approveReason, // 审核通过原因（可选）
                         null, // selectedReason 不需要
                         null  // customReason 不需要
                 );
@@ -2254,7 +2258,7 @@ public class ForumServiceImpl implements ForumService {
                 logger.warn("审核通过后创建帖子审核结果通知失败, postId={}, userId={}", post.getId(), post.getUserId(), notifyEx);
             }
             
-            logger.info("审核通过成功: id={}", id);
+            logger.info("审核通过成功: id={}, reason={}", id, dto != null ? dto.getReason() : null);
             return Result.success(6022, null); // 审核通过
             
         } catch (NumberFormatException e) {

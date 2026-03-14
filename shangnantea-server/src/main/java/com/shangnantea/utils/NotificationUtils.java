@@ -720,27 +720,31 @@ public class NotificationUtils {
 
             if (approved) {
                 // 审核通过：如果有原因则显示，没有则显示默认消息
+                // 格式：基础消息 + [审核意见：xxx]（如果有）
                 String content = "您发布的《" + safeTitle + "》已通过审核。";
                 if (approveReason != null && !approveReason.trim().isEmpty()) {
-                    content += "审核意见：" + truncateContent(approveReason.trim(), 100);
+                    content += "\n[审核意见]：" + truncateContent(approveReason.trim(), 200);
                 }
                 notification.setContent(content);
             } else {
                 // 审核拒绝：必须包含选择的拒绝原因和管理员自定义原因
-                StringBuilder reasonMsg = new StringBuilder();
+                // 格式：基础消息 + [拒绝原因：xxx] + [审核意见：xxx]
+                StringBuilder content = new StringBuilder("您发布的《" + safeTitle + "》未通过审核。");
+                
                 if (selectedReason != null && !selectedReason.trim().isEmpty()) {
-                    reasonMsg.append("拒绝原因：").append(truncateContent(selectedReason.trim(), 50));
+                    content.append("\n[拒绝原因]：").append(truncateContent(selectedReason.trim(), 100));
                 }
                 if (customReason != null && !customReason.trim().isEmpty()) {
-                    if (reasonMsg.length() > 0) {
-                        reasonMsg.append("；");
-                    }
-                    reasonMsg.append("审核意见：").append(truncateContent(customReason.trim(), 100));
+                    content.append("\n[审核意见]：").append(truncateContent(customReason.trim(), 200));
                 }
-                if (reasonMsg.length() == 0) {
-                    reasonMsg.append("请根据提示修改内容后重新提交审核。");
+                
+                // 如果两个原因都没有，使用默认消息
+                if ((selectedReason == null || selectedReason.trim().isEmpty()) && 
+                    (customReason == null || customReason.trim().isEmpty())) {
+                    content.append("\n请根据提示修改内容后重新提交审核。");
                 }
-                notification.setContent("您发布的《" + safeTitle + "》未通过审核。" + reasonMsg.toString());
+                
+                notification.setContent(content.toString());
             }
 
             notification.setTargetId(String.valueOf(postId));

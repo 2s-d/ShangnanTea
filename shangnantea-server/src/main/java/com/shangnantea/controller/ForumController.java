@@ -1,6 +1,7 @@
 package com.shangnantea.controller;
 
 import com.shangnantea.common.api.Result;
+import com.shangnantea.model.dto.forum.ApprovePostDTO;
 import com.shangnantea.model.dto.forum.CreatePostDTO;
 import com.shangnantea.model.dto.forum.CreateReplyDTO;
 import com.shangnantea.model.dto.forum.CreateTopicDTO;
@@ -484,13 +485,14 @@ public class ForumController {
      * 成功码: 6022, 失败码: 6134
      *
      * @param id 帖子ID
+     * @param dto 审核数据（包含可选的原因）
      * @return 审核结果
      */
     @PostMapping("/posts/{id}/approve")
     @RequiresRoles({1})
-    public Result<Object> approvePost(@PathVariable String id) {
-        logger.info("审核通过帖子请求: {}", id);
-        return forumService.approvePost(id);
+    public Result<Object> approvePost(@PathVariable String id, @RequestBody(required = false) ApprovePostDTO dto) {
+        logger.info("审核通过帖子请求: {}, reason={}", id, dto != null ? dto.getReason() : null);
+        return forumService.approvePost(id, dto);
     }
 
     /**

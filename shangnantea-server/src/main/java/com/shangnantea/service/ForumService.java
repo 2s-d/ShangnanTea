@@ -1,6 +1,7 @@
 package com.shangnantea.service;
 
 import com.shangnantea.common.api.Result;
+import com.shangnantea.model.dto.forum.ApprovePostDTO;
 import com.shangnantea.model.dto.forum.CreatePostDTO;
 import com.shangnantea.model.dto.forum.CreateTopicDTO;
 import com.shangnantea.model.dto.forum.UpdatePostDTO;
@@ -363,7 +364,7 @@ public interface ForumService {
      * @param id 帖子ID
      * @return 审核结果
      */
-    Result<Object> approvePost(String id);
+    Result<Object> approvePost(String id, ApprovePostDTO dto);
     
     /**
      * 审核拒绝帖子（管理员）
