@@ -883,6 +883,8 @@ const updatePagination = () => {
 .forum-list-page {
   min-height: 100vh;
   background-color: #f5f7fa;
+  // 关键：确保页面本身是滚动容器，而不是某个内部容器
+  position: relative;
 }
 
 .container {
@@ -918,6 +920,13 @@ const updatePagination = () => {
   // 确保右侧栏的父容器有足够高度，使sticky定位正常工作
   :deep(.el-row) {
     align-items: flex-start;
+    // 关键：确保el-row没有overflow限制
+    overflow: visible !important;
+  }
+  
+  // 关键：确保el-col没有overflow限制，sticky定位要求所有父容器都不能有overflow: hidden
+  :deep(.el-col) {
+    overflow: visible !important;
   }
 }
 
@@ -944,6 +953,8 @@ const updatePagination = () => {
   position: relative;
   // 确保容器有足够高度，使sticky定位正常工作
   height: fit-content;
+  // 关键：确保wrapper没有overflow限制
+  overflow: visible !important;
 }
 
 // 侧边栏样式
@@ -976,13 +987,15 @@ const updatePagination = () => {
 .sidebar.sticky-sidebar {
   position: sticky !important; // 使用!important确保覆盖
   top: 82px !important; // 导航栏高度(72px) + 间距(10px)
-  z-index: 10;
+  z-index: 10 !important;
   // 关键：覆盖.sidebar的overflow: hidden，sticky定位要求overflow不能是hidden
   overflow: visible !important;
   // 确保在滚动到底部时能够继续向上滚动
   align-self: flex-start;
   // 确保sticky定位正常工作
   max-height: calc(100vh - 82px);
+  // 确保元素本身可以滚动（如果内容超出）
+  // 但overflow必须设为visible或auto，不能是hidden
 }
 
 // 版块导航样式
@@ -1217,5 +1230,30 @@ const updatePagination = () => {
 
 :deep(.el-upload-list__item) {
   transition: all 0.3s;
+}
+</style>
+
+<!-- 非scoped样式，确保sticky定位生效 -->
+<style lang="scss">
+// 全局样式，确保sticky定位不受scoped影响
+.forum-list-page .sidebar.sticky-sidebar {
+  position: sticky !important;
+  top: 82px !important;
+  z-index: 10 !important;
+  overflow: visible !important;
+  max-height: calc(100vh - 82px);
+  height: fit-content !important;
+}
+
+// 确保所有父容器都没有overflow限制
+.forum-list-page .main-content .el-row,
+.forum-list-page .main-content .el-col,
+.forum-list-page .sidebar-wrapper {
+  overflow: visible !important;
+}
+
+// 关键：确保App.vue中的main容器也没有overflow限制
+#app > main.main-content {
+  overflow: visible !important;
 }
 </style> 

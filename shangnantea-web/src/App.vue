@@ -62,6 +62,8 @@ onMounted(() => {
 .main-content {
   flex: 1;
   padding: 20px;
+  // 关键：确保main容器没有overflow限制，sticky定位才能正常工作
+  overflow: visible !important;
 }
 
 .auth-container {
