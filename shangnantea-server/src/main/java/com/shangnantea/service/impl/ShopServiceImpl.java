@@ -375,14 +375,22 @@ public class ShopServiceImpl implements ShopService {
         try {
             logger.info("创建店铺请求, shopData: {}", shopData);
             
-            // 1. 获取当前登录用户ID（必须是商家本人，不允许管理员代为创建）
-            String userId = UserContext.getCurrentUserId();
-            if (userId == null) {
-                logger.warn("创建店铺失败: 用户未登录");
-                return Result.failure(4101);
+            // 1. 获取用户ID（支持审核通过后自动创建：从shopData中获取userId，否则使用当前登录用户）
+            String userId = null;
+            if (shopData != null && shopData.containsKey("userId")) {
+                // 审核通过后自动创建店铺时，从shopData中获取申请者的userId
+                userId = shopData.get("userId").toString();
+                logger.info("审核通过后自动创建店铺: userId: {}", userId);
+            } else {
+                // 普通商家自己创建
+                userId = UserContext.getCurrentUserId();
+                if (userId == null) {
+                    logger.warn("创建店铺失败: 用户未登录");
+                    return Result.failure(4101);
+                }
             }
             
-            // 2. 验证用户是否有商家认证
+            // 2. 验证用户是否有商家认证（必须是已通过认证的申请者）
             ShopCertification certification = getCertificationByUserId(userId);
             if (certification == null || certification.getStatus() != 1) {
                 logger.warn("创建店铺失败: 用户未通过商家认证, userId: {}", userId);
