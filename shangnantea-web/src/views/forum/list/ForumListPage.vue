@@ -919,6 +919,11 @@ const updatePagination = () => {
   
   :deep(.el-row) {
     align-items: flex-start;
+    overflow: visible;
+  }
+  
+  :deep(.el-col) {
+    overflow: visible;
   }
 }
 
