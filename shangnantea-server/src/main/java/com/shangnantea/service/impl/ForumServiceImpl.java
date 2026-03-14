@@ -2270,7 +2270,7 @@ public class ForumServiceImpl implements ForumService {
     @Transactional(rollbackFor = Exception.class)
     public Result<Object> rejectPost(String id, RejectPostDTO dto) {
         try {
-            logger.info("审核拒绝帖子请求: id={}, reason={}", id, dto.getReason());
+            logger.info("审核拒绝帖子请求: id={}, selectedReason={}, customReason={}", id, dto.getSelectedReason(), dto.getCustomReason());
             
             // 1. 查询帖子是否存在
             Long postId = Long.parseLong(id);
