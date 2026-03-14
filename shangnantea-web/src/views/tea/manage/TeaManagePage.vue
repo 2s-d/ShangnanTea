@@ -357,6 +357,7 @@
               action="#"
               list-type="picture-card"
               :file-list="teaImages"
+              :on-change="handleImageChange"
               :on-remove="handleImageRemove"
               :on-preview="handleImagePreview"
               :http-request="handleImageUpload"
@@ -377,12 +378,11 @@
           </div>
         </el-form-item>
         
-        <el-form-item label="主图设置">
+        <el-form-item label="主图设置" v-if="validImages.length > 0">
           <el-select 
             v-model="mainImageIndex" 
             placeholder="请选择主图" 
             style="width: 100%"
-            :disabled="validImages.length === 0"
           >
             <el-option
               v-for="(image, index) in validImages"
@@ -390,17 +390,20 @@
               :label="`图片${index + 1}`"
               :value="index"
             >
-              <div class="main-image-option">
+              <div class="main-image-option" style="display: flex; align-items: center;">
                 <SafeImage
                   :src="image.url"
                   type="tea"
                   alt="茶叶图片"
-                  style="width: 40px; height: 40px; margin-right: 10px"
+                  style="width: 40px; height: 40px; margin-right: 10px; object-fit: cover;"
                 />
                 <span>图片{{ index + 1 }}{{ index === mainImageIndex ? ' (当前主图)' : '' }}</span>
               </div>
             </el-option>
           </el-select>
+        </el-form-item>
+        <el-form-item label="主图设置" v-else>
+          <el-text type="info">请先上传图片</el-text>
         </el-form-item>
         
         <!-- 上架状态 -->
@@ -563,9 +566,21 @@ defineOptions({
     const mainImageIndex = ref(0)
     const teaStatus = ref(0)
     
-    // 计算属性：过滤出成功上传的图片
+    // 计算属性：过滤出有URL的图片（能预览就说明有URL，可以选为主图）
     const validImages = computed(() => {
-      return teaImages.value.filter(img => img.url && (img.status === 'success' || !img.status))
+      const images = teaImages.value.filter(img => {
+        // 检查是否有url属性（上传成功后设置）
+        return img.url && img.url.trim() !== ''
+      })
+      // 开发环境调试日志
+      if (process.env.NODE_ENV === 'development') {
+        console.log('validImages计算:', {
+          total: teaImages.value.length,
+          valid: images.length,
+          allImages: teaImages.value.map(img => ({ uid: img.uid, url: img.url, status: img.status }))
+        })
+      }
+      return images
     })
     
     // 任务组E：批量操作相关
@@ -625,6 +640,12 @@ defineOptions({
           file.status = 'fail'
           ElMessage.error('图片上传失败：返回数据缺少路径')
           teaImages.value = teaImages.value.filter(img => img.uid !== file.uid)
+          return
+        }
+        // 确保 teaImages 数组中的对应文件也被更新
+        const index = teaImages.value.findIndex(img => img.uid === file.uid)
+        if (index >= 0) {
+          teaImages.value[index] = { ...teaImages.value[index], ...file }
         }
       } catch (error) {
         console.error('图片上传失败:', error)
@@ -632,6 +653,11 @@ defineOptions({
         ElMessage.error('图片上传失败，请重试')
         teaImages.value = teaImages.value.filter(img => img.uid !== file.uid)
       }
+    }
+    
+    // 图片列表变化时同步更新（el-upload 的 on-change 事件）
+    const handleImageChange = (file, fileList) => {
+      teaImages.value = fileList
     }
     
     const handleImageRemove = (file, fileList) => {
