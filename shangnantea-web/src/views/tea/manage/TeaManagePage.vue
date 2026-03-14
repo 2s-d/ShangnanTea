@@ -378,16 +378,21 @@
         </el-form-item>
         
         <el-form-item label="主图设置">
-          <el-select v-model="mainImageIndex" placeholder="请选择主图" style="width: 100%">
+          <el-select 
+            v-model="mainImageIndex" 
+            placeholder="请选择主图" 
+            style="width: 100%"
+            :disabled="validImages.length === 0"
+          >
             <el-option
-              v-for="(image, index) in teaImages"
+              v-for="(image, index) in validImages"
               :key="image.uid || index"
               :label="`图片${index + 1}`"
               :value="index"
             >
               <div class="main-image-option">
                 <SafeImage
-                  :src="image"
+                  :src="image.url"
                   type="tea"
                   alt="茶叶图片"
                   style="width: 40px; height: 40px; margin-right: 10px"
@@ -557,6 +562,11 @@ defineOptions({
     const previewImage = ref('')
     const mainImageIndex = ref(0)
     const teaStatus = ref(0)
+    
+    // 计算属性：过滤出成功上传的图片
+    const validImages = computed(() => {
+      return teaImages.value.filter(img => img.url && (img.status === 'success' || !img.status))
+    })
     
     // 任务组E：批量操作相关
     const selectedTeas = ref([])
