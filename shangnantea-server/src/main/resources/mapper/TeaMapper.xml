@@ -326,6 +326,14 @@
         WHERE id = #{id,jdbcType=BIGINT}
     </update>
     
+    <!-- 更新茶叶状态（上架/下架） -->
+    <update id="updateStatus">
+        UPDATE teas
+        SET status = #{status,jdbcType=INTEGER},
+            update_time = now()
+        WHERE id = #{id,jdbcType=VARCHAR}
+    </update>
+    
     <!-- 批量更新茶叶状态 -->
     <update id="batchUpdateStatus">
         UPDATE teas
