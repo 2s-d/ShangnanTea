@@ -637,9 +637,9 @@ defineOptions({
     const handleImageRemove = (file, fileList) => {
       teaImages.value = fileList
       
-      // 如果删除的是主图，重置主图索引
-      if (mainImageIndex.value >= teaImages.value.length) {
-        mainImageIndex.value = teaImages.value.length > 0 ? 0 : -1
+      // 如果删除的是主图，重置主图索引（基于 validImages）
+      if (mainImageIndex.value >= validImages.value.length) {
+        mainImageIndex.value = validImages.value.length > 0 ? 0 : -1
       }
     }
     
@@ -844,8 +844,8 @@ defineOptions({
         }
       }
       
-      // 设置主图索引
-      const mainImageIdx = teaImages.value.findIndex(img => img.is_main)
+      // 设置主图索引（基于 validImages）
+      const mainImageIdx = validImages.value.findIndex(img => img.is_main)
       mainImageIndex.value = mainImageIdx >= 0 ? mainImageIdx : 0
       
       // 设置上架状态
@@ -1052,20 +1052,14 @@ defineOptions({
           }
           
           // 设置图片路径：选择图片后已立即上传获取路径，这里直接使用path（相对路径）存入数据库
-          if (teaImages.value.length > 0 && mainImageIndex.value >= 0) {
-            const validImages = teaImages.value.filter(img => img.path && img.status === 'success')
-            if (validImages.length === 0) {
-              ElMessage.error('请确保所有图片都已成功上传')
-              submitting.value = false
-              return
-            }
-            
-            const mainImg = validImages[mainImageIndex.value] || validImages[0]
+          if (validImages.value.length > 0) {
+            // mainImageIndex 是基于 validImages 的索引
+            const mainImg = validImages.value[mainImageIndex.value] || validImages.value[0]
             formData.mainImage = mainImg.path
             
-            formData.images = validImages.map((img, idx) => ({
+            formData.images = validImages.value.map((img, idx) => ({
               url: img.path,
-              is_main: (validImages[mainImageIndex.value] === img) || (idx === 0 && mainImageIndex.value < 0)
+              is_main: idx === mainImageIndex.value
             }))
           }
           
