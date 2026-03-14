@@ -296,7 +296,7 @@ const handleScroll = () => {
       const headerBottomFixedViewport = STICKY_TOP + headerHeight
       const footerTopViewportForHeader = footerRect.top
 
-      // 帖子头部距离页脚的“安全距离”，比右侧多留一点（比如 200px）
+      // 帖子头部距离页脚的“安全距离”，比右侧多留一点（比如 900px）
       const HEADER_SAFE_DISTANCE = 900
       const distanceHeaderFooter = footerTopViewportForHeader - headerBottomFixedViewport
 

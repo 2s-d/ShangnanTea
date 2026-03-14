@@ -139,23 +139,33 @@
               v-loading="pendingPostsLoading"
               border
             >
-              <el-table-column label="ID" prop="id" width="80" align="center" />
-              <el-table-column label="标题" prop="title" min-width="200" show-overflow-tooltip>
+              <!-- ID 列：保证完全显示，不换行 -->
+              <el-table-column label="ID" prop="id" width="100" align="center">
+                <template #default="scope">
+                  <span class="cell-ellipsis-full">{{ scope.row.id }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column label="标题" prop="title" min-width="220" show-overflow-tooltip>
                 <template #default="scope">
                   <span class="post-title-text">{{ scope.row.title }}</span>
                 </template>
               </el-table-column>
-              <el-table-column label="作者" width="120">
+              <el-table-column label="作者" width="160">
                 <template #default="scope">
                   <div class="user-info">
                     <el-avatar :size="30" :src="scope.row.userAvatar" />
-                    <span class="user-name">{{ getDisplayName(scope.row) }}</span>
+                    <el-tooltip :content="getDisplayName(scope.row)" placement="top">
+                      <span class="user-name user-name-ellipsis">{{ getDisplayName(scope.row) }}</span>
+                    </el-tooltip>
                   </div>
                 </template>
               </el-table-column>
-              <el-table-column label="版块" width="120">
+              <el-table-column label="版块" width="140">
                 <template #default="scope">
-                  <el-tag size="small" effect="plain">{{ scope.row.topicName }}</el-tag>
+                  <el-tag size="small" effect="plain" v-if="scope.row.topicName">
+                    {{ scope.row.topicName }}
+                  </el-tag>
+                  <span v-else class="cell-muted">未指定</span>
                 </template>
               </el-table-column>
               <el-table-column label="优先级" width="100" align="center">
