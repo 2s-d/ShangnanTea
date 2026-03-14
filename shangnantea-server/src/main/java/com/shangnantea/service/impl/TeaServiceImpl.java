@@ -2360,21 +2360,24 @@ public class TeaServiceImpl implements TeaService {
             Integer userRole = UserContext.getCurrentUserRole();
             boolean isAdmin = userRole != null && userRole == 1;
             
-            // 平台直售：只有管理员可以操作
+            // 平台直售：只有管理员可以操作（PLATFORM不在shops表中，不需要查询店铺）
             if ("PLATFORM".equalsIgnoreCase(shopId) || "0".equals(shopId)) {
                 if (!isAdmin) {
                     logger.warn("设置默认规格失败: 非管理员无权设置平台直售茶叶默认规格, userId: {}", currentUserId);
                     return Result.failure(3119);
                 }
             } else {
-                // 商家店铺：前端已过滤，只验证登录即可（管理员也可以操作）
-                if (!isAdmin) {
-                    Shop shop = shopMapper.selectById(shopId);
-                    if (shop != null && !currentUserId.equals(shop.getOwnerId())) {
-                        logger.warn("设置默认规格失败: 无权限设置默认规格, userId: {}, shopOwnerId: {}", 
-                                currentUserId, shop.getOwnerId());
-                        return Result.failure(3119);
-                    }
+                // 商家店铺：必须验证店铺存在，然后验证权限
+                Shop shop = shopMapper.selectById(shopId);
+                if (shop == null) {
+                    logger.warn("设置默认规格失败: 店铺不存在, shopId: {}", shopId);
+                    return Result.failure(3119);
+                }
+                // 管理员可以设置所有店铺的茶叶默认规格，非管理员必须是店主
+                if (!isAdmin && !currentUserId.equals(shop.getOwnerId())) {
+                    logger.warn("设置默认规格失败: 无权限设置默认规格, userId: {}, shopOwnerId: {}", 
+                            currentUserId, shop.getOwnerId());
+                    return Result.failure(3119);
                 }
             }
             
