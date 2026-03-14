@@ -14,7 +14,7 @@
         <el-col :xs="24" :sm="18" :md="16" :lg="17">
           <div class="main-posts" ref="postsContainerRef">
             <!-- 搜索框、排序、刷新和发帖按钮 -->
-            <div class="posts-header">
+            <div class="posts-header" ref="postsHeaderRef" :style="postsHeaderStyle">
               <div class="search-section">
                 <el-input
                   v-model="searchKeyword"
@@ -198,7 +198,9 @@ const searchKeyword = ref('')
 const sidebarColRef = ref(null)
 const sidebarWrapperRef = ref(null)
 const postsContainerRef = ref(null)
+const postsHeaderRef = ref(null)
 const sidebarStyle = ref({})
+const postsHeaderStyle = ref({})
 
 // 导航栏高度 + 间距 = 72px + 10px = 82px
 const NAVBAR_HEIGHT = 72
@@ -212,6 +214,7 @@ const handleScroll = () => {
   const wrapper = sidebarWrapperRef.value
   const col = sidebarColRef.value.$el || sidebarColRef.value
   const postsContainer = postsContainerRef.value
+  const postsHeader = postsHeaderRef.value
   
   // 获取侧边栏容器的初始位置和尺寸
   const colRect = col.getBoundingClientRect()
@@ -247,6 +250,7 @@ const handleScroll = () => {
   // 页脚顶部位置（相对于视口）
   const footerTopViewport = footerRect ? footerRect.top : Infinity
   
+  // ==================== 右侧版块导航的定位逻辑 ====================
   // 判断是否需要固定
   if (currentTop <= STICKY_TOP) {
     // 需要固定，但需要检查是否会被页脚推上去
@@ -280,6 +284,39 @@ const handleScroll = () => {
       position: 'relative',
       top: '0px'
     }
+  }
+
+  // ==================== 左侧帖子头部的相对推送逻辑 ====================
+  if (postsHeader && footerRect) {
+    const headerRect = postsHeader.getBoundingClientRect()
+    const headerHeight = headerRect.height
+
+    // 只有当帖子头部已经吸顶（接近导航栏下方）时才处理
+    if (headerRect.top <= STICKY_TOP + 1) {
+      const headerBottomFixedViewport = STICKY_TOP + headerHeight
+      const footerTopViewportForHeader = footerRect.top
+
+      // 帖子头部距离页脚的“安全距离”，比右侧多留一点（比如 200px）
+      const HEADER_SAFE_DISTANCE = 900
+      const distanceHeaderFooter = footerTopViewportForHeader - headerBottomFixedViewport
+
+      if (distanceHeaderFooter <= HEADER_SAFE_DISTANCE) {
+        // 根据距离动态上移头部，距离越小，上移越多
+        const offset = HEADER_SAFE_DISTANCE - distanceHeaderFooter
+        // 通过调整 top 实现上移（基于 sticky 的 82px 往上减）
+        postsHeaderStyle.value = {
+          top: `${STICKY_TOP - offset}px`
+        }
+      } else {
+        // 离页脚还远，保持默认 sticky 位置
+        postsHeaderStyle.value = {}
+      }
+    } else {
+      // 还没吸顶，保持默认样式
+      postsHeaderStyle.value = {}
+    }
+  } else {
+    postsHeaderStyle.value = {}
   }
 }
 
