@@ -61,13 +61,13 @@
           <el-icon><ChatDotRound /></el-icon>
           <span>{{ post.replyCount || 0 }}</span>
         </div>
-        <div class="action-item" :class="{ 'liked': post.isLiked }" @click.stop="handleLike">
-          <el-icon><Star v-if="!post.isLiked" /><StarFilled v-else /></el-icon>
-          <span>{{ post.likeCount || 0 }}</span>
-        </div>
         <div class="action-item" :class="{ 'favorited': post.isFavorited }" @click.stop="handleFavorite">
           <el-icon><Collection v-if="!post.isFavorited" /><CollectionTag v-else /></el-icon>
           <span>{{ post.favoriteCount || 0 }}</span>
+        </div>
+        <div class="action-item" :class="{ 'liked': post.isLiked }" @click.stop="handleLike">
+          <el-icon><Star v-if="!post.isLiked" /><StarFilled v-else /></el-icon>
+          <span>{{ post.likeCount || 0 }}</span>
         </div>
       </div>
     </div>

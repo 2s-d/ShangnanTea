@@ -852,57 +852,53 @@ const updatePagination = () => {
       router.push(`/forum/${post.id}#reply-section`)
     }
     
-    // 帖子点赞
+    // 帖子点赞（使用用户模块的通用点赞接口）
     const handleLike = async post => {
       try {
         if (post.isLiked) {
-          // 取消点赞：直接传递targetId和targetType
-          const res = await forumStore.removeLike({
+          // 取消点赞：直接传递 targetId 和 targetType
+          const res = await userStore.removeLike({
             targetId: String(post.id),
             targetType: 'post'
           })
           showByCode(res.code)
-          // 重新加载帖子列表以更新isLiked状态
-          await fetchPosts()
         } else {
           // 添加点赞
-          const res = await forumStore.addLike({
+          const res = await userStore.addLike({
             targetId: String(post.id),
             targetType: 'post'
           })
           showByCode(res.code)
-          // 重新加载帖子列表以更新isLiked状态
-          await fetchPosts()
         }
+        // 操作完成后刷新列表，确保点赞数和状态使用后端真实数据
+        await fetchPosts()
       } catch (error) {
         console.error('点赞操作失败:', error)
       }
     }
     
-    // 帖子收藏
+    // 帖子收藏（使用用户模块的通用收藏接口）
     const handleFavorite = async post => {
       try {
         if (post.isFavorited) {
           // 取消收藏：直接传递 itemId 和 itemType
-          const res = await forumStore.removeFavorite({
+          const res = await userStore.removeFavorite({
             itemId: String(post.id),
             itemType: 'post'
           })
           showByCode(res.code)
-          // 重新加载帖子列表以更新isFavorited状态
-          await fetchPosts()
         } else {
           // 添加收藏
-          const res = await forumStore.addFavorite({
+          const res = await userStore.addFavorite({
             itemId: String(post.id),
             itemType: 'post',
             targetName: post.title || '',
             targetImage: post.coverImage || ''
           })
           showByCode(res.code)
-          // 重新加载帖子列表以更新isFavorited状态
-          await fetchPosts()
         }
+        // 操作完成后刷新列表，确保收藏数和状态使用后端真实数据
+        await fetchPosts()
       } catch (error) {
         console.error('收藏操作失败:', error)
       }
