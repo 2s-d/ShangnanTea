@@ -87,8 +87,8 @@
         </el-col>
         
         <!-- 右侧用户信息和版块导航 -->
-        <el-col :xs="24" :sm="6" :md="8" :lg="7">
-          <div class="sidebar-wrapper">
+        <el-col :xs="24" :sm="6" :md="8" :lg="7" ref="sidebarColRef">
+          <div class="sidebar-wrapper" ref="sidebarWrapperRef" :style="sidebarStyle">
             <!-- 简化的用户信息卡片 -->
             <div class="sidebar user-sidebar">
               <div class="user-info-card">
@@ -166,7 +166,7 @@
 
 <script setup>
 /* eslint-disable vue/no-ref-as-operand */
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useForumStore } from '@/stores/forum'
 import { useUserStore } from '@/stores/user'
@@ -193,6 +193,90 @@ const currentTopicId = ref('all')
 
 // 搜索关键词
 const searchKeyword = ref('')
+
+// 侧边栏引用和样式
+const sidebarColRef = ref(null)
+const sidebarWrapperRef = ref(null)
+const sidebarStyle = ref({})
+
+// 导航栏高度 + 间距 = 72px + 10px = 82px
+const NAVBAR_HEIGHT = 72
+const STICKY_OFFSET = 10
+const STICKY_TOP = NAVBAR_HEIGHT + STICKY_OFFSET
+
+// 处理滚动事件
+const handleScroll = () => {
+  if (!sidebarWrapperRef.value || !sidebarColRef.value) return
+  
+  const wrapper = sidebarWrapperRef.value
+  const col = sidebarColRef.value.$el || sidebarColRef.value
+  
+  // 获取侧边栏容器的初始位置和尺寸
+  const colRect = col.getBoundingClientRect()
+  const wrapperRect = wrapper.getBoundingClientRect()
+  
+  // 获取页面滚动位置
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop
+  
+  // 获取页脚位置
+  const footer = document.querySelector('footer.footer') || document.querySelector('footer') || document.querySelector('.footer')
+  const footerTop = footer ? footer.getBoundingClientRect().top + scrollTop : Infinity
+  
+  // 计算侧边栏容器的初始顶部位置（相对于文档）
+  const colInitialTop = colRect.top + scrollTop
+  
+  // 计算当前滚动位置下，侧边栏应该的位置
+  const currentTop = colRect.top
+  
+  // 计算页脚底部位置
+  const footerBottom = footer ? footerTop + (footer.offsetHeight || 0) : Infinity
+  
+  // 计算侧边栏底部位置（如果固定的话）
+  const wrapperHeight = wrapperRect.height
+  const fixedBottom = STICKY_TOP + wrapperHeight
+  
+  // 判断是否需要固定
+  if (currentTop <= STICKY_TOP) {
+    // 需要固定，但需要检查是否到达底部
+    if (fixedBottom >= footerTop) {
+      // 到达底部，继续滚动直到与页脚对齐
+      const maxTop = footerTop - wrapperHeight
+      sidebarStyle.value = {
+        position: 'absolute',
+        top: `${Math.max(maxTop - colInitialTop, 0)}px`,
+        width: `${colRect.width}px`
+      }
+    } else {
+      // 未到达底部，固定位置
+      sidebarStyle.value = {
+        position: 'fixed',
+        top: `${STICKY_TOP}px`,
+        width: `${colRect.width}px`
+      }
+    }
+  } else {
+    // 不需要固定，跟随滚动
+    sidebarStyle.value = {
+      position: 'relative',
+      top: '0px'
+    }
+  }
+}
+
+// 节流函数
+const throttle = (func, wait) => {
+  let timeout
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout)
+      func(...args)
+    }
+    clearTimeout(timeout)
+    timeout = setTimeout(later, wait)
+  }
+}
+
+const throttledHandleScroll = throttle(handleScroll, 16) // 约60fps
 
 // 获取显示名称（使用昵称）
 const getDisplayName = (user) => {
@@ -876,6 +960,16 @@ const updatePagination = () => {
       }
       // 默认加载帖子列表（全部帖子）
       await fetchPosts()
+      
+      // 添加滚动监听
+      window.addEventListener('scroll', throttledHandleScroll, { passive: true })
+      // 初始化时执行一次
+      setTimeout(handleScroll, 100)
+    })
+    
+    // 页面卸载时移除滚动监听
+    onUnmounted(() => {
+      window.removeEventListener('scroll', throttledHandleScroll)
     })
 </script>
 
@@ -942,6 +1036,7 @@ const updatePagination = () => {
 // 侧边栏容器
 .sidebar-wrapper {
   position: relative;
+  transition: top 0.1s ease-out;
 }
 
 // 侧边栏样式
