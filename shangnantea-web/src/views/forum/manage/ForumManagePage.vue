@@ -827,7 +827,9 @@ const getPostStatusText = status => {
 
 // 查看帖子
 const viewPost = post => {
-  router.push(`/forum/detail/${post.id}`)
+  if (!post?.id) return
+  // 与个人主页 / 我的帖子保持一致的帖子详情跳转
+  router.push(`/forum/${post.id}`)
 }
 
 // 审核通过帖子
