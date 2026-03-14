@@ -33,4 +33,12 @@ public interface TeaImageMapper extends BaseMapper<TeaImage, Long> {
      * @return 影响行数
      */
     int updateSortOrder(Integer id, Integer sortOrder);
+    
+    /**
+     * 根据茶叶ID删除所有图片（级联删除）
+     *
+     * @param teaId 茶叶ID
+     * @return 影响行数
+     */
+    int deleteByTeaId(String teaId);
 } 
