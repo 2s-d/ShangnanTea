@@ -371,6 +371,7 @@ public class ShopServiceImpl implements ShopService {
     
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public Result<Object> createShop(Map<String, Object> shopData) {
         try {
             logger.info("创建店铺请求, shopData: {}", shopData);

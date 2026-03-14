@@ -40,7 +40,7 @@
         ) VALUES (
             #{id}, #{ownerId}, #{shopName}, #{logo}, #{banner}, #{description}, #{announcement}, #{contactPhone},
             #{province}, #{city}, #{district}, #{address}, #{businessLicense}, #{status}, #{rating}, #{ratingCount},
-            #{salesCount}, #{followCount}, #{createTime}, #{updateTime}
+            #{salesCount}, #{createTime}, #{updateTime}
         )
     </insert>
 
