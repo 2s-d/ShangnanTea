@@ -2718,9 +2718,41 @@ public class UserServiceImpl implements UserService {
         certificationVO.setId(certification.getId());
         certificationVO.setUserId(certification.getUserId());
         certificationVO.setShopName(certification.getShopName());
-        certificationVO.setBusinessLicense(certification.getBusinessLicense());
-        certificationVO.setIdCardFront(certification.getIdCardFront());
-        certificationVO.setIdCardBack(certification.getIdCardBack());
+        
+        // 处理图片URL：如果已经是完整URL则直接使用，否则转换为完整URL
+        String businessLicense = certification.getBusinessLicense();
+        if (businessLicense != null && !businessLicense.trim().isEmpty()) {
+            if (businessLicense.startsWith("http://") || businessLicense.startsWith("https://")) {
+                certificationVO.setBusinessLicense(businessLicense);
+            } else {
+                certificationVO.setBusinessLicense(FileUploadUtils.generateAccessUrl(businessLicense, baseUrl));
+            }
+        } else {
+            certificationVO.setBusinessLicense(null);
+        }
+        
+        String idCardFront = certification.getIdCardFront();
+        if (idCardFront != null && !idCardFront.trim().isEmpty()) {
+            if (idCardFront.startsWith("http://") || idCardFront.startsWith("https://")) {
+                certificationVO.setIdCardFront(idCardFront);
+            } else {
+                certificationVO.setIdCardFront(FileUploadUtils.generateAccessUrl(idCardFront, baseUrl));
+            }
+        } else {
+            certificationVO.setIdCardFront(null);
+        }
+        
+        String idCardBack = certification.getIdCardBack();
+        if (idCardBack != null && !idCardBack.trim().isEmpty()) {
+            if (idCardBack.startsWith("http://") || idCardBack.startsWith("https://")) {
+                certificationVO.setIdCardBack(idCardBack);
+            } else {
+                certificationVO.setIdCardBack(FileUploadUtils.generateAccessUrl(idCardBack, baseUrl));
+            }
+        } else {
+            certificationVO.setIdCardBack(null);
+        }
+        
         certificationVO.setStatus(certification.getStatus());
         certificationVO.setRejectReason(certification.getRejectReason());
         certificationVO.setCreateTime(certification.getCreateTime());
