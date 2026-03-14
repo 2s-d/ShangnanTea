@@ -2725,6 +2725,15 @@ public class UserServiceImpl implements UserService {
         certificationVO.setRejectReason(certification.getRejectReason());
         certificationVO.setCreateTime(certification.getCreateTime());
         certificationVO.setUpdateTime(certification.getUpdateTime());
+        // 添加完整认证信息字段
+        certificationVO.setRealName(certification.getRealName());
+        certificationVO.setIdCard(certification.getIdCard());
+        certificationVO.setContactPhone(certification.getContactPhone());
+        certificationVO.setProvince(certification.getProvince());
+        certificationVO.setCity(certification.getCity());
+        certificationVO.setDistrict(certification.getDistrict());
+        certificationVO.setAddress(certification.getAddress());
+        certificationVO.setApplyReason(certification.getApplyReason());
         
         return certificationVO;
     }

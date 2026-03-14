@@ -57,6 +57,46 @@ public class CertificationStatusVO {
      */
     private Date updateTime;
     
+    /**
+     * 真实姓名
+     */
+    private String realName;
+    
+    /**
+     * 身份证号
+     */
+    private String idCard;
+    
+    /**
+     * 联系电话
+     */
+    private String contactPhone;
+    
+    /**
+     * 省份
+     */
+    private String province;
+    
+    /**
+     * 城市
+     */
+    private String city;
+    
+    /**
+     * 区县
+     */
+    private String district;
+    
+    /**
+     * 详细地址
+     */
+    private String address;
+    
+    /**
+     * 申请理由
+     */
+    private String applyReason;
+    
     public Integer getId() {
         return id;
     }
@@ -135,5 +175,69 @@ public class CertificationStatusVO {
     
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+    
+    public String getRealName() {
+        return realName;
+    }
+    
+    public void setRealName(String realName) {
+        this.realName = realName;
+    }
+    
+    public String getIdCard() {
+        return idCard;
+    }
+    
+    public void setIdCard(String idCard) {
+        this.idCard = idCard;
+    }
+    
+    public String getContactPhone() {
+        return contactPhone;
+    }
+    
+    public void setContactPhone(String contactPhone) {
+        this.contactPhone = contactPhone;
+    }
+    
+    public String getProvince() {
+        return province;
+    }
+    
+    public void setProvince(String province) {
+        this.province = province;
+    }
+    
+    public String getCity() {
+        return city;
+    }
+    
+    public void setCity(String city) {
+        this.city = city;
+    }
+    
+    public String getDistrict() {
+        return district;
+    }
+    
+    public void setDistrict(String district) {
+        this.district = district;
+    }
+    
+    public String getAddress() {
+        return address;
+    }
+    
+    public void setAddress(String address) {
+        this.address = address;
+    }
+    
+    public String getApplyReason() {
+        return applyReason;
+    }
+    
+    public void setApplyReason(String applyReason) {
+        this.applyReason = applyReason;
     }
 }
