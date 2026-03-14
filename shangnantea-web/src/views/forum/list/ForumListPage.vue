@@ -1216,11 +1216,11 @@ const updatePagination = () => {
   border-radius: 8px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
     margin-bottom: 20px;
-  overflow: hidden;
   
   .posts-header {
     position: sticky;
-    top: 82px; // 与右侧版块导航栏的固定顶部对齐（72px导航栏高度 + 10px间距）
+    // 与右侧版块导航栏的固定顶部对齐（72px 导航栏高度 + 10px 间距）
+    top: 82px;
     z-index: 5;
     background-color: #fff;
     padding: 15px;
