@@ -375,11 +375,19 @@ public class ShopServiceImpl implements ShopService {
         try {
             logger.info("创建店铺请求, shopData: {}", shopData);
             
-            // 1. 获取当前用户ID
-            String userId = UserContext.getCurrentUserId();
-            if (userId == null) {
-                logger.warn("创建店铺失败: 用户未登录");
-                return Result.failure(4101);
+            // 1. 获取用户ID（支持管理员代为创建：从shopData中获取userId，否则使用当前登录用户）
+            String userId = null;
+            if (shopData != null && shopData.containsKey("userId")) {
+                // 管理员代为创建时，从shopData中获取userId
+                userId = shopData.get("userId").toString();
+                logger.info("管理员代为创建店铺: userId: {}", userId);
+            } else {
+                // 普通商家自己创建
+                userId = UserContext.getCurrentUserId();
+                if (userId == null) {
+                    logger.warn("创建店铺失败: 用户未登录");
+                    return Result.failure(4101);
+                }
             }
             
             // 2. 验证用户是否有商家认证
@@ -416,12 +424,30 @@ public class ShopServiceImpl implements ShopService {
             shop.setOwnerId(userId);
             shop.setShopName(shopName);
             
-            // 设置可选字段
+            // 设置可选字段（支持从认证信息中读取）
             if (shopData.get("logo") != null) {
                 shop.setLogo(shopData.get("logo").toString());
             }
             if (shopData.get("description") != null) {
                 shop.setDescription(shopData.get("description").toString());
+            }
+            if (shopData.get("contactPhone") != null) {
+                shop.setContactPhone(shopData.get("contactPhone").toString());
+            }
+            if (shopData.get("province") != null) {
+                shop.setProvince(shopData.get("province").toString());
+            }
+            if (shopData.get("city") != null) {
+                shop.setCity(shopData.get("city").toString());
+            }
+            if (shopData.get("district") != null) {
+                shop.setDistrict(shopData.get("district").toString());
+            }
+            if (shopData.get("address") != null) {
+                shop.setAddress(shopData.get("address").toString());
+            }
+            if (shopData.get("businessLicense") != null) {
+                shop.setBusinessLicense(shopData.get("businessLicense").toString());
             }
             
             // 设置默认值

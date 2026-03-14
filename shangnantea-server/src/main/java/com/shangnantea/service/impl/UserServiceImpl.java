@@ -53,6 +53,7 @@ import com.shangnantea.security.context.UserContext;
 import com.shangnantea.security.util.JwtUtil;
 import com.shangnantea.security.util.PasswordEncoder;
 import com.shangnantea.service.UserService;
+import com.shangnantea.service.ShopService;
 import com.shangnantea.utils.FileUploadUtils;
 import com.shangnantea.utils.NotificationUtils;
 import com.shangnantea.utils.UserPreferenceRegistry;
@@ -115,6 +116,9 @@ public class UserServiceImpl implements UserService {
     
     @Autowired
     private ShopMapper shopMapper;
+    
+    @Autowired
+    private ShopService shopService;
     
     @Autowired
     private TeaMapper teaMapper;
@@ -2588,68 +2592,42 @@ public class UserServiceImpl implements UserService {
                 return Result.failure(2144); // 操作失败
             }
             
-            // 7. 如果审核通过，调用存储过程创建店铺
+            // 7. 如果审核通过，更新用户角色并创建店铺
             if (auditStatus == 1) {
-                String shopId = null;
+                // 7.1 更新用户角色为商家
+                User user = getUserEntityById(certification.getUserId());
+                if (user != null) {
+                    user.setRole(3); // 3-商家角色
+                    userMapper.update(user);
+                    logger.info("审核通过，已更新用户角色为商家: userId: {}", user.getId());
+                } else {
+                    logger.warn("审核通过，但用户不存在: userId: {}", certification.getUserId());
+                }
+                
+                // 7.2 调用创建店铺接口
                 try {
-                    // 调用存储过程：confirm_shop_certification
-                    // 该存储过程会：
-                    // 1. 更新用户角色为商家（role=3）
-                    // 2. 生成店铺ID并创建店铺记录
-                    // 3. 标记认证通知已确认
-                    shopId = shopCertificationMapper.confirmCertification(id);
-                    logger.info("审核认证通过，店铺创建成功(存储过程): certificationId: {}, shopId: {}", id, shopId);
-                } catch (Exception e) {
-                    logger.error("调用存储过程创建店铺失败: certificationId: {}", id, e);
-                    // 如果存储过程调用失败，手动创建店铺和更新用户角色
-                    try {
-                        // 检查是否已有店铺
-                        Shop existingShop = shopMapper.selectByUserId(certification.getUserId());
-                        if (existingShop != null) {
-                            logger.warn("用户已有店铺，跳过创建: userId: {}, shopId: {}", certification.getUserId(), existingShop.getId());
-                            shopId = existingShop.getId();
-                        } else {
-                            // 手动创建店铺
-                            Shop shop = new Shop();
-                            shop.setId(generateShopId());
-                            shop.setOwnerId(certification.getUserId());
-                            shop.setShopName(certification.getShopName());
-                            shop.setContactPhone(certification.getContactPhone());
-                            shop.setProvince(certification.getProvince());
-                            shop.setCity(certification.getCity());
-                            shop.setDistrict(certification.getDistrict());
-                            shop.setAddress(certification.getAddress());
-                            shop.setBusinessLicense(certification.getBusinessLicense());
-                            shop.setStatus(1); // 正常状态
-                            shop.setRating(new BigDecimal("5.0")); // 默认评分
-                            shop.setRatingCount(0);
-                            shop.setSalesCount(0);
-                            
-                            Date now = new Date();
-                            shop.setCreateTime(now);
-                            shop.setUpdateTime(now);
-                            
-                            int insertResult = shopMapper.insert(shop);
-                            if (insertResult > 0) {
-                                shopId = shop.getId();
-                                logger.info("手动创建店铺成功: certificationId: {}, shopId: {}, shopName: {}", 
-                                    id, shopId, shop.getShopName());
-                            } else {
-                                logger.error("手动创建店铺失败: 数据库插入失败, certificationId: {}", id);
-                            }
-                        }
-                        
-                        // 更新用户角色为商家
-                        User user = getUserEntityById(certification.getUserId());
-                        if (user != null) {
-                            user.setRole(3); // 3-商家角色
-                            userMapper.update(user);
-                            logger.info("已手动更新用户角色为商家: userId: {}", user.getId());
-                        }
-                    } catch (Exception manualException) {
-                        logger.error("手动创建店铺和更新用户角色失败: certificationId: {}", id, manualException);
-                        // 即使手动创建失败，也继续执行后续通知逻辑
+                    // 构建店铺数据（从认证信息中提取）
+                    Map<String, Object> shopData = new HashMap<>();
+                    shopData.put("userId", certification.getUserId()); // 管理员代为创建，传入userId
+                    shopData.put("name", certification.getShopName());
+                    shopData.put("contactPhone", certification.getContactPhone());
+                    shopData.put("province", certification.getProvince());
+                    shopData.put("city", certification.getCity());
+                    shopData.put("district", certification.getDistrict());
+                    shopData.put("address", certification.getAddress());
+                    shopData.put("businessLicense", certification.getBusinessLicense());
+                    
+                    Result<Object> createShopResult = shopService.createShop(shopData);
+                    if (createShopResult.getCode() == 4000) {
+                        logger.info("审核通过，店铺创建成功: certificationId: {}, userId: {}, shopName: {}", 
+                            id, certification.getUserId(), certification.getShopName());
+                    } else {
+                        logger.warn("审核通过，但店铺创建失败: certificationId: {}, code: {}, message: {}", 
+                            id, createShopResult.getCode(), createShopResult.getMessage());
                     }
+                } catch (Exception e) {
+                    logger.error("审核通过，调用创建店铺接口失败: certificationId: {}", id, e);
+                    // 即使店铺创建失败，也继续执行后续通知逻辑
                 }
             }
             
