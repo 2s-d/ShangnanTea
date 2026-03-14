@@ -9,8 +9,14 @@ import lombok.Data;
 @Data
 public class RejectPostDTO {
     /**
-     * 拒绝原因
+     * 选择的拒绝原因（预设选项，必填）
+     */
+    @NotBlank(message = "选择的拒绝原因不能为空")
+    private String selectedReason;
+    
+    /**
+     * 管理员自定义拒绝原因（必填）
      */
     @NotBlank(message = "拒绝原因不能为空")
-    private String reason;
+    private String customReason;
 }

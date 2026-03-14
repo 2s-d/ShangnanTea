@@ -2246,7 +2246,9 @@ public class ForumServiceImpl implements ForumService {
                         post.getId(),
                         post.getTitle(),
                         true,
-                        null
+                        null, // approveReason 将在方法调用时传入
+                        null, // selectedReason 不需要
+                        null  // customReason 不需要
                 );
             } catch (Exception notifyEx) {
                 logger.warn("审核通过后创建帖子审核结果通知失败, postId={}, userId={}", post.getId(), post.getUserId(), notifyEx);
@@ -2303,13 +2305,15 @@ public class ForumServiceImpl implements ForumService {
                         post.getId(),
                         post.getTitle(),
                         false,
-                        dto.getReason()
+                        null, // approveReason 不需要
+                        dto.getSelectedReason(), // 选择的拒绝原因
+                        dto.getCustomReason()    // 管理员自定义拒绝原因
                 );
             } catch (Exception notifyEx) {
                 logger.warn("审核拒绝后创建帖子审核结果通知失败, postId={}, userId={}", post.getId(), post.getUserId(), notifyEx);
             }
             
-            logger.info("审核拒绝成功: id={}, reason={}", id, dto.getReason());
+            logger.info("审核拒绝成功: id={}, selectedReason={}, customReason={}", id, dto.getSelectedReason(), dto.getCustomReason());
             return Result.success(6023, null); // 审核已拒绝
             
         } catch (NumberFormatException e) {
