@@ -375,20 +375,13 @@ public class ShopServiceImpl implements ShopService {
         try {
             logger.info("创建店铺请求, shopData: {}", shopData);
             
-            // 1. 获取用户ID（支持审核通过后自动创建：从shopData中获取userId，否则使用当前登录用户）
-            String userId = null;
-            if (shopData != null && shopData.containsKey("userId")) {
-                // 审核通过后自动创建店铺时，从shopData中获取申请者的userId
-                userId = shopData.get("userId").toString();
-                logger.info("审核通过后自动创建店铺: userId: {}", userId);
-            } else {
-                // 普通商家自己创建
-                userId = UserContext.getCurrentUserId();
-                if (userId == null) {
-                    logger.warn("创建店铺失败: 用户未登录");
-                    return Result.failure(4101);
-                }
+            // 1. 获取用户ID（仅支持审核通过后自动创建：从shopData中获取userId）
+            if (shopData == null || !shopData.containsKey("userId")) {
+                logger.warn("创建店铺失败: shopData中缺少userId，仅支持审核通过后自动创建");
+                return Result.failure(4101);
             }
+            String userId = shopData.get("userId").toString();
+            logger.info("审核通过后自动创建店铺: userId: {}", userId);
             
             // 2. 验证用户是否有商家认证（必须是已通过认证的申请者）
             ShopCertification certification = getCertificationByUserId(userId);
@@ -404,11 +397,7 @@ public class ShopServiceImpl implements ShopService {
                 return Result.failure(4101);
             }
             
-            // 4. 提取并验证店铺名称
-            if (shopData == null) {
-                logger.warn("创建店铺失败: shopData为空");
-                return Result.failure(4101);
-            }
+            // 4. 提取并验证店铺名称（shopData已在第379行检查过，此处不再重复检查）
             String shopName = shopData.get("name") != null ? shopData.get("name").toString() : null;
             if (shopName == null || shopName.trim().isEmpty()) {
                 logger.warn("创建店铺失败: 店铺名称为空");
