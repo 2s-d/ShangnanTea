@@ -12,7 +12,7 @@
       <el-row :gutter="20">
         <!-- 左侧帖子列表 -->
         <el-col :xs="24" :sm="18" :md="16" :lg="17">
-          <div class="main-posts">
+          <div class="main-posts" ref="postsContainerRef">
             <!-- 搜索框、排序、刷新和发帖按钮 -->
             <div class="posts-header">
               <div class="search-section">
@@ -197,6 +197,7 @@ const searchKeyword = ref('')
 // 侧边栏引用和样式
 const sidebarColRef = ref(null)
 const sidebarWrapperRef = ref(null)
+const postsContainerRef = ref(null)
 const sidebarStyle = ref({})
 
 // 导航栏高度 + 间距 = 72px + 10px = 82px
@@ -206,10 +207,11 @@ const STICKY_TOP = NAVBAR_HEIGHT + STICKY_OFFSET
 
 // 处理滚动事件
 const handleScroll = () => {
-  if (!sidebarWrapperRef.value || !sidebarColRef.value) return
+  if (!sidebarWrapperRef.value || !sidebarColRef.value || !postsContainerRef.value) return
   
   const wrapper = sidebarWrapperRef.value
   const col = sidebarColRef.value.$el || sidebarColRef.value
+  const postsContainer = postsContainerRef.value
   
   // 获取侧边栏容器的初始位置和尺寸
   const colRect = col.getBoundingClientRect()
@@ -222,6 +224,13 @@ const handleScroll = () => {
   const footer = document.querySelector('footer.footer') || document.querySelector('footer') || document.querySelector('.footer')
   const footerRect = footer ? footer.getBoundingClientRect() : null
   const footerTop = footerRect ? footerRect.top + scrollTop : Infinity
+  
+  // 获取帖子列表容器的位置
+  const postsRect = postsContainer.getBoundingClientRect()
+  const postsBottom = postsRect.bottom + scrollTop // 帖子列表底部（相对于文档）
+  
+  // 计算帖子列表底部到页脚的距离
+  const distanceToFooter = footerRect ? footerTop - postsBottom : Infinity
   
   // 计算侧边栏容器的初始顶部位置（相对于文档）
   const colInitialTop = colRect.top + scrollTop
@@ -241,10 +250,13 @@ const handleScroll = () => {
   // 判断是否需要固定
   if (currentTop <= STICKY_TOP) {
     // 需要固定，但需要检查是否会被页脚推上去
-    if (footerRect && fixedBottomViewport > footerTopViewport) {
-      // 侧边栏底部会超过页脚顶部，需要调整位置
-      // 计算侧边栏应该的顶部位置（相对于文档），使底部刚好在页脚顶部上方
-      const maxBottom = footerTop - 1 // 页脚顶部上方1px
+    // 使用帖子列表底部到页脚的距离作为提前量
+    const threshold = distanceToFooter > 0 ? distanceToFooter : 0
+    
+    if (footerRect && fixedBottomViewport > (footerTopViewport - threshold)) {
+      // 侧边栏底部会超过（页脚顶部 - 提前量），需要调整位置
+      // 计算侧边栏应该的顶部位置（相对于文档），使底部刚好在（页脚顶部 - 提前量）上方
+      const maxBottom = footerTop - threshold - 1 // 页脚顶部上方（提前量 + 1px）
       const maxTop = maxBottom - wrapperHeight
       // 转换为相对于col容器的top值
       const relativeTop = maxTop - colInitialTop
