@@ -14,7 +14,7 @@
         <el-col :xs="24" :sm="18" :md="16" :lg="17">
           <div class="main-posts" ref="postsContainerRef">
             <!-- 搜索框、排序、刷新和发帖按钮 -->
-            <div class="posts-header" :class="{ 'is-sticky': isPostsHeaderSticky }">
+            <div class="posts-header">
               <div class="search-section">
                 <el-input
                   v-model="searchKeyword"
@@ -199,8 +199,6 @@ const sidebarColRef = ref(null)
 const sidebarWrapperRef = ref(null)
 const postsContainerRef = ref(null)
 const sidebarStyle = ref({})
-// 左侧帖子列表头部是否处于粘性状态
-const isPostsHeaderSticky = ref(true)
 
 // 导航栏高度 + 间距 = 72px + 10px = 82px
 const NAVBAR_HEIGHT = 72
@@ -218,7 +216,6 @@ const handleScroll = () => {
   // 获取侧边栏容器的初始位置和尺寸
   const colRect = col.getBoundingClientRect()
   const wrapperRect = wrapper.getBoundingClientRect()
-  const postsRect = postsContainer.getBoundingClientRect()
   
   // 获取页面滚动位置
   const scrollTop = window.pageYOffset || document.documentElement.scrollTop
@@ -228,8 +225,12 @@ const handleScroll = () => {
   const footerRect = footer ? footer.getBoundingClientRect() : null
   const footerTop = footerRect ? footerRect.top + scrollTop : Infinity
   
-  // 获取帖子列表容器的位置和底部（相对于文档）
-  const postsBottom = postsRect.bottom + scrollTop
+  // 获取帖子列表容器的位置
+  const postsRect = postsContainer.getBoundingClientRect()
+  const postsBottom = postsRect.bottom + scrollTop // 帖子列表底部（相对于文档）
+  
+  // 计算帖子列表底部到页脚的距离
+  const distanceToFooter = footerRect ? footerTop - postsBottom : Infinity
   
   // 计算侧边栏容器的初始顶部位置（相对于文档）
   const colInitialTop = colRect.top + scrollTop
@@ -245,14 +246,6 @@ const handleScroll = () => {
   
   // 页脚顶部位置（相对于视口）
   const footerTopViewport = footerRect ? footerRect.top : Infinity
-  
-  // 计算帖子列表底部在视口中的位置
-  const postsBottomViewport = postsRect.bottom
-  // 当帖子列表底部还在导航栏下方较远位置时，保持头部粘性；接近底部时取消粘性，让它一起被卷上去
-  const shouldStickHeader = postsBottomViewport > STICKY_TOP + 40
-  if (isPostsHeaderSticky.value !== shouldStickHeader) {
-    isPostsHeaderSticky.value = shouldStickHeader
-  }
   
   // 判断是否需要固定
   if (currentTop <= STICKY_TOP) {
@@ -1221,6 +1214,11 @@ const updatePagination = () => {
     margin-bottom: 20px;
   
   .posts-header {
+    position: sticky;
+    // 与右侧版块导航栏的固定顶部对齐（72px 导航栏高度 + 10px 间距）
+    top: 82px;
+    z-index: 5;
+    background-color: #fff;
     padding: 15px;
     border-bottom: 1px solid #f0f0f0;
     display: flex;
@@ -1256,15 +1254,6 @@ const updatePagination = () => {
       }
     }
   }
-
-// 左侧帖子列表头部的粘性样式（通过类控制是否启用）
-.main-posts .posts-header.is-sticky {
-  position: sticky;
-  // 与右侧版块导航栏的固定顶部对齐（72px 导航栏高度 + 10px 间距）
-  top: 82px;
-  z-index: 5;
-  background-color: #fff;
-}
   
   .posts-container {
     padding: 15px;
