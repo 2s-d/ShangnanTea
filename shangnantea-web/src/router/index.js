@@ -273,6 +273,16 @@ const routes = [
     }
   },
   {
+    path: '/user/merchant-requests',
+    name: 'MerchantRequests',
+    component: () => import('@/views/user/manage/MerchantRequestsPage.vue'),
+    meta: {
+      title: '商家认证请求 - 商南茶文化',
+      requireAuth: true,
+      roles: [ROLES.ADMIN]
+    }
+  },
+  {
     path: '/user/profile',
     name: 'UserProfileEdit',
     component: () => import('@/views/user/profile/ProfilePage.vue'),
