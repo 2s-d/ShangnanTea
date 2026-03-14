@@ -1396,6 +1396,32 @@ public class ForumServiceImpl implements ForumService {
                 }
             }
             
+            // 获取当前用户ID，用于判断是否已点赞/已收藏
+            String currentUserId = UserContext.getCurrentUserId();
+            
+            // 批量查询当前用户对帖子是否点赞/收藏（与详情页/回复列表保持一致的逻辑）
+            Map<Long, Boolean> likedMap = new HashMap<>();
+            Map<Long, Boolean> favoritedMap = new HashMap<>();
+            if (currentUserId != null && !allPosts.isEmpty()) {
+                for (ForumPost post : allPosts) {
+                    String postIdStr = String.valueOf(post.getId());
+                    try {
+                        UserLike like = userLikeMapper.selectByUserIdAndTarget(currentUserId, "post", postIdStr);
+                        likedMap.put(post.getId(), like != null);
+                    } catch (Exception e) {
+                        logger.warn("查询帖子点赞状态失败, postId: {}, userId: {}", postIdStr, currentUserId, e);
+                        likedMap.put(post.getId(), false);
+                    }
+                    try {
+                        UserFavorite favorite = userFavoriteMapper.selectByUserIdAndItem(currentUserId, "post", postIdStr);
+                        favoritedMap.put(post.getId(), favorite != null);
+                    } catch (Exception e) {
+                        logger.warn("查询帖子收藏状态失败, postId: {}, userId: {}", postIdStr, currentUserId, e);
+                        favoritedMap.put(post.getId(), false);
+                    }
+                }
+            }
+            
             // 4. 内存分页
             int total = allPosts.size();
             int startIndex = (page - 1) * pageSize;
@@ -1406,6 +1432,8 @@ public class ForumServiceImpl implements ForumService {
                 final Map<String, User> finalUserMap = userMap;
                 final Map<Integer, ForumTopic> finalTopicMap = topicMap;
                 final Map<Long, Integer> finalReplyCountMap = replyCountMap;
+                final Map<Long, Boolean> finalLikedMap = likedMap;
+                final Map<Long, Boolean> finalFavoritedMap = favoritedMap;
                 
                 postVOList = allPosts.subList(startIndex, endIndex).stream()
                         .map(post -> {
@@ -1449,6 +1477,9 @@ public class ForumServiceImpl implements ForumService {
                             // 使用动态计算获取点赞数和收藏数
                             vo.setLikeCount(statisticsUtils.getLikeCount("post", String.valueOf(post.getId())));
                             vo.setFavoriteCount(statisticsUtils.getFavoriteCount("post", String.valueOf(post.getId())));
+                            // 与详情页保持一致：返回当前用户的点赞/收藏状态
+                            vo.setIsLiked(finalLikedMap.getOrDefault(post.getId(), false));
+                            vo.setIsFavorited(finalFavoritedMap.getOrDefault(post.getId(), false));
                             vo.setIsSticky(post.getIsSticky());
                             vo.setIsEssence(post.getIsEssence());
                             vo.setStatus(post.getStatus());
