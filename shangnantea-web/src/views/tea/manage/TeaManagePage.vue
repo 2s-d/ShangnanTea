@@ -592,18 +592,23 @@ defineOptions({
     
     // 分类数据从Pinia获取（已在computed中定义）
     
-    // 图片上传相关：选择图片后立即上传获取路径（参考文章封面上传）
+    // 图片上传相关：选择图片后立即上传获取路径（完全照抄文章封面上传）
     const handleImageUpload = async (options) => {
       const { file } = options
       if (!file) return
       try {
         const res = await teaStore.uploadTeaImages({ files: [file.raw] })
         if (res?.code) showByCode(res.code)
-        const uploadedImage = res?.data?.images?.[0]
-        const url = uploadedImage?.url
-        const path = uploadedImage?.path
-        if (path && url) {
+        const url = res?.data?.url
+        const path = res?.data?.path
+        // 存库使用相对路径（path），预览仍然可以用完整URL
+        if (path) {
           file.path = path
+          file.url = url || path
+          file.status = 'success'
+        } else if (url) {
+          // 兜底：旧接口没有path字段时，仍然使用url
+          file.path = url
           file.url = url
           file.status = 'success'
         } else {

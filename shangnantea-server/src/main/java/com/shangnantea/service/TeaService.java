@@ -211,10 +211,10 @@ public interface TeaService {
     /**
      * 上传茶叶图片（只上传文件，返回路径，不存入数据库）
      *
-     * @param files 图片文件数组
-     * @return 上传结果，包含图片路径列表
+     * @param file 图片文件
+     * @return 上传结果，包含图片路径
      */
-    Result<Object> uploadTeaImages(MultipartFile[] files);
+    Result<Object> uploadTeaImages(MultipartFile file);
     
     /**
      * 删除茶叶图片

@@ -1149,77 +1149,46 @@ public class TeaServiceImpl implements TeaService {
     }
     
     @Override
-    public Result<Object> uploadTeaImages(MultipartFile[] files) {
+    public Result<Object> uploadTeaImages(MultipartFile file) {
         try {
-            logger.info("上传茶叶图片请求, 文件数量: {}", files != null ? files.length : 0);
+            logger.info("上传茶叶图片请求: filename={}", file.getOriginalFilename());
             
-            // 1. 参数验证
-            if (files == null || files.length == 0) {
-                logger.warn("上传茶叶图片失败: 文件列表为空");
+            // 1. 验证文件（完全照抄文章图片上传）
+            if (file == null || file.isEmpty()) {
+                logger.warn("上传茶叶图片失败: 文件为空");
                 return Result.failure(3120);
             }
             
-            // 验证baseUrl是否配置
-            if (baseUrl == null || baseUrl.trim().isEmpty()) {
-                logger.error("上传茶叶图片失败: baseUrl未配置");
+            // 2. 验证文件类型（完全照抄文章图片上传）
+            String contentType = file.getContentType();
+            if (contentType == null || !contentType.startsWith("image/")) {
+                logger.warn("上传茶叶图片失败: 文件类型不正确, contentType: {}", contentType);
                 return Result.failure(3120);
             }
             
-            // 2. 批量上传图片，只返回路径，不存入数据库
-            List<Map<String, Object>> uploadedImages = new ArrayList<>();
-            for (MultipartFile file : files) {
-                if (file == null || file.isEmpty()) {
-                    logger.warn("跳过空文件");
-                    continue;
-                }
-                
-                // 验证文件类型
-                String contentType = file.getContentType();
-                if (contentType == null || !contentType.startsWith("image/")) {
-                    logger.warn("上传茶叶图片失败: 文件类型不正确, contentType: {}, filename: {}", 
-                            contentType, file.getOriginalFilename());
-                    continue;
-                }
-                
-                // 验证文件大小（限制5MB）
-                if (file.getSize() > 5 * 1024 * 1024) {
-                    logger.warn("上传茶叶图片失败: 文件大小超过限制, size: {}, filename: {}", 
-                            file.getSize(), file.getOriginalFilename());
-                    continue;
-                }
-                
-                // 调用工具类上传（硬编码type为"teas"）
-                String relativePath = FileUploadUtils.uploadImage(file, "teas");
-                if (relativePath == null || relativePath.isEmpty()) {
-                    logger.error("上传茶叶图片失败: 文件上传失败, filename: {}", file.getOriginalFilename());
-                    continue;
-                }
-                
-                // 生成访问URL
-                String accessUrl = FileUploadUtils.generateAccessUrl(relativePath, baseUrl);
-                
-                // 只返回路径，不存入数据库（参考文章图片上传的返回格式）
-                Map<String, Object> imageInfo = new HashMap<>();
-                imageInfo.put("url", accessUrl); // 完整URL，用于前端预览（与文章图片上传保持一致）
-                imageInfo.put("path", relativePath); // 相对路径，用于存入数据库（与文章图片上传保持一致）
-                
-                uploadedImages.add(imageInfo);
-                
-                logger.info("茶叶图片上传成功: path: {}, url: {}", relativePath, accessUrl);
-            }
-            
-            if (uploadedImages.isEmpty()) {
-                logger.warn("上传茶叶图片失败: 没有成功上传的图片");
+            // 3. 验证文件大小（限制5MB，完全照抄文章图片上传）
+            if (file.getSize() > 5 * 1024 * 1024) {
+                logger.warn("上传茶叶图片失败: 文件大小超过限制, size: {}", file.getSize());
                 return Result.failure(3120);
             }
             
-            // 3. 返回上传的图片路径列表
-            Map<String, Object> resultData = new HashMap<>();
-            resultData.put("images", uploadedImages);
-            resultData.put("count", uploadedImages.size());
+            // 4. 上传文件（完全照抄文章图片上传）
+            String filePath = FileUploadUtils.uploadImage(file, "teas");
+            if (filePath == null || filePath.isEmpty()) {
+                logger.error("上传茶叶图片失败: 文件上传失败");
+                return Result.failure(3120);
+            }
             
-            logger.info("批量上传茶叶图片成功, 成功数量: {}", uploadedImages.size());
-            return Result.success(3014, resultData);
+            // 5. 生成访问URL（完全照抄文章图片上传）
+            String accessUrl = FileUploadUtils.generateAccessUrl(filePath, baseUrl);
+            
+            // 6. 构造返回数据（完全照抄文章图片上传的返回格式）
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("url", accessUrl);
+            responseData.put("path", filePath);
+            
+            logger.info("上传茶叶图片成功: path={}, url={}", filePath, accessUrl);
+            return Result.success(3014, responseData);
             
         } catch (Exception e) {
             logger.error("上传茶叶图片失败: 系统异常", e);

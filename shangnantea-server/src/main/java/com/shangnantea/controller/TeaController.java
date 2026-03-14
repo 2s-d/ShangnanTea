@@ -368,9 +368,9 @@ public class TeaController {
      */
     @PostMapping("/images/upload")
     @RequiresLogin
-    public Result<Object> uploadTeaImages(@RequestParam("files") MultipartFile[] files) {
-        logger.info("上传茶叶图片请求, 文件数量: {}", files.length);
-        return teaService.uploadTeaImages(files);
+    public Result<Object> uploadTeaImages(@RequestParam("file") MultipartFile file) {
+        logger.info("上传茶叶图片请求, 文件名: {}", file.getOriginalFilename());
+        return teaService.uploadTeaImages(file);
     }
 
     /**

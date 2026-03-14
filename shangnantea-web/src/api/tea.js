@@ -238,7 +238,10 @@ export function setDefaultSpecification(specId) {
  * @param {FormData} formData 包含图片文件的FormData
  * @returns {Promise} 上传结果（包含图片列表）
  */
-export function uploadTeaImages(formData) {
+export function uploadTeaImages(file) {
+  const formData = new FormData()
+  formData.append('file', file)
+  
   return request({
     url: API.TEA.IMAGES_UPLOAD,
     method: 'post',
