@@ -92,11 +92,4 @@
         WHERE post_id = #{postId}
         ORDER BY create_time ASC
     </select>
-    
-    <!-- 根据帖子ID软删除所有回复（级联删除） -->
-    <update id="deleteByPostId" parameterType="java.lang.Long">
-        UPDATE forum_replies
-        SET status = 2, update_time = now()
-        WHERE post_id = #{postId} AND status != 2
-    </update>
 </mapper> 

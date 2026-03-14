@@ -1887,16 +1887,7 @@ public class ForumServiceImpl implements ForumService {
                 return Result.failure(6124); // 帖子删除失败
             }
             
-            // 4. 级联删除关联数据：先软删除所有回复
-            try {
-                int replyDeleteCount = replyMapper.deleteByPostId(postId);
-                logger.info("删除帖子回复: postId={}, 删除数量={}", postId, replyDeleteCount);
-            } catch (Exception e) {
-                logger.error("删除帖子回复失败: postId={}", postId, e);
-                // 回复删除失败不影响主流程，记录日志即可
-            }
-            
-            // 5. 软删除：更新状态为已删除
+            // 4. 软删除：更新状态为已删除
             post.setStatus(2); // 2=已删除
             post.setUpdateTime(new Date());
             int result = postMapper.updateById(post);
@@ -1906,7 +1897,7 @@ public class ForumServiceImpl implements ForumService {
                 return Result.failure(6124); // 帖子删除失败
             }
             
-            // 6. 更新版块的帖子数
+            // 5. 更新版块的帖子数
             ForumTopic topic = topicMapper.selectById(post.getTopicId());
             if (topic != null) {
                 topic.setPostCount(Math.max(0, (topic.getPostCount() != null ? topic.getPostCount() : 0) - 1));

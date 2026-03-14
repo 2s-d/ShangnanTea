@@ -84,12 +84,4 @@ public interface TeaSpecificationMapper extends BaseMapper<TeaSpecification, Lon
      * @return 影响行数
      */
     int restoreStock(@Param("id") Integer id, @Param("quantity") Integer quantity);
-    
-    /**
-     * 根据茶叶ID删除所有规格（级联删除）
-     *
-     * @param teaId 茶叶ID
-     * @return 影响行数
-     */
-    int deleteByTeaId(String teaId);
 } 

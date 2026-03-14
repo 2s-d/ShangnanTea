@@ -156,21 +156,7 @@ public class TeaServiceImpl implements TeaService {
                 }
             }
             
-            // 5. 级联删除关联数据：先删除茶叶图片和规格
-            try {
-                // 删除茶叶图片
-                int imageDeleteCount = teaImageMapper.deleteByTeaId(id);
-                logger.info("删除茶叶图片: teaId={}, 删除数量={}", id, imageDeleteCount);
-                
-                // 删除茶叶规格
-                int specDeleteCount = teaSpecificationMapper.deleteByTeaId(id);
-                logger.info("删除茶叶规格: teaId={}, 删除数量={}", id, specDeleteCount);
-            } catch (Exception e) {
-                logger.error("删除茶叶关联数据失败: teaId={}", id, e);
-                // 关联数据删除失败不影响主流程，记录日志即可
-            }
-            
-            // 6. 执行软删除（调用TeaMapper.xml中的delete方法）
+            // 5. 执行软删除（调用TeaMapper.xml中的delete方法）
             int deleteCount = teaMapper.delete(id);
             if (deleteCount == 0) {
                 logger.warn("删除茶叶失败: 数据库删除失败, id: {}", id);
