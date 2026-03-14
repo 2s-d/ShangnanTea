@@ -919,6 +919,11 @@ const updatePagination = () => {
   :deep(.el-row) {
     align-items: flex-start;
   }
+  
+  // 确保el-col不会阻止sticky定位
+  :deep(.el-col) {
+    overflow: visible;
+  }
 }
 
 .cover-uploader {
