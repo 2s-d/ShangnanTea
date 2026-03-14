@@ -15,4 +15,11 @@ public interface ForumReplyMapper extends BaseMapper<ForumReply, Long> {
      * @return 回复列表
      */
     List<ForumReply> selectByPostId(@Param("postId") Long postId);
+    
+    /**
+     * 根据帖子ID软删除所有回复（级联删除）
+     * @param postId 帖子ID
+     * @return 影响行数
+     */
+    int deleteByPostId(@Param("postId") Long postId);
 } 
