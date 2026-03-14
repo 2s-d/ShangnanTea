@@ -189,7 +189,8 @@ const auditRules = {
 const loadData = async () => {
   try {
     loading.value = true
-    const res = await getCertificationList()
+    // 只拉取待审核的认证申请（status=0）
+    const res = await getCertificationList(0)
     if (isSuccess(res.code)) {
       const data = res.data
       certList.value = Array.isArray(data) ? data : (data?.list || [])

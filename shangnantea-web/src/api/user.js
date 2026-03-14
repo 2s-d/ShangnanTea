@@ -467,12 +467,14 @@ export function forceLogout(userId) {
 
 /**
  * 获取商家认证申请列表（仅管理员）
+ * @param {Number} status 状态筛选（0-待审核，1-已通过，2-已拒绝），可选
  * @returns {Promise} 认证申请列表
  */
-export function getCertificationList() {
+export function getCertificationList(status = null) {
   return request({
     url: API.USER.ADMIN_CERTIFICATIONS,
-    method: 'get'
+    method: 'get',
+    params: status !== null ? { status } : {}
   })
 }
 
