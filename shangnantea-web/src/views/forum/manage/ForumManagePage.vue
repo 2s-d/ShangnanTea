@@ -917,7 +917,9 @@ const handlePendingPostsCurrentChange = val => {
 
 // 查看待审核帖子详情
 const viewPendingPost = post => {
-  router.push(`/forum/detail/${post.id}`)
+  if (!post?.id) return
+  // 与个人主页 / 我的帖子保持一致的跳转方式
+  router.push(`/forum/${post.id}`)
 }
 
 // 处理审核下拉菜单命令
