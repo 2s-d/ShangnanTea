@@ -75,4 +75,12 @@ public interface ForumPostMapper extends BaseMapper<ForumPost, Long> {
      * @return 帖子数量
      */
     long countByTopicId(@Param("topicId") Integer topicId);
+    
+    /**
+     * 批量统计所有版块的帖子数量（仅统计已发布的帖子，status=1）
+     * 返回List，每个元素是包含topicId和postCount的Map
+     *
+     * @return 版块统计列表，每个Map包含topicId和postCount
+     */
+    List<java.util.Map<String, Object>> countByAllTopics();
 } 

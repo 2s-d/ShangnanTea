@@ -1069,6 +1069,18 @@ public class ForumServiceImpl implements ForumService {
             
             // 1. 使用优化的查询方法（数据库层面过滤和排序）
             List<ForumTopic> topics = topicMapper.selectByStatus(1);
+            
+            // 2. 批量统计所有版块的帖子数量（一次SQL查询，性能更好）
+            List<Map<String, Object>> postCountList = postMapper.countByAllTopics();
+            // 转换为Map，key为版块ID，value为帖子数量
+            Map<Integer, Long> postCountMap = new HashMap<>();
+            for (Map<String, Object> item : postCountList) {
+                Integer topicId = ((Number) item.get("topicId")).intValue();
+                Long postCount = ((Number) item.get("postCount")).longValue();
+                postCountMap.put(topicId, postCount);
+            }
+            
+            // 3. 转换为VO列表
             List<TopicVO> topicVOList = topics.stream()
                     .map(topic -> {
                         TopicVO vo = new TopicVO();
@@ -1088,7 +1100,9 @@ public class ForumServiceImpl implements ForumService {
                         }
                         vo.setCover(cover);
                         vo.setSortOrder(topic.getSortOrder());
-                        vo.setPostCount(topic.getPostCount() != null ? topic.getPostCount() : 0);
+                        // 从批量统计结果中获取该版块的帖子数量
+                        Long postCount = postCountMap.get(topic.getId());
+                        vo.setPostCount(postCount != null ? postCount.intValue() : 0);
                         vo.setCreateTime(topic.getCreateTime());
                         return vo;
                     })

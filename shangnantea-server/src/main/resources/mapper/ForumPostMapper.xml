@@ -169,4 +169,18 @@
         SELECT COUNT(*) FROM forum_posts
         WHERE user_id = #{userId} AND status != 2
     </select>
+    
+    <!-- 统计指定版块的帖子数量（仅统计已发布的帖子，status=1） -->
+    <select id="countByTopicId" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM forum_posts
+        WHERE topic_id = #{topicId} AND status = 1
+    </select>
+    
+    <!-- 批量统计所有版块的帖子数量（仅统计已发布的帖子，status=1） -->
+    <select id="countByAllTopics" resultType="java.util.HashMap">
+        SELECT topic_id as topicId, COUNT(*) as postCount
+        FROM forum_posts
+        WHERE status = 1 AND topic_id IS NOT NULL
+        GROUP BY topic_id
+    </select>
 </mapper> 
