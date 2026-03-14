@@ -277,6 +277,26 @@
         WHERE id = #{id,jdbcType=VARCHAR}
     </update>
     
+    <!-- 根据ID更新茶叶（BaseMapper接口要求） -->
+    <update id="updateById" parameterType="com.shangnantea.model.entity.tea.Tea">
+        UPDATE teas
+        <set>
+            <if test="name != null">name = #{name,jdbcType=VARCHAR},</if>
+            <if test="categoryId != null">category_id = #{categoryId,jdbcType=INTEGER},</if>
+            <if test="price != null">price = #{price,jdbcType=DECIMAL},</if>
+            <if test="description != null">description = #{description,jdbcType=VARCHAR},</if>
+            <if test="detail != null">detail = #{detail,jdbcType=VARCHAR},</if>
+            <if test="origin != null">origin = #{origin,jdbcType=VARCHAR},</if>
+            <if test="stock != null">stock = #{stock,jdbcType=INTEGER},</if>
+            <if test="sales != null">sales = #{sales,jdbcType=INTEGER},</if>
+            <if test="mainImage != null">main_image = #{mainImage,jdbcType=VARCHAR},</if>
+            <if test="status != null">status = #{status,jdbcType=INTEGER},</if>
+            <if test="isDeleted != null">is_deleted = #{isDeleted,jdbcType=INTEGER},</if>
+            update_time = now()
+        </set>
+        WHERE id = #{id,jdbcType=VARCHAR}
+    </update>
+    
     <!-- 更新库存和销量 -->
     <update id="updateStockAndSales">
         UPDATE teas
