@@ -375,19 +375,11 @@ public class ShopServiceImpl implements ShopService {
         try {
             logger.info("创建店铺请求, shopData: {}", shopData);
             
-            // 1. 获取用户ID（支持管理员代为创建：从shopData中获取userId，否则使用当前登录用户）
-            String userId = null;
-            if (shopData != null && shopData.containsKey("userId")) {
-                // 管理员代为创建时，从shopData中获取userId
-                userId = shopData.get("userId").toString();
-                logger.info("管理员代为创建店铺: userId: {}", userId);
-            } else {
-                // 普通商家自己创建
-                userId = UserContext.getCurrentUserId();
-                if (userId == null) {
-                    logger.warn("创建店铺失败: 用户未登录");
-                    return Result.failure(4101);
-                }
+            // 1. 获取当前登录用户ID（必须是商家本人，不允许管理员代为创建）
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("创建店铺失败: 用户未登录");
+                return Result.failure(4101);
             }
             
             // 2. 验证用户是否有商家认证
@@ -405,6 +397,10 @@ public class ShopServiceImpl implements ShopService {
             }
             
             // 4. 提取并验证店铺名称
+            if (shopData == null) {
+                logger.warn("创建店铺失败: shopData为空");
+                return Result.failure(4101);
+            }
             String shopName = shopData.get("name") != null ? shopData.get("name").toString() : null;
             if (shopName == null || shopName.trim().isEmpty()) {
                 logger.warn("创建店铺失败: 店铺名称为空");

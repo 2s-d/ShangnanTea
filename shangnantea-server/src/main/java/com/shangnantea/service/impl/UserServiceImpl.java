@@ -2604,29 +2604,44 @@ public class UserServiceImpl implements UserService {
                     logger.warn("审核通过，但用户不存在: userId: {}", certification.getUserId());
                 }
                 
-                // 7.2 调用创建店铺接口
+                // 7.2 直接创建店铺（审核通过后自动创建，不调用createShop接口）
                 try {
-                    // 构建店铺数据（从认证信息中提取）
-                    Map<String, Object> shopData = new HashMap<>();
-                    shopData.put("userId", certification.getUserId()); // 管理员代为创建，传入userId
-                    shopData.put("name", certification.getShopName());
-                    shopData.put("contactPhone", certification.getContactPhone());
-                    shopData.put("province", certification.getProvince());
-                    shopData.put("city", certification.getCity());
-                    shopData.put("district", certification.getDistrict());
-                    shopData.put("address", certification.getAddress());
-                    shopData.put("businessLicense", certification.getBusinessLicense());
-                    
-                    Result<Object> createShopResult = shopService.createShop(shopData);
-                    if (createShopResult.getCode() == 4000) {
-                        logger.info("审核通过，店铺创建成功: certificationId: {}, userId: {}, shopName: {}", 
-                            id, certification.getUserId(), certification.getShopName());
+                    // 检查是否已有店铺
+                    Shop existingShop = shopMapper.selectByUserId(certification.getUserId());
+                    if (existingShop != null) {
+                        logger.warn("用户已有店铺，跳过创建: userId: {}, shopId: {}", 
+                            certification.getUserId(), existingShop.getId());
                     } else {
-                        logger.warn("审核通过，但店铺创建失败: certificationId: {}, code: {}, message: {}", 
-                            id, createShopResult.getCode(), createShopResult.getMessage());
+                        // 创建店铺
+                        Shop shop = new Shop();
+                        shop.setId(generateShopId());
+                        shop.setOwnerId(certification.getUserId());
+                        shop.setShopName(certification.getShopName());
+                        shop.setContactPhone(certification.getContactPhone());
+                        shop.setProvince(certification.getProvince());
+                        shop.setCity(certification.getCity());
+                        shop.setDistrict(certification.getDistrict());
+                        shop.setAddress(certification.getAddress());
+                        shop.setBusinessLicense(certification.getBusinessLicense());
+                        shop.setStatus(1); // 正常状态
+                        shop.setRating(new BigDecimal("5.0")); // 默认评分
+                        shop.setRatingCount(0);
+                        shop.setSalesCount(0);
+                        
+                        Date now = new Date();
+                        shop.setCreateTime(now);
+                        shop.setUpdateTime(now);
+                        
+                        int insertResult = shopMapper.insert(shop);
+                        if (insertResult > 0) {
+                            logger.info("审核通过，店铺创建成功: certificationId: {}, shopId: {}, shopName: {}, userId: {}", 
+                                id, shop.getId(), shop.getShopName(), certification.getUserId());
+                        } else {
+                            logger.error("审核通过，但店铺创建失败: 数据库插入失败, certificationId: {}", id);
+                        }
                     }
                 } catch (Exception e) {
-                    logger.error("审核通过，调用创建店铺接口失败: certificationId: {}", id, e);
+                    logger.error("审核通过，创建店铺失败: certificationId: {}", id, e);
                     // 即使店铺创建失败，也继续执行后续通知逻辑
                 }
             }
@@ -3497,21 +3512,4 @@ public class UserServiceImpl implements UserService {
         }
     }
     
-    /**
-     * 生成店铺ID：SH + 8位数字
-     * @return 店铺ID
-     */
-    private String generateShopId() {
-        Random random = new Random();
-        StringBuilder sb = new StringBuilder("SH");
-        for (int i = 0; i < 8; i++) {
-            sb.append(random.nextInt(10));
-        }
-        String shopId = sb.toString();
-        // 检查ID是否已存在，存在则重新生成
-        if (shopMapper.selectById(shopId) != null) {
-            return generateShopId(); // 递归调用直到生成唯一ID
-        }
-        return shopId;
-    }
 }
