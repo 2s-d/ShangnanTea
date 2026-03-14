@@ -105,7 +105,7 @@
             </div>
             
             <!-- 版块导航 -->
-            <div class="sidebar topics-sidebar sticky-sidebar">
+            <div class="sidebar topics-sidebar">
               <div class="sidebar-header">
                 <h3 class="sidebar-title">版块导航</h3>
               </div>
@@ -942,8 +942,9 @@ const updatePagination = () => {
 // 侧边栏容器
 .sidebar-wrapper {
   position: sticky;
-  top: 10px;
+  top: 82px; // 导航栏高度72px + 间距10px
   align-self: flex-start;
+  z-index: 10;
 }
 
 // 侧边栏样式
@@ -968,15 +969,6 @@ const updatePagination = () => {
       color: var(--el-text-color-primary);
     }
   }
-}
-
-// 粘性定位的版块导航栏
-.sticky-sidebar {
-  position: sticky;
-  top: 10px;
-  z-index: 10;
-  // 确保在滚动到底部时能够继续向上滚动
-  align-self: flex-start;
 }
 
 // 版块导航样式
