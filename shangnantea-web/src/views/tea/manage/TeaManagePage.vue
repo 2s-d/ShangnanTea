@@ -1194,6 +1194,7 @@ defineOptions({
                 }
               }
               return {
+                id: img.id || null, // 重要：传递 id 字段，用于后端判断是更新还是新增
                 url: imagePath || img.url, // 优先使用相对路径，否则使用完整URL
                 is_main: idx === selectedIndex ? 1 : 0  // 使用数字 1/0，不是布尔值
               }
