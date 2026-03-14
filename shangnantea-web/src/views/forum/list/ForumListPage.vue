@@ -941,7 +941,9 @@ const updatePagination = () => {
 
 // 侧边栏容器
 .sidebar-wrapper {
-  position: relative;
+  position: sticky;
+  top: 10px;
+  align-self: flex-start;
 }
 
 // 侧边栏样式
@@ -950,7 +952,7 @@ const updatePagination = () => {
   border-radius: 8px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
   margin-bottom: 20px;
-  overflow: hidden;
+  // overflow: hidden; // 移除，以支持sticky定位
   
   .sidebar-header {
     padding: 15px;
