@@ -9,131 +9,132 @@
     </div>
 
     <div class="container main-content">
-      <div class="forum-layout">
-        <el-row :gutter="20">
-          <!-- 左侧帖子列表 -->
-          <el-col :xs="24" :sm="18" :md="16" :lg="17">
-            <div class="main-posts">
-              <!-- 搜索框、排序、刷新和发帖按钮 -->
-              <div class="posts-header">
-                <div class="search-section">
-                  <el-input
-                    v-model="searchKeyword"
-                    placeholder="搜索帖子标题或内容..."
-                    clearable
-                    @keyup.enter="handleSearch"
-                    @clear="handleSearch"
-                    class="search-input"
-                  >
-                    <template #prefix>
-                      <el-icon><Search /></el-icon>
-                    </template>
-                    <template #append>
-                      <el-button @click="handleSearch">搜索</el-button>
-                    </template>
-                  </el-input>
-                </div>
-                <div class="header-actions">
-                  <el-dropdown trigger="click" @command="handleSortChange">
-                    <span class="sort-dropdown">
-                      {{ sortOptions[currentSort] || '最新发布' }} <el-icon><ArrowDown /></el-icon>
-                    </span>
-                    <template #dropdown>
-                      <el-dropdown-menu>
-                        <el-dropdown-item v-for="(label, value) in sortOptions" :key="value" :command="value">
-                          {{ label }}
-                        </el-dropdown-item>
-                      </el-dropdown-menu>
-                    </template>
-                  </el-dropdown>
-                  
-                  <el-button type="primary" plain size="small" @click="refreshPosts" :loading="loading">
-                    <el-icon><Refresh /></el-icon> 刷新
-                  </el-button>
-                  
-                  <el-button type="primary" size="small" @click="showPostDialog">
-                    <el-icon><EditPen /></el-icon> 发表新帖
-                  </el-button>
-                </div>
+      <el-row :gutter="20">
+        <!-- 左侧帖子列表 -->
+        <el-col :xs="24" :sm="18" :md="16" :lg="17">
+          <div class="main-posts">
+            <!-- 搜索框、排序、刷新和发帖按钮 -->
+            <div class="posts-header">
+              <div class="search-section">
+                <el-input
+                  v-model="searchKeyword"
+                  placeholder="搜索帖子标题或内容..."
+                  clearable
+                  @keyup.enter="handleSearch"
+                  @clear="handleSearch"
+                  class="search-input"
+                >
+                  <template #prefix>
+                    <el-icon><Search /></el-icon>
+                  </template>
+                  <template #append>
+                    <el-button @click="handleSearch">搜索</el-button>
+                  </template>
+                </el-input>
+              </div>
+              <div class="header-actions">
+                <el-dropdown trigger="click" @command="handleSortChange">
+                  <span class="sort-dropdown">
+                    {{ sortOptions[currentSort] || '最新发布' }} <el-icon><ArrowDown /></el-icon>
+                  </span>
+                  <template #dropdown>
+                    <el-dropdown-menu>
+                      <el-dropdown-item v-for="(label, value) in sortOptions" :key="value" :command="value">
+                        {{ label }}
+                      </el-dropdown-item>
+                    </el-dropdown-menu>
+                  </template>
+                </el-dropdown>
+                
+                <el-button type="primary" plain size="small" @click="refreshPosts" :loading="loading">
+                  <el-icon><Refresh /></el-icon> 刷新
+                </el-button>
+                
+                <el-button type="primary" size="small" @click="showPostDialog">
+                  <el-icon><EditPen /></el-icon> 发表新帖
+                </el-button>
+              </div>
+            </div>
+            
+            <!-- 帖子卡片列表 -->
+            <div class="posts-container">
+              <post-card 
+                v-for="post in postList" 
+                :key="post.id" 
+                :post="post"
+                @reply="handleReply" 
+                @like="handleLike"
+                @favorite="handleFavorite"
+              />
+              
+              <!-- 分页 -->
+              <div class="pagination-container" v-if="postList.length > 0">
+                <el-pagination
+                  v-model:current-page="pagination.currentPage"
+                  v-model:page-size="pagination.pageSize"
+                  :page-sizes="[10, 20, 30, 50]"
+                  layout="total, sizes, prev, pager, next, jumper"
+                  :total="pagination.total"
+                  @size-change="handleSizeChange"
+                  @current-change="handleCurrentChange"
+                />
               </div>
               
-              <!-- 帖子卡片列表 -->
-              <div class="posts-container">
-                <post-card 
-                  v-for="post in postList" 
-                  :key="post.id" 
-                  :post="post"
-                  @reply="handleReply" 
-                  @like="handleLike"
-                  @favorite="handleFavorite"
-                />
-                
-                <!-- 分页 -->
-                <div class="pagination-container" v-if="postList.length > 0">
-                  <el-pagination
-                    v-model:current-page="pagination.currentPage"
-                    v-model:page-size="pagination.pageSize"
-                    :page-sizes="[10, 20, 30, 50]"
-                    layout="total, sizes, prev, pager, next, jumper"
-                    :total="pagination.total"
-                    @size-change="handleSizeChange"
-                    @current-change="handleCurrentChange"
-                  />
+              <!-- 无数据提示 -->
+              <el-empty v-if="postList.length === 0" description="暂无帖子数据" />
+            </div>
+          </div>
+        </el-col>
+        
+        <!-- 右侧用户信息和版块导航 -->
+        <el-col :xs="24" :sm="6" :md="8" :lg="7">
+          <div class="sidebar-wrapper">
+            <!-- 简化的用户信息卡片 -->
+            <div class="sidebar user-sidebar">
+              <div class="user-info-card">
+                <div class="user-info" @click="goToMyPosts">
+                  <div class="avatar">
+                    <SafeImage :src="currentUser.avatar" type="avatar" :alt="getDisplayName(currentUser)" style="width:50px;height:50px;border-radius:50%;object-fit:cover;" />
+                  </div>
+                  <div class="info">
+                    <div class="name">{{ getDisplayName(currentUser) }}</div>
+                    <div class="my-posts-link">我的帖子</div>
+                  </div>
                 </div>
-                
-                <!-- 无数据提示 -->
-                <el-empty v-if="postList.length === 0" description="暂无帖子数据" />
               </div>
             </div>
-          </el-col>
-          <!-- 右侧用户信息和版块导航 -->
-          <el-col :xs="24" :sm="6" :md="8" :lg="7">
-            <div class="sidebar-wrapper">
-          <!-- 简化的用户信息卡片 -->
-          <div class="sidebar user-sidebar">
-            <div class="user-info-card">
-              <div class="user-info" @click="goToMyPosts">
-                <div class="avatar">
-                  <SafeImage :src="currentUser.avatar" type="avatar" :alt="getDisplayName(currentUser)" style="width:50px;height:50px;border-radius:50%;object-fit:cover;" />
+            
+            <!-- 版块导航 -->
+            <div class="sidebar topics-sidebar sticky-sidebar">
+              <div class="sidebar-header">
+                <h3 class="sidebar-title">版块导航</h3>
+              </div>
+              <div class="topic-list">
+                <div 
+                  class="topic-item" 
+                  :class="{ active: currentTopicId === 'all' }" 
+                  @click="switchTopic('all')"
+                >
+                  <el-icon><Grid /></el-icon>
+                  <span>全部帖子</span>
+                  <span class="count">{{ pagination.total || 0 }}</span>
                 </div>
-                <div class="info">
-                  <div class="name">{{ getDisplayName(currentUser) }}</div>
-                  <div class="my-posts-link">我的帖子</div>
+                <div 
+                  v-for="topic in topicList" 
+                  :key="topic.id" 
+                  class="topic-item" 
+                  :class="{ active: currentTopicId === topic.id }"
+                  @click="switchTopic(topic.id)"
+                >
+                  <SafeImage :src="topic.icon" type="banner" :alt="topic.name" class="topic-icon" style="width:16px;height:16px;margin-right:6px;" />
+                  <span>{{ topic.name }}</span>
+                  <span class="count">{{ topic.postCount || 0 }}</span>
                 </div>
               </div>
             </div>
           </div>
-          
-          <!-- 版块导航 -->
-          <div class="sidebar topics-sidebar">
-            <div class="sidebar-header">
-              <h3 class="sidebar-title">版块导航</h3>
-            </div>
-            <div class="topic-list">
-              <div 
-                class="topic-item" 
-                :class="{ active: currentTopicId === 'all' }" 
-                @click="switchTopic('all')"
-              >
-                <el-icon><Grid /></el-icon>
-                <span>全部帖子</span>
-                <span class="count">{{ pagination.total || 0 }}</span>
-              </div>
-              <div 
-                v-for="topic in topicList" 
-                :key="topic.id" 
-                class="topic-item" 
-                :class="{ active: currentTopicId === topic.id }"
-                @click="switchTopic(topic.id)"
-              >
-                <SafeImage :src="topic.icon" type="banner" :alt="topic.name" class="topic-icon" style="width:16px;height:16px;margin-right:6px;" />
-                <span>{{ topic.name }}</span>
-                <span class="count">{{ topic.postCount || 0 }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+        </el-col>
+      </el-row>
       
       <!-- 新建帖子对话框（复用统一编辑组件） -->
       <PostEditorDialog
@@ -896,9 +897,6 @@ const updatePagination = () => {
   padding: 30px 0;
   margin-bottom: 20px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  position: sticky;
-  top: 72px; // 导航栏高度
-  z-index: 10;
   
   .page-title {
     font-size: 28px;
@@ -916,19 +914,10 @@ const updatePagination = () => {
 
 .main-content {
   margin-bottom: 40px;
-}
-
-// 论坛布局容器（flex布局，包住 el-row 和 sidebar-wrapper）
-.forum-layout {
-  display: flex;
-  gap: 20px;
-  align-items: flex-start;
   
-  // el-row 占据剩余空间
+  // 确保右侧栏的父容器有足够高度，使sticky定位正常工作
   :deep(.el-row) {
-    flex: 1;
-    min-width: 0; // 防止flex子元素溢出
-    margin: 0; // 移除 el-row 的默认 margin
+    align-items: flex-start;
   }
 }
 
@@ -952,12 +941,7 @@ const updatePagination = () => {
 
 // 侧边栏容器
 .sidebar-wrapper {
-  width: 300px; // 固定宽度
-  flex-shrink: 0; // 防止被压缩
-  position: sticky;
-  top: 163px; // 导航栏72px + 页面头部约91px（和茶叶列表页面一样）
-  align-self: flex-start;
-  z-index: 10;
+  position: relative;
 }
 
 // 侧边栏样式
@@ -966,7 +950,7 @@ const updatePagination = () => {
   border-radius: 8px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
   margin-bottom: 20px;
-  // overflow: hidden; // 移除，以支持sticky定位
+  overflow: hidden;
   
   .sidebar-header {
     padding: 15px;
@@ -982,6 +966,15 @@ const updatePagination = () => {
       color: var(--el-text-color-primary);
     }
   }
+}
+
+// 粘性定位的版块导航栏
+.sticky-sidebar {
+  position: sticky;
+  top: 10px;
+  z-index: 10;
+  // 确保在滚动到底部时能够继续向上滚动
+  align-self: flex-start;
 }
 
 // 版块导航样式
