@@ -439,36 +439,59 @@ public class TeaServiceImpl implements TeaService {
                 tea.setOrigin(teaData.get("origin").toString());
             }
             
-            // 6. 处理图片：取第一张作为主图
+            // 6. 处理图片：根据 is_main 字段选择主图
             // 前端传入的 images 可能是：
-            // - List<String> 直接是URL列表
-            // - List<Map> 形如 { id, url, is_main } 的对象列表
+            // - List<String> 直接是URL列表（兼容旧格式，取第一张）
+            // - List<Map> 形如 { url, is_main } 的对象列表（新格式，根据 is_main 选择）
             Object imagesObj = teaData.get("images");
+            String mainImageUrl = null;
             if (imagesObj instanceof List) {
                 @SuppressWarnings("rawtypes")
                 List rawImages = (List) imagesObj;
-                String mainImageUrl = null;
+                // 先查找 is_main = 1 的图片
                 for (Object item : rawImages) {
                     if (item == null) {
                         continue;
                     }
                     String url = null;
+                    Integer isMain = 0;
                     if (item instanceof String) {
+                        // 旧格式：直接是URL字符串，取第一张
                         url = ((String) item).trim();
+                        if (mainImageUrl == null && !url.isEmpty()) {
+                            mainImageUrl = url;
+                        }
                     } else if (item instanceof java.util.Map) {
+                        // 新格式：Map对象，包含 url 和 is_main
                         @SuppressWarnings("rawtypes")
                         java.util.Map map = (java.util.Map) item;
                         Object urlObj = map.get("url");
                         if (urlObj != null) {
                             url = urlObj.toString().trim();
                         }
-                    }
-                    // 只接受有效的URL路径
-                    if (url != null && !url.isEmpty()) {
-                        mainImageUrl = url;
-                        break;
+                        // 检查 is_main 字段（可能是数字1/0或布尔值）
+                        Object isMainObj = map.get("is_main");
+                        if (isMainObj != null) {
+                            if (isMainObj instanceof Boolean) {
+                                isMain = ((Boolean) isMainObj) ? 1 : 0;
+                            } else if (isMainObj instanceof Number) {
+                                isMain = ((Number) isMainObj).intValue();
+                            } else if (isMainObj instanceof String) {
+                                isMain = "1".equals(isMainObj.toString()) || "true".equalsIgnoreCase(isMainObj.toString()) ? 1 : 0;
+                            }
+                        }
+                        // 如果这是主图，设置为主图URL
+                        if (isMain == 1 && url != null && !url.isEmpty()) {
+                            mainImageUrl = url;
+                            break; // 找到主图就退出
+                        }
+                        // 如果没有找到主图，取第一张有效的图片
+                        if (mainImageUrl == null && url != null && !url.isEmpty()) {
+                            mainImageUrl = url;
+                        }
                     }
                 }
+                // 设置主图
                 if (mainImageUrl != null && !mainImageUrl.isEmpty()) {
                     tea.setMainImage(mainImageUrl);
                 }
@@ -846,9 +869,60 @@ public class TeaServiceImpl implements TeaService {
             if (teaData.get("origin") != null) {
                 tea.setOrigin(teaData.get("origin").toString());
             }
+            // 6.1 处理主图：根据 images 数组中的 is_main 字段选择主图（与 addTea 逻辑一致）
+            String mainImageUrl = null;
             if (teaData.get("mainImage") != null) {
-                tea.setMainImage(teaData.get("mainImage").toString());
+                mainImageUrl = teaData.get("mainImage").toString();
+                tea.setMainImage(mainImageUrl);
+            } else {
+                // 如果没有直接传 mainImage，从 images 数组中根据 is_main 选择
+                Object imagesObj = teaData.get("images");
+                if (imagesObj instanceof List) {
+                    @SuppressWarnings("rawtypes")
+                    List rawImages = (List) imagesObj;
+                    for (Object item : rawImages) {
+                        if (item == null) {
+                            continue;
+                        }
+                        String url = null;
+                        Integer isMain = 0;
+                        if (item instanceof String) {
+                            url = ((String) item).trim();
+                            if (mainImageUrl == null && !url.isEmpty()) {
+                                mainImageUrl = url;
+                            }
+                        } else if (item instanceof java.util.Map) {
+                            @SuppressWarnings("rawtypes")
+                            java.util.Map map = (java.util.Map) item;
+                            Object urlObj = map.get("url");
+                            if (urlObj != null) {
+                                url = urlObj.toString().trim();
+                            }
+                            Object isMainObj = map.get("is_main");
+                            if (isMainObj != null) {
+                                if (isMainObj instanceof Boolean) {
+                                    isMain = ((Boolean) isMainObj) ? 1 : 0;
+                                } else if (isMainObj instanceof Number) {
+                                    isMain = ((Number) isMainObj).intValue();
+                                } else if (isMainObj instanceof String) {
+                                    isMain = "1".equals(isMainObj.toString()) || "true".equalsIgnoreCase(isMainObj.toString()) ? 1 : 0;
+                                }
+                            }
+                            if (isMain == 1 && url != null && !url.isEmpty()) {
+                                mainImageUrl = url;
+                                break;
+                            }
+                            if (mainImageUrl == null && url != null && !url.isEmpty()) {
+                                mainImageUrl = url;
+                            }
+                        }
+                    }
+                    if (mainImageUrl != null && !mainImageUrl.isEmpty()) {
+                        tea.setMainImage(mainImageUrl);
+                    }
+                }
             }
+            
             if (teaData.get("status") != null) {
                 tea.setStatus(Integer.valueOf(teaData.get("status").toString()));
             }

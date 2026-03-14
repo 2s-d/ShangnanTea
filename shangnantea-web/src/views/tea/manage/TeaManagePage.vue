@@ -871,8 +871,28 @@ defineOptions({
       }
       
       // 设置主图索引（基于 validImages）
-      const mainImageIdx = validImages.value.findIndex(img => img.is_main)
+      // 检查 is_main 字段（可能是布尔值、数字1/0，或者 isMain）
+      const mainImageIdx = validImages.value.findIndex(img => {
+        return img.is_main === 1 || img.is_main === true || 
+               img.isMain === 1 || img.isMain === true ||
+               (img.is_main !== undefined && img.is_main !== 0 && img.is_main !== false)
+      })
       mainImageIndex.value = mainImageIdx >= 0 ? mainImageIdx : 0
+      
+      // 调试日志
+      if (process.env.NODE_ENV === 'development') {
+        console.log('编辑时设置主图索引:', {
+          validImagesCount: validImages.value.length,
+          mainImageIdx,
+          mainImageIndex: mainImageIndex.value,
+          images: validImages.value.map((img, idx) => ({ 
+            idx, 
+            is_main: img.is_main, 
+            isMain: img.isMain,
+            url: img.url 
+          }))
+        })
+      }
       
       // 设置上架状态
       teaStatus.value = tea.status
@@ -1079,14 +1099,39 @@ defineOptions({
           
           // 设置图片路径：选择图片后已立即上传获取路径，这里直接使用path（相对路径）存入数据库
           if (validImages.value.length > 0) {
-            // mainImageIndex 是基于 validImages 的索引
-            const mainImg = validImages.value[mainImageIndex.value] || validImages.value[0]
+            // mainImageIndex 是基于 validImages 的索引，确保索引有效
+            const selectedIndex = mainImageIndex.value >= 0 && mainImageIndex.value < validImages.value.length 
+              ? mainImageIndex.value 
+              : 0
+            const mainImg = validImages.value[selectedIndex]
+            
+            if (!mainImg || !mainImg.path) {
+              ElMessage.error('主图路径不存在，请重新选择主图')
+              submitting.value = false
+              return
+            }
+            
             formData.mainImage = mainImg.path
             
+            // 设置图片列表，根据选择的索引设置 is_main
             formData.images = validImages.value.map((img, idx) => ({
               url: img.path,
-              is_main: idx === mainImageIndex.value
+              is_main: idx === selectedIndex ? 1 : 0  // 使用数字 1/0，不是布尔值
             }))
+            
+            // 调试日志
+            if (process.env.NODE_ENV === 'development') {
+              console.log('保存主图设置:', {
+                mainImageIndex: mainImageIndex.value,
+                selectedIndex,
+                mainImagePath: formData.mainImage,
+                images: formData.images.map((img, idx) => ({ 
+                  url: img.url, 
+                  is_main: img.is_main,
+                  index: idx 
+                }))
+              })
+            }
           }
           
           // 计算总库存
