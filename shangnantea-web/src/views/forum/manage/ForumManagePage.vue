@@ -958,8 +958,8 @@ const confirmReject = async () => {
         const res = await forumStore.rejectPost(
           currentAuditPost.value.id,
           {
-            reason: rejectForm.value.reason,
-            comment: rejectForm.value.comment
+            selectedReason: rejectForm.value.reason,
+            customReason: rejectForm.value.comment
           }
         )
         showByCode(res.code)
