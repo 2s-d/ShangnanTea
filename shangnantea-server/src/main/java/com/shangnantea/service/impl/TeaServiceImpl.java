@@ -591,7 +591,7 @@ public class TeaServiceImpl implements TeaService {
             try {
                 List<TeaImage> imageEntities = new ArrayList<>();
                 Date imgNow = now;
-                String mainImageUrl = tea.getMainImage();
+                String finalMainImageUrl = tea.getMainImage(); // 使用不同的变量名避免重复声明
                 
                 Object imagesObjForTable = teaData.get("images");
                 if (imagesObjForTable instanceof List && !((List<?>) imagesObjForTable).isEmpty()) {
@@ -619,7 +619,7 @@ public class TeaServiceImpl implements TeaService {
                         img.setUrl(url);
                         img.setSortOrder(order++);
                         // 与主表mainImage对齐：如果等于主图URL，则标记为主图；否则0
-                        img.setIsMain((mainImageUrl != null && !mainImageUrl.isEmpty() && mainImageUrl.equals(url)) ? 1 : 0);
+                        img.setIsMain((finalMainImageUrl != null && !finalMainImageUrl.isEmpty() && finalMainImageUrl.equals(url)) ? 1 : 0);
                         img.setCreateTime(imgNow);
                         imageEntities.add(img);
                     }
