@@ -802,8 +802,8 @@ public class TeaServiceImpl implements TeaService {
                 return Result.failure(3103);
             }
             
-            // 4. 权限验证：编辑茶叶时只需要验证用户登录和基本权限
-            // 注意：店铺归属在创建时已确定，编辑时不会改变，前端已过滤显示，这里只做基本验证
+            // 4. 权限验证：必须验证用户是否有权限编辑此茶叶
+            // 安全原则：后端必须做权限验证，不能仅依赖前端过滤
             String currentUserId = UserContext.getCurrentUserId();
             if (currentUserId == null) {
                 logger.warn("更新茶叶失败: 用户未登录");
@@ -814,24 +814,24 @@ public class TeaServiceImpl implements TeaService {
             Integer userRole = UserContext.getCurrentUserRole();
             boolean isAdmin = userRole != null && userRole == 1;
             
-            // 平台直售：只有管理员可以编辑
+            // 平台直售：只有管理员可以编辑（PLATFORM不在shops表中，不需要查询店铺）
             if ("PLATFORM".equalsIgnoreCase(shopId) || "0".equals(shopId)) {
                 if (!isAdmin) {
                     logger.warn("更新茶叶失败: 非管理员无权更新平台直售茶叶, userId: {}", currentUserId);
                     return Result.failure(3103);
                 }
             } else {
-                // 商家店铺：前端已过滤，只显示当前用户的店铺茶叶，这里只验证登录即可
-                // 如果担心安全问题，可以验证店铺owner，但通常前端已过滤，这里简化处理
-                // 管理员也可以编辑商家店铺的茶叶（如果需要的话）
-                if (!isAdmin) {
-                    // 非管理员编辑商家店铺茶叶时，验证是否为店主（可选，前端已过滤）
-                    Shop shop = shopMapper.selectById(shopId);
-                    if (shop != null && !currentUserId.equals(shop.getOwnerId())) {
-                        logger.warn("更新茶叶失败: 无权限更新此茶叶, userId: {}, shopOwnerId: {}", 
-                            currentUserId, shop.getOwnerId());
-                        return Result.failure(3103);
-                    }
+                // 商家店铺：必须验证店铺存在，然后验证权限
+                Shop shop = shopMapper.selectById(shopId);
+                if (shop == null) {
+                    logger.warn("更新茶叶失败: 店铺不存在, shopId: {}", shopId);
+                    return Result.failure(3103);
+                }
+                // 管理员可以编辑所有店铺的茶叶，非管理员必须是店主
+                if (!isAdmin && !currentUserId.equals(shop.getOwnerId())) {
+                    logger.warn("更新茶叶失败: 无权限更新此茶叶, userId: {}, shopOwnerId: {}", 
+                        currentUserId, shop.getOwnerId());
+                    return Result.failure(3103);
                 }
             }
             
@@ -2127,7 +2127,7 @@ public class TeaServiceImpl implements TeaService {
                 return Result.failure(3117);
             }
             
-            // 3. 权限验证：编辑规格时只需要验证用户登录和基本权限
+            // 3. 权限验证：必须验证用户是否有权限编辑此茶叶的规格
             String currentUserId = UserContext.getCurrentUserId();
             if (currentUserId == null) {
                 logger.warn("更新茶叶规格失败: 用户未登录");
@@ -2144,21 +2144,24 @@ public class TeaServiceImpl implements TeaService {
             Integer userRole = UserContext.getCurrentUserRole();
             boolean isAdmin = userRole != null && userRole == 1;
             
-            // 平台直售：只有管理员可以编辑
+            // 平台直售：只有管理员可以编辑（PLATFORM不在shops表中，不需要查询店铺）
             if ("PLATFORM".equalsIgnoreCase(shopId) || "0".equals(shopId)) {
                 if (!isAdmin) {
                     logger.warn("更新茶叶规格失败: 非管理员无权更新平台直售茶叶规格, userId: {}", currentUserId);
                     return Result.failure(3117);
                 }
             } else {
-                // 商家店铺：前端已过滤，只验证登录即可（管理员也可以编辑）
-                if (!isAdmin) {
-                    Shop shop = shopMapper.selectById(shopId);
-                    if (shop != null && !currentUserId.equals(shop.getOwnerId())) {
-                        logger.warn("更新茶叶规格失败: 无权限更新规格, userId: {}, shopOwnerId: {}", 
-                                currentUserId, shop.getOwnerId());
-                        return Result.failure(3117);
-                    }
+                // 商家店铺：必须验证店铺存在，然后验证权限
+                Shop shop = shopMapper.selectById(shopId);
+                if (shop == null) {
+                    logger.warn("更新茶叶规格失败: 店铺不存在, shopId: {}", shopId);
+                    return Result.failure(3117);
+                }
+                // 管理员可以编辑所有店铺的茶叶规格，非管理员必须是店主
+                if (!isAdmin && !currentUserId.equals(shop.getOwnerId())) {
+                    logger.warn("更新茶叶规格失败: 无权限更新规格, userId: {}, shopOwnerId: {}", 
+                            currentUserId, shop.getOwnerId());
+                    return Result.failure(3117);
                 }
             }
             
