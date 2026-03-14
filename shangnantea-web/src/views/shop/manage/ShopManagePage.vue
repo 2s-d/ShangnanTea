@@ -1998,6 +1998,24 @@ defineOptions({
         margin-bottom: 10px;
       }
     }
+    
+    .image-uploader {
+      :deep(.el-upload--picture-card) {
+        width: 120px;
+        height: 120px;
+        line-height: 120px;
+      }
+      
+      :deep(.el-upload-list--picture-card .el-upload-list__item) {
+        width: 120px;
+        height: 120px;
+      }
+    }
+    
+    .main-image-option {
+      display: flex;
+      align-items: center;
+    }
   }
 }
 
