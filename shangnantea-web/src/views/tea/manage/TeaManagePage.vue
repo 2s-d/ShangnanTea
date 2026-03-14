@@ -824,40 +824,40 @@ defineOptions({
       
       // 任务组C：加载规格列表（如果详情接口没有返回规格，则单独加载）
       if (!currentTea.value.specifications || currentTea.value.specifications.length === 0) {
-        try {
-          await teaStore.fetchTeaSpecifications(tea.id)
-          // 如果Pinia中有规格数据，使用Pinia的数据
-          const specs = teaStore.currentTeaSpecs
-          if (specs && specs.length > 0) {
-            currentTea.value.specifications = specs.map(spec => ({
-              id: spec.id,
-              specName: spec.specName,
-              price: spec.price,
-              stock: spec.stock,
-              isDefault: spec.isDefault === 1 || spec.isDefault === true ? 1 : 0
-            }))
-          }
-        } catch (error) {
-          // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
-          if (process.env.NODE_ENV === 'development') {
-            console.error('加载规格列表失败:', error)
-          }
+      try {
+        await teaStore.fetchTeaSpecifications(tea.id)
+        // 如果Pinia中有规格数据，使用Pinia的数据
+        const specs = teaStore.currentTeaSpecs
+        if (specs && specs.length > 0) {
+          currentTea.value.specifications = specs.map(spec => ({
+            id: spec.id,
+            specName: spec.specName,
+            price: spec.price,
+            stock: spec.stock,
+            isDefault: spec.isDefault === 1 || spec.isDefault === true ? 1 : 0
+          }))
+        }
+      } catch (error) {
+        // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
+        if (process.env.NODE_ENV === 'development') {
+          console.error('加载规格列表失败:', error)
+        }
           // 如果加载失败，使用tea中的规格数据或创建默认规格
-          if (!currentTea.value.specifications || currentTea.value.specifications.length === 0) {
-            currentTea.value.specifications = [{
-              id: Date.now(),
-              specName: '默认规格',
-              price: tea.price || 0,
-              stock: tea.stock || 0,
-              isDefault: 1
-            }]
+        if (!currentTea.value.specifications || currentTea.value.specifications.length === 0) {
+          currentTea.value.specifications = [{
+            id: Date.now(),
+            specName: '默认规格',
+            price: tea.price || 0,
+            stock: tea.stock || 0,
+            isDefault: 1
+          }]
           }
         }
       }
       
       // 任务组D：设置图片列表（如果详情接口没有返回图片，则使用列表数据）
       if (!teaImages.value || teaImages.value.length === 0) {
-        if (tea.images && tea.images.length > 0) {
+      if (tea.images && tea.images.length > 0) {
           teaImages.value = tea.images.map(img => {
             // 从完整URL中提取相对路径（用于保存时使用）
             let path = img.url
@@ -882,18 +882,18 @@ defineOptions({
               }
             }
             return {
-              name: img.url?.split('/').pop() || 'image',
+          name: img.url?.split('/').pop() || 'image',
               url: img.url, // 完整URL用于预览
               path: path,   // 相对路径用于保存
               is_main: img.is_main === 1 || img.is_main === true || img.isMain === 1 || img.isMain === true,
-              uid: img.id,
+          uid: img.id,
               id: img.id,
               status: 'success' // 编辑时加载的图片视为已成功上传
             }
           })
-        } else {
-          teaImages.value = []
-        }
+      } else {
+        teaImages.value = []
+      }
       }
       
       // 设置主图索引（基于 validImages）
@@ -1207,10 +1207,10 @@ defineOptions({
                 selectedIndex,
                 mainImagePath: formData.mainImage,
                 images: formData.images.map((img, idx) => ({ 
-                  url: img.url, 
+              url: img.url,
                   is_main: img.is_main,
                   index: idx 
-                }))
+            }))
               })
             }
           }

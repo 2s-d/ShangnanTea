@@ -410,8 +410,8 @@
             
             <el-table-column label="操作" width="100">
               <template #default="scope">
-                <el-button
-                  type="danger"
+                <el-button 
+                  type="danger" 
                   link
                   :disabled="currentTea.specifications.length <= 1"
                   @click="removeSpec(scope.$index)"
@@ -609,7 +609,7 @@ defineOptions({
           }, 
           trigger: 'change' 
         }
-      ]
+    ]
     }
     
     // 任务组0：使用Pinia加载店铺信息
@@ -1022,15 +1022,15 @@ defineOptions({
         // 校验图片
         if (teaImages.value.length === 0) {
           teaPromptMessages.showImageRequired()
-          return
-        }
+        return
+      }
+      
+      submitting.value = true
         
-        submitting.value = true
-        
-        try {
+      try {
           // 准备数据
           const formData = {
-            ...currentTea.value,
+          ...currentTea.value,
             status: teaStatus.value,
             categoryId: parseInt(currentTea.value.categoryId),
             // 店铺茶叶：使用当前店铺ID
@@ -1140,38 +1140,38 @@ defineOptions({
           }
           
           // 调用店铺相关的API保存茶叶
-          if (isEdit.value) {
-            const response = await shopStore.updateShopTea({
-              teaId: currentTea.value.id,
+        if (isEdit.value) {
+          const response = await shopStore.updateShopTea({
+            teaId: currentTea.value.id,
               teaData: formData
-            })
+          })
             
-            showByCode(response.code)
-          } else {
+          showByCode(response.code)
+        } else {
             // 新增茶叶：店铺茶叶使用当前店铺ID
             formData.shopId = shop.value.id
             
             const result = await shopStore.addShopTea({
-              shopId: shop.value.id,
+            shopId: shop.value.id,
               teaData: formData
-            })
+          })
             
             showByCode(result.code)
-          }
-          
-          // 关闭对话框
-          dialogVisible.value = false
+        }
+        
+        // 关闭对话框
+        dialogVisible.value = false
           submitting.value = false
           
-          // 重新加载列表
-          await loadShopTeas()
-        } catch (error) {
+        // 重新加载列表
+        await loadShopTeas()
+      } catch (error) {
           // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
           if (process.env.NODE_ENV === 'development') {
-            console.error('保存茶叶失败:', error)
+        console.error('保存茶叶失败:', error)
           }
-          submitting.value = false
-        }
+        submitting.value = false
+      }
       })
     }
     
@@ -1623,9 +1623,9 @@ defineOptions({
       await loadShopInfo()
       // 加载店铺茶叶列表
       await loadShopTeas()
-      loadBanners()
-      loadAnnouncements()
-      loadStatistics()
+        loadBanners()
+        loadAnnouncements()
+        loadStatistics()
     })
 </script>
 
