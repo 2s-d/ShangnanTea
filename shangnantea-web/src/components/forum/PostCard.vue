@@ -61,12 +61,14 @@
           <el-icon><ChatDotRound /></el-icon>
           <span>{{ post.replyCount || 0 }}</span>
         </div>
+        <!-- 收藏：使用星星图标 -->
         <div class="action-item" :class="{ 'favorited': post.isFavorited }" @click.stop="handleFavorite">
-          <el-icon><Collection v-if="!post.isFavorited" /><CollectionTag v-else /></el-icon>
+          <el-icon><Star v-if="!post.isFavorited" /><StarFilled v-else /></el-icon>
           <span>{{ post.favoriteCount || 0 }}</span>
         </div>
+        <!-- 点赞：使用拇指（emoji） -->
         <div class="action-item" :class="{ 'liked': post.isLiked }" @click.stop="handleLike">
-          <el-icon><Star v-if="!post.isLiked" /><StarFilled v-else /></el-icon>
+          <span class="thumb-icon">👍</span>
           <span>{{ post.likeCount || 0 }}</span>
         </div>
       </div>
@@ -85,7 +87,7 @@
 <script>
 import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { View, ChatDotRound, Star, StarFilled, Collection, CollectionTag, Male, Female, Delete, Edit } from '@element-plus/icons-vue'
+import { View, ChatDotRound, Star, StarFilled, Male, Female, Delete, Edit } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 
 export default {
@@ -95,8 +97,6 @@ export default {
     ChatDotRound,
     Star,
     StarFilled,
-    Collection,
-    CollectionTag,
     Male,
     Female,
     Delete,
@@ -405,6 +405,12 @@ export default {
         
         .el-icon {
           margin-right: 4px;
+        }
+        
+        .thumb-icon {
+          margin-right: 4px;
+          font-size: 15px;
+          line-height: 1;
         }
       }
     }
