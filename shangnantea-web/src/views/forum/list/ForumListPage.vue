@@ -88,7 +88,7 @@
         
         <!-- 右侧用户信息和版块导航 -->
         <el-col :xs="24" :sm="6" :md="8" :lg="7">
-          <div class="sidebar-wrapper">
+          <div class="sidebar-wrapper" :style="{ top: sidebarTop }">
             <!-- 简化的用户信息卡片 -->
             <div class="sidebar user-sidebar">
               <div class="user-info-card">
@@ -166,7 +166,7 @@
 
 <script setup>
 /* eslint-disable vue/no-ref-as-operand */
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted, computed, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useForumStore } from '@/stores/forum'
 import { useUserStore } from '@/stores/user'
@@ -866,6 +866,34 @@ const updatePagination = () => {
       router.push('/tea-culture')
     }
     
+    // 侧边栏固定定位的top值（动态计算）
+    const sidebarTop = ref('82px')
+    
+    // 动态计算侧边栏的top值（基于页面头部的位置）
+    const updateSidebarTop = () => {
+      const pageHeader = document.querySelector('.page-header')
+      if (pageHeader) {
+        const headerRect = pageHeader.getBoundingClientRect()
+        const headerBottom = headerRect.bottom
+        // 侧边栏应该在页面头部下方10px
+        sidebarTop.value = `${headerBottom + 10}px`
+      } else {
+        // 如果找不到页面头部，使用默认值（导航栏72px + 间距10px）
+        sidebarTop.value = '82px'
+      }
+    }
+    
+    // 滚动事件处理（节流）
+    let scrollTimer = null
+    const handleScroll = () => {
+      if (scrollTimer) {
+        clearTimeout(scrollTimer)
+      }
+      scrollTimer = setTimeout(() => {
+        updateSidebarTop()
+      }, 10)
+    }
+    
     // 页面初始化
     onMounted(async () => {
       await fetchTopics()
@@ -876,6 +904,22 @@ const updatePagination = () => {
       }
       // 默认加载帖子列表（全部帖子）
       await fetchPosts()
+      
+      // 初始化侧边栏top值
+      updateSidebarTop()
+      // 监听滚动事件
+      window.addEventListener('scroll', handleScroll, { passive: true })
+      // 监听窗口大小变化
+      window.addEventListener('resize', updateSidebarTop)
+    })
+    
+    // 清理事件监听
+    onUnmounted(() => {
+      window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('resize', updateSidebarTop)
+      if (scrollTimer) {
+        clearTimeout(scrollTimer)
+      }
     })
 </script>
 
@@ -950,7 +994,7 @@ const updatePagination = () => {
 // 侧边栏容器
 .sidebar-wrapper {
   position: sticky;
-  top: 163px; // 导航栏72px + 页面头部约91px（和茶叶列表页面一样）
+  // top值通过JavaScript动态计算（:style绑定）
   align-self: flex-start;
   z-index: 10;
 }
