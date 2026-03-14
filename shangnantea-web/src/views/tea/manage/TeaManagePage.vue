@@ -597,7 +597,7 @@ defineOptions({
       const { file } = options
       if (!file) return
       try {
-        const res = await teaStore.uploadTeaImages({ files: [file.raw] })
+        const res = await teaStore.uploadTeaImages({ files: [file] })
         if (res?.code) showByCode(res.code)
         const url = res?.data?.url
         const path = res?.data?.path
