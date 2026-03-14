@@ -858,13 +858,39 @@ defineOptions({
       // 任务组D：设置图片列表（如果详情接口没有返回图片，则使用列表数据）
       if (!teaImages.value || teaImages.value.length === 0) {
         if (tea.images && tea.images.length > 0) {
-          teaImages.value = tea.images.map(img => ({
-            name: img.url?.split('/').pop() || 'image',
-            url: img.url,
-            is_main: img.is_main === 1 || img.is_main === true || img.isMain === 1 || img.isMain === true,
-            uid: img.id,
-            id: img.id
-          }))
+          teaImages.value = tea.images.map(img => {
+            // 从完整URL中提取相对路径（用于保存时使用）
+            let path = img.url
+            if (path) {
+              // 如果URL包含 /api/files/ 或 /files/，提取相对路径
+              const apiFilesIndex = path.indexOf('/files/')
+              if (apiFilesIndex >= 0) {
+                path = path.substring(apiFilesIndex + 1) // 去掉开头的 /，保留 files/...
+              } else if (path.startsWith('http://') || path.startsWith('https://')) {
+                // 如果是完整URL，尝试提取路径部分
+                try {
+                  const urlObj = new URL(path)
+                  const pathname = urlObj.pathname
+                  if (pathname.startsWith('/api/files/')) {
+                    path = pathname.substring(5) // 去掉 /api，保留 /files/...
+                  } else if (pathname.startsWith('/files/')) {
+                    path = pathname.substring(1) // 去掉开头的 /，保留 files/...
+                  }
+                } catch (e) {
+                  // URL解析失败，保持原值
+                }
+              }
+            }
+            return {
+              name: img.url?.split('/').pop() || 'image',
+              url: img.url, // 完整URL用于预览
+              path: path,   // 相对路径用于保存
+              is_main: img.is_main === 1 || img.is_main === true || img.isMain === 1 || img.isMain === true,
+              uid: img.id,
+              id: img.id,
+              status: 'success' // 编辑时加载的图片视为已成功上传
+            }
+          })
         } else {
           teaImages.value = []
         }
