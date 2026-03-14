@@ -147,10 +147,11 @@
     </select>
 
     <!-- 根据用户ID查询帖子列表（分页） -->
+    <!-- 返回用户的所有帖子（除了已删除的status=2），包括待审核(0)、已发布(1)、已拒绝(3) -->
     <select id="selectByUserId" resultMap="BaseResultMap">
         SELECT <include refid="Base_Column_List"/>
         FROM forum_posts
-        WHERE user_id = #{userId} AND status = 1
+        WHERE user_id = #{userId} AND status != 2
         <choose>
             <when test="sortBy == 'hot'">
                 ORDER BY (view_count + reply_count * 3) DESC, create_time DESC
@@ -163,8 +164,9 @@
     </select>
     
     <!-- 统计用户发布的帖子数量 -->
+    <!-- 统计用户的所有帖子（除了已删除的status=2），包括待审核(0)、已发布(1)、已拒绝(3) -->
     <select id="countByUserId" resultType="java.lang.Long">
         SELECT COUNT(*) FROM forum_posts
-        WHERE user_id = #{userId} AND status = 1
+        WHERE user_id = #{userId} AND status != 2
     </select>
 </mapper> 

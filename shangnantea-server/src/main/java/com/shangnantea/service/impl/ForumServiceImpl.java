@@ -2223,10 +2223,10 @@ public class ForumServiceImpl implements ForumService {
                 return Result.failure(6134); // 审核失败
             }
             
-            // 2. 检查帖子状态
-            if (post.getStatus() != 0) {
-                logger.warn("审核通过失败: 帖子状态不是待审核, id: {}, status: {}", id, post.getStatus());
-                return Result.failure(6134, "帖子状态不是待审核");
+            // 2. 检查帖子状态（允许待审核(0)和已拒绝(3)状态的帖子重新审核）
+            if (post.getStatus() != 0 && post.getStatus() != 3) {
+                logger.warn("审核通过失败: 帖子状态不是待审核或已拒绝, id: {}, status: {}", id, post.getStatus());
+                return Result.failure(6134, "帖子状态不是待审核或已拒绝");
             }
             
             // 3. 更新帖子状态为已发布
@@ -2279,10 +2279,10 @@ public class ForumServiceImpl implements ForumService {
                 return Result.failure(6135); // 审核拒绝失败
             }
             
-            // 2. 检查帖子状态
-            if (post.getStatus() != 0) {
-                logger.warn("审核拒绝失败: 帖子状态不是待审核, id: {}, status: {}", id, post.getStatus());
-                return Result.failure(6135, "帖子状态不是待审核");
+            // 2. 检查帖子状态（允许待审核(0)和已拒绝(3)状态的帖子重新审核）
+            if (post.getStatus() != 0 && post.getStatus() != 3) {
+                logger.warn("审核拒绝失败: 帖子状态不是待审核或已拒绝, id: {}, status: {}", id, post.getStatus());
+                return Result.failure(6135, "帖子状态不是待审核或已拒绝");
             }
             
             // 3. 更新帖子状态为已拒绝
