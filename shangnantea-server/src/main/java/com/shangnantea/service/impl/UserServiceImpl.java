@@ -76,6 +76,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.math.BigDecimal;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -2589,22 +2590,65 @@ public class UserServiceImpl implements UserService {
             
             // 7. 如果审核通过，调用存储过程创建店铺
             if (auditStatus == 1) {
+                String shopId = null;
                 try {
                     // 调用存储过程：confirm_shop_certification
                     // 该存储过程会：
                     // 1. 更新用户角色为商家（role=3）
                     // 2. 生成店铺ID并创建店铺记录
                     // 3. 标记认证通知已确认
-                    String shopId = shopCertificationMapper.confirmCertification(id);
-                    logger.info("审核认证通过，店铺创建成功: certificationId: {}, shopId: {}", id, shopId);
+                    shopId = shopCertificationMapper.confirmCertification(id);
+                    logger.info("审核认证通过，店铺创建成功(存储过程): certificationId: {}, shopId: {}", id, shopId);
                 } catch (Exception e) {
                     logger.error("调用存储过程创建店铺失败: certificationId: {}", id, e);
-                    // 如果存储过程调用失败，手动更新用户角色
-                    User user = getUserEntityById(certification.getUserId());
-                    if (user != null) {
-                        user.setRole(3); // 3-商家角色
-                        userMapper.update(user);
-                        logger.warn("存储过程失败，已手动更新用户角色为商家: userId: {}", user.getId());
+                    // 如果存储过程调用失败，手动创建店铺和更新用户角色
+                    try {
+                        // 检查是否已有店铺
+                        Shop existingShop = shopMapper.selectByUserId(certification.getUserId());
+                        if (existingShop != null) {
+                            logger.warn("用户已有店铺，跳过创建: userId: {}, shopId: {}", certification.getUserId(), existingShop.getId());
+                            shopId = existingShop.getId();
+                        } else {
+                            // 手动创建店铺
+                            Shop shop = new Shop();
+                            shop.setId(generateShopId());
+                            shop.setOwnerId(certification.getUserId());
+                            shop.setShopName(certification.getShopName());
+                            shop.setContactPhone(certification.getContactPhone());
+                            shop.setProvince(certification.getProvince());
+                            shop.setCity(certification.getCity());
+                            shop.setDistrict(certification.getDistrict());
+                            shop.setAddress(certification.getAddress());
+                            shop.setBusinessLicense(certification.getBusinessLicense());
+                            shop.setStatus(1); // 正常状态
+                            shop.setRating(new BigDecimal("5.0")); // 默认评分
+                            shop.setRatingCount(0);
+                            shop.setSalesCount(0);
+                            
+                            Date now = new Date();
+                            shop.setCreateTime(now);
+                            shop.setUpdateTime(now);
+                            
+                            int insertResult = shopMapper.insert(shop);
+                            if (insertResult > 0) {
+                                shopId = shop.getId();
+                                logger.info("手动创建店铺成功: certificationId: {}, shopId: {}, shopName: {}", 
+                                    id, shopId, shop.getShopName());
+                            } else {
+                                logger.error("手动创建店铺失败: 数据库插入失败, certificationId: {}", id);
+                            }
+                        }
+                        
+                        // 更新用户角色为商家
+                        User user = getUserEntityById(certification.getUserId());
+                        if (user != null) {
+                            user.setRole(3); // 3-商家角色
+                            userMapper.update(user);
+                            logger.info("已手动更新用户角色为商家: userId: {}", user.getId());
+                        }
+                    } catch (Exception manualException) {
+                        logger.error("手动创建店铺和更新用户角色失败: certificationId: {}", id, manualException);
+                        // 即使手动创建失败，也继续执行后续通知逻辑
                     }
                 }
             }
@@ -3473,5 +3517,23 @@ public class UserServiceImpl implements UserService {
             int insertResult = userSettingMapper.insert(newSetting);
             logger.debug("插入用户设置: key: {}, value: {}, userId: {}, result: {}", key, value, userId, insertResult);
         }
+    }
+    
+    /**
+     * 生成店铺ID：SH + 8位数字
+     * @return 店铺ID
+     */
+    private String generateShopId() {
+        Random random = new Random();
+        StringBuilder sb = new StringBuilder("SH");
+        for (int i = 0; i < 8; i++) {
+            sb.append(random.nextInt(10));
+        }
+        String shopId = sb.toString();
+        // 检查ID是否已存在，存在则重新生成
+        if (shopMapper.selectById(shopId) != null) {
+            return generateShopId(); // 递归调用直到生成唯一ID
+        }
+        return shopId;
     }
 }
