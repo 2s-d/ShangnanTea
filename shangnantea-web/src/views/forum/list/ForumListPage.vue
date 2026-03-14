@@ -883,8 +883,6 @@ const updatePagination = () => {
 .forum-list-page {
   min-height: 100vh;
   background-color: #f5f7fa;
-  // 关键：确保页面本身是滚动容器，而不是某个内部容器
-  position: relative;
 }
 
 .container {
@@ -917,13 +915,9 @@ const updatePagination = () => {
 .main-content {
   margin-bottom: 40px;
   
+  // 确保右侧栏的父容器有足够高度，使sticky定位正常工作
   :deep(.el-row) {
     align-items: flex-start;
-    overflow: visible;
-  }
-  
-  :deep(.el-col) {
-    overflow: visible;
   }
 }
 
@@ -956,6 +950,7 @@ const updatePagination = () => {
   border-radius: 8px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
   margin-bottom: 20px;
+  overflow: hidden;
   
   .sidebar-header {
     padding: 15px;
@@ -976,9 +971,10 @@ const updatePagination = () => {
 // 粘性定位的版块导航栏
 .sticky-sidebar {
   position: sticky;
-  top: 82px;
+  top: 10px;
   z-index: 10;
-  overflow: visible;
+  // 确保在滚动到底部时能够继续向上滚动
+  align-self: flex-start;
 }
 
 // 版块导航样式
@@ -1214,4 +1210,4 @@ const updatePagination = () => {
 :deep(.el-upload-list__item) {
   transition: all 0.3s;
 }
-</style>
+</style> 
