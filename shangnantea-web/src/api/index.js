@@ -137,6 +137,11 @@ service.interceptors.request.use(
       config.headers['Authorization'] = `Bearer ${token}`
     }
     
+    // 处理FormData：如果是FormData，删除Content-Type让浏览器自动设置（包含boundary）
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type']
+    }
+    
     // 记录API调用开始
     logApiCall(config, 'start')
     
