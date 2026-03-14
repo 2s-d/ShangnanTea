@@ -411,15 +411,22 @@
               v-loading="postsLoading"
               border
             >
-              <el-table-column label="ID" prop="id" width="80" align="center" />
-              <el-table-column label="标题" prop="title" min-width="150" show-overflow-tooltip>
+              <!-- 保证ID完全显示 -->
+              <el-table-column label="ID" prop="id" width="100" align="center">
+                <template #default="scope">
+                  <span class="cell-ellipsis-full">{{ scope.row.id }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column label="标题" prop="title" min-width="200" show-overflow-tooltip>
                 <template #default="scope">
                   <span class="post-title-text">{{ scope.row.title }}</span>
                 </template>
               </el-table-column>
-              <el-table-column label="作者" width="120">
+              <el-table-column label="作者" width="140">
                 <template #default="scope">
-                  <span>{{ getDisplayName(scope.row) }}</span>
+                  <el-tooltip :content="getDisplayName(scope.row)" placement="top">
+                    <span class="user-name-ellipsis">{{ getDisplayName(scope.row) }}</span>
+                  </el-tooltip>
                 </template>
               </el-table-column>
               <el-table-column label="版块" width="120">
@@ -1138,6 +1145,28 @@ onMounted(() => {
       gap: 10px;
       align-items: center;
     }
+  }
+  
+  // 通用单元格省略号样式
+  .cell-ellipsis-full {
+    display: inline-block;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .user-name-ellipsis {
+    display: inline-block;
+    max-width: 100px; // 根据列宽自动截断
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .cell-muted {
+    color: #909399;
+    font-size: 13px;
   }
   
   .post-title-text {
