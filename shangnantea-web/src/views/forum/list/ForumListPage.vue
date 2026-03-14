@@ -897,6 +897,9 @@ const updatePagination = () => {
   padding: 30px 0;
   margin-bottom: 20px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 72px; // 导航栏高度
+  z-index: 10;
   
   .page-title {
     font-size: 28px;
@@ -947,7 +950,7 @@ const updatePagination = () => {
 // 侧边栏容器
 .sidebar-wrapper {
   position: sticky;
-  top: 82px; // 导航栏72px + 间距10px
+  top: 163px; // 导航栏72px + 页面头部约91px（和茶叶列表页面一样）
   align-self: flex-start;
   z-index: 10;
 }
