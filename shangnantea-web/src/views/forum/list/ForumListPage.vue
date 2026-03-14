@@ -942,6 +942,8 @@ const updatePagination = () => {
 // 侧边栏容器
 .sidebar-wrapper {
   position: relative;
+  // 确保容器有足够高度，使sticky定位正常工作
+  height: fit-content;
 }
 
 // 侧边栏样式
@@ -969,12 +971,16 @@ const updatePagination = () => {
 }
 
 // 粘性定位的版块导航栏
+// 导航栏高度72px，所以top值应该是72px + 10px = 82px
 .sticky-sidebar {
   position: sticky;
-  top: 10px;
+  top: 82px; // 导航栏高度(72px) + 间距(10px)
   z-index: 10;
   // 确保在滚动到底部时能够继续向上滚动
   align-self: flex-start;
+  // 确保sticky定位正常工作
+  max-height: calc(100vh - 82px);
+  overflow-y: auto;
 }
 
 // 版块导航样式
