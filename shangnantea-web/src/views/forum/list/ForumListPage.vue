@@ -1219,6 +1219,10 @@ const updatePagination = () => {
   overflow: hidden;
   
   .posts-header {
+    position: sticky;
+    top: 82px; // 与右侧版块导航栏的固定顶部对齐（72px导航栏高度 + 10px间距）
+    z-index: 5;
+    background-color: #fff;
     padding: 15px;
     border-bottom: 1px solid #f0f0f0;
     display: flex;
