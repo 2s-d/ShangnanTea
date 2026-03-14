@@ -88,46 +88,48 @@
         
         <!-- 右侧用户信息和版块导航 -->
         <el-col :xs="24" :sm="6" :md="8" :lg="7">
-          <!-- 简化的用户信息卡片 -->
-          <div class="sidebar user-sidebar">
-            <div class="user-info-card">
-              <div class="user-info" @click="goToMyPosts">
-                <div class="avatar">
-                  <SafeImage :src="currentUser.avatar" type="avatar" :alt="getDisplayName(currentUser)" style="width:50px;height:50px;border-radius:50%;object-fit:cover;" />
-                </div>
-                <div class="info">
-                  <div class="name">{{ getDisplayName(currentUser) }}</div>
-                  <div class="my-posts-link">我的帖子</div>
+          <div class="sidebar-wrapper">
+            <!-- 简化的用户信息卡片 -->
+            <div class="sidebar user-sidebar">
+              <div class="user-info-card">
+                <div class="user-info" @click="goToMyPosts">
+                  <div class="avatar">
+                    <SafeImage :src="currentUser.avatar" type="avatar" :alt="getDisplayName(currentUser)" style="width:50px;height:50px;border-radius:50%;object-fit:cover;" />
+                  </div>
+                  <div class="info">
+                    <div class="name">{{ getDisplayName(currentUser) }}</div>
+                    <div class="my-posts-link">我的帖子</div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-          
-          <!-- 版块导航 -->
-          <div class="sidebar topics-sidebar">
-            <div class="sidebar-header">
-              <h3 class="sidebar-title">版块导航</h3>
-            </div>
-            <div class="topic-list">
-              <div 
-                class="topic-item" 
-                :class="{ active: currentTopicId === 'all' }" 
-                @click="switchTopic('all')"
-              >
-                <el-icon><Grid /></el-icon>
-                <span>全部帖子</span>
-                <span class="count">{{ pagination.total }}</span>
+            
+            <!-- 版块导航 -->
+            <div class="sidebar topics-sidebar sticky-sidebar">
+              <div class="sidebar-header">
+                <h3 class="sidebar-title">版块导航</h3>
               </div>
-              <div 
-                v-for="topic in topicList" 
-                :key="topic.id" 
-                class="topic-item" 
-                :class="{ active: currentTopicId === topic.id }"
-                @click="switchTopic(topic.id)"
-              >
-                <SafeImage :src="topic.icon" type="banner" :alt="topic.name" class="topic-icon" style="width:16px;height:16px;margin-right:6px;" />
-                <span>{{ topic.name }}</span>
-                <span class="count">{{ topic.postCount }}</span>
+              <div class="topic-list">
+                <div 
+                  class="topic-item" 
+                  :class="{ active: currentTopicId === 'all' }" 
+                  @click="switchTopic('all')"
+                >
+                  <el-icon><Grid /></el-icon>
+                  <span>全部帖子</span>
+                  <span class="count">{{ pagination.total || 0 }}</span>
+                </div>
+                <div 
+                  v-for="topic in topicList" 
+                  :key="topic.id" 
+                  class="topic-item" 
+                  :class="{ active: currentTopicId === topic.id }"
+                  @click="switchTopic(topic.id)"
+                >
+                  <SafeImage :src="topic.icon" type="banner" :alt="topic.name" class="topic-icon" style="width:16px;height:16px;margin-right:6px;" />
+                  <span>{{ topic.name }}</span>
+                  <span class="count">{{ topic.postCount || 0 }}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -912,6 +914,11 @@ const updatePagination = () => {
 
 .main-content {
   margin-bottom: 40px;
+  
+  // 确保右侧栏的父容器有足够高度，使sticky定位正常工作
+  :deep(.el-row) {
+    align-items: flex-start;
+  }
 }
 
 .cover-uploader {
@@ -930,6 +937,11 @@ const updatePagination = () => {
     color: #909399;
     margin-top: 4px;
   }
+}
+
+// 侧边栏容器
+.sidebar-wrapper {
+  position: relative;
 }
 
 // 侧边栏样式
@@ -954,6 +966,15 @@ const updatePagination = () => {
       color: var(--el-text-color-primary);
     }
   }
+}
+
+// 粘性定位的版块导航栏
+.sticky-sidebar {
+  position: sticky;
+  top: 10px;
+  z-index: 10;
+  // 确保在滚动到底部时能够继续向上滚动
+  align-self: flex-start;
 }
 
 // 版块导航样式

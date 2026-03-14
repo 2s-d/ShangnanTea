@@ -67,4 +67,12 @@ public interface ForumPostMapper extends BaseMapper<ForumPost, Long> {
      * @return 帖子数量
      */
     long countByUserId(@Param("userId") String userId);
+    
+    /**
+     * 统计指定版块的帖子数量（仅统计已发布的帖子，status=1）
+     *
+     * @param topicId 版块ID
+     * @return 帖子数量
+     */
+    long countByTopicId(@Param("topicId") Integer topicId);
 } 
