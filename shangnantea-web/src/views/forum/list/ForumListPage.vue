@@ -86,10 +86,9 @@
               </div>
             </div>
           </el-col>
-        </el-row>
-        
-        <!-- 右侧用户信息和版块导航（移到 el-row 外面） -->
-        <div class="sidebar-wrapper">
+          <!-- 右侧用户信息和版块导航 -->
+          <el-col :xs="24" :sm="6" :md="8" :lg="7">
+            <div class="sidebar-wrapper">
           <!-- 简化的用户信息卡片 -->
           <div class="sidebar user-sidebar">
             <div class="user-info-card">
