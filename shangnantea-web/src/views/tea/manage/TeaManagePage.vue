@@ -1131,19 +1131,73 @@ defineOptions({
               : 0
             const mainImg = validImages.value[selectedIndex]
             
-            if (!mainImg || !mainImg.path) {
+            // 如果没有 path，尝试从 url 中提取相对路径，或者直接使用 url
+            let mainImagePath = mainImg.path
+            if (!mainImagePath && mainImg.url) {
+              // 从完整URL中提取相对路径
+              const url = mainImg.url
+              const apiFilesIndex = url.indexOf('/files/')
+              if (apiFilesIndex >= 0) {
+                mainImagePath = url.substring(apiFilesIndex + 1) // 去掉开头的 /，保留 files/...
+              } else if (url.startsWith('http://') || url.startsWith('https://')) {
+                try {
+                  const urlObj = new URL(url)
+                  const pathname = urlObj.pathname
+                  if (pathname.startsWith('/api/files/')) {
+                    mainImagePath = pathname.substring(5) // 去掉 /api，保留 /files/...
+                  } else if (pathname.startsWith('/files/')) {
+                    mainImagePath = pathname.substring(1) // 去掉开头的 /，保留 files/...
+                  } else {
+                    mainImagePath = url // 如果无法提取，使用完整URL（后端会处理）
+                  }
+                } catch (e) {
+                  mainImagePath = url // URL解析失败，使用完整URL
+                }
+              } else {
+                mainImagePath = url // 已经是相对路径
+              }
+            }
+            
+            if (!mainImagePath) {
               ElMessage.error('主图路径不存在，请重新选择主图')
               submitting.value = false
               return
             }
             
-            formData.mainImage = mainImg.path
+            formData.mainImage = mainImagePath
             
             // 设置图片列表，根据选择的索引设置 is_main
-            formData.images = validImages.value.map((img, idx) => ({
-              url: img.path,
-              is_main: idx === selectedIndex ? 1 : 0  // 使用数字 1/0，不是布尔值
-            }))
+            formData.images = validImages.value.map((img, idx) => {
+              // 如果没有 path，从 url 中提取相对路径
+              let imagePath = img.path
+              if (!imagePath && img.url) {
+                const url = img.url
+                const apiFilesIndex = url.indexOf('/files/')
+                if (apiFilesIndex >= 0) {
+                  imagePath = url.substring(apiFilesIndex + 1)
+                } else if (url.startsWith('http://') || url.startsWith('https://')) {
+                  try {
+                    const urlObj = new URL(url)
+                    const pathname = urlObj.pathname
+                    if (pathname.startsWith('/api/files/')) {
+                      imagePath = pathname.substring(5)
+                    } else if (pathname.startsWith('/files/')) {
+                      imagePath = pathname.substring(1)
+                    } else {
+                      imagePath = url
+                    }
+                  } catch (e) {
+                    imagePath = url
+                  }
+                } else {
+                  imagePath = url
+                }
+              }
+              return {
+                url: imagePath || img.url, // 优先使用相对路径，否则使用完整URL
+                is_main: idx === selectedIndex ? 1 : 0  // 使用数字 1/0，不是布尔值
+              }
+            })
             
             // 调试日志
             if (process.env.NODE_ENV === 'development') {

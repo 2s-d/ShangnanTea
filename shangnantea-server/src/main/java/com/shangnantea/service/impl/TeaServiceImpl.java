@@ -802,23 +802,36 @@ public class TeaServiceImpl implements TeaService {
                 return Result.failure(3103);
             }
             
-            // 4. 权限验证：验证茶叶是否属于当前用户的店铺
+            // 4. 权限验证：验证茶叶是否属于当前用户的店铺（平台直售特殊处理）
             String currentUserId = UserContext.getCurrentUserId();
             if (currentUserId == null) {
                 logger.warn("更新茶叶失败: 用户未登录");
                 return Result.failure(3103);
             }
             
-            // 查询店铺信息验证权限
-            Shop shop = shopMapper.selectById(existingTea.getShopId());
-            if (shop == null) {
-                logger.warn("更新茶叶失败: 店铺不存在, shopId: {}", existingTea.getShopId());
-                return Result.failure(3103);
-            }
-            if (!currentUserId.equals(shop.getOwnerId())) {
-                logger.warn("更新茶叶失败: 无权限更新此茶叶, userId: {}, shopOwnerId: {}", 
-                    currentUserId, shop.getOwnerId());
-                return Result.failure(3103);
+            String shopId = existingTea.getShopId();
+            Integer userRole = UserContext.getCurrentUserRole();
+            boolean isAdmin = userRole != null && userRole == 1;
+            
+            // 平台直售：shopId 使用特殊值 'PLATFORM'（兼容历史数据 '0'）
+            if ("PLATFORM".equalsIgnoreCase(shopId) || "0".equals(shopId)) {
+                if (!isAdmin) {
+                    logger.warn("更新茶叶失败: 非管理员无权更新平台直售茶叶, userId: {}", currentUserId);
+                    return Result.failure(3103);
+                }
+                // 平台直售不依赖 shops 表记录，跳过店铺存在性和owner校验
+            } else {
+                // 商家店铺：需要校验店铺存在且当前用户为店主
+                Shop shop = shopMapper.selectById(shopId);
+                if (shop == null) {
+                    logger.warn("更新茶叶失败: 店铺不存在, shopId: {}", shopId);
+                    return Result.failure(3103);
+                }
+                if (!currentUserId.equals(shop.getOwnerId())) {
+                    logger.warn("更新茶叶失败: 无权限更新此茶叶, userId: {}, shopOwnerId: {}", 
+                        currentUserId, shop.getOwnerId());
+                    return Result.failure(3103);
+                }
             }
             
             // 5. 提取并验证更新字段
