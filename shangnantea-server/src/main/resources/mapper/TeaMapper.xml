@@ -318,12 +318,20 @@
         WHERE id = #{id,jdbcType=VARCHAR}
     </update>
     
-    <!-- 逻辑删除茶叶 -->
+    <!-- 逻辑删除茶叶（软删除） -->
+    <update id="delete" parameterType="java.lang.String">
+        UPDATE teas
+        SET is_deleted = 1,
+            update_time = now()
+        WHERE id = #{id,jdbcType=VARCHAR}
+    </update>
+    
+    <!-- 逻辑删除茶叶（BaseMapper接口要求） -->
     <update id="deleteById">
         UPDATE teas
         SET is_deleted = 1,
             update_time = now()
-        WHERE id = #{id,jdbcType=BIGINT}
+        WHERE id = #{id,jdbcType=VARCHAR}
     </update>
     
     <!-- 更新茶叶状态（上架/下架） -->

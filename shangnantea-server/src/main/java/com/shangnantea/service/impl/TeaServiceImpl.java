@@ -124,23 +124,36 @@ public class TeaServiceImpl implements TeaService {
                 return Result.failure(3104);
             }
             
-            // 4. 权限验证：验证茶叶是否属于当前用户的店铺
+            // 4. 权限验证：必须验证用户是否有权限删除此茶叶
             String currentUserId = UserContext.getCurrentUserId();
             if (currentUserId == null) {
                 logger.warn("删除茶叶失败: 用户未登录");
                 return Result.failure(3104);
             }
             
-            // 查询店铺信息验证权限
-            Shop shop = shopMapper.selectById(tea.getShopId());
-            if (shop == null) {
-                logger.warn("删除茶叶失败: 店铺不存在, shopId: {}", tea.getShopId());
-                return Result.failure(3104);
-            }
-            if (!currentUserId.equals(shop.getOwnerId())) {
-                logger.warn("删除茶叶失败: 无权限删除此茶叶, userId: {}, shopOwnerId: {}", 
-                    currentUserId, shop.getOwnerId());
-                return Result.failure(3104);
+            String shopId = tea.getShopId();
+            Integer userRole = UserContext.getCurrentUserRole();
+            boolean isAdmin = userRole != null && userRole == 1;
+            
+            // 平台直售：只有管理员可以删除（PLATFORM不在shops表中，不需要查询店铺）
+            if ("PLATFORM".equalsIgnoreCase(shopId) || "0".equals(shopId)) {
+                if (!isAdmin) {
+                    logger.warn("删除茶叶失败: 非管理员无权删除平台直售茶叶, userId: {}", currentUserId);
+                    return Result.failure(3104);
+                }
+            } else {
+                // 商家店铺：必须验证店铺存在，然后验证权限
+                Shop shop = shopMapper.selectById(shopId);
+                if (shop == null) {
+                    logger.warn("删除茶叶失败: 店铺不存在, shopId: {}", shopId);
+                    return Result.failure(3104);
+                }
+                // 管理员可以删除所有店铺的茶叶，非管理员必须是店主
+                if (!isAdmin && !currentUserId.equals(shop.getOwnerId())) {
+                    logger.warn("删除茶叶失败: 无权限删除此茶叶, userId: {}, shopOwnerId: {}", 
+                        currentUserId, shop.getOwnerId());
+                    return Result.failure(3104);
+                }
             }
             
             // 5. 执行软删除（调用TeaMapper.xml中的delete方法）
