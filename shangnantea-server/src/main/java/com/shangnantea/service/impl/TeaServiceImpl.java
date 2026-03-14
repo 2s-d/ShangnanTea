@@ -44,9 +44,11 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -948,7 +950,174 @@ public class TeaServiceImpl implements TeaService {
                 return Result.failure(3103);
             }
             
-            // 8. 查询更新后的茶叶信息并转换为VO返回
+            Date now = new Date();
+            
+            // 8. 处理规格：根据前端传入的规格列表进行增删改
+            try {
+                Object specificationsObj = teaData.get("specifications");
+                List<Map<String, Object>> specsFromFrontend = null;
+                if (specificationsObj instanceof List) {
+                    specsFromFrontend = (List<Map<String, Object>>) specificationsObj;
+                }
+                
+                // 获取现有规格
+                List<TeaSpecification> existingSpecs = teaSpecificationMapper.selectByTeaId(id);
+                Set<Integer> existingSpecIds = existingSpecs.stream()
+                        .map(TeaSpecification::getId)
+                        .collect(Collectors.toSet());
+                
+                List<TeaSpecification> specsToInsert = new ArrayList<>();
+                List<TeaSpecification> specsToUpdate = new ArrayList<>();
+                Set<Integer> specIdsToKeep = new HashSet<>();
+                
+                if (specsFromFrontend != null && !specsFromFrontend.isEmpty()) {
+                    boolean hasDefault = false;
+                    for (Map<String, Object> specMap : specsFromFrontend) {
+                        Integer specId = specMap.get("id") instanceof Number ? 
+                                ((Number) specMap.get("id")).intValue() : null;
+                        TeaSpecification spec = new TeaSpecification();
+                        spec.setTeaId(id);
+                        spec.setSpecName((String) specMap.get("specName"));
+                        spec.setPrice(new BigDecimal(specMap.get("price").toString()));
+                        spec.setStock(Integer.valueOf(specMap.get("stock").toString()));
+                        Integer isDefault = (Boolean) specMap.get("isDefault") ? 1 : 0;
+                        spec.setIsDefault(isDefault);
+                        if (isDefault == 1) hasDefault = true;
+                        spec.setUpdateTime(now);
+                        
+                        if (specId != null && existingSpecIds.contains(specId)) {
+                            // 更新已有规格
+                            spec.setId(specId);
+                            specsToUpdate.add(spec);
+                            specIdsToKeep.add(specId);
+                        } else {
+                            // 新增规格
+                            spec.setCreateTime(now);
+                            specsToInsert.add(spec);
+                        }
+                    }
+                    // 如果前端没有指定默认规格，则将第一个规格设为默认
+                    if (!hasDefault && !specsFromFrontend.isEmpty()) {
+                        if (!specsToInsert.isEmpty()) {
+                            specsToInsert.get(0).setIsDefault(1);
+                        } else if (!specsToUpdate.isEmpty()) {
+                            specsToUpdate.get(0).setIsDefault(1);
+                        }
+                    }
+                } else {
+                    // 如果前端没有提供规格，则添加一个默认规格
+                    TeaSpecification defaultSpec = new TeaSpecification();
+                    defaultSpec.setTeaId(id);
+                    defaultSpec.setSpecName("默认规格");
+                    defaultSpec.setPrice(tea.getPrice());
+                    defaultSpec.setStock(tea.getStock());
+                    defaultSpec.setIsDefault(1);
+                    defaultSpec.setCreateTime(now);
+                    defaultSpec.setUpdateTime(now);
+                    specsToInsert.add(defaultSpec);
+                }
+                
+                // 执行规格更新操作
+                if (!specsToInsert.isEmpty()) {
+                    for (TeaSpecification spec : specsToInsert) {
+                        teaSpecificationMapper.insert(spec);
+                    }
+                }
+                for (TeaSpecification spec : specsToUpdate) {
+                    teaSpecificationMapper.update(spec);
+                }
+                // 删除不再存在的规格
+                for (TeaSpecification existingSpec : existingSpecs) {
+                    if (!specIdsToKeep.contains(existingSpec.getId())) {
+                        teaSpecificationMapper.deleteById(existingSpec.getId());
+                    }
+                }
+            } catch (Exception specEx) {
+                logger.error("更新茶叶时处理规格信息失败, teaId: {}", id, specEx);
+            }
+            
+            // 9. 处理图片：根据前端传入的图片列表进行增删改
+            try {
+                Object imagesObjForUpdate = teaData.get("images");
+                List<Map<String, Object>> imagesFromFrontend = null;
+                if (imagesObjForUpdate instanceof List) {
+                    imagesFromFrontend = (List<Map<String, Object>>) imagesObjForUpdate;
+                }
+                
+                // 获取现有图片
+                List<TeaImage> existingImages = teaImageMapper.selectByTeaId(id);
+                Set<Integer> existingImageIds = existingImages.stream()
+                        .map(TeaImage::getId)
+                        .collect(Collectors.toSet());
+                
+                List<TeaImage> imagesToInsert = new ArrayList<>();
+                List<TeaImage> imagesToUpdate = new ArrayList<>();
+                Set<Integer> imageIdsToKeep = new HashSet<>();
+                String newMainImageUrl = null;
+                
+                if (imagesFromFrontend != null && !imagesFromFrontend.isEmpty()) {
+                    int order = 1;
+                    for (Map<String, Object> imageMap : imagesFromFrontend) {
+                        Integer imageId = imageMap.get("id") instanceof Number ? 
+                                ((Number) imageMap.get("id")).intValue() : null;
+                        String imageUrl = imageMap.get("url").toString();
+                        Integer isMain = imageMap.get("is_main") instanceof Number ? 
+                                ((Number) imageMap.get("is_main")).intValue() : 
+                                (Boolean) imageMap.get("is_main") ? 1 : 0;
+                        
+                        TeaImage img = new TeaImage();
+                        img.setTeaId(id);
+                        img.setUrl(imageUrl);
+                        img.setSortOrder(order++);
+                        img.setIsMain(isMain != null && isMain == 1 ? 1 : 0);
+                        
+                        if (img.getIsMain() == 1) {
+                            newMainImageUrl = imageUrl;
+                        }
+                        
+                        if (imageId != null && existingImageIds.contains(imageId)) {
+                            // 更新已有图片
+                            img.setId(imageId);
+                            imagesToUpdate.add(img);
+                            imageIdsToKeep.add(imageId);
+                        } else {
+                            // 新增图片
+                            img.setCreateTime(now);
+                            imagesToInsert.add(img);
+                        }
+                    }
+                }
+                
+                // 执行图片更新操作
+                if (!imagesToInsert.isEmpty()) {
+                    for (TeaImage img : imagesToInsert) {
+                        teaImageMapper.insert(img);
+                    }
+                }
+                for (TeaImage img : imagesToUpdate) {
+                    teaImageMapper.updateById(img);
+                }
+                // 删除不再存在的图片
+                for (TeaImage existingImage : existingImages) {
+                    if (!imageIdsToKeep.contains(existingImage.getId())) {
+                        teaImageMapper.deleteById(existingImage.getId().longValue());
+                    }
+                }
+                
+                // 更新主表 main_image 字段
+                if (newMainImageUrl != null && !newMainImageUrl.isEmpty()) {
+                    tea.setMainImage(newMainImageUrl);
+                    teaMapper.updateById(tea);
+                } else if (imagesFromFrontend != null && !imagesFromFrontend.isEmpty() && imagesFromFrontend.get(0).containsKey("url")) {
+                    // 如果没有明确指定主图，则将第一张图片设为主图
+                    tea.setMainImage(imagesFromFrontend.get(0).get("url").toString());
+                    teaMapper.updateById(tea);
+                }
+            } catch (Exception imgEx) {
+                logger.error("更新茶叶时处理图片信息失败, teaId: {}", id, imgEx);
+            }
+            
+            // 10. 查询更新后的茶叶信息并转换为VO返回
             Tea updatedTea = teaMapper.selectById(id);
             TeaVO teaVO = convertToTeaVO(updatedTea);
             
