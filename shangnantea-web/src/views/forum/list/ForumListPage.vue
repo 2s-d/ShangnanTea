@@ -220,7 +220,8 @@ const handleScroll = () => {
   
   // 获取页脚位置
   const footer = document.querySelector('footer.footer') || document.querySelector('footer') || document.querySelector('.footer')
-  const footerTop = footer ? footer.getBoundingClientRect().top + scrollTop : Infinity
+  const footerRect = footer ? footer.getBoundingClientRect() : null
+  const footerTop = footerRect ? footerRect.top + scrollTop : Infinity
   
   // 计算侧边栏容器的初始顶部位置（相对于文档）
   const colInitialTop = colRect.top + scrollTop
@@ -228,26 +229,33 @@ const handleScroll = () => {
   // 计算当前滚动位置下，侧边栏应该的位置
   const currentTop = colRect.top
   
-  // 计算页脚底部位置
-  const footerBottom = footer ? footerTop + (footer.offsetHeight || 0) : Infinity
-  
-  // 计算侧边栏底部位置（如果固定的话）
+  // 计算侧边栏高度
   const wrapperHeight = wrapperRect.height
-  const fixedBottom = STICKY_TOP + wrapperHeight
+  
+  // 如果固定位置，侧边栏底部会在什么位置（相对于视口）
+  const fixedBottomViewport = STICKY_TOP + wrapperHeight
+  
+  // 页脚顶部位置（相对于视口）
+  const footerTopViewport = footerRect ? footerRect.top : Infinity
   
   // 判断是否需要固定
   if (currentTop <= STICKY_TOP) {
-    // 需要固定，但需要检查是否到达底部
-    if (fixedBottom >= footerTop) {
-      // 到达底部，继续滚动直到与页脚对齐
-      const maxTop = footerTop - wrapperHeight
+    // 需要固定，但需要检查是否会被页脚推上去
+    if (footerRect && fixedBottomViewport > footerTopViewport) {
+      // 侧边栏底部会超过页脚顶部，需要调整位置
+      // 计算侧边栏应该的顶部位置（相对于文档），使底部刚好在页脚顶部上方
+      const maxBottom = footerTop - 1 // 页脚顶部上方1px
+      const maxTop = maxBottom - wrapperHeight
+      // 转换为相对于col容器的top值
+      const relativeTop = maxTop - colInitialTop
+      
       sidebarStyle.value = {
         position: 'absolute',
-        top: `${Math.max(maxTop - colInitialTop, 0)}px`,
+        top: `${Math.max(relativeTop, 0)}px`,
         width: `${colRect.width}px`
       }
     } else {
-      // 未到达底部，固定位置
+      // 未到达页脚，固定位置
       sidebarStyle.value = {
         position: 'fixed',
         top: `${STICKY_TOP}px`,
