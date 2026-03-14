@@ -942,7 +942,7 @@ const updatePagination = () => {
 // 侧边栏容器
 .sidebar-wrapper {
   position: sticky;
-  top: 82px; // 导航栏高度72px + 间距10px
+  top: 82px; // 导航栏72px + 间距10px
   align-self: flex-start;
   z-index: 10;
 }
