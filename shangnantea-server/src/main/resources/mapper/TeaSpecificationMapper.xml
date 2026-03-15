@@ -85,7 +85,7 @@
             <if test="specName != null">spec_name = #{specName,jdbcType=VARCHAR},</if>
             <if test="price != null">price = #{price,jdbcType=DECIMAL},</if>
             <if test="stock != null">stock = #{stock,jdbcType=INTEGER},</if>
-            <if test="isDefault != null">is_default = #{isDefault,jdbcType=INTEGER},</if>
+            is_default = #{isDefault,jdbcType=INTEGER},
             update_time = now()
         </set>
         WHERE id = #{id,jdbcType=INTEGER}

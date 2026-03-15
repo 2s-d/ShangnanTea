@@ -1413,10 +1413,13 @@ public class ShopServiceImpl implements ShopService {
                         if (isDefault > 1) {
                             isDefault = 1;
                         }
+                        // 强制设置 isDefault，确保不为 null
                         spec.setIsDefault(isDefault);
                         if (isDefault == 1) {
                             hasDefault = true;
-                            logger.info("检测到默认规格, teaId: {}, specId: {}, specName: {}", teaId, specId, spec.getSpecName());
+                            logger.info("检测到默认规格, teaId: {}, specId: {}, specName: {}, isDefault: {}", teaId, specId, spec.getSpecName(), isDefault);
+                        } else {
+                            logger.info("非默认规格, teaId: {}, specId: {}, specName: {}, isDefault: {}", teaId, specId, spec.getSpecName(), isDefault);
                         }
                         spec.setUpdateTime(now);
                         
@@ -1457,17 +1460,24 @@ public class ShopServiceImpl implements ShopService {
                 
                 // 如果有规格被设为默认，先清除该茶叶下所有规格的默认状态（确保只有一个默认规格）
                 if (hasDefault) {
+                    logger.info("清除茶叶所有规格的默认状态, teaId: {}", teaId);
                     teaSpecificationMapper.clearDefaultByTeaId(String.valueOf(teaId));
                 }
                 
                 // 执行规格更新操作
                 if (!specsToInsert.isEmpty()) {
+                    logger.info("插入新规格, teaId: {}, 数量: {}", teaId, specsToInsert.size());
                     for (TeaSpecification spec : specsToInsert) {
+                        logger.info("插入规格: id={}, specName={}, isDefault={}", spec.getId(), spec.getSpecName(), spec.getIsDefault());
                         teaSpecificationMapper.insert(spec);
                     }
                 }
-                for (TeaSpecification spec : specsToUpdate) {
-                    teaSpecificationMapper.update(spec);
+                if (!specsToUpdate.isEmpty()) {
+                    logger.info("更新规格, teaId: {}, 数量: {}", teaId, specsToUpdate.size());
+                    for (TeaSpecification spec : specsToUpdate) {
+                        logger.info("更新规格: id={}, specName={}, isDefault={}", spec.getId(), spec.getSpecName(), spec.getIsDefault());
+                        teaSpecificationMapper.update(spec);
+                    }
                 }
                 // 删除不再存在的规格
                 for (TeaSpecification existingSpec : existingSpecs) {
