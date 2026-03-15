@@ -37,7 +37,7 @@
         
         <!-- 仅在帖子为已发布状态时允许互动操作 -->
         <div class="post-actions" v-if="canInteract">
-          <el-button type="primary" plain @click="likePost" :loading="likeLoading" :class="{ 'liked': liked }">
+          <el-button type="default" plain @click="likePost" :loading="likeLoading" :class="{ 'liked': liked }">
             <el-icon class="like-icon">
               <svg v-if="liked" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
                 <path fill="currentColor" d="M885.9 533.7c16.8-22.2 26.1-49.4 26.1-77.7 0-44.9-25.1-87.4-65.5-111.1a67.67 67.67 0 0 0-34.3-9.3H572.4l6-122.9c1.4-24.9-9.1-49.8-26.5-66.7a82.48 82.48 0 0 0-55.9-24.1H184v72h312.1c4.9 0 9.5 2.2 12.6 6.1l112 141.7a12 12 0 0 1-1.7 16.9l-292.2 215a12.03 12.03 0 0 0-2.7 16.6c12.7 18.7 32.9 30.4 55.2 30.4h258.6c16.8 0 33.1 5 46.8 14.4a99.2 99.2 0 0 1 41.6 50.5c1.9 3.7 3.8 7.4 5.5 11.2 10.3 22.7 15.2 47.6 14.1 73.2-.9 25.5-6.9 50.4-16.9 73.5a178.04 178.04 0 0 1-47.2 63.4 181.24 181.24 0 0 1-78.4 38.4l-8.2 1.4h-.1c-8.1 1.3-16.3 2-24.5 2H136c-4.4 0-8-3.6-8-8v-72c0-4.4 3.6-8 8-8h251.1l11.6-1.9c12.4-2 24.3-5.1 35.5-9.3 40.7-15.1 76.3-42.4 101.5-78.3 7.5-10.9 14.3-22.4 20.1-34.5 7.1-14.8 12.2-30.2 15.3-46.1l6-122.8h-76.6c-4.4 0-8-3.6-8-8v-72c0-4.4 3.6-8 8-8h407.2c19.3 0 38.1-5.1 54.8-14.8 15.8-9.1 29.6-21.2 40.7-35.8z"/>
@@ -874,6 +874,19 @@ const getReplyContent = replyId => {
     .el-button.liked {
       color: var(--el-color-primary);
       border-color: var(--el-color-primary);
+      
+      .like-icon {
+        color: var(--el-color-primary);
+      }
+    }
+    
+    .el-button:not(.liked) {
+      color: var(--el-text-color-regular);
+      border-color: var(--el-border-color);
+      
+      .like-icon {
+        color: var(--el-text-color-regular);
+      }
     }
     
     .el-button.favorited {

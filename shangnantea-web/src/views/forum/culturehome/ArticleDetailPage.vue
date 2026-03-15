@@ -74,7 +74,7 @@
           <el-button type="default" @click="handleFavorite" :class="{'is-favorited': isFavorited}" :loading="favoriteLoading">
             <i class="el-icon-collection" v-if="!isFavorited"></i>
             <i class="el-icon-collection-tag" v-else></i>
-            收藏
+            收藏 ({{ article.favoriteCount || 0 }})
           </el-button>
           <el-button type="default" @click="handleShare">
             <i class="el-icon-share"></i> 分享
@@ -169,6 +169,7 @@ const article = computed(() => {
     publishTime: new Date(),
     viewCount: 0,
     likeCount: 0,
+    favoriteCount: 0,
     tags: [],
     source: '',
     coverImage: '',
