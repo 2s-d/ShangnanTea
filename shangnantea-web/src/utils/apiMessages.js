@@ -569,7 +569,6 @@ export const CODE_MAP = {
   
   // 接口4: uploadBanner - /forum/banners
   6001: 'Banner添加成功',
-  6103: '保存失败',
   6104: '不支持的文件类型',
   6105: '文件大小超限',
   
