@@ -255,21 +255,19 @@ const goBack = () => {
   router.back()
 }
 
-// 处理点赞
+// 处理点赞（参考论坛帖子的逻辑）
 const handleLike = async () => {
   if (!article.value?.id) return
   
   likeLoading.value = true
   try {
     if (isLiked.value) {
-      // 取消点赞：直接传递targetId和targetType
+      // 取消点赞：直接传递 targetId 和 targetType
       const res = await userStore.removeLike({
         targetId: String(article.value.id),
         targetType: 'article'
       })
       showByCode(res.code)
-      // 重新加载文章详情以更新isLiked状态
-      await loadArticleDetail()
     } else {
       // 添加点赞
       const res = await userStore.addLike({
@@ -277,9 +275,9 @@ const handleLike = async () => {
         targetType: 'article'
       })
       showByCode(res.code)
-      // 重新加载文章详情以更新isLiked状态
-      await loadArticleDetail()
     }
+    // 操作完成后刷新文章详情，确保点赞数和状态使用后端真实数据
+    await loadArticleDetail()
   } catch (error) {
     console.error('点赞操作失败:', error)
   } finally {
@@ -287,7 +285,7 @@ const handleLike = async () => {
   }
 }
 
-// 处理收藏
+// 处理收藏（参考论坛帖子的逻辑）
 const handleFavorite = async () => {
   if (!article.value?.id) return
   
@@ -300,8 +298,6 @@ const handleFavorite = async () => {
         itemType: 'tea_article'
       })
       showByCode(res.code)
-      // 重新加载文章详情以更新isFavorited状态
-      await loadArticleDetail()
     } else {
       // 添加收藏
       const res = await userStore.addFavorite({
@@ -311,9 +307,9 @@ const handleFavorite = async () => {
         targetImage: article.value.coverImage || ''
       })
       showByCode(res.code)
-      // 重新加载文章详情以更新isFavorited状态
-      await loadArticleDetail()
     }
+    // 操作完成后刷新文章详情，确保收藏数和状态使用后端真实数据
+    await loadArticleDetail()
   } catch (error) {
     console.error('收藏操作失败:', error)
   } finally {
