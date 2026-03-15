@@ -122,12 +122,9 @@
     <!-- 设置默认规格 -->
     <update id="setDefault">
         UPDATE tea_specifications
-        SET is_default = CASE 
-            WHEN id = #{id,jdbcType=INTEGER} THEN 1
-            ELSE 0
-        END,
-        update_time = now()
-        WHERE tea_id = (SELECT tea_id FROM tea_specifications WHERE id = #{id,jdbcType=INTEGER})
+        SET is_default = 1,
+            update_time = now()
+        WHERE id = #{id,jdbcType=INTEGER}
     </update>
     
     <!-- 取消茶叶的所有默认规格 -->
