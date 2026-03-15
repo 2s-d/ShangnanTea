@@ -555,11 +555,11 @@ const userStore = useUserStore()
           return
         }
 
-        // 从 Pinia 获取会话列表数据（后端已转换为VO结构，已过滤用户名）
+        // 从 Pinia 获取会话列表数据（后端已转换为VO结构）
         const sessions = messageStore.chatSessions || []
         
         // 转换数据格式以匹配 UI 组件的期望格式：
-        // - receiverId 始终表示"对端用户"的 ID（targetUserId）
+        // - receiverId 始终表示“对端用户”的 ID（targetUserId）
         // - unreadCount 来自后端的未读字段
         mockSessions.value = sessions.map(session => {
           const targetId = session.targetUserId
@@ -567,18 +567,15 @@ const userStore = useUserStore()
           const isCustomerService = session.sessionType === 'customer' || session.sessionType === 'shop'
           
           // 店铺会话：显示店铺名称和店铺LOGO
-          // 用户会话：显示用户昵称（如果没有昵称则显示用户ID）
+          // 用户会话：显示用户昵称和用户头像
           const name = isCustomerService
             ? (session.shopName || `店铺${targetId}客服`)
-            : (session.targetNickname || `用户${targetId}`)
+            : (session.targetNickname || session.targetUsername || `用户${targetId}`)
           
           // 店铺会话：使用店铺LOGO（shopAvatar），用户会话：使用用户头像（targetAvatar）
           const avatar = isCustomerService
             ? (session.shopAvatar || session.targetAvatar || `https://via.placeholder.com/50x50?text=店铺`)
             : (session.targetAvatar || `https://via.placeholder.com/50x50?text=用户`)
-
-          // 再次过滤 raw 对象中的用户名字段，确保不包含敏感数据
-          const { targetUsername, targetNickname, senderUsername, senderNickname, username, userName, ...filteredRaw } = session
 
           return {
             sessionId: session.id,
@@ -594,7 +591,7 @@ const userStore = useUserStore()
             unreadCount,
             isPinned: session.isPinned || false,
             online: !!session.targetOnline,
-            raw: filteredRaw // 使用过滤后的原始数据，不包含用户名
+            raw: session
           }
         })
 
@@ -633,25 +630,18 @@ const userStore = useUserStore()
           return
         }
         
-        // 只有成功时才更新消息列表（从 Pinia 获取，已过滤用户名）
-        const history = messageStore.chatHistory || []
-        messagesMap[sessionId] = history.map(msg => {
-          // 再次过滤消息数据中的用户名字段，确保不包含敏感数据
-          const { senderUsername, senderNickname, receiverUsername, receiverNickname, username, userName, ...filteredMsg } = msg
-          
-          return {
-            id: filteredMsg.id,
+        // 只有成功时才更新消息列表
+          const history = response.data?.list || []
+          messagesMap[sessionId] = history.map(msg => ({
+            id: msg.id,
             sessionId: sessionId,
-            content: filteredMsg.content,
-            type: filteredMsg.contentType || 'text',
-            createTime: filteredMsg.createTime,
-            status: filteredMsg.isRead ? 'read' : 'sent',
-            isSelf: String(filteredMsg.senderId) === String(userStore.userInfo?.id),
-            showTimeDivider: false,
-            // 不保存原始消息数据，避免包含敏感信息
-            raw: filteredMsg
-          }
-        })
+            content: msg.content,
+            type: msg.contentType || 'text',
+            createTime: msg.createTime,
+            status: msg.isRead ? 'read' : 'sent',
+            isSelf: String(msg.senderId) === String(userStore.userInfo?.id),
+            showTimeDivider: false
+          }))
 
         return
       } catch (error) {

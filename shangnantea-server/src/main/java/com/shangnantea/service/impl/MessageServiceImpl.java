@@ -1026,10 +1026,10 @@ public class MessageServiceImpl implements MessageService {
                 }
                 sessionVO.put("targetOnline", targetOnline);
                 
-                // 查询对方用户信息
+                // 查询对方用户信息（不返回用户名，只返回昵称和头像）
                 com.shangnantea.model.entity.user.User targetUser = userMapper.selectById(targetUserId);
                 if (targetUser != null) {
-                    sessionVO.put("targetUsername", targetUser.getUsername());
+                    // 不返回用户名（敏感数据）
                     sessionVO.put("targetNickname", targetUser.getNickname());
                     // 处理头像URL
                     String targetAvatar = targetUser.getAvatar();
@@ -1043,7 +1043,7 @@ public class MessageServiceImpl implements MessageService {
                         sessionVO.put("targetAvatar", null);
                     }
                 } else {
-                    sessionVO.put("targetUsername", "未知用户");
+                    // 不返回用户名（敏感数据）
                     sessionVO.put("targetNickname", "未知用户");
                     sessionVO.put("targetAvatar", null);
                 }
@@ -1160,10 +1160,10 @@ public class MessageServiceImpl implements MessageService {
                 messageVO.put("senderId", message.getSenderId());
                 messageVO.put("receiverId", message.getReceiverId());
                 
-                // 查询发送者用户信息
+                // 查询发送者用户信息（不返回用户名，只返回昵称和头像）
                 com.shangnantea.model.entity.user.User sender = userMapper.selectById(message.getSenderId());
                 if (sender != null) {
-                    messageVO.put("senderUsername", sender.getUsername());
+                    // 不返回用户名（敏感数据）
                     messageVO.put("senderNickname", sender.getNickname());
                     // 处理头像URL
                     String senderAvatar = sender.getAvatar();
@@ -1177,7 +1177,7 @@ public class MessageServiceImpl implements MessageService {
                         messageVO.put("senderAvatar", null);
                     }
                 } else {
-                    messageVO.put("senderUsername", "未知用户");
+                    // 不返回用户名（敏感数据）
                     messageVO.put("senderNickname", "未知用户");
                     messageVO.put("senderAvatar", null);
                 }
