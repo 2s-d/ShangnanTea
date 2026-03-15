@@ -221,7 +221,11 @@
                     />
                   </template>
                 </el-table-column>
-                <el-table-column prop="id" label="茶叶ID" width="120" />
+                <el-table-column prop="id" label="茶叶ID" width="120">
+                  <template #default="scope">
+                    <el-link type="primary" @click="handlePreviewTea(scope.row)">{{ scope.row.id }}</el-link>
+                  </template>
+                </el-table-column>
                 <el-table-column prop="name" label="茶叶名称" min-width="180" show-overflow-tooltip />
                 <el-table-column label="价格" width="120">
                   <template #default="scope">
@@ -1156,6 +1160,51 @@ defineOptions({
               teaData: formData
           })
             
+            // 获取新创建的茶叶ID
+            const newTeaId = result.id || result.data?.id
+            
+            if (!newTeaId) {
+              ElMessage.error('创建茶叶失败，无法添加规格')
+              submitting.value = false
+              return
+            }
+            
+            // 任务组C：添加新茶叶的规格（参考管理员页面的逻辑）
+            if (newTeaId && formData.specifications) {
+              try {
+                for (const spec of formData.specifications) {
+                  await teaStore.addSpecification({
+                    teaId: newTeaId,
+                    specData: {
+                      specName: spec.specName,
+                      price: spec.price,
+                      stock: spec.stock,
+                      isDefault: spec.isDefault === 1 || spec.isDefault === true ? 1 : 0
+                    }
+                  })
+                  
+                  // 如果设置为默认规格
+                  if (spec.isDefault === 1 || spec.isDefault === true) {
+                    // 需要先获取规格ID，这里简化处理，假设后端返回的规格包含ID
+                    await teaStore.fetchTeaSpecifications(newTeaId)
+                    const specs = teaStore.currentTeaSpecs || []
+                    const addedSpec = specs.find(s => s.specName === spec.specName)
+                    if (addedSpec) {
+                      await teaStore.setDefaultSpecification({ teaId: newTeaId, specId: addedSpec.id })
+                    }
+                  }
+                }
+              } catch (error) {
+                // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
+                if (process.env.NODE_ENV === 'development') {
+                  console.error('添加规格失败:', error)
+                }
+                // 规格添加失败不影响主流程
+              }
+            }
+            
+            // 图片已在选择时立即上传获取路径，addShopTea时已一起提交，这里不需要再处理
+            
             showByCode(result.code)
         }
         
@@ -1229,6 +1278,11 @@ defineOptions({
         return
       }
       router.push(`/shop/${shop.value.id}`)
+    }
+    
+    // 预览茶叶：跳转到茶叶详情页
+    const handlePreviewTea = tea => {
+      router.push(`/tea/${tea.id}`)
     }
     
     // 获取最低价格
