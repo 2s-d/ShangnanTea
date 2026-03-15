@@ -104,7 +104,7 @@ export function addShopTea(shopId, teaData) {
  */
 export function updateShopTea(teaId, teaData) {
   return request({
-    url: API.SHOP.TEAS + '/' + teaId,
+    url: API.SHOP.TEA_DETAIL.replace('{teaId}', teaId),
     method: 'put',
     data: teaData
   })
@@ -117,7 +117,7 @@ export function updateShopTea(teaId, teaData) {
  */
 export function deleteShopTea(teaId) {
   return request({
-    url: API.SHOP.TEAS + '/' + teaId,
+    url: API.SHOP.TEA_DETAIL.replace('{teaId}', teaId),
     method: 'delete'
   })
 }
@@ -130,7 +130,7 @@ export function deleteShopTea(teaId) {
  */
 export function toggleShopTeaStatus(teaId, status) {
   return request({
-    url: API.SHOP.TEAS + '/' + teaId + '/status',
+    url: API.SHOP.TEA_STATUS.replace('{teaId}', teaId),
     method: 'put',
     data: { status }
   })
