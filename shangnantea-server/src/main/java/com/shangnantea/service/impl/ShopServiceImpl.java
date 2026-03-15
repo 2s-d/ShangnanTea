@@ -862,6 +862,10 @@ public class ShopServiceImpl implements ShopService {
             // 3. 解析分页参数（兼容空字符串）
             int page = 1;
             int size = 10;
+            Integer status = null; // 状态筛选：null表示全部，-1也表示全部，0/1表示具体状态
+            String keyword = null;
+            Integer categoryId = null;
+            
             if (params != null) {
                 String pageStr = getTrimmed(params.get("page"));
                 if (!pageStr.isEmpty()) {
@@ -870,6 +874,28 @@ public class ShopServiceImpl implements ShopService {
                 String sizeStr = getTrimmed(params.get("size"));
                 if (!sizeStr.isEmpty()) {
                     size = Integer.parseInt(sizeStr);
+                }
+                // 处理状态筛选参数（参考管理员页面的逻辑：-1表示全部，null也表示全部，0/1表示具体状态）
+                if (params.get("status") != null) {
+                    String statusStr = params.get("status").toString().trim();
+                    if (!statusStr.isEmpty() && !"-1".equals(statusStr)) {
+                        status = Integer.parseInt(statusStr);
+                    }
+                    // 如果 statusStr 是 "-1" 或空字符串，status 保持为 null（表示全部）
+                }
+                // 处理关键词搜索
+                if (params.get("keyword") != null) {
+                    keyword = params.get("keyword").toString().trim();
+                    if (keyword.isEmpty()) {
+                        keyword = null;
+                    }
+                }
+                // 处理分类筛选
+                if (params.get("categoryId") != null) {
+                    String categoryIdStr = params.get("categoryId").toString().trim();
+                    if (!categoryIdStr.isEmpty()) {
+                        categoryId = Integer.parseInt(categoryIdStr);
+                    }
                 }
             }
             
@@ -881,14 +907,34 @@ public class ShopServiceImpl implements ShopService {
                 size = 10;
             }
             
-            // 5. 计算分页偏移量
-            int offset = (page - 1) * size;
+            // 5. 构建查询参数Map（参考 TeaServiceImpl.getTeas 的逻辑）
+            Map<String, Object> queryMap = new HashMap<>();
+            queryMap.put("shopId", shopId);
+            queryMap.put("page", page);
+            queryMap.put("pageSize", size);
+            queryMap.put("offset", (page - 1) * size);
+            // status 处理：-1 或 null 表示全部，其他值表示具体状态
+            if (status != null && status != -1) {
+                queryMap.put("status", status);
+            } else {
+                // status 为 null 或 -1 时，不设置 status，让 Mapper 返回全部状态
+                queryMap.put("status", -1); // 使用 -1 表示全部状态
+            }
+            if (keyword != null && !keyword.isEmpty()) {
+                queryMap.put("keyword", keyword);
+            }
+            if (categoryId != null) {
+                queryMap.put("categoryId", categoryId);
+            }
+            // 店铺管理页面：按创建时间倒序排列（最新的在前）
+            queryMap.put("sortBy", "createTime");
+            queryMap.put("sortOrder", "desc");
             
-            // 6. 查询茶叶列表（只返回上架的茶叶）
-            List<Tea> teaList = teaMapper.selectByShopId(shopId, offset, size);
+            // 6. 查询茶叶列表（使用 selectTeasWithPage 支持状态筛选，参考管理员页面）
+            List<Tea> teaList = teaMapper.selectTeasWithPage(queryMap);
             
-            // 7. 查询总数
-            Long total = teaMapper.countByShopId(shopId);
+            // 7. 查询总数（使用 countTeas 支持状态筛选）
+            Long total = teaMapper.countTeas(queryMap);
             
             // 8. 转换为VO
             List<TeaVO> teaVOList = teaList.stream()

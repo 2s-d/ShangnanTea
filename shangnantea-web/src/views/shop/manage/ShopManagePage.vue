@@ -1265,6 +1265,9 @@ defineOptions({
             // 图片已在选择时立即上传获取路径，addShopTea时已一起提交，这里不需要再处理
             
             showByCode(result.code)
+            
+            // 新增茶叶后跳转到第一页，确保新数据可见
+            shopStore.pagination.currentPage = 1
         }
         
         // 关闭对话框

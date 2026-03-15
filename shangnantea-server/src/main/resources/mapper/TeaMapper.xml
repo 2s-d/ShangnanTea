@@ -186,6 +186,12 @@
                     WHERE tea_id = teas.id
                 ) DESC
             </when>
+            <when test="sortBy == 'createTime' and sortOrder == 'desc'">
+                ORDER BY create_time DESC
+            </when>
+            <when test="sortBy == 'createTime' and sortOrder == 'asc'">
+                ORDER BY create_time ASC
+            </when>
             <otherwise>
                 ORDER BY sales DESC, create_time DESC
             </otherwise>
