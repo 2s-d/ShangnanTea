@@ -77,14 +77,14 @@
             </div>
             <div class="shop-content">
               <div class="shop-header">
-                <div class="shop-logo">
-                  <div class="shop-logo-click" @click="goToShopDetail(shop.shopId)">
-                    <SafeImage :src="shop.logo" type="banner" :alt="shop.name" style="width:50px;height:50px;border-radius:8px;object-fit:cover;cursor:pointer;" />
-                  </div>
+              <div class="shop-logo">
+                <div class="shop-logo-click" @click="goToShopDetail(shop.shopId)">
+                  <SafeImage :src="shop.logo" type="banner" :alt="shop.name" style="width:50px;height:50px;border-radius:8px;object-fit:cover;cursor:pointer;" />
                 </div>
-                <div class="shop-info" @click="goToShopDetail(shop.shopId)">
-                  <div class="shop-name">{{ shop.name }}</div>
-                  <div class="follow-time">关注于 {{ formatDate(shop.followTime) }}</div>
+              </div>
+              <div class="shop-info" @click="goToShopDetail(shop.shopId)">
+                <div class="shop-name">{{ shop.name }}</div>
+                <div class="follow-time">关注于 {{ formatDate(shop.followTime) }}</div>
                 </div>
               </div>
               <div class="shop-desc-wrapper" @click="goToShopDetail(shop.shopId)">
@@ -448,7 +448,7 @@ onMounted(async () => {
   
   // 仅在本人或对方允许查看时才请求关注接口；否则直接置空并不发请求
   if (isSelf || profileVisible) {
-    loadFollowList()
+  loadFollowList()
   } else {
     localFollowList.value = []
     viewerFollowList.value = []
@@ -461,7 +461,7 @@ watch(() => profileUserId.value, async () => {
   if (!userStore.isLoggedIn) {
     localFollowList.value = []
     viewerFollowList.value = []
-    localFollowState.value = {}
+  localFollowState.value = {}
     return
   }
   
@@ -480,7 +480,7 @@ watch(() => profileUserId.value, async () => {
   
   // 仅在本人或对方允许查看时才请求关注接口；否则直接置空并不发请求
   if (isSelf || profileVisible) {
-    loadFollowList()
+  loadFollowList()
   } else {
     localFollowList.value = []
     viewerFollowList.value = []
@@ -798,35 +798,35 @@ watch(() => profileUserId.value, async () => {
           display: flex;
           align-items: flex-start;
           margin-bottom: 12px;
-          
-          .shop-logo {
-            width: 50px;
-            height: 50px;
-            border-radius: 8px;
-            overflow: hidden;
+        
+        .shop-logo {
+          width: 50px;
+          height: 50px;
+          border-radius: 8px;
+          overflow: hidden;
             margin-right: 12px;
-            border: 2px solid #fff;
-            position: relative;
-            margin-top: -25px;
-            background-color: #fff;
+          border: 2px solid #fff;
+          position: relative;
+          margin-top: -25px;
+          background-color: #fff;
             flex-shrink: 0;
-            
-            img {
-              width: 100%;
-              height: 100%;
-              object-fit: cover;
-            }
-          }
           
-          .shop-info {
-            flex: 1;
-            cursor: pointer;
+          img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+          }
+        }
+        
+        .shop-info {
+          flex: 1;
+          cursor: pointer;
             min-width: 0;
-            
-            .shop-name {
-              font-size: 16px;
-              font-weight: 500;
-              color: var(--el-text-color-primary);
+          
+          .shop-name {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--el-text-color-primary);
               margin-bottom: 6px;
               line-height: 1.4;
               word-break: break-word;

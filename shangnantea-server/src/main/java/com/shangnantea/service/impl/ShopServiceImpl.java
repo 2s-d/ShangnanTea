@@ -1418,7 +1418,7 @@ public class ShopServiceImpl implements ShopService {
                         if (isDefault == 1) {
                             hasDefault = true;
                             logger.info("检测到默认规格, teaId: {}, specId: {}, specName: {}, isDefault: {}", teaId, specId, spec.getSpecName(), isDefault);
-                        } else {
+            } else {
                             logger.info("非默认规格, teaId: {}, specId: {}, specName: {}, isDefault: {}", teaId, specId, spec.getSpecName(), isDefault);
                         }
                         spec.setUpdateTime(now);

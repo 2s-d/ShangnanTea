@@ -532,17 +532,17 @@ defineOptions({
             const res = await teaStore.deleteTeaReview(reviewId)
             showByCode(res.code)
             // 重新加载评价列表和统计数据
-            if (tea.value) {
+          if (tea.value) {
               await Promise.all([
                 teaStore.fetchTeaReviews({
-                  teaId: tea.value.id,
-                  page: reviewCurrentPage.value,
-                  pageSize: reviewPageSize.value
+              teaId: tea.value.id,
+              page: reviewCurrentPage.value,
+              pageSize: reviewPageSize.value
                 }),
                 teaStore.fetchReviewStats(tea.value.id)
               ])
-            }
-          } catch (error) {
+        }
+      } catch (error) {
             console.error('删除评价失败:', error)
             showByCode(error?.response?.data?.code || 3130)
           }
@@ -654,12 +654,12 @@ defineOptions({
         // 任务组C：设置默认规格（从Pinia的currentTeaSpecs获取）
         const specs = teaStore.currentTeaSpecs || []
         if (specs.length > 0) {
-          const defaultSpec = specs.find(spec => spec.isDefault === 1)
-          if (defaultSpec) {
-            selectedSpecId.value = defaultSpec.id
+        const defaultSpec = specs.find(spec => spec.isDefault === 1)
+        if (defaultSpec) {
+          selectedSpecId.value = defaultSpec.id
           } else {
             // 如果没有默认规格，选择第一个规格（即使库存为0也要选择，以便显示库存信息）
-            selectedSpecId.value = specs[0].id
+          selectedSpecId.value = specs[0].id
           }
         } else {
           // 如果没有规格，清空选择（库存为0时也应该能正常显示）
