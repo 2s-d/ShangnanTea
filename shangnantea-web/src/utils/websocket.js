@@ -45,8 +45,16 @@ class WebSocketManager {
       }
 
       // 构建WebSocket URL
+      // 开发环境：直接连接到后端服务器（8080端口）
+      // 生产环境：使用当前域名
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-      const host = window.location.host
+      let host = window.location.host
+      
+      // 开发环境：如果是 localhost:8082，改为 localhost:8080（后端端口）
+      if (host.includes('localhost:8082') || host.includes('127.0.0.1:8082')) {
+        host = host.replace(':8082', ':8080')
+      }
+      
       const wsUrl = `${protocol}//${host}/api/ws?token=${encodeURIComponent(token)}`
 
       console.log('[WebSocket] 开始连接:', wsUrl)
