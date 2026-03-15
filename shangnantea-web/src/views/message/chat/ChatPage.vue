@@ -42,8 +42,7 @@
         <div class="left-panels">
           <el-collapse 
             v-model="leftCollapseActive" 
-            class="left-collapse"
-            :class="{ 'recent-collapsed': !leftCollapseActive.includes('recent') && leftCollapseActive.includes('contacts') }">
+            class="left-collapse">
             <el-collapse-item name="contacts">
               <template #title>
                 <div class="panel-title">
@@ -91,9 +90,7 @@
               </div>
             </el-collapse-item>
 
-            <el-collapse-item 
-              name="recent"
-              :class="{ 'fixed-bottom': !leftCollapseActive.includes('recent') && leftCollapseActive.includes('contacts') }">
+            <el-collapse-item name="recent">
               <template #title>
                 <div class="panel-title">
                   <span>最近会话</span>
@@ -1106,7 +1103,6 @@ watch(() => route.query.userId, newUserId => {
         overflow: hidden;
         display: flex;
         flex-direction: column;
-        position: relative;
 
         :deep(.el-collapse-item__header) {
           padding: 0 12px;
@@ -1142,35 +1138,11 @@ watch(() => route.query.userId, newUserId => {
           }
         }
 
-        // 最近会话默认布局（两个都展开时正常显示）
+        // 最近会话：不收缩，保持固定大小（折叠时只有 header 高度，展开时是内容高度）
+        // 当联系人展开、最近会话折叠时，联系人占据所有剩余空间，最近会话自然被推到底部
         :deep(.el-collapse-item[name="recent"]) {
           flex-shrink: 0;
-        }
-
-        // 当联系人展开、最近会话折叠时，最近会话固定在底部
-        &.recent-collapsed {
-          position: relative !important; // 确保定位上下文
-          
-          // 联系人占据剩余空间，但要给底部留出空间（44px header高度）
-          :deep(.el-collapse-item[name="contacts"]) {
-            flex: 1;
-            min-height: 0;
-            margin-bottom: 44px; // 为底部固定的最近会话留出空间
-          }
-        }
-        
-        // 最近会话固定在底部 - 使用直接类名选择器
-        :deep(.el-collapse-item.fixed-bottom) {
-          position: absolute !important;
-          bottom: 0 !important;
-          left: 0 !important;
-          right: 0 !important;
-          width: 100% !important;
-          z-index: 100 !important;
-          background: #fff !important;
-          flex-shrink: 0 !important;
-          margin: 0 !important;
-          box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1) !important;
+          flex-grow: 0;
         }
       }
 
@@ -1837,21 +1809,5 @@ watch(() => route.query.userId, newUserId => {
   &::-webkit-scrollbar-track {
     background-color: #f7f7f7;
   }
-}
-</style>
-
-<style lang="scss">
-// 全局样式，确保最近会话固定在底部（不受 scoped 限制）
-.left-collapse.recent-collapsed .el-collapse-item.fixed-bottom {
-  position: absolute !important;
-  bottom: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  width: 100% !important;
-  z-index: 100 !important;
-  background: #fff !important;
-  flex-shrink: 0 !important;
-  margin: 0 !important;
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1) !important;
 }
 </style> 
