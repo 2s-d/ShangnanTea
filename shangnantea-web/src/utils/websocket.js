@@ -171,6 +171,11 @@ class WebSocketManager {
    * 开始心跳
    */
   startHeartbeat() {
+    // 如果定时器已经存在且连接正常，不需要重复创建
+    if (this.heartbeatTimer && this.ws && this.ws.readyState === WebSocket.OPEN) {
+      return // 心跳已经在运行，不需要重复启动
+    }
+    
     this.stopHeartbeat()
     
     // 立即发送一次心跳，确保快速恢复在线状态
@@ -179,6 +184,7 @@ class WebSocketManager {
       console.log('[WebSocket] 立即发送心跳，恢复在线状态')
     } else {
       console.warn('[WebSocket] 连接未就绪，无法发送心跳，连接状态:', this.ws ? this.ws.readyState : 'null')
+      return // 连接未就绪，不创建定时器
     }
     
     // 设置定时心跳

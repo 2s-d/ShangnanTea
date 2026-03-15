@@ -38,7 +38,9 @@ const userStore = useUserStore()
 // 活动检测相关
 let inactivityTimer = null
 let stopLoginWatch = null // watch 的停止函数
+let activityDebounceTimer = null // 用户活动防抖定时器
 const INACTIVITY_THRESHOLD = 1 * 60 * 1000 // 1分钟无活动（测试用，原为5分钟）
+const ACTIVITY_DEBOUNCE = 1000 // 用户活动防抖时间：1秒内只处理一次
 
 const resetInactivityTimer = () => {
   if (inactivityTimer) {
@@ -55,25 +57,31 @@ const resetInactivityTimer = () => {
 }
 
 const handleUserActivity = () => {
-  // 用户有任何操作，恢复心跳并重置计时
-  if (userStore.isLoggedIn) {
-    const readyState = websocketManager.getState()
-    const isConnected = websocketManager.isConnected()
-    
-    if (isConnected) {
-      // 连接正常，恢复心跳
-      console.log('[OnlineStatus] 用户活动，恢复心跳')
-      websocketManager.startHeartbeat && websocketManager.startHeartbeat()
-    } else if (readyState === WebSocket.CONNECTING) {
-      // 正在连接中，等待连接完成
-      console.log('[OnlineStatus] WebSocket正在连接中，等待连接完成')
-    } else {
-      // 连接异常或断开，重新连接
-      console.log('[OnlineStatus] WebSocket连接异常，重新连接')
-      websocketManager.connect()
-    }
+  // 防抖处理：1秒内只处理一次用户活动
+  if (activityDebounceTimer) {
+    clearTimeout(activityDebounceTimer)
   }
-  resetInactivityTimer()
+  
+  activityDebounceTimer = setTimeout(() => {
+    // 用户有任何操作，恢复心跳并重置计时
+    if (userStore.isLoggedIn) {
+      const readyState = websocketManager.getState()
+      const isConnected = websocketManager.isConnected()
+      
+      if (isConnected) {
+        // 连接正常，恢复心跳（startHeartbeat内部会检查是否已运行，避免重复创建）
+        websocketManager.startHeartbeat && websocketManager.startHeartbeat()
+      } else if (readyState === WebSocket.CONNECTING) {
+        // 正在连接中，等待连接完成
+        console.log('[OnlineStatus] WebSocket正在连接中，等待连接完成')
+      } else {
+        // 连接异常或断开，重新连接
+        console.log('[OnlineStatus] WebSocket连接异常，重新连接')
+        websocketManager.connect()
+      }
+    }
+    resetInactivityTimer()
+  }, ACTIVITY_DEBOUNCE)
 }
 
 const handleVisibilityChange = () => {
@@ -120,6 +128,10 @@ const cleanup = () => {
   if (inactivityTimer) {
     clearTimeout(inactivityTimer)
     inactivityTimer = null
+  }
+  if (activityDebounceTimer) {
+    clearTimeout(activityDebounceTimer)
+    activityDebounceTimer = null
   }
   if (stopLoginWatch) {
     stopLoginWatch()
