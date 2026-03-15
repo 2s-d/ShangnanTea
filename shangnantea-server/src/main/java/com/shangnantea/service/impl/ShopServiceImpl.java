@@ -2156,20 +2156,6 @@ public class ShopServiceImpl implements ShopService {
     }
     
     /**
-     * 测试方法：直接测试createShop
-     * 使用方法：运行main方法，修改下面的测试数据
-     */
-    public static void main(String[] args) {
-        // 注意：这个方法需要Spring上下文，实际测试请使用测试类
-        System.out.println("请使用测试类或通过Controller接口测试");
-        System.out.println("测试命令（需要先获取token）:");
-        System.out.println("curl -X POST http://localhost:8080/api/shop/list \\");
-        System.out.println("  -H \"Content-Type: application/json\" \\");
-        System.out.println("  -H \"Authorization: Bearer YOUR_TOKEN\" \\");
-        System.out.println("  -d '{\"userId\":\"cy345428\",\"name\":\"测试店铺\",\"contactPhone\":\"15912590710\",\"province\":\"14\",\"city\":\"1404\",\"district\":\"140406\",\"address\":\"测试地址\",\"businessLicense\":\"http://localhost:8080/api/files/images/certifications/test.jpg\"}'");
-    }
-    
-    /**
      * 生成茶叶ID：TEA + 7位数字
      * 说明：数据库 teas.id 字段长度为10，因此必须是TEA开头+7位数字（例如 TEA0000001）
      * @return 茶叶ID
