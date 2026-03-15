@@ -317,7 +317,7 @@ const profileUserId = computed(() => {
     }
     
     // 加载数据（统一行为：同时加载帖子和评价数据，确保统计数字准确）
-    // 参考统计接口的处理：仅在主页可见时才调用接口
+    // 注意：初始数据在 UserHomePage 的 loadUserData 中统一调用，这里只处理用户操作（切换标签页、排序等）
     const loadData = async (loadBoth = false) => {
       // 参考统计接口的处理逻辑：判断主页是否可见
       const isSelf = currentUserId.value && profileUserId.value && String(profileUserId.value) === String(currentUserId.value)
@@ -364,17 +364,17 @@ const profileUserId = computed(() => {
       }
     }
     
-// 组件挂载 & 路由变更时加载数据（同时加载帖子和评价，确保统计数字准确）
+// 组件挂载时：不调用接口，数据由 UserHomePage 的 loadUserData 统一加载
 onMounted(() => {
   // 编辑弹窗需要分类下拉：确保 topicList 已加载
   if (!topicList.value || topicList.value.length === 0) {
     forumStore.fetchForumTopics().catch(() => {})
   }
-  loadData(true) // 页面初始化时同时加载两个接口
+  // 不在这里调用 loadData，数据由 UserHomePage 的 loadUserData 统一加载
 })
 
 watch(() => route.params.userId, () => {
-  loadData(true) // 切换用户时也同时加载两个接口
+  // 切换用户时也不在这里调用，由 UserHomePage 的 loadUserData 统一处理
 })
 </script>
 

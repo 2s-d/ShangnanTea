@@ -383,7 +383,7 @@ const profileUserId = computed(() => {
     }
     
     // 加载关注列表（主页用户 + 当前登录用户）
-    // 参考统计接口的处理：仅在主页可见时才调用接口
+    // 注意：初始数据在 UserHomePage 的 loadUserData 中统一调用，这里只处理用户操作
     const loadFollowList = async () => {
       // 参考统计接口的处理逻辑：判断主页是否可见
       const isSelf = currentUserId.value && profileUserId.value && String(profileUserId.value) === String(currentUserId.value)
@@ -415,15 +415,50 @@ const profileUserId = computed(() => {
       }
     }
     
-// 组件挂载时加载数据
-onMounted(() => {
-  loadFollowList()
+// 组件挂载时：等待 UserHomePage 的 loadUserData 完成，然后检查 profileVisible 再决定是否调用接口
+onMounted(async () => {
+  // 等待基础信息加载完成（如果还没有加载的话）
+  let retryCount = 0
+  while (!messageStore.userProfile && retryCount < 10) {
+    await new Promise(resolve => setTimeout(resolve, 100))
+    retryCount++
+  }
+  
+  // 参考统计接口的处理逻辑：判断主页是否可见
+  const isSelf = currentUserId.value && profileUserId.value && String(profileUserId.value) === String(currentUserId.value)
+  const profileVisible = messageStore.userProfile?.profileVisible !== false
+  
+  // 仅在本人或对方允许查看时才请求关注接口；否则直接置空并不发请求
+  if (isSelf || profileVisible) {
+    loadFollowList()
+  } else {
+    localFollowList.value = []
+    viewerFollowList.value = []
+  }
 })
 
 // 查看不同用户主页时，刷新关注快照并清空本页的本地切换态
-watch(() => profileUserId.value, () => {
+watch(() => profileUserId.value, async () => {
   localFollowState.value = {}
-  loadFollowList()
+  
+  // 等待基础信息加载完成
+  let retryCount = 0
+  while (!messageStore.userProfile && retryCount < 10) {
+    await new Promise(resolve => setTimeout(resolve, 100))
+    retryCount++
+  }
+  
+  // 参考统计接口的处理逻辑：判断主页是否可见
+  const isSelf = currentUserId.value && profileUserId.value && String(profileUserId.value) === String(currentUserId.value)
+  const profileVisible = messageStore.userProfile?.profileVisible !== false
+  
+  // 仅在本人或对方允许查看时才请求关注接口；否则直接置空并不发请求
+  if (isSelf || profileVisible) {
+    loadFollowList()
+  } else {
+    localFollowList.value = []
+    viewerFollowList.value = []
+  }
 })
 </script>
 

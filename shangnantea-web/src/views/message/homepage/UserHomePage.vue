@@ -503,9 +503,12 @@ const userStore = useUserStore()
         const isSelf = currentUserId.value && String(targetUserId) === String(currentUserId.value)
         const profileVisible = messageStore.userProfile?.profileVisible !== false
         
-        // 仅在本人或对方允许查看时才请求统计接口；否则直接置零并不发请求
+        // 仅在本人或对方允许查看时才请求统计接口和内容接口；否则直接置零并不发请求
         if (isSelf || profileVisible) {
           await messageStore.fetchUserStatistics(targetUserId)
+          // 同时调用内容接口（参考统计接口的处理方式，在同一个判断中调用）
+          await messageStore.fetchUserPosts({ userId: targetUserId })
+          await messageStore.fetchUserReviews({ userId: targetUserId })
         } else {
           messageStore.userStatistics = {
             postCount: 0,
