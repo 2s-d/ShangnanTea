@@ -452,20 +452,30 @@ public class ShopServiceImpl implements ShopService {
             // followCount已从数据库删除，使用动态计算
             
             Date now = new Date();
-        shop.setCreateTime(now);
-        shop.setUpdateTime(now);
+            shop.setCreateTime(now);
+            shop.setUpdateTime(now);
             
             // 7. 插入数据库
+            logger.info("准备插入店铺: shopId={}, shopName={}, ownerId={}", 
+                    shop.getId(), shop.getShopName(), shop.getOwnerId());
             int result = shopMapper.insert(shop);
             if (result <= 0) {
                 logger.error("创建店铺失败: 数据库插入失败, userId: {}", userId);
                 return Result.failure(4101);
             }
             
-            logger.info("创建店铺成功: shopId: {}, shopName: {}, userId: {}", 
+            // 8. 验证插入是否成功（立即查询数据库确认）
+            Shop insertedShop = shopMapper.selectById(shop.getId());
+            if (insertedShop == null) {
+                logger.error("创建店铺失败: 插入后查询不到记录, shopId: {}, userId: {}", 
+                        shop.getId(), userId);
+                return Result.failure(4101);
+            }
+            
+            logger.info("创建店铺成功: shopId: {}, shopName: {}, userId: {}, 已验证数据库中存在", 
                     shop.getId(), shop.getShopName(), userId);
             
-            // 8. 返回成功（根据code-message-mapping.md，成功码是4000）
+            // 9. 返回成功（根据code-message-mapping.md，成功码是4000）
             return Result.success(4000, null);
             
         } catch (Exception e) {
@@ -2143,6 +2153,20 @@ public class ShopServiceImpl implements ShopService {
             return generateShopId(); // 递归调用直到生成唯一ID
         }
         return shopId;
+    }
+    
+    /**
+     * 测试方法：直接测试createShop
+     * 使用方法：运行main方法，修改下面的测试数据
+     */
+    public static void main(String[] args) {
+        // 注意：这个方法需要Spring上下文，实际测试请使用测试类
+        System.out.println("请使用测试类或通过Controller接口测试");
+        System.out.println("测试命令（需要先获取token）:");
+        System.out.println("curl -X POST http://localhost:8080/api/shop/list \\");
+        System.out.println("  -H \"Content-Type: application/json\" \\");
+        System.out.println("  -H \"Authorization: Bearer YOUR_TOKEN\" \\");
+        System.out.println("  -d '{\"userId\":\"cy345428\",\"name\":\"测试店铺\",\"contactPhone\":\"15912590710\",\"province\":\"14\",\"city\":\"1404\",\"district\":\"140406\",\"address\":\"测试地址\",\"businessLicense\":\"http://localhost:8080/api/files/images/certifications/test.jpg\"}'");
     }
     
     /**
