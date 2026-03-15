@@ -1381,9 +1381,9 @@ public class ShopServiceImpl implements ShopService {
                 List<TeaSpecification> specsToInsert = new ArrayList<>();
                 List<TeaSpecification> specsToUpdate = new ArrayList<>();
                 Set<Integer> specIdsToKeep = new HashSet<>();
+                boolean hasDefault = false;
                 
                 if (specsFromFrontend != null && !specsFromFrontend.isEmpty()) {
-                    boolean hasDefault = false;
                     for (Map<String, Object> specMap : specsFromFrontend) {
                         Integer specId = specMap.get("id") instanceof Number ? 
                                 ((Number) specMap.get("id")).intValue() : null;
@@ -1425,8 +1425,10 @@ public class ShopServiceImpl implements ShopService {
                     if (!hasDefault && !specsFromFrontend.isEmpty()) {
                         if (!specsToInsert.isEmpty()) {
                             specsToInsert.get(0).setIsDefault(1);
+                            hasDefault = true;
                         } else if (!specsToUpdate.isEmpty()) {
                             specsToUpdate.get(0).setIsDefault(1);
+                            hasDefault = true;
                         }
                     }
                 } else {
@@ -1440,6 +1442,12 @@ public class ShopServiceImpl implements ShopService {
                     defaultSpec.setCreateTime(now);
                     defaultSpec.setUpdateTime(now);
                     specsToInsert.add(defaultSpec);
+                    hasDefault = true;
+                }
+                
+                // 如果有规格被设为默认，先清除该茶叶下所有规格的默认状态（确保只有一个默认规格）
+                if (hasDefault) {
+                    teaSpecificationMapper.clearDefaultByTeaId(String.valueOf(teaId));
                 }
                 
                 // 执行规格更新操作
