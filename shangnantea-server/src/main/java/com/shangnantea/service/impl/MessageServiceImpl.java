@@ -214,10 +214,16 @@ public class MessageServiceImpl implements MessageService {
                 try {
                     if (redisTemplate != null && onlineUserId != null && !onlineUserId.trim().isEmpty()) {
                         String onlineKey = "online:user:" + onlineUserId;
-                        online = Boolean.TRUE.equals(redisTemplate.hasKey(onlineKey));
+                        Boolean hasKey = redisTemplate.hasKey(onlineKey);
+                        online = Boolean.TRUE.equals(hasKey);
+                        logger.debug("查询联系人在线状态: contactId={}, onlineUserId={}, onlineKey={}, hasKey={}, online={}", 
+                            follow.getFollowId(), onlineUserId, onlineKey, hasKey, online);
+                    } else {
+                        logger.debug("查询联系人在线状态跳过: redisTemplate={}, onlineUserId={}", 
+                            redisTemplate != null, onlineUserId);
                     }
                 } catch (Exception e) {
-                    logger.debug("查询在线状态失败，不影响流程: userId={}, error={}", onlineUserId, e.getMessage());
+                    logger.warn("查询在线状态失败，不影响流程: userId={}, error={}", onlineUserId, e.getMessage(), e);
                 }
                 contact.put("online", online);
                 

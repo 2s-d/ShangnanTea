@@ -129,14 +129,16 @@ public class WebSocketHandler extends TextWebSocketHandler {
      */
     private void markUserOnline(String userId) {
         if (redisTemplate == null || userId == null) {
+            logger.warn("标记用户在线失败: redisTemplate={}, userId={}", redisTemplate != null, userId);
             return;
         }
         try {
             String key = "online:user:" + userId;
             // WebSocket心跳为30秒，这里给一个较短的兜底TTL，例如2分钟
             redisTemplate.opsForValue().set(key, "1", 2, TimeUnit.MINUTES);
+            logger.debug("标记用户在线成功: userId={}, key={}", userId, key);
         } catch (Exception e) {
-            logger.debug("记录用户在线状态失败(WebSocket), userId={}, error={}", userId, e.getMessage());
+            logger.warn("记录用户在线状态失败(WebSocket), userId={}, error={}", userId, e.getMessage(), e);
         }
     }
     
