@@ -97,20 +97,20 @@
               <el-empty v-if="reviews.length === 0" description="暂无评价记录" />
               
           <div v-else class="review-items">
-                  <div v-for="review in sortedReviews" :key="review.id" class="review-item">
-                    <div class="review-tea-info" @click="viewTeaDetail(review.teaId)">
-                      <img :src="review.teaImage" :alt="review.teaName" class="tea-image" />
-                      <div class="tea-details">
-                        <div class="tea-name">{{ review.teaName }}</div>
-                        <div class="shop-name">{{ review.shopName }}</div>
-                      </div>
-                    </div>
-                    
+                  <div v-for="review in sortedReviews" :key="review.id" class="review-item" @click="viewTeaDetailWithReview(review.teaId, review.id)">
                     <div class="review-content">
                       <div class="review-rating">
                         <el-rate v-model="review.rating" disabled show-score text-color="#ff9900" />
                       </div>
                       <div class="review-text">{{ review.content }}</div>
+                      
+                      <!-- 评价图片（如果有） -->
+                      <div v-if="review.images && review.images.length > 0" class="review-images">
+                        <div v-for="(img, index) in review.images" :key="index" class="review-image-item">
+                          <SafeImage :src="img" type="tea" :alt="`评价图片${index + 1}`" class="review-image" />
+                        </div>
+                      </div>
+                      
                       <div class="review-meta">
                         <span class="review-time">
                           <el-icon><Timer /></el-icon> {{ formatDate(review.createTime) }}
@@ -129,7 +129,7 @@
                       </div>
                     </div>
                     
-                    <div class="review-actions">
+                    <div class="review-actions" @click.stop>
                       <el-button type="danger" size="small" @click="deleteReview(review.id)">
                         <el-icon><Delete /></el-icon> 删除
                       </el-button>
@@ -161,6 +161,7 @@ import { Timer, View, ChatDotRound, Star, Edit, Delete } from '@element-plus/ico
 import { showByCode } from '@/utils/apiMessages'
 import { commonPromptMessages } from '@/utils/promptMessages'
 import PostEditorDialog from '@/components/forum/PostEditorDialog.vue'
+import SafeImage from '@/components/common/form/SafeImage.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -277,9 +278,18 @@ const profileUserId = computed(() => {
         })
     }
     
-    // 查看茶叶详情
+    // 查看茶叶详情（跳转到评论区域）
     const viewTeaDetail = teaId => {
       router.push(`/tea/${teaId}`)
+    }
+    
+    // 查看茶叶详情并定位到指定评价（跳转到评论区域并高亮该评价）
+    const viewTeaDetailWithReview = (teaId, reviewId) => {
+      // 跳转到茶叶详情页，并传递reviewId参数，详情页可以根据参数定位到对应评价
+      router.push({
+        path: `/tea/${teaId}`,
+        query: { reviewId }
+      })
     }
     
     // 删除评价
@@ -480,43 +490,19 @@ watch(() => route.params.userId, () => {
   .review-items {
     .review-item {
       display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
       padding: 20px;
       margin-bottom: 15px;
       background-color: #f9f9f9;
       border-radius: 6px;
       transition: all 0.3s;
+      cursor: pointer;
       
       &:hover {
         background-color: #f0f0f0;
-      }
-      
-      .review-tea-info {
-        display: flex;
-        align-items: flex-start;
-        margin-right: 20px;
-        cursor: pointer;
-        
-        .tea-image {
-          width: 80px;
-          height: 80px;
-          border-radius: 6px;
-          object-fit: cover;
-          margin-right: 15px;
-        }
-        
-        .tea-details {
-          .tea-name {
-            font-size: 16px;
-            font-weight: 500;
-            color: var(--el-text-color-primary);
-            margin-bottom: 5px;
-          }
-          
-          .shop-name {
-            font-size: 14px;
-            color: var(--el-text-color-regular);
-          }
-        }
+        transform: translateY(-2px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       }
       
       .review-content {
@@ -531,6 +517,28 @@ watch(() => route.params.userId, () => {
           color: var(--el-text-color-regular);
           line-height: 1.6;
           margin-bottom: 10px;
+        }
+        
+        .review-images {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+          margin-bottom: 10px;
+          
+          .review-image-item {
+            .review-image {
+              width: 80px;
+              height: 80px;
+              border-radius: 6px;
+              object-fit: cover;
+              cursor: pointer;
+              transition: transform 0.3s;
+              
+              &:hover {
+                transform: scale(1.05);
+              }
+            }
+          }
         }
         
         .review-meta {
@@ -556,6 +564,7 @@ watch(() => route.params.userId, () => {
           padding: 15px;
           border-radius: 6px;
           border-left: 4px solid var(--el-color-primary);
+          margin-top: 10px;
           
           .reply-header {
             display: flex;
@@ -610,12 +619,6 @@ watch(() => route.params.userId, () => {
     .review-items {
       .review-item {
         flex-direction: column;
-        
-        .review-tea-info {
-          margin-right: 0;
-          margin-bottom: 15px;
-          width: 100%;
-        }
         
         .review-actions {
           margin-left: 0;
