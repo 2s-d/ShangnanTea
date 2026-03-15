@@ -156,10 +156,14 @@
             <el-input-number 
               v-model="quantity" 
               :min="1" 
-              :max="currentStock" 
+              :max="Math.max(1, currentStock)" 
+              :disabled="currentStock <= 0"
               size="large"
             />
-            <span class="stock-info">库存：{{ currentStock }} 件</span>
+            <span class="stock-info" :class="{ 'stock-zero': currentStock <= 0 }">
+              库存：{{ currentStock }} 件
+              <span v-if="currentStock <= 0" class="sold-out-text">（已售罄）</span>
+            </span>
           </div>
           
           <!-- 操作按钮 -->
@@ -608,14 +612,21 @@ defineOptions({
         
         // 任务组C：设置默认规格（从Pinia的currentTeaSpecs获取）
         const specs = teaStore.currentTeaSpecs || []
-        const defaultSpec = specs.find(spec => spec.isDefault === 1)
-        if (defaultSpec) {
-          selectedSpecId.value = defaultSpec.id
-        } else if (specs.length > 0) {
-          selectedSpecId.value = specs[0].id
+        if (specs.length > 0) {
+          const defaultSpec = specs.find(spec => spec.isDefault === 1)
+          if (defaultSpec) {
+            selectedSpecId.value = defaultSpec.id
+          } else {
+            // 如果没有默认规格，选择第一个规格（即使库存为0也要选择，以便显示库存信息）
+            selectedSpecId.value = specs[0].id
+          }
+        } else {
+          // 如果没有规格，清空选择（库存为0时也应该能正常显示）
+          selectedSpecId.value = null
         }
       } catch (e) {
         console.error('加载茶叶详情失败:', e)
+        // 加载失败时不清空 currentTea，避免页面空白（可能是网络问题，保留之前的数据）
       }
     }
     
