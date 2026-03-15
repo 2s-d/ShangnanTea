@@ -254,19 +254,9 @@
                   </div>
                   <div class="review-content">{{ review.content }}</div>
                   <div class="review-images" v-if="review.images && review.images.length > 0">
-                    <div v-for="(img, index) in review.images" :key="index" class="review-image">
+                    <div v-for="(img, index) in review.images" :key="index" class="review-image-item">
                       <SafeImage :src="img" type="tea" :alt="tea.name" class="tea-review-image" />
                     </div>
-                  </div>
-                  <div class="review-actions">
-                    <el-button 
-                      type="text" 
-                      size="small" 
-                      @click="handleLikeReview(review)"
-                      :class="{ 'liked': review.isLiked }"
-                    >
-                      <el-icon><StarFilled /></el-icon> {{ review.likeCount || 0 }}
-                    </el-button>
                   </div>
                   <div class="review-reply" v-if="review.reply">
                     <div class="reply-header">
@@ -367,7 +357,7 @@ import { useTeaStore } from '@/stores/tea'
 import { useUserStore } from '@/stores/user'
 import { useOrderStore } from '@/stores/order'
 import { ElMessageBox } from 'element-plus'
-import { Back, ShoppingCart, Star, ChatLineRound, StarFilled } from '@element-plus/icons-vue'
+import { Back, ShoppingCart, Star, ChatLineRound } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 import { showByCode } from '@/utils/apiMessages'
 import teaMessages from '@/utils/promptMessages'
@@ -472,44 +462,44 @@ defineOptions({
       }
     }
     
-    // 点赞评价
-    const handleLikeReview = async review => {
-      try {
-        if (review.isLiked) {
-          // 取消点赞：直接传递targetId和targetType
-          const response = await userStore.removeLike({
-            targetId: String(review.id),
-            targetType: 'review'
-          })
-          showByCode(response.code)
-          // 重新加载评价列表以更新isLiked状态
-          if (tea.value) {
-            await teaStore.fetchTeaReviews({
-              teaId: tea.value.id,
-              page: reviewCurrentPage.value,
-              pageSize: reviewPageSize.value
-            })
-          }
-        } else {
-          // 添加点赞
-          const response = await userStore.addLike({
-            targetId: String(review.id),
-            targetType: 'review'
-          })
-          showByCode(response.code)
-          // 重新加载评价列表以更新isLiked状态
-          if (tea.value) {
-            await teaStore.fetchTeaReviews({
-              teaId: tea.value.id,
-              page: reviewCurrentPage.value,
-              pageSize: reviewPageSize.value
-            })
-          }
-        }
-      } catch (error) {
-        console.error('点赞失败:', error)
-      }
-    }
+    // 茶叶评价不支持点赞功能（点赞仅支持评论回复、帖子、文章）
+    // const handleLikeReview = async review => {
+    //   try {
+    //     if (review.isLiked) {
+    //       // 取消点赞：直接传递targetId和targetType
+    //       const response = await userStore.removeLike({
+    //         targetId: String(review.id),
+    //         targetType: 'review'
+    //       })
+    //       showByCode(response.code)
+    //       // 重新加载评价列表以更新isLiked状态
+    //       if (tea.value) {
+    //         await teaStore.fetchTeaReviews({
+    //           teaId: tea.value.id,
+    //           page: reviewCurrentPage.value,
+    //           pageSize: reviewPageSize.value
+    //         })
+    //       }
+    //     } else {
+    //       // 添加点赞
+    //       const response = await userStore.addLike({
+    //         targetId: String(review.id),
+    //         targetType: 'review'
+    //       })
+    //       showByCode(response.code)
+    //       // 重新加载评价列表以更新isLiked状态
+    //       if (tea.value) {
+    //         await teaStore.fetchTeaReviews({
+    //           teaId: tea.value.id,
+    //           page: reviewCurrentPage.value,
+    //           pageSize: reviewPageSize.value
+    //         })
+    //       }
+    //     }
+    //   } catch (error) {
+    //     console.error('点赞失败:', error)
+    //   }
+    // }
     
     // 评价分页变化
     const handleReviewPageChange = page => {
@@ -1235,18 +1225,24 @@ defineOptions({
           
           .review-images {
             display: flex;
+            flex-wrap: wrap;
             gap: 10px;
             margin-bottom: 15px;
             
-            .review-image {
-              width: 80px;
-              height: 80px;
-              border-radius: 4px;
-              overflow: hidden;
-              
-              .el-image {
-                width: 100%;
-                height: 100%;
+            .review-image-item {
+              .tea-review-image {
+                max-width: 200px;
+                max-height: 200px;
+                width: auto;
+                height: auto;
+                border-radius: 6px;
+                object-fit: contain;
+                cursor: pointer;
+                transition: transform 0.3s;
+                
+                &:hover {
+                  transform: scale(1.05);
+                }
               }
             }
           }
