@@ -1038,7 +1038,12 @@ defineOptions({
             status: teaStatus.value,
             categoryId: parseInt(currentTea.value.categoryId),
             // 店铺茶叶：使用当前店铺ID
-            shopId: shop.value.id
+            shopId: shop.value.id,
+            // 确保规格数据中的 isDefault 是数字格式（1/0），而不是布尔值
+            specifications: currentTea.value.specifications.map(spec => ({
+              ...spec,
+              isDefault: spec.isDefault === 1 || spec.isDefault === true ? 1 : 0
+            }))
           }
           
           // 设置图片路径：选择图片后已立即上传获取路径，这里直接使用path（相对路径）存入数据库

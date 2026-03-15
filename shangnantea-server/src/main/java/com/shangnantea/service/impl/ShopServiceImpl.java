@@ -1406,8 +1406,18 @@ public class ShopServiceImpl implements ShopService {
                                 isDefault = "1".equals(isDefaultObj.toString()) || "true".equalsIgnoreCase(isDefaultObj.toString()) ? 1 : 0;
                             }
                         }
+                        // 确保 isDefault 是 0 或 1
+                        if (isDefault == null || isDefault < 0) {
+                            isDefault = 0;
+                        }
+                        if (isDefault > 1) {
+                            isDefault = 1;
+                        }
                         spec.setIsDefault(isDefault);
-                        if (isDefault == 1) hasDefault = true;
+                        if (isDefault == 1) {
+                            hasDefault = true;
+                            logger.info("检测到默认规格, teaId: {}, specId: {}, specName: {}", teaId, specId, spec.getSpecName());
+                        }
                         spec.setUpdateTime(now);
                         
                         if (specId != null && existingSpecIds.contains(specId)) {
