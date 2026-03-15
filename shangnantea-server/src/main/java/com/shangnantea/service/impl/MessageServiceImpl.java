@@ -2,7 +2,6 @@ package com.shangnantea.service.impl;
 
 import com.shangnantea.common.api.Result;
 import com.shangnantea.mapper.ShopMapper;
-import com.shangnantea.model.entity.shop.Shop;
 import com.shangnantea.mapper.ChatMessageMapper;
 import com.shangnantea.mapper.ChatSessionMapper;
 import com.shangnantea.mapper.UserNotificationMapper;
