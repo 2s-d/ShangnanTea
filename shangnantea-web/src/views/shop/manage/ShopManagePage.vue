@@ -1150,6 +1150,65 @@ defineOptions({
               teaData: formData
           })
             
+            // 任务组C：同步规格数据到后端（完全参考管理员页面的逻辑）
+            const teaId = currentTea.value.id
+            try {
+              // 获取当前规格列表
+              await teaStore.fetchTeaSpecifications(teaId)
+              const existingSpecs = teaStore.currentTeaSpecs || []
+              
+              // 处理规格的增删改
+              for (const spec of formData.specifications) {
+                const existingSpec = existingSpecs.find(s => s.id === spec.id)
+                
+                if (existingSpec) {
+                  // 更新现有规格
+                  await teaStore.updateSpecification({
+                    teaId,
+                    specId: spec.id,
+                    specData: {
+                      specName: spec.specName,
+                      price: spec.price,
+                      stock: spec.stock,
+                      isDefault: spec.isDefault === 1 || spec.isDefault === true ? 1 : 0
+                    }
+                  })
+                  
+                  // 如果设置为默认规格
+                  if (spec.isDefault === 1 || spec.isDefault === true) {
+                    await teaStore.setDefaultSpecification({ teaId, specId: spec.id })
+                  }
+                } else {
+                  // 添加新规格
+                  await teaStore.addSpecification({
+                    teaId,
+                    specData: {
+                      specName: spec.specName,
+                      price: spec.price,
+                      stock: spec.stock,
+                      isDefault: spec.isDefault === 1 || spec.isDefault === true ? 1 : 0
+                    }
+                  })
+                }
+              }
+              
+              // 删除不存在的规格
+              const currentSpecIds = formData.specifications.map(s => s.id)
+              for (const existingSpec of existingSpecs) {
+                if (!currentSpecIds.includes(existingSpec.id)) {
+                  await teaStore.deleteSpecification({ teaId, specId: existingSpec.id })
+                }
+              }
+            } catch (error) {
+              // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
+              if (process.env.NODE_ENV === 'development') {
+                console.error('同步规格数据失败:', error)
+              }
+              // 规格同步失败不影响主流程，只记录错误
+            }
+            
+            // 图片已在选择时立即上传获取路径，updateShopTea时已一起提交，这里不需要再处理
+            
           showByCode(response.code)
         } else {
             // 新增茶叶：店铺茶叶使用当前店铺ID
@@ -1160,8 +1219,8 @@ defineOptions({
               teaData: formData
           })
             
-            // 获取新创建的茶叶ID
-            const newTeaId = result.id || result.data?.id
+            // 获取新创建的茶叶ID（参考管理员页面的逻辑）
+            const newTeaId = result.id || result.data?.id || result.data
             
             if (!newTeaId) {
               ElMessage.error('创建茶叶失败，无法添加规格')
@@ -1169,7 +1228,7 @@ defineOptions({
               return
             }
             
-            // 任务组C：添加新茶叶的规格（参考管理员页面的逻辑）
+            // 任务组C：添加新茶叶的规格（完全参考管理员页面的逻辑）
             if (newTeaId && formData.specifications) {
               try {
                 for (const spec of formData.specifications) {
