@@ -1099,16 +1099,47 @@ watch(() => route.query.userId, newUserId => {
       .left-collapse {
         height: 100%;
         overflow: hidden;
+        display: flex;
+        flex-direction: column;
 
         :deep(.el-collapse-item__header) {
           padding: 0 12px;
           background: #fff;
           border-bottom: 1px solid #eee;
           height: 44px;
+          flex-shrink: 0;
         }
 
         :deep(.el-collapse-item__content) {
           padding: 0;
+        }
+
+        // 联系人展开时占据剩余空间
+        :deep(.el-collapse-item[name="contacts"]) {
+          flex: 1;
+          min-height: 0;
+          display: flex;
+          flex-direction: column;
+          
+          .el-collapse-item__wrap {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+          }
+          
+          .el-collapse-item__content {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+          }
+        }
+
+        // 最近会话固定在底部（当联系人展开、最近会话折叠时）
+        :deep(.el-collapse-item[name="recent"]) {
+          flex-shrink: 0;
+          margin-top: auto;
         }
       }
 
@@ -1127,7 +1158,8 @@ watch(() => route.query.userId, newUserId => {
       }
 
       .contacts-list {
-        max-height: 240px;
+        flex: 1;
+        min-height: 0;
         overflow-y: auto;
         background: #f7f7f7;
       }
@@ -1212,7 +1244,7 @@ watch(() => route.query.userId, newUserId => {
       }
 
       .session-list {
-        flex: 1;
+        max-height: 240px;
         overflow-y: auto;
         background-color: #f7f7f7;
         
@@ -1753,7 +1785,8 @@ watch(() => route.query.userId, newUserId => {
   }
 }
 
-// 定制滚动条样式
+// 定制滚动条样式（统一使用淡色样式）
+.contacts-list,
 .session-list,
 .chat-messages,
 .emoji-container {
