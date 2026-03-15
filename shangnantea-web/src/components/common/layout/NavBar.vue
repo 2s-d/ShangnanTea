@@ -97,7 +97,7 @@
 
 <script setup>
 // 调整导入顺序，确保 vue 核心工具先导入
-import { computed, ref, onMounted, onBeforeUnmount, watch } from 'vue'
+import { computed, ref, onMounted, onBeforeUnmount, watch, watchEffect } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 
 // 导入 Pinia store
@@ -227,6 +227,17 @@ onMounted(async () => {
       }
     }
   )
+  
+  // 使用 watchEffect 监听数据完整性，如果数据缺失则自动加载
+  watchEffect(() => {
+    // 如果已登录但用户信息不完整，则加载数据
+    if (isLoggedIn.value && (!userStore.userInfo?.nickname || !userStore.userInfo?.avatar)) {
+      // 延迟执行，避免在组件初始化时重复调用
+      setTimeout(() => {
+        checkAndLoadNavBarData()
+      }, 100)
+    }
+  })
 })
 
 // 组件卸载时清理事件监听器
