@@ -57,9 +57,19 @@ const resetInactivityTimer = () => {
 const handleUserActivity = () => {
   // 用户有任何操作，恢复心跳并重置计时
   if (userStore.isLoggedIn) {
-    if (websocketManager.isConnected()) {
+    const ws = websocketManager.ws
+    const isConnected = websocketManager.isConnected()
+    
+    if (isConnected && ws && ws.readyState === WebSocket.OPEN) {
+      // 连接正常，恢复心跳
+      console.log('[OnlineStatus] 用户活动，恢复心跳')
       websocketManager.startHeartbeat && websocketManager.startHeartbeat()
+    } else if (ws && ws.readyState === WebSocket.CONNECTING) {
+      // 正在连接中，等待连接完成
+      console.log('[OnlineStatus] WebSocket正在连接中，等待连接完成')
     } else {
+      // 连接异常或断开，重新连接
+      console.log('[OnlineStatus] WebSocket连接异常，重新连接')
       websocketManager.connect()
     }
   }
@@ -71,9 +81,18 @@ const handleVisibilityChange = () => {
     // 页面重新可见，恢复心跳
     console.log('[OnlineStatus] 页面可见，恢复心跳')
     if (userStore.isLoggedIn) {
-      if (websocketManager.isConnected()) {
+      const ws = websocketManager.ws
+      const isConnected = websocketManager.isConnected()
+      
+      if (isConnected && ws && ws.readyState === WebSocket.OPEN) {
+        // 连接正常，恢复心跳
         websocketManager.startHeartbeat && websocketManager.startHeartbeat()
+      } else if (ws && ws.readyState === WebSocket.CONNECTING) {
+        // 正在连接中，等待连接完成
+        console.log('[OnlineStatus] WebSocket正在连接中，等待连接完成')
       } else {
+        // 连接异常或断开，重新连接
+        console.log('[OnlineStatus] WebSocket连接异常，重新连接')
         websocketManager.connect()
       }
     }

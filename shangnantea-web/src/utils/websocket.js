@@ -172,9 +172,26 @@ class WebSocketManager {
    */
   startHeartbeat() {
     this.stopHeartbeat()
+    
+    // 立即发送一次心跳，确保快速恢复在线状态
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      this.send('ping')
+      console.log('[WebSocket] 立即发送心跳，恢复在线状态')
+    } else {
+      console.warn('[WebSocket] 连接未就绪，无法发送心跳，连接状态:', this.ws ? this.ws.readyState : 'null')
+    }
+    
+    // 设置定时心跳
     this.heartbeatTimer = setInterval(() => {
       if (this.ws && this.ws.readyState === WebSocket.OPEN) {
         this.send('ping')
+      } else {
+        console.warn('[WebSocket] 心跳发送失败，连接状态异常，尝试重连')
+        this.stopHeartbeat()
+        // 如果连接异常，尝试重连
+        if (this.ws && this.ws.readyState !== WebSocket.CONNECTING) {
+          this.attemptReconnect()
+        }
       }
     }, this.heartbeatInterval)
   }

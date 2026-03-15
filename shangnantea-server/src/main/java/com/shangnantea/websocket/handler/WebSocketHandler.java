@@ -126,6 +126,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
     
     /**
      * 标记用户在线（基于WebSocket活动），并设置短TTL。
+     * 如果之前是离线状态（key不存在），会推送上线状态变更。
      */
     private void markUserOnline(String userId) {
         if (redisTemplate == null || userId == null) {
@@ -134,9 +135,23 @@ public class WebSocketHandler extends TextWebSocketHandler {
         }
         try {
             String key = "online:user:" + userId;
+            // 检查之前是否在线（key是否存在）
+            Boolean wasOnline = redisTemplate.hasKey(key);
+            
             // WebSocket心跳为30秒，这里给一个较短的兜底TTL，例如2分钟
             redisTemplate.opsForValue().set(key, "1", 2, TimeUnit.MINUTES);
-            logger.debug("标记用户在线成功: userId={}, key={}", userId, key);
+            
+            // 如果之前是离线状态（key不存在），现在重新上线，推送状态变更
+            if (wasOnline == null || !wasOnline) {
+                logger.info("用户从离线状态恢复在线: userId={}, key={}", userId, key);
+                try {
+                    webSocketService.notifyUserOnlineChanged(userId, true);
+                } catch (Exception e) {
+                    logger.debug("推送用户上线状态失败，不影响流程: userId={}, error={}", userId, e.getMessage());
+                }
+            } else {
+                logger.debug("用户保持在线状态: userId={}, key={}", userId, key);
+            }
         } catch (Exception e) {
             logger.warn("记录用户在线状态失败(WebSocket), userId={}, error={}", userId, e.getMessage(), e);
         }
