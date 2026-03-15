@@ -349,21 +349,17 @@ export const useShopStore = defineStore('shop', () => {
       loading.value = true
       const res = await updateShopTeaApi(teaId, teaData)
       
-      const index = shopTeas.value.findIndex(tea => tea.id === teaId)
-      if (index !== -1) {
-        shopTeas.value[index] = res.data
-      } else {
-        const shopId = myShop.value?.id || currentShop.value?.id
-        if (shopId) {
-          // 重新加载时使用当前的分页设置
-          await fetchShopTeas({ 
-            shopId, 
-            params: {
-              page: pagination.currentPage,
-              size: pagination.pageSize
-            }
-          })
-        }
+      // 更新后重新加载列表（参考 teaStore.updateTea 的做法，确保列表数据是最新的）
+      const shopId = myShop.value?.id || currentShop.value?.id
+      if (shopId) {
+        // 重新加载时使用当前的分页设置
+        await fetchShopTeas({ 
+          shopId, 
+          params: {
+            page: pagination.currentPage,
+            size: pagination.pageSize
+          }
+        })
       }
       
       return res
