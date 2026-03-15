@@ -1367,46 +1367,73 @@ watch(() => route.query.userId, newUserId => {
         border-bottom: 1px solid #eee;
       }
 
-      // 联系人面板：展开时占据剩余空间
-      .contacts-panel:not(.collapsed) {
-        flex: 1;
-        min-height: 0;
-        
-        .panel-content {
+      // 两个面板都展开时：平均分配空间
+      .custom-collapse.contacts-expanded.recent-expanded {
+        .contacts-panel:not(.collapsed),
+        .recent-panel:not(.collapsed) {
           flex: 1;
           min-height: 0;
-          display: flex;
-          flex-direction: column;
+          
+          .panel-content {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+          }
         }
         
-        .contacts-list {
-          flex: 1;
-          min-height: 0;
-          max-height: none;
-        }
-      }
-
-      // 最近会话面板：当联系人展开且最近会话折叠时，推到底部
-      .custom-collapse.contacts-expanded.recent-collapsed .recent-panel.collapsed {
-        margin-top: auto;
-      }
-
-      // 最近会话面板：当联系人折叠且最近会话展开时，最近会话占据剩余空间
-      .custom-collapse.contacts-collapsed.recent-expanded .recent-panel:not(.collapsed) {
-        flex: 1;
-        min-height: 0;
-        
-        .panel-content {
-          flex: 1;
-          min-height: 0;
-          display: flex;
-          flex-direction: column;
-        }
-        
+        .contacts-list,
         .session-list {
           flex: 1;
           min-height: 0;
           max-height: none;
+        }
+      }
+
+      // 联系人面板：仅联系人展开时，占据剩余空间
+      .custom-collapse.contacts-expanded.recent-collapsed {
+        .contacts-panel:not(.collapsed) {
+          flex: 1;
+          min-height: 0;
+          
+          .panel-content {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+          }
+          
+          .contacts-list {
+            flex: 1;
+            min-height: 0;
+            max-height: none;
+          }
+        }
+        
+        // 最近会话折叠时，推到底部
+        .recent-panel.collapsed {
+          margin-top: auto;
+        }
+      }
+
+      // 最近会话面板：仅最近会话展开时，占据剩余空间
+      .custom-collapse.contacts-collapsed.recent-expanded {
+        .recent-panel:not(.collapsed) {
+          flex: 1;
+          min-height: 0;
+          
+          .panel-content {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+          }
+          
+          .session-list {
+            flex: 1;
+            min-height: 0;
+            max-height: none;
+          }
         }
       }
 
