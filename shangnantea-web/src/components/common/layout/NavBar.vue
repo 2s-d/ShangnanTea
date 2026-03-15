@@ -249,10 +249,14 @@ watch(
 // 退出登录
 const handleLogout = async () => {
   try {
+    // 先跳转到登录页，避免清除 token 后触发其他组件的接口调用
+    router.replace('/login')
+    // 然后清除 token 和用户信息
     await userStore.logout()
-    router.push('/login')
   } catch (error) {
     console.error('退出登录失败:', error)
+    // 即使退出失败，也要跳转到登录页
+    router.replace('/login')
   }
 }
 

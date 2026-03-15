@@ -319,6 +319,13 @@ const profileUserId = computed(() => {
     // 加载数据（统一行为：同时加载帖子和评价数据，确保统计数字准确）
     // 注意：初始数据在 UserHomePage 的 loadUserData 中统一调用，这里只处理用户操作（切换标签页、排序等）
     const loadData = async (loadBoth = false) => {
+      // 如果未登录，不调用接口（避免退出登录时触发）
+      if (!userStore.isLoggedIn) {
+        messageStore.userPosts = []
+        messageStore.userReviews = []
+        return
+      }
+      
       // 参考统计接口的处理逻辑：判断主页是否可见
       const isSelf = currentUserId.value && profileUserId.value && String(profileUserId.value) === String(currentUserId.value)
       const profileVisible = messageStore.userProfile?.profileVisible !== false

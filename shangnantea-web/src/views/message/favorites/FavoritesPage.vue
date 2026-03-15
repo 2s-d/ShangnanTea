@@ -510,6 +510,14 @@ const favoriteList = computed(() => profileFavoriteList.value || [])
      * 注意：初始数据在 UserHomePage 的 loadUserData 中统一调用，这里只处理用户操作
      */
     const loadFavoriteList = async () => {
+      // 如果未登录，不调用接口（避免退出登录时触发）
+      if (!userStore.isLoggedIn) {
+        profileFavoriteList.value = []
+        viewerFavoriteList.value = []
+        localFavoriteState.value = {}
+        return
+      }
+      
       // 参考统计接口的处理逻辑：判断主页是否可见
       const isSelf = currentUserId.value && profileUserId.value && String(profileUserId.value) === String(currentUserId.value)
       const profileVisible = messageStore.userProfile?.profileVisible !== false
@@ -554,6 +562,14 @@ const favoriteList = computed(() => profileFavoriteList.value || [])
     
 // 组件挂载时：等待 UserHomePage 的 loadUserData 完成，然后检查 profileVisible 再决定是否调用接口
 onMounted(async () => {
+  // 如果未登录，不调用接口
+  if (!userStore.isLoggedIn) {
+    profileFavoriteList.value = []
+    viewerFavoriteList.value = []
+    localFavoriteState.value = {}
+    return
+  }
+  
   // 等待基础信息加载完成（如果还没有加载的话）
   let retryCount = 0
   while (!messageStore.userProfile && retryCount < 10) {
