@@ -120,17 +120,26 @@ const route = useRoute()
 // 使用useAuth
 const { isAdmin, isShop, isUser, isLoggedIn, ROLES } = useAuth()
 
-// 存储页面可见性变化处理函数，用于清理
+// 存储事件处理函数，用于清理
 let visibilityChangeHandler = null
+let windowFocusHandler = null
+let routeWatchStop = null
 
-// 加载导航栏数据的函数
-const loadNavBarData = async () => {
+// 加载导航栏数据的函数（带防抖，避免频繁调用）
+let loadingNavBarData = false
+const loadNavBarData = async (force = false) => {
   // 未登录时不请求需要鉴权的接口，避免在登录页/退出后刷新的 401 状态干扰逻辑
   if (!isLoggedIn.value) {
     return
   }
 
+  // 如果正在加载且不是强制加载，则跳过
+  if (loadingNavBarData && !force) {
+    return
+  }
+
   try {
+    loadingNavBarData = true
     // 刷新购物车数量
     await orderStore.fetchCartItems()
     // 刷新用户信息，确保拿到完整的昵称等资料（token 里只有基础字段）
@@ -142,6 +151,16 @@ const loadNavBarData = async () => {
     if (import.meta.env.MODE === 'development') {
       console.error('导航初始化失败:', error)
     }
+  } finally {
+    loadingNavBarData = false
+  }
+}
+
+// 检查导航栏数据是否完整，如果不完整则加载
+const checkAndLoadNavBarData = async () => {
+  // 如果已登录但用户信息不完整（缺少昵称或头像），则重新加载
+  if (isLoggedIn.value && (!userStore.userInfo?.nickname || !userStore.userInfo?.avatar)) {
+    await loadNavBarData(true)
   }
 }
 
@@ -171,13 +190,43 @@ onMounted(async () => {
   
   // 监听页面可见性变化，处理 Ctrl+Shift+T 恢复标签页的情况
   visibilityChangeHandler = async () => {
-    // 当页面从隐藏变为可见时，重新加载导航栏数据
+    // 当页面从隐藏变为可见时，检查并加载导航栏数据
     if (document.visibilityState === 'visible' && isLoggedIn.value) {
-      await loadNavBarData()
+      await checkAndLoadNavBarData()
+    }
+  }
+  
+  // 监听窗口焦点变化，处理标签页恢复的情况
+  windowFocusHandler = async () => {
+    // 当窗口重新获得焦点时，检查并加载导航栏数据
+    if (isLoggedIn.value) {
+      await checkAndLoadNavBarData()
     }
   }
   
   document.addEventListener('visibilitychange', visibilityChangeHandler)
+  window.addEventListener('focus', windowFocusHandler)
+  
+  // 监听路由变化，当路由变化时检查数据完整性
+  routeWatchStop = watch(
+    () => route.path,
+    async (newPath, oldPath) => {
+      // 路由变化时，如果数据不完整则加载
+      if (newPath !== oldPath && isLoggedIn.value) {
+        await checkAndLoadNavBarData()
+      }
+    }
+  )
+  
+  // 监听登录状态变化，登录时加载数据
+  watch(
+    () => isLoggedIn.value,
+    async (loggedIn) => {
+      if (loggedIn) {
+        await loadNavBarData(true)
+      }
+    }
+  )
 })
 
 // 组件卸载时清理事件监听器
@@ -185,6 +234,14 @@ onBeforeUnmount(() => {
   if (visibilityChangeHandler) {
     document.removeEventListener('visibilitychange', visibilityChangeHandler)
     visibilityChangeHandler = null
+  }
+  if (windowFocusHandler) {
+    window.removeEventListener('focus', windowFocusHandler)
+    windowFocusHandler = null
+  }
+  if (routeWatchStop) {
+    routeWatchStop()
+    routeWatchStop = null
   }
 })
 
