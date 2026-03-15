@@ -269,10 +269,47 @@ public class MessageServiceImpl implements MessageService {
             }
             
             // 4. 搜索用户（支持ID和昵称搜索）
-            // 使用UserMapper的selectByPage方法，但只搜索用户（role和status传null）
-            List<com.shangnantea.model.entity.user.User> users = userMapper.selectByPage(
-                keyword.trim(), null, null, offset, pageSize);
-            long total = userMapper.countByCondition(keyword.trim(), null, null);
+            // 规则：以 cy 开头视为ID搜索（精确匹配），否则为昵称搜索（模糊匹配）
+            String trimmedKeyword = keyword.trim();
+            List<com.shangnantea.model.entity.user.User> users;
+            long total;
+            
+            if (trimmedKeyword.toLowerCase().startsWith("cy")) {
+                // ID搜索：精确匹配用户ID
+                // 先尝试完整ID（包含cy前缀），如果找不到再尝试去掉cy前缀
+                logger.info("按ID精确搜索用户，输入: {}", trimmedKeyword);
+                
+                com.shangnantea.model.entity.user.User user = userMapper.selectById(trimmedKeyword);
+                logger.info("完整ID查询结果: {}", user != null ? "找到用户 " + user.getId() : "未找到");
+                
+                // 如果完整ID找不到，尝试去掉cy前缀
+                if (user == null && trimmedKeyword.length() > 2) {
+                    String userIdWithoutPrefix = trimmedKeyword.substring(2);
+                    logger.info("完整ID未找到，尝试去掉cy前缀: {}", userIdWithoutPrefix);
+                    user = userMapper.selectById(userIdWithoutPrefix);
+                    logger.info("去掉前缀后查询结果: {}", user != null ? "找到用户 " + user.getId() : "未找到");
+                }
+                
+                if (user != null && (user.getIsDeleted() == null || user.getIsDeleted() == 0)) {
+                    logger.info("找到用户，ID: {}, 昵称: {}", user.getId(), user.getNickname());
+                    users = new ArrayList<>();
+                    users.add(user);
+                    total = 1;
+                } else {
+                    if (user != null) {
+                        logger.warn("用户存在但已被删除，ID: {}, isDeleted: {}", user.getId(), user.getIsDeleted());
+                    } else {
+                        logger.warn("未找到匹配的用户ID: {}", trimmedKeyword);
+                    }
+                    users = new ArrayList<>();
+                    total = 0;
+                }
+            } else {
+                // 昵称搜索：模糊匹配（用户名/昵称/手机号）
+                logger.info("按昵称模糊搜索用户: {}", trimmedKeyword);
+                users = userMapper.selectByPage(trimmedKeyword, null, null, offset, pageSize);
+                total = userMapper.countByCondition(trimmedKeyword, null, null);
+            }
             
             // 5. 转换为VO列表（包含在线状态）
             List<Map<String, Object>> userList = new ArrayList<>();
