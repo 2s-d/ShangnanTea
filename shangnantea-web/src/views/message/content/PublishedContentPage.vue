@@ -156,6 +156,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useMessageStore } from '@/stores/message'
 import { useForumStore } from '@/stores/forum'
+import { useUserStore } from '@/stores/user'
 import { ElMessageBox } from 'element-plus'
 import { Timer, View, ChatDotRound, Star, Edit, Delete } from '@element-plus/icons-vue'
 import { showByCode } from '@/utils/apiMessages'
@@ -190,7 +191,7 @@ const profileUserId = computed(() => {
   if (firstParam === 'published' || firstParam === 'follows' || firstParam === 'favorites') return null
   return firstParam
 })
-
+    
     // 从Pinia获取数据
     const posts = computed(() => messageStore.userPosts || [])
     const reviews = computed(() => messageStore.userReviews || [])
@@ -199,8 +200,14 @@ const profileUserId = computed(() => {
     const reviewsPagination = computed(() => messageStore.reviewsPagination)
     
     // 判断是否为查看自己的主页
+    // 如果 profileUserId 为 null（路由是 current 或 published/follows/favorites），且 currentUserId 存在，则认为是查看自己的主页
+    // 如果 profileUserId 存在，则比较是否等于 currentUserId
     const isSelf = computed(() => {
-      return currentUserId.value && profileUserId.value && String(profileUserId.value) === String(currentUserId.value)
+      if (!currentUserId.value) return false
+      // 如果 profileUserId 为 null，说明是查看自己的主页（路由是 /profile/current/...）
+      if (!profileUserId.value) return true
+      // 如果 profileUserId 存在，比较是否等于 currentUserId
+      return String(profileUserId.value) === String(currentUserId.value)
     })
     
     // 根据排序选项对帖子进行排序
@@ -313,7 +320,7 @@ const profileUserId = computed(() => {
           try {
             const res = await deleteTeaReview(id)
             showByCode(res.code)
-            // 重新加载数据
+          // 重新加载数据
             await loadData()
           } catch (error) {
             console.error('删除评价失败:', error)

@@ -144,15 +144,15 @@ public class TeaServiceImpl implements TeaService {
             } else {
                 // 商家店铺：必须验证店铺存在，然后验证权限
                 Shop shop = shopMapper.selectById(shopId);
-                if (shop == null) {
+            if (shop == null) {
                     logger.warn("删除茶叶失败: 店铺不存在, shopId: {}", shopId);
-                    return Result.failure(3104);
-                }
+                return Result.failure(3104);
+            }
                 // 管理员可以删除所有店铺的茶叶，非管理员必须是店主
                 if (!isAdmin && !currentUserId.equals(shop.getOwnerId())) {
-                    logger.warn("删除茶叶失败: 无权限删除此茶叶, userId: {}, shopOwnerId: {}", 
-                        currentUserId, shop.getOwnerId());
-                    return Result.failure(3104);
+                logger.warn("删除茶叶失败: 无权限删除此茶叶, userId: {}, shopOwnerId: {}", 
+                    currentUserId, shop.getOwnerId());
+                return Result.failure(3104);
                 }
             }
             
@@ -838,15 +838,15 @@ public class TeaServiceImpl implements TeaService {
             } else {
                 // 商家店铺：必须验证店铺存在，然后验证权限
                 Shop shop = shopMapper.selectById(shopId);
-                if (shop == null) {
+            if (shop == null) {
                     logger.warn("更新茶叶失败: 店铺不存在, shopId: {}", shopId);
-                    return Result.failure(3103);
-                }
+                return Result.failure(3103);
+            }
                 // 管理员可以编辑所有店铺的茶叶，非管理员必须是店主
                 if (!isAdmin && !currentUserId.equals(shop.getOwnerId())) {
-                    logger.warn("更新茶叶失败: 无权限更新此茶叶, userId: {}, shopOwnerId: {}", 
-                        currentUserId, shop.getOwnerId());
-                    return Result.failure(3103);
+                logger.warn("更新茶叶失败: 无权限更新此茶叶, userId: {}, shopOwnerId: {}", 
+                    currentUserId, shop.getOwnerId());
+                return Result.failure(3103);
                 }
             }
             
@@ -926,7 +926,7 @@ public class TeaServiceImpl implements TeaService {
                             Object urlObj = map.get("url");
                             if (urlObj != null) {
                                 url = urlObj.toString().trim();
-                            }
+            }
                             Object isMainObj = map.get("is_main");
                             if (isMainObj != null) {
                                 if (isMainObj instanceof Boolean) {
@@ -1451,7 +1451,7 @@ public class TeaServiceImpl implements TeaService {
             
             // 5. 生成访问URL（完全照抄文章图片上传）
             String accessUrl = FileUploadUtils.generateAccessUrl(filePath, baseUrl);
-            
+                
             // 6. 构造返回数据（完全照抄文章图片上传的返回格式）
             Map<String, Object> responseData = new HashMap<>();
             responseData.put("url", accessUrl);
@@ -2385,15 +2385,15 @@ public class TeaServiceImpl implements TeaService {
             } else {
                 // 商家店铺：必须验证店铺存在，然后验证权限
                 Shop shop = shopMapper.selectById(shopId);
-                if (shop == null) {
+            if (shop == null) {
                     logger.warn("更新茶叶规格失败: 店铺不存在, shopId: {}", shopId);
-                    return Result.failure(3117);
-                }
+                return Result.failure(3117);
+            }
                 // 管理员可以编辑所有店铺的茶叶规格，非管理员必须是店主
                 if (!isAdmin && !currentUserId.equals(shop.getOwnerId())) {
-                    logger.warn("更新茶叶规格失败: 无权限更新规格, userId: {}, shopOwnerId: {}", 
-                            currentUserId, shop.getOwnerId());
-                    return Result.failure(3117);
+                logger.warn("更新茶叶规格失败: 无权限更新规格, userId: {}, shopOwnerId: {}", 
+                        currentUserId, shop.getOwnerId());
+                return Result.failure(3117);
                 }
             }
             
@@ -2601,15 +2601,15 @@ public class TeaServiceImpl implements TeaService {
             } else {
                 // 商家店铺：必须验证店铺存在，然后验证权限
                 Shop shop = shopMapper.selectById(shopId);
-                if (shop == null) {
+            if (shop == null) {
                     logger.warn("设置默认规格失败: 店铺不存在, shopId: {}", shopId);
-                    return Result.failure(3119);
-                }
+                return Result.failure(3119);
+            }
                 // 管理员可以设置所有店铺的茶叶默认规格，非管理员必须是店主
                 if (!isAdmin && !currentUserId.equals(shop.getOwnerId())) {
-                    logger.warn("设置默认规格失败: 无权限设置默认规格, userId: {}, shopOwnerId: {}", 
-                            currentUserId, shop.getOwnerId());
-                    return Result.failure(3119);
+                logger.warn("设置默认规格失败: 无权限设置默认规格, userId: {}, shopOwnerId: {}", 
+                        currentUserId, shop.getOwnerId());
+                return Result.failure(3119);
                 }
             }
             

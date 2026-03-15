@@ -350,16 +350,16 @@ export const useShopStore = defineStore('shop', () => {
       const res = await updateShopTeaApi(teaId, teaData)
       
       // 更新后重新加载列表（参考 teaStore.updateTea 的做法，确保列表数据是最新的）
-      const shopId = myShop.value?.id || currentShop.value?.id
-      if (shopId) {
-        // 重新加载时使用当前的分页设置
-        await fetchShopTeas({ 
-          shopId, 
-          params: {
-            page: pagination.currentPage,
-            size: pagination.pageSize
-          }
-        })
+        const shopId = myShop.value?.id || currentShop.value?.id
+        if (shopId) {
+          // 重新加载时使用当前的分页设置
+          await fetchShopTeas({ 
+            shopId, 
+            params: {
+              page: pagination.currentPage,
+              size: pagination.pageSize
+            }
+          })
       }
       
       return res

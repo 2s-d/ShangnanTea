@@ -1132,11 +1132,11 @@ public class ShopServiceImpl implements ShopService {
             if (teaData.get("status") != null) {
                 tea.setStatus(Integer.parseInt(teaData.get("status").toString()));
             } else {
-                tea.setStatus(1); // 默认上架
+            tea.setStatus(1); // 默认上架
             }
             tea.setIsDeleted(0); // 未删除
             
-            Date now = new Date();
+        Date now = new Date();
             tea.setCreateTime(now);
             tea.setUpdateTime(now);
             
@@ -1415,7 +1415,7 @@ public class ShopServiceImpl implements ShopService {
                             spec.setId(specId);
                             specsToUpdate.add(spec);
                             specIdsToKeep.add(specId);
-                        } else {
+            } else {
                             // 新增规格
                             spec.setCreateTime(now);
                             specsToInsert.add(spec);
