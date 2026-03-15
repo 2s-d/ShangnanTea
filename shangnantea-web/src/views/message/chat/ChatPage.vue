@@ -1159,12 +1159,11 @@ const userStore = useUserStore()
         }
     }
 
-    // 在组件挂载时初始化：先加载会话，再根据路由参数选择目标，并接入WebSocket
+    // 在组件挂载时初始化：先加载会话，再根据路由参数选择目标
     onMounted(async () => {
         await fetchContacts()
         await fetchSessions()
         await initializeChatFromRouteParams()
-        websocketManager.connect()
         websocketManager.on('onlineStatus', handleOnlineStatusUpdate)
         // 添加点击外部区域监听器
         document.addEventListener('click', handleClickOutside)
