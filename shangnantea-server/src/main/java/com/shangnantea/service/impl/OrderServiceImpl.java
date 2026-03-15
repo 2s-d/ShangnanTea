@@ -629,10 +629,10 @@ public class OrderServiceImpl implements OrderService {
                 // 检查新规格是否已在购物车中存在（排除当前正在更新的购物车项）
                 ShoppingCart existingCartWithNewSpec = cartMapper.selectByUserIdAndTeaIdAndSpecId(userId, cart.getTeaId(), newSpecId);
                 if (existingCartWithNewSpec != null && !existingCartWithNewSpec.getId().equals(cart.getId())) {
-                    // 使用订单模块新增失败码 5147：此规格已存在（参见 code-message-mapping.md）
+                    // 使用订单模块失败码 5148：此规格已存在于购物车中（参见 code-message-mapping.md）
                     logger.warn("更新购物车失败: 此规格已存在于购物车中: cartId={}, newSpecId={}, existingCartId={}", 
                                id, newSpecId, existingCartWithNewSpec.getId());
-                    return Result.failure(5147);
+                    return Result.failure(5148);
                 }
                 
                 // 如果新规格就是当前规格，直接返回成功（无需更新）
