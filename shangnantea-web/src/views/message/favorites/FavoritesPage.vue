@@ -198,6 +198,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useMessageStore } from '@/stores/message'
 import { useOrderStore } from '@/stores/order'
+import { useTeaStore } from '@/stores/tea'
 import { getFavoriteList } from '@/api/user'
 
 import { Search, View, ChatDotRound, Star, ShoppingCart } from '@element-plus/icons-vue'
@@ -209,6 +210,7 @@ const route = useRoute()
 const userStore = useUserStore()
 const messageStore = useMessageStore()
 const orderStore = useOrderStore()
+const teaStore = useTeaStore()
 const activeTab = ref('culture')
 
 // 当前查看的主页用户ID：与 UserHomePage / FollowsPage 规则保持一致
@@ -436,14 +438,37 @@ const favoriteList = computed(() => profileFavoriteList.value || [])
      * 加入购物车
      * - 必须走真实 API / Pinia Action，返回 code 再用状态码消息系统提示
      * - 禁止在未调用接口时伪造成功码
+     * - 如果没有选择规格，使用默认规格
      */
     const addToCart = async teaId => {
       try {
-        // Favorites 列表目前只拿到了 teaId，规格/数量这里先用默认值
+        // 获取茶叶规格列表，找到默认规格
+        await teaStore.fetchTeaSpecifications(teaId)
+        const specs = teaStore.currentTeaSpecs || []
+        const defaultSpec = specs.find(spec => spec.isDefault === 1 || spec.isDefault === true)
+        
+        if (!defaultSpec || !defaultSpec.id) {
+          // 如果没有默认规格，使用第一个规格作为默认规格
+          if (specs.length > 0 && specs[0].id) {
+            const res = await orderStore.addToCart({
+              teaId: String(teaId),
+              quantity: 1,
+              specificationId: specs[0].id
+            })
+            showByCode(res.code)
+            return
+          } else {
+            // 如果连规格都没有，显示错误
+            showByCode(3116) // 规格相关的错误码
+            return
+          }
+        }
+        
+        // 使用默认规格加入购物车
         const res = await orderStore.addToCart({
           teaId: String(teaId),
           quantity: 1,
-          specificationId: null
+          specificationId: defaultSpec.id
         })
         showByCode(res.code)
       } catch (error) {
