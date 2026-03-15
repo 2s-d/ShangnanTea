@@ -1199,6 +1199,22 @@ watch(() => route.query.userId, newUserId => {
 <style lang="scss" scoped>
 .chat-page {
   position: relative;
+  // 默认禁止选中文本
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  
+  // 输入框允许选中（el-input、el-textarea等）
+  :deep(.el-input__inner),
+  :deep(.el-textarea__inner),
+  :deep(input),
+  :deep(textarea) {
+    user-select: text;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+  }
   
   .chat-layout {
     display: flex;
@@ -1216,6 +1232,11 @@ watch(() => route.query.userId, newUserId => {
       display: flex;
       flex-direction: column;
       background-color: #f7f7f7;
+      // 禁止选中文本
+      user-select: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
       
       .search-bar {
         position: relative;
@@ -1646,6 +1667,11 @@ watch(() => route.query.userId, newUserId => {
         flex-direction: row;
         justify-content: flex-start;
         align-items: center;
+        // 禁止选中文本
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
         
         .chat-header-avatar {
           flex-shrink: 0;
@@ -1669,6 +1695,11 @@ watch(() => route.query.userId, newUserId => {
         flex: 1;
         padding: 15px;
         overflow-y: auto;
+        // 聊天消息区域允许选中文本
+        user-select: text;
+        -webkit-user-select: text;
+        -moz-user-select: text;
+        -ms-user-select: text;
         
         .load-more {
           text-align: center;
