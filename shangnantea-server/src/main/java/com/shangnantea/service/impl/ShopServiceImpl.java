@@ -35,7 +35,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -371,7 +370,7 @@ public class ShopServiceImpl implements ShopService {
     }
     
     @Override
-    @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRES_NEW)
+    @Transactional(rollbackFor = Exception.class)
     public Result<Object> createShop(Map<String, Object> shopData) {
         try {
             logger.info("创建店铺请求, shopData: {}", shopData);
@@ -385,9 +384,12 @@ public class ShopServiceImpl implements ShopService {
             logger.info("审核通过后自动创建店铺: userId: {}", userId);
             
             // 2. 验证用户是否有商家认证（必须是已通过认证的申请者）
+            // 注意：如果是从processCertification调用的，此时认证状态已更新但事务未提交
+            // 使用REQUIRED传播，可以读取到同一事务中的更新
             ShopCertification certification = getCertificationByUserId(userId);
             if (certification == null || certification.getStatus() != 1) {
-                logger.warn("创建店铺失败: 用户未通过商家认证, userId: {}", userId);
+                logger.warn("创建店铺失败: 用户未通过商家认证, userId: {}, certification: {}", userId, 
+                    certification != null ? "status=" + certification.getStatus() : "null");
                 return Result.failure(4101);
             }
             
@@ -452,30 +454,20 @@ public class ShopServiceImpl implements ShopService {
             // followCount已从数据库删除，使用动态计算
             
             Date now = new Date();
-            shop.setCreateTime(now);
-            shop.setUpdateTime(now);
+        shop.setCreateTime(now);
+        shop.setUpdateTime(now);
             
             // 7. 插入数据库
-            logger.info("准备插入店铺: shopId={}, shopName={}, ownerId={}", 
-                    shop.getId(), shop.getShopName(), shop.getOwnerId());
             int result = shopMapper.insert(shop);
             if (result <= 0) {
                 logger.error("创建店铺失败: 数据库插入失败, userId: {}", userId);
                 return Result.failure(4101);
             }
             
-            // 8. 验证插入是否成功（立即查询数据库确认）
-            Shop insertedShop = shopMapper.selectById(shop.getId());
-            if (insertedShop == null) {
-                logger.error("创建店铺失败: 插入后查询不到记录, shopId: {}, userId: {}", 
-                        shop.getId(), userId);
-                return Result.failure(4101);
-            }
-            
-            logger.info("创建店铺成功: shopId: {}, shopName: {}, userId: {}, 已验证数据库中存在", 
+            logger.info("创建店铺成功: shopId: {}, shopName: {}, userId: {}", 
                     shop.getId(), shop.getShopName(), userId);
             
-            // 9. 返回成功（根据code-message-mapping.md，成功码是4000）
+            // 8. 返回成功（根据code-message-mapping.md，成功码是4000）
             return Result.success(4000, null);
             
         } catch (Exception e) {
