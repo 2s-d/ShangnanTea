@@ -754,7 +754,7 @@
 | 5105 | 更新数量失败 | 更新失败 | 显示 |
 | 5106 | 商品库存不足 | 库存不足 | 显示 |
 | 5107 | 已达到购买数量上限 | 数量上限 | 显示 |
-| 5147 | 操作失败 | 更新购物车失败 | 显示 |
+| 5148 | 操作失败 | 更新购物车失败 | 显示 |
 
 #### 接口4: removeFromCart - /order/cart/remove (2个状态码)
 
@@ -1589,7 +1589,7 @@
 |------|----------|----------|------|--------|--------|------|
 | 1 | getCartItems | GET | /order/cart | 200 | 5100 | 获取购物车 |
 | 2 | addToCart | POST | /order/cart/add | 5000 | 5101, 5102, 5103, 5104 | 加入购物车 |
-| 3 | updateCartItem | PUT | /order/cart/update | 5001, 5002 | 5105, 5106, 5107, 5147 | 更新购物车 |
+| 3 | updateCartItem | PUT | /order/cart/update | 5001, 5002 | 5105, 5106, 5107, 5148 | 更新购物车 |
 | 4 | removeFromCart | DELETE | /order/cart/remove | 5003 | 5108 | 移除商品 |
 | 5 | clearCart | DELETE | /order/cart/clear | 5004 | 5109 | 清空购物车 |
 
