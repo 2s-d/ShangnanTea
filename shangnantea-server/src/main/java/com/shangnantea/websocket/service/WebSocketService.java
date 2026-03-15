@@ -161,17 +161,23 @@ public class WebSocketService {
             logger.debug("查询店铺粉丝失败，不影响推送: userId={}, error={}", changedUserId, e.getMessage());
         }
         
-        // 4) 推送给相关用户（去除自己，避免自我刷新引起抖动）
+        // 4) 只推送给当前在线的用户（去除自己，避免自我刷新引起抖动）
         receivers.remove(changedUserId);
+        int onlineReceivers = 0;
         for (String receiverId : receivers) {
-            try {
-                sessionManager.sendToUser(receiverId, onlineStatusMsg);
-            } catch (Exception e) {
-                logger.debug("推送在线状态失败，不影响其他用户: receiverId={}, userId={}, error={}",
-                        receiverId, changedUserId, e.getMessage());
+            // 只推送给当前在线的用户
+            if (sessionManager.isUserOnline(receiverId)) {
+                try {
+                    sessionManager.sendToUser(receiverId, onlineStatusMsg);
+                    onlineReceivers++;
+                } catch (Exception e) {
+                    logger.debug("推送在线状态失败，不影响其他用户: receiverId={}, userId={}, error={}",
+                            receiverId, changedUserId, e.getMessage());
+                }
             }
         }
         
-        logger.debug("用户在线状态推送完成: changedUserId={}, online={}, receivers={}", changedUserId, online, receivers.size());
+        logger.debug("用户在线状态推送完成: changedUserId={}, online={}, 总接收者={}, 在线接收者={}", 
+                changedUserId, online, receivers.size(), onlineReceivers);
     }
 }
