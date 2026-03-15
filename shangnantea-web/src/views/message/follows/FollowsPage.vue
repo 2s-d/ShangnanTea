@@ -4,7 +4,6 @@
     <div class="filter-bar">
       <div class="filter-tabs">
         <el-radio-group v-model="filterType" @change="handleFilterChange">
-          <el-radio-button value="all">全部 ({{ totalCount }})</el-radio-button>
           <el-radio-button value="user">用户 ({{ followedUsers.length }})</el-radio-button>
           <el-radio-button value="shop">店铺 ({{ followedShops.length }})</el-radio-button>
         </el-radio-group>
@@ -30,78 +29,8 @@
 
     <!-- 内容区域 -->
     <div class="content-area">
-      <!-- 全部关注 -->
-      <div v-if="filterType === 'all'" class="all-follows">
-        <el-empty v-if="filteredAllFollows.length === 0" description="暂无关注内容" />
-        <div v-else class="mixed-list">
-          <div v-for="item in filteredAllFollows" :key="`${item.type}-${item.id}`" class="follow-item">
-            <!-- 用户项 -->
-            <template v-if="item.type === 'user'">
-              <div class="item-avatar" @click="goToUserProfile(item.userId)">
-                <SafeImage :src="item.avatar" type="avatar" :alt="item.nickname" style="width:50px;height:50px;border-radius:50%;object-fit:cover;" />
-                <div class="item-type-badge user-badge">用户</div>
-              </div>
-              <div class="item-info" @click="goToUserProfile(item.userId)">
-                <div class="item-name">
-                  {{ item.nickname }}
-                  <span class="user-gender">
-                    <el-icon color="#409EFF" v-if="item.gender === 1"><Male /></el-icon>
-                    <el-icon color="#FF4949" v-else-if="item.gender === 2"><Female /></el-icon>
-                  </span>
-                </div>
-                <div class="item-desc">{{ item.bio || '这个用户很懒，什么都没有留下...' }}</div>
-                <div class="follow-time">关注于 {{ formatDate(item.followTime) }}</div>
-              </div>
-              <div class="item-actions" v-if="item.userId !== currentUserId">
-                <el-button class="action-btn action-btn-private" size="small" @click="privateMessage(item.userId)">
-                  <el-icon><Message /></el-icon> 私信
-                </el-button>
-                <el-button
-                  class="action-btn"
-                  :class="{ 'action-btn-follow': !isLocallyFollowed('user', item.userId) }"
-                  size="small"
-                  plain
-                  :type="isLocallyFollowed('user', item.userId) ? 'danger' : 'primary'"
-                  @click="toggleFollowUser(item)"
-                >
-                  {{ isLocallyFollowed('user', item.userId) ? '取消关注' : '+关注' }}
-                </el-button>
-              </div>
-            </template>
-            
-            <!-- 店铺项 -->
-            <template v-else-if="item.type === 'shop'">
-              <div class="item-avatar" @click="goToShopDetail(item.shopId)">
-                <SafeImage :src="item.logo" type="banner" :alt="item.name" style="width:50px;height:50px;border-radius:8px;object-fit:cover;" />
-                <div class="item-type-badge shop-badge">店铺</div>
-              </div>
-              <div class="item-info" @click="goToShopDetail(item.shopId)">
-                <div class="item-name">{{ item.name }}</div>
-                <div class="item-desc">{{ item.description || '暂无店铺介绍' }}</div>
-                <div class="follow-time">关注于 {{ formatDate(item.followTime) }}</div>
-              </div>
-              <div class="item-actions">
-                <el-button class="action-btn action-btn-contact" size="small" type="primary" @click="contactShop(item.shopId)">
-                  <el-icon><Service /></el-icon> 联系客服
-                </el-button>
-                <el-button
-                  class="action-btn"
-                  :class="{ 'action-btn-follow': !isLocallyFollowed('shop', item.shopId) }"
-                  size="small"
-                  plain
-                  :type="isLocallyFollowed('shop', item.shopId) ? 'danger' : 'primary'"
-                  @click="toggleFollowShop(item)"
-                >
-                  {{ isLocallyFollowed('shop', item.shopId) ? '取消关注' : '+关注' }}
-                </el-button>
-              </div>
-            </template>
-          </div>
-        </div>
-      </div>
-
       <!-- 用户列表 -->
-      <div v-else-if="filterType === 'user'" class="users-section">
+      <div v-if="filterType === 'user'" class="users-section">
         <el-empty v-if="filteredUsers.length === 0" description="暂无关注用户" />
         <div v-else class="users-list">
           <div v-for="user in filteredUsers" :key="user.id" class="user-item">
@@ -251,8 +180,8 @@ const profileUserId = computed(() => {
   return firstParam
 })
     
-    // 筛选类型：all（全部）、user（用户）、shop（店铺）
-    const filterType = ref('all')
+    // 筛选类型：user（用户）、shop（店铺）
+    const filterType = ref('user')
     const searchKeyword = ref('')
     const sortOption = ref('recent')
     
@@ -289,57 +218,6 @@ const profileUserId = computed(() => {
           followTime: item.createTime,
           popularity: 5 // 后端未提供，使用默认值
         }))
-    })
-    
-    // 总数量
-    const totalCount = computed(() => followedUsers.value.length + followedShops.value.length)
-    
-    // 混合列表（全部关注）
-    const filteredAllFollows = computed(() => {
-      let result = []
-      
-      // 添加用户
-      followedUsers.value.forEach(user => {
-        result.push({
-          ...user,
-          type: 'user'
-        })
-      })
-      
-      // 添加店铺
-      followedShops.value.forEach(shop => {
-        result.push({
-          ...shop,
-          type: 'shop'
-        })
-      })
-      
-      // 搜索过滤
-      if (searchKeyword.value) {
-        const keyword = searchKeyword.value.toLowerCase()
-        result = result.filter(item => {
-          if (item.type === 'user') {
-            return item.nickname.toLowerCase().includes(keyword) || 
-                   item.bio.toLowerCase().includes(keyword)
-          } else {
-            return item.name.toLowerCase().includes(keyword) || 
-                   item.description.toLowerCase().includes(keyword)
-          }
-        })
-      }
-      
-      // 排序
-      if (sortOption.value === 'recent') {
-        result.sort((a, b) => new Date(b.followTime) - new Date(a.followTime))
-      } else if (sortOption.value === 'active') {
-        result.sort((a, b) => {
-          const aLevel = a.type === 'user' ? a.activeLevel : a.popularity
-          const bLevel = b.type === 'user' ? b.activeLevel : b.popularity
-          return bLevel - aLevel
-        })
-      }
-      
-      return result
     })
     
     // 过滤和排序用户
