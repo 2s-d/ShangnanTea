@@ -113,6 +113,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import { useMessageStore } from '@/stores/message'
 import { ElMessage } from 'element-plus'
 import { Search, Male, Female, Message, Service } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
@@ -122,6 +123,7 @@ import { getFollowList } from '@/api/user'
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
+const messageStore = useMessageStore()
 
 /**
  * 本地关注态：用于“取消关注后不立即从列表消失”，但按钮文案/样式立刻切换
@@ -381,9 +383,17 @@ const profileUserId = computed(() => {
     }
     
     // 加载关注列表（主页用户 + 当前登录用户）
+    // 参考统计接口的处理：仅在主页可见时才调用接口
     const loadFollowList = async () => {
+      // 如果主页不可见，不调用任何接口
+      if (!isProfileVisible.value) {
+        localFollowList.value = []
+        viewerFollowList.value = []
+        return
+      }
+      
       try {
-        // 1) 主页用户的关注：用于渲染“他关注了谁/哪家店”
+        // 1) 主页用户的关注：用于渲染"他关注了谁/哪家店"
         const resOwner = await getFollowList(null, profileUserId.value)
         showByCode(resOwner.code)
         localFollowList.value = (resOwner.data || []).map(i => ({ ...i }))
@@ -402,15 +412,38 @@ const profileUserId = computed(() => {
     }
     
 // 组件挂载时加载数据
-onMounted(() => {
+// 注意：需要等待基础信息接口加载完成后再检查可见性
+onMounted(async () => {
+  // 等待基础信息加载完成（如果还没有加载的话）
+  if (profileUserId.value && !messageStore.userProfile) {
+    await new Promise(resolve => setTimeout(resolve, 100))
+  }
   loadFollowList()
 })
 
 // 查看不同用户主页时，刷新关注快照并清空本页的本地切换态
-watch(() => profileUserId.value, () => {
+watch(() => profileUserId.value, async () => {
   localFollowState.value = {}
+  // 等待基础信息加载完成
+  if (profileUserId.value && !messageStore.userProfile) {
+    await new Promise(resolve => setTimeout(resolve, 100))
+  }
   loadFollowList()
 })
+
+// 监听 userProfile 变化，当基础信息加载完成后重新检查可见性
+watch(() => messageStore.userProfile, () => {
+  if (messageStore.userProfile) {
+    // 如果之前因为不可见而没有加载，现在 userProfile 加载完成了，可以重新检查
+    if (!isProfileVisible.value) {
+      localFollowList.value = []
+      viewerFollowList.value = []
+    } else if (localFollowList.value.length === 0) {
+      // 主页可见且列表为空，重新加载
+      loadFollowList()
+    }
+  }
+}, { immediate: false })
 </script>
 
 <style lang="scss" scoped>

@@ -189,6 +189,22 @@ const profileUserId = computed(() => {
   if (firstParam === 'published' || firstParam === 'follows' || firstParam === 'favorites') return null
   return firstParam
 })
+
+// 判断是否是查看自己的主页
+const isOwnProfile = computed(() => {
+  if (!profileUserId.value) return true // 没有指定userId，默认是自己的主页
+  if (profileUserId.value === 'current') return true
+  return currentUserId.value && String(profileUserId.value) === String(currentUserId.value)
+})
+
+// 判断主页是否可见（参考 UserHomePage 的逻辑）
+const isProfileVisible = computed(() => {
+  if (isOwnProfile.value) return true // 自己的主页永远可见
+  const profile = messageStore.userProfile || {}
+  // 后端没有返回该字段时默认可见
+  if (profile.profileVisible === undefined || profile.profileVisible === null) return true
+  return !!profile.profileVisible
+})
     
     // 从Pinia获取数据
     const posts = computed(() => messageStore.userPosts || [])
@@ -317,7 +333,13 @@ const profileUserId = computed(() => {
     }
     
     // 加载数据（统一行为：同时加载帖子和评价数据，确保统计数字准确）
+    // 参考统计接口的处理：仅在主页可见时才调用接口
     const loadData = async (loadBoth = false) => {
+      // 如果主页不可见，不调用任何接口
+      if (!isProfileVisible.value) {
+        return
+      }
+      
       try {
         const paramsBase = {}
         if (profileUserId.value) {
@@ -353,17 +375,47 @@ const profileUserId = computed(() => {
     }
     
 // 组件挂载 & 路由变更时加载数据（同时加载帖子和评价，确保统计数字准确）
-onMounted(() => {
+// 注意：需要等待基础信息接口加载完成后再检查可见性
+onMounted(async () => {
   // 编辑弹窗需要分类下拉：确保 topicList 已加载
   if (!topicList.value || topicList.value.length === 0) {
     forumStore.fetchForumTopics().catch(() => {})
   }
+  
+  // 等待基础信息加载完成（如果还没有加载的话）
+  // 由于 UserHomePage 已经先调用了 fetchUserProfile，这里通常已经有数据了
+  // 但为了保险起见，如果 profileUserId 存在且 userProfile 还没有，等待一下
+  if (profileUserId.value && !messageStore.userProfile) {
+    // 等待一小段时间让 UserHomePage 的 loadUserData 完成
+    await new Promise(resolve => setTimeout(resolve, 100))
+  }
+  
   loadData(true) // 页面初始化时同时加载两个接口
 })
 
-watch(() => route.params.userId, () => {
+watch(() => route.params.userId, async () => {
+  // 切换用户时，等待基础信息加载完成
+  if (profileUserId.value && !messageStore.userProfile) {
+    await new Promise(resolve => setTimeout(resolve, 100))
+  }
   loadData(true) // 切换用户时也同时加载两个接口
 })
+
+// 监听 userProfile 变化，当基础信息加载完成后，如果之前因为不可见而没有加载数据，现在可以检查了
+watch(() => messageStore.userProfile, () => {
+  // 如果之前因为不可见而没有加载，现在 userProfile 加载完成了，可以重新检查
+  if (messageStore.userProfile && !isProfileVisible.value) {
+    // 主页不可见，确保数据为空
+    messageStore.userPosts = []
+    messageStore.userReviews = []
+  } else if (messageStore.userProfile && isProfileVisible.value) {
+    // 主页可见，如果数据为空，重新加载
+    if ((!messageStore.userPosts || messageStore.userPosts.length === 0) && 
+        (!messageStore.userReviews || messageStore.userReviews.length === 0)) {
+      loadData(true)
+    }
+  }
+}, { immediate: false })
 </script>
 
 <style lang="scss" scoped>
