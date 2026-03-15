@@ -619,7 +619,7 @@ public class ForumServiceImpl implements ForumService {
             vo.setViewCount(article.getViewCount());
             // 使用动态计算获取点赞数和收藏数
             vo.setLikeCount(statisticsUtils.getLikeCount("article", String.valueOf(article.getId())));
-            vo.setFavoriteCount(statisticsUtils.getFavoriteCount("article", String.valueOf(article.getId())));
+            vo.setFavoriteCount(statisticsUtils.getFavoriteCount("tea_article", String.valueOf(article.getId())));
             vo.setIsTop(article.getIsTop());
             vo.setIsRecommend(article.getIsRecommend());
             vo.setPublishTime(article.getPublishTime());
@@ -632,7 +632,7 @@ public class ForumServiceImpl implements ForumService {
                     UserLike like = userLikeMapper.selectByUserIdAndTarget(currentUserId, "article", id);
                     vo.setIsLiked(like != null);
                     
-                    UserFavorite favorite = userFavoriteMapper.selectByUserIdAndItem(currentUserId, "article", id);
+                    UserFavorite favorite = userFavoriteMapper.selectByUserIdAndItem(currentUserId, "tea_article", id);
                     vo.setIsFavorited(favorite != null);
                 } catch (Exception e) {
                     logger.warn("查询文章点赞/收藏状态失败, articleId: {}, userId: {}, 默认设置为未点赞/未收藏", id, currentUserId, e);
