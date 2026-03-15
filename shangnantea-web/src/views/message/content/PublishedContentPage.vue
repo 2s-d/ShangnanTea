@@ -306,29 +306,33 @@ const profileUserId = computed(() => {
         })
     }
     
-    // 加载数据
-    const loadData = async () => {
+    // 加载数据（统一行为：同时加载帖子和评价数据，确保统计数字准确）
+    const loadData = async (loadBoth = false) => {
       try {
-        let res
         const paramsBase = {}
         if (profileUserId.value) {
           paramsBase.userId = profileUserId.value
         }
-        if (activeTab.value === 'posts') {
-          res = await messageStore.fetchUserPosts({ ...paramsBase, sortBy: sortOption.value })
-        } else if (activeTab.value === 'reviews') {
-          res = await messageStore.fetchUserReviews(paramsBase)
+        
+        // 如果 loadBoth 为 true（页面初始化时），或者当前标签页需要的数据，都加载
+        if (loadBoth || activeTab.value === 'posts') {
+          const postsRes = await messageStore.fetchUserPosts({ ...paramsBase, sortBy: sortOption.value })
+          if (postsRes) showByCode(postsRes.code)
         }
-        if (res) showByCode(res.code)
+        
+        if (loadBoth || activeTab.value === 'reviews') {
+          const reviewsRes = await messageStore.fetchUserReviews(paramsBase)
+          if (reviewsRes) showByCode(reviewsRes.code)
+        }
       } catch (error) {
         console.error('加载发布内容失败：', error)
       }
     }
     
-    // 监听标签页切换
+    // 监听标签页切换（切换时只加载当前标签页的数据，因为另一个已经在初始化时加载过了）
     const handleTabChange = tab => {
       activeTab.value = tab
-      loadData()
+      loadData(false) // 切换标签页时不需要同时加载两个接口
     }
     
     // 监听排序选项变化
@@ -338,17 +342,17 @@ const profileUserId = computed(() => {
       }
     }
     
-// 组件挂载 & 路由变更时加载数据
+// 组件挂载 & 路由变更时加载数据（同时加载帖子和评价，确保统计数字准确）
 onMounted(() => {
   // 编辑弹窗需要分类下拉：确保 topicList 已加载
   if (!topicList.value || topicList.value.length === 0) {
     forumStore.fetchForumTopics().catch(() => {})
   }
-  loadData()
+  loadData(true) // 页面初始化时同时加载两个接口
 })
 
 watch(() => route.params.userId, () => {
-  loadData()
+  loadData(true) // 切换用户时也同时加载两个接口
 })
 </script>
 
