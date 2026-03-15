@@ -237,7 +237,7 @@
                 </el-table-column>
                 <el-table-column label="分类" width="120">
                   <template #default="scope">
-                    {{ getCategoryName(scope.row.category_id) }}
+                    {{ getCategoryName(scope.row.categoryId) }}
                   </template>
                 </el-table-column>
                 <el-table-column prop="stock" label="库存" width="100" sortable />
@@ -1361,7 +1361,7 @@ defineOptions({
     // 获取分类名称
     const getCategoryName = categoryId => {
       if (!categoryId) return '-'
-      const category = categoryOptions.find(c => c.id === parseInt(categoryId))
+      const category = categoryOptions.value.find(c => c.id === parseInt(categoryId))
       return category ? category.name : '-'
     }
     
