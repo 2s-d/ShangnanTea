@@ -1099,64 +1099,16 @@ watch(() => route.query.userId, newUserId => {
       .left-collapse {
         height: 100%;
         overflow: hidden;
-        display: flex;
-        flex-direction: column;
 
         :deep(.el-collapse-item__header) {
           padding: 0 12px;
           background: #fff;
           border-bottom: 1px solid #eee;
           height: 44px;
-          flex-shrink: 0;
         }
 
         :deep(.el-collapse-item__content) {
           padding: 0;
-          overflow: hidden;
-          display: flex;
-          flex-direction: column;
-          min-height: 0;
-        }
-
-        // 联系人折叠项
-        :deep(.el-collapse-item[name="contacts"]) {
-          display: flex;
-          flex-direction: column;
-          min-height: 0;
-          
-          &.is-active {
-            // 联系人展开时
-            flex: 1;
-          }
-          
-          &:not(.is-active) {
-            // 联系人折叠时，只显示header
-            flex: 0 0 auto;
-          }
-        }
-
-        // 最近会话折叠项
-        :deep(.el-collapse-item[name="recent"]) {
-          display: flex;
-          flex-direction: column;
-          min-height: 0;
-          
-          &.is-active {
-            // 最近会话展开时
-            flex: 1;
-          }
-          
-          &:not(.is-active) {
-            // 最近会话折叠时，只显示header
-            flex: 0 0 auto;
-          }
-        }
-
-        // 特殊情况：联系人展开且最近会话折叠时，联系人占据大部分空间
-        :deep(.el-collapse-item[name="contacts"].is-active) {
-          & ~ .el-collapse-item[name="recent"]:not(.is-active) {
-            flex: 0 0 auto;
-          }
         }
       }
 
@@ -1175,10 +1127,9 @@ watch(() => route.query.userId, newUserId => {
       }
 
       .contacts-list {
-        flex: 1;
+        max-height: 240px;
         overflow-y: auto;
         background: #f7f7f7;
-        min-height: 0;
       }
 
       .contact-group-header {
@@ -1264,7 +1215,6 @@ watch(() => route.query.userId, newUserId => {
         flex: 1;
         overflow-y: auto;
         background-color: #f7f7f7;
-        min-height: 0;
         
         .session-item {
           display: flex;
