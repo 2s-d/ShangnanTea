@@ -72,12 +72,12 @@
         <el-empty v-if="filteredCultureArticles.length === 0" description="暂无收藏内容" />
         
         <div v-else class="culture-articles">
-          <div v-for="article in filteredCultureArticles" :key="article.id" class="article-item">
-            <div class="article-cover" @click="goToArticleDetail(article.articleId)">
+          <div v-for="article in filteredCultureArticles" :key="article.id" class="article-item" @click="goToArticleDetail(article.articleId)">
+            <div class="article-cover">
               <SafeImage :src="article.cover_image" type="post" :alt="article.title" style="width:100%;height:100%;object-fit:cover;" />
             </div>
             <div class="article-info">
-              <div class="article-title" @click="goToArticleDetail(article.articleId)">{{ article.title }}</div>
+              <div class="article-title">{{ article.title }}</div>
               <div class="article-summary">{{ article.summary }}</div>
               <div class="article-meta">
                 <span class="publish-time">发布于 {{ formatDate(article.publishTime) }}</span>
@@ -85,7 +85,7 @@
                 <span class="view-count"><el-icon><View /></el-icon> {{ article.viewCount }}</span>
               </div>
             </div>
-            <div class="article-actions">
+            <div class="article-actions" @click.stop>
               <el-button
                 size="small"
                 plain
@@ -657,7 +657,6 @@ watch(() => profileUserId.value, () => {
         margin-right: 20px;
         border-radius: 6px;
         overflow: hidden;
-        cursor: pointer;
         
         img {
           width: 100%;
@@ -679,7 +678,6 @@ watch(() => profileUserId.value, () => {
           font-weight: 500;
           color: var(--el-text-color-primary);
           margin-bottom: 10px;
-          cursor: pointer;
           
           &:hover {
             color: var(--el-color-primary);
