@@ -156,7 +156,7 @@
           
         <!-- 下半部分：内容区域 -->
         <div class="home-content">
-          <!-- 他人主页设置为私密时，只提示，不展示具体内容（不渲染子组件，避免调用接口） -->
+          <!-- 他人主页设置为私密时，只提示，不展示具体内容 -->
           <template v-if="!isOwnProfile && !isProfileVisible">
             <div class="profile-locked">
               <el-empty
@@ -166,9 +166,9 @@
                   </div>
           </template>
           <template v-else>
-            <!-- 标签页内容（只有主页可见时才渲染，避免不可见时调用接口） -->
+            <!-- 标签页内容 -->
             <keep-alive>
-            <component v-if="isProfileVisible || isOwnProfile" :is="currentComponent" />
+            <component :is="currentComponent" />
           </keep-alive>
           
           <!-- 开发中的功能提示 -->
@@ -497,18 +497,16 @@ const userStore = useUserStore()
           return
         }
         
-        // 第一步：先加载主页基础信息（用于判断 profileVisible）
+        // 先加载主页基础信息（用于判断 profileVisible），再决定是否需要请求统计接口
         await messageStore.fetchUserProfile(targetUserId)
         
         const isSelf = currentUserId.value && String(targetUserId) === String(currentUserId.value)
         const profileVisible = messageStore.userProfile?.profileVisible !== false
         
-        // 第二步：仅在本人或对方允许查看时才请求统计接口；否则直接置零并不发请求
+        // 仅在本人或对方允许查看时才请求统计接口；否则直接置零并不发请求
         if (isSelf || profileVisible) {
           await messageStore.fetchUserStatistics(targetUserId)
-          // 第三步：内容接口由子组件负责调用，但只有主页可见时才会渲染子组件（在模板中使用 v-if 控制）
         } else {
-          // 主页不可见时，不调用统计接口，也不渲染子组件（避免调用内容接口）
           messageStore.userStatistics = {
             postCount: 0,
             likeCount: 0,
