@@ -97,7 +97,7 @@
 
 <script setup>
 // 调整导入顺序，确保 vue 核心工具先导入
-import { computed, ref, onMounted, watch } from 'vue'
+import { computed, ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 
 // 导入 Pinia store
@@ -119,6 +119,31 @@ const route = useRoute()
 
 // 使用useAuth
 const { isAdmin, isShop, isUser, isLoggedIn, ROLES } = useAuth()
+
+// 存储页面可见性变化处理函数，用于清理
+let visibilityChangeHandler = null
+
+// 加载导航栏数据的函数
+const loadNavBarData = async () => {
+  // 未登录时不请求需要鉴权的接口，避免在登录页/退出后刷新的 401 状态干扰逻辑
+  if (!isLoggedIn.value) {
+    return
+  }
+
+  try {
+    // 刷新购物车数量
+    await orderStore.fetchCartItems()
+    // 刷新用户信息，确保拿到完整的昵称等资料（token 里只有基础字段）
+    await userStore.getUserInfo()
+    // 基于当前用户现居地请求今日天气（带前端与后端双重缓存）
+    await userStore.fetchTodayWeather()
+  } catch (error) {
+    // 静默失败，不影响导航栏显示（仅在开发环境打印）
+    if (import.meta.env.MODE === 'development') {
+      console.error('导航初始化失败:', error)
+    }
+  }
+}
 
 // 计算激活的导航项（如果是从其他页面跳转到个人主页，保持之前的导航栏高亮）
 const computedActiveIndex = computed(() => {
@@ -142,24 +167,24 @@ const computedActiveIndex = computed(() => {
 
 // 当路由变化时更新激活项，并在「已登录」状态下刷新必要的全局数据
 onMounted(async () => {
+  await loadNavBarData()
   
-  // 未登录时不请求需要鉴权的接口，避免在登录页/退出后刷新的 401 状态干扰逻辑
-  if (!isLoggedIn.value) {
-    return
-  }
-
-  try {
-    // 刷新购物车数量
-    await orderStore.fetchCartItems()
-    // 刷新用户信息，确保拿到完整的昵称等资料（token 里只有基础字段）
-      await userStore.getUserInfo()
-// 基于当前用户现居地请求今日天气（带前端与后端双重缓存）
-    await userStore.fetchTodayWeather()
-  } catch (error) {
-    // 静默失败，不影响导航栏显示（仅在开发环境打印）
-    if (import.meta.env.MODE === 'development') {
-      console.error('导航初始化失败:', error)
+  // 监听页面可见性变化，处理 Ctrl+Shift+T 恢复标签页的情况
+  visibilityChangeHandler = async () => {
+    // 当页面从隐藏变为可见时，重新加载导航栏数据
+    if (document.visibilityState === 'visible' && isLoggedIn.value) {
+      await loadNavBarData()
     }
+  }
+  
+  document.addEventListener('visibilitychange', visibilityChangeHandler)
+})
+
+// 组件卸载时清理事件监听器
+onBeforeUnmount(() => {
+  if (visibilityChangeHandler) {
+    document.removeEventListener('visibilitychange', visibilityChangeHandler)
+    visibilityChangeHandler = null
   }
 })
 
