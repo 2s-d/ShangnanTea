@@ -225,23 +225,7 @@ const currentUserId = computed(() => {
   return base.id || base.userId || null
 })
 
-// 判断是否是查看自己的主页
-const isOwnProfile = computed(() => {
-  if (!profileUserId.value) return true
-  if (profileUserId.value === 'current') return true
-  return currentUserId.value && String(profileUserId.value) === String(currentUserId.value)
-})
-
-// 判断主页是否可见（参考 UserHomePage 的逻辑）
-const isProfileVisible = computed(() => {
-  if (isOwnProfile.value) return true // 自己的主页永远可见
-  const profile = messageStore.userProfile || {}
-  // 后端没有返回该字段时默认可见
-  if (profile.profileVisible === undefined || profile.profileVisible === null) return true
-  return !!profile.profileVisible
-})
-
-/**
+    /**
  * 收藏列表本地状态管理（参考关注页逻辑）
  * - profileFavoriteList: 被查看用户的收藏列表（用于显示列表内容）
  * - viewerFavoriteList: 当前登录用户的收藏列表（用于判断按钮状态）
@@ -526,8 +510,12 @@ const favoriteList = computed(() => profileFavoriteList.value || [])
      * 参考统计接口的处理：仅在主页可见时才调用接口
      */
     const loadFavoriteList = async () => {
-      // 如果主页不可见，不调用任何接口
-      if (!isProfileVisible.value) {
+      // 参考统计接口的处理逻辑：判断主页是否可见
+      const isSelf = currentUserId.value && profileUserId.value && String(profileUserId.value) === String(currentUserId.value)
+      const profileVisible = messageStore.userProfile?.profileVisible !== false
+      
+      // 仅在本人或对方允许查看时才请求收藏接口；否则直接置空并不发请求
+      if (!isSelf && !profileVisible) {
         profileFavoriteList.value = []
         viewerFavoriteList.value = []
         localFavoriteState.value = {}
@@ -565,29 +553,9 @@ const favoriteList = computed(() => profileFavoriteList.value || [])
     }
     
 // 组件挂载时加载数据
-// 注意：需要等待基础信息接口加载完成后再检查可见性
-onMounted(async () => {
-  // 等待基础信息加载完成（如果还没有加载的话）
-  if (profileUserId.value && !messageStore.userProfile) {
-    await new Promise(resolve => setTimeout(resolve, 100))
-  }
+onMounted(() => {
   loadFavoriteList()
 })
-
-// 监听 userProfile 变化，当基础信息加载完成后重新检查可见性
-watch(() => messageStore.userProfile, () => {
-  if (messageStore.userProfile) {
-    // 如果之前因为不可见而没有加载，现在 userProfile 加载完成了，可以重新检查
-    if (!isProfileVisible.value) {
-      profileFavoriteList.value = []
-      viewerFavoriteList.value = []
-      localFavoriteState.value = {}
-    } else if (profileFavoriteList.value.length === 0) {
-      // 主页可见且列表为空，重新加载
-      loadFavoriteList()
-    }
-  }
-}, { immediate: false })
 
 /**
  * 是否为平台直售茶叶（对齐 TeaDetailPage 的判定逻辑）

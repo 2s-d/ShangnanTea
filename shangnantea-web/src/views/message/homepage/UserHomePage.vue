@@ -497,7 +497,7 @@ const userStore = useUserStore()
           return
         }
         
-        // 先加载主页基础信息（用于判断 profileVisible），再决定是否需要请求统计接口
+        // 先加载主页基础信息（用于判断 profileVisible），再决定是否需要请求统计接口和内容接口
         await messageStore.fetchUserProfile(targetUserId)
         
         const isSelf = currentUserId.value && String(targetUserId) === String(currentUserId.value)
@@ -515,6 +515,9 @@ const userStore = useUserStore()
             followerCount: 0,
             commentCount: 0
           }
+          // 主页不可见时，清空内容数据，不调用内容接口
+          messageStore.userPosts = []
+          messageStore.userReviews = []
         }
       } catch (error) {
         console.error('加载用户数据失败：', error)

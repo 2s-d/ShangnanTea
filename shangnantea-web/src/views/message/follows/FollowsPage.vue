@@ -385,8 +385,12 @@ const profileUserId = computed(() => {
     // 加载关注列表（主页用户 + 当前登录用户）
     // 参考统计接口的处理：仅在主页可见时才调用接口
     const loadFollowList = async () => {
-      // 如果主页不可见，不调用任何接口
-      if (!isProfileVisible.value) {
+      // 参考统计接口的处理逻辑：判断主页是否可见
+      const isSelf = currentUserId.value && profileUserId.value && String(profileUserId.value) === String(currentUserId.value)
+      const profileVisible = messageStore.userProfile?.profileVisible !== false
+      
+      // 仅在本人或对方允许查看时才请求关注接口；否则直接置空并不发请求
+      if (!isSelf && !profileVisible) {
         localFollowList.value = []
         viewerFollowList.value = []
         return
@@ -412,38 +416,15 @@ const profileUserId = computed(() => {
     }
     
 // 组件挂载时加载数据
-// 注意：需要等待基础信息接口加载完成后再检查可见性
-onMounted(async () => {
-  // 等待基础信息加载完成（如果还没有加载的话）
-  if (profileUserId.value && !messageStore.userProfile) {
-    await new Promise(resolve => setTimeout(resolve, 100))
-  }
+onMounted(() => {
   loadFollowList()
 })
 
 // 查看不同用户主页时，刷新关注快照并清空本页的本地切换态
-watch(() => profileUserId.value, async () => {
+watch(() => profileUserId.value, () => {
   localFollowState.value = {}
-  // 等待基础信息加载完成
-  if (profileUserId.value && !messageStore.userProfile) {
-    await new Promise(resolve => setTimeout(resolve, 100))
-  }
   loadFollowList()
 })
-
-// 监听 userProfile 变化，当基础信息加载完成后重新检查可见性
-watch(() => messageStore.userProfile, () => {
-  if (messageStore.userProfile) {
-    // 如果之前因为不可见而没有加载，现在 userProfile 加载完成了，可以重新检查
-    if (!isProfileVisible.value) {
-      localFollowList.value = []
-      viewerFollowList.value = []
-    } else if (localFollowList.value.length === 0) {
-      // 主页可见且列表为空，重新加载
-      loadFollowList()
-    }
-  }
-}, { immediate: false })
 </script>
 
 <style lang="scss" scoped>
