@@ -13,6 +13,7 @@ import {
   getTeaReviews, 
   getReviewStats, 
   replyReview as replyReviewApi, 
+  deleteTeaReview as deleteTeaReviewApi,
   getTeaSpecifications, 
   addSpecification as addSpecificationApi, 
   updateSpecification as updateSpecificationApi, 
@@ -373,6 +374,26 @@ export const useTeaStore = defineStore('tea', () => {
     }
   }
   
+  // 删除茶叶评价（仅评价发布者）
+  async function deleteTeaReview(reviewId) {
+    try {
+      const res = await deleteTeaReviewApi(reviewId)
+      
+      // 从评价列表中移除已删除的评价
+      teaReviews.value = teaReviews.value.filter(r => r.id !== reviewId)
+      
+      // 更新评价总数
+      if (reviewPagination.total > 0) {
+        reviewPagination.total--
+      }
+      
+      return res
+    } catch (error) {
+      console.error('删除评价失败:', error)
+      throw error
+    }
+  }
+  
   // ========== 规格管理 Actions ==========
   
   // 获取茶叶规格列表
@@ -655,6 +676,7 @@ export const useTeaStore = defineStore('tea', () => {
     fetchTeaReviews,
     fetchReviewStats,
     replyReview,
+    deleteTeaReview,
     fetchTeaSpecifications,
     addSpecification,
     updateSpecification,

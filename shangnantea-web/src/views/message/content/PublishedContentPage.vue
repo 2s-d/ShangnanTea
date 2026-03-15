@@ -164,7 +164,7 @@ import { showByCode } from '@/utils/apiMessages'
 import { commonPromptMessages } from '@/utils/promptMessages'
 import PostEditorDialog from '@/components/forum/PostEditorDialog.vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-import { deleteTeaReview } from '@/api/tea'
+import { useTeaStore } from '@/stores/tea'
 
 const router = useRouter()
 const route = useRoute()
@@ -319,13 +319,13 @@ const profileUserId = computed(() => {
       )
         .then(async () => {
           try {
-            const res = await deleteTeaReview(id)
+            const res = await teaStore.deleteTeaReview(id)
             showByCode(res.code)
-          // 重新加载数据
+            // 重新加载数据
             await loadData()
           } catch (error) {
             console.error('删除评价失败:', error)
-            commonPromptMessages.showError('删除评价失败，请稍后重试')
+            showByCode(error?.response?.data?.code || 3130)
           }
         })
         .catch(() => {

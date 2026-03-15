@@ -369,7 +369,6 @@ import { Back, ShoppingCart, Star, ChatLineRound, Delete } from '@element-plus/i
 import SafeImage from '@/components/common/form/SafeImage.vue'
 import { showByCode } from '@/utils/apiMessages'
 import teaMessages from '@/utils/promptMessages'
-import { deleteTeaReview } from '@/api/tea'
 
 defineOptions({
   name: 'TeaDetailPage'
@@ -530,19 +529,22 @@ defineOptions({
       )
         .then(async () => {
           try {
-            const res = await deleteTeaReview(reviewId)
+            const res = await teaStore.deleteTeaReview(reviewId)
             showByCode(res.code)
-            // 重新加载评价列表
+            // 重新加载评价列表和统计数据
             if (tea.value) {
-              await teaStore.fetchTeaReviews({
-                teaId: tea.value.id,
-                page: reviewCurrentPage.value,
-                pageSize: reviewPageSize.value
-              })
+              await Promise.all([
+                teaStore.fetchTeaReviews({
+                  teaId: tea.value.id,
+                  page: reviewCurrentPage.value,
+                  pageSize: reviewPageSize.value
+                }),
+                teaStore.fetchReviewStats(tea.value.id)
+              ])
             }
           } catch (error) {
             console.error('删除评价失败:', error)
-            teaMessages.prompt.showError('删除评价失败，请稍后重试')
+            showByCode(error?.response?.data?.code || 3130)
           }
         })
         .catch(() => {
@@ -1257,11 +1259,22 @@ defineOptions({
               display: flex;
               flex-direction: column;
               align-items: flex-end;
+              gap: 5px;
               
               .review-time {
-                margin-top: 5px;
                 font-size: 12px;
                 color: var(--el-text-color-secondary);
+              }
+              
+              .delete-review-icon {
+                cursor: pointer;
+                color: var(--el-color-danger);
+                font-size: 18px;
+                transition: color 0.3s;
+                
+                &:hover {
+                  color: var(--el-color-danger-dark-2);
+                }
               }
             }
           }
