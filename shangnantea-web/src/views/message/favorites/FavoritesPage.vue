@@ -216,8 +216,8 @@ const activeTab = ref('culture')
 // 当前查看的主页用户ID：与 UserHomePage / FollowsPage 规则保持一致
 const profileUserId = computed(() => {
   const firstParam = route.params.userId
-  if (!firstParam || firstParam === 'current') return null
-  if (firstParam === 'published' || firstParam === 'follows' || firstParam === 'favorites') return null
+  if (!firstParam || firstParam === 'current') return currentUserId.value
+  if (firstParam === 'published' || firstParam === 'follows' || firstParam === 'favorites') return currentUserId.value
   return firstParam
 })
 
@@ -480,11 +480,15 @@ const favoriteList = computed(() => profileFavoriteList.value || [])
     }
     
     /**
-     * 切换收藏状态（参考关注页的 toggleFollowUser/toggleFollowShop 逻辑）
+     * 切换收藏状态（乐观更新 + 延迟同步）
      * - 改变的是"当前登录用户"和"该项目"的关系
-     * - 列表项不会消失（因为列表是"他的收藏"，不是"我的收藏"）
+     * - 自己的列表：只更新按钮状态，不刷新列表（避免误操作导致项消失）
+     * - 别人的列表：立即刷新 viewerFavoriteList，确保按钮状态准确
      */
     const toggleFavorite = async (itemType, itemId, targetName = '', targetImage = '') => {
+      // 判断是否是查看自己的列表
+      const isSelf = currentUserId.value && profileUserId.value && String(profileUserId.value) === String(currentUserId.value)
+      
       const currentlyFavorited = isLocallyFavorited(itemType, itemId)
       // 先乐观更新UI，避免"接口成功但按钮样式不变"
       setLocallyFavorited(itemType, itemId, !currentlyFavorited)
@@ -499,6 +503,18 @@ const favoriteList = computed(() => profileFavoriteList.value || [])
           // 如果失败，回滚UI状态
           if (!(res.code === 2015 || String(res.code).startsWith('7'))) {
             setLocallyFavorited(itemType, itemId, true)
+          } else {
+            // 操作成功：如果是别人的列表，立即刷新 viewerFavoriteList 确保按钮状态准确
+            if (!isSelf) {
+              try {
+                const resViewer = await getFavoriteList()
+                viewerFavoriteList.value = (resViewer.data || []).map(i => ({ ...i }))
+              } catch (err) {
+                if (process.env.NODE_ENV === 'development') {
+                  console.error('刷新查看者收藏列表失败:', err)
+                }
+              }
+            }
           }
         } else {
           // 添加收藏
@@ -512,6 +528,18 @@ const favoriteList = computed(() => profileFavoriteList.value || [])
           // 如果失败，回滚UI状态
           if (!(res.code === 2014 || String(res.code).startsWith('7'))) {
             setLocallyFavorited(itemType, itemId, false)
+          } else {
+            // 操作成功：如果是别人的列表，立即刷新 viewerFavoriteList 确保按钮状态准确
+            if (!isSelf) {
+              try {
+                const resViewer = await getFavoriteList()
+                viewerFavoriteList.value = (resViewer.data || []).map(i => ({ ...i }))
+              } catch (err) {
+                if (process.env.NODE_ENV === 'development') {
+                  console.error('刷新查看者收藏列表失败:', err)
+                }
+              }
+            }
           }
         }
       } catch (error) {
@@ -557,18 +585,19 @@ const favoriteList = computed(() => profileFavoriteList.value || [])
       
       try {
         // 1) 被查看用户的收藏：用于渲染"他收藏了什么"
-        if (profileUserId.value) {
-          const resOwner = await getFavoriteList(null, profileUserId.value)
-          profileFavoriteList.value = (resOwner.data || []).map(i => ({ ...i }))
-        } else {
+        if (isSelf) {
           // 看自己的主页：列表内容直接是当前登录用户
           const resOwner = await getFavoriteList()
+          profileFavoriteList.value = (resOwner.data || []).map(i => ({ ...i }))
+        } else {
+          // 看别人的主页：获取对方的收藏列表
+          const resOwner = await getFavoriteList(null, profileUserId.value)
           profileFavoriteList.value = (resOwner.data || []).map(i => ({ ...i }))
         }
 
         // 2) 当前登录用户的收藏：用于按钮状态（我是否收藏该条目）
         // - 看别人的主页才需要单独再拉一份
-        if (profileUserId.value && profileUserId.value !== currentUserId.value) {
+        if (!isSelf) {
           const resViewer = await getFavoriteList()
           viewerFavoriteList.value = (resViewer.data || []).map(i => ({ ...i }))
         } else {
