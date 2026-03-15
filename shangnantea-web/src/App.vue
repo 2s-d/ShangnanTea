@@ -38,7 +38,7 @@ const userStore = useUserStore()
 // 活动检测相关
 let inactivityTimer = null
 let stopLoginWatch = null // watch 的停止函数
-const INACTIVITY_THRESHOLD = 5 * 60 * 1000 // 5分钟无活动
+const INACTIVITY_THRESHOLD = 1 * 60 * 1000 // 1分钟无活动（测试用，原为5分钟）
 
 const resetInactivityTimer = () => {
   if (inactivityTimer) {
@@ -47,8 +47,8 @@ const resetInactivityTimer = () => {
   // 只有登录状态下才需要追踪
   if (userStore.isLoggedIn) {
     inactivityTimer = setTimeout(() => {
-      // 超过5分钟无活动，视为离线：停止心跳（但不断开WS，方便快速恢复）
-      console.log('[OnlineStatus] 超过5分钟无活动，暂停WebSocket心跳')
+      // 超过1分钟无活动，视为离线：停止心跳（但不断开WS，方便快速恢复）
+      console.log('[OnlineStatus] 超过1分钟无活动，暂停WebSocket心跳')
       websocketManager.stopHeartbeat && websocketManager.stopHeartbeat()
     }, INACTIVITY_THRESHOLD)
   }
@@ -57,14 +57,14 @@ const resetInactivityTimer = () => {
 const handleUserActivity = () => {
   // 用户有任何操作，恢复心跳并重置计时
   if (userStore.isLoggedIn) {
-    const ws = websocketManager.ws
+    const readyState = websocketManager.getState()
     const isConnected = websocketManager.isConnected()
     
-    if (isConnected && ws && ws.readyState === WebSocket.OPEN) {
+    if (isConnected) {
       // 连接正常，恢复心跳
       console.log('[OnlineStatus] 用户活动，恢复心跳')
       websocketManager.startHeartbeat && websocketManager.startHeartbeat()
-    } else if (ws && ws.readyState === WebSocket.CONNECTING) {
+    } else if (readyState === WebSocket.CONNECTING) {
       // 正在连接中，等待连接完成
       console.log('[OnlineStatus] WebSocket正在连接中，等待连接完成')
     } else {
@@ -81,13 +81,13 @@ const handleVisibilityChange = () => {
     // 页面重新可见，恢复心跳
     console.log('[OnlineStatus] 页面可见，恢复心跳')
     if (userStore.isLoggedIn) {
-      const ws = websocketManager.ws
+      const readyState = websocketManager.getState()
       const isConnected = websocketManager.isConnected()
       
-      if (isConnected && ws && ws.readyState === WebSocket.OPEN) {
+      if (isConnected) {
         // 连接正常，恢复心跳
         websocketManager.startHeartbeat && websocketManager.startHeartbeat()
-      } else if (ws && ws.readyState === WebSocket.CONNECTING) {
+      } else if (readyState === WebSocket.CONNECTING) {
         // 正在连接中，等待连接完成
         console.log('[OnlineStatus] WebSocket正在连接中，等待连接完成')
       } else {
