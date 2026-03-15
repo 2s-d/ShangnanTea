@@ -60,6 +60,9 @@ public class MessageServiceImpl implements MessageService {
     private com.shangnantea.mapper.ForumPostMapper forumPostMapper;
     
     @Autowired
+    private com.shangnantea.mapper.ForumReplyMapper forumReplyMapper;
+    
+    @Autowired
     private com.shangnantea.mapper.TeaReviewMapper teaReviewMapper;
     
     @Autowired
@@ -73,6 +76,9 @@ public class MessageServiceImpl implements MessageService {
     
     @Autowired
     private ShopMapper shopMapper;
+    
+    @Autowired
+    private com.shangnantea.mapper.UserLikeMapper userLikeMapper;
     
     @Autowired(required = false)
     private StringRedisTemplate redisTemplate;
@@ -1623,13 +1629,54 @@ public class MessageServiceImpl implements MessageService {
             long followingCount = 0L;
             long followerCount = 0L;
             long favoriteCount = 0L;
+            long likeCount = 0L;
             
             if (isSelf || profileVisible) {
                 // 3. 统计各项数据
                 postCount = forumPostMapper.countByUserId(userId);
-                followingCount = userFollowMapper.countFollowingByUserId(userId);
+                
+                // 关注数量：用户关注 + 店铺关注
+                long userFollowingCount = userFollowMapper.countFollowingByUserId(userId);
+                long shopFollowingCount = userFollowMapper.selectByUserId(userId, "shop").size();
+                followingCount = userFollowingCount + shopFollowingCount;
+                
                 followerCount = userFollowMapper.countFollowersByUserId(userId);
                 favoriteCount = userFavoriteMapper.countByUserId(userId);
+                
+                // 获赞数统计：帖子获赞数 + 评论获赞数
+                try {
+                    // 3.1 统计用户发布的帖子的获赞总数
+                    List<com.shangnantea.model.entity.forum.ForumPost> userPosts = 
+                        forumPostMapper.selectByUserId(userId, 0, Integer.MAX_VALUE, null);
+                    long postLikeCount = 0L;
+                    if (userPosts != null && !userPosts.isEmpty()) {
+                        for (com.shangnantea.model.entity.forum.ForumPost post : userPosts) {
+                            Integer likes = userLikeMapper.countByTarget("post", String.valueOf(post.getId()));
+                            if (likes != null) {
+                                postLikeCount += likes;
+                            }
+                        }
+                    }
+                    
+                    // 3.2 统计用户发布的评论的获赞总数
+                    List<com.shangnantea.model.entity.forum.ForumReply> userReplies = 
+                        forumReplyMapper.selectByUserId(userId);
+                    long replyLikeCount = 0L;
+                    if (userReplies != null && !userReplies.isEmpty()) {
+                        for (com.shangnantea.model.entity.forum.ForumReply reply : userReplies) {
+                            Integer likes = userLikeMapper.countByTarget("reply", String.valueOf(reply.getId()));
+                            if (likes != null) {
+                                replyLikeCount += likes;
+                            }
+                        }
+                    }
+                    
+                    // 3.3 获赞总数 = 帖子获赞数 + 评论获赞数
+                    likeCount = postLikeCount + replyLikeCount;
+                } catch (Exception e) {
+                    logger.warn("统计获赞数失败, userId: {}", userId, e);
+                    likeCount = 0L;
+                }
             }
             
             // 4. 组装返回数据
@@ -1638,9 +1685,10 @@ public class MessageServiceImpl implements MessageService {
             statistics.put("followingCount", followingCount);
             statistics.put("followerCount", followerCount);
             statistics.put("favoriteCount", favoriteCount);
+            statistics.put("likeCount", likeCount);
             
-            logger.info("获取用户统计数据成功, userId: {}, postCount: {}, followingCount: {}, followerCount: {}, favoriteCount: {}", 
-                    userId, postCount, followingCount, followerCount, favoriteCount);
+            logger.info("获取用户统计数据成功, userId: {}, postCount: {}, followingCount: {}, followerCount: {}, favoriteCount: {}, likeCount: {}", 
+                    userId, postCount, followingCount, followerCount, favoriteCount, likeCount);
             return Result.success(200, statistics);
             
         } catch (Exception e) {

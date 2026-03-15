@@ -92,4 +92,12 @@
         WHERE post_id = #{postId}
         ORDER BY create_time ASC
     </select>
+    
+    <!-- 根据用户ID查询该用户发布的所有评论 -->
+    <select id="selectByUserId" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM forum_replies
+        WHERE user_id = #{userId} AND status != 2
+        ORDER BY create_time DESC
+    </select>
 </mapper> 
