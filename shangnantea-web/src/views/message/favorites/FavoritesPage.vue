@@ -253,12 +253,15 @@ const viewerFavoriteSet = computed(() => {
  * 当前登录用户是否收藏该项目（按钮状态的唯一依据）
  * - 默认来自 viewerFavoriteSet
  * - 若本页做过切换，则用 localFavoriteState 覆盖（乐观更新 + 回滚）
+ * 注意：这是一个函数，在模板中使用时会自动追踪 localFavoriteState 和 viewerFavoriteSet 的依赖
  */
 const isLocallyFavorited = (itemType, itemId) => {
   const key = favoriteKey(itemType, itemId)
+  // 优先使用本地状态（乐观更新）
   if (Object.prototype.hasOwnProperty.call(localFavoriteState.value, key)) {
     return !!localFavoriteState.value[key]
   }
+  // 否则使用 viewerFavoriteSet（后端数据）
   return viewerFavoriteSet.value.has(key)
 }
 
@@ -509,17 +512,22 @@ const favoriteList = computed(() => profileFavoriteList.value || [])
           if (!(res.code === 2015 || String(res.code).startsWith('7'))) {
             setLocallyFavorited(itemType, itemId, true)
           } else {
-            // 操作成功：如果是别人的列表，立即刷新 viewerFavoriteList 确保按钮状态准确
+            // 操作成功
+            // 如果是别人的列表，立即刷新 viewerFavoriteList 确保按钮状态准确
             if (!isSelf) {
               try {
                 const resViewer = await getFavoriteList()
                 viewerFavoriteList.value = (resViewer.data || []).map(i => ({ ...i }))
+                // 刷新后清空本地状态，让 viewerFavoriteList 成为唯一数据源
+                delete localFavoriteState.value[favoriteKey(itemType, itemId)]
               } catch (err) {
                 if (process.env.NODE_ENV === 'development') {
                   console.error('刷新查看者收藏列表失败:', err)
                 }
               }
             }
+            // 如果是自己的列表，保持 localFavoriteState 的更新，不刷新列表
+            // localFavoriteState 已经更新，按钮状态应该已经改变
           }
         } else {
           // 添加收藏
@@ -534,17 +542,22 @@ const favoriteList = computed(() => profileFavoriteList.value || [])
           if (!(res.code === 2014 || String(res.code).startsWith('7'))) {
             setLocallyFavorited(itemType, itemId, false)
           } else {
-            // 操作成功：如果是别人的列表，立即刷新 viewerFavoriteList 确保按钮状态准确
+            // 操作成功
+            // 如果是别人的列表，立即刷新 viewerFavoriteList 确保按钮状态准确
             if (!isSelf) {
               try {
                 const resViewer = await getFavoriteList()
                 viewerFavoriteList.value = (resViewer.data || []).map(i => ({ ...i }))
+                // 刷新后清空本地状态，让 viewerFavoriteList 成为唯一数据源
+                delete localFavoriteState.value[favoriteKey(itemType, itemId)]
               } catch (err) {
                 if (process.env.NODE_ENV === 'development') {
                   console.error('刷新查看者收藏列表失败:', err)
                 }
               }
             }
+            // 如果是自己的列表，保持 localFavoriteState 的更新，不刷新列表
+            // localFavoriteState 已经更新，按钮状态应该已经改变
           }
         }
       } catch (error) {
