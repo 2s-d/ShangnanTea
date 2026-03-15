@@ -155,7 +155,7 @@ public interface TeaService {
     /**
      * 删除茶叶评价（仅评价发布者）
      * 路径: DELETE /tea/reviews/{reviewId}
-     * 成功码: 3009, 失败码: 3114
+     * 成功码: 3022, 失败码: 3130
      *
      * @param reviewId 评价ID
      * @return 删除结果

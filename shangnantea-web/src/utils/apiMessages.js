@@ -277,20 +277,16 @@ export const CODE_MAP = {
   3008: '回复成功',
   3113: '回复失败',
   
-  // 接口15: deleteTeaReview - /tea/reviews/{reviewId}
-  3022: '删除成功',
-  3130: '删除失败',
-  
   // ===== DEPRECATED（接口已删除，保留分配但不再使用）=====
-  // 接口16: likeReview - /tea/reviews/{reviewId}/like（接口已删除）
+  // 接口15: likeReview - /tea/reviews/{reviewId}/like（接口已删除）
   // 替代：POST /user/likes（targetType=review，targetId=reviewId）
   // 3009: '点赞成功', // DEPRECATED - 不再使用
   // 3114: '点赞失败', // DEPRECATED - 不再使用
   
-  // 接口17: getTeaSpecifications - /tea/{teaId}/specifications
+  // 接口16: getTeaSpecifications - /tea/{teaId}/specifications
   3115: '加载失败',
   
-  // 接口18: addSpecification - /tea/{teaId}/specifications
+  // 接口17: addSpecification - /tea/{teaId}/specifications
   3010: '操作成功',
   3116: '操作失败',
   
@@ -335,6 +331,10 @@ export const CODE_MAP = {
   3021: '批量下架成功',
   3128: '批量上架失败',
   3129: '批量下架失败',
+  
+  // 接口27: deleteTeaReview - /tea/reviews/{reviewId}
+  3022: '删除成功',
+  3130: '删除失败',
   
   // ========== 店铺模块 (4xxx) ==========
   // 接口1: getShops - /shop/list

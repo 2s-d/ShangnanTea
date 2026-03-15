@@ -2015,45 +2015,45 @@ public class TeaServiceImpl implements TeaService {
             // 1. 参数验证
             if (reviewId == null || reviewId.trim().isEmpty()) {
                 logger.warn("删除茶叶评价失败: 评价ID不能为空");
-                return Result.failure(3114);
+                return Result.failure(3130);
             }
             
             // 2. 验证评价是否存在
             TeaReview review = teaReviewMapper.selectById(Long.valueOf(reviewId));
             if (review == null) {
                 logger.warn("删除茶叶评价失败: 评价不存在, reviewId: {}", reviewId);
-                return Result.failure(3114);
+                return Result.failure(3130);
             }
             
             // 3. 权限验证：只有评价发布者才能删除
             String currentUserId = UserContext.getCurrentUserId();
             if (currentUserId == null) {
                 logger.warn("删除茶叶评价失败: 用户未登录");
-                return Result.failure(3114);
+                return Result.failure(3130);
             }
             
             if (!currentUserId.equals(review.getUserId())) {
                 logger.warn("删除茶叶评价失败: 无权限删除他人评价, reviewId: {}, currentUserId: {}, reviewUserId: {}", 
                     reviewId, currentUserId, review.getUserId());
-                return Result.failure(3114);
+                return Result.failure(3130);
             }
             
             // 4. 删除评价
             int deleteCount = teaReviewMapper.deleteById(Long.valueOf(reviewId));
             if (deleteCount == 0) {
                 logger.warn("删除茶叶评价失败: 数据库删除失败, reviewId: {}", reviewId);
-                return Result.failure(3114);
+                return Result.failure(3130);
             }
             
             logger.info("删除茶叶评价成功, reviewId: {}, userId: {}", reviewId, currentUserId);
-            return Result.success(3009);
+            return Result.success(3022);
             
         } catch (NumberFormatException e) {
             logger.error("删除茶叶评价失败: 数字格式错误, reviewId: {}", reviewId, e);
-            return Result.failure(3114);
+            return Result.failure(3130);
         } catch (Exception e) {
             logger.error("删除茶叶评价失败: 系统异常, reviewId: {}", reviewId, e);
-            return Result.failure(3114);
+            return Result.failure(3130);
         }
     }
     

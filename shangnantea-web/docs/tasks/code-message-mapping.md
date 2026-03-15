@@ -1466,7 +1466,7 @@
 | 37 | getTodayWeather | GET | /user/weather/today | 2026 | 2152 | 获取今日天气 |
 
 
-## 二、茶叶模块接口 (tea.js) - 共24个接口
+## 二、茶叶模块接口 (tea.js) - 共25个接口
 
 ### 2.1 茶叶基础操作 (6个)
 
@@ -1488,7 +1488,7 @@
 | 9 | updateCategory | PUT | /tea/categories/{id} | 3005 | 3108 | 更新分类 |
 | 10 | deleteCategory | DELETE | /tea/categories/{id} | 3006 | 3109 | 删除分类 |
 
-### 2.3 评价系统 (3个)
+### 2.3 评价系统 (4个)
 
 | 序号 | 接口函数 | 请求方式 | 路径 | 成功码 | 失败码 | 备注 |
 |------|----------|----------|------|--------|--------|------|
@@ -1496,7 +1496,6 @@
 | 12 | getReviewStats | GET | /tea/{teaId}/reviews/stats | 200 | 3111 | 获取评价统计 |
 已删除第十三
 | 14 | replyReview | POST | /tea/reviews/{reviewId}/reply | 3008 | 3113 | 回复评价 |
-| 15 | deleteTeaReview | DELETE | /tea/reviews/{reviewId} | 3022 | 3130 | 删除评价 |
 | 15 | deleteTeaReview | DELETE | /tea/reviews/{reviewId} | 3022 | 3130 | 删除评价 |
 
 ### 2.4 规格管理 (5个)
