@@ -527,10 +527,12 @@ watch(() => route.params.userId, () => {
           
           .review-image-item {
             .review-image {
-              width: 80px;
-              height: 80px;
+              max-width: 200px;
+              max-height: 200px;
+              width: auto;
+              height: auto;
               border-radius: 6px;
-              object-fit: cover;
+              object-fit: contain;
               cursor: pointer;
               transition: transform 0.3s;
               
