@@ -279,7 +279,13 @@ export const useMessageStore = defineStore('message', () => {
       loading.value = true
       
       const res = await getChatSessions()
-      chatSessions.value = res.data || []
+      const sessions = res.data || []
+      
+      // 过滤掉敏感数据：用户名
+      chatSessions.value = sessions.map(session => {
+        const { targetUsername, targetNickname, senderUsername, senderNickname, username, userName, ...filteredSession } = session
+        return filteredSession
+      })
       
       return res
     } finally {
@@ -299,7 +305,13 @@ export const useMessageStore = defineStore('message', () => {
       loading.value = true
       
       const res = await getChatHistory(sessionId, params)
-      chatHistory.value = res.data?.list || []
+      const messages = res.data?.list || []
+      
+      // 过滤掉敏感数据：用户名
+      chatHistory.value = messages.map(msg => {
+        const { senderUsername, senderNickname, receiverUsername, receiverNickname, username, userName, ...filteredMsg } = msg
+        return filteredMsg
+      })
       
       return res
     } finally {
