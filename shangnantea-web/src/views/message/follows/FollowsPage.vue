@@ -76,15 +76,19 @@
               <SafeImage :src="shop.coverImage" type="banner" :alt="shop.name" style="width:100%;height:100%;object-fit:cover;" />
             </div>
             <div class="shop-content">
-              <div class="shop-logo">
-                <div class="shop-logo-click" @click="goToShopDetail(shop.shopId)">
-                  <SafeImage :src="shop.logo" type="banner" :alt="shop.name" style="width:50px;height:50px;border-radius:8px;object-fit:cover;cursor:pointer;" />
+              <div class="shop-header">
+                <div class="shop-logo">
+                  <div class="shop-logo-click" @click="goToShopDetail(shop.shopId)">
+                    <SafeImage :src="shop.logo" type="banner" :alt="shop.name" style="width:50px;height:50px;border-radius:8px;object-fit:cover;cursor:pointer;" />
+                  </div>
+                </div>
+                <div class="shop-info" @click="goToShopDetail(shop.shopId)">
+                  <div class="shop-name">{{ shop.name }}</div>
+                  <div class="follow-time">关注于 {{ formatDate(shop.followTime) }}</div>
                 </div>
               </div>
-              <div class="shop-info" @click="goToShopDetail(shop.shopId)">
-                <div class="shop-name">{{ shop.name }}</div>
+              <div class="shop-desc-wrapper" @click="goToShopDetail(shop.shopId)">
                 <div class="shop-desc">{{ shop.description || '暂无店铺介绍' }}</div>
-                <div class="follow-time">关注于 {{ formatDate(shop.followTime) }}</div>
               </div>
             </div>
             <div class="shop-actions">
@@ -758,6 +762,8 @@ watch(() => profileUserId.value, async () => {
       overflow: hidden;
       box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
       transition: all 0.3s;
+      display: flex;
+      flex-direction: column;
       
       &:hover {
         transform: translateY(-5px);
@@ -782,46 +788,75 @@ watch(() => profileUserId.value, async () => {
       }
       
       .shop-content {
-        display: flex;
         padding: 15px;
-        position: relative;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
         
-        .shop-logo {
-          width: 50px;
-          height: 50px;
-          border-radius: 8px;
-          overflow: hidden;
-          margin-right: 15px;
-          border: 2px solid #fff;
-          position: relative;
-          margin-top: -25px;
-          background-color: #fff;
+        .shop-header {
+          display: flex;
+          align-items: flex-start;
+          margin-bottom: 12px;
           
-          img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+          .shop-logo {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-right: 12px;
+            border: 2px solid #fff;
+            position: relative;
+            margin-top: -25px;
+            background-color: #fff;
+            flex-shrink: 0;
+            
+            img {
+              width: 100%;
+              height: 100%;
+              object-fit: cover;
+            }
+          }
+          
+          .shop-info {
+            flex: 1;
+            cursor: pointer;
+            min-width: 0;
+            
+            .shop-name {
+              font-size: 16px;
+              font-weight: 500;
+              color: var(--el-text-color-primary);
+              margin-bottom: 6px;
+              line-height: 1.4;
+              word-break: break-word;
+            }
+            
+            .follow-time {
+              font-size: 12px;
+              color: var(--el-text-color-secondary);
+              line-height: 1.4;
+            }
           }
         }
         
-        .shop-info {
-          flex: 1;
+        .shop-desc-wrapper {
           cursor: pointer;
-          
-          .shop-name {
-            font-size: 16px;
-            font-weight: 500;
-            color: var(--el-text-color-primary);
-            margin-bottom: 5px;
-          }
+          flex: 1;
+          min-height: 40px;
+          display: flex;
+          align-items: flex-start;
           
           .shop-desc {
             font-size: 13px;
             color: var(--el-text-color-regular);
+            line-height: 1.5;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
+            text-overflow: ellipsis;
+            min-height: 39px; // 固定两行高度：13px * 1.5 * 2 = 39px
           }
         }
       }
@@ -829,7 +864,9 @@ watch(() => profileUserId.value, async () => {
       .shop-actions {
         display: flex;
         justify-content: space-between;
+        gap: 10px;
         padding: 0 15px 15px;
+        margin-top: auto;
       }
     }
   }
