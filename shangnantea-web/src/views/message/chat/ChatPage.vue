@@ -116,45 +116,45 @@
                   <ArrowDown />
                 </el-icon>
               </div>
-              
+
               <div class="panel-content" v-show="contactsExpanded">
-                <div class="contacts-list">
-                  <template v-if="filteredContactGroups.length">
-                    <div v-for="group in filteredContactGroups" :key="group.key" class="contact-group">
-                      <div class="contact-group-header">{{ group.key }}</div>
-                      <div
-                        v-for="contact in group.items"
-                        :key="contact.key"
-                        class="contact-item"
-                        @click="openContact(contact)" @dblclick.prevent="openContact(contact)"
-                      >
-                        <!-- 类型标识竖条 -->
-                        <div class="contact-type-bar" :class="{ 'type-user': contact.type === 'user', 'type-shop': contact.type === 'shop' }"></div>
-                        
-                        <div class="contact-avatar" @click.stop="goToUserProfile(contact.id, contact.type)">
-                          <SafeImage
-                            :src="contact.avatar || ''"
-                            type="avatar"
-                            :alt="contact.name"
-                            style="width:40px;height:40px;border-radius:50%;object-fit:cover;cursor:pointer;"
-                          />
-                        </div>
-                        <div class="contact-info">
-                          <div class="contact-name">
-                            <span class="contact-name-text">{{ contact.name }}</span>
-                            <span class="online-status" :class="{ online: contact.online }">
-                              <span class="dot"></span>
-                              <span class="text">{{ contact.online ? '在线' : '离线' }}</span>
-                            </span>
-                          </div>
+              <div class="contacts-list">
+                <template v-if="filteredContactGroups.length">
+                  <div v-for="group in filteredContactGroups" :key="group.key" class="contact-group">
+                    <div class="contact-group-header">{{ group.key }}</div>
+                    <div
+                      v-for="contact in group.items"
+                      :key="contact.key"
+                      class="contact-item"
+                      @click="openContact(contact)" @dblclick.prevent="openContact(contact)"
+                    >
+                      <!-- 类型标识竖条 -->
+                      <div class="contact-type-bar" :class="{ 'type-user': contact.type === 'user', 'type-shop': contact.type === 'shop' }"></div>
+                      
+                      <div class="contact-avatar" @click.stop="goToUserProfile(contact.id, contact.type)">
+                        <SafeImage
+                          :src="contact.avatar || ''"
+                          type="avatar"
+                          :alt="contact.name"
+                          style="width:40px;height:40px;border-radius:50%;object-fit:cover;cursor:pointer;"
+                        />
+                      </div>
+                      <div class="contact-info">
+                        <div class="contact-name">
+                          <span class="contact-name-text">{{ contact.name }}</span>
+                          <span class="online-status" :class="{ online: contact.online }">
+                            <span class="dot"></span>
+                            <span class="text">{{ contact.online ? '在线' : '离线' }}</span>
+                          </span>
                         </div>
                       </div>
                     </div>
-                  </template>
-                  <div v-else class="empty-panel">
-                    <el-empty description="暂无联系人" :image-size="80" />
                   </div>
+                </template>
+                <div v-else class="empty-panel">
+                  <el-empty description="暂无联系人" :image-size="80" />
                 </div>
+              </div>
               </div>
             </div>
 
@@ -169,68 +169,68 @@
                   <ArrowDown />
                 </el-icon>
               </div>
-              
+
               <div class="panel-content" v-show="recentExpanded">
-                <div class="session-list">
-                  <div
-                    v-for="session in filteredSessions"
-                    :key="session.sessionId"
-                    class="session-item"
-                    :class="{ 'session-active': currentSessionId === session.sessionId }"
-                    @click="selectSession(session)"
-                  >
-                    <div class="session-avatar" @click.stop="goToUserProfile(session, session.targetType)">
-                      <el-badge :value="session.unreadCount" :hidden="!session.unreadCount" type="danger">
-                        <SafeImage
-                          :src="session.avatar || ''"
-                          type="avatar"
-                          :alt="session.name"
-                          style="width:40px;height:40px;border-radius:50%;object-fit:cover;cursor:pointer;"
-                        />
-                      </el-badge>
-                    </div>
-
-                    <div class="session-info">
-                      <div class="session-name">
-                        {{ session.name }}
-                        <span class="online-status" :class="{ online: session.online }">
-                          <span class="dot"></span>
-                        </span>
-                        <el-icon v-if="session.isPinned" class="pin-icon" title="已置顶">
-                          <Top />
-                        </el-icon>
-                      </div>
-                      <div class="session-preview">{{ session.lastMessage }}</div>
-                    </div>
-
-                    <div class="session-meta">
-                      <div class="session-time">{{ formatTime(session.lastTime) }}</div>
-                      <div class="session-actions">
-                        <el-popover placement="top" width="auto" trigger="click" @show="stopPropagation">
-                          <template #reference>
-                            <el-button circle size="small" class="more-action" @click.stop>
-                              <el-icon><MoreFilled /></el-icon>
-                            </el-button>
-                          </template>
-                          <div class="action-buttons">
-                            <el-button size="small" @click="togglePinSession(session.sessionId)">
-                              {{ session.isPinned ? '取消置顶' : '置顶会话' }}
-                            </el-button>
-                            <el-button size="small" type="danger" @click="deleteSession(session.sessionId)">
-                              删除会话
-                            </el-button>
-                          </div>
-                        </el-popover>
-                      </div>
-                    </div>
+              <div class="session-list">
+                <div
+                  v-for="session in filteredSessions"
+                  :key="session.sessionId"
+                  class="session-item"
+                  :class="{ 'session-active': currentSessionId === session.sessionId }"
+                  @click="selectSession(session)"
+                >
+                  <div class="session-avatar" @click.stop="goToUserProfile(session, session.targetType)">
+                    <el-badge :value="session.unreadCount" :hidden="!session.unreadCount" type="danger">
+                      <SafeImage
+                        :src="session.avatar || ''"
+                        type="avatar"
+                        :alt="session.name"
+                        style="width:40px;height:40px;border-radius:50%;object-fit:cover;cursor:pointer;"
+                      />
+                    </el-badge>
                   </div>
 
-                  <el-empty
-                    v-if="filteredSessions.length === 0"
-                    description="暂无聊天会话"
-                    :image-size="100"
-                  />
+                  <div class="session-info">
+                    <div class="session-name">
+                      {{ session.name }}
+                      <span class="online-status" :class="{ online: session.online }">
+                        <span class="dot"></span>
+                      </span>
+                      <el-icon v-if="session.isPinned" class="pin-icon" title="已置顶">
+                        <Top />
+                      </el-icon>
+                    </div>
+                    <div class="session-preview">{{ session.lastMessage }}</div>
+                  </div>
+
+                  <div class="session-meta">
+                    <div class="session-time">{{ formatTime(session.lastTime) }}</div>
+                    <div class="session-actions">
+                      <el-popover placement="top" width="auto" trigger="click" @show="stopPropagation">
+                        <template #reference>
+                          <el-button circle size="small" class="more-action" @click.stop>
+                            <el-icon><MoreFilled /></el-icon>
+                          </el-button>
+                        </template>
+                        <div class="action-buttons">
+                          <el-button size="small" @click="togglePinSession(session.sessionId)">
+                            {{ session.isPinned ? '取消置顶' : '置顶会话' }}
+                          </el-button>
+                          <el-button size="small" type="danger" @click="deleteSession(session.sessionId)">
+                            删除会话
+                          </el-button>
+                        </div>
+                      </el-popover>
+                    </div>
+                  </div>
                 </div>
+
+                <el-empty
+                  v-if="filteredSessions.length === 0"
+                  description="暂无聊天会话"
+                  :image-size="100"
+                />
+              </div>
               </div>
             </div>
           </div>
@@ -1437,9 +1437,9 @@ watch(() => route.query.userId, newUserId => {
       }
 
       .panel-header {
-        padding: 0 12px;
-        background: #fff;
-        height: 44px;
+          padding: 0 12px;
+          background: #fff;
+          height: 44px;
         display: flex;
         align-items: center;
         justify-content: space-between;
