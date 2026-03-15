@@ -94,7 +94,7 @@
             <el-collapse-item name="recent">
               <template #title>
                 <div class="panel-title">
-                  <span>最近会话</span>
+                  <span>没考虑</span>
                   <span class="panel-count">{{ filteredSessions.length }}</span>
                 </div>
               </template>
@@ -1104,6 +1104,7 @@ watch(() => route.query.userId, newUserId => {
         overflow: hidden;
         display: flex;
         flex-direction: column;
+        position: relative;
 
         :deep(.el-collapse-item__header) {
           padding: 0 12px;
@@ -1119,9 +1120,8 @@ watch(() => route.query.userId, newUserId => {
 
         // 联系人展开时占据剩余空间
         :deep(.el-collapse-item[name="contacts"]) {
-          flex: 1 1 auto;
+          flex: 1;
           min-height: 0;
-          max-height: 100%;
           display: flex;
           flex-direction: column;
           
@@ -1140,25 +1140,30 @@ watch(() => route.query.userId, newUserId => {
           }
         }
 
-        // 最近会话默认布局
+        // 最近会话默认布局（两个都展开时正常显示）
         :deep(.el-collapse-item[name="recent"]) {
           flex-shrink: 0;
         }
 
         // 当联系人展开、最近会话折叠时，最近会话固定在底部
         &.recent-collapsed {
-          // 确保联系人占据所有剩余空间
+          // 联系人占据剩余空间，但要给底部留出空间（44px header高度）
           :deep(.el-collapse-item[name="contacts"]) {
-            flex: 1 1 0%; // 使用 0% 作为 flex-basis，确保占据剩余空间
+            flex: 1;
             min-height: 0;
-            max-height: none; // 移除最大高度限制
+            padding-bottom: 44px; // 为底部固定的最近会话留出空间
           }
           
-          // 最近会话固定在底部（折叠时只有 header，高度44px）
+          // 最近会话固定在底部
           :deep(.el-collapse-item[name="recent"]) {
-            flex: 0 0 auto; // flex-grow: 0, flex-shrink: 0, flex-basis: auto
-            order: 2; // 确保在联系人后面
-            margin-top: auto; // 推到底部
+            position: absolute !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            width: 100% !important;
+            z-index: 100 !important;
+            background: #fff !important;
+            flex-shrink: 0 !important;
           }
         }
       }
