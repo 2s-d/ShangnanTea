@@ -105,9 +105,16 @@
                       <div class="review-text">{{ review.content }}</div>
                       
                       <!-- 评价图片（如果有） -->
-                      <div v-if="review.images && review.images.length > 0" class="review-images">
-                        <div v-for="(img, index) in review.images" :key="index" class="review-image-item">
-                          <SafeImage :src="img" type="tea" :alt="`评价图片${index + 1}`" class="review-image" />
+                      <div v-if="review.images && review.images.length > 0" class="review-images-wrapper">
+                        <div class="review-images">
+                          <div v-for="(img, index) in review.images" :key="index" class="review-image-item">
+                            <SafeImage :src="img" type="tea" :alt="`评价图片${index + 1}`" class="review-image" />
+                          </div>
+                        </div>
+                        <div v-if="isSelf" class="review-actions" @click.stop>
+                          <el-button type="danger" size="small" @click="deleteReview(review.id)">
+                            <el-icon><Delete /></el-icon> 删除
+                          </el-button>
                         </div>
                       </div>
                       
@@ -127,12 +134,6 @@
                         </div>
                         <div class="reply-content">{{ review.shopReply }}</div>
                       </div>
-                    </div>
-                    
-                    <div v-if="isSelf" class="review-actions" @click.stop>
-                      <el-button type="danger" size="small" @click="deleteReview(review.id)">
-                        <el-icon><Delete /></el-icon> 删除
-                      </el-button>
                     </div>
                   </div>
                 </div>
@@ -169,6 +170,7 @@ const router = useRouter()
 const route = useRoute()
 const messageStore = useMessageStore()
 const forumStore = useForumStore()
+const userStore = useUserStore()
 const activeTab = ref('posts')
 const sortOption = ref('newest')
 
@@ -177,11 +179,10 @@ const editDialogVisible = ref(false)
 const editingPostId = ref(null)
 const topicList = computed(() => forumStore.forumTopics || [])
 
-// 当前登录用户 & 正在查看的主页用户
+// 当前登录用户ID（与 UserHomePage 保持一致）
 const currentUserId = computed(() => {
-  const base = messageStore?.userProfile || {}
-  // userProfile 在 UserHomePage 里已通过 messageStore.fetchUserProfile 初始化
-  return base?.currentUserId || null
+  const base = userStore.userInfo || {}
+  return base.id || base.userId || null
 })
 
 // 直接用路由参数推导当前查看的 userId（与 FollowsPage / UserHomePage 规则一致）
@@ -554,27 +555,40 @@ watch(() => route.params.userId, () => {
           margin-bottom: 10px;
         }
         
-        .review-images {
+        .review-images-wrapper {
           display: flex;
-          flex-wrap: wrap;
-          gap: 10px;
+          align-items: flex-start;
+          gap: 15px;
           margin-bottom: 10px;
           
-          .review-image-item {
-            .review-image {
-              max-width: 200px;
-              max-height: 200px;
-              width: auto;
-              height: auto;
-              border-radius: 6px;
-              object-fit: contain;
-              cursor: pointer;
-              transition: transform 0.3s;
-              
-              &:hover {
-                transform: scale(1.05);
+          .review-images {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            flex: 1;
+            
+            .review-image-item {
+              .review-image {
+                max-width: 200px;
+                max-height: 200px;
+                width: auto;
+                height: auto;
+                border-radius: 6px;
+                object-fit: contain;
+                cursor: pointer;
+                transition: transform 0.3s;
+                
+                &:hover {
+                  transform: scale(1.05);
+                }
               }
             }
+          }
+          
+          .review-actions {
+            display: flex;
+            align-items: flex-start;
+            flex-shrink: 0;
           }
         }
         

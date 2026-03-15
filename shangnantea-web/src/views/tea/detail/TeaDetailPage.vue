@@ -250,6 +250,14 @@
                     <div class="review-rating">
                       <el-rate :model-value="review.rating" disabled />
                       <span class="review-time">{{ formatTime(review.createTime) }}</span>
+                      <el-icon 
+                        v-if="isReviewOwner(review)" 
+                        class="delete-review-icon" 
+                        @click.stop="handleDeleteReview(review.id)"
+                        title="删除评价"
+                      >
+                        <Delete />
+                      </el-icon>
                     </div>
                   </div>
                   <div class="review-content">{{ review.content }}</div>
@@ -357,10 +365,11 @@ import { useTeaStore } from '@/stores/tea'
 import { useUserStore } from '@/stores/user'
 import { useOrderStore } from '@/stores/order'
 import { ElMessageBox } from 'element-plus'
-import { Back, ShoppingCart, Star, ChatLineRound } from '@element-plus/icons-vue'
+import { Back, ShoppingCart, Star, ChatLineRound, Delete } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 import { showByCode } from '@/utils/apiMessages'
 import teaMessages from '@/utils/promptMessages'
+import { deleteTeaReview } from '@/api/tea'
 
 defineOptions({
   name: 'TeaDetailPage'
@@ -500,6 +509,46 @@ defineOptions({
     //     console.error('点赞失败:', error)
     //   }
     // }
+    
+    // 判断是否为评价所有者
+    const isReviewOwner = review => {
+      const currentUserId = userStore.userInfo?.id || userStore.userInfo?.userId
+      const reviewUserId = review.userId
+      return currentUserId && reviewUserId && String(currentUserId) === String(reviewUserId)
+    }
+    
+    // 删除评价
+    const handleDeleteReview = async reviewId => {
+      ElMessageBox.confirm(
+        '确定要删除该评价吗？删除后将无法恢复。',
+        '删除确认',
+        {
+          confirmButtonText: '确定删除',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }
+      )
+        .then(async () => {
+          try {
+            const res = await deleteTeaReview(reviewId)
+            showByCode(res.code)
+            // 重新加载评价列表
+            if (tea.value) {
+              await teaStore.fetchTeaReviews({
+                teaId: tea.value.id,
+                page: reviewCurrentPage.value,
+                pageSize: reviewPageSize.value
+              })
+            }
+          } catch (error) {
+            console.error('删除评价失败:', error)
+            teaMessages.prompt.showError('删除评价失败，请稍后重试')
+          }
+        })
+        .catch(() => {
+          // 用户取消操作
+        })
+    }
     
     // 评价分页变化
     const handleReviewPageChange = page => {
