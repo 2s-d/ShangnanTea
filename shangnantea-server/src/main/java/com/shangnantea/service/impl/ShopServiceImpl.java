@@ -47,9 +47,11 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -1447,7 +1449,7 @@ public class ShopServiceImpl implements ShopService {
                     }
                 }
                 for (TeaSpecification spec : specsToUpdate) {
-                    teaSpecificationMapper.updateById(spec);
+                    teaSpecificationMapper.update(spec);
                 }
                 // 删除不再存在的规格
                 for (TeaSpecification existingSpec : existingSpecs) {
