@@ -321,7 +321,7 @@ const profileUserId = computed(() => {
           try {
             const res = await teaStore.deleteTeaReview(id)
             showByCode(res.code)
-            // 重新加载数据
+          // 重新加载数据
             await loadData()
           } catch (error) {
             console.error('删除评价失败:', error)

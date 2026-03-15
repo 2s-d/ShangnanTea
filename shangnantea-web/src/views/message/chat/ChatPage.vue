@@ -40,126 +40,136 @@
         </div>
         
         <div class="left-panels">
-          <el-collapse 
-            v-model="leftCollapseActive" 
-            class="left-collapse">
-            <el-collapse-item name="contacts">
-              <template #title>
+          <div class="custom-collapse">
+            <!-- 联系人面板 -->
+            <div class="panel-item" :class="{ 'collapsed': !contactsExpanded }">
+              <div class="panel-header" @click="contactsExpanded = !contactsExpanded">
                 <div class="panel-title">
                   <span>联系人</span>
                   <span class="panel-count">{{ filteredContactCount }}</span>
                 </div>
-              </template>
-
-              <div class="contacts-list">
-                <template v-if="filteredContactGroups.length">
-                  <div v-for="group in filteredContactGroups" :key="group.key" class="contact-group">
-                    <div class="contact-group-header">{{ group.key }}</div>
-                    <div
-                      v-for="contact in group.items"
-                      :key="contact.key"
-                      class="contact-item"
-                      @click="openContact(contact)" @dblclick.prevent="openContact(contact)"
-                    >
-                      <!-- 类型标识竖条 -->
-                      <div class="contact-type-bar" :class="{ 'type-user': contact.type === 'user', 'type-shop': contact.type === 'shop' }"></div>
-                      
-                      <div class="contact-avatar" @click.stop="goToUserProfile(contact.id, contact.type)">
-                        <SafeImage
-                          :src="contact.avatar || ''"
-                          type="avatar"
-                          :alt="contact.name"
-                          style="width:40px;height:40px;border-radius:50%;object-fit:cover;cursor:pointer;"
-                        />
-                      </div>
-                      <div class="contact-info">
-                        <div class="contact-name">
-                          <span class="contact-name-text">{{ contact.name }}</span>
-                          <span class="online-status" :class="{ online: contact.online }">
-                            <span class="dot"></span>
-                            <span class="text">{{ contact.online ? '在线' : '离线' }}</span>
-                          </span>
+                <el-icon class="collapse-icon" :class="{ 'expanded': contactsExpanded }">
+                  <ArrowDown />
+                </el-icon>
+              </div>
+              
+              <div class="panel-content" v-show="contactsExpanded">
+                <div class="contacts-list">
+                  <template v-if="filteredContactGroups.length">
+                    <div v-for="group in filteredContactGroups" :key="group.key" class="contact-group">
+                      <div class="contact-group-header">{{ group.key }}</div>
+                      <div
+                        v-for="contact in group.items"
+                        :key="contact.key"
+                        class="contact-item"
+                        @click="openContact(contact)" @dblclick.prevent="openContact(contact)"
+                      >
+                        <!-- 类型标识竖条 -->
+                        <div class="contact-type-bar" :class="{ 'type-user': contact.type === 'user', 'type-shop': contact.type === 'shop' }"></div>
+                        
+                        <div class="contact-avatar" @click.stop="goToUserProfile(contact.id, contact.type)">
+                          <SafeImage
+                            :src="contact.avatar || ''"
+                            type="avatar"
+                            :alt="contact.name"
+                            style="width:40px;height:40px;border-radius:50%;object-fit:cover;cursor:pointer;"
+                          />
+                        </div>
+                        <div class="contact-info">
+                          <div class="contact-name">
+                            <span class="contact-name-text">{{ contact.name }}</span>
+                            <span class="online-status" :class="{ online: contact.online }">
+                              <span class="dot"></span>
+                              <span class="text">{{ contact.online ? '在线' : '离线' }}</span>
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
+                  </template>
+                  <div v-else class="empty-panel">
+                    <el-empty description="暂无联系人" :image-size="80" />
                   </div>
-                </template>
-                <div v-else class="empty-panel">
-                  <el-empty description="暂无联系人" :image-size="80" />
                 </div>
               </div>
-            </el-collapse-item>
+            </div>
 
-            <el-collapse-item name="recent">
-              <template #title>
+            <!-- 最近会话面板 -->
+            <div class="panel-item" :class="{ 'collapsed': !recentExpanded }">
+              <div class="panel-header" @click="recentExpanded = !recentExpanded">
                 <div class="panel-title">
                   <span>最近会话</span>
                   <span class="panel-count">{{ filteredSessions.length }}</span>
                 </div>
-              </template>
-
-              <div class="session-list">
-                <div
-                  v-for="session in filteredSessions"
-                  :key="session.sessionId"
-                  class="session-item"
-                  :class="{ 'session-active': currentSessionId === session.sessionId }"
-                  @click="selectSession(session)"
-                >
-                  <div class="session-avatar" @click.stop="goToUserProfile(session, session.targetType)">
-                    <el-badge :value="session.unreadCount" :hidden="!session.unreadCount" type="danger">
-                      <SafeImage
-                        :src="session.avatar || ''"
-                        type="avatar"
-                        :alt="session.name"
-                        style="width:40px;height:40px;border-radius:50%;object-fit:cover;cursor:pointer;"
-                      />
-                    </el-badge>
-                  </div>
-
-                  <div class="session-info">
-                    <div class="session-name">
-                      {{ session.name }}
-                      <span class="online-status" :class="{ online: session.online }">
-                        <span class="dot"></span>
-                      </span>
-                      <el-icon v-if="session.isPinned" class="pin-icon" title="已置顶">
-                        <Top />
-                      </el-icon>
-                    </div>
-                    <div class="session-preview">{{ session.lastMessage }}</div>
-                  </div>
-
-                  <div class="session-meta">
-                    <div class="session-time">{{ formatTime(session.lastTime) }}</div>
-                    <div class="session-actions">
-                      <el-popover placement="top" width="auto" trigger="click" @show="stopPropagation">
-                        <template #reference>
-                          <el-button circle size="small" class="more-action" @click.stop>
-                            <el-icon><MoreFilled /></el-icon>
-                          </el-button>
-                        </template>
-                        <div class="action-buttons">
-                          <el-button size="small" @click="togglePinSession(session.sessionId)">
-                            {{ session.isPinned ? '取消置顶' : '置顶会话' }}
-                          </el-button>
-                          <el-button size="small" type="danger" @click="deleteSession(session.sessionId)">
-                            删除会话
-                          </el-button>
-                        </div>
-                      </el-popover>
-                    </div>
-                  </div>
-                </div>
-
-                <el-empty
-                  v-if="filteredSessions.length === 0"
-                  description="暂无聊天会话"
-                  :image-size="100"
-                />
+                <el-icon class="collapse-icon" :class="{ 'expanded': recentExpanded }">
+                  <ArrowDown />
+                </el-icon>
               </div>
-            </el-collapse-item>
-          </el-collapse>
+              
+              <div class="panel-content" v-show="recentExpanded">
+                <div class="session-list">
+                  <div
+                    v-for="session in filteredSessions"
+                    :key="session.sessionId"
+                    class="session-item"
+                    :class="{ 'session-active': currentSessionId === session.sessionId }"
+                    @click="selectSession(session)"
+                  >
+                    <div class="session-avatar" @click.stop="goToUserProfile(session, session.targetType)">
+                      <el-badge :value="session.unreadCount" :hidden="!session.unreadCount" type="danger">
+                        <SafeImage
+                          :src="session.avatar || ''"
+                          type="avatar"
+                          :alt="session.name"
+                          style="width:40px;height:40px;border-radius:50%;object-fit:cover;cursor:pointer;"
+                        />
+                      </el-badge>
+                    </div>
+
+                    <div class="session-info">
+                      <div class="session-name">
+                        {{ session.name }}
+                        <span class="online-status" :class="{ online: session.online }">
+                          <span class="dot"></span>
+                        </span>
+                        <el-icon v-if="session.isPinned" class="pin-icon" title="已置顶">
+                          <Top />
+                        </el-icon>
+                      </div>
+                      <div class="session-preview">{{ session.lastMessage }}</div>
+                    </div>
+
+                    <div class="session-meta">
+                      <div class="session-time">{{ formatTime(session.lastTime) }}</div>
+                      <div class="session-actions">
+                        <el-popover placement="top" width="auto" trigger="click" @show="stopPropagation">
+                          <template #reference>
+                            <el-button circle size="small" class="more-action" @click.stop>
+                              <el-icon><MoreFilled /></el-icon>
+                            </el-button>
+                          </template>
+                          <div class="action-buttons">
+                            <el-button size="small" @click="togglePinSession(session.sessionId)">
+                              {{ session.isPinned ? '取消置顶' : '置顶会话' }}
+                            </el-button>
+                            <el-button size="small" type="danger" @click="deleteSession(session.sessionId)">
+                              删除会话
+                            </el-button>
+                          </div>
+                        </el-popover>
+                      </div>
+                    </div>
+                  </div>
+
+                  <el-empty
+                    v-if="filteredSessions.length === 0"
+                    description="暂无聊天会话"
+                    :image-size="100"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       
@@ -373,7 +383,7 @@ import { message } from '@/components/common'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { 
   Check, CircleCheck, Warning, Picture, Star, Loading,
-  MoreFilled, Top
+  MoreFilled, Top, ArrowDown
 } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 import { timeFormat } from '@/utils/timeFormat'
@@ -406,7 +416,8 @@ const userStore = useUserStore()
     
     // 联系人（来自 /message/contacts）
     const contacts = ref([])
-    const leftCollapseActive = ref(['contacts', 'recent'])
+    const contactsExpanded = ref(true)
+    const recentExpanded = ref(true)
     
     // 表情列表
     const emojiList = [
@@ -1096,53 +1107,89 @@ watch(() => route.query.userId, newUserId => {
         flex: 1;
         overflow: hidden;
         background-color: #f7f7f7;
-      }
-
-      .left-collapse {
-        height: 100%;
-        overflow: hidden;
         display: flex;
         flex-direction: column;
+      }
 
-        :deep(.el-collapse-item__header) {
-          padding: 0 12px;
-          background: #fff;
-          border-bottom: 1px solid #eee;
-          height: 44px;
-          flex-shrink: 0;
+      .custom-collapse {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .panel-item {
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        background-color: #fff;
+        border-bottom: 1px solid #eee;
+        
+        &.collapsed {
+          // 折叠状态：只有 header 高度
         }
-
-        :deep(.el-collapse-item__content) {
-          padding: 0;
-        }
-
-        // 联系人展开时占据剩余空间
-        :deep(.el-collapse-item[name="contacts"]) {
-          flex: 1;
-          min-height: 0;
-          display: flex;
-          flex-direction: column;
-          
-          .el-collapse-item__wrap {
-            flex: 1;
-            min-height: 0;
-            display: flex;
-            flex-direction: column;
+        
+        // 联系人面板：展开时占据剩余空间
+        &:first-child {
+          &.collapsed {
+            // 联系人折叠时，不占据空间
           }
           
-          .el-collapse-item__content {
+          &:not(.collapsed) {
+            // 联系人展开时，占据剩余空间
             flex: 1;
             min-height: 0;
-            display: flex;
-            flex-direction: column;
+            
+            .panel-content {
+              flex: 1;
+              min-height: 0;
+              display: flex;
+              flex-direction: column;
+            }
+            
+            .contacts-list {
+              flex: 1;
+              min-height: 0;
+              max-height: none;
+            }
           }
         }
+        
+        // 最近会话面板：当联系人展开且最近会话折叠时，推到底部
+        &:last-child {
+          &.collapsed {
+            margin-top: auto;
+          }
+        }
+      }
 
-        // 最近会话：不收缩，保持固定大小（折叠时只有 header 高度，展开时是内容高度）
-        // 当联系人展开、最近会话折叠时，联系人占据所有剩余空间，最近会话自然被推到底部
-        :deep(.el-collapse-item[name="recent"]) {
-          flex-shrink: 0;
-          flex-grow: 0;
+      .panel-header {
+        padding: 0 12px;
+        background: #fff;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        user-select: none;
+        
+        &:hover {
+          background-color: #f5f5f5;
+        }
+      }
+
+      .panel-content {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .collapse-icon {
+        transition: transform 0.3s;
+        color: var(--text-secondary);
+        
+        &.expanded {
+          transform: rotate(180deg);
         }
       }
 
@@ -1161,8 +1208,7 @@ watch(() => route.query.userId, newUserId => {
       }
 
       .contacts-list {
-        flex: 1;
-        min-height: 0;
+        max-height: 240px;
         overflow-y: auto;
         background: #f7f7f7;
       }
