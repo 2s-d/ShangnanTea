@@ -37,6 +37,7 @@ const userStore = useUserStore()
 
 // 活动检测相关
 let inactivityTimer = null
+let stopLoginWatch = null // watch 的停止函数
 const INACTIVITY_THRESHOLD = 5 * 60 * 1000 // 5分钟无活动
 
 const resetInactivityTimer = () => {
@@ -91,6 +92,22 @@ const showHeaderAndFooter = computed(() => {
   return !authPages.includes(route.path)
 })
 
+// 清理函数
+const cleanup = () => {
+  window.removeEventListener('mousemove', handleUserActivity)
+  window.removeEventListener('keydown', handleUserActivity)
+  window.removeEventListener('scroll', handleUserActivity, true)
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
+  if (inactivityTimer) {
+    clearTimeout(inactivityTimer)
+    inactivityTimer = null
+  }
+  if (stopLoginWatch) {
+    stopLoginWatch()
+    stopLoginWatch = null
+  }
+}
+
 // 应用初始化时执行版本检查和数据迁移（静默模式）
 onMounted(() => {
   // 静默模式执行数据版本检查和迁移，避免产生错误提示
@@ -105,7 +122,8 @@ onMounted(() => {
   }
 
   // 监听登录状态变化：登录→连接WS，登出→断开WS
-  watch(() => userStore.isLoggedIn, (loggedIn) => {
+  // 保存 watch 的停止函数，用于清理
+  stopLoginWatch = watch(() => userStore.isLoggedIn, (loggedIn) => {
     if (loggedIn) {
       websocketManager.connect()
       resetInactivityTimer()
@@ -125,19 +143,19 @@ onMounted(() => {
   window.addEventListener('scroll', handleUserActivity, true)
   document.addEventListener('visibilitychange', handleVisibilityChange)
 
+  // 页面关闭时清理（App.vue 是根组件，onBeforeUnmount 不会执行）
+  window.addEventListener('beforeunload', cleanup)
+  window.addEventListener('unload', cleanup)
+
   // 初始化一次活动计时
   resetInactivityTimer()
 })
 
+// 虽然 App.vue 是根组件不会卸载，但保留这个钩子以防万一
 onBeforeUnmount(() => {
-  window.removeEventListener('mousemove', handleUserActivity)
-  window.removeEventListener('keydown', handleUserActivity)
-  window.removeEventListener('scroll', handleUserActivity, true)
-  document.removeEventListener('visibilitychange', handleVisibilityChange)
-  if (inactivityTimer) {
-    clearTimeout(inactivityTimer)
-    inactivityTimer = null
-  }
+  cleanup()
+  window.removeEventListener('beforeunload', cleanup)
+  window.removeEventListener('unload', cleanup)
 })
 </script>
 
