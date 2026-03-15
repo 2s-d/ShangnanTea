@@ -40,7 +40,10 @@
         </div>
         
         <div class="left-panels">
-          <el-collapse v-model="leftCollapseActive" class="left-collapse">
+          <el-collapse 
+            v-model="leftCollapseActive" 
+            class="left-collapse"
+            :class="{ 'recent-collapsed': !leftCollapseActive.includes('recent') && leftCollapseActive.includes('contacts') }">
             <el-collapse-item name="contacts">
               <template #title>
                 <div class="panel-title">
@@ -1116,11 +1119,11 @@ watch(() => route.query.userId, newUserId => {
 
         // 联系人展开时占据剩余空间
         :deep(.el-collapse-item[name="contacts"]) {
-          flex: 1;
+          flex: 1 1 auto;
           min-height: 0;
+          max-height: 100%;
           display: flex;
           flex-direction: column;
-          order: 1;
           
           .el-collapse-item__wrap {
             flex: 1;
@@ -1137,11 +1140,26 @@ watch(() => route.query.userId, newUserId => {
           }
         }
 
-        // 最近会话固定在底部（当联系人展开、最近会话折叠时）
+        // 最近会话默认布局
         :deep(.el-collapse-item[name="recent"]) {
           flex-shrink: 0;
-          order: 2;
-          margin-top: auto;
+        }
+
+        // 当联系人展开、最近会话折叠时，最近会话固定在底部
+        &.recent-collapsed {
+          // 确保联系人占据所有剩余空间
+          :deep(.el-collapse-item[name="contacts"]) {
+            flex: 1 1 0%; // 使用 0% 作为 flex-basis，确保占据剩余空间
+            min-height: 0;
+            max-height: none; // 移除最大高度限制
+          }
+          
+          // 最近会话固定在底部（折叠时只有 header，高度44px）
+          :deep(.el-collapse-item[name="recent"]) {
+            flex: 0 0 auto; // flex-grow: 0, flex-shrink: 0, flex-basis: auto
+            order: 2; // 确保在联系人后面
+            margin-top: auto; // 推到底部
+          }
         }
       }
 
