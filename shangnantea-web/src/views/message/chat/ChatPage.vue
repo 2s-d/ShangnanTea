@@ -1205,15 +1205,24 @@ watch(() => route.query.userId, newUserId => {
   -moz-user-select: none;
   -ms-user-select: none;
   
-  // 输入框允许选中（el-input、el-textarea等）
-  :deep(.el-input__inner),
+  // 输入框允许选中（el-input、el-textarea等），但搜索框除外
   :deep(.el-textarea__inner),
-  :deep(input),
-  :deep(textarea) {
+  :deep(textarea),
+  :deep(input:not(.el-input__inner)) {
     user-select: text;
     -webkit-user-select: text;
     -moz-user-select: text;
     -ms-user-select: text;
+  }
+  
+  // 聊天消息输入框允许选中
+  .chat-input-area {
+    :deep(.el-textarea__inner) {
+      user-select: text;
+      -webkit-user-select: text;
+      -moz-user-select: text;
+      -ms-user-select: text;
+    }
   }
   
   .chat-layout {
@@ -1232,11 +1241,6 @@ watch(() => route.query.userId, newUserId => {
       display: flex;
       flex-direction: column;
       background-color: #f7f7f7;
-      // 禁止选中文本
-      user-select: none;
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
       
       .search-bar {
         position: relative;
@@ -1258,6 +1262,22 @@ watch(() => route.query.userId, newUserId => {
         &.is-typing :deep(.el-input__wrapper) {
           box-shadow: 0 0 0 1px #a0d8ff;
           border-color: #a0d8ff;
+        }
+        
+        // 搜索框输入框：聚焦时允许选中和编辑，未聚焦时禁止选中
+        :deep(.el-input__inner) {
+          &:focus {
+            user-select: text;
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+          }
+          &:not(:focus) {
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+          }
         }
       }
 
@@ -1667,11 +1687,6 @@ watch(() => route.query.userId, newUserId => {
         flex-direction: row;
         justify-content: flex-start;
         align-items: center;
-        // 禁止选中文本
-        user-select: none;
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
         
         .chat-header-avatar {
           flex-shrink: 0;

@@ -135,9 +135,22 @@ const handleMenuSelect = key => {
         
         .el-menu-item {
           font-size: 16px;
+          // 禁止选中菜单项文本
+          user-select: none;
+          -webkit-user-select: none;
+          -moz-user-select: none;
+          -ms-user-select: none;
           
           .el-icon {
             margin-right: 5px;
+          }
+          
+          span {
+            // 禁止选中span标签文本
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
           }
         }
       }
