@@ -1120,6 +1120,7 @@ watch(() => route.query.userId, newUserId => {
           min-height: 0;
           display: flex;
           flex-direction: column;
+          order: 1;
           
           .el-collapse-item__wrap {
             flex: 1;
@@ -1139,6 +1140,7 @@ watch(() => route.query.userId, newUserId => {
         // 最近会话固定在底部（当联系人展开、最近会话折叠时）
         :deep(.el-collapse-item[name="recent"]) {
           flex-shrink: 0;
+          order: 2;
           margin-top: auto;
         }
       }

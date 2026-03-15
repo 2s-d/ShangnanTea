@@ -2595,10 +2595,10 @@ public class UserServiceImpl implements UserService {
             // 7. 如果审核通过，更新用户角色并创建店铺
             if (auditStatus == 1) {
                 // 7.1 更新用户角色为商家
-                User user = getUserEntityById(certification.getUserId());
-                if (user != null) {
-                    user.setRole(3); // 3-商家角色
-                    userMapper.update(user);
+                    User user = getUserEntityById(certification.getUserId());
+                    if (user != null) {
+                        user.setRole(3); // 3-商家角色
+                        userMapper.update(user);
                     logger.info("审核通过，已更新用户角色为商家: userId: {}", user.getId());
                 } else {
                     logger.warn("审核通过，但用户不存在: userId: {}", certification.getUserId());
