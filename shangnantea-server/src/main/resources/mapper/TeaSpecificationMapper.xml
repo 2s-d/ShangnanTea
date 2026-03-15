@@ -123,7 +123,7 @@
     <update id="setDefault">
         UPDATE tea_specifications
         SET is_default = 1,
-            update_time = now()
+        update_time = now()
         WHERE id = #{id,jdbcType=INTEGER}
     </update>
     
