@@ -152,6 +152,16 @@ public interface TeaService {
      */
     Result<Boolean> replyReview(String reviewId, Map<String, Object> replyData);
     
+    /**
+     * 删除茶叶评价（仅评价发布者）
+     * 路径: DELETE /tea/reviews/{reviewId}
+     * 成功码: 3009, 失败码: 3114
+     *
+     * @param reviewId 评价ID
+     * @return 删除结果
+     */
+    Result<Boolean> deleteTeaReview(String reviewId);
+    
     // ⚠️ 已删除：评价点赞相关接口（likeReview）
     // 说明：评价点赞功能已统一使用用户模块的通用接口（UserService 中的 addLike/removeLike）
     // 评价列表接口（getTeaReviews）已包含每个评价的 isLiked 字段，无需单独调用点赞接口

@@ -44,7 +44,7 @@ export const API = {
     CATEGORY_DETAIL: '/tea/categories/{id}',
     REVIEWS_LIST: '/tea/{teaId}/reviews',
     REVIEWS_STATS: '/tea/{teaId}/reviews/stats',
-    REVIEWS: '/tea/reviews',
+    REVIEWS: '/tea/reviews/{reviewId}',
     REVIEW_REPLY: '/tea/reviews/{reviewId}/reply',
     REVIEW_LIKE: '/tea/reviews/{reviewId}/like',
     SPECIFICATIONS: '/tea/{teaId}/specifications',

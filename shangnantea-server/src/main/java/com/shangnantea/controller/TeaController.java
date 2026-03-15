@@ -291,6 +291,21 @@ public class TeaController {
     // 说明：评价点赞功能已统一使用用户模块的通用接口（UserController 中的 addLike/removeLike）
     // 评价列表接口（getTeaReviews）已包含每个评价的 isLiked 字段，无需单独调用点赞接口
 
+    /**
+     * 删除茶叶评价（仅评价发布者）
+     * 路径: DELETE /tea/reviews/{reviewId}
+     * 成功码: 3009, 失败码: 3114
+     *
+     * @param reviewId 评价ID
+     * @return 删除结果
+     */
+    @DeleteMapping("/reviews/{reviewId}")
+    @RequiresLogin
+    public Result<Boolean> deleteTeaReview(@PathVariable String reviewId) {
+        logger.info("删除茶叶评价请求: {}", reviewId);
+        return teaService.deleteTeaReview(reviewId);
+    }
+
     // ==================== 规格管理 ====================
 
     /**

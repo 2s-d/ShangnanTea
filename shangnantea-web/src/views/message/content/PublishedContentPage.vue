@@ -80,7 +80,7 @@
                       </div>
                     </div>
                     
-                    <div class="post-actions">
+                    <div v-if="isSelf" class="post-actions">
                 <el-button type="primary" size="small" @click.stop="editPost(post)">
                         <el-icon><Edit /></el-icon> 编辑
                       </el-button>
@@ -129,7 +129,7 @@
                       </div>
                     </div>
                     
-                    <div class="review-actions" @click.stop>
+                    <div v-if="isSelf" class="review-actions" @click.stop>
                       <el-button type="danger" size="small" @click="deleteReview(review.id)">
                         <el-icon><Delete /></el-icon> 删除
                       </el-button>
@@ -162,6 +162,7 @@ import { showByCode } from '@/utils/apiMessages'
 import { commonPromptMessages } from '@/utils/promptMessages'
 import PostEditorDialog from '@/components/forum/PostEditorDialog.vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
+import { deleteTeaReview } from '@/api/tea'
 
 const router = useRouter()
 const route = useRoute()
@@ -196,6 +197,11 @@ const profileUserId = computed(() => {
     const loading = computed(() => messageStore.loading)
     const postsPagination = computed(() => messageStore.postsPagination)
     const reviewsPagination = computed(() => messageStore.reviewsPagination)
+    
+    // 判断是否为查看自己的主页
+    const isSelf = computed(() => {
+      return currentUserId.value && profileUserId.value && String(profileUserId.value) === String(currentUserId.value)
+    })
     
     // 根据排序选项对帖子进行排序
     const sortedPosts = computed(() => {
@@ -293,7 +299,7 @@ const profileUserId = computed(() => {
     }
     
     // 删除评价
-    const deleteReview = id => {
+    const deleteReview = async id => {
       ElMessageBox.confirm(
         '确定要删除该评价吗？删除后将无法恢复。',
         '删除确认',
@@ -304,12 +310,15 @@ const profileUserId = computed(() => {
         }
       )
         .then(async () => {
-          // 实际项目中调用删除API
-          // const res = await store.dispatch('message/deleteReview', id)
-          // showByCode(res.code)
-          commonPromptMessages.showProcessing()
-          // 重新加载数据
-          loadData()
+          try {
+            const res = await deleteTeaReview(id)
+            showByCode(res.code)
+            // 重新加载数据
+            await loadData()
+          } catch (error) {
+            console.error('删除评价失败:', error)
+            commonPromptMessages.showError('删除评价失败，请稍后重试')
+          }
         })
         .catch(() => {
           // 用户取消操作

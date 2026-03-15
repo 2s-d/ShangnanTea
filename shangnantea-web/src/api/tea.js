@@ -162,6 +162,18 @@ export function replyReview(reviewId, data) {
  * 评价列表接口（getTeaReviews）已包含 isLiked 字段，无需单独调用点赞接口
  */
 
+/**
+ * 删除茶叶评价（仅评价发布者）
+ * @param {string} reviewId 评价ID
+ * @returns {Promise} 删除结果
+ */
+export function deleteTeaReview(reviewId) {
+  return request({
+    url: API.TEA.REVIEWS.replace('{reviewId}', reviewId),
+    method: 'delete'
+  })
+}
+
 // ==================== 任务组C：规格管理API ====================
 
 /**
