@@ -263,7 +263,12 @@ const isLocallyFavorited = (itemType, itemId) => {
 }
 
 const setLocallyFavorited = (itemType, itemId, favorited) => {
-  localFavoriteState.value[favoriteKey(itemType, itemId)] = !!favorited
+  // 使用 Vue 的响应式更新方式，确保触发响应式更新
+  const key = favoriteKey(itemType, itemId)
+  localFavoriteState.value = {
+    ...localFavoriteState.value,
+    [key]: !!favorited
+  }
 }
 
 // 使用被查看用户的收藏列表渲染（列表内容来自"他"）

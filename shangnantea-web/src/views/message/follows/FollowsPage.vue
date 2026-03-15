@@ -169,7 +169,12 @@ const isLocallyFollowed = (type, targetId) => {
 }
 
 const setLocallyFollowed = (type, targetId, followed) => {
-  localFollowState.value[localKey(type, targetId)] = !!followed
+  // 使用 Vue 的响应式更新方式，确保触发响应式更新
+  const key = localKey(type, targetId)
+  localFollowState.value = {
+    ...localFollowState.value,
+    [key]: !!followed
+  }
 }
 
 // 当前登录用户ID（用于处理 /profile/current/*）
