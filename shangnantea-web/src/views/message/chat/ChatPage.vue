@@ -40,9 +40,14 @@
         </div>
         
         <div class="left-panels">
-          <div class="custom-collapse">
+          <div class="custom-collapse" :class="{ 
+            'contacts-expanded': contactsExpanded, 
+            'recent-expanded': recentExpanded,
+            'contacts-collapsed': !contactsExpanded,
+            'recent-collapsed': !recentExpanded
+          }">
             <!-- 联系人面板 -->
-            <div class="panel-item" :class="{ 'collapsed': !contactsExpanded }">
+            <div class="panel-item contacts-panel" :class="{ 'collapsed': !contactsExpanded }">
               <div class="panel-header" @click="contactsExpanded = !contactsExpanded">
                 <div class="panel-title">
                   <span>联系人</span>
@@ -95,7 +100,7 @@
             </div>
 
             <!-- 最近会话面板 -->
-            <div class="panel-item" :class="{ 'collapsed': !recentExpanded }">
+            <div class="panel-item recent-panel" :class="{ 'collapsed': !recentExpanded }">
               <div class="panel-header" @click="recentExpanded = !recentExpanded">
                 <div class="panel-title">
                   <span>最近会话</span>
@@ -1124,42 +1129,48 @@ watch(() => route.query.userId, newUserId => {
         flex-direction: column;
         background-color: #fff;
         border-bottom: 1px solid #eee;
+      }
+
+      // 联系人面板：展开时占据剩余空间
+      .contacts-panel:not(.collapsed) {
+        flex: 1;
+        min-height: 0;
         
-        &.collapsed {
-          // 折叠状态：只有 header 高度
+        .panel-content {
+          flex: 1;
+          min-height: 0;
+          display: flex;
+          flex-direction: column;
         }
         
-        // 联系人面板：展开时占据剩余空间
-        &:first-child {
-          &.collapsed {
-            // 联系人折叠时，不占据空间
-          }
-          
-          &:not(.collapsed) {
-            // 联系人展开时，占据剩余空间
-            flex: 1;
-            min-height: 0;
-            
-            .panel-content {
-              flex: 1;
-              min-height: 0;
-              display: flex;
-              flex-direction: column;
-            }
-            
-            .contacts-list {
-              flex: 1;
-              min-height: 0;
-              max-height: none;
-            }
-          }
+        .contacts-list {
+          flex: 1;
+          min-height: 0;
+          max-height: none;
+        }
+      }
+
+      // 最近会话面板：当联系人展开且最近会话折叠时，推到底部
+      .custom-collapse.contacts-expanded.recent-collapsed .recent-panel.collapsed {
+        margin-top: auto;
+      }
+
+      // 最近会话面板：当联系人折叠且最近会话展开时，最近会话占据剩余空间
+      .custom-collapse.contacts-collapsed.recent-expanded .recent-panel:not(.collapsed) {
+        flex: 1;
+        min-height: 0;
+        
+        .panel-content {
+          flex: 1;
+          min-height: 0;
+          display: flex;
+          flex-direction: column;
         }
         
-        // 最近会话面板：当联系人展开且最近会话折叠时，推到底部
-        &:last-child {
-          &.collapsed {
-            margin-top: auto;
-          }
+        .session-list {
+          flex: 1;
+          min-height: 0;
+          max-height: none;
         }
       }
 
