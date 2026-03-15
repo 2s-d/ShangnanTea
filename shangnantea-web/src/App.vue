@@ -21,7 +21,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onBeforeUnmount, ref } from 'vue'
+import { computed, onMounted, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import Footer from '@/components/common/layout/Footer.vue'
 import NavBar from '@/components/common/layout/NavBar.vue'
