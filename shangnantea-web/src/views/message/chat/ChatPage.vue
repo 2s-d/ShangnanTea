@@ -30,13 +30,72 @@
     <div class="chat-layout">
       <!-- 会话列表区域 -->
       <div class="chat-sessions">
-        <div class="search-bar">
+        <div class="search-bar" ref="searchBarRef" @click.stop>
           <el-input 
             v-model="searchQuery" 
-            placeholder="搜索联系人或消息" 
+            :class="['global-search-input', { 'is-typing': !!searchQuery }]"
+            placeholder="搜索用户（昵称或ID）" 
             clearable
-            prefix-icon="Search">
+            prefix-icon="Search"
+            @keyup.enter="handleGlobalSearch"
+            @click.stop>
           </el-input>
+          <el-button
+            class="search-btn"
+            type="primary"
+            plain
+            size="small"
+            :loading="isSearchingUsers"
+            @click.stop="handleGlobalSearch"
+          >
+            搜索
+          </el-button>
+
+          <!-- 全局搜索结果下拉 -->
+          <div 
+            v-if="showSearchResults" 
+            class="global-search-results"
+            @click.stop
+          >
+            <div 
+              v-if="!globalSearchResults.length && !isSearchingUsers"
+              class="search-empty"
+            >
+              暂未找到匹配的用户
+            </div>
+            <div
+              v-for="user in globalSearchResults"
+              :key="user.id || user.userId"
+              class="search-user-item"
+              @click="handleSelectSearchUser(user)"
+            >
+              <div class="search-user-avatar">
+                <SafeImage
+                  :src="user.avatar || ''"
+                  type="avatar"
+                  :alt="user.nickname || user.username || user.name || '用户头像'"
+                  style="width:32px;height:32px;border-radius:50%;object-fit:cover;"
+                />
+              </div>
+              <div class="search-user-info">
+                <div class="name-line">
+                  <span class="name-text">
+                    {{ user.nickname || user.username || user.name || '未命名用户' }}
+                  </span>
+                  <span 
+                    class="online-status" 
+                    :class="{ online: !!user.online }"
+                  >
+                    <span class="dot"></span>
+                    <span class="text">{{ user.online ? '在线' : '离线' }}</span>
+                  </span>
+                </div>
+                <div class="id-line" v-if="user.id || user.userId">
+                  ID：{{ user.id || user.userId }}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         
         <div class="left-panels">
@@ -402,9 +461,13 @@ const userStore = useUserStore()
     // DOM引用
     const messagesContainer = ref(null)
     const imageInput = ref(null)
+    const searchBarRef = ref(null)
     
-    // 搜索关键词（同时用于联系人/最近会话过滤）
+    // 搜索关键词（同时用于联系人/最近会话过滤 + 全局用户搜索）
     const searchQuery = ref('')
+    const globalSearchResults = ref([])
+    const isSearchingUsers = ref(false)
+    const showSearchResults = ref(false)
     
     // 会话管理
     const mockSessions = ref([])
@@ -498,6 +561,48 @@ const userStore = useUserStore()
                 console.error('[开发调试] 获取联系人列表失败：', e)
             }
         }
+    }
+
+    /**
+     * 全局用户搜索
+     * - 支持昵称模糊搜索
+     * - 以 cy 开头时视为ID搜索（精确），由后端根据 keyword 规则处理
+     */
+    const handleGlobalSearch = async () => {
+        const keyword = (searchQuery.value || '').trim()
+        if (!keyword) {
+            globalSearchResults.value = []
+            showSearchResults.value = false
+            return
+        }
+
+        isSearchingUsers.value = true
+        try {
+            const params = { keyword, page: 1, pageSize: 10 }
+            const res = await messageStore.fetchSearchUsers(params)
+            if (!isSuccess(res.code)) {
+                showByCode(res.code)
+                globalSearchResults.value = []
+                showSearchResults.value = false
+                return
+            }
+            const list = Array.isArray(res.data) ? res.data : (res.data?.list || [])
+            globalSearchResults.value = list || []
+            showSearchResults.value = true
+        } finally {
+            isSearchingUsers.value = false
+        }
+    }
+
+    /**
+     * 选择搜索结果用户，跳转到个人主页
+     */
+    const handleSelectSearchUser = user => {
+        if (!user) return
+        const userId = user.id || user.userId
+        if (!userId) return
+        showSearchResults.value = false
+        router.push(`/profile/${userId}`)
     }
 
         /**
@@ -1047,6 +1152,13 @@ const userStore = useUserStore()
         })
     }
 
+    // 点击外部区域关闭搜索结果面板
+    const handleClickOutside = (event) => {
+        if (searchBarRef.value && !searchBarRef.value.contains(event.target)) {
+            showSearchResults.value = false
+        }
+    }
+
     // 在组件挂载时初始化：先加载会话，再根据路由参数选择目标，并接入WebSocket
     onMounted(async () => {
         await fetchContacts()
@@ -1054,6 +1166,8 @@ const userStore = useUserStore()
         await initializeChatFromRouteParams()
         websocketManager.connect()
         websocketManager.on('onlineStatus', handleOnlineStatusUpdate)
+        // 添加点击外部区域监听器
+        document.addEventListener('click', handleClickOutside)
     })
     
     // 监听路由参数变化
@@ -1070,9 +1184,10 @@ watch(() => route.query.userId, newUserId => {
   }
 })
 
-    // 组件卸载时取消WebSocket监听
+    // 组件卸载时取消WebSocket监听和点击外部区域监听
     onBeforeUnmount(() => {
       websocketManager.off('onlineStatus', handleOnlineStatusUpdate)
+      document.removeEventListener('click', handleClickOutside)
     })
 
     // 引导按钮：跳转到茶叶商城
@@ -1103,9 +1218,30 @@ watch(() => route.query.userId, newUserId => {
       background-color: #f7f7f7;
       
       .search-bar {
+        position: relative;
         padding: 15px;
         border-bottom: 1px solid #eee;
         background-color: #fff;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .global-search-input {
+        flex: 1;
+
+        :deep(.el-input__wrapper) {
+          transition: box-shadow 0.2s, border-color 0.2s;
+        }
+
+        &.is-typing :deep(.el-input__wrapper) {
+          box-shadow: 0 0 0 1px #a0d8ff;
+          border-color: #a0d8ff;
+        }
+      }
+
+      .search-btn {
+        white-space: nowrap;
       }
 
       .left-panels {
@@ -1114,6 +1250,65 @@ watch(() => route.query.userId, newUserId => {
         background-color: #f7f7f7;
         display: flex;
         flex-direction: column;
+      }
+
+      .global-search-results {
+        position: absolute;
+        left: 15px;
+        right: 15px;
+        top: 100%;
+        margin-top: 6px;
+        max-height: 260px;
+        overflow-y: auto;
+        background-color: #fff;
+        border-radius: 6px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+        z-index: 20;
+        padding: 6px 0;
+      }
+
+      .search-empty {
+        padding: 10px 16px;
+        font-size: 13px;
+        color: var(--text-secondary);
+      }
+
+      .search-user-item {
+        display: flex;
+        align-items: center;
+        padding: 8px 12px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+
+        &:hover {
+          background-color: #f5f9ff;
+        }
+      }
+
+      .search-user-avatar {
+        margin-right: 10px;
+      }
+
+      .search-user-info {
+        flex: 1;
+
+        .name-line {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 2px;
+        }
+
+        .name-text {
+          font-size: 14px;
+          font-weight: 500;
+          color: var(--text-primary);
+        }
+
+        .id-line {
+          font-size: 12px;
+          color: var(--text-secondary);
+        }
       }
 
       .custom-collapse {
