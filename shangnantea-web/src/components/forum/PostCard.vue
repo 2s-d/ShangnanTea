@@ -1,8 +1,8 @@
 <template>
-  <div class="post-card">
+  <div class="post-card" @click="goToPostDetail">
     <!-- 用户信息和发布时间 -->
     <div class="post-header">
-      <div class="user-info" @click="goToUserProfile">
+      <div class="user-info" @click.stop="goToUserProfile">
         <div class="avatar">
           <SafeImage :src="post.userAvatar" type="avatar" :alt="getDisplayName(post)" style="width:100%;height:100%;object-fit:cover;" />
         </div>
@@ -20,7 +20,7 @@
     </div>
     
     <!-- 帖子内容 -->
-    <div class="post-content" @click="goToPostDetail">
+    <div class="post-content">
       <div class="title-row">
         <div class="title">{{ post.title }}</div>
         <!-- 审核状态标签（仅在"我的帖子"页面显示） -->
@@ -48,7 +48,7 @@
     </div>
     
     <!-- 底部操作栏 -->
-    <div class="post-footer">
+    <div class="post-footer" @click.stop>
       <div class="post-topic" v-if="post.topicName">
         <el-tag size="small" effect="plain">{{ post.topicName }}</el-tag>
       </div>
@@ -265,6 +265,7 @@ export default {
   margin-bottom: 16px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
   transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
   
   &:hover {
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
@@ -317,8 +318,6 @@ export default {
   }
   
   .post-content {
-    cursor: pointer;
-    
     .title-row {
       display: flex;
       align-items: center;
