@@ -891,14 +891,18 @@ const userStore = useUserStore()
     
     // 发送消息
     const sendMessage = async () => {
-      if (!currentSessionId.value) return
+      // 发送过程中可能发生会话切换，这里对关键字段做快照，保证本次发送与刷新一致
+      const sessionIdSnapshot = currentSessionId.value
+      const receiverIdSnapshot = currentTargetUserId.value
+
+      if (!sessionIdSnapshot) return
       if (!messageInput.value.trim() && !imageFile.value) return
       
       try {
         if (process.env.NODE_ENV === 'development') {
           console.info('[Chat] sendMessage', {
-            sessionId: currentSessionId.value,
-            receiverId: currentTargetUserId.value,
+            sessionId: sessionIdSnapshot,
+            receiverId: receiverIdSnapshot,
             contentType: imageFile.value ? 'image' : 'text'
           })
         }
@@ -914,8 +918,8 @@ const userStore = useUserStore()
           
           // 调用图片上传API
           const uploadResponse = await messageStore.sendImageMessage({
-            sessionId: currentSessionId.value,
-            receiverId: currentTargetUserId.value,
+            sessionId: sessionIdSnapshot,
+            receiverId: receiverIdSnapshot,
             image: imageFile.value
           })
           
@@ -927,7 +931,7 @@ const userStore = useUserStore()
           
           // 成功时刷新消息列表
           if (isSuccess(uploadResponse.code)) {
-            await fetchMessages(currentSessionId.value, false)
+            await fetchMessages(sessionIdSnapshot, false)
             await nextTick()
             scrollToBottom()
           }
@@ -936,14 +940,14 @@ const userStore = useUserStore()
         }
         
         // 发送文本消息
-        if (!currentTargetUserId.value) {
+        if (!receiverIdSnapshot) {
           message.warning('缺少会话目标用户ID，暂无法发送消息')
           return
         }
 
         const sendResponse = await messageStore.sendMessage({
-          sessionId: currentSessionId.value,
-          receiverId: currentTargetUserId.value,
+          sessionId: sessionIdSnapshot,
+          receiverId: receiverIdSnapshot,
           content: messageContent,
           type: messageType
         })
@@ -956,7 +960,7 @@ const userStore = useUserStore()
         
         // 只有成功时才刷新消息列表
         if (isSuccess(sendResponse.code)) {
-          await fetchMessages(currentSessionId.value, false)
+          await fetchMessages(sessionIdSnapshot, false)
           await nextTick()
           scrollToBottom()
         }
