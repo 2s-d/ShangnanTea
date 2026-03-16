@@ -656,7 +656,7 @@ const userFormRef = ref(null)
     // 默认头像
     const defaultAvatar = '/mock-images/avatar-default.jpg'
     
-    // WebSocket在线状态更新处理
+    // WebSocket在线/登录状态更新处理
     const handleOnlineStatusUpdate = (message) => {
       if (message.type === 'onlineStatus' && message.userId) {
         // 更新用户列表中的在线状态
@@ -670,6 +670,12 @@ const userFormRef = ref(null)
         userList.value.forEach(user => {
           user.online = onlineUserIds.has(user.id)
         })
+      } else if (message.type === 'loginSessionsUpdate' && message.loginUserIds) {
+        // 批量更新登录状态（loginActive）
+        const loginUserIds = new Set(message.loginUserIds)
+        userList.value.forEach(user => {
+          user.loginActive = loginUserIds.has(user.id)
+        })
       }
     }
 
@@ -681,12 +687,16 @@ const userFormRef = ref(null)
         websocketManager.connect()
         websocketManager.on('onlineStatus', handleOnlineStatusUpdate)
         websocketManager.on('onlineUsersUpdate', handleOnlineStatusUpdate)
+        websocketManager.on('loginSessionsUpdate', handleOnlineStatusUpdate)
 
         // 管理员页面首次进入时，请求一次全量在线用户列表，接上最新TTL在线方案
         setTimeout(() => {
           if (websocketManager.isConnected && websocketManager.isConnected()) {
             websocketManager.send({
               type: 'requestOnlineUsers'
+            })
+            websocketManager.send({
+              type: 'requestLoginSessions'
             })
           }
         }, 500)
@@ -697,6 +707,7 @@ const userFormRef = ref(null)
     onUnmounted(() => {
       websocketManager.off('onlineStatus', handleOnlineStatusUpdate)
       websocketManager.off('onlineUsersUpdate', handleOnlineStatusUpdate)
+      websocketManager.off('loginSessionsUpdate', handleOnlineStatusUpdate)
     })
 </script>
 

@@ -122,13 +122,12 @@ public class WebSocketService {
                 logger.debug("广播登录会话列表跳过: RedisConnectionFactory为空");
                 return;
             }
+            var scanOptions = org.springframework.data.redis.core.ScanOptions.scanOptions()
+                    .match("login:user:*")
+                    .count(1000)
+                    .build();
             try (var connection = factory.getConnection();
-                 var cursor = connection.scan(
-                         org.springframework.data.redis.core.ScanOptions.scanOptions()
-                                 .match("login:user:*")
-                                 .count(1000)
-                                 .build()
-                 )) {
+                 var cursor = connection.keyCommands().scan(scanOptions)) {
                 while (cursor.hasNext()) {
                     String key = new String(cursor.next(), StandardCharsets.UTF_8);
                     if (key.startsWith("login:user:")) {
