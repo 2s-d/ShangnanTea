@@ -60,11 +60,15 @@ mybatis:
 
 logging:
   level:
-    # 业务代码保持 DEBUG，方便看所有业务日志和报错
-    com.shangnantea: debug
-    # 只把最吵的 SQL / Mapper 压到 WARN，减少大片 SQL 垃圾
+    # 默认只开到 INFO，避免调试日志淹没其他信息
+    com.shangnantea: info
+    # MyBatis Mapper 层SQL日志调到 WARN，避免每条SQL都刷屏
     com.shangnantea.mapper: warn
-    org.mybatis: warn
+    # WebSocket / 在线状态这块现在也改成 INFO，除非报错，否则不刷一堆调试
+    com.shangnantea.websocket: info
+    # 联系人/管理员用户管理里的“用户状态检查”等大批量循环日志，直接降到 WARN，只在异常时才看见
+    com.shangnantea.service.impl.MessageServiceImpl: warn
+    com.shangnantea.service.impl.UserServiceImpl: warn
   pattern:
     # 控制台日志输出格式，带上 requestId 便于从 APIFox 的 X-Request-Id 反查对应日志
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [requestId:%X{requestId}] - %msg%n"
