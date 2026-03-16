@@ -302,20 +302,8 @@
               <div class="message-container">
                 <!-- 对方消息：头像在左，消息在右 -->
                 <template v-if="!message.isSelf">
-                  <div
-                    class="message-avatar"
-                    @click="currentSession?.targetType === 'shop'
-                      ? goToUserProfile(currentSession, 'shop')
-                      : goToUserProfile(currentSession, 'user')"
-                  >
-                    <SafeImage
-                      :src="currentSession?.targetType === 'shop'
-                        ? (currentSession?.avatar || '')
-                        : (currentSession?.avatar || '')"
-                      type="avatar"
-                      :alt="currentSession?.name"
-                      style="width:40px;height:40px;border-radius:50%;object-fit:cover;cursor:pointer;"
-                    />
+                  <div class="message-avatar" @click="goToUserProfile(currentSession, currentSession?.targetType)">
+                    <SafeImage :src="currentSession?.avatar || ''" type="avatar" :alt="currentSession?.name" style="width:40px;height:40px;border-radius:50%;object-fit:cover;cursor:pointer;" />
                   </div>
                   
                   <div class="message-content">
@@ -357,24 +345,8 @@
                     </div>
                   </div>
                   
-                  <div
-                    class="message-avatar"
-                    @click="currentSession?.targetType === 'shop'
-                      && currentSession?.ownerId
-                      && String(currentSession.ownerId) === String(userStore.userInfo?.id)
-                        ? goToUserProfile(currentSession, 'shop')
-                        : goToUserProfile(userStore.userInfo?.id, 'user')"
-                  >
-                    <SafeImage
-                      :src="currentSession?.targetType === 'shop'
-                        && currentSession?.ownerId
-                        && String(currentSession.ownerId) === String(userStore.userInfo?.id)
-                          ? (currentSession?.avatar || '')
-                          : currentUserAvatar"
-                      type="avatar"
-                      alt="我"
-                      style="width:40px;height:40px;border-radius:50%;object-fit:cover;cursor:pointer;"
-                    />
+                  <div class="message-avatar" @click="goToUserProfile(userStore.userInfo?.id, 'user')">
+                    <SafeImage :src="currentUserAvatar" type="avatar" alt="我" style="width:40px;height:40px;border-radius:50%;object-fit:cover;cursor:pointer;" />
                   </div>
                 </template>
               </div>
