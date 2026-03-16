@@ -26,13 +26,25 @@ class WebSocketManager {
     this.listeners = new Map() // 存储消息监听器
     this.isConnecting = false
     this.shouldReconnect = true
+    this.blockedReconnectToken = null // 认证失效导致的关闭：阻止同一token继续重连刷屏
   }
 
   /**
    * 连接WebSocket
    */
   connect() {
-    this.shouldReconnect = true
+    // 如果当前 token 被标记为“禁止重连”（通常是被踢/登出导致会话失效），则不要继续尝试连接
+    try {
+      const tokenStorage = useTokenStorage()
+      const token = tokenStorage.getToken()
+      if (this.blockedReconnectToken && token && token === this.blockedReconnectToken) {
+        console.warn('[WebSocket] 当前token已被标记为禁止重连，跳过连接')
+        return
+      }
+    } catch (e) {
+      // ignore
+    }
+
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       console.log('[WebSocket] 已连接，无需重复连接')
       return
@@ -100,6 +112,19 @@ class WebSocketManager {
         this.isConnecting = false
         this.stopChannelHeartbeat()
         this.stopHeartbeat()
+
+        // 如果是认证相关关闭（被踢/登出/token失效），阻止同一token继续重连刷屏
+        const reason = (event && typeof event.reason === 'string') ? event.reason : ''
+        if (reason.includes('login session invalid') || reason.includes('token invalid')) {
+          try {
+            const tokenStorage = useTokenStorage()
+            this.blockedReconnectToken = tokenStorage.getToken()
+          } catch (e) {
+            // ignore
+          }
+          this.shouldReconnect = false
+        }
+
         if (this.shouldReconnect) {
           this.attemptReconnect()
         }
@@ -314,6 +339,10 @@ class WebSocketManager {
         console.warn('[WebSocket] 未找到token，停止重连')
         return
       }
+      if (this.blockedReconnectToken && token === this.blockedReconnectToken) {
+        console.warn('[WebSocket] 当前token已被标记为禁止重连，停止重连')
+        return
+      }
     } catch (e) {
       // ignore
     }
@@ -336,6 +365,7 @@ class WebSocketManager {
    */
   disconnect() {
     this.shouldReconnect = false
+    this.blockedReconnectToken = null
     this.stopChannelHeartbeat()
     this.stopHeartbeat()
     if (this.reconnectTimer) {
