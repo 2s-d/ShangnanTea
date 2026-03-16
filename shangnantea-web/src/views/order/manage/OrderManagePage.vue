@@ -409,7 +409,8 @@ import { useRouter, useRoute } from 'vue-router'
 import { useOrderStore } from '@/stores/order'
 import { ElMessageBox } from 'element-plus'
 import { Refresh } from '@element-plus/icons-vue'
-import { showByCode } from '@/utils/apiMessages'
+import { useMessageStore } from '@/stores/message'
+import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { orderPromptMessages } from '@/utils/promptMessages'
 
 /**
@@ -446,6 +447,7 @@ defineOptions({
 const router = useRouter()
 const route = useRoute()
 const orderStore = useOrderStore()
+const messageStore = useMessageStore()
 const loading = ref(false)
 const submitting = ref(false)
 
@@ -726,12 +728,38 @@ const orderList = ref([])
       router.push(`/order/manage/detail/${orderId}`)
     }
     
-    // 联系买家（跳转到聊天页面）
-    const contactBuyer = order => {
-      if (order.userId) {
-        router.push(`/message/chat?userId=${order.userId}`)
-      } else {
+    // 联系买家（商家/管理员向用户发起会话）
+    // 后端 createChatSession(customer) 的 targetId 是店铺ID，且禁止店主对自己的店铺发起客服会话，
+    // 所以这里使用私聊会话：targetType=private + 买家用户ID
+    // 跳转逻辑与“联系客服”一致：先创建/恢复会话，再带 sessionId 跳转并选中
+    const contactBuyer = async order => {
+      const buyerUserId = order?.userId
+      if (!buyerUserId) {
         orderPromptMessages.showOrderNotFound && orderPromptMessages.showOrderNotFound()
+        return
+      }
+
+      try {
+        const res = await messageStore.createChatSession({
+          targetId: String(buyerUserId),
+          targetType: 'private'
+        })
+        if (!isSuccess(res.code)) {
+          showByCode(res.code)
+          return
+        }
+        const sessionId = res.data?.id
+        router.push({
+          path: '/message/chat',
+          query: {
+            sessionId: sessionId ? String(sessionId) : undefined,
+            userId: String(buyerUserId)
+          }
+        })
+      } catch (e) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[开发调试] 联系买家失败：', e)
+        }
       }
     }
     
