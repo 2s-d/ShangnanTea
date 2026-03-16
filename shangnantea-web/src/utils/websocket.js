@@ -169,11 +169,18 @@ class WebSocketManager {
 
   /**
    * 开始心跳
+   * @param {boolean} forceImmediate 是否强制立即发送心跳（用于恢复在线状态）
    */
-  startHeartbeat() {
-    // 如果定时器已经存在且连接正常，不需要重复创建
+  startHeartbeat(forceImmediate = false) {
+    // 如果定时器已经存在且连接正常
     if (this.heartbeatTimer && this.ws && this.ws.readyState === WebSocket.OPEN) {
-      return // 心跳已经在运行，不需要重复启动
+      // 如果需要强制立即发送（恢复在线），立即发送一次
+      if (forceImmediate) {
+        this.send('ping')
+        console.log('[WebSocket] 强制立即发送心跳，恢复在线状态')
+      }
+      // 否则心跳已经在运行，不需要重复启动
+      return
     }
     
     this.stopHeartbeat()
@@ -187,7 +194,7 @@ class WebSocketManager {
       return // 连接未就绪，不创建定时器
     }
     
-    // 设置定时心跳
+    // 设置定时心跳（30秒间隔，用于保持在线状态）
     this.heartbeatTimer = setInterval(() => {
       if (this.ws && this.ws.readyState === WebSocket.OPEN) {
         this.send('ping')

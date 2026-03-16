@@ -39,7 +39,7 @@ const userStore = useUserStore()
 let inactivityTimer = null
 let stopLoginWatch = null // watch 的停止函数
 let activityDebounceTimer = null // 用户活动防抖定时器
-const INACTIVITY_THRESHOLD = 1 * 60 * 1000 // 1分钟无活动（测试用，原为5分钟）
+const INACTIVITY_THRESHOLD = 10 * 1000 // 10秒无活动（测试用）
 const ACTIVITY_DEBOUNCE = 1000 // 用户活动防抖时间：1秒内只处理一次
 
 const resetInactivityTimer = () => {
