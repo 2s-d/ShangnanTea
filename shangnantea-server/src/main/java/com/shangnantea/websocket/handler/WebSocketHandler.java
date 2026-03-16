@@ -2,6 +2,7 @@ package com.shangnantea.websocket.handler;
 
 import com.shangnantea.websocket.manager.WebSocketSessionManager;
 import com.shangnantea.websocket.service.WebSocketService;
+import com.shangnantea.security.util.JwtUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,9 @@ public class WebSocketHandler extends TextWebSocketHandler {
     
     @Autowired
     private WebSocketService webSocketService;
+
+    @Autowired
+    private JwtUtil jwtUtil;
     
     @Autowired(required = false)
     private StringRedisTemplate redisTemplate;
@@ -81,6 +85,32 @@ public class WebSocketHandler extends TextWebSocketHandler {
         // 处理业务心跳（ping1）：用于刷新用户在线TTL
         if ("ping1".equals(payload)) {
             if (userId != null) {
+                // 如果登录会话已失效（例如：用户已登出/被强制下线），则拒绝续在线并关闭连接
+                if (redisTemplate != null) {
+                    String sessionKey = "login:user:" + userId;
+                    Boolean hasSession = redisTemplate.hasKey(sessionKey);
+                    if (hasSession == null || !hasSession) {
+                        logger.info("收到ping1但登录会话已失效，关闭WebSocket: userId={}, sessionId={}", userId, session.getId());
+                        try {
+                            session.close(CloseStatus.NORMAL.withReason("login session invalid"));
+                        } catch (Exception ignored) {
+                        }
+                        return;
+                    }
+                }
+                // token 过期/被挤下线时，HTTP 请求会失败，但 WebSocket 可能仍短暂存活。
+                // 这里再校验一次 token，避免“已失效用户通过 ping1 复活 online:user:*”。
+                Object rawToken = session.getAttributes().get("token");
+                if (rawToken instanceof String token) {
+                    if (!jwtUtil.validateToken(token)) {
+                        logger.info("收到ping1但token已失效，关闭WebSocket: userId={}, sessionId={}", userId, session.getId());
+                        try {
+                            session.close(CloseStatus.NORMAL.withReason("token invalid"));
+                        } catch (Exception ignored) {
+                        }
+                        return;
+                    }
+                }
                 markUserOnline(userId);
             }
             sendMessage(session, "pong1");

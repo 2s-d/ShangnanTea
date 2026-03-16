@@ -25,12 +25,14 @@ class WebSocketManager {
     this.pendingImmediateBusinessHeartbeat = false
     this.listeners = new Map() // 存储消息监听器
     this.isConnecting = false
+    this.shouldReconnect = true
   }
 
   /**
    * 连接WebSocket
    */
   connect() {
+    this.shouldReconnect = true
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       console.log('[WebSocket] 已连接，无需重复连接')
       return
@@ -96,8 +98,11 @@ class WebSocketManager {
       this.ws.onclose = (event) => {
         console.log('[WebSocket] 连接关闭:', event.code, event.reason)
         this.isConnecting = false
+        this.stopChannelHeartbeat()
         this.stopHeartbeat()
-        this.attemptReconnect()
+        if (this.shouldReconnect) {
+          this.attemptReconnect()
+        }
       }
     } catch (error) {
       console.error('[WebSocket] 连接异常:', error)
@@ -297,6 +302,22 @@ class WebSocketManager {
    * 尝试重连
    */
   attemptReconnect() {
+    if (!this.shouldReconnect) {
+      return
+    }
+
+    // 没有 token 时不应重连（通常表示已登出/被清理）
+    try {
+      const tokenStorage = useTokenStorage()
+      const token = tokenStorage.getToken()
+      if (!token) {
+        console.warn('[WebSocket] 未找到token，停止重连')
+        return
+      }
+    } catch (e) {
+      // ignore
+    }
+
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
       console.warn('[WebSocket] 达到最大重连次数，停止重连')
       return
@@ -314,6 +335,7 @@ class WebSocketManager {
    * 断开连接
    */
   disconnect() {
+    this.shouldReconnect = false
     this.stopChannelHeartbeat()
     this.stopHeartbeat()
     if (this.reconnectTimer) {

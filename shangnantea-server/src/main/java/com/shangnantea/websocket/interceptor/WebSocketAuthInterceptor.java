@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpRequest;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
@@ -30,8 +32,8 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
      * 从请求参数或Header中获取token并验证
      */
     @Override
-    public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response,
-                                   WebSocketHandler wsHandler, Map<String, Object> attributes) throws Exception {
+    public boolean beforeHandshake(@NonNull ServerHttpRequest request, @NonNull ServerHttpResponse response,
+                                   @NonNull WebSocketHandler wsHandler, @NonNull Map<String, Object> attributes) throws Exception {
         if (request instanceof ServletServerHttpRequest) {
             ServletServerHttpRequest servletRequest = (ServletServerHttpRequest) request;
             
@@ -69,6 +71,8 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
             
             // 将用户ID存入session属性，供后续使用
             attributes.put("userId", userId);
+            // 保存原始 token，用于后续 WebSocket 消息处理时做会话/过期二次校验（防止登出后“在线被复活”）
+            attributes.put("token", token);
             if (role != null) {
                 attributes.put("role", role);
             }
@@ -83,8 +87,8 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
      * 握手后处理
      */
     @Override
-    public void afterHandshake(ServerHttpRequest request, ServerHttpResponse response,
-                               WebSocketHandler wsHandler, Exception exception) {
+    public void afterHandshake(@NonNull ServerHttpRequest request, @NonNull ServerHttpResponse response,
+                               @NonNull WebSocketHandler wsHandler, @Nullable Exception exception) {
         if (exception != null) {
             logger.error("WebSocket握手后处理异常: {}", exception.getMessage());
         }
