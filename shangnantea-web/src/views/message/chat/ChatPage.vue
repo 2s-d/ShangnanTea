@@ -345,8 +345,18 @@
                     </div>
                   </div>
                   
-                  <div class="message-avatar" @click="goToUserProfile(userStore.userInfo?.id, 'user')">
-                    <SafeImage :src="currentUserAvatar" type="avatar" alt="我" style="width:40px;height:40px;border-radius:50%;object-fit:cover;cursor:pointer;" />
+                  <div
+                    class="message-avatar"
+                    @click="currentSession?.targetType === 'shop'
+                      ? goToUserProfile(currentSession, 'shop')
+                      : goToUserProfile(userStore.userInfo?.id, 'user')"
+                  >
+                    <SafeImage
+                      :src="currentSession?.targetType === 'shop' ? (currentSession?.avatar || '') : currentUserAvatar"
+                      type="avatar"
+                      alt="我"
+                      style="width:40px;height:40px;border-radius:50%;object-fit:cover;cursor:pointer;"
+                    />
                   </div>
                 </template>
               </div>
