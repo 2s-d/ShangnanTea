@@ -1731,7 +1731,34 @@ watch(() => route.query.userId, newUserId => {
         }
       }
 
-      // online-status 已移至右侧时间下方（online-dot）
+      // 联系人/搜索结果仍使用 online-status（点 + 在线/离线 文案）
+      .online-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-left: 8px;
+        font-size: 12px;
+        color: var(--text-secondary);
+
+        .dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: #c0c4cc;
+        }
+
+        &.online {
+          color: #2ecc71;
+
+          .dot {
+            background: #2ecc71;
+          }
+        }
+
+        .text {
+          white-space: nowrap;
+        }
+      }
     }
     
     // 聊天内容区域
