@@ -195,15 +195,12 @@
 
                   <div class="session-info">
                     <div class="session-name">
-                      <span
-                        class="session-kind-badge"
-                        :class="session.targetType === 'shop' ? 'is-shop' : 'is-user'"
-                      >
-                        {{ session.targetType === 'shop' ? '客服' : '私聊' }}
-                      </span>
                       <span class="session-name-text">{{ session.name }}</span>
-                      <span class="online-status" :class="{ online: session.online }">
-                        <span class="dot"></span>
+                      <span
+                        v-if="session.targetType === 'shop'"
+                        class="session-kind-badge is-shop"
+                      >
+                        客服会话
                       </span>
                       <el-icon v-if="session.isPinned" class="pin-icon" title="已置顶">
                         <Top />
@@ -214,6 +211,9 @@
 
                   <div class="session-meta">
                     <div class="session-time">{{ formatTime(session.lastTime) }}</div>
+                    <span class="online-dot" :class="{ online: session.online }" title="在线状态">
+                      <span class="dot"></span>
+                    </span>
                     <div class="session-actions">
                       <el-popover placement="top" width="auto" trigger="click" @show="stopPropagation">
                         <template #reference>
@@ -700,8 +700,11 @@ const userStore = useUserStore()
           
           // 店铺会话：显示店铺名称和店铺LOGO
           // 用户会话：显示用户昵称和用户头像
+          // 名称展示规则（避免拼接“店铺xxx客服”这类噪声）：
+          // - 客服会话：优先店铺名，其次对端昵称/用户名，最后才用ID兜底
+          // - 私聊会话：优先对端昵称/用户名，最后用ID兜底
           const name = isCustomerService
-            ? (session.shopName || `店铺${targetId}客服`)
+            ? (session.shopName || session.targetNickname || session.targetUsername || `店铺${session.shopId || targetId}`)
             : (session.targetNickname || session.targetUsername || `用户${targetId}`)
           
           // 店铺会话：使用店铺LOGO（shopAvatar），用户会话：使用用户头像（targetAvatar）
@@ -1645,15 +1648,9 @@ watch(() => route.query.userId, newUserId => {
                 background: rgba(0, 0, 0, 0.03);
 
                 &.is-shop {
-                  border-color: rgba(64, 158, 255, 0.28);
-                  color: #1677ff;
-                  background: rgba(64, 158, 255, 0.12);
-                }
-
-                &.is-user {
-                  border-color: rgba(103, 194, 58, 0.26);
-                  color: #2f9e44;
-                  background: rgba(103, 194, 58, 0.10);
+                  border-color: rgba(245, 34, 45, 0.30);
+                  color: #cf1322;
+                  background: rgba(245, 34, 45, 0.10);
                 }
               }
               
@@ -1684,6 +1681,27 @@ watch(() => route.query.userId, newUserId => {
               color: var(--text-placeholder);
               margin-bottom: 4px;
             }
+
+            .online-dot {
+              display: inline-flex;
+              align-items: center;
+              justify-content: flex-end;
+              height: 14px;
+              margin-bottom: 6px;
+
+              .dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: #c0c4cc;
+              }
+
+              &.online {
+                .dot {
+                  background: #2ecc71;
+                }
+              }
+            }
             
             .session-actions {
               visibility: hidden;
@@ -1713,33 +1731,7 @@ watch(() => route.query.userId, newUserId => {
         }
       }
 
-      .online-status {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        margin-left: 8px;
-        font-size: 12px;
-        color: var(--text-secondary);
-
-        .dot {
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          background: #c0c4cc;
-        }
-
-        &.online {
-          color: #2ecc71;
-
-          .dot {
-            background: #2ecc71;
-          }
-        }
-
-        .text {
-          white-space: nowrap;
-        }
-      }
+      // online-status 已移至右侧时间下方（online-dot）
     }
     
     // 聊天内容区域
