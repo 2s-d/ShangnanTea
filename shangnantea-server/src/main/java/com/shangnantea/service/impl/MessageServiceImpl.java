@@ -43,6 +43,17 @@ public class MessageServiceImpl implements MessageService {
 
     private static final Logger logger = LoggerFactory.getLogger(MessageServiceImpl.class);
 
+    /**
+     * 平台客服账号（固定代理人）
+     * 用于 shopId=PLATFORM 的客服会话：PLATFORM_{buyerUserId}_customer
+     */
+    private static final String PLATFORM_CUSTOMER_SERVICE_USER_ID = "cy100001";
+
+    /**
+     * 平台直售店铺ID（虚拟店铺）
+     */
+    private static final String PLATFORM_SHOP_ID = "PLATFORM";
+
     @Autowired
     private ChatSessionMapper sessionMapper;
     
@@ -1294,15 +1305,21 @@ public class MessageServiceImpl implements MessageService {
                 // 店铺客服会话：sessionId = shopId_userId_customer
                 // - 用户找店铺：userId 为买家用户ID
                 // - 商家/管理员联系买家：通过 targetUserId 指定买家用户ID（当前 userId 可能为店主/管理员）
-                Shop shop = shopMapper.selectById(targetId);
-                if (shop == null) {
-                    logger.warn("创建聊天会话失败：店铺不存在, shopId: {}", targetId);
-                    return Result.failure(7113);
-                }
-                String ownerId = shop.getOwnerId();
-                if (ownerId == null) {
-                    logger.warn("创建聊天会话失败：店铺店主ID为空, shopId: {}", targetId);
-                    return Result.failure(7113);
+                String ownerId;
+                if (PLATFORM_SHOP_ID.equalsIgnoreCase(targetId)) {
+                    // 平台客服会话：receiverId 固定为平台客服账号
+                    ownerId = PLATFORM_CUSTOMER_SERVICE_USER_ID;
+                } else {
+                    Shop shop = shopMapper.selectById(targetId);
+                    if (shop == null) {
+                        logger.warn("创建聊天会话失败：店铺不存在, shopId: {}", targetId);
+                        return Result.failure(7113);
+                    }
+                    ownerId = shop.getOwnerId();
+                    if (ownerId == null) {
+                        logger.warn("创建聊天会话失败：店铺店主ID为空, shopId: {}", targetId);
+                        return Result.failure(7113);
+                    }
                 }
 
                 // 规范化买家ID：优先使用 targetUserId（商家/管理员联系买家），否则用当前 userId（用户找客服）
@@ -1317,8 +1334,9 @@ public class MessageServiceImpl implements MessageService {
                 }
 
                 // 如果当前用户就是店主，但没传 targetUserId，则仍按旧规则失败（避免误用）
+                // 平台客服账号同理：如果当前就是客服账号，必须指定 targetUserId
                 if (userId.equals(ownerId) && (targetUserId == null || targetUserId.trim().isEmpty())) {
-                    logger.warn("创建聊天会话失败：店主联系买家必须指定targetUserId, shopId: {}, ownerId: {}", targetId, ownerId);
+                    logger.warn("创建聊天会话失败：客服发起会话必须指定targetUserId, shopId: {}, ownerId: {}", targetId, ownerId);
                     return Result.failure(7113);
                 }
 
@@ -1389,7 +1407,15 @@ public class MessageServiceImpl implements MessageService {
 
             Map<String, Object> sessionVO = new HashMap<>();
             sessionVO.put("id", session.getId());
-            sessionVO.put("targetUserId", isCustomer ? shopMapper.selectById(targetId).getOwnerId() : targetId);
+            if (isCustomer) {
+                if (PLATFORM_SHOP_ID.equalsIgnoreCase(targetId)) {
+                    sessionVO.put("targetUserId", PLATFORM_CUSTOMER_SERVICE_USER_ID);
+                } else {
+                    sessionVO.put("targetUserId", shopMapper.selectById(targetId).getOwnerId());
+                }
+            } else {
+                sessionVO.put("targetUserId", targetId);
+            }
             sessionVO.put("lastMessage", session.getLastMessage());
             sessionVO.put("lastMessageTime", session.getLastMessageTime());
             sessionVO.put("sessionType", session.getSessionType());
