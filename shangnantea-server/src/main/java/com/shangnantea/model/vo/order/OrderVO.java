@@ -66,6 +66,11 @@ public class OrderVO {
     private String shopId;
     
     /**
+     * 买家用户ID
+     */
+    private String userId;
+    
+    /**
      * 是否已评价(0未评价,1已评价)
      */
     private Integer isReviewed;

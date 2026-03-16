@@ -1069,6 +1069,7 @@ public class OrderServiceImpl implements OrderService {
                 vo.setQuantity(order.getQuantity());
                 vo.setPrice(order.getPrice());
                 vo.setShopId(order.getShopId());
+                vo.setUserId(order.getUserId());
                 vo.setIsReviewed(order.getBuyerRate());
                 vo.setPaymentId(order.getPaymentId());
                 orderVOList.add(vo);
