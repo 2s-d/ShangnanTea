@@ -60,7 +60,11 @@ mybatis:
 
 logging:
   level:
+    # 业务代码保持 DEBUG，方便看所有业务日志和报错
     com.shangnantea: debug
+    # 只把最吵的 SQL / Mapper 压到 WARN，减少大片 SQL 垃圾
+    com.shangnantea.mapper: warn
+    org.mybatis: warn
   pattern:
     # 控制台日志输出格式，带上 requestId 便于从 APIFox 的 X-Request-Id 反查对应日志
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [requestId:%X{requestId}] - %msg%n"
