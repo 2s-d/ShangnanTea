@@ -70,6 +70,11 @@ let requestCounter = 0
 // 活跃请求映射，用于开发环境监控
 const activeRequests = new Map()
 
+// token 刷新单飞锁：避免并发请求触发多次 refresh
+let refreshPromise = null
+// 距离过期多久开始刷新（仅在有请求触发时刷新）
+const REFRESH_THRESHOLD_MS = 10 * 60 * 1000 // 10分钟
+
 // 在开发环境中记录API调用
 const logApiCall = (config, status, response = null, error = null) => {
   if (import.meta.env.MODE !== 'development') return
@@ -125,16 +130,48 @@ const logApiCall = (config, status, response = null, error = null) => {
 
 // 请求拦截器 - 整合前后端认证机制
 service.interceptors.request.use(
-  config => {
+  async config => {
     // 生成请求ID，用于日志追踪
     config.requestId = `req_${++requestCounter}`
     
     // 从token存储中获取token
     const token = tokenStorage.getToken()
+
+    // 仅在存在 token 且非刷新接口本身时，尝试“按需刷新”
+    if (token && config?.url && !String(config.url).includes('/user/refresh')) {
+      const tokenInfo = tokenStorage.verifyToken && tokenStorage.verifyToken()
+      const expMs = tokenInfo?.exp
+      if (typeof expMs === 'number') {
+        const remainingMs = expMs - Date.now()
+        if (remainingMs > 0 && remainingMs < REFRESH_THRESHOLD_MS) {
+          try {
+            if (!refreshPromise) {
+              const userStore = useUserStore()
+              refreshPromise = userStore.refreshToken().finally(() => {
+                refreshPromise = null
+              })
+            }
+            await refreshPromise
+          } catch (e) {
+            // 刷新失败：按未登录处理
+            tokenStorage.removeToken()
+            const userStore = useUserStore()
+            userStore.userInfo = null
+            userStore.isLoggedIn = false
+            if (router.currentRoute.value.path !== '/login') {
+              apiMessage.error('登录已过期，请重新登录')
+              router.push(`/login?redirect=${router.currentRoute.value.path}`)
+            }
+            return Promise.reject(e)
+          }
+        }
+      }
+    }
     
     // 当存在token时，为所有请求添加Authorization头
-    if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`
+    const latestToken = tokenStorage.getToken()
+    if (latestToken) {
+      config.headers['Authorization'] = `Bearer ${latestToken}`
     }
     
     // 处理FormData：如果是FormData，删除Content-Type让浏览器自动设置（包含boundary）

@@ -43,6 +43,7 @@ import {
 import { useTokenStorage } from '@/composables/useStorage'
 import { userPromptMessages } from '@/utils/promptMessages'
 import { showByCode, isSuccess } from '@/utils/apiMessages'
+import router from '@/router'
 import {
   DEFAULT_USER_PREFERENCES,
   normalizeUserPreferences,
@@ -552,6 +553,15 @@ export const useUserStore = defineStore('user', () => {
       
       await changePasswordApi(passwordData)
       userPromptMessages.success.showPasswordChangeSuccess()
+
+      // 改密成功后：后端已清理登录会话（jti），当前 token 将不再有效
+      // 前端在此处直接清理本地登录态并跳转登录页（不再额外调用 /user/logout，避免接口门槛导致流程卡住）
+      tokenStorage.removeToken()
+      userInfo.value = null
+      isLoggedIn.value = false
+      if (router.currentRoute.value.path !== '/login') {
+        router.push(`/login?redirect=${router.currentRoute.value.path}`)
+      }
       
       return true
     } catch (error) {
@@ -566,8 +576,13 @@ export const useUserStore = defineStore('user', () => {
   async function refreshToken() {
     try {
       const response = await refreshTokenApi()
-      const { token } = response
-      
+      // request 拦截器会将响应统一包装为 { code, data }
+      const token = response?.data?.token || response?.data?.data?.token || response?.token
+
+      if (!token) {
+        throw new Error('刷新Token失败：响应中未找到token')
+      }
+
       tokenStorage.setToken(token)
       
       const userInfoData = tokenStorage.verifyToken()

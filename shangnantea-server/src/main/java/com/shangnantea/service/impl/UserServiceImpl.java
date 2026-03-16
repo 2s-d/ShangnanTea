@@ -914,9 +914,22 @@ public class UserServiceImpl implements UserService {
                 logger.warn("修改密码失败: 旧密码错误, userId: {}", userId);
                 return Result.failure(2112); // 密码修改失败，请检查原密码是否正确
             }
-            
-            logger.info("修改密码成功: userId: {}", userId);
-            return Result.success(2005, "密码修改成功，请使用新密码登录"); // 密码修改成功，请使用新密码登录
+
+            // 4. 修改密码成功后，按“退出登录流程”使当前会话立即失效（单点登录：每个账号仅允许一个会话）
+            // 不能依赖前端再额外调用 /user/logout，因为此处需要保证“改密成功即强制重新登录”不会被接口门槛卡住。
+            try {
+                if (redisTemplate != null) {
+                    String sessionKey = "login:user:" + userId;
+                    String onlineKey = "online:user:" + userId;
+                    redisTemplate.delete(sessionKey);
+                    redisTemplate.delete(onlineKey);
+                }
+            } catch (Exception e) {
+                logger.warn("修改密码后清理登录会话/在线状态失败，不影响改密结果: userId={}, error={}", userId, e.getMessage());
+            }
+
+            logger.info("修改密码成功并已清理会话: userId={}", userId);
+            return Result.success(2005, "密码修改成功，请重新登录"); // 强制重新登录
             
         } catch (Exception e) {
             logger.error("修改密码失败: 系统异常", e);
