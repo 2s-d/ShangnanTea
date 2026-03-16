@@ -51,7 +51,6 @@ import com.shangnantea.model.vo.user.UserVO;
 import com.shangnantea.model.vo.user.VerificationCodeVO;
 import com.shangnantea.security.context.UserContext;
 import com.shangnantea.security.util.JwtUtil;
-import com.shangnantea.websocket.service.WebSocketService;
 import com.shangnantea.security.util.PasswordEncoder;
 import com.shangnantea.service.UserService;
 import com.shangnantea.service.ShopService;
@@ -189,8 +188,7 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private JwtUtil jwtUtil;
 
-    @Autowired(required = false)
-    private WebSocketService webSocketService;
+    // 登录会话(JTI)的实时推送改由 Redis KeyEvent 监听统一处理（避免散落在业务点）
     
     // ==================== 天气服务 ====================
     
@@ -427,13 +425,6 @@ public class UserServiceImpl implements UserService {
         tokenVO.setUserInfo(convertToUserVO(user));
         
         logger.info("登录成功: username: {}, userId: {}", loginDTO.getUsername(), user.getId());
-        // 管理员用户管理页需要实时显示“登录状态(loginActive)”，登录成功后推送一次全量会话快照
-        if (webSocketService != null) {
-            try {
-                webSocketService.broadcastLoginSessionsUpdate();
-            } catch (Exception ignored) {
-            }
-        }
         return Result.success(2000, tokenVO); // 登录成功
     }
     
@@ -555,14 +546,6 @@ public class UserServiceImpl implements UserService {
                 logger.warn("清理登录会话/在线状态缓存失败，不影响登出流程: userId={}, error={}", userId, e.getMessage());
             }
 
-            // 推送管理员“登录会话”列表更新（loginActive）
-            if (webSocketService != null) {
-                try {
-                    webSocketService.broadcastLoginSessionsUpdate();
-                } catch (Exception ignored) {
-                }
-            }
-            
             // 清除用户上下文（虽然拦截器会自动清除，但显式清除更安全）
             UserContext.clear();
             
@@ -617,13 +600,6 @@ public class UserServiceImpl implements UserService {
             tokenVO.setUserInfo(convertToUserVO(user));
             
             logger.info("刷新令牌成功: userId: {}, username: {}", userId, user.getUsername());
-            // 刷新令牌会生成新 jti 并覆盖 login:user:{userId}，需要推送管理员“登录会话”列表更新
-            if (webSocketService != null) {
-                try {
-                    webSocketService.broadcastLoginSessionsUpdate();
-                } catch (Exception ignored) {
-                }
-            }
             return Result.success(200, tokenVO); // 刷新成功（静默）
             
         } catch (Exception e) {
@@ -951,14 +927,6 @@ public class UserServiceImpl implements UserService {
                 }
             } catch (Exception e) {
                 logger.warn("修改密码后清理登录会话/在线状态失败，不影响改密结果: userId={}, error={}", userId, e.getMessage());
-            }
-
-            // 推送管理员“登录会话”列表更新（loginActive）
-            if (webSocketService != null) {
-                try {
-                    webSocketService.broadcastLoginSessionsUpdate();
-                } catch (Exception ignored) {
-                }
             }
 
             logger.info("修改密码成功并已清理会话: userId={}", userId);
@@ -2535,13 +2503,6 @@ public class UserServiceImpl implements UserService {
             boolean anyRemoved = Boolean.TRUE.equals(removedSession) || Boolean.TRUE.equals(removedOnline);
             logger.info("管理员强制下线用户: userId={}, removedSession={}, removedOnline={}",
                     userId, removedSession, removedOnline);
-            // 推送管理员“登录会话”列表更新（loginActive）
-            if (webSocketService != null) {
-                try {
-                    webSocketService.broadcastLoginSessionsUpdate();
-                } catch (Exception ignored) {
-                }
-            }
             return Result.success(2027, anyRemoved);
         } catch (Exception e) {
             logger.error("强制下线失败(管理员): 系统异常, userId={}", userId, e);
