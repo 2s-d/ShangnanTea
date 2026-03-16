@@ -281,11 +281,12 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useOrderStore } from '@/stores/order'
 import { useUserStore } from '@/stores/user'
+import { useMessageStore } from '@/stores/message'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { Check } from '@element-plus/icons-vue'
 import { regionData } from '@/utils/region'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-import { showByCode } from '@/utils/apiMessages'
+import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { orderPromptMessages } from '@/utils/promptMessages'
 
 // TODO: 退款申请功能需后端提供接口与数据结构支持（前端不在UI层模拟退款流程）
@@ -307,6 +308,7 @@ defineOptions({
  */
 const orderStore = useOrderStore()
 const userStore = useUserStore()
+const messageStore = useMessageStore()
 const router = useRouter()
 const searchText = ref('')
 const activeTab = ref('all')
@@ -845,9 +847,38 @@ const filteredOrders = computed(() => orders.value)
       }
     }
     
-    // 添加联系商家功能
-    const contactShop = shopId => {
-      orderPromptMessages.showContactShopDev()
+    // 联系商家（用户身份发起 customer 会话）
+    // 必须与 ChatPage.openContact(店铺) 完全一致：先创建/恢复会话，再跳转并选中
+    const contactShop = async shopId => {
+      if (!shopId) return
+
+      // 平台自营订单（shopId=PLATFORM/0）没有店铺客服会话
+      if (String(shopId) === 'PLATFORM' || String(shopId) === '0') {
+        ElMessage.info('平台自营订单暂不支持“联系商家”')
+        return
+      }
+      try {
+        const res = await messageStore.createChatSession({
+          targetId: String(shopId),
+          targetType: 'customer'
+        })
+        if (!isSuccess(res.code)) {
+          showByCode(res.code)
+          return
+        }
+        const sessionId = res.data?.id
+        router.push({
+          path: '/message/chat',
+          query: {
+            sessionId: sessionId ? String(sessionId) : undefined,
+            shopId: String(shopId)
+          }
+        })
+      } catch (e) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[开发调试] 联系商家失败：', e)
+        }
+      }
     }
     
 // 初始化
