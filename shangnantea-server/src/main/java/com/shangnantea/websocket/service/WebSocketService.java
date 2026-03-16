@@ -108,111 +108,76 @@ public class WebSocketService {
      * @param online 是否在线
      */
     public void notifyUserOnlineChanged(String changedUserId, boolean online) {
-        logger.info("========== [阶段4] 开始推送用户在线状态变更 ==========");
-        logger.info("[阶段4-步骤0] 参数: changedUserId={}, online={}", changedUserId, online);
-        
         if (changedUserId == null || changedUserId.trim().isEmpty()) {
-            logger.warn("[阶段4] 失败: changedUserId为空，终止推送");
             return;
         }
         
         // 1) 管理员全量更新
-        logger.info("[阶段4-步骤1] 开始推送管理员全量更新");
         try {
             broadcastOnlineUsersUpdate();
-            logger.debug("[阶段4-步骤1] 管理员全量更新推送完成");
         } catch (Exception e) {
             logger.debug("推送管理员在线列表更新失败，不影响流程: userId={}, error={}", changedUserId, e.getMessage());
         }
         
         // 2) 构造增量消息（只推送"某个用户状态变化"）
-        logger.info("[阶段4-步骤2] 构造增量消息");
         String onlineStatusMsg = String.format(
                 "{\"type\":\"onlineStatus\",\"userId\":\"%s\",\"online\":%s}",
                 changedUserId, online
         );
-        logger.debug("[阶段4-步骤2] 消息内容: {}", onlineStatusMsg);
         
         // 3) 计算需要接收该消息的用户集合
-        logger.info("[阶段4-步骤3] 开始计算接收者列表");
         Set<String> receivers = new HashSet<>();
         
         // 3.1 关注了该用户的人（粉丝）
-        logger.info("[阶段4-步骤3.1] 查询用户粉丝");
         try {
             List<String> followerIds = userFollowMapper.selectFollowerIdsByFollow("user", changedUserId);
             if (followerIds != null) {
                 receivers.addAll(followerIds);
-                logger.debug("[阶段4-步骤3.1] 找到{}个粉丝", followerIds.size());
-            } else {
-                logger.debug("[阶段4-步骤3.1] 粉丝列表为null");
             }
         } catch (Exception e) {
             logger.debug("查询用户粉丝失败，不影响推送: userId={}, error={}", changedUserId, e.getMessage());
         }
         
         // 3.2 与该用户有会话的人（最近会话列表来源）
-        logger.info("[阶段4-步骤3.2] 查询会话关联用户");
         try {
             List<String> relatedUserIds = chatSessionMapper.selectRelatedUserIds(changedUserId);
             if (relatedUserIds != null) {
                 receivers.addAll(relatedUserIds);
-                logger.debug("[阶段4-步骤3.2] 找到{}个会话关联用户", relatedUserIds.size());
-            } else {
-                logger.debug("[阶段4-步骤3.2] 会话关联用户列表为null");
             }
         } catch (Exception e) {
             logger.debug("查询会话关联用户失败，不影响推送: userId={}, error={}", changedUserId, e.getMessage());
         }
         
         // 3.3 关注了该用户店铺的人（如果该用户是店主）
-        logger.info("[阶段4-步骤3.3] 查询店铺粉丝");
         try {
             Shop shop = shopMapper.selectByOwnerId(changedUserId);
             if (shop != null && shop.getId() != null) {
                 List<String> shopFollowerIds = userFollowMapper.selectFollowerIdsByFollow("shop", shop.getId());
                 if (shopFollowerIds != null) {
                     receivers.addAll(shopFollowerIds);
-                    logger.debug("[阶段4-步骤3.3] 找到{}个店铺粉丝", shopFollowerIds.size());
-                } else {
-                    logger.debug("[阶段4-步骤3.3] 店铺粉丝列表为null");
                 }
-            } else {
-                logger.debug("[阶段4-步骤3.3] 用户不是店主或店铺不存在");
             }
         } catch (Exception e) {
             logger.debug("查询店铺粉丝失败，不影响推送: userId={}, error={}", changedUserId, e.getMessage());
         }
         
-        logger.info("[阶段4-步骤3] 接收者列表计算完成: 总接收者数={}", receivers.size());
-        
         // 4) 只推送给当前在线的用户（去除自己，避免自我刷新引起抖动）
-        logger.info("[阶段4-步骤4] 开始推送消息给在线接收者");
         receivers.remove(changedUserId);
-        logger.debug("[阶段4-步骤4] 移除自己后，剩余接收者数={}", receivers.size());
-        
         int onlineReceivers = 0;
-        int offlineReceivers = 0;
         for (String receiverId : receivers) {
             // 只推送给当前在线的用户
-            boolean isOnline = sessionManager.isUserOnline(receiverId);
-            if (isOnline) {
+            if (sessionManager.isUserOnline(receiverId)) {
                 try {
                     sessionManager.sendToUser(receiverId, onlineStatusMsg);
                     onlineReceivers++;
-                    logger.debug("[阶段4-步骤4] 推送成功: receiverId={}, online={}", receiverId, online);
                 } catch (Exception e) {
                     logger.debug("推送在线状态失败，不影响其他用户: receiverId={}, userId={}, error={}",
                             receiverId, changedUserId, e.getMessage());
                 }
-            } else {
-                offlineReceivers++;
-                logger.debug("[阶段4-步骤4] 接收者离线，跳过: receiverId={}", receiverId);
             }
         }
         
-        logger.info("========== [阶段4] 完成: 用户在线状态推送完成 ==========");
-        logger.info("changedUserId={}, online={}, 总接收者={}, 在线接收者={}, 离线接收者={}", 
-                changedUserId, online, receivers.size(), onlineReceivers, offlineReceivers);
+        logger.debug("用户在线状态推送完成: changedUserId={}, online={}, 总接收者={}, 在线接收者={}", 
+                changedUserId, online, receivers.size(), onlineReceivers);
     }
 }

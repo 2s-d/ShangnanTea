@@ -135,32 +135,22 @@ public class WebSocketHandler extends TextWebSocketHandler {
         }
         try {
             String key = "online:user:" + userId;
-            logger.debug("[Redis Key操作] 开始标记用户在线: userId={}, key={}", userId, key);
             
             // 检查之前是否在线（key是否存在）
             Boolean wasOnline = redisTemplate.hasKey(key);
-            logger.debug("[Redis Key操作] 检查key是否存在: key={}, exists={}", key, wasOnline);
             
             // WebSocket心跳为30秒，这里给一个较短的兜底TTL，10秒（测试用）
             // 页面隐藏时停止心跳，10秒后Redis key过期，触发离线状态推送
             redisTemplate.opsForValue().set(key, "1", 10, TimeUnit.SECONDS);
-            logger.debug("[Redis Key操作] 已设置Redis key: key={}, value=1, ttl=10秒", key);
-            
-            // 验证key是否设置成功
-            Boolean keyExists = redisTemplate.hasKey(key);
-            Long ttl = redisTemplate.getExpire(key, TimeUnit.SECONDS);
-            logger.info("[Redis Key操作] 验证key设置结果: key={}, exists={}, ttl={}秒", key, keyExists, ttl);
             
             // 如果之前是离线状态（key不存在），现在重新上线，推送状态变更
             if (wasOnline == null || !wasOnline) {
-                logger.info("[Redis Key操作] 用户从离线状态恢复在线: userId={}, key={}", userId, key);
+                logger.debug("用户从离线状态恢复在线: userId={}", userId);
                 try {
                     webSocketService.notifyUserOnlineChanged(userId, true);
                 } catch (Exception e) {
                     logger.debug("推送用户上线状态失败，不影响流程: userId={}, error={}", userId, e.getMessage());
                 }
-            } else {
-                logger.debug("[Redis Key操作] 用户保持在线状态: userId={}, key={}", userId, key);
             }
         } catch (Exception e) {
             logger.warn("记录用户在线状态失败(WebSocket), userId={}, error={}", userId, e.getMessage(), e);
