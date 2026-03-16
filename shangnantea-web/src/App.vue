@@ -69,14 +69,17 @@ const handleUserActivity = () => {
       const isConnected = websocketManager.isConnected()
       
       if (isConnected) {
-        // 连接正常，恢复心跳（startHeartbeat内部会检查是否已运行，避免重复创建）
-        websocketManager.startHeartbeat && websocketManager.startHeartbeat()
+        // 连接正常，立刻补发一次 ping1（避免等待下一轮定时器造成“恢复延迟”）
+        websocketManager.startHeartbeat && websocketManager.startHeartbeat(true)
       } else if (readyState === WebSocket.CONNECTING) {
         // 正在连接中，等待连接完成
         console.log('[OnlineStatus] WebSocket正在连接中，等待连接完成')
+        // 连接成功后立刻补发一次 ping1（解决“连接中恢复在线空窗”）
+        websocketManager.requestImmediateBusinessHeartbeat && websocketManager.requestImmediateBusinessHeartbeat()
       } else {
         // 连接异常或断开，重新连接
         console.log('[OnlineStatus] WebSocket连接异常，重新连接')
+        websocketManager.requestImmediateBusinessHeartbeat && websocketManager.requestImmediateBusinessHeartbeat()
         websocketManager.connect()
       }
     }
@@ -93,14 +96,17 @@ const handleVisibilityChange = () => {
       const isConnected = websocketManager.isConnected()
       
       if (isConnected) {
-        // 连接正常，恢复心跳
-        websocketManager.startHeartbeat && websocketManager.startHeartbeat()
+        // 连接正常，立刻补发一次 ping1（避免等待下一轮定时器造成“恢复延迟”）
+        websocketManager.startHeartbeat && websocketManager.startHeartbeat(true)
       } else if (readyState === WebSocket.CONNECTING) {
         // 正在连接中，等待连接完成
         console.log('[OnlineStatus] WebSocket正在连接中，等待连接完成')
+        // 连接成功后立刻补发一次 ping1（解决“连接中恢复在线空窗”）
+        websocketManager.requestImmediateBusinessHeartbeat && websocketManager.requestImmediateBusinessHeartbeat()
       } else {
         // 连接异常或断开，重新连接
         console.log('[OnlineStatus] WebSocket连接异常，重新连接')
+        websocketManager.requestImmediateBusinessHeartbeat && websocketManager.requestImmediateBusinessHeartbeat()
         websocketManager.connect()
       }
     }
