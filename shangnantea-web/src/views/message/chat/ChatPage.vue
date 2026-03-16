@@ -810,6 +810,15 @@ const userStore = useUserStore()
       
       const sessionId = session.sessionId
       if (currentSessionId.value === sessionId) return
+
+      if (process.env.NODE_ENV === 'development') {
+        console.info('[Chat] selectSession', {
+          sessionId,
+          targetType: session.targetType,
+          receiverId: session.receiverId,
+          shopId: session.shopId
+        })
+      }
       
       currentSessionId.value = sessionId
       // 记录会话对端用户ID（用于拉取历史与发送消息）
@@ -886,6 +895,13 @@ const userStore = useUserStore()
       if (!messageInput.value.trim() && !imageFile.value) return
       
       try {
+        if (process.env.NODE_ENV === 'development') {
+          console.info('[Chat] sendMessage', {
+            sessionId: currentSessionId.value,
+            receiverId: currentTargetUserId.value,
+            contentType: imageFile.value ? 'image' : 'text'
+          })
+        }
         const now = Date.now()
         const messageId = `msg-${now}`
         

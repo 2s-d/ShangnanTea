@@ -219,12 +219,12 @@ export const useMessageStore = defineStore('message', () => {
    */
   async function sendMessageAction(messageData) {
     const res = await sendMessage(messageData)
-
+    
     // 如果当前已选中会话，且本次发送使用的就是该会话ID，则将消息追加到本地聊天记录
     if (messageData.sessionId && chatHistory.value && res.data) {
       chatHistory.value.push(res.data)
     }
-
+    
     return res
   }
   
