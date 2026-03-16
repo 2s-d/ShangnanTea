@@ -8,11 +8,13 @@ import com.shangnantea.websocket.manager.WebSocketSessionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.nio.charset.StandardCharsets;
 
 /**
  * WebSocket服务类
@@ -34,6 +36,9 @@ public class WebSocketService {
     
     @Autowired
     private ShopMapper shopMapper;
+
+    @Autowired(required = false)
+    private StringRedisTemplate redisTemplate;
     
     /**
      * 推送在线状态更新给指定用户
@@ -97,6 +102,52 @@ public class WebSocketService {
         // 仅推送给管理员，避免普通用户获取全站在线列表
         sessionManager.broadcastToAdmins(message);
         logger.debug("广播在线用户列表更新: 在线用户数={}", onlineUserIds.size());
+    }
+
+    /**
+     * 广播当前“登录会话”列表更新（给管理员）。
+     * 登录会话来源：Redis key `login:user:{userId}` 是否存在。
+     * 注意：当前实现为单点登录（每个 userId 仅一条会话）。
+     */
+    public void broadcastLoginSessionsUpdate() {
+        if (redisTemplate == null) {
+            logger.debug("广播登录会话列表跳过: 未配置Redis");
+            return;
+        }
+        try {
+            Set<String> loginUserIds = new HashSet<>();
+            // 使用 scan 避免 KEYS 阻塞
+            var factory = redisTemplate.getConnectionFactory();
+            if (factory == null) {
+                logger.debug("广播登录会话列表跳过: RedisConnectionFactory为空");
+                return;
+            }
+            try (var connection = factory.getConnection();
+                 var cursor = connection.scan(
+                         org.springframework.data.redis.core.ScanOptions.scanOptions()
+                                 .match("login:user:*")
+                                 .count(1000)
+                                 .build()
+                 )) {
+                while (cursor.hasNext()) {
+                    String key = new String(cursor.next(), StandardCharsets.UTF_8);
+                    if (key.startsWith("login:user:")) {
+                        String userId = key.substring("login:user:".length());
+                        if (!userId.trim().isEmpty()) {
+                            loginUserIds.add(userId);
+                        }
+                    }
+                }
+            }
+            String message = String.format(
+                    "{\"type\":\"loginSessionsUpdate\",\"loginUserIds\":%s}",
+                    com.alibaba.fastjson2.JSON.toJSONString(loginUserIds)
+            );
+            sessionManager.broadcastToAdmins(message);
+            logger.debug("广播登录会话列表更新: 登录会话数={}", loginUserIds.size());
+        } catch (Exception e) {
+            logger.debug("广播登录会话列表更新失败: {}", e.getMessage());
+        }
     }
     
     /**

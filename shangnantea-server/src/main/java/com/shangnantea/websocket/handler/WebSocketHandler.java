@@ -98,6 +98,9 @@ public class WebSocketHandler extends TextWebSocketHandler {
                     logger.debug("收到管理员请求在线用户列表: userId={}", userId);
                     // 复用现有逻辑：向所有管理员广播一条 onlineUsersUpdate
                     webSocketService.broadcastOnlineUsersUpdate();
+                } else if ("requestLoginSessions".equals(type)) {
+                    logger.debug("收到管理员请求登录会话列表: userId={}", userId);
+                    webSocketService.broadcastLoginSessionsUpdate();
                 }
             }
         } catch (Exception e) {

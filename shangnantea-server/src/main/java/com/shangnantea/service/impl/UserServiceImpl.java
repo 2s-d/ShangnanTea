@@ -423,6 +423,11 @@ public class UserServiceImpl implements UserService {
         tokenVO.setUserInfo(convertToUserVO(user));
         
         logger.info("登录成功: username: {}, userId: {}", loginDTO.getUsername(), user.getId());
+        // 管理员用户管理页需要实时显示“登录状态(loginActive)”，登录成功后推送一次全量会话快照
+        try {
+            webSocketService.broadcastLoginSessionsUpdate();
+        } catch (Exception ignored) {
+        }
         return Result.success(2000, tokenVO); // 登录成功
     }
     
