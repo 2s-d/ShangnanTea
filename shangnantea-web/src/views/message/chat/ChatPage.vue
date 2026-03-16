@@ -362,7 +362,6 @@
         <!-- 无选中会话时显示 -->
         <div class="select-tip" v-else>
           <template v-if="hasSessions">
-          <SafeImage src="/images/chat/start.jpg" type="banner" alt="开始聊天" class="tip-image" />
             <p>在左侧选择一个联系人开始聊天</p>
           </template>
           <template v-else>
