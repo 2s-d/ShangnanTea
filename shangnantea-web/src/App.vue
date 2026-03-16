@@ -49,8 +49,8 @@ const resetInactivityTimer = () => {
   // 只有登录状态下才需要追踪
   if (userStore.isLoggedIn) {
     inactivityTimer = setTimeout(() => {
-      // 超过1分钟无活动，视为离线：停止心跳（但不断开WS，方便快速恢复）
-      console.log('[OnlineStatus] 超过1分钟无活动，暂停WebSocket心跳')
+      // 超过10秒无活动（测试值），视为进入「延迟掉线」：停止业务心跳（ping1），但保留通道心跳（ping0）
+      console.log('[OnlineStatus] 超过10秒无活动，暂停业务心跳 ping1，等待TTL过期标记离线')
       websocketManager.stopHeartbeat && websocketManager.stopHeartbeat()
     }, INACTIVITY_THRESHOLD)
   }

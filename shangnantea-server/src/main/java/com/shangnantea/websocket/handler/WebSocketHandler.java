@@ -71,15 +71,19 @@ public class WebSocketHandler extends TextWebSocketHandler {
         String userId = (String) session.getAttributes().get("userId");
         String payload = message.getPayload();
         logger.debug("收到WebSocket消息: userId={}, message={}", userId, payload);
-        
-        // 收到任何消息都视为活跃，刷新在线TTL
-        if (userId != null) {
-            markUserOnline(userId);
+
+        // 处理通道心跳（ping0）：只用于保持通道存活 / 探测半开连接，不刷新在线TTL
+        if ("ping0".equals(payload)) {
+            sendMessage(session, "pong0");
+            return;
         }
-        
-        // 处理心跳消息
-        if ("ping".equals(payload)) {
-            sendMessage(session, "pong");
+
+        // 处理业务心跳（ping1）：用于刷新用户在线TTL
+        if ("ping1".equals(payload)) {
+            if (userId != null) {
+                markUserOnline(userId);
+            }
+            sendMessage(session, "pong1");
             return;
         }
         
@@ -138,10 +142,10 @@ public class WebSocketHandler extends TextWebSocketHandler {
             
             // 检查之前是否在线（key是否存在）
             Boolean wasOnline = redisTemplate.hasKey(key);
-            
-            // WebSocket心跳为30秒，这里给一个较短的兜底TTL，10秒（测试用）
-            // 页面隐藏时停止心跳，10秒后Redis key过期，触发离线状态推送
-            redisTemplate.opsForValue().set(key, "1", 10, TimeUnit.SECONDS);
+
+            // 业务心跳（ping1）为10秒一跳（测试用），在线TTL 给 15 秒（测试用）
+            // 前端无操作10秒会停止 ping1，15秒后Redis key过期，触发离线状态推送
+            redisTemplate.opsForValue().set(key, "1", 15, TimeUnit.SECONDS);
             
             // 如果之前是离线状态（key不存在），现在重新上线，推送状态变更
             if (wasOnline == null || !wasOnline) {

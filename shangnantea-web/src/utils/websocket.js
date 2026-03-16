@@ -12,7 +12,13 @@ class WebSocketManager {
     this.reconnectAttempts = 0
     this.maxReconnectAttempts = 5
     this.reconnectInterval = 3000 // 3秒
-    this.heartbeatInterval = 30000 // 30秒心跳
+
+    // 通道心跳（ping0）：只用于保持通道存活 / 探测半开连接
+    this.channelHeartbeatInterval = 30000 // 30秒通道心跳
+    this.channelHeartbeatTimer = null
+
+    // 业务心跳（ping1）：用于续用户「在线」TTL
+    this.heartbeatInterval = 10000 // 10秒业务心跳（测试用）
     this.heartbeatTimer = null
     this.listeners = new Map() // 存储消息监听器
     this.isConnecting = false
@@ -65,7 +71,8 @@ class WebSocketManager {
         console.log('[WebSocket] 连接成功')
         this.isConnecting = false
         this.reconnectAttempts = 0
-        this.startHeartbeat()
+        // 连接建立后立即启动通道心跳（ping0），保证通道长期存活
+        this.startChannelHeartbeat()
       }
 
       this.ws.onmessage = (event) => {
@@ -94,8 +101,8 @@ class WebSocketManager {
    * 处理接收到的消息
    */
   handleMessage(data) {
-    // 处理心跳响应
-    if (data === 'pong') {
+    // 处理通道/业务心跳响应
+    if (data === 'pong0' || data === 'pong1') {
       return
     }
 
@@ -168,40 +175,82 @@ class WebSocketManager {
   }
 
   /**
-   * 开始心跳
+   * 启动通道心跳（ping0）
+   * 仅用于保持 WebSocket 通道存活 / 探测半开连接，不参与业务在线状态
+   */
+  startChannelHeartbeat() {
+    if (this.channelHeartbeatTimer && this.ws && this.ws.readyState === WebSocket.OPEN) {
+      return
+    }
+
+    this.stopChannelHeartbeat()
+
+    // 立即发送一次通道心跳，帮助尽快发现半开连接
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      this.send('ping0')
+      console.log('[WebSocket] 立即发送通道心跳 ping0')
+    } else {
+      console.warn('[WebSocket] 连接未就绪，无法发送通道心跳，连接状态:', this.ws ? this.ws.readyState : 'null')
+      return // 连接未就绪，不创建定时器
+    }
+
+    this.channelHeartbeatTimer = setInterval(() => {
+      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+        this.send('ping0')
+      } else {
+        console.warn('[WebSocket] 通道心跳发送失败，连接状态异常，尝试重连')
+        this.stopChannelHeartbeat()
+        // 如果连接异常，尝试重连
+        if (this.ws && this.ws.readyState !== WebSocket.CONNECTING) {
+          this.attemptReconnect()
+        }
+      }
+    }, this.channelHeartbeatInterval)
+  }
+
+  /**
+   * 停止通道心跳（ping0）
+   */
+  stopChannelHeartbeat() {
+    if (this.channelHeartbeatTimer) {
+      clearInterval(this.channelHeartbeatTimer)
+      this.channelHeartbeatTimer = null
+    }
+  }
+
+  /**
+   * 开始业务心跳（ping1）
    * @param {boolean} forceImmediate 是否强制立即发送心跳（用于恢复在线状态）
    */
   startHeartbeat(forceImmediate = false) {
     // 如果定时器已经存在且连接正常
     if (this.heartbeatTimer && this.ws && this.ws.readyState === WebSocket.OPEN) {
-      // 如果需要强制立即发送（恢复在线），立即发送一次
       if (forceImmediate) {
-        this.send('ping')
-        console.log('[WebSocket] 强制立即发送心跳，恢复在线状态')
+        this.send('ping1')
+        console.log('[WebSocket] 强制立即发送业务心跳 ping1，恢复在线状态')
       }
-      // 否则心跳已经在运行，不需要重复启动
+      // 心跳已经在运行，不需要重复启动
       return
     }
-    
+
     this.stopHeartbeat()
-    
-    // 立即发送一次心跳，确保快速恢复在线状态
+
+    // 立即发送一次业务心跳，确保快速恢复在线状态
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      this.send('ping')
-      console.log('[WebSocket] 立即发送心跳，恢复在线状态')
+      this.send('ping1')
+      console.log('[WebSocket] 立即发送业务心跳 ping1，恢复在线状态')
     } else {
-      console.warn('[WebSocket] 连接未就绪，无法发送心跳，连接状态:', this.ws ? this.ws.readyState : 'null')
+      console.warn('[WebSocket] 连接未就绪，无法发送业务心跳，连接状态:', this.ws ? this.ws.readyState : 'null')
       return // 连接未就绪，不创建定时器
     }
-    
-    // 设置定时心跳（30秒间隔，用于保持在线状态）
+
+    // 设置定时业务心跳（用于续在线TTL）
     this.heartbeatTimer = setInterval(() => {
       if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-        this.send('ping')
+        this.send('ping1')
       } else {
-        console.warn('[WebSocket] 心跳发送失败，连接状态异常，尝试重连')
+        console.warn('[WebSocket] 业务心跳发送失败，连接状态异常，尝试重连')
         this.stopHeartbeat()
-        // 如果连接异常，尝试重连
         if (this.ws && this.ws.readyState !== WebSocket.CONNECTING) {
           this.attemptReconnect()
         }
@@ -240,6 +289,7 @@ class WebSocketManager {
    * 断开连接
    */
   disconnect() {
+    this.stopChannelHeartbeat()
     this.stopHeartbeat()
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer)
