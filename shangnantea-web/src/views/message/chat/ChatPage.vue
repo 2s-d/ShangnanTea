@@ -702,14 +702,22 @@ const userStore = useUserStore()
           // 名称展示规则（避免拼接“店铺xxx客服”这类噪声）：
           // - 客服会话：优先店铺名，其次对端昵称/用户名，最后才用ID兜底
           // - 私聊会话：优先对端昵称/用户名，最后用ID兜底
-          const name = isCustomerService
-            ? (session.shopName || session.targetNickname || session.targetUsername || `店铺${session.shopId || targetId}`)
-            : (session.targetNickname || session.targetUsername || `用户${targetId}`)
+          let name
+          if (isCustomerService && String(session.shopId || '').toUpperCase() === 'PLATFORM') {
+            // 平台客服会话：固定名称
+            name = '平台直售客服'
+          } else if (isCustomerService) {
+            name = session.shopName || session.targetNickname || session.targetUsername || `店铺${session.shopId || targetId}`
+          } else {
+            name = session.targetNickname || session.targetUsername || `用户${targetId}`
+          }
           
           // 店铺会话：使用店铺LOGO（shopAvatar），用户会话：使用用户头像（targetAvatar）
-          const avatar = isCustomerService
-            ? (session.shopAvatar || session.targetAvatar || `https://via.placeholder.com/50x50?text=店铺`)
-            : (session.targetAvatar || `https://via.placeholder.com/50x50?text=用户`)
+          const avatar = (isCustomerService && String(session.shopId || '').toUpperCase() === 'PLATFORM')
+            ? '/images/tea-logo.png'
+            : (isCustomerService
+                ? (session.shopAvatar || session.targetAvatar || `https://via.placeholder.com/50x50?text=店铺`)
+                : (session.targetAvatar || `https://via.placeholder.com/50x50?text=用户`))
 
           return {
             sessionId: session.id,
