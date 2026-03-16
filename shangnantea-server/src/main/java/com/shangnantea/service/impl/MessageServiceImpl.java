@@ -1080,9 +1080,7 @@ public class MessageServiceImpl implements MessageService {
                 // 查询对方用户信息（不返回用户名，只返回昵称和头像）
                 com.shangnantea.model.entity.user.User targetUser = userMapper.selectById(targetUserId);
                 if (targetUser != null) {
-                    // 不返回用户名（敏感数据）
                     sessionVO.put("targetNickname", targetUser.getNickname());
-                    // 处理头像URL
                     String targetAvatar = targetUser.getAvatar();
                     if (targetAvatar != null && !targetAvatar.trim().isEmpty()) {
                         if (targetAvatar.startsWith("http://") || targetAvatar.startsWith("https://")) {
@@ -1094,11 +1092,10 @@ public class MessageServiceImpl implements MessageService {
                         sessionVO.put("targetAvatar", null);
                     }
                 } else {
-                    // 不返回用户名（敏感数据）
                     sessionVO.put("targetNickname", "未知用户");
                     sessionVO.put("targetAvatar", null);
                 }
-                
+
                 // 确定未读数
                 Integer unreadCount = userId.equals(session.getInitiatorId()) ? 
                     session.getInitiatorUnread() : session.getReceiverUnread();
@@ -1115,11 +1112,20 @@ public class MessageServiceImpl implements MessageService {
                 // 对于店铺会话，查询并返回店铺信息（店铺LOGO、名称等）
                 if ("shop".equals(session.getSessionType()) || "customer".equals(session.getSessionType())) {
                     try {
-                        Shop shop = shopMapper.selectByOwnerId(targetUserId);
+                        // 会话ID格式：shopId_userId_customer
+                        String shopId = null;
+                        String sessionId = session.getId();
+                        if (sessionId != null && sessionId.contains("_")) {
+                            String[] parts = sessionId.split("_");
+                            if (parts.length >= 3 && "customer".equals(parts[parts.length - 1])) {
+                                shopId = parts[0];
+                            }
+                        }
+                        Shop shop = (shopId != null) ? shopMapper.selectById(shopId) : null;
                         if (shop != null) {
                             sessionVO.put("shopId", shop.getId());
                             sessionVO.put("shopName", shop.getShopName());
-                            // 店铺会话显示店铺LOGO，而不是店主头像
+                            sessionVO.put("ownerId", shop.getOwnerId());
                             String shopLogo = shop.getLogo();
                             if (shopLogo != null && !shopLogo.trim().isEmpty()) {
                                 if (shopLogo.startsWith("http://") || shopLogo.startsWith("https://")) {
@@ -1130,13 +1136,12 @@ public class MessageServiceImpl implements MessageService {
                             } else {
                                 sessionVO.put("shopAvatar", null);
                             }
-                            // 店铺会话的名称使用店铺名称
+                            // 店铺会话的名称与头像用店铺
                             sessionVO.put("targetNickname", shop.getShopName());
-                            // 店铺会话的头像使用店铺LOGO
                             sessionVO.put("targetAvatar", sessionVO.get("shopAvatar"));
                         }
                     } catch (Exception e) {
-                        logger.warn("查询店铺信息失败, ownerId: {}, error: {}", targetUserId, e.getMessage());
+                        logger.warn("查询店铺信息失败, sessionId: {}, error: {}", session.getId(), e.getMessage());
                     }
                 }
                 
