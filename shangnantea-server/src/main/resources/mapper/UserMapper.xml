@@ -106,6 +106,13 @@
         update_time = now()
         WHERE id = #{id,jdbcType=VARCHAR}
     </update>
+
+    <!-- 触发更新时间（仅更新 update_time） -->
+    <update id="touchUpdateTime" parameterType="java.lang.String">
+        UPDATE users
+        SET update_time = now()
+        WHERE id = #{id,jdbcType=VARCHAR}
+    </update>
     
     <!-- 删除用户 -->
     <delete id="delete" parameterType="java.lang.String">

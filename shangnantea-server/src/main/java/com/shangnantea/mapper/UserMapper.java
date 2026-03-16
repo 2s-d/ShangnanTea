@@ -61,6 +61,14 @@ public interface UserMapper extends BaseMapper<User, String> {
      * @return 影响行数
      */
     int updateAvatar(@Param("id") String id, @Param("avatar") String avatar);
+
+    /**
+     * 触发更新用户的更新时间（用于记录“最后登录/最后会话结束时间”等展示字段）。
+     *
+     * @param id 用户ID
+     * @return 影响行数
+     */
+    int touchUpdateTime(@Param("id") String id);
     
     /**
      * 删除用户

@@ -546,6 +546,14 @@ public class UserServiceImpl implements UserService {
                 logger.warn("清理登录会话/在线状态缓存失败，不影响登出流程: userId={}, error={}", userId, e.getMessage());
             }
 
+            // 修复“最后登录时间”展示：当前前端使用 users.update_time 作为 lastLoginTime。
+            // 登出/会话失效时触发一次 update_time = now()，避免显示为历史更新时间。
+            try {
+                userMapper.touchUpdateTime(userId);
+            } catch (Exception e) {
+                logger.warn("更新用户更新时间失败(登出)，不影响登出流程: userId={}, error={}", userId, e.getMessage());
+            }
+
             // 清除用户上下文（虽然拦截器会自动清除，但显式清除更安全）
             UserContext.clear();
             
@@ -2503,6 +2511,13 @@ public class UserServiceImpl implements UserService {
             boolean anyRemoved = Boolean.TRUE.equals(removedSession) || Boolean.TRUE.equals(removedOnline);
             logger.info("管理员强制下线用户: userId={}, removedSession={}, removedOnline={}",
                     userId, removedSession, removedOnline);
+
+            // 同步更新“最后登录时间”展示字段（update_time）
+            try {
+                userMapper.touchUpdateTime(userId);
+            } catch (Exception e) {
+                logger.warn("更新用户更新时间失败(强制下线)，不影响流程: userId={}, error={}", userId, e.getMessage());
+            }
             return Result.success(2027, anyRemoved);
         } catch (Exception e) {
             logger.error("强制下线失败(管理员): 系统异常, userId={}", userId, e);
