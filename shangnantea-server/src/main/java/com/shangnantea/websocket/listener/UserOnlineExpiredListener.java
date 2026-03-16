@@ -24,27 +24,34 @@ public class UserOnlineExpiredListener implements MessageListener {
     
     @Override
     public void onMessage(@NonNull Message message, @Nullable byte[] pattern) {
+        logger.info("========== [阶段3] 收到Redis过期事件 ==========");
+        
         try {
             String expiredKey = message.toString();
-            logger.info("收到Redis过期事件: key={}", expiredKey);
+            String patternStr = pattern != null ? new String(pattern) : "null";
+            logger.info("[阶段3-步骤1] 解析过期事件: key={}, pattern={}, messageBody={}", 
+                expiredKey, patternStr, message.getBody() != null ? new String(message.getBody()) : "null");
             
             // 只处理用户在线状态的key
             if (expiredKey != null && expiredKey.startsWith("online:user:")) {
                 String userId = expiredKey.substring("online:user:".length());
-                logger.info("用户在线状态key过期，推送离线状态: userId={}, key={}", userId, expiredKey);
+                logger.info("[阶段3-步骤2] 匹配到用户在线状态key: userId={}, key={}", userId, expiredKey);
+                logger.info("[阶段3-步骤3] 开始调用推送服务推送离线状态");
                 
                 // 推送离线状态变更
                 try {
                     webSocketService.notifyUserOnlineChanged(userId, false);
-                    logger.info("已调用notifyUserOnlineChanged推送离线状态: userId={}", userId);
+                    logger.info("========== [阶段3] 成功: 已调用notifyUserOnlineChanged推送离线状态: userId={} ==========", userId);
                 } catch (Exception e) {
-                    logger.error("推送用户离线状态失败: userId={}, error={}", userId, e.getMessage(), e);
+                    logger.error("========== [阶段3] 失败: 推送用户离线状态失败 ==========");
+                    logger.error("userId={}, key={}, error={}", userId, expiredKey, e.getMessage(), e);
                 }
             } else {
-                logger.debug("Redis过期事件key不匹配，忽略: key={}", expiredKey);
+                logger.debug("[阶段3-步骤2] Redis过期事件key不匹配，忽略: key={} (不匹配前缀'online:user:')", expiredKey);
             }
         } catch (Exception e) {
-            logger.error("处理Redis过期事件失败: error={}", e.getMessage(), e);
+            logger.error("========== [阶段3] 异常: 处理Redis过期事件失败 ==========");
+            logger.error("error={}", e.getMessage(), e);
         }
     }
 }
