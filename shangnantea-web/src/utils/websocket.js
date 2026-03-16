@@ -20,6 +20,9 @@ class WebSocketManager {
     // 业务心跳（ping1）：用于续用户「在线」TTL
     this.heartbeatInterval = 10000 // 10秒业务心跳（测试用）
     this.heartbeatTimer = null
+
+    // 业务心跳立即补发标记：用于解决“连接中/重连后”恢复在线的空窗
+    this.pendingImmediateBusinessHeartbeat = false
     this.listeners = new Map() // 存储消息监听器
     this.isConnecting = false
   }
@@ -73,6 +76,12 @@ class WebSocketManager {
         this.reconnectAttempts = 0
         // 连接建立后立即启动通道心跳（ping0），保证通道长期存活
         this.startChannelHeartbeat()
+
+        // 如果之前有“恢复在线”诉求（例如：重连期间用户已操作/页面已恢复可见），连接成功后立刻补发一次 ping1
+        if (this.pendingImmediateBusinessHeartbeat) {
+          this.startHeartbeat(true)
+          this.pendingImmediateBusinessHeartbeat = false
+        }
       }
 
       this.ws.onmessage = (event) => {
@@ -256,6 +265,19 @@ class WebSocketManager {
         }
       }
     }, this.heartbeatInterval)
+  }
+
+  /**
+   * 请求“尽快补发一次业务心跳（ping1）”：
+   * - 如果当前已连接：立刻发
+   * - 如果正在连接/即将重连成功：在 onopen 里补发
+   */
+  requestImmediateBusinessHeartbeat() {
+    this.pendingImmediateBusinessHeartbeat = true
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      this.startHeartbeat(true)
+      this.pendingImmediateBusinessHeartbeat = false
+    }
   }
 
   /**
