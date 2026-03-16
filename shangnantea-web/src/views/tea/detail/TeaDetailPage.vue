@@ -833,11 +833,6 @@ defineOptions({
     
     // 联系店铺客服
     const contactShop = async () => {
-      // 如果是平台直售茶叶，不应显示联系按钮
-      if (isPlatformTea.value) {
-        return
-      }
-      
       const shopId = tea.value?.shopId || tea.value?.shop_id
       if (!shopId) return
 
