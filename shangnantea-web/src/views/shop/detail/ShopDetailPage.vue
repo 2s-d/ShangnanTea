@@ -295,11 +295,12 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useShopStore } from '@/stores/shop'
 import { useUserStore } from '@/stores/user'
+import { useMessageStore } from '@/stores/message'
 
 import { Back, Check, Star, ChatLineRound, Bell } from '@element-plus/icons-vue'
 import TeaCard from '@/components/tea/card/TeaCard.vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-import { showByCode } from '@/utils/apiMessages'
+import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { shopPromptMessages } from '@/utils/promptMessages'
 
 defineOptions({
@@ -307,6 +308,7 @@ defineOptions({
 })
     const shopStore = useShopStore()
     const userStore = useUserStore()
+    const messageStore = useMessageStore()
     const router = useRouter()
     const route = useRoute()
     const loading = computed(() => shopStore.loading)
@@ -443,8 +445,33 @@ defineOptions({
     }
 
     // 联系店铺客服
-    const contactShop = () => {
-      router.push(`/message/center/chat?shopId=${route.params.id}`)
+    const contactShop = async () => {
+      const shopId = route.params.id
+      if (!shopId) return
+
+      try {
+        // 必须与 ChatPage.openContact(店铺) 完全一致：先创建/恢复会话，再跳转并选中
+        const res = await messageStore.createChatSession({
+          targetId: String(shopId),
+          targetType: 'customer'
+        })
+        if (!isSuccess(res.code)) {
+          showByCode(res.code)
+          return
+        }
+        const sessionId = res.data?.id
+        router.push({
+          path: '/message/chat',
+          query: {
+            sessionId: sessionId ? String(sessionId) : undefined,
+            shopId: String(shopId)
+          }
+        })
+      } catch (e) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[开发调试] 联系店铺客服失败：', e)
+        }
+      }
     }
     
     // 评价分页切换
