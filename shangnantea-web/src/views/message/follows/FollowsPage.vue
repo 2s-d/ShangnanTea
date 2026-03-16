@@ -121,7 +121,7 @@ import { useMessageStore } from '@/stores/message'
 import { ElMessage } from 'element-plus'
 import { Search, Male, Female, Message, Service } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-import { showByCode } from '@/utils/apiMessages'
+import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { getFollowList } from '@/api/user'
 
 const router = useRouter()
@@ -300,12 +300,31 @@ const profileUserId = computed(() => {
     /**
      * 私信：关注页只允许“用户身份”发起用户→用户私聊
      */
-    const privateMessage = (userId) => {
+    const privateMessage = async (userId) => {
       if (!userId) return
-      router.push({
-        path: '/message/chat',
-        query: { userId: String(userId) }
-      })
+      try {
+        // 与个人主页私信/联系人点击保持一致：先创建/恢复会话，再跳转并精确选中
+        const res = await messageStore.createChatSession({
+          targetId: String(userId),
+          targetType: 'private'
+        })
+        if (!isSuccess(res.code)) {
+          showByCode(res.code)
+          return
+        }
+        const sessionId = res.data?.id
+        router.push({
+          path: '/message/chat',
+          query: {
+            sessionId: sessionId ? String(sessionId) : undefined,
+            userId: String(userId)
+          }
+        })
+      } catch (e) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[开发调试] 发起私信失败：', e)
+        }
+      }
     }
     
     // 切换关注用户（乐观更新 + 延迟同步）
@@ -380,12 +399,31 @@ const profileUserId = computed(() => {
     }
     
     // 联系店铺客服（用户身份发起 customer 会话）
-    const contactShop = (shopId) => {
+    // 必须与 ChatPage.openContact(店铺) 完全一致：先创建/恢复会话，再跳转并选中
+    const contactShop = async (shopId) => {
       if (!shopId) return
-      router.push({
-        path: '/message/chat',
-        query: { shopId: String(shopId) }
-      })
+      try {
+        const res = await messageStore.createChatSession({
+          targetId: String(shopId),
+          targetType: 'customer'
+        })
+        if (!isSuccess(res.code)) {
+          showByCode(res.code)
+          return
+        }
+        const sessionId = res.data?.id
+        router.push({
+          path: '/message/chat',
+          query: {
+            sessionId: sessionId ? String(sessionId) : undefined,
+            shopId: String(shopId)
+          }
+        })
+      } catch (e) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[开发调试] 联系店铺客服失败：', e)
+        }
+      }
     }
     
     // 切换关注店铺（乐观更新 + 延迟同步）
