@@ -36,6 +36,14 @@ public class RedisConfigInitializer implements CommandLineRunner {
         
         logger.info("[阶段1-步骤1] StringRedisTemplate已注入，开始检查Redis配置");
         
+        // 等待一小段时间，确保Redis连接工厂已完全初始化（避免热重载时的连接工厂销毁问题）
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logger.warn("[阶段1] 等待线程被中断");
+        }
+        
         try {
             logger.info("[阶段1-步骤2] 开始获取当前Redis配置: notify-keyspace-events");
             
@@ -85,6 +93,16 @@ public class RedisConfigInitializer implements CommandLineRunner {
                     logger.error("错误信息: {}", e.getMessage(), e);
                     logger.warn("详细配置说明请参考: docs/redis-config.md");
                 }
+            }
+        } catch (IllegalStateException e) {
+            // 热重载时连接工厂可能被销毁，这是正常情况，只记录警告
+            if (e.getMessage() != null && e.getMessage().contains("was destroyed")) {
+                logger.warn("========== [阶段1] 跳过: Redis连接工厂在热重载时被销毁，这是正常现象 ==========");
+                logger.warn("如果是首次启动，请手动配置: CONFIG SET notify-keyspace-events Ex");
+            } else {
+                logger.error("========== [阶段1] 异常: 检查Redis过期事件配置失败 ==========");
+                logger.error("错误信息: {}", e.getMessage(), e);
+                logger.warn("请手动配置: CONFIG SET notify-keyspace-events Ex");
             }
         } catch (Exception e) {
             logger.error("========== [阶段1] 异常: 检查Redis过期事件配置失败 ==========");
