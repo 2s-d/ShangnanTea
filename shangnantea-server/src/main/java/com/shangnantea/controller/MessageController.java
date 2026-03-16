@@ -263,9 +263,12 @@ public class MessageController {
      */
     @PostMapping("/sessions")
     @RequiresLogin
-    public Result<Object> createChatSession(@RequestParam String targetId, @RequestParam String targetType) {
-        logger.info("创建聊天会话请求, targetId: {}, targetType: {}", targetId, targetType);
-        return messageService.createChatSession(targetId, targetType);
+    public Result<Object> createChatSession(
+            @RequestParam String targetId,
+            @RequestParam String targetType,
+            @RequestParam(required = false) String targetUserId) {
+        logger.info("创建聊天会话请求, targetId: {}, targetType: {}, targetUserId: {}", targetId, targetType, targetUserId);
+        return messageService.createChatSession(targetId, targetType, targetUserId);
     }
 
     /**

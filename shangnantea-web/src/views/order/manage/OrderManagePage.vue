@@ -728,21 +728,22 @@ const orderList = ref([])
       router.push(`/order/manage/detail/${orderId}`)
     }
     
-    // 联系买家（商家/管理员向用户发起会话）
-    // 后端 createChatSession(customer) 的 targetId 是店铺ID，且禁止店主对自己的店铺发起客服会话，
-    // 所以这里使用私聊会话：targetType=private + 买家用户ID
+    // 联系买家（商家/管理员以“客服会话”联系用户）
+    // 客服会话：targetType=customer，targetId=shopId，targetUserId=买家用户ID
     // 跳转逻辑与“联系客服”一致：先创建/恢复会话，再带 sessionId 跳转并选中
     const contactBuyer = async order => {
       const buyerUserId = order?.userId
-      if (!buyerUserId) {
+      const shopId = order?.shopId
+      if (!buyerUserId || !shopId) {
         orderPromptMessages.showOrderNotFound && orderPromptMessages.showOrderNotFound()
         return
       }
 
       try {
         const res = await messageStore.createChatSession({
-          targetId: String(buyerUserId),
-          targetType: 'private'
+          targetId: String(shopId),
+          targetType: 'customer',
+          targetUserId: String(buyerUserId)
         })
         if (!isSuccess(res.code)) {
           showByCode(res.code)
@@ -753,7 +754,7 @@ const orderList = ref([])
           path: '/message/chat',
           query: {
             sessionId: sessionId ? String(sessionId) : undefined,
-            userId: String(buyerUserId)
+            shopId: String(shopId)
           }
         })
       } catch (e) {

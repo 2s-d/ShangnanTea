@@ -177,7 +177,7 @@ export function getChatHistory(sessionId, params) {
  * 创建聊天会话 POST /message/sessions
  * 消息页仅用户身份：用户对用户 targetType=private + 对方用户ID；
  * 用户找店铺客服 targetType=customer + 店铺ID
- * @param {Object} data { targetId, targetType: 'private'|'customer' }
+ * @param {Object} data { targetId, targetType: 'private'|'customer', targetUserId?: string }
  */
 export function createChatSession(data) {
   return request({

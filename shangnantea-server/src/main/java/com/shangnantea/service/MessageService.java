@@ -159,6 +159,23 @@ public interface MessageService {
      * @param targetType 目标类型
      * @return 创建结果
      */
+    /**
+     * 创建聊天会话（兼容扩展：客服会话允许额外指定目标用户）
+     *
+     * @param targetId 目标ID：私聊为对方用户ID；客服会话为店铺ID
+     * @param targetType 目标类型：private/customer
+     * @param targetUserId 客服会话的目标用户ID（可选）：用于“商家/管理员联系买家”场景
+     * @return 创建结果
+     */
+    Result<Object> createChatSession(String targetId, String targetType, String targetUserId);
+
+    /**
+     * 创建聊天会话（旧接口，向后兼容）
+     *
+     * @param targetId 目标用户/商家ID
+     * @param targetType 目标类型
+     * @return 创建结果
+     */
     Result<Object> createChatSession(String targetId, String targetType);
     
     /**

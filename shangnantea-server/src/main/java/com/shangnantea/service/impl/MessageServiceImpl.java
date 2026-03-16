@@ -1258,8 +1258,13 @@ public class MessageServiceImpl implements MessageService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Result<Object> createChatSession(String targetId, String targetType) {
+        return createChatSession(targetId, targetType, null);
+    }
+
+    @Override
+    public Result<Object> createChatSession(String targetId, String targetType, String targetUserId) {
         try {
-            logger.info("创建聊天会话请求, targetId: {}, targetType: {}", targetId, targetType);
+            logger.info("创建聊天会话请求, targetId: {}, targetType: {}, targetUserId: {}", targetId, targetType, targetUserId);
 
             String userId = UserContext.getCurrentUserId();
             if (userId == null) {
@@ -1286,7 +1291,9 @@ public class MessageServiceImpl implements MessageService {
             String normalizedType;
 
             if (isCustomer) {
-                // 店铺客服会话：sessionId = shopId_userId_customer，initiator/receiver 均为用户ID（店主代为回复）
+                // 店铺客服会话：sessionId = shopId_userId_customer
+                // - 用户找店铺：userId 为买家用户ID
+                // - 商家/管理员联系买家：通过 targetUserId 指定买家用户ID（当前 userId 可能为店主/管理员）
                 Shop shop = shopMapper.selectById(targetId);
                 if (shop == null) {
                     logger.warn("创建聊天会话失败：店铺不存在, shopId: {}", targetId);
@@ -1297,18 +1304,32 @@ public class MessageServiceImpl implements MessageService {
                     logger.warn("创建聊天会话失败：店铺店主ID为空, shopId: {}", targetId);
                     return Result.failure(7113);
                 }
-                if (userId.equals(ownerId)) {
-                    // 业务约束：店主不能以“用户->店铺客服”的方式给自己的店铺发起客服会话
-                    logger.warn("创建聊天会话失败：店主不能给自己的店铺发起客服会话, shopId: {}, userId: {}", targetId, userId);
+
+                // 规范化买家ID：优先使用 targetUserId（商家/管理员联系买家），否则用当前 userId（用户找客服）
+                String buyerUserId = (targetUserId != null && !targetUserId.trim().isEmpty())
+                        ? targetUserId.trim()
+                        : userId;
+
+                if (buyerUserId.equals(ownerId)) {
+                    // 业务约束：店主不能给自己的店铺发起客服会话（无论从哪个入口）
+                    logger.warn("创建聊天会话失败：店主不能给自己的店铺发起客服会话, shopId: {}, userId: {}", targetId, buyerUserId);
                     return Result.failure(71131);
                 }
-                sessionId = ChatSessionIdBuilder.customerSessionId(targetId, userId);
-                initiatorId = userId;
+
+                // 如果当前用户就是店主，但没传 targetUserId，则仍按旧规则失败（避免误用）
+                if (userId.equals(ownerId) && (targetUserId == null || targetUserId.trim().isEmpty())) {
+                    logger.warn("创建聊天会话失败：店主联系买家必须指定targetUserId, shopId: {}, ownerId: {}", targetId, ownerId);
+                    return Result.failure(7113);
+                }
+
+                sessionId = ChatSessionIdBuilder.customerSessionId(targetId, buyerUserId);
+                // 为保证会话双方字段含义稳定：initiatorId 始终为买家，receiverId 为店主
+                initiatorId = buyerUserId;
                 receiverId = ownerId;
                 normalizedType = "customer";
                 existingSession = sessionMapper.selectById(sessionId);
                 if (existingSession == null) {
-                    existingSession = sessionMapper.selectByUserIdsAnyStatus(userId, ownerId);
+                    existingSession = sessionMapper.selectByUserIdsAnyStatus(buyerUserId, ownerId);
                     if (existingSession != null && !"customer".equals(existingSession.getSessionType())) {
                         existingSession = null;
                     }
