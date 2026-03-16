@@ -35,22 +35,15 @@ public class RedisConfig {
      */
     @Bean
     public RedisMessageListenerContainer redisMessageListenerContainer() {
-        logger.info("========== [阶段2] 开始注册Redis过期事件监听器 ==========");
-        
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(redisConnectionFactory);
-        logger.info("[阶段2-步骤1] 已设置Redis连接工厂");
         
         // 监听 __keyevent@0__:expired 频道（key过期事件）
         // 注意：Redis需要配置 notify-keyspace-events Ex 才能接收过期事件
         PatternTopic expiredTopic = new PatternTopic("__keyevent@0__:expired");
-        logger.info("[阶段2-步骤2] 创建监听主题: {}", expiredTopic.getTopic());
-        
         container.addMessageListener(userOnlineExpiredListener, expiredTopic);
-        logger.info("[阶段2-步骤3] 已添加消息监听器: listener={}, topic={}", 
-            userOnlineExpiredListener.getClass().getSimpleName(), expiredTopic.getTopic());
         
-        logger.info("========== [阶段2] 成功: Redis过期事件监听器已注册: topic=__keyevent@0__:expired ==========");
+        logger.info("Redis过期事件监听器已注册: topic=__keyevent@0__:expired");
         return container;
     }
 }
