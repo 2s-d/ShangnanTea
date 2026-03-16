@@ -312,10 +312,11 @@ export const useMessageStore = defineStore('message', () => {
    * @param {Object} options 选项
    * @param {number} options.targetId 目标ID
    * @param {string} options.targetType 目标类型
+   * @param {string} options.targetUserId 客服会话目标用户ID（可选）：用于“商家/管理员联系买家”场景
    * @returns {Promise<Object>} 创建结果
    */
-  async function createChatSessionAction({ targetId, targetType }) {
-    const res = await createChatSession({ targetId, targetType })
+  async function createChatSessionAction({ targetId, targetType, targetUserId }) {
+    const res = await createChatSession({ targetId, targetType, targetUserId })
     return res
   }
 
