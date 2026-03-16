@@ -89,6 +89,20 @@ public class WebSocketHandler extends TextWebSocketHandler {
         
         // 可以在这里处理其他类型的消息
         // 例如：客户端请求获取在线用户列表等
+        try {
+            if (payload != null && payload.trim().startsWith("{")) {
+                // 简单解析JSON消息，根据type进行路由（当前只关心在线用户列表请求）
+                com.alibaba.fastjson2.JSONObject json = com.alibaba.fastjson2.JSON.parseObject(payload);
+                String type = json.getString("type");
+                if ("requestOnlineUsers".equals(type)) {
+                    logger.debug("收到管理员请求在线用户列表: userId={}", userId);
+                    // 复用现有逻辑：向所有管理员广播一条 onlineUsersUpdate
+                    webSocketService.broadcastOnlineUsersUpdate();
+                }
+            }
+        } catch (Exception e) {
+            logger.debug("处理业务消息失败: userId={}, payload={}, error={}", userId, payload, e.getMessage());
+        }
     }
     
     /**

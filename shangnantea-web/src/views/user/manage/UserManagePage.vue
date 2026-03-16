@@ -681,6 +681,15 @@ const userFormRef = ref(null)
         websocketManager.connect()
         websocketManager.on('onlineStatus', handleOnlineStatusUpdate)
         websocketManager.on('onlineUsersUpdate', handleOnlineStatusUpdate)
+
+        // 管理员页面首次进入时，请求一次全量在线用户列表，接上最新TTL在线方案
+        setTimeout(() => {
+          if (websocketManager.isConnected && websocketManager.isConnected()) {
+            websocketManager.send({
+              type: 'requestOnlineUsers'
+            })
+          }
+        }, 500)
       }
     })
     
