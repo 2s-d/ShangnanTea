@@ -1,4 +1,4 @@
-﻿package com.shangnantea.mapper;
+package com.shangnantea.mapper;
 
 import com.shangnantea.model.entity.forum.ForumReply;
 import org.apache.ibatis.annotations.Param;
