@@ -1148,6 +1148,7 @@ export const useUserStore = defineStore('user', () => {
     createAdmin,
     updateUser,
     deleteUser,
+    forceLogout,
     uploadCertificationImage,
     sendVerificationCode
   }

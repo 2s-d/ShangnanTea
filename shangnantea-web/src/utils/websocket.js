@@ -236,7 +236,10 @@ class WebSocketManager {
     if (this.heartbeatTimer && this.ws && this.ws.readyState === WebSocket.OPEN) {
       if (forceImmediate) {
         this.send('ping1')
-        console.log('[WebSocket] 强制立即发送业务心跳 ping1，恢复在线状态')
+        // 避免刷屏：业务心跳可能在用户频繁操作时被多次触发
+        if (import.meta.env.MODE === 'development') {
+          console.debug('[WebSocket] 强制立即发送业务心跳 ping1，恢复在线状态')
+        }
       }
       // 心跳已经在运行，不需要重复启动
       return
