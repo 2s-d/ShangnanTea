@@ -18,7 +18,7 @@ class WebSocketManager {
     this.channelHeartbeatTimer = null
 
     // 业务心跳（ping1）：用于续用户「在线」TTL
-    this.heartbeatInterval = 10000 // 10秒业务心跳（测试用）
+    this.heartbeatInterval = 60 * 1000 // 1分钟业务心跳
     this.heartbeatTimer = null
 
     // 业务心跳立即补发标记：用于解决“连接中/重连后”恢复在线的空窗

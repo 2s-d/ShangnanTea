@@ -39,7 +39,7 @@ const userStore = useUserStore()
 let inactivityTimer = null
 let stopLoginWatch = null // watch 的停止函数
 let activityDebounceTimer = null // 用户活动防抖定时器
-const INACTIVITY_THRESHOLD = 10 * 1000 // 10秒无活动（测试用）
+const INACTIVITY_THRESHOLD = 5 * 60 * 1000 // 5分钟无活动
 const ACTIVITY_DEBOUNCE = 1000 // 用户活动防抖时间：1秒内只处理一次
 
 const resetInactivityTimer = () => {
@@ -49,8 +49,8 @@ const resetInactivityTimer = () => {
   // 只有登录状态下才需要追踪
   if (userStore.isLoggedIn) {
     inactivityTimer = setTimeout(() => {
-      // 超过10秒无活动（测试值），视为进入「延迟掉线」：停止业务心跳（ping1），但保留通道心跳（ping0）
-      console.log('[OnlineStatus] 超过10秒无活动，暂停业务心跳 ping1，等待TTL过期标记离线')
+      // 超过5分钟无活动，视为进入「延迟掉线」：停止业务心跳（ping1），但保留通道心跳（ping0）
+      console.log('[OnlineStatus] 超过5分钟无活动，暂停业务心跳 ping1，等待TTL过期标记离线')
       websocketManager.stopHeartbeat && websocketManager.stopHeartbeat()
     }, INACTIVITY_THRESHOLD)
   }

@@ -157,9 +157,9 @@ public class WebSocketHandler extends TextWebSocketHandler {
             // 检查之前是否在线（key是否存在）
             Boolean wasOnline = redisTemplate.hasKey(key);
 
-            // 业务心跳（ping1）为10秒一跳（测试用），在线TTL 给 15 秒（测试用）
-            // 前端无操作10秒会停止 ping1，15秒后Redis key过期，触发离线状态推送
-            redisTemplate.opsForValue().set(key, "1", 15, TimeUnit.SECONDS);
+            // 业务心跳（ping1）为1分钟一跳（正式），在线TTL 给 2 分钟
+            // 前端无操作5分钟会停止 ping1，2分钟后Redis key过期，触发离线状态推送
+            redisTemplate.opsForValue().set(key, "1", 2, TimeUnit.MINUTES);
             
             // 如果之前是离线状态（key不存在），现在重新上线，推送状态变更
             if (wasOnline == null || !wasOnline) {
