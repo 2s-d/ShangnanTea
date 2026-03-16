@@ -26,7 +26,7 @@ public class UserOnlineExpiredListener implements MessageListener {
     public void onMessage(@NonNull Message message, @Nullable byte[] pattern) {
         try {
             String expiredKey = message.toString();
-            logger.debug("收到Redis过期事件: key={}", expiredKey);
+            logger.info("收到Redis过期事件: key={}", expiredKey);
             
             // 只处理用户在线状态的key
             if (expiredKey != null && expiredKey.startsWith("online:user:")) {
@@ -36,9 +36,12 @@ public class UserOnlineExpiredListener implements MessageListener {
                 // 推送离线状态变更
                 try {
                     webSocketService.notifyUserOnlineChanged(userId, false);
+                    logger.info("已调用notifyUserOnlineChanged推送离线状态: userId={}", userId);
                 } catch (Exception e) {
-                    logger.warn("推送用户离线状态失败: userId={}, error={}", userId, e.getMessage());
+                    logger.error("推送用户离线状态失败: userId={}, error={}", userId, e.getMessage(), e);
                 }
+            } else {
+                logger.debug("Redis过期事件key不匹配，忽略: key={}", expiredKey);
             }
         } catch (Exception e) {
             logger.error("处理Redis过期事件失败: error={}", e.getMessage(), e);

@@ -227,7 +227,7 @@ const currentUserId = computed(() => {
   return base.id || base.userId || null
 })
 
-    /**
+/**
  * 收藏列表本地状态管理（参考关注页逻辑）
  * - profileFavoriteList: 被查看用户的收藏列表（用于显示列表内容）
  * - viewerFavoriteList: 当前登录用户的收藏列表（用于判断按钮状态）
@@ -458,9 +458,9 @@ const favoriteList = computed(() => profileFavoriteList.value || [])
         if (!defaultSpec || !defaultSpec.id) {
           // 如果没有默认规格，使用第一个规格作为默认规格
           if (specs.length > 0 && specs[0].id) {
-            const res = await orderStore.addToCart({
-              teaId: String(teaId),
-              quantity: 1,
+        const res = await orderStore.addToCart({
+          teaId: String(teaId),
+          quantity: 1,
               specificationId: specs[0].id
             })
             showByCode(res.code)
@@ -655,7 +655,7 @@ onMounted(async () => {
   
   // 仅在本人或对方允许查看时才请求收藏接口；否则直接置空并不发请求
   if (isSelf || profileVisible) {
-    loadFavoriteList()
+  loadFavoriteList()
   } else {
     profileFavoriteList.value = []
     viewerFavoriteList.value = []

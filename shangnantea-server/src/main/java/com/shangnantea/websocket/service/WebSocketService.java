@@ -177,7 +177,7 @@ public class WebSocketService {
             }
         }
         
-        logger.debug("用户在线状态推送完成: changedUserId={}, online={}, 总接收者={}, 在线接收者={}", 
+        logger.info("用户在线状态推送完成: changedUserId={}, online={}, 总接收者={}, 在线接收者={}", 
                 changedUserId, online, receivers.size(), onlineReceivers);
     }
 }
