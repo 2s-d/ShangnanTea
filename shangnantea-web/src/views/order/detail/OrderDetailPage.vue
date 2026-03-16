@@ -1024,11 +1024,6 @@ const cascaderOptions = ref(regionData || [])
       }
     }
     
-    // 联系卖家
-    const contactSeller = () => {
-      orderPromptMessages.showContactSellerDev()
-    }
-    
     // 评价商品
     const writeReview = () => {
       router.push(`/order/review/${orderDetail.value.id}`)
