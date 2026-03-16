@@ -1242,12 +1242,28 @@ const userStore = useUserStore()
         }
     }
 
+    // WebSocket 聊天增量：收到chatMessage后，按会话刷新本地消息/未读
+    const handleChatMessagePush = (msg) => {
+      const data = msg?.data || {}
+      const sessionId = data.sessionId
+      if (!sessionId) return
+
+      // 当前选中的会话：直接重新拉一遍快照（简单稳定）
+      if (currentSessionId.value && currentSessionId.value === sessionId) {
+        fetchMessages(sessionId)
+      }
+
+      // 无论是否当前会话，都刷新会话列表，以更新未读数/最后一条消息
+      fetchSessions()
+    }
+
     // 在组件挂载时初始化：先加载会话，再根据路由参数选择目标
     onMounted(async () => {
         await fetchContacts()
         await fetchSessions()
         await initializeChatFromRouteParams()
         websocketManager.on('onlineStatus', handleOnlineStatusUpdate)
+        websocketManager.on('chatMessage', handleChatMessagePush)
         // 添加点击外部区域监听器
         document.addEventListener('click', handleClickOutside)
     })
@@ -1269,6 +1285,7 @@ watch(() => route.query.userId, newUserId => {
     // 组件卸载时取消WebSocket监听和点击外部区域监听
     onBeforeUnmount(() => {
       websocketManager.off('onlineStatus', handleOnlineStatusUpdate)
+      websocketManager.off('chatMessage', handleChatMessagePush)
       document.removeEventListener('click', handleClickOutside)
     })
 

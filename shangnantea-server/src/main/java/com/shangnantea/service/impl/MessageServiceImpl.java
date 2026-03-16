@@ -97,6 +97,9 @@ public class MessageServiceImpl implements MessageService {
     
     @Autowired
     private StatisticsUtils statisticsUtils;
+
+    @Autowired
+    private WebSocketService webSocketService;
     
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
@@ -474,8 +477,25 @@ public class MessageServiceImpl implements MessageService {
             NotificationUtils.createMessageNotification(
                 receiverId, senderId, sessionId, content
             );
+
+            // 10. 通过 WebSocket 实时推送增量消息（仅在线用户会收到）
+            try {
+                Map<String, Object> pushData = new HashMap<>();
+                pushData.put("sessionId", sessionId);
+                pushData.put("messageId", message.getId());
+                pushData.put("senderId", senderId);
+                pushData.put("receiverId", receiverId);
+                pushData.put("content", content);
+                pushData.put("contentType", type);
+                pushData.put("createTime", message.getCreateTime());
+                // 推送给发送者（用于更新当前会话 UI）和接收者（用于未读+新消息提醒）
+                webSocketService.pushChatMessage(senderId, pushData);
+                webSocketService.pushChatMessage(receiverId, pushData);
+            } catch (Exception e) {
+                logger.debug("通过WebSocket推送聊天消息失败，不影响发送结果: {}", e.getMessage());
+            }
             
-            // 10. 构造返回数据（转换为MessageVO）
+            // 11. 构造返回数据（转换为MessageVO）
             MessageVO vo = new MessageVO();
             vo.setId(message.getId());
             vo.setType(type);
