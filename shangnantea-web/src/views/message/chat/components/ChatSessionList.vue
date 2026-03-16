@@ -15,10 +15,7 @@
         v-for="session in sessions" 
         :key="session.sessionId"
         class="session-item"
-        :class="{
-          'session-active': currentSessionId === session.sessionId,
-          'session-shop': getSessionKindInfo(session).kind === 'shop'
-        }"
+        :class="{ 'session-active': currentSessionId === session.sessionId }"
         @click="$emit('select', session)">
         
         <div class="session-avatar">
@@ -36,18 +33,7 @@
         
         <div class="session-info">
           <div class="session-name">
-            <span class="name-left">
-              <span
-                class="session-kind-badge"
-                :class="getSessionKindInfo(session).kind === 'shop' ? 'is-shop' : 'is-user'"
-              >
-                <el-icon class="kind-icon">
-                  <component :is="getSessionKindInfo(session).icon" />
-                </el-icon>
-                {{ getSessionKindInfo(session).label }}
-              </span>
-              <span class="name-text">{{ session.name }}</span>
-            </span>
+            <span class="name-text">{{ session.name }}</span>
             <span class="online-status">
               <span
                 class="status-dot"
@@ -101,12 +87,12 @@
 
 <script>
 import { ref, watch } from 'vue'
-import { Top, MoreFilled, Service, UserFilled } from '@element-plus/icons-vue'
+import { Top, MoreFilled } from '@element-plus/icons-vue'
 import SafeImage from '@/components/common/form/SafeImage.vue'
 
 export default {
   name: 'ChatSessionList',
-  components: { Top, MoreFilled, Service, UserFilled, SafeImage },
+  components: { Top, MoreFilled, SafeImage },
   props: {
     sessions: { type: Array, default: () => [] },
     currentSessionId: { type: String, default: null },
@@ -142,25 +128,8 @@ export default {
       }
       return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`
     }
-
-    /**
-     * 获取会话类型展示信息。
-     * - user: 私聊（与对端用户）
-     * - shop: 店铺客服（与店铺客服/店主）
-     *
-     * @param {Object} session 会话对象
-     * @returns {{ kind: 'user'|'shop', label: string, icon: string }}
-     */
-    const getSessionKindInfo = (session) => {
-      const isShop = session && session.targetType === 'shop'
-      return {
-        kind: isShop ? 'shop' : 'user',
-        label: isShop ? '客服' : '私聊',
-        icon: isShop ? 'Service' : 'UserFilled'
-      }
-    }
     
-    return { localSearchQuery, handleSearch, formatTime, getSessionKindInfo }
+    return { localSearchQuery, handleSearch, formatTime }
   }
 }
 </script>
@@ -191,10 +160,6 @@ export default {
       border-bottom: 1px solid #f0f0f0;
       background-color: #fff;
 
-      &.session-shop {
-        background: linear-gradient(90deg, rgba(64, 158, 255, 0.08), rgba(255, 255, 255, 1) 55%);
-      }
-      
       &:hover { background-color: #f9f9f9; }
       &.session-active { background-color: #f0f7ff; }
       
@@ -228,45 +193,6 @@ export default {
             text-overflow: ellipsis;
           }
 
-          .name-left {
-            display: inline-flex;
-            align-items: center;
-            min-width: 0;
-            flex: 1;
-            margin-right: 6px;
-          }
-
-          .session-kind-badge {
-            display: inline-flex;
-            align-items: center;
-            flex-shrink: 0;
-            font-size: 12px;
-            line-height: 18px;
-            padding: 0 6px;
-            border-radius: 10px;
-            border: 1px solid rgba(0, 0, 0, 0.08);
-            color: rgba(0, 0, 0, 0.65);
-            background: rgba(0, 0, 0, 0.03);
-            margin-right: 6px;
-
-            &.is-shop {
-              border-color: rgba(64, 158, 255, 0.28);
-              color: #1677ff;
-              background: rgba(64, 158, 255, 0.12);
-            }
-
-            &.is-user {
-              border-color: rgba(103, 194, 58, 0.26);
-              color: #2f9e44;
-              background: rgba(103, 194, 58, 0.10);
-            }
-
-            .kind-icon {
-              font-size: 12px;
-              margin-right: 4px;
-            }
-          }
-          
           .online-status {
             display: inline-flex;
             align-items: center;

@@ -176,7 +176,10 @@
                   v-for="session in filteredSessions"
                   :key="session.sessionId"
                   class="session-item"
-                  :class="{ 'session-active': currentSessionId === session.sessionId }"
+                  :class="{
+                    'session-active': currentSessionId === session.sessionId,
+                    'session-shop': session.targetType === 'shop'
+                  }"
                   @click="selectSession(session)"
                 >
                   <div class="session-avatar" @click.stop="goToUserProfile(session, session.targetType)">
@@ -192,7 +195,13 @@
 
                   <div class="session-info">
                     <div class="session-name">
-                      {{ session.name }}
+                      <span
+                        class="session-kind-badge"
+                        :class="session.targetType === 'shop' ? 'is-shop' : 'is-user'"
+                      >
+                        {{ session.targetType === 'shop' ? '客服' : '私聊' }}
+                      </span>
+                      <span class="session-name-text">{{ session.name }}</span>
                       <span class="online-status" :class="{ online: session.online }">
                         <span class="dot"></span>
                       </span>
@@ -1577,6 +1586,10 @@ watch(() => route.query.userId, newUserId => {
           transition: background-color 0.2s;
           border-bottom: 1px solid #f0f0f0;
           background-color: #fff;
+
+          &.session-shop {
+            background: linear-gradient(90deg, rgba(64, 158, 255, 0.08), rgba(255, 255, 255, 1) 55%);
+          }
           
           &:hover {
             background-color: #f9f9f9;
@@ -1612,6 +1625,37 @@ watch(() => route.query.userId, newUserId => {
               display: flex;
               align-items: center;
               gap: 6px;
+
+              .session-name-text {
+                flex: 1;
+                min-width: 0;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+              }
+
+              .session-kind-badge {
+                flex-shrink: 0;
+                font-size: 12px;
+                line-height: 18px;
+                padding: 0 6px;
+                border-radius: 10px;
+                border: 1px solid rgba(0, 0, 0, 0.08);
+                color: rgba(0, 0, 0, 0.65);
+                background: rgba(0, 0, 0, 0.03);
+
+                &.is-shop {
+                  border-color: rgba(64, 158, 255, 0.28);
+                  color: #1677ff;
+                  background: rgba(64, 158, 255, 0.12);
+                }
+
+                &.is-user {
+                  border-color: rgba(103, 194, 58, 0.26);
+                  color: #2f9e44;
+                  background: rgba(103, 194, 58, 0.10);
+                }
+              }
               
               .pin-icon {
                 color: #f59e0b;
