@@ -851,12 +851,6 @@ const filteredOrders = computed(() => orders.value)
     // 必须与 ChatPage.openContact(店铺) 完全一致：先创建/恢复会话，再跳转并选中
     const contactShop = async shopId => {
       if (!shopId) return
-
-      // 平台自营订单（shopId=PLATFORM/0）没有店铺客服会话
-      if (String(shopId) === 'PLATFORM' || String(shopId) === '0') {
-        ElMessage.info('平台自营订单暂不支持“联系商家”')
-        return
-      }
       try {
         const res = await messageStore.createChatSession({
           targetId: String(shopId),
