@@ -205,7 +205,7 @@ import {
 } from '@element-plus/icons-vue'
 import { formatLocationDisplay } from '@/utils/region'
 import SafeImage from '@/components/common/form/SafeImage.vue'
-import { showByCode } from '@/utils/apiMessages'
+import { showByCode, isSuccess } from '@/utils/apiMessages'
 import { commonPromptMessages } from '@/utils/promptMessages'
 
 const router = useRouter()
@@ -457,18 +457,35 @@ const userStore = useUserStore()
     }
 
     // 私信：个人主页场景只允许用户→用户私聊
-    const handlePrivateMessage = () => {
+    // 逻辑必须与 ChatPage.openContact 完全一致：先创建/恢复会话，再跳转并选中
+    const handlePrivateMessage = async () => {
       if (isOwnProfile.value) return
       const targetId = userInfo.value.id
       if (!targetId) {
         console.warn("无法获取目标用户ID，暂时无法发起私信")
         return
       }
-      // 跳转到消息页，由 ChatPage 按 userId=对方ID 创建/恢复 private 会话
-      router.push({
-        path: "/message/chat",
-        query: { userId: String(targetId) }
-      })
+      try {
+        const res = await messageStore.createChatSession({
+          targetId: String(targetId),
+          targetType: 'private'
+        })
+        if (!isSuccess(res.code)) {
+          showByCode(res.code)
+          return
+        }
+        const sessionId = res.data?.id
+        // 跳转到消息页，并携带 sessionId 精确选中（避免仅靠 userId 匹配导致选不中）
+        router.push({
+          path: '/message/chat',
+          query: {
+            sessionId: sessionId ? String(sessionId) : undefined,
+            userId: String(targetId)
+          }
+        })
+      } catch (e) {
+        console.error('发起私信失败:', e)
+      }
     }
     
     // 跳转到店铺

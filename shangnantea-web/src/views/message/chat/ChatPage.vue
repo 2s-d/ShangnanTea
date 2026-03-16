@@ -1136,8 +1136,18 @@ const userStore = useUserStore()
     // 消息页路由仅用户身份：shopId->customer+店铺ID；userId->private+用户ID
     // 初始化函数：根据路由参数自动打开特定会话（店铺 / 用户）
     const initializeChatFromRouteParams = async () => {
+      const sessionId = route.query.sessionId
       const shopId = route.query.shopId
       const userId = route.query.userId
+
+      // 如果显式传了 sessionId，则直接按 sessionId 精确选中（个人主页私信/联系人创建会话后跳转）
+      if (sessionId) {
+        const existingBySessionId = mockSessions.value.find(s => String(s.sessionId) === String(sessionId))
+        if (existingBySessionId) {
+          selectSession(existingBySessionId)
+          return
+        }
+      }
       
       // 如果没有指定目标，仅在有会话但未选中时做一次默认选择
       if (!shopId && !userId) {
@@ -1159,9 +1169,38 @@ const userStore = useUserStore()
       }
 
       const existing = findSessionByRoute()
-      // 仅在已存在会话时根据路由进行选中；不再在进入消息页时自动创建新会话
+      // 严格参考“点击联系人”的会话创建/恢复逻辑：
+      // - 未创建：创建新会话并选中
+      // - 已存在：直接选中
+      // - 已存在但软删除：后端 createChatSession 会恢复为正常并返回，同样走“创建后刷新并选中”
       if (existing) {
         selectSession(existing)
+        return
+      }
+
+      try {
+        // 与 openContact 保持一致：创建/恢复 -> 刷新会话列表 -> 通过 sessionId 精确选中
+        const createRes = await messageStore.createChatSession({ targetId: String(targetId), targetType })
+        if (!isSuccess(createRes.code)) {
+          showByCode(createRes.code)
+          return
+        }
+
+        const createdSessionId = createRes.data?.id || createRes.data?.data?.id
+        await fetchSessions()
+
+        // 优先按 sessionId 精确定位；找不到再按路由规则兜底
+        const created = createdSessionId
+          ? mockSessions.value.find(s => String(s.sessionId) === String(createdSessionId))
+          : null
+        const created2 = created || findSessionByRoute()
+        if (created2) {
+          selectSession(created2)
+        }
+      } catch (e) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[开发调试] 路由初始化创建会话失败：', e)
+        }
       }
     }
     
