@@ -391,14 +391,14 @@ public class MessageServiceImpl implements MessageService {
                 return Result.failure(7102);
             }
             
-            // 2. 提取并验证参数
-            String receiverId = data.get("receiverId") != null ? data.get("receiverId").toString() : null;
+            // 2. 提取并验证参数（统一新协议：必须提供 sessionId，行为参考 sendImageMessage）
+            String sessionId = data.get("sessionId") != null ? data.get("sessionId").toString() : null;
             String content = data.get("content") != null ? data.get("content").toString() : null;
             String type = data.get("type") != null ? data.get("type").toString() : "text";
             
             // 3. 参数验证
-            if (receiverId == null || receiverId.trim().isEmpty()) {
-                logger.warn("发送消息失败：接收者ID为空");
+            if (sessionId == null || sessionId.trim().isEmpty()) {
+                logger.warn("发送消息失败：会话ID为空（新协议必须提供sessionId）");
                 return Result.failure(7102);
             }
             
@@ -411,24 +411,32 @@ public class MessageServiceImpl implements MessageService {
                 logger.warn("发送消息失败：消息内容超过1000字符, length: {}", content.length());
                 return Result.failure(7102);
             }
-            
-            // 4. 验证不能给自己发消息
-            if (senderId.equals(receiverId)) {
-                logger.warn("发送消息失败：不能给自己发消息, userId: {}", senderId);
-                return Result.failure(7102);
-            }
-            
-            // 5. 创建或获取会话
-            // 注意：这里简化处理，假设会话类型为1（用户对用户）
-            ChatSession session = createOrGetSession(senderId, receiverId, 1);
+
+            // 4. 根据会话ID精确获取会话
+            ChatSession session = sessionMapper.selectById(sessionId);
             if (session == null) {
-                logger.error("发送消息失败：创建会话失败, senderId: {}, receiverId: {}", senderId, receiverId);
+                logger.warn("发送消息失败：会话不存在, sessionId: {}", sessionId);
                 return Result.failure(7102);
             }
-            
+            if (session.getStatus() == null || session.getStatus() != 1) {
+                logger.warn("发送消息失败：会话已被禁用, sessionId: {}", sessionId);
+                return Result.failure(7102);
+            }
+
+            // 5. 校验当前用户是否在该会话中，并确定消息接收者
+            String receiverId;
+            if (senderId.equals(session.getInitiatorId())) {
+                receiverId = session.getReceiverId();
+            } else if (senderId.equals(session.getReceiverId())) {
+                receiverId = session.getInitiatorId();
+            } else {
+                logger.warn("发送消息失败：当前用户不在该会话中, userId: {}, sessionId: {}", senderId, sessionId);
+                return Result.failure(7102);
+            }
+
             // 6. 创建消息记录
             ChatMessage message = new ChatMessage();
-            message.setSessionId(session.getId());
+            message.setSessionId(sessionId);
             message.setSenderId(senderId);
             message.setReceiverId(receiverId);
             message.setContent(content);
@@ -451,7 +459,7 @@ public class MessageServiceImpl implements MessageService {
             
             // 9. 创建私信通知：给接收者发送通知
             NotificationUtils.createMessageNotification(
-                receiverId, senderId, session.getId(), content
+                receiverId, senderId, sessionId, content
             );
             
             // 10. 构造返回数据（转换为MessageVO）
@@ -1926,6 +1934,8 @@ public class MessageServiceImpl implements MessageService {
      * @param sessionTypeInt 会话类型（1-私聊，2-客服等）
      * @return 会话对象
      */
+    // 兼容保留：历史逻辑使用 receiverId 推断会话（已弃用，当前统一改为按 sessionId 精确发送/查询）
+    @SuppressWarnings("unused")
     private ChatSession createOrGetSession(String senderId, String receiverId, Integer sessionTypeInt) {
         try {
             // 1. 先尝试查找已存在的会话
