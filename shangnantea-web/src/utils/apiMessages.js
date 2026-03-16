@@ -781,6 +781,7 @@ export const CODE_MAP = {
   // 接口14: createChatSession - /message/sessions
   7006: '操作成功',
   7113: '操作失败',
+  71131: '不能给自己的店铺发起客服会话',
   
   // 接口15: pinChatSession - /message/sessions/{sessionId}/pin
   7007: '通知已置顶',

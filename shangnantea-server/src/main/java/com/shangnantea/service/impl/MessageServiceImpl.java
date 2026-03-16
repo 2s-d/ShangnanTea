@@ -1293,9 +1293,14 @@ public class MessageServiceImpl implements MessageService {
                     return Result.failure(7113);
                 }
                 String ownerId = shop.getOwnerId();
-                if (ownerId == null || userId.equals(ownerId)) {
-                    logger.warn("创建聊天会话失败：无效客服会话");
+                if (ownerId == null) {
+                    logger.warn("创建聊天会话失败：店铺店主ID为空, shopId: {}", targetId);
                     return Result.failure(7113);
+                }
+                if (userId.equals(ownerId)) {
+                    // 业务约束：店主不能以“用户->店铺客服”的方式给自己的店铺发起客服会话
+                    logger.warn("创建聊天会话失败：店主不能给自己的店铺发起客服会话, shopId: {}, userId: {}", targetId, userId);
+                    return Result.failure(71131);
                 }
                 sessionId = ChatSessionIdBuilder.customerSessionId(targetId, userId);
                 initiatorId = userId;
