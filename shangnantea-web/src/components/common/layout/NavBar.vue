@@ -221,7 +221,7 @@ onMounted(async () => {
   // 监听登录状态变化，登录时加载数据
   watch(
     () => isLoggedIn.value,
-    async (loggedIn) => {
+    async loggedIn => {
       if (loggedIn) {
         await loadNavBarData(true)
       }

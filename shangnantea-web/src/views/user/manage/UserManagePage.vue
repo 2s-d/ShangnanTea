@@ -279,436 +279,436 @@ const router = useRouter()
 const userStore = useUserStore()
 const userFormRef = ref(null)
     
-    // 从Pinia获取用户列表数据
-    const loading = computed(() => userStore.loading)
-    const userList = computed(() => userStore.userList || [])
-    const userPagination = computed(() => userStore.userPagination || { page: 1, pageSize: 20, total: 0 })
-    const total = computed(() => userPagination.value.total)
-    const currentPage = computed({
-      get: () => userPagination.value.page,
-      set: val => {
-        userStore.userPagination.page = val
-      }
-    })
-    const pageSize = computed({
-      get: () => userPagination.value.pageSize,
-      set: val => {
-        userStore.userPagination.pageSize = val
-      }
-    })
-    const userFilters = computed(() => userStore.userFilters || {})
-    const searchQuery = ref('')
-    const roleFilter = ref('')
-    const statusFilter = ref('')
-    const avatarImage = '/mock-images/avatar-default.jpg'
+// 从Pinia获取用户列表数据
+const loading = computed(() => userStore.loading)
+const userList = computed(() => userStore.userList || [])
+const userPagination = computed(() => userStore.userPagination || { page: 1, pageSize: 20, total: 0 })
+const total = computed(() => userPagination.value.total)
+const currentPage = computed({
+  get: () => userPagination.value.page,
+  set: val => {
+    userStore.userPagination.page = val
+  }
+})
+const pageSize = computed({
+  get: () => userPagination.value.pageSize,
+  set: val => {
+    userStore.userPagination.pageSize = val
+  }
+})
+const userFilters = computed(() => userStore.userFilters || {})
+const searchQuery = ref('')
+const roleFilter = ref('')
+const statusFilter = ref('')
+const avatarImage = '/mock-images/avatar-default.jpg'
     
-    // 对话框控制
-    const dialogVisible = ref(false)
-    const deleteDialogVisible = ref(false)
-    const isEdit = ref(false)
-    const selectedUser = ref(null)
+// 对话框控制
+const dialogVisible = ref(false)
+const deleteDialogVisible = ref(false)
+const isEdit = ref(false)
+const selectedUser = ref(null)
     
-    // 当前登录用户
-    const currentUser = reactive({
-      id: 1,
-      role: 1 // 1: 管理员
-    })
+// 当前登录用户
+const currentUser = reactive({
+  id: 1,
+  role: 1 // 1: 管理员
+})
     
-    // 角色选项
-    const roleOptions = [
-      { value: 1, label: '管理员' },
-      { value: 2, label: '普通用户' },
-      { value: 3, label: '商家' }
-    ]
+// 角色选项
+const roleOptions = [
+  { value: 1, label: '管理员' },
+  { value: 2, label: '普通用户' },
+  { value: 3, label: '商家' }
+]
     
-    // 表单初始数据（添加管理员时固定role=1）
-    const initialUserForm = {
-      id: '',
-      username: '',
-      nickname: '',
-      password: '',
-      confirmPassword: '',
-      email: '',
-      phone: '',
-      role: 1, // 固定为管理员
-      status: 1,
-      avatar: ''
-    }
+// 表单初始数据（添加管理员时固定role=1）
+const initialUserForm = {
+  id: '',
+  username: '',
+  nickname: '',
+  password: '',
+  confirmPassword: '',
+  email: '',
+  phone: '',
+  role: 1, // 固定为管理员
+  status: 1,
+  avatar: ''
+}
     
-    // 用户表单数据
-    const userForm = reactive({...initialUserForm})
+// 用户表单数据
+const userForm = reactive({...initialUserForm})
     
-    // 表单验证规则
-    const userRules = {
-      username: [
-        { required: true, message: '请输入用户名', trigger: 'blur' },
-        { min: 3, max: 20, message: '长度在 3 到 20 个字符', trigger: 'blur' }
-      ],
-      nickname: [
-        { required: true, message: '请输入昵称', trigger: 'blur' },
-        { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
-      ],
-      password: [
-        { required: true, message: '请输入密码', trigger: 'blur' },
-        { min: 6, max: 20, message: '长度在 6 到 20 个字符', trigger: 'blur' }
-      ],
-      confirmPassword: [
-        { required: true, message: '请确认密码', trigger: 'blur' },
-        { 
-          validator: (rule, value, callback) => {
-            if (value !== userForm.password) {
-              callback(new Error('两次输入密码不一致'))
-            } else {
-              callback()
-            }
-          }, 
-          trigger: 'blur' 
+// 表单验证规则
+const userRules = {
+  username: [
+    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { min: 3, max: 20, message: '长度在 3 到 20 个字符', trigger: 'blur' }
+  ],
+  nickname: [
+    { required: true, message: '请输入昵称', trigger: 'blur' },
+    { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
+  ],
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    { min: 6, max: 20, message: '长度在 6 到 20 个字符', trigger: 'blur' }
+  ],
+  confirmPassword: [
+    { required: true, message: '请确认密码', trigger: 'blur' },
+    { 
+      validator: (rule, value, callback) => {
+        if (value !== userForm.password) {
+          callback(new Error('两次输入密码不一致'))
+        } else {
+          callback()
         }
-      ],
-      email: [
-        { required: true, message: '请输入邮箱', trigger: 'blur' },
-        { type: 'email', message: '请输入正确的邮箱格式', trigger: 'blur' }
-      ],
-      phone: [
-        { required: true, message: '请输入手机号', trigger: 'blur' },
-        { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号格式', trigger: 'blur' }
-      ],
-      role: [
-        { required: true, message: '请选择用户角色', trigger: 'change' }
-      ],
-      status: [
-        { required: true, message: '请选择用户状态', trigger: 'change' }
-      ]
+      }, 
+      trigger: 'blur' 
     }
+  ],
+  email: [
+    { required: true, message: '请输入邮箱', trigger: 'blur' },
+    { type: 'email', message: '请输入正确的邮箱格式', trigger: 'blur' }
+  ],
+  phone: [
+    { required: true, message: '请输入手机号', trigger: 'blur' },
+    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号格式', trigger: 'blur' }
+  ],
+  role: [
+    { required: true, message: '请选择用户角色', trigger: 'change' }
+  ],
+  status: [
+    { required: true, message: '请选择用户状态', trigger: 'change' }
+  ]
+}
     
-    // 获取用户列表（使用Pinia）
-    const fetchUserList = async () => {
-      try {
-        const params = {
-          page: currentPage.value,
-          pageSize: pageSize.value,
-          keyword: searchQuery.value || undefined,
-          role: roleFilter.value ? Number(roleFilter.value) : undefined,
-          status: statusFilter.value !== '' ? Number(statusFilter.value) : undefined
-        }
-        const res = await userStore.fetchUserList(params)
-        showByCode(res.code)
-      } catch (error) {
-        console.error('获取用户列表失败：', error)
-      }
+// 获取用户列表（使用Pinia）
+const fetchUserList = async () => {
+  try {
+    const params = {
+      page: currentPage.value,
+      pageSize: pageSize.value,
+      keyword: searchQuery.value || undefined,
+      role: roleFilter.value ? Number(roleFilter.value) : undefined,
+      status: statusFilter.value !== '' ? Number(statusFilter.value) : undefined
     }
+    const res = await userStore.fetchUserList(params)
+    showByCode(res.code)
+  } catch (error) {
+    console.error('获取用户列表失败：', error)
+  }
+}
     
-    // 模拟获取用户列表数据（已废弃，保留用于兼容）
-    const getMockUserList = () => {
-      // 生成模拟数据
-      const list = []
-      const total = 25
+// 模拟获取用户列表数据（已废弃，保留用于兼容）
+const getMockUserList = () => {
+  // 生成模拟数据
+  const list = []
+  const total = 25
       
-      for (let i = 1; i <= total; i++) {
-        const role = i === 1 ? 1 : (i % 5 === 0 ? 3 : 2)
+  for (let i = 1; i <= total; i++) {
+    const role = i === 1 ? 1 : (i % 5 === 0 ? 3 : 2)
         
-        list.push({
-          id: i,
-          username: `user${i}`,
-          nickname: `用户${i}`,
-          email: `user${i}@example.com`,
-          phone: `1380000${(10000 + i).toString().substring(1)}`,
-          role: role,
-          roleName: role === 1 ? '管理员' : (role === 3 ? '商家' : '普通用户'),
-          status: i % 7 === 0 ? 0 : 1,
-          registerTime: getRandomDate(new Date(2022, 0, 1), new Date()),
-          lastLoginTime: getRandomDate(new Date(2023, 0, 1), new Date()),
-          avatar: i % 3 === 0 ? `https://via.placeholder.com/80x80?text=User${i}` : ''
-        })
-      }
+    list.push({
+      id: i,
+      username: `user${i}`,
+      nickname: `用户${i}`,
+      email: `user${i}@example.com`,
+      phone: `1380000${(10000 + i).toString().substring(1)}`,
+      role: role,
+      roleName: role === 1 ? '管理员' : (role === 3 ? '商家' : '普通用户'),
+      status: i % 7 === 0 ? 0 : 1,
+      registerTime: getRandomDate(new Date(2022, 0, 1), new Date()),
+      lastLoginTime: getRandomDate(new Date(2023, 0, 1), new Date()),
+      avatar: i % 3 === 0 ? `https://via.placeholder.com/80x80?text=User${i}` : ''
+    })
+  }
       
-      // 应用筛选条件
-      let filteredList = [...list]
+  // 应用筛选条件
+  let filteredList = [...list]
       
-      if (searchQuery.value) {
-        const query = searchQuery.value.toLowerCase()
-        filteredList = filteredList.filter(user => 
-          user.username.toLowerCase().includes(query) || 
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    filteredList = filteredList.filter(user => 
+      user.username.toLowerCase().includes(query) || 
           user.nickname.toLowerCase().includes(query) || 
           user.phone.includes(query)
-        )
-      }
+    )
+  }
       
-      if (roleFilter.value) {
-        filteredList = filteredList.filter(user => user.role === Number(roleFilter.value))
-      }
+  if (roleFilter.value) {
+    filteredList = filteredList.filter(user => user.role === Number(roleFilter.value))
+  }
       
-      if (statusFilter.value !== '') {
-        filteredList = filteredList.filter(user => user.status === Number(statusFilter.value))
-      }
+  if (statusFilter.value !== '') {
+    filteredList = filteredList.filter(user => user.status === Number(statusFilter.value))
+  }
       
-      // 分页
-      const start = (currentPage.value - 1) * pageSize.value
-      const end = start + pageSize.value
-      const pagedList = filteredList.slice(start, end)
+  // 分页
+  const start = (currentPage.value - 1) * pageSize.value
+  const end = start + pageSize.value
+  const pagedList = filteredList.slice(start, end)
       
-      return {
-        code: 0,
-        data: {
-          list: pagedList,
-          total: filteredList.length
-        }
-      }
+  return {
+    code: 0,
+    data: {
+      list: pagedList,
+      total: filteredList.length
     }
+  }
+}
     
-    // 获取随机日期
-    const getRandomDate = (start, end) => {
-      return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()))
-    }
+// 获取随机日期
+const getRandomDate = (start, end) => {
+  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()))
+}
     
-    // 格式化日期
-    const formatDate = date => {
-      if (!date) return ''
+// 格式化日期
+const formatDate = date => {
+  if (!date) return ''
       
-      const d = new Date(date)
-      return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`
-    }
+  const d = new Date(date)
+  return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`
+}
     
-    // 获取角色标签样式
-    const getRoleTagType = role => {
-      switch (role) {
-      case 1: return 'danger'
-      case 3: return 'success'
-      default: return 'info'
-      }
-    }
+// 获取角色标签样式
+const getRoleTagType = role => {
+  switch (role) {
+  case 1: return 'danger'
+  case 3: return 'success'
+  default: return 'info'
+  }
+}
     
-    // 搜索用户
-    const handleSearch = () => {
-      currentPage.value = 1
-      fetchUserList()
-    }
+// 搜索用户
+const handleSearch = () => {
+  currentPage.value = 1
+  fetchUserList()
+}
     
-    // 重置筛选
-    const resetFilters = () => {
-      searchQuery.value = ''
-      roleFilter.value = ''
-      statusFilter.value = ''
-      currentPage.value = 1
-      fetchUserList()
-    }
+// 重置筛选
+const resetFilters = () => {
+  searchQuery.value = ''
+  roleFilter.value = ''
+  statusFilter.value = ''
+  currentPage.value = 1
+  fetchUserList()
+}
     
-    // 分页处理
-    const handleSizeChange = size => {
-      pageSize.value = size
-      currentPage.value = 1
-      fetchUserList()
-    }
+// 分页处理
+const handleSizeChange = size => {
+  pageSize.value = size
+  currentPage.value = 1
+  fetchUserList()
+}
     
-    const handleCurrentChange = page => {
-      currentPage.value = page
-      fetchUserList()
-    }
+const handleCurrentChange = page => {
+  currentPage.value = page
+  fetchUserList()
+}
     
-    // 添加管理员
-    const showAddAdminDialog = () => {
-      isEdit.value = false
-      Object.assign(userForm, {
-        ...initialUserForm,
-        role: 1 // 确保固定为管理员
-      })
-      dialogVisible.value = true
-    }
+// 添加管理员
+const showAddAdminDialog = () => {
+  isEdit.value = false
+  Object.assign(userForm, {
+    ...initialUserForm,
+    role: 1 // 确保固定为管理员
+  })
+  dialogVisible.value = true
+}
     
-    // 编辑用户
-    const handleEdit = row => {
-      isEdit.value = true
-      // 复制用户数据到表单
-      Object.assign(userForm, { 
-        id: row.id,
-        username: row.username,
-        nickname: row.nickname,
-        email: row.email,
-        phone: row.phone,
-        role: row.role,
-        status: row.status,
-        avatar: row.avatar
-      })
-      dialogVisible.value = true
-    }
+// 编辑用户
+const handleEdit = row => {
+  isEdit.value = true
+  // 复制用户数据到表单
+  Object.assign(userForm, { 
+    id: row.id,
+    username: row.username,
+    nickname: row.nickname,
+    email: row.email,
+    phone: row.phone,
+    role: row.role,
+    status: row.status,
+    avatar: row.avatar
+  })
+  dialogVisible.value = true
+}
     
-    // 删除用户
-    const handleDelete = row => {
-      selectedUser.value = row
-      deleteDialogVisible.value = true
-    }
+// 删除用户
+const handleDelete = row => {
+  selectedUser.value = row
+  deleteDialogVisible.value = true
+}
     
-    // 确认删除
-    const confirmDelete = async () => {
+// 确认删除
+const confirmDelete = async () => {
+  try {
+    const res = await userStore.deleteUser(selectedUser.value.id)
+    showByCode(res.code)
+    deleteDialogVisible.value = false
+  } catch (error) {
+    console.error('删除用户失败：', error)
+  }
+}
+    
+// 强制退出（管理员）
+const handleForceLogout = async user => {
+  try {
+    const res = await userStore.forceLogout(user.id)
+    showByCode(res.code)
+    if (isSuccess(res.code)) {
+      // 强制退出成功后刷新列表以更新在线状态
+      await fetchUserList()
+    }
+  } catch (error) {
+    console.error('强制退出用户失败：', error)
+  }
+}
+    
+// 提交用户表单
+const submitUserForm = async () => {
+  if (!userFormRef.value) return
+      
+  userFormRef.value.validate(async valid => {
+    if (valid) {
       try {
-        const res = await userStore.deleteUser(selectedUser.value.id)
-        showByCode(res.code)
-        deleteDialogVisible.value = false
-      } catch (error) {
-        console.error('删除用户失败：', error)
-      }
-    }
-    
-    // 强制退出（管理员）
-    const handleForceLogout = async user => {
-      try {
-        const res = await userStore.forceLogout(user.id)
-        showByCode(res.code)
-        if (isSuccess(res.code)) {
-          // 强制退出成功后刷新列表以更新在线状态
-          await fetchUserList()
-        }
-      } catch (error) {
-        console.error('强制退出用户失败：', error)
-      }
-    }
-    
-    // 提交用户表单
-    const submitUserForm = async () => {
-      if (!userFormRef.value) return
-      
-      userFormRef.value.validate(async valid => {
-        if (valid) {
-          try {
-            if (isEdit.value) {
-              // 编辑用户（不允许修改角色和昵称）
-              const userData = {
-                email: userForm.email,
-                phone: userForm.phone,
-                status: userForm.status,
-                avatar: userForm.avatar
-              }
-              
-              const res = await userStore.updateUser({
-                userId: userForm.id,
-                userData
-              })
-              
-              showByCode(res.code)
-            } else {
-              // 添加管理员（固定role=1，要求昵称必填）
-              const adminData = {
-                username: userForm.username,
-                password: userForm.password,
-                nickname: userForm.nickname,
-                email: userForm.email,
-                phone: userForm.phone,
-                avatar: userForm.avatar,
-                role: 1 // 固定为管理员
-              }
-              
-              const res = await userStore.createAdmin(adminData)
-              
-              showByCode(res.code)
-            }
-            
-            dialogVisible.value = false
-            // 刷新用户列表
-            await fetchUserList()
-          } catch (error) {
-            console.error('提交用户表单失败：', error)
+        if (isEdit.value) {
+          // 编辑用户（不允许修改角色和昵称）
+          const userData = {
+            email: userForm.email,
+            phone: userForm.phone,
+            status: userForm.status,
+            avatar: userForm.avatar
           }
+              
+          const res = await userStore.updateUser({
+            userId: userForm.id,
+            userData
+          })
+              
+          showByCode(res.code)
         } else {
-          return false
-        }
-      })
-    }
-    
-    // 头像上传前验证
-    const beforeAvatarUpload = file => {
-      const isImage = file.type.startsWith('image/')
-      const isLt2M = file.size / 1024 / 1024 < 2
-      
-      if (!isImage) {
-        userMessages.error.showAvatarFormatError()
-      }
-      
-      if (!isLt2M) {
-        userMessages.error.showAvatarSizeError()
-      }
-      
-      return isImage && isLt2M
-    }
-    
-    // 头像上传处理
-    const uploadAvatar = options => {
-      const file = options.file
-      
-      // 在实际项目中，这里应该上传文件到服务器
-      // 模拟上传，使用FileReader读取文件为base64
-      const reader = new FileReader()
-      reader.readAsDataURL(file)
-      reader.onload = e => {
-        userForm.avatar = e.target.result
-      }
-    }
-    
-    // 导出用户数据
-    const handleExportUsers = () => {
-      userMessages.prompt.showExportFeatureDeveloping()
-    }
-    
-    // 处理商家认证请求
-    const handleMerchantRequests = () => {
-      router.push('/user/merchant-requests')
-    }
-    
-    // 默认头像
-    const defaultAvatar = '/mock-images/avatar-default.jpg'
-    
-    // WebSocket在线/登录状态更新处理
-    const handleOnlineStatusUpdate = (message) => {
-      if (message.type === 'onlineStatus' && message.userId) {
-        // 更新用户列表中的在线状态
-        const index = userList.value.findIndex(u => u.id === message.userId)
-        if (index !== -1) {
-          userList.value[index].online = message.online
-        }
-      } else if (message.type === 'onlineUsersUpdate' && message.onlineUserIds) {
-        // 批量更新在线状态
-        const onlineUserIds = new Set(message.onlineUserIds)
-        userList.value.forEach(user => {
-          user.online = onlineUserIds.has(user.id)
-        })
-      } else if (message.type === 'loginSessionsUpdate' && message.loginUserIds) {
-        // 批量更新登录状态（loginActive）
-        const loginUserIds = new Set(message.loginUserIds)
-        userList.value.forEach(user => {
-          user.loginActive = loginUserIds.has(user.id)
-        })
-      }
-    }
-
-    onMounted(() => {
-      fetchUserList()
-      
-      // 连接WebSocket（只有管理员才需要监听在线状态更新）
-      if (userStore.userInfo && userStore.userInfo.role === 1) {
-        websocketManager.connect()
-        websocketManager.on('onlineStatus', handleOnlineStatusUpdate)
-        websocketManager.on('onlineUsersUpdate', handleOnlineStatusUpdate)
-        websocketManager.on('loginSessionsUpdate', handleOnlineStatusUpdate)
-
-        // 管理员页面首次进入时，请求一次全量在线用户列表，接上最新TTL在线方案
-        setTimeout(() => {
-          if (websocketManager.isConnected && websocketManager.isConnected()) {
-            websocketManager.send({
-              type: 'requestOnlineUsers'
-            })
-            websocketManager.send({
-              type: 'requestLoginSessions'
-            })
+          // 添加管理员（固定role=1，要求昵称必填）
+          const adminData = {
+            username: userForm.username,
+            password: userForm.password,
+            nickname: userForm.nickname,
+            email: userForm.email,
+            phone: userForm.phone,
+            avatar: userForm.avatar,
+            role: 1 // 固定为管理员
           }
-        }, 500)
+              
+          const res = await userStore.createAdmin(adminData)
+              
+          showByCode(res.code)
+        }
+            
+        dialogVisible.value = false
+        // 刷新用户列表
+        await fetchUserList()
+      } catch (error) {
+        console.error('提交用户表单失败：', error)
       }
-    })
+    } else {
+      return false
+    }
+  })
+}
     
-    // 组件卸载时断开WebSocket
-    onUnmounted(() => {
-      websocketManager.off('onlineStatus', handleOnlineStatusUpdate)
-      websocketManager.off('onlineUsersUpdate', handleOnlineStatusUpdate)
-      websocketManager.off('loginSessionsUpdate', handleOnlineStatusUpdate)
+// 头像上传前验证
+const beforeAvatarUpload = file => {
+  const isImage = file.type.startsWith('image/')
+  const isLt2M = file.size / 1024 / 1024 < 2
+      
+  if (!isImage) {
+    userMessages.error.showAvatarFormatError()
+  }
+      
+  if (!isLt2M) {
+    userMessages.error.showAvatarSizeError()
+  }
+      
+  return isImage && isLt2M
+}
+    
+// 头像上传处理
+const uploadAvatar = options => {
+  const file = options.file
+      
+  // 在实际项目中，这里应该上传文件到服务器
+  // 模拟上传，使用FileReader读取文件为base64
+  const reader = new FileReader()
+  reader.readAsDataURL(file)
+  reader.onload = e => {
+    userForm.avatar = e.target.result
+  }
+}
+    
+// 导出用户数据
+const handleExportUsers = () => {
+  userMessages.prompt.showExportFeatureDeveloping()
+}
+    
+// 处理商家认证请求
+const handleMerchantRequests = () => {
+  router.push('/user/merchant-requests')
+}
+    
+// 默认头像
+const defaultAvatar = '/mock-images/avatar-default.jpg'
+    
+// WebSocket在线/登录状态更新处理
+const handleOnlineStatusUpdate = message => {
+  if (message.type === 'onlineStatus' && message.userId) {
+    // 更新用户列表中的在线状态
+    const index = userList.value.findIndex(u => u.id === message.userId)
+    if (index !== -1) {
+      userList.value[index].online = message.online
+    }
+  } else if (message.type === 'onlineUsersUpdate' && message.onlineUserIds) {
+    // 批量更新在线状态
+    const onlineUserIds = new Set(message.onlineUserIds)
+    userList.value.forEach(user => {
+      user.online = onlineUserIds.has(user.id)
     })
+  } else if (message.type === 'loginSessionsUpdate' && message.loginUserIds) {
+    // 批量更新登录状态（loginActive）
+    const loginUserIds = new Set(message.loginUserIds)
+    userList.value.forEach(user => {
+      user.loginActive = loginUserIds.has(user.id)
+    })
+  }
+}
+
+onMounted(() => {
+  fetchUserList()
+      
+  // 连接WebSocket（只有管理员才需要监听在线状态更新）
+  if (userStore.userInfo && userStore.userInfo.role === 1) {
+    websocketManager.connect()
+    websocketManager.on('onlineStatus', handleOnlineStatusUpdate)
+    websocketManager.on('onlineUsersUpdate', handleOnlineStatusUpdate)
+    websocketManager.on('loginSessionsUpdate', handleOnlineStatusUpdate)
+
+    // 管理员页面首次进入时，请求一次全量在线用户列表，接上最新TTL在线方案
+    setTimeout(() => {
+      if (websocketManager.isConnected && websocketManager.isConnected()) {
+        websocketManager.send({
+          type: 'requestOnlineUsers'
+        })
+        websocketManager.send({
+          type: 'requestLoginSessions'
+        })
+      }
+    }, 500)
+  }
+})
+    
+// 组件卸载时断开WebSocket
+onUnmounted(() => {
+  websocketManager.off('onlineStatus', handleOnlineStatusUpdate)
+  websocketManager.off('onlineUsersUpdate', handleOnlineStatusUpdate)
+  websocketManager.off('loginSessionsUpdate', handleOnlineStatusUpdate)
+})
 </script>
 
 <style lang="scss" scoped>

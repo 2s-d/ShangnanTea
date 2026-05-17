@@ -87,39 +87,39 @@ const hasComponent = computed(() => {
   return componentMap[activeMenu.value] !== undefined
 })
     
-    // 从路由参数初始化activeMenu
-    onMounted(() => {
-      if (route.params.tab && componentMap[route.params.tab]) {
-        activeMenu.value = route.params.tab
-        currentComponent.value = componentMap[route.params.tab]
-      }
-    })
+// 从路由参数初始化activeMenu
+onMounted(() => {
+  if (route.params.tab && componentMap[route.params.tab]) {
+    activeMenu.value = route.params.tab
+    currentComponent.value = componentMap[route.params.tab]
+  }
+})
     
-    // 监听路由参数变化
-    watch(() => route.params.tab, newTab => {
-      if (newTab && componentMap[newTab]) {
-        activeMenu.value = newTab
-        currentComponent.value = componentMap[newTab]
-      }
-    })
+// 监听路由参数变化
+watch(() => route.params.tab, newTab => {
+  if (newTab && componentMap[newTab]) {
+    activeMenu.value = newTab
+    currentComponent.value = componentMap[newTab]
+  }
+})
     
-    // 菜单选择处理
-    const handleMenuSelect = key => {
-      activeMenu.value = key
+// 菜单选择处理
+const handleMenuSelect = key => {
+  activeMenu.value = key
       
-      // 如果存在对应组件就设置，否则显示开发中
-      if (componentMap[key]) {
-        currentComponent.value = componentMap[key]
-      } else {
-        currentComponent.value = null
-      }
+  // 如果存在对应组件就设置，否则显示开发中
+  if (componentMap[key]) {
+    currentComponent.value = componentMap[key]
+  } else {
+    currentComponent.value = null
+  }
       
-      // 更新路由参数（不刷新页面）
-      router.push({
-        path: `/user/settings/${key}`,
-        replace: true
-      })
-    }
+  // 更新路由参数（不刷新页面）
+  router.push({
+    path: `/user/settings/${key}`,
+    replace: true
+  })
+}
 
 // 从路由参数初始化activeMenu
 onMounted(() => {

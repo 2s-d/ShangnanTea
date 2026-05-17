@@ -690,7 +690,7 @@ const goToUserProfile = userId => {
 }
 
 // 获取显示名称（使用昵称）
-const getDisplayName = (user) => {
+const getDisplayName = user => {
   if (!user) return '未知用户'
   return user.nickname || '未知用户'
 }
@@ -703,7 +703,7 @@ const getReplyUserName = replyId => {
 }
 
 // 获取帖子作者显示名称（使用昵称）
-const getPostAuthorName = (post) => {
+const getPostAuthorName = post => {
   if (!post) return '未知用户'
   return post.nickname || '未知用户'
 }

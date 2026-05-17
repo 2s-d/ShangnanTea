@@ -720,7 +720,7 @@ export const CODE_MAP = {
   // 成功码: 200 (已在HTTP状态码中定义)
   // 失败码: 6100 (已在接口1中定义)
   
-// 接口40: createCategory - /forum/categories
+  // 接口40: createCategory - /forum/categories
   6030: '分类创建成功',
   6146: '分类创建失败',
   

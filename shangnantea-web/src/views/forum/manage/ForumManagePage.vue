@@ -561,7 +561,7 @@ const activeTab = ref('audit')  // 默认显示审核标签页
 const postSearchText = ref('')
 
 // 获取显示名称（使用昵称）
-const getDisplayName = (user) => {
+const getDisplayName = user => {
   if (!user) return '未知用户'
   return user.nickname || '未知用户'
 }

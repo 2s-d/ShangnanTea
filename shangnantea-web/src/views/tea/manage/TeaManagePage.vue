@@ -493,343 +493,309 @@ import { teaPromptMessages } from '@/utils/promptMessages'
 defineOptions({
   name: 'TeaManagePage'
 })
-    const router = useRouter()
-    const teaStore = useTeaStore()
-    const teaFormRef = ref(null)
+const router = useRouter()
+const teaStore = useTeaStore()
+const teaFormRef = ref(null)
     
-    // 从Pinia获取状态
-    const loading = computed(() => teaStore.loading)
-    const teas = computed(() => teaStore.teaList)
-    const totalCount = computed(() => teaStore.pagination.total)
-    const currentPage = computed({
-      get: () => teaStore.pagination.currentPage,
-      set: val => {
-        teaStore.pagination.currentPage = val
-      }
-    })
-    const pageSize = computed({
-      get: () => teaStore.pagination.pageSize,
-      set: val => {
-        teaStore.pagination.pageSize = val
-      }
-    })
-    const categoryOptions = computed(() => teaStore.categories)
-    const categories = computed(() => teaStore.categories)
+// 从Pinia获取状态
+const loading = computed(() => teaStore.loading)
+const teas = computed(() => teaStore.teaList)
+const totalCount = computed(() => teaStore.pagination.total)
+const currentPage = computed({
+  get: () => teaStore.pagination.currentPage,
+  set: val => {
+    teaStore.pagination.currentPage = val
+  }
+})
+const pageSize = computed({
+  get: () => teaStore.pagination.pageSize,
+  set: val => {
+    teaStore.pagination.pageSize = val
+  }
+})
+const categoryOptions = computed(() => teaStore.categories)
+const categories = computed(() => teaStore.categories)
     
-    // 标签页状态
-    const activeTab = ref('tea')
+// 标签页状态
+const activeTab = ref('tea')
     
-    // 平台直售标记shopId（后端/前端统一使用特殊值，而不是实际店铺表ID）
-    // 约定：shop_id === 'PLATFORM' 或老数据中的 '0' 视为平台直售
-    const PLATFORM_SHOP_ID = 'PLATFORM'
+// 平台直售标记shopId（后端/前端统一使用特殊值，而不是实际店铺表ID）
+// 约定：shop_id === 'PLATFORM' 或老数据中的 '0' 视为平台直售
+const PLATFORM_SHOP_ID = 'PLATFORM'
 
-    // 筛选相关状态
-    const searchQuery = ref('')
-    // 状态筛选：'-1' 表示“全部状态”（不加 status 条件），与后端 Mapper 中的约定保持一致
-    const statusFilter = ref('-1')
-    const categoryFilter = ref('')
+// 筛选相关状态
+const searchQuery = ref('')
+// 状态筛选：'-1' 表示“全部状态”（不加 status 条件），与后端 Mapper 中的约定保持一致
+const statusFilter = ref('-1')
+const categoryFilter = ref('')
     
-    // 对话框相关状态
-    const dialogVisible = ref(false)
-    const isEdit = ref(false)
-    const currentTea = ref(null)
-    const submitting = ref(false)
+// 对话框相关状态
+const dialogVisible = ref(false)
+const isEdit = ref(false)
+const currentTea = ref(null)
+const submitting = ref(false)
     
-    // 分类管理相关状态
-    const categoryLoading = ref(false)
-    const categoryDialogVisible = ref(false)
-    const isEditCategory = ref(false)
-    const currentCategory = ref({
-      name: '',
-      parentId: null,
-      sortOrder: 999,
-      icon: 'tea-icon-default'
+// 分类管理相关状态
+const categoryLoading = ref(false)
+const categoryDialogVisible = ref(false)
+const isEditCategory = ref(false)
+const currentCategory = ref({
+  name: '',
+  parentId: null,
+  sortOrder: 999,
+  icon: 'tea-icon-default'
+})
+const categorySubmitting = ref(false)
+const categoryFormRef = ref(null)
+    
+// 分类表单验证规则
+const categoryRules = {
+  name: [
+    { required: true, message: '请输入分类名称', trigger: 'blur' },
+    { min: 1, max: 50, message: '长度在1到50个字符', trigger: 'blur' }
+  ],
+  sortOrder: [
+    { required: true, message: '请输入排序值', trigger: 'blur' },
+    { type: 'number', min: 0, max: 9999, message: '排序值在0到9999之间', trigger: 'blur' }
+  ]
+}
+    
+const teaImages = ref([])
+const previewVisible = ref(false)
+const previewImage = ref('')
+const mainImageIndex = ref(0)
+const teaStatus = ref(0)
+    
+// 计算属性：过滤出有URL的图片（能预览就说明有URL，可以选为主图）
+const validImages = computed(() => {
+  const images = teaImages.value.filter(img => {
+    // 检查是否有url属性（上传成功后设置）
+    return img.url && img.url.trim() !== ''
+  })
+  // 开发环境调试日志
+  if (process.env.NODE_ENV === 'development') {
+    console.log('validImages计算:', {
+      total: teaImages.value.length,
+      valid: images.length,
+      allImages: teaImages.value.map(img => ({ uid: img.uid, url: img.url, status: img.status }))
     })
-    const categorySubmitting = ref(false)
-    const categoryFormRef = ref(null)
+  }
+  return images
+})
     
-    // 分类表单验证规则
-    const categoryRules = {
-      name: [
-        { required: true, message: '请输入分类名称', trigger: 'blur' },
-        { min: 1, max: 50, message: '长度在1到50个字符', trigger: 'blur' }
-      ],
-      sortOrder: [
-        { required: true, message: '请输入排序值', trigger: 'blur' },
-        { type: 'number', min: 0, max: 9999, message: '排序值在0到9999之间', trigger: 'blur' }
-      ]
-    }
+// 任务组E：批量操作相关
+const selectedTeas = ref([])
     
-    const teaImages = ref([])
-    const previewVisible = ref(false)
-    const previewImage = ref('')
-    const mainImageIndex = ref(0)
-    const teaStatus = ref(0)
-    
-    // 计算属性：过滤出有URL的图片（能预览就说明有URL，可以选为主图）
-    const validImages = computed(() => {
-      const images = teaImages.value.filter(img => {
-        // 检查是否有url属性（上传成功后设置）
-        return img.url && img.url.trim() !== ''
-      })
-      // 开发环境调试日志
-      if (process.env.NODE_ENV === 'development') {
-        console.log('validImages计算:', {
-          total: teaImages.value.length,
-          valid: images.length,
-          allImages: teaImages.value.map(img => ({ uid: img.uid, url: img.url, status: img.status }))
-        })
-      }
-      return images
-    })
-    
-    // 任务组E：批量操作相关
-    const selectedTeas = ref([])
-    
-    // 表单验证规则
-    const teaRules = {
-      name: [
-        { required: true, message: '请输入茶叶名称', trigger: 'blur' },
-        { min: 2, max: 100, message: '长度在2到100个字符', trigger: 'blur' }
-      ],
-      categoryId: [
-        { required: true, message: '请选择茶叶分类', trigger: 'change' }
-      ],
-      origin: [
-        { required: true, message: '请输入产地', trigger: 'blur' }
-      ],
-      description: [
-        { required: true, message: '请输入茶叶简介', trigger: 'blur' }
-      ],
-      images: [
-        { 
-          validator: (rule, value, callback) => {
-            if (teaImages.value.length === 0) {
-              callback(new Error('请至少上传一张图片'))
-            } else {
-              callback()
-            }
-          }, 
-          trigger: 'change' 
-        }
-      ]
-    }
-    
-    // 分类数据从Pinia获取（已在computed中定义）
-    
-    // 图片上传相关：选择图片后立即上传获取路径（完全照抄文章封面上传）
-    const handleImageUpload = async (options) => {
-      const { file } = options
-      if (!file) return
-      try {
-        const res = await teaStore.uploadTeaImages({ files: [file] })
-        if (res?.code) showByCode(res.code)
-        const url = res?.data?.url
-        const path = res?.data?.path
-        // 存库使用相对路径（path），预览仍然可以用完整URL
-        if (path) {
-          file.path = path
-          file.url = url || path
-          file.status = 'success'
-        } else if (url) {
-          // 兜底：旧接口没有path字段时，仍然使用url
-          file.path = url
-          file.url = url
-          file.status = 'success'
+// 表单验证规则
+const teaRules = {
+  name: [
+    { required: true, message: '请输入茶叶名称', trigger: 'blur' },
+    { min: 2, max: 100, message: '长度在2到100个字符', trigger: 'blur' }
+  ],
+  categoryId: [
+    { required: true, message: '请选择茶叶分类', trigger: 'change' }
+  ],
+  origin: [
+    { required: true, message: '请输入产地', trigger: 'blur' }
+  ],
+  description: [
+    { required: true, message: '请输入茶叶简介', trigger: 'blur' }
+  ],
+  images: [
+    { 
+      validator: (rule, value, callback) => {
+        if (teaImages.value.length === 0) {
+          callback(new Error('请至少上传一张图片'))
         } else {
-          file.status = 'fail'
-          ElMessage.error('图片上传失败：返回数据缺少路径')
-          teaImages.value = teaImages.value.filter(img => img.uid !== file.uid)
-          return
+          callback()
         }
-        // 确保 teaImages 数组中的对应文件也被更新
-        const index = teaImages.value.findIndex(img => img.uid === file.uid)
-        if (index >= 0) {
-          teaImages.value[index] = { ...teaImages.value[index], ...file }
-        }
-      } catch (error) {
-        console.error('图片上传失败:', error)
-        file.status = 'fail'
-        ElMessage.error('图片上传失败，请重试')
-        teaImages.value = teaImages.value.filter(img => img.uid !== file.uid)
-      }
+      }, 
+      trigger: 'change' 
     }
+  ]
+}
     
-    // 图片列表变化时同步更新（el-upload 的 on-change 事件）
-    const handleImageChange = (file, fileList) => {
-      teaImages.value = fileList
+// 分类数据从Pinia获取（已在computed中定义）
+    
+// 图片上传相关：选择图片后立即上传获取路径（完全照抄文章封面上传）
+const handleImageUpload = async options => {
+  const { file } = options
+  if (!file) return
+  try {
+    const res = await teaStore.uploadTeaImages({ files: [file] })
+    if (res?.code) showByCode(res.code)
+    const url = res?.data?.url
+    const path = res?.data?.path
+    // 存库使用相对路径（path），预览仍然可以用完整URL
+    if (path) {
+      file.path = path
+      file.url = url || path
+      file.status = 'success'
+    } else if (url) {
+      // 兜底：旧接口没有path字段时，仍然使用url
+      file.path = url
+      file.url = url
+      file.status = 'success'
+    } else {
+      file.status = 'fail'
+      ElMessage.error('图片上传失败：返回数据缺少路径')
+      teaImages.value = teaImages.value.filter(img => img.uid !== file.uid)
+      return
     }
+    // 确保 teaImages 数组中的对应文件也被更新
+    const index = teaImages.value.findIndex(img => img.uid === file.uid)
+    if (index >= 0) {
+      teaImages.value[index] = { ...teaImages.value[index], ...file }
+    }
+  } catch (error) {
+    console.error('图片上传失败:', error)
+    file.status = 'fail'
+    ElMessage.error('图片上传失败，请重试')
+    teaImages.value = teaImages.value.filter(img => img.uid !== file.uid)
+  }
+}
     
-    const handleImageRemove = (file, fileList) => {
-      teaImages.value = fileList
+// 图片列表变化时同步更新（el-upload 的 on-change 事件）
+const handleImageChange = (file, fileList) => {
+  teaImages.value = fileList
+}
+    
+const handleImageRemove = (file, fileList) => {
+  teaImages.value = fileList
       
-      // 如果删除的是主图，重置主图索引（基于 validImages）
-      if (mainImageIndex.value >= validImages.value.length) {
-        mainImageIndex.value = validImages.value.length > 0 ? 0 : -1
-      }
-    }
+  // 如果删除的是主图，重置主图索引（基于 validImages）
+  if (mainImageIndex.value >= validImages.value.length) {
+    mainImageIndex.value = validImages.value.length > 0 ? 0 : -1
+  }
+}
     
-    const handleImagePreview = file => {
-      previewImage.value = file.url
-      previewVisible.value = true
-    }
+const handleImagePreview = file => {
+  previewImage.value = file.url
+  previewVisible.value = true
+}
     
-    // 规格相关方法
-    const addSpec = () => {
-      if (!currentTea.value) return
+// 规格相关方法
+const addSpec = () => {
+  if (!currentTea.value) return
       
-      currentTea.value.specifications.push({
+  currentTea.value.specifications.push({
+    id: Date.now(),
+    specName: '',
+    price: 0,
+    stock: 0,
+    isDefault: currentTea.value.specifications.length === 0
+  })
+}
+    
+const removeSpec = index => {
+  if (!currentTea.value || currentTea.value.specifications.length <= 1) return
+      
+  // 如果删除的是默认规格，将第一个规格设为默认
+  if (currentTea.value.specifications[index].isDefault) {
+    currentTea.value.specifications[0].isDefault = true
+  }
+      
+  currentTea.value.specifications.splice(index, 1)
+}
+    
+// 处理默认规格变更
+const handleDefaultChange = (val, index) => {
+  if (!val) {
+    // 不允许取消默认，必须有一个默认规格
+    currentTea.value.specifications[index].isDefault = true
+    return
+  }
+      
+  // 将其他规格设为非默认
+  currentTea.value.specifications.forEach((spec, i) => {
+    if (i !== index) {
+      spec.isDefault = false
+    }
+  })
+}
+    
+// 格式化日期
+const formatDate = dateString => {
+  if (!dateString) return '-'
+  const date = new Date(dateString)
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+    
+// 获取分类名称
+const getCategoryName = categoryId => {
+  if (!categoryId) return '-'
+  const category = categoryOptions.value.find(c => c.id === parseInt(categoryId))
+  return category ? category.name : '-'
+}
+    
+// 获取最低价格
+const getMinPrice = tea => {
+  if (!tea.specifications || tea.specifications.length === 0) {
+    return tea.price
+  }
+      
+  // 从规格中找出最低价格
+  const prices = tea.specifications.map(spec => spec.price)
+  return Math.min(...prices)
+}
+    
+// 显示添加茶叶对话框
+const showAddTeaDialog = () => {
+  isEdit.value = false
+  currentTea.value = {
+    name: '',
+    // 平台直售茶叶权限控制：管理员创建的茶叶shopId固定为'PLATFORM'
+    // 权限规则：只有管理员(role=1)可以管理平台直售茶叶
+    // shopId='PLATFORM'表示平台直售，区别于商家店铺茶叶(shopId为店铺ID)
+    shopId: 'PLATFORM',
+    categoryId: '',
+    price: 0,
+    description: '',
+    detail: '',
+    origin: '商南县',
+    stock: 0,
+    sales: 0,
+    mainImage: '',
+    status: 0, // 默认下架状态
+    specifications: [
+      {
         id: Date.now(),
-        specName: '',
+        specName: '默认规格',
         price: 0,
         stock: 0,
-        isDefault: currentTea.value.specifications.length === 0
-      })
-    }
-    
-    const removeSpec = index => {
-      if (!currentTea.value || currentTea.value.specifications.length <= 1) return
-      
-      // 如果删除的是默认规格，将第一个规格设为默认
-      if (currentTea.value.specifications[index].isDefault) {
-        currentTea.value.specifications[0].isDefault = true
+        isDefault: true
       }
-      
-      currentTea.value.specifications.splice(index, 1)
-    }
+    ],
+    images: []
+  }
+  teaImages.value = []
+  mainImageIndex.value = 0
+  teaStatus.value = 0
+  dialogVisible.value = true
+}
     
-    // 处理默认规格变更
-    const handleDefaultChange = (val, index) => {
-      if (!val) {
-        // 不允许取消默认，必须有一个默认规格
-        currentTea.value.specifications[index].isDefault = true
-        return
-      }
+// 处理编辑
+const handleEdit = async tea => {
+  isEdit.value = true
+  currentTea.value = JSON.parse(JSON.stringify(tea)) // 深拷贝避免直接修改列表数据
       
-      // 将其他规格设为非默认
-      currentTea.value.specifications.forEach((spec, i) => {
-        if (i !== index) {
-          spec.isDefault = false
-        }
-      })
-    }
-    
-    // 格式化日期
-    const formatDate = dateString => {
-      if (!dateString) return '-'
-      const date = new Date(dateString)
-      return date.toLocaleString('zh-CN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit'
-      })
-    }
-    
-    // 获取分类名称
-    const getCategoryName = categoryId => {
-      if (!categoryId) return '-'
-      const category = categoryOptions.value.find(c => c.id === parseInt(categoryId))
-      return category ? category.name : '-'
-    }
-    
-    // 获取最低价格
-    const getMinPrice = tea => {
-      if (!tea.specifications || tea.specifications.length === 0) {
-        return tea.price
-      }
+  // 如果列表数据没有图片或规格，调用详情接口获取完整数据
+  const needFetchDetail = !tea.images || tea.images.length === 0 || !tea.specifications || tea.specifications.length === 0
       
-      // 从规格中找出最低价格
-      const prices = tea.specifications.map(spec => spec.price)
-      return Math.min(...prices)
-    }
-    
-    // 显示添加茶叶对话框
-    const showAddTeaDialog = () => {
-      isEdit.value = false
-      currentTea.value = {
-        name: '',
-        // 平台直售茶叶权限控制：管理员创建的茶叶shopId固定为'PLATFORM'
-        // 权限规则：只有管理员(role=1)可以管理平台直售茶叶
-        // shopId='PLATFORM'表示平台直售，区别于商家店铺茶叶(shopId为店铺ID)
-        shopId: 'PLATFORM',
-        categoryId: '',
-        price: 0,
-        description: '',
-        detail: '',
-        origin: '商南县',
-        stock: 0,
-        sales: 0,
-        mainImage: '',
-        status: 0, // 默认下架状态
-        specifications: [
-          {
-            id: Date.now(),
-            specName: '默认规格',
-            price: 0,
-            stock: 0,
-            isDefault: true
-          }
-        ],
-        images: []
-      }
-      teaImages.value = []
-      mainImageIndex.value = 0
-      teaStatus.value = 0
-      dialogVisible.value = true
-    }
-    
-    // 处理编辑
-    const handleEdit = async tea => {
-      isEdit.value = true
-      currentTea.value = JSON.parse(JSON.stringify(tea)) // 深拷贝避免直接修改列表数据
-      
-      // 如果列表数据没有图片或规格，调用详情接口获取完整数据
-      const needFetchDetail = !tea.images || tea.images.length === 0 || !tea.specifications || tea.specifications.length === 0
-      
-      if (needFetchDetail) {
-        try {
-          const detailRes = await teaStore.fetchTeaDetail(tea.id)
-          if (detailRes && detailRes.code === 200 && detailRes.data) {
-            const detailData = detailRes.data
-            // 更新基本信息（保留列表数据中的字段，补充详情数据）
-            if (detailData.specifications && detailData.specifications.length > 0) {
-              currentTea.value.specifications = detailData.specifications.map(spec => ({
-                id: spec.id,
-                specName: spec.specName,
-                price: spec.price,
-                stock: spec.stock,
-                isDefault: spec.isDefault === 1 || spec.isDefault === true ? 1 : 0
-              }))
-            }
-            if (detailData.images && detailData.images.length > 0) {
-              teaImages.value = detailData.images.map(img => ({
-                name: img.url?.split('/').pop() || 'image',
-                url: img.url,
-                is_main: img.isMain === 1 || img.isMain === true || img.is_main === 1 || img.is_main === true,
-                uid: img.id,
-                id: img.id
-              }))
-            } else {
-              teaImages.value = []
-            }
-          }
-        } catch (error) {
-          if (process.env.NODE_ENV === 'development') {
-            console.error('获取茶叶详情失败:', error)
-          }
-        }
-      }
-      
-      // 任务组C：加载规格列表（如果详情接口没有返回规格，则单独加载）
-      if (!currentTea.value.specifications || currentTea.value.specifications.length === 0) {
-      try {
-        await teaStore.fetchTeaSpecifications(tea.id)
-        // 如果Pinia中有规格数据，使用Pinia的数据
-        const specs = teaStore.currentTeaSpecs
-        if (specs && specs.length > 0) {
-          currentTea.value.specifications = specs.map(spec => ({
+  if (needFetchDetail) {
+    try {
+      const detailRes = await teaStore.fetchTeaDetail(tea.id)
+      if (detailRes && detailRes.code === 200 && detailRes.data) {
+        const detailData = detailRes.data
+        // 更新基本信息（保留列表数据中的字段，补充详情数据）
+        if (detailData.specifications && detailData.specifications.length > 0) {
+          currentTea.value.specifications = detailData.specifications.map(spec => ({
             id: spec.id,
             specName: spec.specName,
             price: spec.price,
@@ -837,693 +803,727 @@ defineOptions({
             isDefault: spec.isDefault === 1 || spec.isDefault === true ? 1 : 0
           }))
         }
-      } catch (error) {
-        // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
-        if (process.env.NODE_ENV === 'development') {
-          console.error('加载规格列表失败:', error)
+        if (detailData.images && detailData.images.length > 0) {
+          teaImages.value = detailData.images.map(img => ({
+            name: img.url?.split('/').pop() || 'image',
+            url: img.url,
+            is_main: img.isMain === 1 || img.isMain === true || img.is_main === 1 || img.is_main === true,
+            uid: img.id,
+            id: img.id
+          }))
+        } else {
+          teaImages.value = []
         }
-          // 如果加载失败，使用tea中的规格数据或创建默认规格
-        if (!currentTea.value.specifications || currentTea.value.specifications.length === 0) {
-          currentTea.value.specifications = [{
-            id: Date.now(),
-            specName: '默认规格',
-            price: tea.price || 0,
-            stock: tea.stock || 0,
-            isDefault: 1
-          }]
+      }
+    } catch (error) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error('获取茶叶详情失败:', error)
+      }
+    }
+  }
+      
+  // 任务组C：加载规格列表（如果详情接口没有返回规格，则单独加载）
+  if (!currentTea.value.specifications || currentTea.value.specifications.length === 0) {
+    try {
+      await teaStore.fetchTeaSpecifications(tea.id)
+      // 如果Pinia中有规格数据，使用Pinia的数据
+      const specs = teaStore.currentTeaSpecs
+      if (specs && specs.length > 0) {
+        currentTea.value.specifications = specs.map(spec => ({
+          id: spec.id,
+          specName: spec.specName,
+          price: spec.price,
+          stock: spec.stock,
+          isDefault: spec.isDefault === 1 || spec.isDefault === true ? 1 : 0
+        }))
+      }
+    } catch (error) {
+      // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
+      if (process.env.NODE_ENV === 'development') {
+        console.error('加载规格列表失败:', error)
+      }
+      // 如果加载失败，使用tea中的规格数据或创建默认规格
+      if (!currentTea.value.specifications || currentTea.value.specifications.length === 0) {
+        currentTea.value.specifications = [{
+          id: Date.now(),
+          specName: '默认规格',
+          price: tea.price || 0,
+          stock: tea.stock || 0,
+          isDefault: 1
+        }]
+      }
+    }
+  }
+      
+  // 任务组D：设置图片列表（如果详情接口没有返回图片，则使用列表数据）
+  if (!teaImages.value || teaImages.value.length === 0) {
+    if (tea.images && tea.images.length > 0) {
+      teaImages.value = tea.images.map(img => {
+        // 从完整URL中提取相对路径（用于保存时使用）
+        let path = img.url
+        if (path) {
+          // 如果URL包含 /api/files/ 或 /files/，提取相对路径
+          const apiFilesIndex = path.indexOf('/files/')
+          if (apiFilesIndex >= 0) {
+            path = path.substring(apiFilesIndex + 1) // 去掉开头的 /，保留 files/...
+          } else if (path.startsWith('http://') || path.startsWith('https://')) {
+            // 如果是完整URL，尝试提取路径部分
+            try {
+              const urlObj = new URL(path)
+              const pathname = urlObj.pathname
+              if (pathname.startsWith('/api/files/')) {
+                path = pathname.substring(5) // 去掉 /api，保留 /files/...
+              } else if (pathname.startsWith('/files/')) {
+                path = pathname.substring(1) // 去掉开头的 /，保留 files/...
+              }
+            } catch (e) {
+              // URL解析失败，保持原值
+            }
           }
         }
-      }
-      
-      // 任务组D：设置图片列表（如果详情接口没有返回图片，则使用列表数据）
-      if (!teaImages.value || teaImages.value.length === 0) {
-      if (tea.images && tea.images.length > 0) {
-          teaImages.value = tea.images.map(img => {
-            // 从完整URL中提取相对路径（用于保存时使用）
-            let path = img.url
-            if (path) {
-              // 如果URL包含 /api/files/ 或 /files/，提取相对路径
-              const apiFilesIndex = path.indexOf('/files/')
-              if (apiFilesIndex >= 0) {
-                path = path.substring(apiFilesIndex + 1) // 去掉开头的 /，保留 files/...
-              } else if (path.startsWith('http://') || path.startsWith('https://')) {
-                // 如果是完整URL，尝试提取路径部分
-                try {
-                  const urlObj = new URL(path)
-                  const pathname = urlObj.pathname
-                  if (pathname.startsWith('/api/files/')) {
-                    path = pathname.substring(5) // 去掉 /api，保留 /files/...
-                  } else if (pathname.startsWith('/files/')) {
-                    path = pathname.substring(1) // 去掉开头的 /，保留 files/...
-                  }
-                } catch (e) {
-                  // URL解析失败，保持原值
-                }
-              }
-            }
-            return {
+        return {
           name: img.url?.split('/').pop() || 'image',
-              url: img.url, // 完整URL用于预览
-              path: path,   // 相对路径用于保存
-              is_main: img.is_main === 1 || img.is_main === true || img.isMain === 1 || img.isMain === true,
+          url: img.url, // 完整URL用于预览
+          path: path,   // 相对路径用于保存
+          is_main: img.is_main === 1 || img.is_main === true || img.isMain === 1 || img.isMain === true,
           uid: img.id,
-              id: img.id,
-              status: 'success' // 编辑时加载的图片视为已成功上传
-            }
-          })
-      } else {
-        teaImages.value = []
-      }
-      }
+          id: img.id,
+          status: 'success' // 编辑时加载的图片视为已成功上传
+        }
+      })
+    } else {
+      teaImages.value = []
+    }
+  }
       
-      // 设置主图索引（基于 validImages）
-      // 检查 is_main 字段（可能是布尔值、数字1/0，或者 isMain）
-      const mainImageIdx = validImages.value.findIndex(img => {
-        return img.is_main === 1 || img.is_main === true || 
+  // 设置主图索引（基于 validImages）
+  // 检查 is_main 字段（可能是布尔值、数字1/0，或者 isMain）
+  const mainImageIdx = validImages.value.findIndex(img => {
+    return img.is_main === 1 || img.is_main === true || 
                img.isMain === 1 || img.isMain === true ||
                (img.is_main !== undefined && img.is_main !== 0 && img.is_main !== false)
-      })
-      mainImageIndex.value = mainImageIdx >= 0 ? mainImageIdx : 0
+  })
+  mainImageIndex.value = mainImageIdx >= 0 ? mainImageIdx : 0
       
-      // 调试日志
+  // 调试日志
+  if (process.env.NODE_ENV === 'development') {
+    console.log('编辑时设置主图索引:', {
+      validImagesCount: validImages.value.length,
+      mainImageIdx,
+      mainImageIndex: mainImageIndex.value,
+      images: validImages.value.map((img, idx) => ({ 
+        idx, 
+        is_main: img.is_main, 
+        isMain: img.isMain,
+        url: img.url 
+      }))
+    })
+  }
+      
+  // 设置上架状态
+  teaStatus.value = tea.status
+      
+  dialogVisible.value = true
+}
+    
+// 处理预览
+const handlePreview = tea => {
+  router.push(`/tea/${tea.id}`)
+}
+    
+// 处理上下架状态切换
+const handleToggleStatus = async tea => {
+  const action = tea.status === 1 ? '下架' : '上架'
+  const newStatus = tea.status === 1 ? 0 : 1
+      
+  try {
+    await ElMessageBox.confirm(
+      `确定要${action}茶叶"${tea.name}"吗？`,
+      `${action}确认`,
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+        
+    const response = await teaStore.toggleTeaStatus({
+      teaId: tea.id,
+      status: newStatus
+    })
+        
+    showByCode(response.code)
+        
+    // 刷新列表
+    await loadTeas()
+  } catch (error) {
+    if (error !== 'cancel') {
+      // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
       if (process.env.NODE_ENV === 'development') {
-        console.log('编辑时设置主图索引:', {
-          validImagesCount: validImages.value.length,
-          mainImageIdx,
-          mainImageIndex: mainImageIndex.value,
-          images: validImages.value.map((img, idx) => ({ 
-            idx, 
-            is_main: img.is_main, 
-            isMain: img.isMain,
-            url: img.url 
-          }))
-        })
+        console.error('切换茶叶状态失败:', error)
       }
+    }
+  }
+}
+    
+// 任务组E：批量操作相关方法
+const handleSelectionChange = selection => {
+  selectedTeas.value = selection
+}
+    
+const handleBatchOnShelf = async () => {
+  if (selectedTeas.value.length === 0) {
+    teaPromptMessages.showSelectOnShelf()
+    return
+  }
       
-      // 设置上架状态
-      teaStatus.value = tea.status
+  try {
+    await ElMessageBox.confirm(
+      `确定要批量上架 ${selectedTeas.value.length} 个茶叶吗？`,
+      '批量上架确认',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+        
+    const teaIds = selectedTeas.value.map(tea => tea.id)
+    const response = await teaStore.batchToggleTeaStatus({
+      teaIds,
+      status: 1
+    })
+        
+    showByCode(response.code)
+    selectedTeas.value = []
+    await loadTeas()
+  } catch (error) {
+    if (error !== 'cancel') {
+      // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
+      if (process.env.NODE_ENV === 'development') {
+        console.error('批量上架失败:', error)
+      }
+    }
+  }
+}
+    
+const handleBatchOffShelf = async () => {
+  if (selectedTeas.value.length === 0) {
+    teaPromptMessages.showSelectOffShelf()
+    return
+  }
       
-      dialogVisible.value = true
+  try {
+    await ElMessageBox.confirm(
+      `确定要批量下架 ${selectedTeas.value.length} 个茶叶吗？`,
+      '批量下架确认',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+        
+    const teaIds = selectedTeas.value.map(tea => tea.id)
+    const response = await teaStore.batchToggleTeaStatus({
+      teaIds,
+      status: 0
+    })
+        
+    showByCode(response.code)
+    selectedTeas.value = []
+    await loadTeas()
+  } catch (error) {
+    if (error !== 'cancel') {
+      // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
+      if (process.env.NODE_ENV === 'development') {
+        console.error('批量下架失败:', error)
+      }
     }
+  }
+}
     
-    // 处理预览
-    const handlePreview = tea => {
-      router.push(`/tea/${tea.id}`)
+// 处理删除
+const handleDelete = async tea => {
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除茶叶"${tea.name}"吗？此操作不可恢复！`,
+      '删除确认',
+      {
+        confirmButtonText: '确定删除',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+        
+    // 调用 Pinia action 删除茶叶
+    const response = await teaStore.deleteTea(tea.id)
+        
+    showByCode(response.code)
+        
+    // 如果当前页没有数据了，回到前一页
+    if (teas.value.length === 0 && currentPage.value > 1) {
+      await teaStore.setPage(currentPage.value - 1)
     }
+  } catch (error) {
+    if (error !== 'cancel') {
+      // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
+      if (process.env.NODE_ENV === 'development') {
+        console.error('删除茶叶失败:', error)
+      }
+    }
+  }
+}
     
-    // 处理上下架状态切换
-    const handleToggleStatus = async tea => {
-      const action = tea.status === 1 ? '下架' : '上架'
-      const newStatus = tea.status === 1 ? 0 : 1
+// 处理保存
+const handleSave = () => {
+  if (!teaFormRef.value) return
       
-      try {
-        await ElMessageBox.confirm(
-          `确定要${action}茶叶"${tea.name}"吗？`,
-          `${action}确认`,
-          {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            type: 'warning'
-          }
-        )
-        
-        const response = await teaStore.toggleTeaStatus({
-          teaId: tea.id,
-          status: newStatus
-        })
-        
-        showByCode(response.code)
-        
-        // 刷新列表
-        await loadTeas()
-      } catch (error) {
-        if (error !== 'cancel') {
-          // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
-          if (process.env.NODE_ENV === 'development') {
-            console.error('切换茶叶状态失败:', error)
-          }
-        }
-      }
+  teaFormRef.value.validate(async valid => {
+    if (!valid) {
+      teaPromptMessages.showFormInvalid()
+      return
     }
-    
-    // 任务组E：批量操作相关方法
-    const handleSelectionChange = selection => {
-      selectedTeas.value = selection
+        
+    // 校验规格
+    if (!currentTea.value.specifications || currentTea.value.specifications.length === 0) {
+      teaPromptMessages.showSpecRequired()
+      return
     }
-    
-    const handleBatchOnShelf = async () => {
-      if (selectedTeas.value.length === 0) {
-        teaPromptMessages.showSelectOnShelf()
-        return
-      }
-      
-      try {
-        await ElMessageBox.confirm(
-          `确定要批量上架 ${selectedTeas.value.length} 个茶叶吗？`,
-          '批量上架确认',
-          {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            type: 'warning'
-          }
-        )
         
-        const teaIds = selectedTeas.value.map(tea => tea.id)
-        const response = await teaStore.batchToggleTeaStatus({
-          teaIds,
-          status: 1
-        })
-        
-        showByCode(response.code)
-        selectedTeas.value = []
-        await loadTeas()
-      } catch (error) {
-        if (error !== 'cancel') {
-          // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
-          if (process.env.NODE_ENV === 'development') {
-            console.error('批量上架失败:', error)
-          }
-        }
-      }
+    // 校验规格名称和价格
+    const invalidSpec = currentTea.value.specifications.find(spec => 
+      !spec.specName || spec.price <= 0
+    )
+    if (invalidSpec) {
+      teaPromptMessages.showSpecIncomplete()
+      return
     }
-    
-    const handleBatchOffShelf = async () => {
-      if (selectedTeas.value.length === 0) {
-        teaPromptMessages.showSelectOffShelf()
-        return
-      }
-      
-      try {
-        await ElMessageBox.confirm(
-          `确定要批量下架 ${selectedTeas.value.length} 个茶叶吗？`,
-          '批量下架确认',
-          {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            type: 'warning'
-          }
-        )
         
-        const teaIds = selectedTeas.value.map(tea => tea.id)
-        const response = await teaStore.batchToggleTeaStatus({
-          teaIds,
-          status: 0
-        })
-        
-        showByCode(response.code)
-        selectedTeas.value = []
-        await loadTeas()
-      } catch (error) {
-        if (error !== 'cancel') {
-          // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
-          if (process.env.NODE_ENV === 'development') {
-            console.error('批量下架失败:', error)
-          }
-        }
-      }
+    // 校验是否有默认规格
+    const hasDefault = currentTea.value.specifications.some(spec => spec.isDefault)
+    if (!hasDefault) {
+      teaPromptMessages.showDefaultSpecRequired()
+      return
     }
-    
-    // 处理删除
-    const handleDelete = async tea => {
-      try {
-        await ElMessageBox.confirm(
-          `确定要删除茶叶"${tea.name}"吗？此操作不可恢复！`,
-          '删除确认',
-          {
-            confirmButtonText: '确定删除',
-            cancelButtonText: '取消',
-            type: 'warning'
-          }
-        )
         
-        // 调用 Pinia action 删除茶叶
-        const response = await teaStore.deleteTea(tea.id)
-        
-        showByCode(response.code)
-        
-        // 如果当前页没有数据了，回到前一页
-        if (teas.value.length === 0 && currentPage.value > 1) {
-          await teaStore.setPage(currentPage.value - 1)
-        }
-      } catch (error) {
-        if (error !== 'cancel') {
-          // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
-          if (process.env.NODE_ENV === 'development') {
-            console.error('删除茶叶失败:', error)
-          }
-        }
-      }
+    // 校验图片
+    if (teaImages.value.length === 0) {
+      teaPromptMessages.showImageRequired()
+      return
     }
-    
-    // 处理保存
-    const handleSave = () => {
-      if (!teaFormRef.value) return
-      
-      teaFormRef.value.validate(async valid => {
-        if (!valid) {
-          teaPromptMessages.showFormInvalid()
-          return
-        }
         
-        // 校验规格
-        if (!currentTea.value.specifications || currentTea.value.specifications.length === 0) {
-          teaPromptMessages.showSpecRequired()
-          return
-        }
+    submitting.value = true
         
-        // 校验规格名称和价格
-        const invalidSpec = currentTea.value.specifications.find(spec => 
-          !spec.specName || spec.price <= 0
-        )
-        if (invalidSpec) {
-          teaPromptMessages.showSpecIncomplete()
-          return
-        }
-        
-        // 校验是否有默认规格
-        const hasDefault = currentTea.value.specifications.some(spec => spec.isDefault)
-        if (!hasDefault) {
-          teaPromptMessages.showDefaultSpecRequired()
-          return
-        }
-        
-        // 校验图片
-        if (teaImages.value.length === 0) {
-          teaPromptMessages.showImageRequired()
-          return
-        }
-        
-        submitting.value = true
-        
-        try {
-          // 准备数据
-          const formData = {
-            ...currentTea.value,
-            status: teaStatus.value,
-            categoryId: parseInt(currentTea.value.categoryId)
-          }
+    try {
+      // 准备数据
+      const formData = {
+        ...currentTea.value,
+        status: teaStatus.value,
+        categoryId: parseInt(currentTea.value.categoryId)
+      }
           
-          // 设置图片路径：选择图片后已立即上传获取路径，这里直接使用path（相对路径）存入数据库
-          if (validImages.value.length > 0) {
-            // mainImageIndex 是基于 validImages 的索引，确保索引有效
-            const selectedIndex = mainImageIndex.value >= 0 && mainImageIndex.value < validImages.value.length 
-              ? mainImageIndex.value 
-              : 0
-            const mainImg = validImages.value[selectedIndex]
+      // 设置图片路径：选择图片后已立即上传获取路径，这里直接使用path（相对路径）存入数据库
+      if (validImages.value.length > 0) {
+        // mainImageIndex 是基于 validImages 的索引，确保索引有效
+        const selectedIndex = mainImageIndex.value >= 0 && mainImageIndex.value < validImages.value.length 
+          ? mainImageIndex.value 
+          : 0
+        const mainImg = validImages.value[selectedIndex]
             
-            // 如果没有 path，尝试从 url 中提取相对路径，或者直接使用 url
-            let mainImagePath = mainImg.path
-            if (!mainImagePath && mainImg.url) {
-              // 从完整URL中提取相对路径
-              const url = mainImg.url
-              const apiFilesIndex = url.indexOf('/files/')
-              if (apiFilesIndex >= 0) {
-                mainImagePath = url.substring(apiFilesIndex + 1) // 去掉开头的 /，保留 files/...
-              } else if (url.startsWith('http://') || url.startsWith('https://')) {
-                try {
-                  const urlObj = new URL(url)
-                  const pathname = urlObj.pathname
-                  if (pathname.startsWith('/api/files/')) {
-                    mainImagePath = pathname.substring(5) // 去掉 /api，保留 /files/...
-                  } else if (pathname.startsWith('/files/')) {
-                    mainImagePath = pathname.substring(1) // 去掉开头的 /，保留 files/...
-                  } else {
-                    mainImagePath = url // 如果无法提取，使用完整URL（后端会处理）
-                  }
-                } catch (e) {
-                  mainImagePath = url // URL解析失败，使用完整URL
-                }
+        // 如果没有 path，尝试从 url 中提取相对路径，或者直接使用 url
+        let mainImagePath = mainImg.path
+        if (!mainImagePath && mainImg.url) {
+          // 从完整URL中提取相对路径
+          const url = mainImg.url
+          const apiFilesIndex = url.indexOf('/files/')
+          if (apiFilesIndex >= 0) {
+            mainImagePath = url.substring(apiFilesIndex + 1) // 去掉开头的 /，保留 files/...
+          } else if (url.startsWith('http://') || url.startsWith('https://')) {
+            try {
+              const urlObj = new URL(url)
+              const pathname = urlObj.pathname
+              if (pathname.startsWith('/api/files/')) {
+                mainImagePath = pathname.substring(5) // 去掉 /api，保留 /files/...
+              } else if (pathname.startsWith('/files/')) {
+                mainImagePath = pathname.substring(1) // 去掉开头的 /，保留 files/...
               } else {
-                mainImagePath = url // 已经是相对路径
+                mainImagePath = url // 如果无法提取，使用完整URL（后端会处理）
               }
+            } catch (e) {
+              mainImagePath = url // URL解析失败，使用完整URL
             }
+          } else {
+            mainImagePath = url // 已经是相对路径
+          }
+        }
             
-            if (!mainImagePath) {
-              ElMessage.error('主图路径不存在，请重新选择主图')
-              submitting.value = false
-              return
-            }
+        if (!mainImagePath) {
+          ElMessage.error('主图路径不存在，请重新选择主图')
+          submitting.value = false
+          return
+        }
             
-            formData.mainImage = mainImagePath
+        formData.mainImage = mainImagePath
             
-            // 设置图片列表，根据选择的索引设置 is_main
-            formData.images = validImages.value.map((img, idx) => {
-              // 如果没有 path，从 url 中提取相对路径
-              let imagePath = img.path
-              if (!imagePath && img.url) {
-                const url = img.url
-                const apiFilesIndex = url.indexOf('/files/')
-                if (apiFilesIndex >= 0) {
-                  imagePath = url.substring(apiFilesIndex + 1)
-                } else if (url.startsWith('http://') || url.startsWith('https://')) {
-                  try {
-                    const urlObj = new URL(url)
-                    const pathname = urlObj.pathname
-                    if (pathname.startsWith('/api/files/')) {
-                      imagePath = pathname.substring(5)
-                    } else if (pathname.startsWith('/files/')) {
-                      imagePath = pathname.substring(1)
-                    } else {
-                      imagePath = url
-                    }
-                  } catch (e) {
-                    imagePath = url
-                  }
+        // 设置图片列表，根据选择的索引设置 is_main
+        formData.images = validImages.value.map((img, idx) => {
+          // 如果没有 path，从 url 中提取相对路径
+          let imagePath = img.path
+          if (!imagePath && img.url) {
+            const url = img.url
+            const apiFilesIndex = url.indexOf('/files/')
+            if (apiFilesIndex >= 0) {
+              imagePath = url.substring(apiFilesIndex + 1)
+            } else if (url.startsWith('http://') || url.startsWith('https://')) {
+              try {
+                const urlObj = new URL(url)
+                const pathname = urlObj.pathname
+                if (pathname.startsWith('/api/files/')) {
+                  imagePath = pathname.substring(5)
+                } else if (pathname.startsWith('/files/')) {
+                  imagePath = pathname.substring(1)
                 } else {
                   imagePath = url
                 }
+              } catch (e) {
+                imagePath = url
               }
-              return {
-                id: img.id || null, // 重要：传递 id 字段，用于后端判断是更新还是新增
-                url: imagePath || img.url, // 优先使用相对路径，否则使用完整URL
-                is_main: idx === selectedIndex ? 1 : 0  // 使用数字 1/0，不是布尔值
-              }
-            })
+            } else {
+              imagePath = url
+            }
+          }
+          return {
+            id: img.id || null, // 重要：传递 id 字段，用于后端判断是更新还是新增
+            url: imagePath || img.url, // 优先使用相对路径，否则使用完整URL
+            is_main: idx === selectedIndex ? 1 : 0  // 使用数字 1/0，不是布尔值
+          }
+        })
             
-            // 调试日志
-            if (process.env.NODE_ENV === 'development') {
-              console.log('保存主图设置:', {
-                mainImageIndex: mainImageIndex.value,
-                selectedIndex,
-                mainImagePath: formData.mainImage,
-                images: formData.images.map((img, idx) => ({ 
+        // 调试日志
+        if (process.env.NODE_ENV === 'development') {
+          console.log('保存主图设置:', {
+            mainImageIndex: mainImageIndex.value,
+            selectedIndex,
+            mainImagePath: formData.mainImage,
+            images: formData.images.map((img, idx) => ({ 
               url: img.url,
-                  is_main: img.is_main,
-                  index: idx 
+              is_main: img.is_main,
+              index: idx 
             }))
+          })
+        }
+      }
+          
+      // 计算总库存
+      formData.stock = formData.specifications.reduce((sum, spec) => sum + spec.stock, 0)
+          
+      // 设置基础价格为默认规格的价格
+      const defaultSpec = formData.specifications.find(spec => spec.isDefault)
+      if (defaultSpec) {
+        formData.price = defaultSpec.price
+      }
+          
+      // 调用 Pinia action 保存茶叶
+      if (isEdit.value) {
+        const response = await teaStore.updateTea(formData)
+            
+        // 任务组C：同步规格数据到后端
+        const teaId = currentTea.value.id
+        try {
+          // 获取当前规格列表
+          await teaStore.fetchTeaSpecifications(teaId)
+          const existingSpecs = teaStore.currentTeaSpecs || []
+              
+          // 处理规格的增删改
+          for (const spec of formData.specifications) {
+            const existingSpec = existingSpecs.find(s => s.id === spec.id)
+                
+            if (existingSpec) {
+              // 更新现有规格
+              await teaStore.updateSpecification({
+                teaId,
+                specId: spec.id,
+                specData: {
+                  specName: spec.specName,
+                  price: spec.price,
+                  stock: spec.stock,
+                  isDefault: spec.isDefault === 1 || spec.isDefault === true ? 1 : 0
+                }
+              })
+                  
+              // 如果设置为默认规格
+              if (spec.isDefault === 1 || spec.isDefault === true) {
+                await teaStore.setDefaultSpecification({ teaId, specId: spec.id })
+              }
+            } else {
+              // 添加新规格
+              await teaStore.addSpecification({
+                teaId,
+                specData: {
+                  specName: spec.specName,
+                  price: spec.price,
+                  stock: spec.stock,
+                  isDefault: spec.isDefault === 1 || spec.isDefault === true ? 1 : 0
+                }
               })
             }
           }
-          
-          // 计算总库存
-          formData.stock = formData.specifications.reduce((sum, spec) => sum + spec.stock, 0)
-          
-          // 设置基础价格为默认规格的价格
-          const defaultSpec = formData.specifications.find(spec => spec.isDefault)
-          if (defaultSpec) {
-            formData.price = defaultSpec.price
-          }
-          
-          // 调用 Pinia action 保存茶叶
-          if (isEdit.value) {
-            const response = await teaStore.updateTea(formData)
-            
-            // 任务组C：同步规格数据到后端
-            const teaId = currentTea.value.id
-            try {
-              // 获取当前规格列表
-              await teaStore.fetchTeaSpecifications(teaId)
-              const existingSpecs = teaStore.currentTeaSpecs || []
               
-              // 处理规格的增删改
-              for (const spec of formData.specifications) {
-                const existingSpec = existingSpecs.find(s => s.id === spec.id)
-                
-                if (existingSpec) {
-                  // 更新现有规格
-                  await teaStore.updateSpecification({
-                    teaId,
-                    specId: spec.id,
-                    specData: {
-                      specName: spec.specName,
-                      price: spec.price,
-                      stock: spec.stock,
-                      isDefault: spec.isDefault === 1 || spec.isDefault === true ? 1 : 0
-                    }
-                  })
-                  
-                  // 如果设置为默认规格
-                  if (spec.isDefault === 1 || spec.isDefault === true) {
-                    await teaStore.setDefaultSpecification({ teaId, specId: spec.id })
-                  }
-                } else {
-                  // 添加新规格
-                  await teaStore.addSpecification({
-                    teaId,
-                    specData: {
-                      specName: spec.specName,
-                      price: spec.price,
-                      stock: spec.stock,
-                      isDefault: spec.isDefault === 1 || spec.isDefault === true ? 1 : 0
-                    }
-                  })
-                }
-              }
-              
-              // 删除不存在的规格
-              const currentSpecIds = formData.specifications.map(s => s.id)
-              for (const existingSpec of existingSpecs) {
-                if (!currentSpecIds.includes(existingSpec.id)) {
-                  await teaStore.deleteSpecification({ teaId, specId: existingSpec.id })
-                }
-              }
-            } catch (error) {
-              // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
-              if (process.env.NODE_ENV === 'development') {
-                console.error('同步规格数据失败:', error)
-              }
-              // 规格同步失败不影响主流程，只记录错误
+          // 删除不存在的规格
+          const currentSpecIds = formData.specifications.map(s => s.id)
+          for (const existingSpec of existingSpecs) {
+            if (!currentSpecIds.includes(existingSpec.id)) {
+              await teaStore.deleteSpecification({ teaId, specId: existingSpec.id })
             }
-            
-            // 图片已在选择时立即上传获取路径，updateTea时已一起提交，这里不需要再处理
-            
-            showByCode(response.code)
-          } else {
-            // 平台直售茶叶权限控制：管理员创建的茶叶shopId固定为'PLATFORM'
-            // 权限规则：只有管理员(role=1)可以管理平台直售茶叶
-            // shopId='PLATFORM'表示平台直售，区别于商家店铺茶叶(shopId为店铺ID)
-            formData.shopId = 'PLATFORM'
-            
-            // 新增茶叶：先创建茶叶获取teaId，然后上传图片
-            const result = await teaStore.addTea(formData)
-            const newTeaId = result.id || result.data?.id
-            
-            if (!newTeaId) {
-              ElMessage.error('创建茶叶失败，无法上传图片')
-              return
-            }
-            
-            // 任务组C：添加新茶叶的规格
-            if (newTeaId && formData.specifications) {
-              try {
-                for (const spec of formData.specifications) {
-                  await teaStore.addSpecification({
-                    teaId: newTeaId,
-                    specData: {
-                      specName: spec.specName,
-                      price: spec.price,
-                      stock: spec.stock,
-                      isDefault: spec.isDefault === 1 || spec.isDefault === true ? 1 : 0
-                    }
-                  })
-                  
-                  // 如果设置为默认规格
-                  if (spec.isDefault === 1 || spec.isDefault === true) {
-                    // 需要先获取规格ID，这里简化处理，假设后端返回的规格包含ID
-                    await teaStore.fetchTeaSpecifications(newTeaId)
-                    const specs = teaStore.currentTeaSpecs || []
-                    const addedSpec = specs.find(s => s.specName === spec.specName)
-                    if (addedSpec) {
-                      await teaStore.setDefaultSpecification({ teaId: newTeaId, specId: addedSpec.id })
-                    }
-                  }
-                }
-              } catch (error) {
-                // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
-                if (process.env.NODE_ENV === 'development') {
-                  console.error('添加规格失败:', error)
-                }
-                // 规格添加失败不影响主流程
-              }
-            }
-            
-            // 图片已在选择时立即上传获取路径，addTea时已一起提交，这里不需要再处理
-            
-            showByCode(result.code)
           }
-          
-          // 关闭对话框
-          dialogVisible.value = false
-          submitting.value = false
         } catch (error) {
           // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
           if (process.env.NODE_ENV === 'development') {
-            console.error('保存茶叶失败:', error)
+            console.error('同步规格数据失败:', error)
           }
-          submitting.value = false
+          // 规格同步失败不影响主流程，只记录错误
         }
-      })
-    }
-    
-    // 对话框关闭
-    const handleDialogClose = done => {
-      if (submitting.value) {
-        teaPromptMessages.showSubmitting()
-        return
-      }
-      done()
-    }
-    
-    // ==================== 分类管理相关方法 ====================
-    
-    // 显示添加分类对话框
-    const showAddCategoryDialog = () => {
-      isEditCategory.value = false
-      currentCategory.value = {
-        name: '',
-        parentId: null,
-        sortOrder: 999,
-        icon: 'tea-icon-default'
-      }
-      categoryDialogVisible.value = true
-    }
-    
-    // 编辑分类
-    const handleEditCategory = category => {
-      isEditCategory.value = true
-      currentCategory.value = {
-        id: category.id,
-        name: category.name,
-        parentId: category.parentId || null,
-        sortOrder: category.sortOrder || 999,
-        icon: category.icon || 'tea-icon-default'
-      }
-      categoryDialogVisible.value = true
-    }
-    
-    // 删除分类
-    const handleDeleteCategory = async category => {
-      try {
-        await ElMessageBox.confirm(
-          `确定要删除分类"${category.name}"吗？删除后不可恢复。`,
-          '确认删除',
-          {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            type: 'warning'
-          }
-        )
-        
-        categoryLoading.value = true
-        const response = await teaStore.deleteCategory(category.id)
+            
+        // 图片已在选择时立即上传获取路径，updateTea时已一起提交，这里不需要再处理
+            
         showByCode(response.code)
-      } catch (error) {
-        if (error !== 'cancel') {
-          // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
-          if (process.env.NODE_ENV === 'development') {
-            console.error('删除分类失败:', error)
+      } else {
+        // 平台直售茶叶权限控制：管理员创建的茶叶shopId固定为'PLATFORM'
+        // 权限规则：只有管理员(role=1)可以管理平台直售茶叶
+        // shopId='PLATFORM'表示平台直售，区别于商家店铺茶叶(shopId为店铺ID)
+        formData.shopId = 'PLATFORM'
+            
+        // 新增茶叶：先创建茶叶获取teaId，然后上传图片
+        const result = await teaStore.addTea(formData)
+        const newTeaId = result.id || result.data?.id
+            
+        if (!newTeaId) {
+          ElMessage.error('创建茶叶失败，无法上传图片')
+          return
+        }
+            
+        // 任务组C：添加新茶叶的规格
+        if (newTeaId && formData.specifications) {
+          try {
+            for (const spec of formData.specifications) {
+              await teaStore.addSpecification({
+                teaId: newTeaId,
+                specData: {
+                  specName: spec.specName,
+                  price: spec.price,
+                  stock: spec.stock,
+                  isDefault: spec.isDefault === 1 || spec.isDefault === true ? 1 : 0
+                }
+              })
+                  
+              // 如果设置为默认规格
+              if (spec.isDefault === 1 || spec.isDefault === true) {
+                // 需要先获取规格ID，这里简化处理，假设后端返回的规格包含ID
+                await teaStore.fetchTeaSpecifications(newTeaId)
+                const specs = teaStore.currentTeaSpecs || []
+                const addedSpec = specs.find(s => s.specName === spec.specName)
+                if (addedSpec) {
+                  await teaStore.setDefaultSpecification({ teaId: newTeaId, specId: addedSpec.id })
+                }
+              }
+            }
+          } catch (error) {
+            // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
+            if (process.env.NODE_ENV === 'development') {
+              console.error('添加规格失败:', error)
+            }
+            // 规格添加失败不影响主流程
           }
         }
-      } finally {
-        categoryLoading.value = false
+            
+        // 图片已在选择时立即上传获取路径，addTea时已一起提交，这里不需要再处理
+            
+        showByCode(result.code)
+      }
+          
+      // 关闭对话框
+      dialogVisible.value = false
+      submitting.value = false
+    } catch (error) {
+      // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
+      if (process.env.NODE_ENV === 'development') {
+        console.error('保存茶叶失败:', error)
+      }
+      submitting.value = false
+    }
+  })
+}
+    
+// 对话框关闭
+const handleDialogClose = done => {
+  if (submitting.value) {
+    teaPromptMessages.showSubmitting()
+    return
+  }
+  done()
+}
+    
+// ==================== 分类管理相关方法 ====================
+    
+// 显示添加分类对话框
+const showAddCategoryDialog = () => {
+  isEditCategory.value = false
+  currentCategory.value = {
+    name: '',
+    parentId: null,
+    sortOrder: 999,
+    icon: 'tea-icon-default'
+  }
+  categoryDialogVisible.value = true
+}
+    
+// 编辑分类
+const handleEditCategory = category => {
+  isEditCategory.value = true
+  currentCategory.value = {
+    id: category.id,
+    name: category.name,
+    parentId: category.parentId || null,
+    sortOrder: category.sortOrder || 999,
+    icon: category.icon || 'tea-icon-default'
+  }
+  categoryDialogVisible.value = true
+}
+    
+// 删除分类
+const handleDeleteCategory = async category => {
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除分类"${category.name}"吗？删除后不可恢复。`,
+      '确认删除',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+        
+    categoryLoading.value = true
+    const response = await teaStore.deleteCategory(category.id)
+    showByCode(response.code)
+  } catch (error) {
+    if (error !== 'cancel') {
+      // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
+      if (process.env.NODE_ENV === 'development') {
+        console.error('删除分类失败:', error)
       }
     }
+  } finally {
+    categoryLoading.value = false
+  }
+}
     
-    // 提交分类表单
-    const submitCategoryForm = async () => {
-      if (!categoryFormRef.value) return
+// 提交分类表单
+const submitCategoryForm = async () => {
+  if (!categoryFormRef.value) return
       
-      await categoryFormRef.value.validate(async valid => {
-        if (!valid) return
+  await categoryFormRef.value.validate(async valid => {
+    if (!valid) return
         
-        categorySubmitting.value = true
-        try {
-          const categoryData = {
-            name: currentCategory.value.name,
-            parentId: currentCategory.value.parentId,
-            sortOrder: currentCategory.value.sortOrder,
-            icon: currentCategory.value.icon
-          }
-          
-          if (isEditCategory.value) {
-            const response = await teaStore.updateCategory({
-              id: currentCategory.value.id,
-              categoryData
-            })
-            showByCode(response.code)
-          } else {
-            const response = await teaStore.createCategory(categoryData)
-            showByCode(response.code)
-          }
-          
-          categoryDialogVisible.value = false
-        } catch (error) {
-          // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
-          if (process.env.NODE_ENV === 'development') {
-            console.error('提交分类失败:', error)
-          }
-        } finally {
-          categorySubmitting.value = false
-        }
-      })
-    }
-    
-    // 分类对话框关闭
-    const handleCategoryDialogClose = done => {
-      if (categorySubmitting.value) {
-        teaPromptMessages.showSubmitting()
-        return
+    categorySubmitting.value = true
+    try {
+      const categoryData = {
+        name: currentCategory.value.name,
+        parentId: currentCategory.value.parentId,
+        sortOrder: currentCategory.value.sortOrder,
+        icon: currentCategory.value.icon
       }
-      done()
+          
+      if (isEditCategory.value) {
+        const response = await teaStore.updateCategory({
+          id: currentCategory.value.id,
+          categoryData
+        })
+        showByCode(response.code)
+      } else {
+        const response = await teaStore.createCategory(categoryData)
+        showByCode(response.code)
+      }
+          
+      categoryDialogVisible.value = false
+    } catch (error) {
+      // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
+      if (process.env.NODE_ENV === 'development') {
+        console.error('提交分类失败:', error)
+      }
+    } finally {
+      categorySubmitting.value = false
     }
+  })
+}
     
-    // 加载茶叶数据
-    const loadTeas = async (targetPage) => {
-      try {
-        // 构建筛选条件
-        const filters = {}
-        if (searchQuery.value) {
-          filters.keyword = searchQuery.value
-        }
-        if (statusFilter.value !== '') {
-          filters.status = parseInt(statusFilter.value)
-        }
-        if (categoryFilter.value !== '') {
-          filters.category = parseInt(categoryFilter.value)
-        }
-        // 管理员平台业务页：始终只管理平台直售茶叶
-        filters.shopId = PLATFORM_SHOP_ID
+// 分类对话框关闭
+const handleCategoryDialogClose = done => {
+  if (categorySubmitting.value) {
+    teaPromptMessages.showSubmitting()
+    return
+  }
+  done()
+}
+    
+// 加载茶叶数据
+const loadTeas = async targetPage => {
+  try {
+    // 构建筛选条件
+    const filters = {}
+    if (searchQuery.value) {
+      filters.keyword = searchQuery.value
+    }
+    if (statusFilter.value !== '') {
+      filters.status = parseInt(statusFilter.value)
+    }
+    if (categoryFilter.value !== '') {
+      filters.category = parseInt(categoryFilter.value)
+    }
+    // 管理员平台业务页：始终只管理平台直售茶叶
+    filters.shopId = PLATFORM_SHOP_ID
         
-        // 目标页：显式传入优先，否则使用当前分页
-        const page = targetPage ?? teaStore.pagination.currentPage ?? 1
-        // 更新 Pinia filters 并获取数据（内部会把 currentPage 设为 page）
-        await teaStore.updateFilters(filters, page)
-      } catch (error) {
-        // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
-        if (process.env.NODE_ENV === 'development') {
-          console.error('加载茶叶列表失败:', error)
-        }
-      }
+    // 目标页：显式传入优先，否则使用当前分页
+    const page = targetPage ?? teaStore.pagination.currentPage ?? 1
+    // 更新 Pinia filters 并获取数据（内部会把 currentPage 设为 page）
+    await teaStore.updateFilters(filters, page)
+  } catch (error) {
+    // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
+    if (process.env.NODE_ENV === 'development') {
+      console.error('加载茶叶列表失败:', error)
     }
+  }
+}
     
-    // 搜索处理
-    const handleSearch = async () => {
-      await loadTeas(1)
-    }
+// 搜索处理
+const handleSearch = async () => {
+  await loadTeas(1)
+}
     
-    // 筛选变更处理
-    const handleFilterChange = async () => {
-      await loadTeas(1)
-    }
+// 筛选变更处理
+const handleFilterChange = async () => {
+  await loadTeas(1)
+}
     
-    // 页码变更
-    const handlePageChange = async page => {
-      await loadTeas(page)
-    }
+// 页码变更
+const handlePageChange = async page => {
+  await loadTeas(page)
+}
     
-    // 每页条数变更
-    const handleSizeChange = async size => {
-      teaStore.pagination.pageSize = size
-      await loadTeas(1)
-    }
+// 每页条数变更
+const handleSizeChange = async size => {
+  teaStore.pagination.pageSize = size
+  await loadTeas(1)
+}
     
-    // 初始化
-    onMounted(async () => {
-      // 加载分类数据
-      await teaStore.fetchCategories()
-      // 加载茶叶列表
-      await loadTeas()
-    })
+// 初始化
+onMounted(async () => {
+  // 加载分类数据
+  await teaStore.fetchCategories()
+  // 加载茶叶列表
+  await loadTeas()
+})
 </script>
 
 <style lang="scss" scoped>

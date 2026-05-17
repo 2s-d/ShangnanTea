@@ -70,6 +70,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.servlet.http.HttpServletRequest;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -1636,19 +1637,28 @@ public class UserServiceImpl implements UserService {
             String targetId = followDTO.getTargetId();
             String targetType = followDTO.getTargetType();
             
-            // 3. 验证目标对象是否存在
+            // 3. 验证目标对象是否存在，并统一由后端决定入库展示信息（防止前端传入绝对URL污染数据库）
+            String resolvedTargetName;
+            String resolvedTargetAvatar;
             if ("shop".equals(targetType)) {
-                // 验证店铺是否存在
-                if (shopMapper.selectById(targetId) == null) {
+                Shop shop = shopMapper.selectById(targetId);
+                if (shop == null) {
                     logger.warn("添加关注失败: 店铺不存在, shopId: {}", targetId);
                     return Result.failure(2123); // 操作失败
                 }
+                resolvedTargetName = shop.getShopName();
+                resolvedTargetAvatar = normalizeToRelativeMediaPath(shop.getLogo());
             } else if ("user".equals(targetType)) {
-                // 验证用户是否存在
-                if (getUserEntityById(targetId) == null) {
+                User targetUser = getUserEntityById(targetId);
+                if (targetUser == null) {
                     logger.warn("添加关注失败: 用户不存在, userId: {}", targetId);
                     return Result.failure(2123); // 操作失败
                 }
+                resolvedTargetName = targetUser.getNickname();
+                if (resolvedTargetName == null || resolvedTargetName.trim().isEmpty()) {
+                    resolvedTargetName = targetUser.getUsername();
+                }
+                resolvedTargetAvatar = normalizeToRelativeMediaPath(targetUser.getAvatar());
             } else {
                 logger.warn("添加关注失败: 关注类型不正确, targetType: {}", targetType);
                 return Result.failure(2123); // 操作失败
@@ -1666,8 +1676,8 @@ public class UserServiceImpl implements UserService {
             follow.setUserId(userId);
             follow.setFollowId(targetId);
             follow.setFollowType(targetType);
-            follow.setTargetName(followDTO.getTargetName());
-            follow.setTargetAvatar(followDTO.getTargetAvatar());
+            follow.setTargetName(resolvedTargetName);
+            follow.setTargetAvatar(resolvedTargetAvatar);
             follow.setCreateTime(new Date());
             
             // 6. 插入数据库
@@ -1802,25 +1812,33 @@ public class UserServiceImpl implements UserService {
             String itemType = favoriteDTO.getItemType();
             String itemId = favoriteDTO.getItemId();
             
-            // 3. 验证目标对象是否存在
+            // 3. 验证目标对象是否存在，并统一由后端决定入库展示信息（防止前端传入绝对URL污染数据库）
+            String resolvedTargetName;
+            String resolvedTargetImage;
             if ("tea".equals(itemType)) {
-                // 验证茶叶是否存在
-                if (teaMapper.selectById(itemId) == null) {
+                Tea tea = teaMapper.selectById(itemId);
+                if (tea == null) {
                     logger.warn("添加收藏失败: 茶叶不存在, teaId: {}", itemId);
                     return Result.failure(2126); // 操作失败
                 }
+                resolvedTargetName = tea.getName();
+                resolvedTargetImage = normalizeToRelativeMediaPath(tea.getMainImage());
             } else if ("post".equals(itemType)) {
-                // 验证帖子是否存在
-                if (forumPostMapper.selectById(Long.parseLong(itemId)) == null) {
+                ForumPost post = forumPostMapper.selectById(Long.parseLong(itemId));
+                if (post == null) {
                     logger.warn("添加收藏失败: 帖子不存在, postId: {}", itemId);
                     return Result.failure(2126); // 操作失败
                 }
+                resolvedTargetName = post.getTitle();
+                resolvedTargetImage = normalizeToRelativeMediaPath(post.getCoverImage());
             } else if ("tea_article".equals(itemType)) {
-                // 验证文章是否存在
-                if (teaArticleMapper.selectById(Long.parseLong(itemId)) == null) {
+                TeaArticle article = teaArticleMapper.selectById(Long.parseLong(itemId));
+                if (article == null) {
                     logger.warn("添加收藏失败: 文章不存在, articleId: {}", itemId);
                     return Result.failure(2126); // 操作失败
                 }
+                resolvedTargetName = article.getTitle();
+                resolvedTargetImage = normalizeToRelativeMediaPath(article.getCoverImage());
             } else {
                 logger.warn("添加收藏失败: 收藏类型不正确, itemType: {}", itemType);
                 return Result.failure(2126); // 操作失败
@@ -1838,8 +1856,8 @@ public class UserServiceImpl implements UserService {
             favorite.setUserId(userId);
             favorite.setItemType(itemType);
             favorite.setItemId(itemId);
-            favorite.setTargetName(favoriteDTO.getTargetName());
-            favorite.setTargetImage(favoriteDTO.getTargetImage());
+            favorite.setTargetName(resolvedTargetName);
+            favorite.setTargetImage(resolvedTargetImage);
             favorite.setCreateTime(new Date());
             
             // 6. 插入数据库
@@ -3433,6 +3451,63 @@ public class UserServiceImpl implements UserService {
         }
         
         return likeVOList;
+    }
+
+    /**
+     * 归一化媒体路径：数据库中仅保存相对路径，禁止保存带域名的绝对URL。
+     *
+     * @param rawPath 原始路径（可能是相对路径、绝对URL或空值）
+     * @return 相对路径；若无法解析则原样返回去除空白后的值
+     */
+    private String normalizeToRelativeMediaPath(String rawPath) {
+        if (rawPath == null) {
+            return null;
+        }
+        String value = rawPath.trim();
+        if (value.isEmpty()) {
+            return null;
+        }
+        if (!(value.startsWith("http://") || value.startsWith("https://"))) {
+            return trimToFilesPath(value);
+        }
+        try {
+            URI uri = URI.create(value);
+            String relativePath = uri.getPath();
+            if (relativePath == null || relativePath.trim().isEmpty()) {
+                return value;
+            }
+            return trimToFilesPath(relativePath);
+        } catch (Exception e) {
+            logger.warn("媒体路径归一化失败，保留原值: rawPath: {}, error: {}", value, e.getMessage());
+            return trimToFilesPath(value);
+        }
+    }
+
+    /**
+     * 仅保留从 files 开始的相对路径，统一存储口径。
+     *
+     * @param path 原始路径
+     * @return files/... 格式路径；未匹配到 files 时返回去除首部斜杠后的原值
+     */
+    private String trimToFilesPath(String path) {
+        if (path == null) {
+            return null;
+        }
+        String normalized = path.trim();
+        if (normalized.isEmpty()) {
+            return null;
+        }
+
+        String lower = normalized.toLowerCase();
+        int filesIndex = lower.indexOf("files/");
+        if (filesIndex >= 0) {
+            return normalized.substring(filesIndex);
+        }
+
+        while (normalized.startsWith("/")) {
+            normalized = normalized.substring(1);
+        }
+        return normalized;
     }
 
     /**

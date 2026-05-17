@@ -466,7 +466,7 @@ const editorOptions = {
 let quillInstance = null
 
 // 编辑器准备完成
-const onEditorReady = (quill) => {
+const onEditorReady = quill => {
   quillInstance = quill
 }
 
@@ -627,19 +627,19 @@ const filteredArticles = computed(() => {
 })
 
 // 获取状态标签类型
-const getStatusType = (status) => {
+const getStatusType = status => {
   const types = { 0: 'warning', 1: 'success', 2: 'info' }
   return types[status] || 'info'
 }
 
 // 获取状态文本
-const getStatusText = (status) => {
+const getStatusText = status => {
   const texts = { 0: '草稿', 1: '已发布', 2: '已删除' }
   return texts[status] || '未知'
 }
 
 // 格式化日期
-const formatDate = (dateString) => {
+const formatDate = dateString => {
   if (!dateString) return ''
   const date = new Date(dateString)
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
@@ -667,7 +667,7 @@ const handleCreateArticle = () => {
 }
 
 // 编辑文章
-const handleEditArticle = async (article) => {
+const handleEditArticle = async article => {
   try {
     // 编辑时需要调用详情接口获取完整数据（包括 content）
     const res = await forumStore.fetchArticleDetail(article.id)
@@ -711,7 +711,7 @@ const handleEditArticle = async (article) => {
 }
 
 // 切换推荐状态
-const toggleRecommend = async (article) => {
+const toggleRecommend = async article => {
   try {
     const currentStatus = article.isRecommend !== undefined ? article.isRecommend : 0
     const newStatus = currentStatus === 1 ? 0 : 1
@@ -730,7 +730,7 @@ const toggleRecommend = async (article) => {
 }
 
 // 删除文章
-const handleDeleteArticle = (article) => {
+const handleDeleteArticle = article => {
   ElMessageBox.confirm(
     `确定要删除文章 "${article.title}" 吗？`,
     '警告',
@@ -755,7 +755,7 @@ const handleDeleteArticle = (article) => {
 const submitArticleForm = () => {
   if (!articleFormRef.value) return
   
-  articleFormRef.value.validate(async (valid) => {
+  articleFormRef.value.validate(async valid => {
     if (!valid) return
     
     articleSubmitting.value = true
@@ -871,7 +871,7 @@ const handleAddBanner = () => {
 }
 
 // 编辑轮播图
-const handleEditBanner = (banner) => {
+const handleEditBanner = banner => {
   // 兼容字段回填：subtitle 旧字段不再使用；link_url 存储跳转链接
   Object.assign(bannerForm, {
     id: banner.id,
@@ -886,7 +886,7 @@ const handleEditBanner = (banner) => {
 }
 
 // 删除轮播图
-const handleDeleteBanner = (banner) => {
+const handleDeleteBanner = banner => {
   ElMessageBox.confirm(
     `确定要删除轮播图 "${banner.title}" 吗？`,
     '警告',
@@ -959,7 +959,7 @@ const submitBannerForm = async () => {
       }
       // 将表单中的排序值一并传给后端，落库到 sort_order 字段
       if (bannerForm.sort_order != null) {
-      formData.append('sortOrder', bannerForm.sort_order)
+        formData.append('sortOrder', bannerForm.sort_order)
       }
       res = await forumStore.uploadBanner(formData)
     }
@@ -1037,7 +1037,7 @@ const fetchCategories = async () => {
 }
 
 // 获取分类的文章数量
-const getCategoryArticleCount = (categoryName) => {
+const getCategoryArticleCount = categoryName => {
   return articles.value.filter(article => article.category === categoryName).length
 }
 
@@ -1053,13 +1053,13 @@ const handleAddCategory = () => {
 }
 
 // 编辑分类
-const handleEditCategory = (category) => {
+const handleEditCategory = category => {
   Object.assign(categoryForm, category)
   categoryFormVisible.value = true
 }
 
 // 删除分类
-const handleDeleteCategory = async (category) => {
+const handleDeleteCategory = async category => {
   const articleCount = getCategoryArticleCount(category.name)
   
   if (articleCount > 0) {

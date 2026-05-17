@@ -160,7 +160,7 @@ onMounted(() => {
 
   // 监听登录状态变化：登录→连接WS，登出→断开WS
   // 保存 watch 的停止函数，用于清理
-  stopLoginWatch = watch(() => userStore.isLoggedIn, (loggedIn) => {
+  stopLoginWatch = watch(() => userStore.isLoggedIn, loggedIn => {
     if (loggedIn) {
       websocketManager.connect()
       resetInactivityTimer()

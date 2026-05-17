@@ -207,392 +207,392 @@ const availableSpecs = ref([])
 const tempSelectedSpecId = ref(null)
 const addAnotherSpec = ref(false) // 是否"再买一款"
   
-    const initCartData = async () => {
-      loading.value = true
-      try {
-        const res = await orderStore.fetchCartItems()
-        // res = {code, data}
-        if (res) {
-          // 显示API响应消息（成功或失败都通过状态码映射显示）
-          showByCode(res.code)
+const initCartData = async () => {
+  loading.value = true
+  try {
+    const res = await orderStore.fetchCartItems()
+    // res = {code, data}
+    if (res) {
+      // 显示API响应消息（成功或失败都通过状态码映射显示）
+      showByCode(res.code)
           
-          // 只有成功时才处理数据
-          if (isSuccess(res.code)) {
-            // 后端返回格式：{code: 200, data: {items: [...], totalPrice: ...}}
-            // 需要从 data.items 中获取商品列表
-            const items = Array.isArray(res.data) 
-              ? res.data 
-              : (res.data?.items || res.data?.list || [])
-            cartItems.value = items.map(i => ({
-              ...i,
-              selected: typeof i.selected === 'boolean' ? i.selected : true,
-              // 确保price不为null，如果为null则使用0或从其他地方获取
-              price: i.price != null ? i.price : (i.specPrice || 0)
-            }))
-            updateSelectAllStatus()
-          } else {
-            cartItems.value = []
-          }
-        }
-      } catch (error) {
-        // 网络错误等已由响应拦截器处理，这里只记录日志
-        if (process.env.NODE_ENV === 'development') {
-          console.error('加载购物车失败:', error)
-        }
-      } finally {
-        loading.value = false
+      // 只有成功时才处理数据
+      if (isSuccess(res.code)) {
+        // 后端返回格式：{code: 200, data: {items: [...], totalPrice: ...}}
+        // 需要从 data.items 中获取商品列表
+        const items = Array.isArray(res.data) 
+          ? res.data 
+          : (res.data?.items || res.data?.list || [])
+        cartItems.value = items.map(i => ({
+          ...i,
+          selected: typeof i.selected === 'boolean' ? i.selected : true,
+          // 确保price不为null，如果为null则使用0或从其他地方获取
+          price: i.price != null ? i.price : (i.specPrice || 0)
+        }))
+        updateSelectAllStatus()
+      } else {
+        cartItems.value = []
       }
     }
-    
-    // 判断是否为平台直售商品
-    const isPlatformProduct = shopId => {
-      return shopId === 'PLATFORM'
+  } catch (error) {
+    // 网络错误等已由响应拦截器处理，这里只记录日志
+    if (process.env.NODE_ENV === 'development') {
+      console.error('加载购物车失败:', error)
     }
+  } finally {
+    loading.value = false
+  }
+}
     
-    // 选中项数量
-    const selectedCount = computed(() => {
-      return cartItems.value.filter(item => item.selected).length
-    })
+// 判断是否为平台直售商品
+const isPlatformProduct = shopId => {
+  return shopId === 'PLATFORM'
+}
     
-    // 全选是否为半选状态
-    const isIndeterminate = computed(() => {
-      return selectedCount.value > 0 && selectedCount.value < cartItems.value.length
-    })
+// 选中项数量
+const selectedCount = computed(() => {
+  return cartItems.value.filter(item => item.selected).length
+})
     
-    // 计算总价
-    const totalPrice = computed(() => {
-      return cartItems.value
-        .filter(item => item.selected)
-        .reduce((total, item) => total + (item.price || 0) * item.quantity, 0)
-    })
+// 全选是否为半选状态
+const isIndeterminate = computed(() => {
+  return selectedCount.value > 0 && selectedCount.value < cartItems.value.length
+})
     
-    // 当前选中规格名称
-    const selectedSpecName = computed(() => {
-      if (!tempSelectedSpecId.value || !availableSpecs.value.length) return ''
-      const spec = availableSpecs.value.find(s => s.id === tempSelectedSpecId.value)
-      return spec ? spec.specName : ''
-    })
+// 计算总价
+const totalPrice = computed(() => {
+  return cartItems.value
+    .filter(item => item.selected)
+    .reduce((total, item) => total + (item.price || 0) * item.quantity, 0)
+})
     
-    // 当前选中规格价格
-    const selectedSpecPrice = computed(() => {
-      if (!tempSelectedSpecId.value || !availableSpecs.value.length) return 0
-      const spec = availableSpecs.value.find(s => s.id === tempSelectedSpecId.value)
-      return spec ? spec.price : 0
-    })
+// 当前选中规格名称
+const selectedSpecName = computed(() => {
+  if (!tempSelectedSpecId.value || !availableSpecs.value.length) return ''
+  const spec = availableSpecs.value.find(s => s.id === tempSelectedSpecId.value)
+  return spec ? spec.specName : ''
+})
     
-    // 判断某个规格是否已在购物车中（同一茶叶的同一规格）
-    const isSpecInCart = specId => {
-      if (!currentSpecTea.value || specId == null) return false
-      // 兼容不同字段命名
-      const currentTeaId = String(currentSpecTea.value.teaId || currentSpecTea.value.tea_id || '')
-      // 使用 String() 统一类型比较，避免数字和字符串比较失败
-      return cartItems.value.some(item => {
-        const itemTeaId = String(item.teaId || item.tea_id || '')
-        const itemSpecId = String(item.specId || item.spec_id || '')
-        return itemTeaId === currentTeaId && itemSpecId === String(specId)
-      })
-    }
+// 当前选中规格价格
+const selectedSpecPrice = computed(() => {
+  if (!tempSelectedSpecId.value || !availableSpecs.value.length) return 0
+  const spec = availableSpecs.value.find(s => s.id === tempSelectedSpecId.value)
+  return spec ? spec.price : 0
+})
     
-    // "再买一款"是否可选：只有当选中的规格**不在**购物车中时才可选
-    const canAddAnotherSpec = computed(() => {
-      if (!tempSelectedSpecId.value) return false
-      // 选中的规格不在购物车中 → 可以勾选"再买一款"
-      return !isSpecInCart(tempSelectedSpecId.value)
-    })
+// 判断某个规格是否已在购物车中（同一茶叶的同一规格）
+const isSpecInCart = specId => {
+  if (!currentSpecTea.value || specId == null) return false
+  // 兼容不同字段命名
+  const currentTeaId = String(currentSpecTea.value.teaId || currentSpecTea.value.tea_id || '')
+  // 使用 String() 统一类型比较，避免数字和字符串比较失败
+  return cartItems.value.some(item => {
+    const itemTeaId = String(item.teaId || item.tea_id || '')
+    const itemSpecId = String(item.specId || item.spec_id || '')
+    return itemTeaId === currentTeaId && itemSpecId === String(specId)
+  })
+}
     
-    // 当选中的规格变化时，如果该规格在购物车中，自动取消勾选"再买一款"
-    watch(tempSelectedSpecId, newSpecId => {
-      if (newSpecId && isSpecInCart(newSpecId)) {
-        addAnotherSpec.value = false
-      }
-    })
+// "再买一款"是否可选：只有当选中的规格**不在**购物车中时才可选
+const canAddAnotherSpec = computed(() => {
+  if (!tempSelectedSpecId.value) return false
+  // 选中的规格不在购物车中 → 可以勾选"再买一款"
+  return !isSpecInCart(tempSelectedSpecId.value)
+})
     
-    // 更新全选状态
-    const updateSelectAllStatus = () => {
-      const hasItems = cartItems.value.length > 0
-      selectAll.value = hasItems && cartItems.value.every(item => item.selected)
-    }
+// 当选中的规格变化时，如果该规格在购物车中，自动取消勾选"再买一款"
+watch(tempSelectedSpecId, newSpecId => {
+  if (newSpecId && isSpecInCart(newSpecId)) {
+    addAnotherSpec.value = false
+  }
+})
     
-    // 处理全选变化
-    const handleSelectAllChange = val => {
-      cartItems.value.forEach(item => {
-        item.selected = val
-      })
-    }
+// 更新全选状态
+const updateSelectAllStatus = () => {
+  const hasItems = cartItems.value.length > 0
+  selectAll.value = hasItems && cartItems.value.every(item => item.selected)
+}
     
-    // 处理单个商品选中状态变化
-    const handleItemSelectChange = () => {
-      updateSelectAllStatus()
-    }
+// 处理全选变化
+const handleSelectAllChange = val => {
+  cartItems.value.forEach(item => {
+    item.selected = val
+  })
+}
     
-    // 处理数量变化
-    const handleQuantityChange = async item => {
-      // 检查库存
-      if (item.stock !== undefined && item.quantity > item.stock) {
-        orderPromptMessages.showStockInsufficient(item.stock)
-        item.quantity = item.stock
-        return
-      }
+// 处理单个商品选中状态变化
+const handleItemSelectChange = () => {
+  updateSelectAllStatus()
+}
+    
+// 处理数量变化
+const handleQuantityChange = async item => {
+  // 检查库存
+  if (item.stock !== undefined && item.quantity > item.stock) {
+    orderPromptMessages.showStockInsufficient(item.stock)
+    item.quantity = item.stock
+    return
+  }
       
-      try {
-        const res = await orderStore.updateCartItem({
-          id: item.id,
-          quantity: item.quantity
-        })
-        // res = {code, data}
-        if (res && res.code !== 200) {
-          showByCode(res.code)
-        }
-      } catch (error) {
-        // 网络错误等已由响应拦截器处理，这里只记录日志
-        if (process.env.NODE_ENV === 'development') {
-          console.error('更新数量失败:', error)
-        }
-        // 恢复：重新拉取购物车
-        await initCartData()
-      }
+  try {
+    const res = await orderStore.updateCartItem({
+      id: item.id,
+      quantity: item.quantity
+    })
+    // res = {code, data}
+    if (res && res.code !== 200) {
+      showByCode(res.code)
     }
+  } catch (error) {
+    // 网络错误等已由响应拦截器处理，这里只记录日志
+    if (process.env.NODE_ENV === 'development') {
+      console.error('更新数量失败:', error)
+    }
+    // 恢复：重新拉取购物车
+    await initCartData()
+  }
+}
     
-    // 选择规格
-    const selectSpecification = async item => {
-      currentCartItemId.value = item.id
-      currentSpecTea.value = item
-      // 兼容不同字段命名，确保有值
-      tempSelectedSpecId.value = item.specId || item.spec_id || null
-      addAnotherSpec.value = false // 重置"再买一款"状态
+// 选择规格
+const selectSpecification = async item => {
+  currentCartItemId.value = item.id
+  currentSpecTea.value = item
+  // 兼容不同字段命名，确保有值
+  tempSelectedSpecId.value = item.specId || item.spec_id || null
+  addAnotherSpec.value = false // 重置"再买一款"状态
       
-      // 获取茶叶的规格列表
-      try {
-        loading.value = true
-        const teaId = item.teaId || item.tea_id
-        const res = await teaStore.fetchTeaSpecifications(teaId)
-        availableSpecs.value = res?.data || res || []
+  // 获取茶叶的规格列表
+  try {
+    loading.value = true
+    const teaId = item.teaId || item.tea_id
+    const res = await teaStore.fetchTeaSpecifications(teaId)
+    availableSpecs.value = res?.data || res || []
         
-        // 如果没有规格，提示用户
-        if (availableSpecs.value.length === 0) {
-          orderPromptMessages.showNoSpecAvailable()
-          return
-        }
-        
-        specDialogVisible.value = true
-      } catch (error) {
-        // 网络错误等已由响应拦截器处理，这里只记录日志
-        if (process.env.NODE_ENV === 'development') {
-          console.error('加载规格失败:', error)
-        }
-      } finally {
-        loading.value = false
-      }
+    // 如果没有规格，提示用户
+    if (availableSpecs.value.length === 0) {
+      orderPromptMessages.showNoSpecAvailable()
+      return
     }
+        
+    specDialogVisible.value = true
+  } catch (error) {
+    // 网络错误等已由响应拦截器处理，这里只记录日志
+    if (process.env.NODE_ENV === 'development') {
+      console.error('加载规格失败:', error)
+    }
+  } finally {
+    loading.value = false
+  }
+}
     
-    // 确认规格变更
-    const confirmSpecChange = async () => {
-      if (!tempSelectedSpecId.value || !currentSpecTea.value) {
+// 确认规格变更
+const confirmSpecChange = async () => {
+  if (!tempSelectedSpecId.value || !currentSpecTea.value) {
+    orderPromptMessages.showSpecRequired()
+    return
+  }
+
+  try {
+    loading.value = true
+        
+    // 兼容不同字段命名
+    const currentTeaId = currentSpecTea.value.teaId || currentSpecTea.value.tea_id
+        
+    // 如果勾选了"再买一款"，创建新的购物车项而不是更新原规格
+    if (addAnotherSpec.value) {
+      // 检查选中的规格是否已在购物车中（理论上不会，因为已在购物车的规格不能选中"再买一款"）
+      if (isSpecInCart(tempSelectedSpecId.value)) {
         orderPromptMessages.showSpecRequired()
         return
       }
-
-      try {
-        loading.value = true
-        
-        // 兼容不同字段命名
-        const currentTeaId = currentSpecTea.value.teaId || currentSpecTea.value.tea_id
-        
-        // 如果勾选了"再买一款"，创建新的购物车项而不是更新原规格
-        if (addAnotherSpec.value) {
-          // 检查选中的规格是否已在购物车中（理论上不会，因为已在购物车的规格不能选中"再买一款"）
-          if (isSpecInCart(tempSelectedSpecId.value)) {
-            orderPromptMessages.showSpecRequired()
-            return
-          }
           
-          // 添加新的购物车项
-          const res = await orderStore.addToCart({
-            teaId: currentTeaId,
-            quantity: 1,
-            specificationId: String(tempSelectedSpecId.value)
-          })
+      // 添加新的购物车项
+      const res = await orderStore.addToCart({
+        teaId: currentTeaId,
+        quantity: 1,
+        specificationId: String(tempSelectedSpecId.value)
+      })
           
-          // 显示结果消息
-          if (res && res.code) {
-            showByCode(res.code)
-          }
+      // 显示结果消息
+      if (res && res.code) {
+        showByCode(res.code)
+      }
           
-          // 成功时关闭弹窗并刷新数据
-          if (res && isSuccess(res.code)) {
-            specDialogVisible.value = false
-            addAnotherSpec.value = false // 重置状态
-            // 重新获取购物车数据
-            await initCartData()
-          }
-        } else {
-          // 未勾选"再买一款"，更新原购物车项的规格
-          if (!currentCartItemId.value) {
+      // 成功时关闭弹窗并刷新数据
+      if (res && isSuccess(res.code)) {
+        specDialogVisible.value = false
+        addAnotherSpec.value = false // 重置状态
+        // 重新获取购物车数据
+        await initCartData()
+      }
+    } else {
+      // 未勾选"再买一款"，更新原购物车项的规格
+      if (!currentCartItemId.value) {
         orderPromptMessages.showSpecRequired()
         return
       }
 
       // 如果选择的规格和当前规格相同，直接关闭
       const currentItem = cartItems.value.find(item => item.id === currentCartItemId.value)
-          const currentItemSpecId = currentItem ? String(currentItem.specId || currentItem.spec_id || '') : ''
-          if (currentItem && currentItemSpecId === String(tempSelectedSpecId.value)) {
+      const currentItemSpecId = currentItem ? String(currentItem.specId || currentItem.spec_id || '') : ''
+      if (currentItem && currentItemSpecId === String(tempSelectedSpecId.value)) {
         specDialogVisible.value = false
         return
       }
 
-        // 更新购物车商品的规格
-        const res = await orderStore.updateCartItem({
-          id: currentCartItemId.value,
-          specificationId: tempSelectedSpecId.value
-        })
+      // 更新购物车商品的规格
+      const res = await orderStore.updateCartItem({
+        id: currentCartItemId.value,
+        specificationId: tempSelectedSpecId.value
+      })
           
-          // 显示结果消息
-          if (res && res.code) {
-          showByCode(res.code)
-        }
+      // 显示结果消息
+      if (res && res.code) {
+        showByCode(res.code)
+      }
           
-          // 成功时关闭弹窗并刷新数据
-          if (res && isSuccess(res.code)) {
+      // 成功时关闭弹窗并刷新数据
+      if (res && isSuccess(res.code)) {
         specDialogVisible.value = false
         // 重新获取购物车数据以更新价格和库存
         await initCartData()
-          }
-        }
-      } catch (error) {
-        // 网络错误等已由响应拦截器处理，这里只记录日志
-        if (process.env.NODE_ENV === 'development') {
-          console.error('更新规格失败:', error)
-        }
-      } finally {
-        loading.value = false
       }
     }
-    
-    // 移除商品
-    const removeItem = id => {
-      ElMessageBox.confirm('确定要从购物车中移除该商品吗？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        orderStore.removeFromCart(id).then(async res => {
-          // res = {code, data}
-          if (res && res.code !== 200) {
-            showByCode(res.code)
-          }
-          // 刷新本地列表
-          await initCartData()
-        }).catch(error => {
-          // 网络错误等已由响应拦截器处理，这里只记录日志
-          if (process.env.NODE_ENV === 'development') {
-            console.error('移除商品失败:', error)
-          }
-        })
-      }).catch(() => {
-        // 用户取消操作
-      })
+  } catch (error) {
+    // 网络错误等已由响应拦截器处理，这里只记录日志
+    if (process.env.NODE_ENV === 'development') {
+      console.error('更新规格失败:', error)
     }
+  } finally {
+    loading.value = false
+  }
+}
     
-    // 移除选中商品
-    const removeSelectedItems = () => {
-      if (selectedCount.value === 0) {
-        orderPromptMessages.showDeleteSelectionRequired()
-        return
+// 移除商品
+const removeItem = id => {
+  ElMessageBox.confirm('确定要从购物车中移除该商品吗？', '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(() => {
+    orderStore.removeFromCart(id).then(async res => {
+      // res = {code, data}
+      if (res && res.code !== 200) {
+        showByCode(res.code)
       }
-      
-      ElMessageBox.confirm('确定要删除选中的商品吗？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        const selectedIds = cartItems.value
-          .filter(item => item.selected)
-          .map(item => item.id)
-
-        Promise.all(selectedIds.map(id => orderStore.removeFromCart(id))).then(async results => {
-          // 检查是否有失败的
-          const failedRes = results.find(res => res && res.code !== 200 && res.code !== 4013)
-          if (failedRes) {
-            showByCode(failedRes.code)
-          }
-          await initCartData()
-        }).catch(error => {
-          // 网络错误等已由响应拦截器处理，这里只记录日志
-          if (process.env.NODE_ENV === 'development') {
-            console.error('删除商品失败:', error)
-          }
-        })
-      }).catch(() => {
-        // 用户取消操作
-      })
-    }
-    
-    // 去结算
-    const checkout = () => {
-      if (selectedCount.value === 0) {
-        orderPromptMessages.showSelectionRequired()
-        return
-      }
-
-      // TODO-SCRIPT: 结算页需要支持从购物车选择的项（建议通过 query 传 selectedIds，或在 Pinia 中存储临时选择）
-      const selectedIds = cartItems.value.filter(item => item.selected).map(item => item.id)
-      router.push({ path: '/order/checkout', query: { selectedIds: selectedIds.join(',') } })
-    }
-    
-    // 跳转到茶叶详情页
-    const goToTeaDetail = teaId => {
-      router.push(`/tea/${teaId}`)
-    }
-    
-    // 跳转到茶叶商城
-    const goToTeaMall = () => {
-      router.push('/tea/mall')
-    }
-    
-    // 更新购物车数量方法
-    const updateCartCountBadge = count => {
-      // 更新localStorage中的购物车数量
-      localStorage.setItem('cartCount', count.toString())
-      
-      // 尝试更新DOM中的购物车数量标识
-      const cartBadge = document.querySelector('.cart-badge')
-      if (cartBadge) {
-        cartBadge.textContent = count.toString()
-        cartBadge.style.display = count > 0 ? 'block' : 'none'
-      }
-      
-      // 发送自定义事件，通知其他组件购物车数量变化
-      // 这对于不同组件间的通信很有用
-      window.dispatchEvent(new CustomEvent('cart-updated', { detail: { count } }))
-      
-      // 将当前购物车数量更新到状态
-      cartCount.value = count
-    }
-    
-    // 添加默认图片常量
-    const defaultTeaImage = '@/assets/images/teas/default.jpg'
-    
-    // 初始化时更新购物车数量
-    onMounted(() => {
-      // 初始化购物车数据
-      initCartData()
-      
-      // 立即从localStorage读取购物车数量并更新标识（即使数据还未加载完成）
-      const storedCount = localStorage.getItem('cartCount')
-      if (storedCount) {
-        const count = parseInt(storedCount, 10)
-        updateCartCountBadge(count)
+      // 刷新本地列表
+      await initCartData()
+    }).catch(error => {
+      // 网络错误等已由响应拦截器处理，这里只记录日志
+      if (process.env.NODE_ENV === 'development') {
+        console.error('移除商品失败:', error)
       }
     })
+  }).catch(() => {
+    // 用户取消操作
+  })
+}
     
-    // 当cartItems改变时更新购物车数量
-    watch(cartItems, newItems => {
-      // 购物车项的数量（不同商品的数量，而不是总数量）
-      const itemCount = newItems.length
+// 移除选中商品
+const removeSelectedItems = () => {
+  if (selectedCount.value === 0) {
+    orderPromptMessages.showDeleteSelectionRequired()
+    return
+  }
       
-      // 更新购物车数量标识
-      updateCartCountBadge(itemCount)
-    }, { deep: true })
+  ElMessageBox.confirm('确定要删除选中的商品吗？', '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(() => {
+    const selectedIds = cartItems.value
+      .filter(item => item.selected)
+      .map(item => item.id)
+
+    Promise.all(selectedIds.map(id => orderStore.removeFromCart(id))).then(async results => {
+      // 检查是否有失败的
+      const failedRes = results.find(res => res && res.code !== 200 && res.code !== 4013)
+      if (failedRes) {
+        showByCode(failedRes.code)
+      }
+      await initCartData()
+    }).catch(error => {
+      // 网络错误等已由响应拦截器处理，这里只记录日志
+      if (process.env.NODE_ENV === 'development') {
+        console.error('删除商品失败:', error)
+      }
+    })
+  }).catch(() => {
+    // 用户取消操作
+  })
+}
+    
+// 去结算
+const checkout = () => {
+  if (selectedCount.value === 0) {
+    orderPromptMessages.showSelectionRequired()
+    return
+  }
+
+  // TODO-SCRIPT: 结算页需要支持从购物车选择的项（建议通过 query 传 selectedIds，或在 Pinia 中存储临时选择）
+  const selectedIds = cartItems.value.filter(item => item.selected).map(item => item.id)
+  router.push({ path: '/order/checkout', query: { selectedIds: selectedIds.join(',') } })
+}
+    
+// 跳转到茶叶详情页
+const goToTeaDetail = teaId => {
+  router.push(`/tea/${teaId}`)
+}
+    
+// 跳转到茶叶商城
+const goToTeaMall = () => {
+  router.push('/tea/mall')
+}
+    
+// 更新购物车数量方法
+const updateCartCountBadge = count => {
+  // 更新localStorage中的购物车数量
+  localStorage.setItem('cartCount', count.toString())
+      
+  // 尝试更新DOM中的购物车数量标识
+  const cartBadge = document.querySelector('.cart-badge')
+  if (cartBadge) {
+    cartBadge.textContent = count.toString()
+    cartBadge.style.display = count > 0 ? 'block' : 'none'
+  }
+      
+  // 发送自定义事件，通知其他组件购物车数量变化
+  // 这对于不同组件间的通信很有用
+  window.dispatchEvent(new CustomEvent('cart-updated', { detail: { count } }))
+      
+  // 将当前购物车数量更新到状态
+  cartCount.value = count
+}
+    
+// 添加默认图片常量
+const defaultTeaImage = '@/assets/images/teas/default.jpg'
+    
+// 初始化时更新购物车数量
+onMounted(() => {
+  // 初始化购物车数据
+  initCartData()
+      
+  // 立即从localStorage读取购物车数量并更新标识（即使数据还未加载完成）
+  const storedCount = localStorage.getItem('cartCount')
+  if (storedCount) {
+    const count = parseInt(storedCount, 10)
+    updateCartCountBadge(count)
+  }
+})
+    
+// 当cartItems改变时更新购物车数量
+watch(cartItems, newItems => {
+  // 购物车项的数量（不同商品的数量，而不是总数量）
+  const itemCount = newItems.length
+      
+  // 更新购物车数量标识
+  updateCartCountBadge(itemCount)
+}, { deep: true })
 </script>
 
 <style lang="scss" scoped>

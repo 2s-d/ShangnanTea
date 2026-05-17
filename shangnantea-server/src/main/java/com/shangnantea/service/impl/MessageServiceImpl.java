@@ -29,6 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.shangnantea.websocket.service.WebSocketService;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -125,16 +126,14 @@ public class MessageServiceImpl implements MessageService {
             // 3. 调用工具类上传图片（硬编码type为"messages"）
             String relativePath = FileUploadUtils.uploadImage(image, "messages");
             
-            // 4. 生成访问URL
-            String accessUrl = FileUploadUtils.generateAccessUrl(relativePath, baseUrl);
-            
             // 5. 创建聊天消息记录
             ChatMessage message = new ChatMessage();
             // message.setId() - 让数据库自动生成ID
             message.setSessionId(sessionId);
             message.setSenderId(senderId);
             message.setReceiverId(receiverId);
-            message.setContent(accessUrl); // 存储完整的访问URL
+            // 统一存相对路径，避免将主机名（含localhost/内网）写入数据库
+            message.setContent(normalizeToFilesPath(relativePath));
             message.setContentType("image"); // 标识为图片消息
             message.setIsRead(0); // 未读
             message.setCreateTime(new Date());
@@ -155,7 +154,7 @@ public class MessageServiceImpl implements MessageService {
             // 8. 构造返回数据
             Map<String, Object> responseData = new HashMap<>();
             responseData.put("messageId", message.getId());
-            responseData.put("content", accessUrl);
+            responseData.put("content", resolveMessageContentForResponse(message.getContent(), "image"));
             responseData.put("contentType", "image");
             responseData.put("createTime", message.getCreateTime());
             
@@ -1266,7 +1265,7 @@ public class MessageServiceImpl implements MessageService {
                     messageVO.put("senderAvatar", null);
                 }
                 
-                messageVO.put("content", message.getContent());
+                messageVO.put("content", resolveMessageContentForResponse(message.getContent(), message.getContentType()));
                 messageVO.put("contentType", message.getContentType());
                 messageVO.put("isRead", message.getIsRead() != null && message.getIsRead() == 1);
                 messageVO.put("createTime", message.getCreateTime());
@@ -2051,5 +2050,62 @@ public class MessageServiceImpl implements MessageService {
             logger.error("创建或获取会话失败: 系统异常", e);
             return null;
         }
+    }
+
+    /**
+     * 图片消息出参统一处理：先清洗历史错误前缀，再按当前baseUrl补全。
+     */
+    private String resolveMessageContentForResponse(String content, String contentType) {
+        if (content == null) {
+            return null;
+        }
+        if (!"image".equalsIgnoreCase(contentType)) {
+            return content;
+        }
+        String normalized = normalizeToFilesPath(content);
+        if (normalized == null || normalized.trim().isEmpty()) {
+            return content;
+        }
+        if (normalized.startsWith("http://") || normalized.startsWith("https://")) {
+            return normalized;
+        }
+        return FileUploadUtils.generateAccessUrl(normalized, baseUrl);
+    }
+
+    /**
+     * 路径归一化：优先截取files/...，用于清理历史存入的完整URL。
+     */
+    private String normalizeToFilesPath(String rawPath) {
+        if (rawPath == null) {
+            return null;
+        }
+        String value = rawPath.trim();
+        if (value.isEmpty()) {
+            return null;
+        }
+        String lower = value.toLowerCase();
+        int filesIndex = lower.indexOf("files/");
+        if (filesIndex >= 0) {
+            return value.substring(filesIndex);
+        }
+        if (value.startsWith("http://") || value.startsWith("https://")) {
+            try {
+                URI uri = URI.create(value);
+                String path = uri.getPath();
+                if (path != null && !path.trim().isEmpty()) {
+                    String normalized = path.trim();
+                    while (normalized.startsWith("/")) {
+                        normalized = normalized.substring(1);
+                    }
+                    return normalized;
+                }
+            } catch (Exception ignore) {
+                // ignore
+            }
+        }
+        while (value.startsWith("/")) {
+            value = value.substring(1);
+        }
+        return value;
     }
 } 

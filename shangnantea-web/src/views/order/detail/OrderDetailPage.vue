@@ -469,604 +469,604 @@ const initialAddressForm = ref({
 // 地区级联选择器数据
 const cascaderOptions = ref(regionData || [])
 
-    // 获取订单状态文本
-    const getStatusText = status => {
-      const statusMap = {
-        0: '待付款',
-        1: '待发货',
-        2: '待收货',
-        3: '已完成',
-        4: '已取消',
-        5: '退款中',
-        6: '已退款'
-      }
-      return statusMap[status] || '未知状态'
-    }
+// 获取订单状态文本
+const getStatusText = status => {
+  const statusMap = {
+    0: '待付款',
+    1: '待发货',
+    2: '待收货',
+    3: '已完成',
+    4: '已取消',
+    5: '退款中',
+    6: '已退款'
+  }
+  return statusMap[status] || '未知状态'
+}
     
-    // 获取状态对应的类名
-    const getStatusClass = status => {
-      const classMap = {
-        0: 'status-unpaid',
-        1: 'status-unshipped',
-        2: 'status-shipped',
-        3: 'status-completed',
-        4: 'status-cancelled',
-        5: 'status-refunding',
-        6: 'status-refunded'
-      }
-      return classMap[status] || ''
-    }
+// 获取状态对应的类名
+const getStatusClass = status => {
+  const classMap = {
+    0: 'status-unpaid',
+    1: 'status-unshipped',
+    2: 'status-shipped',
+    3: 'status-completed',
+    4: 'status-cancelled',
+    5: 'status-refunding',
+    6: 'status-refunded'
+  }
+  return classMap[status] || ''
+}
     
-    // 获取支付方式文本
-    const getPaymentMethodText = method => {
-      const methodMap = {
-        'alipay': '支付宝',
-        'wechat': '微信支付',
-        'unionpay': '银联支付'
-      }
-      // 待付款且没有支付方式时，显示“待选择”
-      if (!method && orderDetail.value && orderDetail.value.status === 0) {
-        return '待选择'
-      }
-      if (!method) return '未设置'
-      return methodMap[method] || '未知方式'
-    }
+// 获取支付方式文本
+const getPaymentMethodText = method => {
+  const methodMap = {
+    'alipay': '支付宝',
+    'wechat': '微信支付',
+    'unionpay': '银联支付'
+  }
+  // 待付款且没有支付方式时，显示“待选择”
+  if (!method && orderDetail.value && orderDetail.value.status === 0) {
+    return '待选择'
+  }
+  if (!method) return '未设置'
+  return methodMap[method] || '未知方式'
+}
     
-    // 计算商品总金额
-    const getProductsAmount = () => {
-      if (!orderDetail.value) return 0
-      // 单品订单模式下，直接计算单个商品的总价
-      return orderDetail.value.price * orderDetail.value.quantity
-    }
+// 计算商品总金额
+const getProductsAmount = () => {
+  if (!orderDetail.value) return 0
+  // 单品订单模式下，直接计算单个商品的总价
+  return orderDetail.value.price * orderDetail.value.quantity
+}
     
-    // 格式化时间
-    const formatTime = timeStr => {
-      if (!timeStr) return '--'
+// 格式化时间
+const formatTime = timeStr => {
+  if (!timeStr) return '--'
       
-      const date = new Date(timeStr)
-      return `${date.getFullYear()}-${padZero(date.getMonth() + 1)}-${padZero(date.getDate())} ${padZero(date.getHours())}:${padZero(date.getMinutes())}`
-    }
+  const date = new Date(timeStr)
+  return `${date.getFullYear()}-${padZero(date.getMonth() + 1)}-${padZero(date.getDate())} ${padZero(date.getHours())}:${padZero(date.getMinutes())}`
+}
     
-    // 数字补零
-    const padZero = num => {
-      return num < 10 ? `0${num}` : num
-    }
+// 数字补零
+const padZero = num => {
+  return num < 10 ? `0${num}` : num
+}
     
-    // 返回订单列表
-    const goBack = () => {
-      router.push('/order/list')
-    }
+// 返回订单列表
+const goBack = () => {
+  router.push('/order/list')
+}
     
-    // 打开修改收货地址对话框
-    const openAddressDialog = async () => {
-      // 确保用户地址列表已加载
-      if (!userStore.addressList || userStore.addressList.length === 0) {
-        try {
-          await userStore.fetchAddresses()
-        } catch (error) {
-          console.error('获取地址列表失败:', error)
+// 打开修改收货地址对话框
+const openAddressDialog = async () => {
+  // 确保用户地址列表已加载
+  if (!userStore.addressList || userStore.addressList.length === 0) {
+    try {
+      await userStore.fetchAddresses()
+    } catch (error) {
+      console.error('获取地址列表失败:', error)
+    }
+  }
+      
+  // 初始化表单数据为当前订单地址
+  const currentAddr = address.value
+  const initialRegion = []
+      
+  // 根据省市区设置级联选择器的值
+  if (currentAddr.province && currentAddr.city && currentAddr.district) {
+    const province = cascaderOptions.value.find(p => p.label === currentAddr.province)
+    if (province) {
+      const city = province.children?.find(c => c.label === currentAddr.city)
+      if (city) {
+        const district = city.children?.find(d => d.label === currentAddr.district)
+        if (district) {
+          initialRegion.push(province.value, city.value, district.value)
         }
       }
+    }
+  }
       
-      // 初始化表单数据为当前订单地址
-      const currentAddr = address.value
-      const initialRegion = []
+  editAddressForm.value = {
+    receiverName: currentAddr.name || '',
+    receiverPhone: currentAddr.phone || '',
+    region: initialRegion,
+    detailAddress: currentAddr.detail || ''
+  }
       
-      // 根据省市区设置级联选择器的值
-      if (currentAddr.province && currentAddr.city && currentAddr.district) {
-        const province = cascaderOptions.value.find(p => p.label === currentAddr.province)
-        if (province) {
-          const city = province.children?.find(c => c.label === currentAddr.city)
-          if (city) {
-            const district = city.children?.find(d => d.label === currentAddr.district)
-            if (district) {
-              initialRegion.push(province.value, city.value, district.value)
-            }
-          }
+  // 保存初始值（深拷贝）
+  initialAddressForm.value = {
+    receiverName: currentAddr.name || '',
+    receiverPhone: currentAddr.phone || '',
+    region: [...initialRegion],
+    detailAddress: currentAddr.detail || ''
+  }
+      
+  selectedAddressId.value = null
+  addressDialogVisible.value = true
+}
+    
+// 从地址簿填充表单
+const fillAddressFromBook = addr => {
+  selectedAddressId.value = addr.id
+  editAddressForm.value.receiverName = addr.receiverName || addr.name || ''
+  editAddressForm.value.receiverPhone = addr.receiverPhone || addr.phone || ''
+  editAddressForm.value.detailAddress = addr.detailAddress || addr.detail || ''
+      
+  // 设置地区级联选择器的值
+  if (addr.province && addr.city && addr.district) {
+    const province = cascaderOptions.value.find(p => p.label === addr.province)
+    if (province) {
+      const city = province.children?.find(c => c.label === addr.city)
+      if (city) {
+        const district = city.children?.find(d => d.label === addr.district)
+        if (district) {
+          editAddressForm.value.region = [province.value, city.value, district.value]
         }
       }
-      
-      editAddressForm.value = {
-        receiverName: currentAddr.name || '',
-        receiverPhone: currentAddr.phone || '',
-        region: initialRegion,
-        detailAddress: currentAddr.detail || ''
-      }
-      
-      // 保存初始值（深拷贝）
-      initialAddressForm.value = {
-        receiverName: currentAddr.name || '',
-        receiverPhone: currentAddr.phone || '',
-        region: [...initialRegion],
-        detailAddress: currentAddr.detail || ''
-      }
-      
-      selectedAddressId.value = null
-      addressDialogVisible.value = true
     }
+  } else {
+    editAddressForm.value.region = []
+  }
+}
     
-    // 从地址簿填充表单
-    const fillAddressFromBook = (addr) => {
-      selectedAddressId.value = addr.id
-      editAddressForm.value.receiverName = addr.receiverName || addr.name || ''
-      editAddressForm.value.receiverPhone = addr.receiverPhone || addr.phone || ''
-      editAddressForm.value.detailAddress = addr.detailAddress || addr.detail || ''
+// 地区选择变化处理
+const handleRegionChange = value => {
+  // 级联选择器值变化时，可以在这里做额外处理
+  // 当前不需要额外处理
+}
+    
+// 管理员/商户：发货操作
+const handleShipOrder = () => {
+  router.push(`/order/manage/detail/${orderId}`)
+  // 实际应该打开发货对话框，这里先跳转到管理页，由管理页处理发货
+  // TODO: 如果管理端详情页有发货功能，应该在这里打开对话框
+}
+    
+// 管理员/商户：处理退款操作
+const handleProcessRefund = () => {
+  router.push(`/order/manage/detail/${orderId}`)
+  // 实际应该打开退款处理对话框
+  // TODO: 如果管理端详情页有退款处理功能，应该在这里打开对话框
+}
+    
+// 查看茶叶详情
+const viewTeaDetail = teaId => {
+  router.push(`/tea/${teaId}`)
+}
+    
+// 提交支付表单（自动跳转到支付宝）
+const submitAlipayForm = formHtml => {
+  const div = document.createElement('div')
+  div.innerHTML = formHtml
+  document.body.appendChild(div)
+  const form = div.querySelector('form')
+  if (form) {
+    form.submit()
+  } else {
+    console.error('支付表单格式错误')
+    ElMessage.error('支付表单格式错误，请重试')
+  }
+}
+    
+// 继续支付：使用 paymentId 而非 orderId，因为支付是针对整个支付单的
+const continuePay = async () => {
+  if (!orderDetail.value) {
+    ElMessage.error('订单信息异常，无法发起支付')
+    return
+  }
       
-      // 设置地区级联选择器的值
-      if (addr.province && addr.city && addr.district) {
-        const province = cascaderOptions.value.find(p => p.label === addr.province)
-        if (province) {
-          const city = province.children?.find(c => c.label === addr.city)
-          if (city) {
-            const district = city.children?.find(d => d.label === addr.district)
-            if (district) {
-              editAddressForm.value.region = [province.value, city.value, district.value]
-            }
-          }
-        }
-      } else {
-        editAddressForm.value.region = []
-      }
-    }
-    
-    // 地区选择变化处理
-    const handleRegionChange = (value) => {
-      // 级联选择器值变化时，可以在这里做额外处理
-      // 当前不需要额外处理
-    }
-    
-    // 管理员/商户：发货操作
-    const handleShipOrder = () => {
-      router.push(`/order/manage/detail/${orderId}`)
-      // 实际应该打开发货对话框，这里先跳转到管理页，由管理页处理发货
-      // TODO: 如果管理端详情页有发货功能，应该在这里打开对话框
-    }
-    
-    // 管理员/商户：处理退款操作
-    const handleProcessRefund = () => {
-      router.push(`/order/manage/detail/${orderId}`)
-      // 实际应该打开退款处理对话框
-      // TODO: 如果管理端详情页有退款处理功能，应该在这里打开对话框
-    }
-    
-    // 查看茶叶详情
-    const viewTeaDetail = teaId => {
-      router.push(`/tea/${teaId}`)
-    }
-    
-    // 提交支付表单（自动跳转到支付宝）
-    const submitAlipayForm = formHtml => {
-      const div = document.createElement('div')
-      div.innerHTML = formHtml
-      document.body.appendChild(div)
-      const form = div.querySelector('form')
-      if (form) {
-        form.submit()
-      } else {
-        console.error('支付表单格式错误')
-        ElMessage.error('支付表单格式错误，请重试')
-      }
-    }
-    
-    // 继续支付：使用 paymentId 而非 orderId，因为支付是针对整个支付单的
-    const continuePay = async () => {
-      if (!orderDetail.value) {
-        ElMessage.error('订单信息异常，无法发起支付')
-        return
-      }
+  const paymentId = orderDetail.value.paymentId
+  const orderId = orderDetail.value.id
       
-      const paymentId = orderDetail.value.paymentId
-      const orderId = orderDetail.value.id
+  if (!paymentId && !orderId) {
+    ElMessage.error('订单信息异常，无法发起支付')
+    return
+  }
       
-      if (!paymentId && !orderId) {
-        ElMessage.error('订单信息异常，无法发起支付')
-        return
-      }
-      
-      try {
-        // 直接调用支付 API（优先使用 paymentId）
-        const payRes = await orderStore.payOrder({
-          paymentId: paymentId || undefined,
-          orderId: orderId || undefined,
-          paymentMethod: 'alipay' // 默认使用支付宝
-        })
+  try {
+    // 直接调用支付 API（优先使用 paymentId）
+    const payRes = await orderStore.payOrder({
+      paymentId: paymentId || undefined,
+      orderId: orderId || undefined,
+      paymentMethod: 'alipay' // 默认使用支付宝
+    })
         
-        // 检查支付接口返回的状态码
-        if (payRes?.code === 5007) {
-          // 5007 - 支付表单生成成功，正在跳转...
-          showByCode(payRes.code)
+    // 检查支付接口返回的状态码
+    if (payRes?.code === 5007) {
+      // 5007 - 支付表单生成成功，正在跳转...
+      showByCode(payRes.code)
           
-          // 获取支付表单HTML并自动提交
-          const formHtml = payRes?.data?.formHtml || payRes?.data
-          if (formHtml) {
-            submitAlipayForm(formHtml)
-          } else {
-            console.error('未返回支付表单')
-            ElMessage.error('支付表单生成失败，请重试')
-          }
-        } else if (payRes?.code === 5006) {
-          // 5006 - 订单已支付
-          showByCode(payRes.code)
-          // 重新加载订单详情，刷新状态
-          loadOrderDetail()
-        } else {
-          // 其他状态码（失败）
-          if (payRes?.code) {
-            showByCode(payRes.code)
-          } else {
-            ElMessage.error('支付发起失败，请重试')
-          }
-        }
-      } catch (error) {
-        console.error('发起支付失败:', error)
+      // 获取支付表单HTML并自动提交
+      const formHtml = payRes?.data?.formHtml || payRes?.data
+      if (formHtml) {
+        submitAlipayForm(formHtml)
+      } else {
+        console.error('未返回支付表单')
+        ElMessage.error('支付表单生成失败，请重试')
+      }
+    } else if (payRes?.code === 5006) {
+      // 5006 - 订单已支付
+      showByCode(payRes.code)
+      // 重新加载订单详情，刷新状态
+      loadOrderDetail()
+    } else {
+      // 其他状态码（失败）
+      if (payRes?.code) {
+        showByCode(payRes.code)
+      } else {
         ElMessage.error('支付发起失败，请重试')
       }
     }
+  } catch (error) {
+    console.error('发起支付失败:', error)
+    ElMessage.error('支付发起失败，请重试')
+  }
+}
     
-    // 取消订单
-    const cancelOrder = () => {
-      ElMessageBox.prompt('请输入取消原因（必填）', '取消订单', {
-        confirmButtonText: '提交取消',
-        cancelButtonText: '返回',
-        inputPlaceholder: '例如：不想要了 / 地址填错了 / 重复下单',
-        inputType: 'textarea',
-        inputValidator: (val) => {
-          if (!val || !String(val).trim()) return '取消原因不能为空'
-          if (String(val).trim().length > 120) return '取消原因最多120字'
-          return true
-        }
-      }).then(({ value }) => {
-        const reason = String(value).trim()
-        orderStore.cancelOrder({ id: orderId, reason })
-          .then(res => {
-            if (res && res.code) showByCode(res.code)
-            loadOrderDetail()
-          })
-          .catch(error => {
-            if (process.env.NODE_ENV === 'development') {
-              console.error('取消订单失败:', error)
-            }
-          })
-      }).catch(() => {
-        // 用户取消操作，不做任何处理
-      })
+// 取消订单
+const cancelOrder = () => {
+  ElMessageBox.prompt('请输入取消原因（必填）', '取消订单', {
+    confirmButtonText: '提交取消',
+    cancelButtonText: '返回',
+    inputPlaceholder: '例如：不想要了 / 地址填错了 / 重复下单',
+    inputType: 'textarea',
+    inputValidator: val => {
+      if (!val || !String(val).trim()) return '取消原因不能为空'
+      if (String(val).trim().length > 120) return '取消原因最多120字'
+      return true
     }
-    
-    // 确认收货
-    const confirmReceipt = () => {
-      ElMessageBox.confirm('确认已收到商品吗？', '提示', {
-        confirmButtonText: '确认收货',
-        cancelButtonText: '取消',
-        type: 'info'
-      }).then(() => {
-        orderStore.confirmReceipt(orderId)
-          .then(res => {
-            // res = {code, data}
-            if (res && res.code !== 200) {
-              showByCode(res.code)
-            }
-            loadOrderDetail()
-          })
-          .catch(error => {
-            // 网络错误等已由响应拦截器处理，这里只记录日志
-            if (process.env.NODE_ENV === 'development') {
-              console.error('确认收货失败:', error)
-            }
-          })
-      }).catch(() => {
-        // 用户取消操作，不做任何处理
+  }).then(({ value }) => {
+    const reason = String(value).trim()
+    orderStore.cancelOrder({ id: orderId, reason })
+      .then(res => {
+        if (res && res.code) showByCode(res.code)
+        loadOrderDetail()
       })
-    }
-    
-    // 查看物流：调用 Pinia action 获取最新物流信息并刷新本地展示
-    const viewLogistics = async () => {
-      try {
-        const res = await orderStore.fetchOrderLogistics(orderId)
-        showByCode(res?.code)
-        const data = res?.data || res
-        if (data) {
-          logistics.value = {
-            company: data.company || logistics.value.company,
-            tracking_number: data.tracking_number || logistics.value.tracking_number,
-            ship_time: data.ship_time || logistics.value.ship_time,
-            traces: data.traces || logistics.value.traces
-          }
-        } else {
-          orderPromptMessages.showNoLogisticsInfo()
+      .catch(error => {
+        if (process.env.NODE_ENV === 'development') {
+          console.error('取消订单失败:', error)
         }
-      } catch (error) {
-        console.error('获取物流信息失败:', error)
+      })
+  }).catch(() => {
+    // 用户取消操作，不做任何处理
+  })
+}
+    
+// 确认收货
+const confirmReceipt = () => {
+  ElMessageBox.confirm('确认已收到商品吗？', '提示', {
+    confirmButtonText: '确认收货',
+    cancelButtonText: '取消',
+    type: 'info'
+  }).then(() => {
+    orderStore.confirmReceipt(orderId)
+      .then(res => {
+        // res = {code, data}
+        if (res && res.code !== 200) {
+          showByCode(res.code)
+        }
+        loadOrderDetail()
+      })
+      .catch(error => {
+        // 网络错误等已由响应拦截器处理，这里只记录日志
+        if (process.env.NODE_ENV === 'development') {
+          console.error('确认收货失败:', error)
+        }
+      })
+  }).catch(() => {
+    // 用户取消操作，不做任何处理
+  })
+}
+    
+// 查看物流：调用 Pinia action 获取最新物流信息并刷新本地展示
+const viewLogistics = async () => {
+  try {
+    const res = await orderStore.fetchOrderLogistics(orderId)
+    showByCode(res?.code)
+    const data = res?.data || res
+    if (data) {
+      logistics.value = {
+        company: data.company || logistics.value.company,
+        tracking_number: data.tracking_number || logistics.value.tracking_number,
+        ship_time: data.ship_time || logistics.value.ship_time,
+        traces: data.traces || logistics.value.traces
       }
+    } else {
+      orderPromptMessages.showNoLogisticsInfo()
     }
+  } catch (error) {
+    console.error('获取物流信息失败:', error)
+  }
+}
 
-    // 检查表单是否被修改
-    const isFormModified = () => {
-      return editAddressForm.value.receiverName !== initialAddressForm.value.receiverName ||
+// 检查表单是否被修改
+const isFormModified = () => {
+  return editAddressForm.value.receiverName !== initialAddressForm.value.receiverName ||
              editAddressForm.value.receiverPhone !== initialAddressForm.value.receiverPhone ||
              JSON.stringify(editAddressForm.value.region) !== JSON.stringify(initialAddressForm.value.region) ||
              editAddressForm.value.detailAddress !== initialAddressForm.value.detailAddress
+}
+    
+// 按钮文案：根据当前状态和是否修改决定显示“保存”还是“修改地址”
+const addressSubmitText = computed(() => {
+  // 选了地址簿：始终是保存（直接更新订单地址）
+  if (selectedAddressId.value) return '保存'
+  // 已经创建过新地址：下一步就是保存到订单
+  if (addressActionStage.value === 'created') return '保存'
+  // 表单有改动但还没创建地址：先走“修改地址”（触发新增地址）
+  if (isFormModified()) return '修改地址'
+  // 默认：保存（什么都不做直接关闭）
+  return '保存'
+})
+    
+// 提交修改订单地址
+const submitAddressChange = async () => {
+  // 如果既没选择地址簿地址，也没修改表单，并且还在初始阶段，则保持原样（不提交）
+  if (!selectedAddressId.value && !isFormModified() && addressActionStage.value === 'initial') {
+    addressDialogVisible.value = false
+    return
+  }
+      
+  // 如果选择了地址簿地址，直接用这个ID（忽略表单内容）
+  if (selectedAddressId.value) {
+    addressSubmitting.value = true
+    try {
+      const res = await orderStore.updateOrderAddress({
+        orderId,
+        addressId: selectedAddressId.value
+      })
+      const code = res?.code
+      if (code) {
+        showByCode(code)
+      }
+      addressDialogVisible.value = false
+      await loadOrderDetail()
+    } catch (error) {
+      showByCode(5147, error?.message || null)
+    } finally {
+      addressSubmitting.value = false
     }
-    
-    // 按钮文案：根据当前状态和是否修改决定显示“保存”还是“修改地址”
-    const addressSubmitText = computed(() => {
-      // 选了地址簿：始终是保存（直接更新订单地址）
-      if (selectedAddressId.value) return '保存'
-      // 已经创建过新地址：下一步就是保存到订单
-      if (addressActionStage.value === 'created') return '保存'
-      // 表单有改动但还没创建地址：先走“修改地址”（触发新增地址）
-      if (isFormModified()) return '修改地址'
-      // 默认：保存（什么都不做直接关闭）
-      return '保存'
-    })
-    
-    // 提交修改订单地址
-    const submitAddressChange = async () => {
-      // 如果既没选择地址簿地址，也没修改表单，并且还在初始阶段，则保持原样（不提交）
-      if (!selectedAddressId.value && !isFormModified() && addressActionStage.value === 'initial') {
-        addressDialogVisible.value = false
-        return
-      }
+    return
+  }
       
-      // 如果选择了地址簿地址，直接用这个ID（忽略表单内容）
-      if (selectedAddressId.value) {
-        addressSubmitting.value = true
-        try {
-          const res = await orderStore.updateOrderAddress({
-            orderId,
-            addressId: selectedAddressId.value
-          })
-          const code = res?.code
-          if (code) {
-            showByCode(code)
-          }
-          addressDialogVisible.value = false
-          await loadOrderDetail()
-        } catch (error) {
-          showByCode(5147, error?.message || null)
-        } finally {
-          addressSubmitting.value = false
-        }
-        return
+  // 已经创建过新地址：这次点击是真正“保存到订单”
+  if (addressActionStage.value === 'created' && createdAddressId.value) {
+    addressSubmitting.value = true
+    try {
+      const res = await orderStore.updateOrderAddress({
+        orderId,
+        addressId: createdAddressId.value
+      })
+      const code = res?.code
+      if (code) {
+        showByCode(code)
       }
+      addressDialogVisible.value = false
+      await loadOrderDetail()
+    } catch (error) {
+      showByCode(5147, error?.message || null)
+    } finally {
+      addressSubmitting.value = false
+      addressActionStage.value = 'initial'
+      createdAddressId.value = null
+    }
+    return
+  }
       
-      // 已经创建过新地址：这次点击是真正“保存到订单”
-      if (addressActionStage.value === 'created' && createdAddressId.value) {
-        addressSubmitting.value = true
-        try {
-          const res = await orderStore.updateOrderAddress({
-            orderId,
-            addressId: createdAddressId.value
-          })
-          const code = res?.code
-          if (code) {
-            showByCode(code)
-          }
-          addressDialogVisible.value = false
-          await loadOrderDetail()
-        } catch (error) {
-          showByCode(5147, error?.message || null)
-        } finally {
-          addressSubmitting.value = false
-          addressActionStage.value = 'initial'
-          createdAddressId.value = null
-        }
-        return
-      }
+  // 如果没有选择地址簿地址，但修改了表单，需要创建新地址（第一步：修改地址）
+  // 验证表单数据
+  if (!editAddressForm.value.receiverName || !editAddressForm.value.receiverPhone) {
+    orderPromptMessages.showAddressRequired && orderPromptMessages.showAddressRequired()
+    return
+  }
       
-      // 如果没有选择地址簿地址，但修改了表单，需要创建新地址（第一步：修改地址）
-      // 验证表单数据
-      if (!editAddressForm.value.receiverName || !editAddressForm.value.receiverPhone) {
-        orderPromptMessages.showAddressRequired && orderPromptMessages.showAddressRequired()
-        return
-      }
+  if (!editAddressForm.value.region || editAddressForm.value.region.length !== 3) {
+    showByCode(5147, '请选择完整的省市区')
+    return
+  }
       
-      if (!editAddressForm.value.region || editAddressForm.value.region.length !== 3) {
-        showByCode(5147, '请选择完整的省市区')
-        return
-      }
+  if (!editAddressForm.value.detailAddress) {
+    showByCode(5147, '请输入详细地址')
+    return
+  }
       
-      if (!editAddressForm.value.detailAddress) {
-        showByCode(5147, '请输入详细地址')
-        return
-      }
-      
-      addressSubmitting.value = true
-      try {
-        // 从级联选择器获取省市区名称
-        const province = cascaderOptions.value.find(p => p.value === editAddressForm.value.region[0])
-        const city = province?.children?.find(c => c.value === editAddressForm.value.region[1])
-        const district = city?.children?.find(d => d.value === editAddressForm.value.region[2])
+  addressSubmitting.value = true
+  try {
+    // 从级联选择器获取省市区名称
+    const province = cascaderOptions.value.find(p => p.value === editAddressForm.value.region[0])
+    const city = province?.children?.find(c => c.value === editAddressForm.value.region[1])
+    const district = city?.children?.find(d => d.value === editAddressForm.value.region[2])
         
-        const addressData = {
-          receiverName: editAddressForm.value.receiverName,
-          receiverPhone: editAddressForm.value.receiverPhone,
-          province: province?.label || '',
-          city: city?.label || '',
-          district: district?.label || '',
-          detailAddress: editAddressForm.value.detailAddress,
-          isDefault: false
-        }
+    const addressData = {
+      receiverName: editAddressForm.value.receiverName,
+      receiverPhone: editAddressForm.value.receiverPhone,
+      province: province?.label || '',
+      city: city?.label || '',
+      district: district?.label || '',
+      detailAddress: editAddressForm.value.detailAddress,
+      isDefault: false
+    }
         
-        // 创建新地址（成功码为 2007，而不是 200）
-        const addRes = await userStore.addAddress(addressData)
-        if (!addRes || (addRes.code !== 200 && addRes.code !== 2007)) {
-          showByCode(addRes?.code || 5147)
-          return
-        }
+    // 创建新地址（成功码为 2007，而不是 200）
+    const addRes = await userStore.addAddress(addressData)
+    if (!addRes || (addRes.code !== 200 && addRes.code !== 2007)) {
+      showByCode(addRes?.code || 5147)
+      return
+    }
         
-        // 获取新创建的地址ID
-        await userStore.fetchAddresses()
-        const newAddress = userStore.addressList.find(addr => {
-          if (!addr) return false
-          const name = addr.receiverName || addr.name
-          const phone = addr.receiverPhone || addr.phone
-          const detail = addr.detailAddress || addr.detail
-          return (
-            name === addressData.receiverName &&
+    // 获取新创建的地址ID
+    await userStore.fetchAddresses()
+    const newAddress = userStore.addressList.find(addr => {
+      if (!addr) return false
+      const name = addr.receiverName || addr.name
+      const phone = addr.receiverPhone || addr.phone
+      const detail = addr.detailAddress || addr.detail
+      return (
+        name === addressData.receiverName &&
             phone === addressData.receiverPhone &&
             addr.province === addressData.province &&
             addr.city === addressData.city &&
             addr.district === addressData.district &&
             detail === addressData.detailAddress
-          )
-        })
+      )
+    })
         
-        if (!newAddress) {
-          showByCode(5147, '无法获取新创建的地址ID')
-          return
-        }
+    if (!newAddress) {
+      showByCode(5147, '无法获取新创建的地址ID')
+      return
+    }
         
-        createdAddressId.value = newAddress.id
-        addressActionStage.value = 'created'
-        // 此时不关闭对话框，只提示“地址添加成功”，按钮文案自动变回“保存”
-        showByCode(addRes.code)
-      } catch (error) {
-        showByCode(5147, error?.message || null)
-      } finally {
-        addressSubmitting.value = false
-      }
-    }
+    createdAddressId.value = newAddress.id
+    addressActionStage.value = 'created'
+    // 此时不关闭对话框，只提示“地址添加成功”，按钮文案自动变回“保存”
+    showByCode(addRes.code)
+  } catch (error) {
+    showByCode(5147, error?.message || null)
+  } finally {
+    addressSubmitting.value = false
+  }
+}
     
-    // 查看退款详情/进度：统一从后端 getRefundDetail 拉取最新数据
-    const viewRefundDetail = async () => {
-      if (!orderDetail.value) {
-        orderPromptMessages.showNoRefundInfo && orderPromptMessages.showNoRefundInfo()
-        return
-      }
-      try {
-        const res = await orderStore.fetchRefundDetail(orderId)
-        showByCode(res?.code)
-        const data = res?.data || res
-        if (!data) {
-          orderPromptMessages.showNoRefundInfo && orderPromptMessages.showNoRefundInfo()
-          return
-        }
-        const statusTextMap = {
-          1: '退款申请中',
-          2: '退款已同意',
-          3: '退款已拒绝'
-        }
-        const status = data.status ?? orderDetail.value.refundStatus
-        const statusText = statusTextMap[status] || '退款处理中'
-        const reason = data.reason || orderDetail.value.refundReason || '无'
-        const rejectReason = data.rejectReason || orderDetail.value.refundRejectReason || '无'
-        const applyTime = data.applyTime || orderDetail.value.refundApplyTime
-        const processTime = data.processTime || orderDetail.value.refundProcessTime
-        ElMessageBox.alert(
-          `状态：${statusText}\n申请原因：${reason}\n拒绝原因：${rejectReason}\n申请时间：${applyTime || '无'}\n处理时间：${processTime || '无'}`,
-          '退款详情',
-          { confirmButtonText: '我知道了' }
-        )
-      } catch (error) {
-        console.error('获取退款详情失败:', error)
-        orderPromptMessages.showNoRefundInfo && orderPromptMessages.showNoRefundInfo()
-      }
+// 查看退款详情/进度：统一从后端 getRefundDetail 拉取最新数据
+const viewRefundDetail = async () => {
+  if (!orderDetail.value) {
+    orderPromptMessages.showNoRefundInfo && orderPromptMessages.showNoRefundInfo()
+    return
+  }
+  try {
+    const res = await orderStore.fetchRefundDetail(orderId)
+    showByCode(res?.code)
+    const data = res?.data || res
+    if (!data) {
+      orderPromptMessages.showNoRefundInfo && orderPromptMessages.showNoRefundInfo()
+      return
     }
+    const statusTextMap = {
+      1: '退款申请中',
+      2: '退款已同意',
+      3: '退款已拒绝'
+    }
+    const status = data.status ?? orderDetail.value.refundStatus
+    const statusText = statusTextMap[status] || '退款处理中'
+    const reason = data.reason || orderDetail.value.refundReason || '无'
+    const rejectReason = data.rejectReason || orderDetail.value.refundRejectReason || '无'
+    const applyTime = data.applyTime || orderDetail.value.refundApplyTime
+    const processTime = data.processTime || orderDetail.value.refundProcessTime
+    ElMessageBox.alert(
+      `状态：${statusText}\n申请原因：${reason}\n拒绝原因：${rejectReason}\n申请时间：${applyTime || '无'}\n处理时间：${processTime || '无'}`,
+      '退款详情',
+      { confirmButtonText: '我知道了' }
+    )
+  } catch (error) {
+    console.error('获取退款详情失败:', error)
+    orderPromptMessages.showNoRefundInfo && orderPromptMessages.showNoRefundInfo()
+  }
+}
     
-    const canRequestRefund = computed(() => {
-      if (!orderDetail.value) return false
-      const status = orderDetail.value.status
-      // 待付款、退款中、已退款都不允许申请退款
-      if (status === 0 || status === 5 || status === 6) return false
-      // 简单规则：待发货/待收货/已完成允许申请一次
-      return status === 1 || status === 2 || status === 3
+const canRequestRefund = computed(() => {
+  if (!orderDetail.value) return false
+  const status = orderDetail.value.status
+  // 待付款、退款中、已退款都不允许申请退款
+  if (status === 0 || status === 5 || status === 6) return false
+  // 简单规则：待发货/待收货/已完成允许申请一次
+  return status === 1 || status === 2 || status === 3
+})
+    
+// 是否已评价
+const isReviewed = computed(() => {
+  if (!orderDetail.value) return false
+  const flag = orderDetail.value.isReviewed ?? orderDetail.value.buyerRate
+  return flag === 1
+})
+    
+// 是否可以评价（订单状态为已完成且未评价）
+const canReview = computed(() => {
+  if (!orderDetail.value) return false
+  return orderDetail.value.status === 3 && !isReviewed.value
+})
+    
+const refundDialogVisible = ref(false)
+const refundSubmitting = ref(false)
+const refundReason = ref('')
+    
+const openRefundDialog = () => {
+  if (!canRequestRefund.value) {
+    orderPromptMessages.showRefundNotSupported()
+    return
+  }
+  refundReason.value = ''
+  refundDialogVisible.value = true
+}
+    
+const submitRefund = async () => {
+  if (!refundReason.value || refundReason.value.trim().length < 5) {
+    orderPromptMessages.showRefundReasonTooShort()
+    return
+  }
+  refundSubmitting.value = true
+  try {
+    const res = await orderStore.applyRefund({
+      orderId,
+      reason: refundReason.value.trim()
     })
+    // res = {code, data}
+    if (res && res.code !== 200) {
+      showByCode(res.code)
+    }
+    refundDialogVisible.value = false
+    // 重新加载订单详情，退款信息会从 orderDetail 中获取
+    await loadOrderDetail()
+  } catch (error) {
+    // 5128: 退款申请提交失败（使用状态码消息系统；customMessage 仅用于补充异常信息）
+    showByCode(5128, error?.message || null)
+  } finally {
+    refundSubmitting.value = false
+  }
+}
     
-    // 是否已评价
-    const isReviewed = computed(() => {
-      if (!orderDetail.value) return false
-      const flag = orderDetail.value.isReviewed ?? orderDetail.value.buyerRate
-      return flag === 1
+// 评价商品
+const writeReview = () => {
+  router.push(`/order/review/${orderDetail.value.id}`)
+}
+    
+// 再次购买
+const buyAgain = () => {
+  orderPromptMessages.showBuyAgainDev()
+  // 实际场景中，可能需要将所有商品添加到购物车，然后跳转到购物车页面
+}
+    
+// 加载订单详情
+const loadOrderDetail = () => {
+  orderStore.fetchOrderDetail(orderId)
+    .then(res => {
+      // res = {code, data}
+      const data = res?.data || res
+      orderDetail.value = data
+      // 同步收货地址和物流信息
+      const addr = data?.address || {}
+      address.value = {
+        name: addr.receiverName || addr.name || '',
+        phone: addr.receiverPhone || addr.phone || '',
+        province: addr.province || '',
+        city: addr.city || '',
+        district: addr.district || '',
+        detail: addr.detailAddress || addr.detail || ''
+      }
+      // 物流信息：后端返回的是 logisticsCompany/logisticsNumber/shippingTime，需要映射
+      logistics.value = {
+        company: data?.logisticsCompany || data?.logistics?.company || '',
+        tracking_number: data?.logisticsNumber || data?.logistics?.tracking_number || '',
+        ship_time: data?.shippingTime || data?.logistics?.ship_time || '',
+        traces: data?.logistics?.traces || []
+      }
+      // 退款信息现在直接从 orderDetail 中读取，不再需要单独调用 fetchRefundDetail
     })
-    
-    // 是否可以评价（订单状态为已完成且未评价）
-    const canReview = computed(() => {
-      if (!orderDetail.value) return false
-      return orderDetail.value.status === 3 && !isReviewed.value
+    .catch(error => {
+      // 5116: 获取订单详情失败（使用状态码消息系统；customMessage 仅用于补充异常信息）
+      showByCode(5116, error?.message || null)
+      orderDetail.value = null
     })
-    
-    const refundDialogVisible = ref(false)
-    const refundSubmitting = ref(false)
-    const refundReason = ref('')
-    
-    const openRefundDialog = () => {
-      if (!canRequestRefund.value) {
-        orderPromptMessages.showRefundNotSupported()
-        return
-      }
-      refundReason.value = ''
-      refundDialogVisible.value = true
-    }
-    
-    const submitRefund = async () => {
-      if (!refundReason.value || refundReason.value.trim().length < 5) {
-        orderPromptMessages.showRefundReasonTooShort()
-        return
-      }
-      refundSubmitting.value = true
-      try {
-        const res = await orderStore.applyRefund({
-          orderId,
-          reason: refundReason.value.trim()
-        })
-        // res = {code, data}
-        if (res && res.code !== 200) {
-          showByCode(res.code)
-        }
-        refundDialogVisible.value = false
-        // 重新加载订单详情，退款信息会从 orderDetail 中获取
-        await loadOrderDetail()
-      } catch (error) {
-        // 5128: 退款申请提交失败（使用状态码消息系统；customMessage 仅用于补充异常信息）
-        showByCode(5128, error?.message || null)
-      } finally {
-        refundSubmitting.value = false
-      }
-    }
-    
-    // 评价商品
-    const writeReview = () => {
-      router.push(`/order/review/${orderDetail.value.id}`)
-    }
-    
-    // 再次购买
-    const buyAgain = () => {
-      orderPromptMessages.showBuyAgainDev()
-      // 实际场景中，可能需要将所有商品添加到购物车，然后跳转到购物车页面
-    }
-    
-    // 加载订单详情
-    const loadOrderDetail = () => {
-      orderStore.fetchOrderDetail(orderId)
-        .then(res => {
-          // res = {code, data}
-          const data = res?.data || res
-          orderDetail.value = data
-          // 同步收货地址和物流信息
-          const addr = data?.address || {}
-          address.value = {
-            name: addr.receiverName || addr.name || '',
-            phone: addr.receiverPhone || addr.phone || '',
-            province: addr.province || '',
-            city: addr.city || '',
-            district: addr.district || '',
-            detail: addr.detailAddress || addr.detail || ''
-          }
-          // 物流信息：后端返回的是 logisticsCompany/logisticsNumber/shippingTime，需要映射
-          logistics.value = {
-            company: data?.logisticsCompany || data?.logistics?.company || '',
-            tracking_number: data?.logisticsNumber || data?.logistics?.tracking_number || '',
-            ship_time: data?.shippingTime || data?.logistics?.ship_time || '',
-            traces: data?.logistics?.traces || []
-          }
-          // 退款信息现在直接从 orderDetail 中读取，不再需要单独调用 fetchRefundDetail
-        })
-        .catch(error => {
-          // 5116: 获取订单详情失败（使用状态码消息系统；customMessage 仅用于补充异常信息）
-          showByCode(5116, error?.message || null)
-          orderDetail.value = null
-        })
-    }
+}
     
 // 默认图片（生产形态：不使用 mock-images）
 const defaultTeaImage = ''

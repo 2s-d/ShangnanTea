@@ -358,6 +358,21 @@ public class OrderController {
     }
 
     /**
+     * 根据支付单ID获取关联订单详情
+     * 路径: GET /order/payment/{paymentId}
+     * 成功码: 200, 失败码: 5114, 5115, 5116
+     *
+     * @param paymentId 支付单ID（PM开头）
+     * @return 订单详情
+     */
+    @GetMapping("/payment/{paymentId}")
+    @RequiresLogin
+    public Result<Object> getOrderDetailByPaymentId(@PathVariable String paymentId) {
+        logger.info("根据支付单获取订单详情请求: {}", paymentId);
+        return orderService.getOrderDetailByPaymentId(paymentId);
+    }
+
+    /**
      * 上传订单评价图片
      * 路径: POST /order/review/image
      * 成功码: 5016, 失败码: 5144, 5145, 5146

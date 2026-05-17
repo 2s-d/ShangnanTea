@@ -59,7 +59,7 @@ function parseError(errorOutput) {
         currentError.raw.push(line)
         
         // 提取错误类型和消息
-        if (line.includes('Module not found') || line.includes("Can't resolve")) {
+        if (line.includes('Module not found') || line.includes('Can\'t resolve')) {
           const match = line.match(/Can't resolve ['"]([^'"]+)['"]/i) || line.match(/Module not found: (.+)/i)
           if (match) {
             currentError.messages.push({
@@ -210,7 +210,7 @@ function main() {
       const hasErrors = output.includes('ERROR') || 
                        (errorMatch && parseInt(errorMatch[1]) > 0) ||
                        output.includes('Module not found') ||
-                       output.includes("Can't resolve") ||
+                       output.includes('Can\'t resolve') ||
                        output.includes('SyntaxError') ||
                        output.includes('Parsing error')
       
@@ -227,7 +227,7 @@ function main() {
           line.includes('ERROR') || 
           line.includes('error') || 
           line.includes('Module not found') ||
-          line.includes("Can't resolve") ||
+          line.includes('Can\'t resolve') ||
           line.includes('SyntaxError') ||
           line.includes('Parsing error')
         )
@@ -283,7 +283,7 @@ function main() {
           line.includes('ERROR') || 
           line.includes('error') || 
           line.includes('Module not found') ||
-          line.includes("Can't resolve") ||
+          line.includes('Can\'t resolve') ||
           line.includes('SyntaxError') ||
           line.includes('Parsing error')
         )

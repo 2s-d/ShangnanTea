@@ -314,7 +314,7 @@ const startARTasting = () => {
 }
 
 // 轮播图点击跳转：使用我们在后台配置的 link_url
-const handleBannerClick = (item) => {
+const handleBannerClick = item => {
   const link = item.link_url || item.linkUrl
   if (!link) return
   // 简单处理：站内路由以 / 开头时用 router 跳转，其它当作外链

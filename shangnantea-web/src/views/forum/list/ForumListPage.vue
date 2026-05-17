@@ -336,7 +336,7 @@ const throttle = (func, wait) => {
 const throttledHandleScroll = throttle(handleScroll, 16) // 约60fps
 
 // 获取显示名称（使用昵称）
-const getDisplayName = (user) => {
+const getDisplayName = user => {
   if (!user) return '未知用户'
   return user.nickname || '未知用户'
 }
@@ -405,7 +405,7 @@ const updatePagination = () => {
   pagination.total = paginationData.value.total
 }
 
-    /*
+/*
     // 模拟数据 - 版块列表
     const topicListMock = ref([
       {
@@ -677,7 +677,7 @@ const updatePagination = () => {
     pagination.total = 65 // 模拟总帖子数
     */
     
-    /*
+/*
     // 真实代码(开发UI时注释)
     const topicList = ref([])
     const postList = ref([])
@@ -746,284 +746,284 @@ const updatePagination = () => {
     })
     */
     
-    // 获取版块名称
-    const getTopicName = topicId => {
-      const topic = topicList.value.find(item => item.id === topicId)
-      return topic ? topic.name : '未知版块'
-    }
+// 获取版块名称
+const getTopicName = topicId => {
+  const topic = topicList.value.find(item => item.id === topicId)
+  return topic ? topic.name : '未知版块'
+}
     
-    // 获取当前版块名称
-    const getCurrentTopicName = () => {
-      if (currentTopicId.value === 'all') {
-        return '全部帖子'
-      }
-      return getTopicName(currentTopicId.value)
-    }
+// 获取当前版块名称
+const getCurrentTopicName = () => {
+  if (currentTopicId.value === 'all') {
+    return '全部帖子'
+  }
+  return getTopicName(currentTopicId.value)
+}
     
-    // 获取当前版块描述
-    const getCurrentTopicDesc = () => {
-      if (currentTopicId.value === 'all') {
-        return ''
-      }
-      const topic = topicList.value.find(item => item.id === currentTopicId.value)
-      return topic ? topic.description : ''
-    }
+// 获取当前版块描述
+const getCurrentTopicDesc = () => {
+  if (currentTopicId.value === 'all') {
+    return ''
+  }
+  const topic = topicList.value.find(item => item.id === currentTopicId.value)
+  return topic ? topic.description : ''
+}
     
-    // 获取版块列表
-    const fetchTopics = async () => {
-      try {
-        const res = await forumStore.fetchForumTopics()
-        showByCode(res.code)
-      } catch (error) {
-        console.error('获取版块列表失败:', error)
-      }
-    }
+// 获取版块列表
+const fetchTopics = async () => {
+  try {
+    const res = await forumStore.fetchForumTopics()
+    showByCode(res.code)
+  } catch (error) {
+    console.error('获取版块列表失败:', error)
+  }
+}
     
-    // 获取帖子列表
-    const fetchPosts = async () => {
-      try {
-        const params = {
-          page: pagination.currentPage,
-          size: pagination.pageSize,
-          sortBy: currentSort.value
-        }
-        // 如果选中了版块且不是"全部"，传递topicId参数
-        if (currentTopicId.value && currentTopicId.value !== 'all') {
-          params.topicId = currentTopicId.value
-        }
-        // 如果有搜索关键词，传递keyword参数
-        if (searchKeyword.value && searchKeyword.value.trim()) {
-          params.keyword = searchKeyword.value.trim()
-        }
-        const res = await forumStore.fetchForumPosts(params)
-        showByCode(res.code)
-        updatePagination()
-      } catch (error) {
-        console.error('获取帖子列表失败:', error)
-      }
+// 获取帖子列表
+const fetchPosts = async () => {
+  try {
+    const params = {
+      page: pagination.currentPage,
+      size: pagination.pageSize,
+      sortBy: currentSort.value
     }
-    
-    // 处理搜索
-    const handleSearch = () => {
-      pagination.currentPage = 1
-      fetchPosts()
+    // 如果选中了版块且不是"全部"，传递topicId参数
+    if (currentTopicId.value && currentTopicId.value !== 'all') {
+      params.topicId = currentTopicId.value
     }
-    
-    // 切换版块
-    const switchTopic = topicId => {
-      currentTopicId.value = topicId
-      // 切换版块时清空搜索关键词
-      searchKeyword.value = ''
-      pagination.currentPage = 1
-      fetchPosts()
+    // 如果有搜索关键词，传递keyword参数
+    if (searchKeyword.value && searchKeyword.value.trim()) {
+      params.keyword = searchKeyword.value.trim()
     }
+    const res = await forumStore.fetchForumPosts(params)
+    showByCode(res.code)
+    updatePagination()
+  } catch (error) {
+    console.error('获取帖子列表失败:', error)
+  }
+}
     
-    // 跳转到我的帖子页面
-    const goToMyPosts = () => {
-      router.push('/forum/my-posts')
+// 处理搜索
+const handleSearch = () => {
+  pagination.currentPage = 1
+  fetchPosts()
+}
+    
+// 切换版块
+const switchTopic = topicId => {
+  currentTopicId.value = topicId
+  // 切换版块时清空搜索关键词
+  searchKeyword.value = ''
+  pagination.currentPage = 1
+  fetchPosts()
+}
+    
+// 跳转到我的帖子页面
+const goToMyPosts = () => {
+  router.push('/forum/my-posts')
+}
+    
+// 刷新版块列表
+const refreshTopics = () => {
+  fetchTopics()
+}
+    
+// 刷新帖子列表
+const refreshPosts = () => {
+  fetchPosts()
+}
+    
+// 处理排序变更
+const handleSortChange = sort => {
+  currentSort.value = sort
+  pagination.currentPage = 1
+  fetchPosts()
+}
+    
+// 处理分页大小变更
+const handleSizeChange = size => {
+  pagination.pageSize = size
+  pagination.currentPage = 1
+  fetchPosts()
+}
+    
+// 处理页码变更
+const handleCurrentChange = page => {
+  pagination.currentPage = page
+  fetchPosts()
+}
+    
+// 查看版块
+const viewTopic = topicId => {
+  router.push(`/forum/topic/${topicId}`)
+}
+    
+// 查看帖子详情
+const viewPost = postId => {
+  router.push(`/forum/${postId}`)
+}
+    
+// 查看更多我的帖子
+const viewMoreMyPosts = () => {
+  router.push('/user/settings/posts')
+}
+    
+// 显示发帖对话框（复用统一编辑组件）
+const showPostDialog = () => {
+  postDialogInitialData.value = {
+    title: '',
+    content: '',
+    summary: '',
+    coverImage: '',
+    topicId: currentTopicId.value && currentTopicId.value !== 'all' ? currentTopicId.value : null
+  }
+  dialogVisible.post = true
+}
+    
+const handlePostSubmitted = () => {
+  // 发布成功后不刷新列表：待审核帖子不会出现在列表中（与旧逻辑一致）
+}
+    
+// 帖子回复
+const handleReply = post => {
+  router.push(`/forum/${post.id}#reply-section`)
+}
+    
+// 帖子点赞（使用用户模块的通用点赞接口）
+const handleLike = async post => {
+  try {
+    if (post.isLiked) {
+      // 取消点赞：直接传递 targetId 和 targetType
+      const res = await userStore.removeLike({
+        targetId: String(post.id),
+        targetType: 'post'
+      })
+      showByCode(res.code)
+    } else {
+      // 添加点赞
+      const res = await userStore.addLike({
+        targetId: String(post.id),
+        targetType: 'post'
+      })
+      showByCode(res.code)
     }
+    // 操作完成后刷新列表，确保点赞数和状态使用后端真实数据
+    await fetchPosts()
+  } catch (error) {
+    console.error('点赞操作失败:', error)
+  }
+}
     
-    // 刷新版块列表
-    const refreshTopics = () => {
-      fetchTopics()
+// 帖子收藏（使用用户模块的通用收藏接口）
+const handleFavorite = async post => {
+  try {
+    if (post.isFavorited) {
+      // 取消收藏：直接传递 itemId 和 itemType
+      const res = await userStore.removeFavorite({
+        itemId: String(post.id),
+        itemType: 'post'
+      })
+      showByCode(res.code)
+    } else {
+      // 添加收藏
+      const res = await userStore.addFavorite({
+        itemId: String(post.id),
+        itemType: 'post',
+        targetName: post.title || '',
+        targetImage: post.coverImage || ''
+      })
+      showByCode(res.code)
     }
+    // 操作完成后刷新列表，确保收藏数和状态使用后端真实数据
+    await fetchPosts()
+  } catch (error) {
+    console.error('收藏操作失败:', error)
+  }
+}
     
+// 确认删除帖子
+const confirmDeletePost = post => {
+  postToDelete.value = post
+  dialogVisible.delete = true
+}
+    
+// 删除帖子
+const deletePost = async () => {
+  if (!postToDelete.value) return
+      
+  localLoading.delete = true
+      
+  try {
+    const res = await forumStore.deletePost(postToDelete.value.id)
+    // 从我的帖子列表中移除
+    myPosts.value = myPosts.value.filter(item => item.id !== postToDelete.value.id)
+        
+    showByCode(res.code)
+    dialogVisible.delete = false
+    postToDelete.value = null
+        
     // 刷新帖子列表
-    const refreshPosts = () => {
-      fetchPosts()
-    }
+    fetchPosts()
+  } catch (error) {
+    console.error('删除帖子失败:', error)
+  } finally {
+    localLoading.delete = false
+  }
+}
     
-    // 处理排序变更
-    const handleSortChange = sort => {
-      currentSort.value = sort
-      pagination.currentPage = 1
-      fetchPosts()
-    }
-    
-    // 处理分页大小变更
-    const handleSizeChange = size => {
-      pagination.pageSize = size
-      pagination.currentPage = 1
-      fetchPosts()
-    }
-    
-    // 处理页码变更
-    const handleCurrentChange = page => {
-      pagination.currentPage = page
-      fetchPosts()
-    }
-    
-    // 查看版块
-    const viewTopic = topicId => {
-      router.push(`/forum/topic/${topicId}`)
-    }
-    
-    // 查看帖子详情
-    const viewPost = postId => {
-      router.push(`/forum/${postId}`)
-    }
-    
-    // 查看更多我的帖子
-    const viewMoreMyPosts = () => {
-      router.push('/user/settings/posts')
-    }
-    
-    // 显示发帖对话框（复用统一编辑组件）
-    const showPostDialog = () => {
-      postDialogInitialData.value = {
-        title: '',
-        content: '',
-        summary: '',
-        coverImage: '',
-        topicId: currentTopicId.value && currentTopicId.value !== 'all' ? currentTopicId.value : null
-      }
-      dialogVisible.post = true
-    }
-    
-    const handlePostSubmitted = () => {
-      // 发布成功后不刷新列表：待审核帖子不会出现在列表中（与旧逻辑一致）
-    }
-    
-    // 帖子回复
-    const handleReply = post => {
-      router.push(`/forum/${post.id}#reply-section`)
-    }
-    
-    // 帖子点赞（使用用户模块的通用点赞接口）
-    const handleLike = async post => {
-      try {
-        if (post.isLiked) {
-          // 取消点赞：直接传递 targetId 和 targetType
-          const res = await userStore.removeLike({
-            targetId: String(post.id),
-            targetType: 'post'
-          })
-          showByCode(res.code)
-        } else {
-          // 添加点赞
-          const res = await userStore.addLike({
-            targetId: String(post.id),
-            targetType: 'post'
-          })
-          showByCode(res.code)
-        }
-        // 操作完成后刷新列表，确保点赞数和状态使用后端真实数据
-        await fetchPosts()
-      } catch (error) {
-        console.error('点赞操作失败:', error)
-      }
-    }
-    
-    // 帖子收藏（使用用户模块的通用收藏接口）
-    const handleFavorite = async post => {
-      try {
-        if (post.isFavorited) {
-          // 取消收藏：直接传递 itemId 和 itemType
-          const res = await userStore.removeFavorite({
-            itemId: String(post.id),
-            itemType: 'post'
-          })
-          showByCode(res.code)
-        } else {
-          // 添加收藏
-          const res = await userStore.addFavorite({
-            itemId: String(post.id),
-            itemType: 'post',
-            targetName: post.title || '',
-            targetImage: post.coverImage || ''
-          })
-          showByCode(res.code)
-        }
-        // 操作完成后刷新列表，确保收藏数和状态使用后端真实数据
-        await fetchPosts()
-      } catch (error) {
-        console.error('收藏操作失败:', error)
-      }
-    }
-    
-    // 确认删除帖子
-    const confirmDeletePost = post => {
-      postToDelete.value = post
-      dialogVisible.delete = true
-    }
-    
-    // 删除帖子
-    const deletePost = async () => {
-      if (!postToDelete.value) return
+// 格式化日期
+const formatDate = dateString => {
+  const date = new Date(dateString)
+  const now = new Date()
+  const diff = now - date
       
-      localLoading.delete = true
+  // 一小时内显示"刚刚"
+  if (diff < 60 * 60 * 1000) {
+    return '刚刚'
+  }
       
-      try {
-        const res = await forumStore.deletePost(postToDelete.value.id)
-        // 从我的帖子列表中移除
-        myPosts.value = myPosts.value.filter(item => item.id !== postToDelete.value.id)
-        
-        showByCode(res.code)
-        dialogVisible.delete = false
-        postToDelete.value = null
-        
-        // 刷新帖子列表
-        fetchPosts()
-      } catch (error) {
-        console.error('删除帖子失败:', error)
-      } finally {
-        localLoading.delete = false
-      }
-    }
+  // 一天内显示"x小时前"
+  if (diff < 24 * 60 * 1000) {
+    const hours = Math.floor(diff / (60 * 60 * 1000))
+    return `${hours}小时前`
+  }
+      
+  // 一周内显示"x天前"
+  if (diff < 7 * 24 * 60 * 60 * 1000) {
+    const days = Math.floor(diff / (24 * 60 * 60 * 1000))
+    return `${days}天前`
+  }
+      
+  // 其他情况显示具体日期
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+}
     
-    // 格式化日期
-    const formatDate = dateString => {
-      const date = new Date(dateString)
-      const now = new Date()
-      const diff = now - date
-      
-      // 一小时内显示"刚刚"
-      if (diff < 60 * 60 * 1000) {
-        return '刚刚'
-      }
-      
-      // 一天内显示"x小时前"
-      if (diff < 24 * 60 * 1000) {
-        const hours = Math.floor(diff / (60 * 60 * 1000))
-        return `${hours}小时前`
-      }
-      
-      // 一周内显示"x天前"
-      if (diff < 7 * 24 * 60 * 60 * 1000) {
-        const days = Math.floor(diff / (24 * 60 * 60 * 1000))
-        return `${days}天前`
-      }
-      
-      // 其他情况显示具体日期
-      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
-    }
+// 回到首页
+const goHome = () => {
+  router.push('/tea-culture')
+}
     
-    // 回到首页
-    const goHome = () => {
-      router.push('/tea-culture')
-    }
-    
-    // 页面初始化
-    onMounted(async () => {
-      await fetchTopics()
-      // 如果有路由参数topicId，设置为当前版块
-      const routeTopicId = route.params.id
-      if (routeTopicId) {
-        currentTopicId.value = parseInt(routeTopicId)
-      }
-      // 默认加载帖子列表（全部帖子）
-      await fetchPosts()
+// 页面初始化
+onMounted(async () => {
+  await fetchTopics()
+  // 如果有路由参数topicId，设置为当前版块
+  const routeTopicId = route.params.id
+  if (routeTopicId) {
+    currentTopicId.value = parseInt(routeTopicId)
+  }
+  // 默认加载帖子列表（全部帖子）
+  await fetchPosts()
       
-      // 添加滚动监听
-      window.addEventListener('scroll', throttledHandleScroll, { passive: true })
-      // 初始化时执行一次
-      setTimeout(handleScroll, 100)
-    })
+  // 添加滚动监听
+  window.addEventListener('scroll', throttledHandleScroll, { passive: true })
+  // 初始化时执行一次
+  setTimeout(handleScroll, 100)
+})
     
-    // 页面卸载时移除滚动监听
-    onUnmounted(() => {
-      window.removeEventListener('scroll', throttledHandleScroll)
-    })
+// 页面卸载时移除滚动监听
+onUnmounted(() => {
+  window.removeEventListener('scroll', throttledHandleScroll)
+})
 </script>
 
 <style lang="scss" scoped>

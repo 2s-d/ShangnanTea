@@ -1221,6 +1221,82 @@ public class OrderServiceImpl implements OrderService {
     
     @Override
     @Transactional
+    public Result<Object> getOrderDetailByPaymentId(String paymentId) {
+        logger.info("根据支付单获取订单详情请求: paymentId={}", paymentId);
+
+        try {
+            String userId = UserContext.getCurrentUserId();
+            if (userId == null) {
+                logger.warn("根据支付单获取订单详情失败: 用户未登录");
+                return Result.failure(5116);
+            }
+
+            if (paymentId == null || paymentId.trim().isEmpty()) {
+                logger.warn("根据支付单获取订单详情失败: paymentId为空");
+                return Result.failure(5114);
+            }
+
+            Payment payment = paymentMapper.selectById(paymentId);
+            if (payment == null) {
+                logger.warn("根据支付单获取订单详情失败: 支付单不存在: paymentId={}", paymentId);
+                return Result.failure(5114);
+            }
+
+            List<Order> orderList = orderMapper.selectByPaymentId(paymentId);
+            if (orderList == null || orderList.isEmpty()) {
+                logger.warn("根据支付单获取订单详情失败: 支付单未关联任何订单: paymentId={}", paymentId);
+                return Result.failure(5114);
+            }
+
+            boolean isAdmin = UserContext.isAdmin();
+            boolean isShop = UserContext.isShop();
+
+            // 付款人本人始终可查（无论用户角色是普通用户还是商家）
+            if (!userId.equals(payment.getUserId()) && !isAdmin) {
+                if (isShop) {
+                    boolean canAccess = false;
+                    for (Order order : orderList) {
+                        if (isShopOwner(userId, order.getShopId())) {
+                            canAccess = true;
+                            break;
+                        }
+                    }
+                    if (!canAccess) {
+                        logger.warn("根据支付单获取订单详情失败: 商家无权限: paymentId={}, userId={}", paymentId, userId);
+                        return Result.failure(5115);
+                    }
+                } else {
+                    logger.warn("根据支付单获取订单详情失败: 普通用户无权限: paymentId={}, userId={}, paymentUserId={}",
+                            paymentId, userId, payment.getUserId());
+                    return Result.failure(5115);
+                }
+            }
+
+            // 支付单仍待支付时，主动向支付宝补偿查单，降低“只等回调”导致的状态延迟
+            if (payment.getStatus() != null && payment.getStatus() == Payment.STATUS_PENDING) {
+                reconcilePaymentByActiveQuery(payment, orderList);
+                // 重新读取最新支付单状态用于返回
+                payment = paymentMapper.selectById(paymentId);
+            }
+
+            // 复用既有详情逻辑，避免重复组装VO
+            String primaryOrderId = orderList.get(0).getId();
+            Result<Object> detailResult = getOrderDetail(primaryOrderId);
+            if (detailResult.getCode() == 200 && detailResult.getData() instanceof OrderDetailVO) {
+                OrderDetailVO detailVO = (OrderDetailVO) detailResult.getData();
+                detailVO.setPaymentId(payment.getId());
+                detailVO.setPaymentStatus(payment.getStatus());
+                detailVO.setPaymentTotalAmount(payment.getTotalAmount());
+            }
+            return detailResult;
+        } catch (Exception e) {
+            logger.error("根据支付单获取订单详情失败: 系统异常", e);
+            return Result.failure(5116);
+        }
+    }
+    
+    @Override
+    @Transactional
     public Result<Object> payOrder(Map<String, Object> data) {
         logger.info("支付订单请求: data={}", data);
         
@@ -2536,62 +2612,7 @@ public class OrderServiceImpl implements OrderService {
                     return "failure";
                 }
 
-                // 逐单扣减库存 & 更新订单状态
-                Date now = new Date();
-                for (Order order : orderList) {
-                    // 只处理待付款订单，其余视为已处理过
-                    if (order.getStatus() == null || order.getStatus() != Order.STATUS_PENDING_PAYMENT) {
-                        logger.info("支付宝回调: 跳过非待付款订单: orderId={}, status={}", order.getId(), order.getStatus());
-                        continue;
-                    }
-
-                    // 扣库存
-                    if (order.getSpecId() != null) {
-                        int rows = teaSpecificationMapper.updateStock(order.getSpecId(), order.getQuantity());
-                        if (rows == 0) {
-                            logger.warn("支付宝回调: 库存不足或规格不存在: specId={}, quantity={}",
-                                    order.getSpecId(), order.getQuantity());
-                            return "failure";
-                        }
-                        logger.info("已扣减规格库存: specId={}, quantity={}", order.getSpecId(), order.getQuantity());
-                    } else {
-                        int rows = teaMapper.updateStockAndSales(order.getTeaId(), order.getQuantity());
-                        if (rows == 0) {
-                            logger.warn("支付宝回调: 库存不足或商品不存在: teaId={}, quantity={}",
-                                    order.getTeaId(), order.getQuantity());
-                            return "failure";
-                        }
-                        logger.info("已扣减库存并增加销量: teaId={}, quantity={}", order.getTeaId(), order.getQuantity());
-                    }
-
-                    // 更新订单状态为待发货
-                    order.setStatus(Order.STATUS_PENDING_SHIPMENT);
-                    order.setPaymentMethod("alipay");
-                    order.setPaymentTime(now);
-                    order.setUpdateTime(now);
-
-                    int rows = orderMapper.updateById(order);
-                    if (rows > 0) {
-                        // 创建订单支付成功通知（给商家）
-                        com.shangnantea.utils.NotificationUtils.createOrderPaidNotification(
-                                order.getId(), order.getUserId(), order.getShopId()
-                        );
-                    } else {
-                        logger.warn("支付宝回调: 更新订单失败: orderId={}", order.getId());
-                        return "failure";
-                    }
-                }
-
-                // 更新支付单状态
-                payment.setStatus(Payment.STATUS_SUCCESS);
-                payment.setPaymentMethod("alipay");
-                payment.setChannelTradeNo(tradeNo);
-                payment.setSuccessTime(now);
-                payment.setUpdateTime(now);
-                paymentMapper.updateById(payment);
-
-                logger.info("支付宝回调处理成功（按支付单）: paymentId={}, tradeNo={}", outTradeNo, tradeNo);
-                return "success";
+                return processPaymentSuccess(payment, orderList, tradeNo, "alipay", "支付宝回调");
             }
 
             // 4. 兼容旧逻辑：out_trade_no 为单个订单ID 的情况
@@ -2688,6 +2709,104 @@ public class OrderServiceImpl implements OrderService {
             return generateOrderId(); // 递归调用直到生成唯一ID
         }
         return orderId;
+    }
+
+    /**
+     * 支付宝主动查单补偿：仅用于支付单待支付时的状态对账。
+     *
+     * @param payment   支付单
+     * @param orderList 支付单关联订单
+     */
+    private void reconcilePaymentByActiveQuery(Payment payment, List<Order> orderList) {
+        try {
+            Map<String, String> tradeInfo = alipayService.queryTrade(payment.getId());
+            String tradeStatus = tradeInfo.get("trade_status");
+            String tradeNo = tradeInfo.get("trade_no");
+            String totalAmount = tradeInfo.get("total_amount");
+
+            logger.info("主动查单结果: paymentId={}, tradeStatus={}, tradeNo={}, totalAmount={}",
+                    payment.getId(), tradeStatus, tradeNo, totalAmount);
+
+            if (!"TRADE_SUCCESS".equals(tradeStatus) && !"TRADE_FINISHED".equals(tradeStatus)) {
+                return;
+            }
+
+            BigDecimal queryAmount = new BigDecimal(totalAmount);
+            if (payment.getTotalAmount() == null || payment.getTotalAmount().compareTo(queryAmount) != 0) {
+                logger.warn("主动查单金额不匹配: paymentId={}, paymentAmount={}, queryAmount={}",
+                        payment.getId(), payment.getTotalAmount(), queryAmount);
+                return;
+            }
+
+            String result = processPaymentSuccess(payment, orderList, tradeNo, "alipay", "主动查单补偿");
+            logger.info("主动查单补偿处理结果: paymentId={}, result={}", payment.getId(), result);
+        } catch (Exception e) {
+            logger.warn("主动查单补偿失败: paymentId={}, err={}", payment.getId(), e.getMessage());
+        }
+    }
+
+    /**
+     * 统一的支付成功处理逻辑（幂等）：
+     * 1) 更新订单状态并扣减库存
+     * 2) 更新支付单状态
+     *
+     * @param payment       支付单
+     * @param orderList     支付单关联订单列表
+     * @param tradeNo       渠道交易号
+     * @param paymentMethod 支付方式
+     * @param scene         场景标识（日志）
+     * @return success/failure
+     */
+    private String processPaymentSuccess(Payment payment, List<Order> orderList, String tradeNo,
+                                         String paymentMethod, String scene) {
+        Date now = new Date();
+        for (Order order : orderList) {
+            // 幂等：非待付款订单不重复处理
+            if (order.getStatus() == null || order.getStatus() != Order.STATUS_PENDING_PAYMENT) {
+                logger.info("{}: 跳过非待付款订单: orderId={}, status={}", scene, order.getId(), order.getStatus());
+                continue;
+            }
+
+            if (order.getSpecId() != null) {
+                int rows = teaSpecificationMapper.updateStock(order.getSpecId(), order.getQuantity());
+                if (rows == 0) {
+                    logger.warn("{}: 库存不足或规格不存在: specId={}, quantity={}",
+                            scene, order.getSpecId(), order.getQuantity());
+                    return "failure";
+                }
+            } else {
+                int rows = teaMapper.updateStockAndSales(order.getTeaId(), order.getQuantity());
+                if (rows == 0) {
+                    logger.warn("{}: 库存不足或商品不存在: teaId={}, quantity={}",
+                            scene, order.getTeaId(), order.getQuantity());
+                    return "failure";
+                }
+            }
+
+            order.setStatus(Order.STATUS_PENDING_SHIPMENT);
+            order.setPaymentMethod(paymentMethod);
+            order.setPaymentTime(now);
+            order.setUpdateTime(now);
+            int rows = orderMapper.updateById(order);
+            if (rows <= 0) {
+                logger.warn("{}: 更新订单失败: orderId={}", scene, order.getId());
+                return "failure";
+            }
+
+            com.shangnantea.utils.NotificationUtils.createOrderPaidNotification(
+                    order.getId(), order.getUserId(), order.getShopId()
+            );
+        }
+
+        payment.setStatus(Payment.STATUS_SUCCESS);
+        payment.setPaymentMethod(paymentMethod);
+        payment.setChannelTradeNo(tradeNo);
+        payment.setSuccessTime(now);
+        payment.setUpdateTime(now);
+        paymentMapper.updateById(payment);
+
+        logger.info("{}处理成功（按支付单）: paymentId={}, tradeNo={}", scene, payment.getId(), tradeNo);
+        return "success";
     }
 
     /**

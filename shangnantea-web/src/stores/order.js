@@ -4,6 +4,7 @@ import {
   createOrder as createOrderApi, 
   getOrders, 
   getOrderDetail, 
+  getOrderDetailByPaymentId as getOrderDetailByPaymentIdApi,
   payOrder as payOrderApi, 
   cancelOrder as cancelOrderApi,
   confirmOrder as confirmOrderApi,
@@ -245,6 +246,18 @@ const useDefaultSpecOnAdd = ref(false)
     try {
       loading.value = true
       const res = await getOrderDetail(id)
+      currentOrder.value = res.data
+      return res
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // 根据支付单ID获取关联订单详情（支付结果页使用）
+  async function fetchOrderDetailByPaymentId(paymentId) {
+    try {
+      loading.value = true
+      const res = await getOrderDetailByPaymentIdApi(paymentId)
       currentOrder.value = res.data
       return res
     } finally {
@@ -551,6 +564,7 @@ const useDefaultSpecOnAdd = ref(false)
     createOrder,
     fetchOrders,
     fetchOrderDetail,
+    fetchOrderDetailByPaymentId,
     payOrder,
     cancelOrder,
     confirmReceipt,

@@ -193,200 +193,200 @@ const profileUserId = computed(() => {
   return firstParam
 })
     
-    // 从Pinia获取数据
-    const posts = computed(() => messageStore.userPosts || [])
-    const reviews = computed(() => messageStore.userReviews || [])
-    const loading = computed(() => messageStore.loading)
-    const postsPagination = computed(() => messageStore.postsPagination)
-    const reviewsPagination = computed(() => messageStore.reviewsPagination)
+// 从Pinia获取数据
+const posts = computed(() => messageStore.userPosts || [])
+const reviews = computed(() => messageStore.userReviews || [])
+const loading = computed(() => messageStore.loading)
+const postsPagination = computed(() => messageStore.postsPagination)
+const reviewsPagination = computed(() => messageStore.reviewsPagination)
     
-    // 判断是否为查看自己的主页
-    // 如果 profileUserId 为 null（路由是 current 或 published/follows/favorites），且 currentUserId 存在，则认为是查看自己的主页
-    // 如果 profileUserId 存在，则比较是否等于 currentUserId
-    const isSelf = computed(() => {
-      if (!currentUserId.value) return false
-      // 如果 profileUserId 为 null，说明是查看自己的主页（路由是 /profile/current/...）
-      if (!profileUserId.value) return true
-      // 如果 profileUserId 存在，比较是否等于 currentUserId
-      return String(profileUserId.value) === String(currentUserId.value)
-    })
+// 判断是否为查看自己的主页
+// 如果 profileUserId 为 null（路由是 current 或 published/follows/favorites），且 currentUserId 存在，则认为是查看自己的主页
+// 如果 profileUserId 存在，则比较是否等于 currentUserId
+const isSelf = computed(() => {
+  if (!currentUserId.value) return false
+  // 如果 profileUserId 为 null，说明是查看自己的主页（路由是 /profile/current/...）
+  if (!profileUserId.value) return true
+  // 如果 profileUserId 存在，比较是否等于 currentUserId
+  return String(profileUserId.value) === String(currentUserId.value)
+})
     
-    // 根据排序选项对帖子进行排序
-    const sortedPosts = computed(() => {
-      const postsCopy = [...posts.value]
+// 根据排序选项对帖子进行排序
+const sortedPosts = computed(() => {
+  const postsCopy = [...posts.value]
       
-      switch(sortOption.value) {
-      case 'newest':
-        return postsCopy.sort((a, b) => new Date(b.createTime) - new Date(a.createTime))
-      case 'mostViewed':
-        return postsCopy.sort((a, b) => b.viewCount - a.viewCount)
-      case 'mostReplied':
-        return postsCopy.sort((a, b) => b.replyCount - a.replyCount)
-      default:
-        return postsCopy
-      }
-    })
+  switch(sortOption.value) {
+  case 'newest':
+    return postsCopy.sort((a, b) => new Date(b.createTime) - new Date(a.createTime))
+  case 'mostViewed':
+    return postsCopy.sort((a, b) => b.viewCount - a.viewCount)
+  case 'mostReplied':
+    return postsCopy.sort((a, b) => b.replyCount - a.replyCount)
+  default:
+    return postsCopy
+  }
+})
     
-    // 根据排序选项对评价进行排序
-    const sortedReviews = computed(() => {
-      const reviewsCopy = [...reviews.value]
-      return reviewsCopy.sort((a, b) => new Date(b.createTime) - new Date(a.createTime))
-    })
+// 根据排序选项对评价进行排序
+const sortedReviews = computed(() => {
+  const reviewsCopy = [...reviews.value]
+  return reviewsCopy.sort((a, b) => new Date(b.createTime) - new Date(a.createTime))
+})
     
-    // 格式化日期显示
-    const formatDate = dateString => {
-      if (!dateString) return ''
+// 格式化日期显示
+const formatDate = dateString => {
+  if (!dateString) return ''
       
-      const date = new Date(dateString)
-      const now = new Date()
-      const diffTime = Math.abs(now - date)
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffTime = Math.abs(now - date)
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
       
-      if (diffDays < 1) {
-        // 当天发布显示时间
-        return `今天 ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
-      } else if (diffDays < 30) {
-        // 30天内显示天数
-        return `${diffDays}天前`
-      } else {
-        // 超过30天显示完整日期
-        return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`
-      }
-    }
+  if (diffDays < 1) {
+    // 当天发布显示时间
+    return `今天 ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
+  } else if (diffDays < 30) {
+    // 30天内显示天数
+    return `${diffDays}天前`
+  } else {
+    // 超过30天显示完整日期
+    return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`
+  }
+}
     
-    // 查看帖子详情
-    const viewPostDetail = id => {
-      router.push(`/forum/${id}`)
-    }
+// 查看帖子详情
+const viewPostDetail = id => {
+  router.push(`/forum/${id}`)
+}
     
-    // 编辑帖子：打开编辑弹窗，预填当前帖子数据
-    const editPost = post => {
-      if (!post) return
-      editingPostId.value = post.id
-      editDialogVisible.value = true
-    }
+// 编辑帖子：打开编辑弹窗，预填当前帖子数据
+const editPost = post => {
+  if (!post) return
+  editingPostId.value = post.id
+  editDialogVisible.value = true
+}
     
-    const afterEditSubmitted = async () => {
+const afterEditSubmitted = async () => {
+  await loadData()
+}
+    
+// 删除帖子
+const deletePost = id => {
+  ElMessageBox.confirm(
+    '确定要删除该帖子吗？删除后将无法恢复。',
+    '删除确认',
+    {
+      confirmButtonText: '确定删除',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }
+  )
+    .then(async () => {
+      const res = await forumStore.deletePost(id)
+      showByCode(res.code)
+      // 重新加载数据
       await loadData()
-    }
+    })
+    .catch(() => {
+      // 用户取消操作
+    })
+}
     
-    // 删除帖子
-    const deletePost = id => {
-      ElMessageBox.confirm(
-        '确定要删除该帖子吗？删除后将无法恢复。',
-        '删除确认',
-        {
-          confirmButtonText: '确定删除',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }
-      )
-        .then(async () => {
-          const res = await forumStore.deletePost(id)
-          showByCode(res.code)
-          // 重新加载数据
-          await loadData()
-        })
-        .catch(() => {
-          // 用户取消操作
-        })
-    }
+// 查看茶叶详情（跳转到评论区域）
+const viewTeaDetail = teaId => {
+  router.push(`/tea/${teaId}`)
+}
     
-    // 查看茶叶详情（跳转到评论区域）
-    const viewTeaDetail = teaId => {
-      router.push(`/tea/${teaId}`)
-    }
+// 查看茶叶详情并定位到指定评价（跳转到评论区域并高亮该评价）
+const viewTeaDetailWithReview = (teaId, reviewId) => {
+  // 跳转到茶叶详情页，并传递reviewId参数，详情页可以根据参数定位到对应评价
+  router.push({
+    path: `/tea/${teaId}`,
+    query: { reviewId }
+  })
+}
     
-    // 查看茶叶详情并定位到指定评价（跳转到评论区域并高亮该评价）
-    const viewTeaDetailWithReview = (teaId, reviewId) => {
-      // 跳转到茶叶详情页，并传递reviewId参数，详情页可以根据参数定位到对应评价
-      router.push({
-        path: `/tea/${teaId}`,
-        query: { reviewId }
-      })
+// 删除评价
+const deleteReview = async id => {
+  ElMessageBox.confirm(
+    '确定要删除该评价吗？删除后将无法恢复。',
+    '删除确认',
+    {
+      confirmButtonText: '确定删除',
+      cancelButtonText: '取消',
+      type: 'warning'
     }
-    
-    // 删除评价
-    const deleteReview = async id => {
-      ElMessageBox.confirm(
-        '确定要删除该评价吗？删除后将无法恢复。',
-        '删除确认',
-        {
-          confirmButtonText: '确定删除',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }
-      )
-        .then(async () => {
-          try {
-            const res = await teaStore.deleteTeaReview(id)
-            showByCode(res.code)
-          // 重新加载数据
-            await loadData()
-          } catch (error) {
-            console.error('删除评价失败:', error)
-            showByCode(error?.response?.data?.code || 3130)
-          }
-        })
-        .catch(() => {
-          // 用户取消操作
-        })
-    }
-    
-    // 加载数据（统一行为：同时加载帖子和评价数据，确保统计数字准确）
-    // 注意：初始数据在 UserHomePage 的 loadUserData 中统一调用，这里只处理用户操作（切换标签页、排序等）
-    const loadData = async (loadBoth = false) => {
-      // 如果未登录，不调用接口（避免退出登录时触发）
-      if (!userStore.isLoggedIn) {
-        messageStore.userPosts = []
-        messageStore.userReviews = []
-        return
-      }
-      
-      // 参考统计接口的处理逻辑：判断主页是否可见
-      const isSelf = currentUserId.value && profileUserId.value && String(profileUserId.value) === String(currentUserId.value)
-      const profileVisible = messageStore.userProfile?.profileVisible !== false
-      
-      // 仅在本人或对方允许查看时才请求内容接口；否则直接置空并不发请求
-      if (!isSelf && !profileVisible) {
-        messageStore.userPosts = []
-        messageStore.userReviews = []
-        return
-      }
-      
+  )
+    .then(async () => {
       try {
-        const paramsBase = {}
-        if (profileUserId.value) {
-          paramsBase.userId = profileUserId.value
-        }
-        
-        // 如果 loadBoth 为 true（页面初始化时），或者当前标签页需要的数据，都加载
-        if (loadBoth || activeTab.value === 'posts') {
-          const postsRes = await messageStore.fetchUserPosts({ ...paramsBase, sortBy: sortOption.value })
-          if (postsRes) showByCode(postsRes.code)
-        }
-        
-        if (loadBoth || activeTab.value === 'reviews') {
-          const reviewsRes = await messageStore.fetchUserReviews(paramsBase)
-          if (reviewsRes) showByCode(reviewsRes.code)
-        }
+        const res = await teaStore.deleteTeaReview(id)
+        showByCode(res.code)
+        // 重新加载数据
+        await loadData()
       } catch (error) {
-        console.error('加载发布内容失败：', error)
+        console.error('删除评价失败:', error)
+        showByCode(error?.response?.data?.code || 3130)
       }
-    }
+    })
+    .catch(() => {
+      // 用户取消操作
+    })
+}
     
-    // 监听标签页切换（切换时只加载当前标签页的数据，因为另一个已经在初始化时加载过了）
-    const handleTabChange = tab => {
-      activeTab.value = tab
-      loadData(false) // 切换标签页时不需要同时加载两个接口
+// 加载数据（统一行为：同时加载帖子和评价数据，确保统计数字准确）
+// 注意：初始数据在 UserHomePage 的 loadUserData 中统一调用，这里只处理用户操作（切换标签页、排序等）
+const loadData = async (loadBoth = false) => {
+  // 如果未登录，不调用接口（避免退出登录时触发）
+  if (!userStore.isLoggedIn) {
+    messageStore.userPosts = []
+    messageStore.userReviews = []
+    return
+  }
+      
+  // 参考统计接口的处理逻辑：判断主页是否可见
+  const isSelf = currentUserId.value && profileUserId.value && String(profileUserId.value) === String(currentUserId.value)
+  const profileVisible = messageStore.userProfile?.profileVisible !== false
+      
+  // 仅在本人或对方允许查看时才请求内容接口；否则直接置空并不发请求
+  if (!isSelf && !profileVisible) {
+    messageStore.userPosts = []
+    messageStore.userReviews = []
+    return
+  }
+      
+  try {
+    const paramsBase = {}
+    if (profileUserId.value) {
+      paramsBase.userId = profileUserId.value
     }
+        
+    // 如果 loadBoth 为 true（页面初始化时），或者当前标签页需要的数据，都加载
+    if (loadBoth || activeTab.value === 'posts') {
+      const postsRes = await messageStore.fetchUserPosts({ ...paramsBase, sortBy: sortOption.value })
+      if (postsRes) showByCode(postsRes.code)
+    }
+        
+    if (loadBoth || activeTab.value === 'reviews') {
+      const reviewsRes = await messageStore.fetchUserReviews(paramsBase)
+      if (reviewsRes) showByCode(reviewsRes.code)
+    }
+  } catch (error) {
+    console.error('加载发布内容失败：', error)
+  }
+}
     
-    // 监听排序选项变化
-    const handleSortChange = () => {
-      if (activeTab.value === 'posts') {
-        loadData()
-      }
-    }
+// 监听标签页切换（切换时只加载当前标签页的数据，因为另一个已经在初始化时加载过了）
+const handleTabChange = tab => {
+  activeTab.value = tab
+  loadData(false) // 切换标签页时不需要同时加载两个接口
+}
+    
+// 监听排序选项变化
+const handleSortChange = () => {
+  if (activeTab.value === 'posts') {
+    loadData()
+  }
+}
     
 // 组件挂载时：不调用接口，数据由 UserHomePage 的 loadUserData 统一加载
 onMounted(() => {

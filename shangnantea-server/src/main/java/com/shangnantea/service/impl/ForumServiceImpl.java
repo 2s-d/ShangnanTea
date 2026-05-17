@@ -35,6 +35,7 @@ import com.shangnantea.service.ForumService;
 import com.shangnantea.utils.FileUploadUtils;
 import com.shangnantea.utils.NotificationUtils;
 import com.shangnantea.utils.StatisticsUtils;
+import java.net.URI;
 import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -602,9 +603,9 @@ public class ForumServiceImpl implements ForumService {
             ArticleDetailVO vo = new ArticleDetailVO();
             vo.setId(article.getId());
             vo.setTitle(article.getTitle());
-            vo.setSubtitle(article.getSubtitle());
-            vo.setContent(article.getContent());
-            vo.setSummary(article.getSummary());
+            vo.setSubtitle(expandRichTextImageSources(article.getSubtitle()));
+            vo.setContent(expandRichTextImageSources(article.getContent()));
+            vo.setSummary(expandRichTextImageSources(article.getSummary()));
             // 生成封面图片访问URL
             String coverImage = article.getCoverImage();
             if (coverImage != null && !coverImage.isEmpty()) {
@@ -665,10 +666,10 @@ public class ForumServiceImpl implements ForumService {
             
             // 1. 解析请求数据
             String title = (String) data.get("title");
-            String subtitle = (String) data.get("subtitle");
-            String content = (String) data.get("content");
-            String summary = (String) data.get("summary");
-            String coverImage = (String) data.get("coverImage");
+            String subtitle = normalizeRichTextImageSources((String) data.get("subtitle"));
+            String content = normalizeRichTextImageSources((String) data.get("content"));
+            String summary = normalizeRichTextImageSources((String) data.get("summary"));
+            String coverImage = normalizeImagePath((String) data.get("coverImage"));
             String category = (String) data.get("category");
             // tags 可能是前端传来的字符串，也可能是数组，这里统一转换为用逗号分隔的字符串，避免 ClassCastException
             Object rawTags = data.get("tags");
@@ -816,7 +817,7 @@ public class ForumServiceImpl implements ForumService {
                     logger.warn("更新文章失败: 副标题长度超过限制");
                     return Result.failure(6112, "副标题长度不能超过200个字符");
                 }
-                article.setSubtitle(subtitle);
+                article.setSubtitle(normalizeRichTextImageSources(subtitle));
             }
             if (data.containsKey("content")) {
                 String content = (String) data.get("content");
@@ -824,11 +825,12 @@ public class ForumServiceImpl implements ForumService {
                     logger.warn("更新文章失败: 内容不能为空");
                     return Result.failure(6112, "内容不能为空");
                 }
-                article.setContent(content);
+                String normalizedContent = normalizeRichTextImageSources(content);
+                article.setContent(normalizedContent);
                 
                 // 当正文发生变更时，需要重新抽取图片索引
                 String cover = article.getCoverImage();
-                String imagesIndex = buildImageIndex(content, cover, null);
+                String imagesIndex = buildImageIndex(normalizedContent, cover, null);
                 article.setImages(imagesIndex);
             }
             if (data.containsKey("summary")) {
@@ -837,13 +839,14 @@ public class ForumServiceImpl implements ForumService {
                     logger.warn("更新文章失败: 摘要长度超过限制");
                     return Result.failure(6112, "摘要长度不能超过500个字符");
                 }
-                article.setSummary(summary);
+                article.setSummary(normalizeRichTextImageSources(summary));
             }
             if (data.containsKey("coverImage")) {
                 String coverImage = (String) data.get("coverImage");
-                article.setCoverImage(coverImage);
+                String normalizedCoverImage = normalizeImagePath(coverImage);
+                article.setCoverImage(normalizedCoverImage);
                 // 封面变更时，同步刷新图片索引（使用最新正文）
-                String imagesIndex = buildImageIndex(article.getContent(), coverImage, null);
+                String imagesIndex = buildImageIndex(article.getContent(), normalizedCoverImage, null);
                 article.setImages(imagesIndex);
             }
             if (data.containsKey("category")) {
@@ -993,10 +996,7 @@ public class ForumServiceImpl implements ForumService {
     }
 
     /**
-     * 将图片URL统一转换为相对路径存库：
-     * - 如果是本系统生成的完整访问URL（以baseUrl开头），则裁剪掉baseUrl前缀，只保留相对路径
-     * - 如果是以 /files/ 开头的绝对路径，则去掉前导斜杠
-     * - 其它第三方完整URL保持不变
+     * 将图片URL统一转换为相对路径存库（优先截取 files/...）。
      */
     private String normalizeImagePath(String url) {
         if (url == null || url.isEmpty()) {
@@ -1004,6 +1004,15 @@ public class ForumServiceImpl implements ForumService {
         }
 
         String trimmed = url.trim();
+        if (trimmed.isEmpty()) {
+            return trimmed;
+        }
+
+        String lower = trimmed.toLowerCase();
+        int filesIndex = lower.indexOf("files/");
+        if (filesIndex >= 0) {
+            return trimmed.substring(filesIndex);
+        }
 
         // 1. 裁剪掉本系统的访问前缀（http://.../api）
         if (baseUrl != null && !baseUrl.isEmpty() && trimmed.startsWith(baseUrl)) {
@@ -1020,8 +1029,74 @@ public class ForumServiceImpl implements ForumService {
             return trimmed.substring(1);
         }
 
-        // 3. 其它情况（第三方URL等）原样返回
+        // 3. 绝对URL但未命中 files/：尝试提取 path
+        if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+            try {
+                URI uri = URI.create(trimmed);
+                String path = uri.getPath();
+                if (path != null && !path.trim().isEmpty()) {
+                    String normalizedPath = path.trim();
+                    if (normalizedPath.startsWith("/")) {
+                        normalizedPath = normalizedPath.substring(1);
+                    }
+                    return normalizedPath;
+                }
+            } catch (Exception ignore) {
+                // ignore
+            }
+        }
+
+        // 4. 其它情况（第三方URL等）原样返回
         return trimmed;
+    }
+
+    /**
+     * 规范化富文本中的图片地址：将 <img src="..."> 中的URL统一改写为相对路径。
+     */
+    private String normalizeRichTextImageSources(String html) {
+        if (html == null || html.isEmpty()) {
+            return html;
+        }
+        Pattern pattern = Pattern.compile("(<img[^>]+src\\s*=\\s*['\\\"])([^'\\\"]+)(['\\\"])", Pattern.CASE_INSENSITIVE);
+        Matcher matcher = pattern.matcher(html);
+        StringBuffer buffer = new StringBuffer();
+        while (matcher.find()) {
+            String prefix = matcher.group(1);
+            String src = matcher.group(2);
+            String suffix = matcher.group(3);
+            String normalizedSrc = normalizeImagePath(src);
+            String replacement = prefix + Matcher.quoteReplacement(normalizedSrc) + suffix;
+            matcher.appendReplacement(buffer, replacement);
+        }
+        matcher.appendTail(buffer);
+        return buffer.toString();
+    }
+
+    /**
+     * 回填富文本中的图片地址：将 <img src="files/..."> 等相对路径补全为可访问的完整URL。
+     */
+    private String expandRichTextImageSources(String html) {
+        if (html == null || html.isEmpty()) {
+            return html;
+        }
+        Pattern pattern = Pattern.compile("(<img[^>]+src\\s*=\\s*['\\\"])([^'\\\"]+)(['\\\"])", Pattern.CASE_INSENSITIVE);
+        Matcher matcher = pattern.matcher(html);
+        StringBuffer buffer = new StringBuffer();
+        while (matcher.find()) {
+            String prefix = matcher.group(1);
+            String src = matcher.group(2);
+            String suffix = matcher.group(3);
+            String normalized = normalizeImagePath(src);
+            String accessUrl = normalized;
+            if (normalized != null && !normalized.isEmpty()
+                    && !(normalized.startsWith("http://") || normalized.startsWith("https://"))) {
+                accessUrl = FileUploadUtils.generateAccessUrl(normalized, baseUrl);
+            }
+            String replacement = prefix + Matcher.quoteReplacement(accessUrl) + suffix;
+            matcher.appendReplacement(buffer, replacement);
+        }
+        matcher.appendTail(buffer);
+        return buffer.toString();
     }
     
     @Override
@@ -1529,11 +1604,11 @@ public class ForumServiceImpl implements ForumService {
             post.setUserId(userId);
             post.setTopicId(dto.getTopicId());
             post.setTitle(dto.getTitle());
-            post.setContent(dto.getContent());
-            post.setSummary(dto.getSummary());
-            post.setCoverImage(dto.getCoverImage());
+            post.setContent(normalizeRichTextImageSources(dto.getContent()));
+            post.setSummary(normalizeRichTextImageSources(dto.getSummary()));
+            post.setCoverImage(normalizeImagePath(dto.getCoverImage()));
             // 图片索引：在后端根据最终内容与封面统一抽取，避免依赖前端拼接
-            String imageIndex = buildImageIndex(dto.getContent(), dto.getCoverImage(), dto.getImages());
+            String imageIndex = buildImageIndex(post.getContent(), post.getCoverImage(), dto.getImages());
             post.setImages(imageIndex);
             post.setViewCount(0);
             post.setReplyCount(0);
@@ -1747,8 +1822,8 @@ public class ForumServiceImpl implements ForumService {
             vo.setTopicId(post.getTopicId());
             vo.setTopicName(topic != null ? topic.getName() : "");
             vo.setTitle(post.getTitle());
-            vo.setContent(post.getContent());
-            vo.setSummary(post.getSummary());
+            vo.setContent(expandRichTextImageSources(post.getContent()));
+            vo.setSummary(expandRichTextImageSources(post.getSummary()));
             // 处理封面图片URL
             String coverImage = post.getCoverImage();
             if (coverImage != null && !coverImage.trim().isEmpty()) {
@@ -1863,16 +1938,16 @@ public class ForumServiceImpl implements ForumService {
                     logger.warn("更新帖子失败: 内容长度超过限制");
                     return Result.failure(6123, "内容长度不能超过10000个字符");
                 }
-                post.setContent(dto.getContent());
+                post.setContent(normalizeRichTextImageSources(dto.getContent()));
             }
             if (dto.getSummary() != null) {
-                post.setSummary(dto.getSummary());
+                post.setSummary(normalizeRichTextImageSources(dto.getSummary()));
             }
             if (dto.getCoverImage() != null) {
-                post.setCoverImage(dto.getCoverImage());
+                post.setCoverImage(normalizeImagePath(dto.getCoverImage()));
             }
             if (dto.getImages() != null) {
-                post.setImages(dto.getImages());
+                post.setImages(buildImageIndex(post.getContent(), post.getCoverImage(), dto.getImages()));
             }
             // 注意：帖子状态更新策略
             // 业务约定：只要作者修改过内容并提交，帖子必须重新进入待审核状态

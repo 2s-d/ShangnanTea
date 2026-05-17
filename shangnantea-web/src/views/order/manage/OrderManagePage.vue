@@ -509,7 +509,7 @@ const statisticsOverview = computed(() => {
     }
   }
   const dist = s.statusDistribution || {}
-  const getCount = (code) => Number(dist[String(code)] || 0)
+  const getCount = code => Number(dist[String(code)] || 0)
   return {
     totalOrders: s.totalOrders ?? 0,
     totalAmount: Number(s.totalAmount || 0),
@@ -534,7 +534,7 @@ const trendTableData = computed(() => {
 })
 
 // 状态分布表格数据
-  const statusTableData = computed(() => {
+const statusTableData = computed(() => {
   const dist = orderStatistics.value?.statusDistribution || orderStatistics.value?.status_distribution
   if (!dist) return []
   const statusNames = {
@@ -570,418 +570,418 @@ const exportForm = reactive({
 // 列表数据来自 Pinia
 const orderList = ref([])
     
-    // 从后端获取订单列表（同步 Pinia filters）
-    const fetchOrders = async () => {
-      loading.value = true
-      try {
-        // 解析时间范围
-        let startDate = ''
-        let endDate = ''
-        if (searchForm.dateRange && searchForm.dateRange.length === 2) {
-          startDate = searchForm.dateRange[0] || ''
-          endDate = searchForm.dateRange[1] || ''
-        }
-        // 解析排序
-        let sortBy = ''
-        let sortOrder = ''
-        if (sortKey.value === 'timeDesc') {
-          sortBy = 'createTime'
-          sortOrder = 'desc'
-        } else if (sortKey.value === 'timeAsc') {
-          sortBy = 'createTime'
-          sortOrder = 'asc'
-        } else if (sortKey.value === 'amountDesc') {
-          sortBy = 'totalPrice'
-          sortOrder = 'desc'
-        } else if (sortKey.value === 'amountAsc') {
-          sortBy = 'totalPrice'
-          sortOrder = 'asc'
-        }
-        // 更新 Pinia中的筛选条件
-        const filters = {
-          status: searchForm.status,
-          startDate,
-          endDate,
-          keyword: searchForm.orderId || searchForm.teaName || '',
-          sortBy,
-          sortOrder
-        }
-        await orderStore.updateFilters(filters)
-        await orderStore.fetchOrders({
-          page: currentPage.value,
-          size: pageSize.value
-        })
-        const rawList = orderStore.orderList || []
-        // 后端字段统一使用 camelCase，直接使用
-        orderList.value = rawList
-        const p = orderStore.pagination
-        total.value = p.total
-        currentPage.value = p.currentPage
-        pageSize.value = p.pageSize
-      } finally {
-        loading.value = false
-      }
+// 从后端获取订单列表（同步 Pinia filters）
+const fetchOrders = async () => {
+  loading.value = true
+  try {
+    // 解析时间范围
+    let startDate = ''
+    let endDate = ''
+    if (searchForm.dateRange && searchForm.dateRange.length === 2) {
+      startDate = searchForm.dateRange[0] || ''
+      endDate = searchForm.dateRange[1] || ''
     }
-    
-    // 多选变更
-    const handleSelectionChange = rows => {
-      const ids = rows
-        .filter(row => row.status === 1 && row.refundStatus !== 1)
-        .map(row => row.id)
-      selectedOrderIds.value = ids
-      hasBatchSelection.value = ids.length > 0
+    // 解析排序
+    let sortBy = ''
+    let sortOrder = ''
+    if (sortKey.value === 'timeDesc') {
+      sortBy = 'createTime'
+      sortOrder = 'desc'
+    } else if (sortKey.value === 'timeAsc') {
+      sortBy = 'createTime'
+      sortOrder = 'asc'
+    } else if (sortKey.value === 'amountDesc') {
+      sortBy = 'totalPrice'
+      sortOrder = 'desc'
+    } else if (sortKey.value === 'amountAsc') {
+      sortBy = 'totalPrice'
+      sortOrder = 'asc'
     }
-    
-    // 刷新订单列表
-    const refreshOrders = () => {
-      fetchOrders()
+    // 更新 Pinia中的筛选条件
+    const filters = {
+      status: searchForm.status,
+      startDate,
+      endDate,
+      keyword: searchForm.orderId || searchForm.teaName || '',
+      sortBy,
+      sortOrder
     }
+    await orderStore.updateFilters(filters)
+    await orderStore.fetchOrders({
+      page: currentPage.value,
+      size: pageSize.value
+    })
+    const rawList = orderStore.orderList || []
+    // 后端字段统一使用 camelCase，直接使用
+    orderList.value = rawList
+    const p = orderStore.pagination
+    total.value = p.total
+    currentPage.value = p.currentPage
+    pageSize.value = p.pageSize
+  } finally {
+    loading.value = false
+  }
+}
     
-    // 将筛选条件同步到 URL query
-    const syncQueryToRoute = () => {
-      // 解析时间范围
-      let startDate = ''
-      let endDate = ''
-      if (searchForm.dateRange && searchForm.dateRange.length === 2) {
-        startDate = searchForm.dateRange[0] || ''
-        endDate = searchForm.dateRange[1] || ''
-      }
-      router.replace({
-        query: {
-          ...route.query,
-          page: String(currentPage.value),
-          size: String(pageSize.value),
-          orderId: searchForm.orderId || undefined,
-          teaName: searchForm.teaName || undefined,
-          status: searchForm.status !== '' ? String(searchForm.status) : undefined,
-          startDate: startDate || undefined,
-          endDate: endDate || undefined,
-          sort: sortKey.value || undefined
-        }
-      })
+// 多选变更
+const handleSelectionChange = rows => {
+  const ids = rows
+    .filter(row => row.status === 1 && row.refundStatus !== 1)
+    .map(row => row.id)
+  selectedOrderIds.value = ids
+  hasBatchSelection.value = ids.length > 0
+}
+    
+// 刷新订单列表
+const refreshOrders = () => {
+  fetchOrders()
+}
+    
+// 将筛选条件同步到 URL query
+const syncQueryToRoute = () => {
+  // 解析时间范围
+  let startDate = ''
+  let endDate = ''
+  if (searchForm.dateRange && searchForm.dateRange.length === 2) {
+    startDate = searchForm.dateRange[0] || ''
+    endDate = searchForm.dateRange[1] || ''
+  }
+  router.replace({
+    query: {
+      ...route.query,
+      page: String(currentPage.value),
+      size: String(pageSize.value),
+      orderId: searchForm.orderId || undefined,
+      teaName: searchForm.teaName || undefined,
+      status: searchForm.status !== '' ? String(searchForm.status) : undefined,
+      startDate: startDate || undefined,
+      endDate: endDate || undefined,
+      sort: sortKey.value || undefined
     }
+  })
+}
     
-    // 搜索订单
-    const handleSearch = () => {
-      currentPage.value = 1
-      syncQueryToRoute()
-      fetchOrders()
-    }
+// 搜索订单
+const handleSearch = () => {
+  currentPage.value = 1
+  syncQueryToRoute()
+  fetchOrders()
+}
     
-    // 重置搜索条件
-    const resetSearch = () => {
-      searchForm.orderId = ''
-      searchForm.teaName = ''
-      searchForm.status = ''
-      searchForm.dateRange = []
-      sortKey.value = ''
-      currentPage.value = 1
-      syncQueryToRoute()
-      fetchOrders()
-    }
+// 重置搜索条件
+const resetSearch = () => {
+  searchForm.orderId = ''
+  searchForm.teaName = ''
+  searchForm.status = ''
+  searchForm.dateRange = []
+  sortKey.value = ''
+  currentPage.value = 1
+  syncQueryToRoute()
+  fetchOrders()
+}
     
-    // 处理分页大小变化
-    const handleSizeChange = size => {
-      pageSize.value = size
-      currentPage.value = 1
-      syncQueryToRoute()
-      fetchOrders()
-    }
+// 处理分页大小变化
+const handleSizeChange = size => {
+  pageSize.value = size
+  currentPage.value = 1
+  syncQueryToRoute()
+  fetchOrders()
+}
     
-    // 处理当前页变化
-    const handleCurrentChange = page => {
-      currentPage.value = page
-      syncQueryToRoute()
-      fetchOrders()
-    }
+// 处理当前页变化
+const handleCurrentChange = page => {
+  currentPage.value = page
+  syncQueryToRoute()
+  fetchOrders()
+}
     
-    // 获取订单状态文本
-    const getStatusText = status => {
-      const statusMap = {
-        0: '待付款',
-        1: '待发货',
-        2: '待收货',
-        3: '已完成',
-        4: '已取消',
-        5: '退款中',
-        6: '已退款'
-      }
-      return statusMap[status] || '未知状态'
-    }
+// 获取订单状态文本
+const getStatusText = status => {
+  const statusMap = {
+    0: '待付款',
+    1: '待发货',
+    2: '待收货',
+    3: '已完成',
+    4: '已取消',
+    5: '退款中',
+    6: '已退款'
+  }
+  return statusMap[status] || '未知状态'
+}
     
-    // 获取状态对应的类型(用于标签颜色)
-    const getStatusType = status => {
-      const statusMap = {
-        0: 'warning',  // 待付款：黄色警告
-        1: 'primary',  // 待发货：蓝色主色
-        2: 'success',  // 待收货：绿色成功
-        3: 'info',     // 已完成：灰色信息
-        4: 'danger',   // 已取消：红色危险
-        5: 'warning',  // 退款中：黄色警告
-        6: 'info'      // 已退款：灰色信息
-      }
-      return statusMap[status] || 'info'
-    }
+// 获取状态对应的类型(用于标签颜色)
+const getStatusType = status => {
+  const statusMap = {
+    0: 'warning',  // 待付款：黄色警告
+    1: 'primary',  // 待发货：蓝色主色
+    2: 'success',  // 待收货：绿色成功
+    3: 'info',     // 已完成：灰色信息
+    4: 'danger',   // 已取消：红色危险
+    5: 'warning',  // 退款中：黄色警告
+    6: 'info'      // 已退款：灰色信息
+  }
+  return statusMap[status] || 'info'
+}
     
-    // 查看订单详情（跳转到管理端详情页）
-    const viewOrderDetail = orderId => {
-      router.push(`/order/manage/detail/${orderId}`)
-    }
+// 查看订单详情（跳转到管理端详情页）
+const viewOrderDetail = orderId => {
+  router.push(`/order/manage/detail/${orderId}`)
+}
     
-    // 联系买家（商家/管理员以“客服会话”联系用户）
-    // 客服会话：targetType=customer，targetId=shopId，targetUserId=买家用户ID
-    // 跳转逻辑与“联系客服”一致：先创建/恢复会话，再带 sessionId 跳转并选中
-    const contactBuyer = async order => {
-      const buyerUserId = order?.userId
-      const shopId = order?.shopId
-      if (!buyerUserId || !shopId) {
-        orderPromptMessages.showOrderNotFound && orderPromptMessages.showOrderNotFound()
-        return
-      }
+// 联系买家（商家/管理员以“客服会话”联系用户）
+// 客服会话：targetType=customer，targetId=shopId，targetUserId=买家用户ID
+// 跳转逻辑与“联系客服”一致：先创建/恢复会话，再带 sessionId 跳转并选中
+const contactBuyer = async order => {
+  const buyerUserId = order?.userId
+  const shopId = order?.shopId
+  if (!buyerUserId || !shopId) {
+    orderPromptMessages.showOrderNotFound && orderPromptMessages.showOrderNotFound()
+    return
+  }
 
-      try {
-        const res = await messageStore.createChatSession({
-          targetId: String(shopId),
-          targetType: 'customer',
-          targetUserId: String(buyerUserId)
-        })
-        if (!isSuccess(res.code)) {
-          showByCode(res.code)
-          return
-        }
-        const sessionId = res.data?.id
-        router.push({
-          path: '/message/chat',
-          query: {
-            sessionId: sessionId ? String(sessionId) : undefined,
-            shopId: String(shopId)
-          }
-        })
-      } catch (e) {
-        if (process.env.NODE_ENV === 'development') {
-          console.error('[开发调试] 联系买家失败：', e)
-        }
-      }
+  try {
+    const res = await messageStore.createChatSession({
+      targetId: String(shopId),
+      targetType: 'customer',
+      targetUserId: String(buyerUserId)
+    })
+    if (!isSuccess(res.code)) {
+      showByCode(res.code)
+      return
     }
-    
-    // 跳转发货对话框
-    const shipOrder = order => {
-      currentOrder.value = order
-      shipForm.company = ''
-      shipForm.trackingNumber = ''
-      shipDialogVisible.value = true
+    const sessionId = res.data?.id
+    router.push({
+      path: '/message/chat',
+      query: {
+        sessionId: sessionId ? String(sessionId) : undefined,
+        shopId: String(shopId)
+      }
+    })
+  } catch (e) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[开发调试] 联系买家失败：', e)
     }
+  }
+}
     
-    // 打开退款详情对话框（从后端获取退款详情）
-    const openRefundDetail = async order => {
-      currentRefundOrder.value = order
-      refundDetail.value = null
-      refundDialogVisible.value = true
+// 跳转发货对话框
+const shipOrder = order => {
+  currentOrder.value = order
+  shipForm.company = ''
+  shipForm.trackingNumber = ''
+  shipDialogVisible.value = true
+}
+    
+// 打开退款详情对话框（从后端获取退款详情）
+const openRefundDetail = async order => {
+  currentRefundOrder.value = order
+  refundDetail.value = null
+  refundDialogVisible.value = true
       
-      // 从后端获取退款详情
-      try {
-        const res = await orderStore.fetchRefundDetail(order.id)
-        showByCode(res?.code)
-        refundDetail.value = res?.data || res
-      } catch (e) {
-        console.error('获取退款详情失败:', e)
-        // 如果获取失败，使用订单中的基本信息作为后备
-        refundDetail.value = {
-          reason: order.refund_reason || '',
-          apply_time: order.update_time || ''
-        }
-      }
+  // 从后端获取退款详情
+  try {
+    const res = await orderStore.fetchRefundDetail(order.id)
+    showByCode(res?.code)
+    refundDetail.value = res?.data || res
+  } catch (e) {
+    console.error('获取退款详情失败:', e)
+    // 如果获取失败，使用订单中的基本信息作为后备
+    refundDetail.value = {
+      reason: order.refund_reason || '',
+      apply_time: order.update_time || ''
     }
+  }
+}
     
-    // 格式化退款申请时间（后备方法）
-    const formatRefundApplyTime = () => {
-      if (!currentRefundOrder.value) return ''
-      return currentRefundOrder.value.update_time || ''
+// 格式化退款申请时间（后备方法）
+const formatRefundApplyTime = () => {
+  if (!currentRefundOrder.value) return ''
+  return currentRefundOrder.value.update_time || ''
+}
+    
+// 确认发货（走 Pinia + API）
+const confirmShip = async () => {
+  if (!currentOrder.value) {
+    orderPromptMessages.showOrderNotFound()
+    return
+  }
+      
+  // 表单验证
+  if (!shipForm.company) {
+    orderPromptMessages.showLogisticsCompanyRequired()
+    return
+  }
+      
+  if (!shipForm.trackingNumber) {
+    orderPromptMessages.showLogisticsNumberRequired()
+    return
+  }
+      
+  submitting.value = true
+  try {
+    const res = await orderStore.shipOrder({
+      id: currentOrder.value.id,
+      logisticsCompany: shipForm.company,
+      logisticsNumber: shipForm.trackingNumber
+    })
+    showByCode(res?.code)
+    shipDialogVisible.value = false
+    // 成功后刷新列表，确保状态与后端一致
+    await fetchOrders()
+  } catch (e) {
+    console.error('发货失败:', e)
+  } finally {
+    submitting.value = false
+  }
+}
+    
+// 打开批量发货对话框
+const openBatchShipDialog = () => {
+  if (!hasBatchSelection.value) {
+    orderPromptMessages.showShipSelectionRequired()
+    return
+  }
+  batchShipForm.company = ''
+  batchShipForm.trackingNumber = ''
+  batchShipDialogVisible.value = true
+}
+    
+// 批量发货确认
+const confirmBatchShip = async () => {
+  if (!hasBatchSelection.value) {
+    orderPromptMessages.showShipSelectionRequired()
+    return
+  }
+  if (!batchShipForm.company) {
+    orderPromptMessages.showLogisticsCompanyRequired()
+    return
+  }
+  if (!batchShipForm.trackingNumber) {
+    orderPromptMessages.showLogisticsNumberRequired()
+    return
+  }
+      
+  submitting.value = true
+  try {
+    const res = await orderStore.batchShipOrders({
+      orderIds: selectedOrderIds.value,
+      logisticsCompany: batchShipForm.company,
+      logisticsNumber: batchShipForm.trackingNumber
+    })
+    showByCode(res?.code)
+    batchShipDialogVisible.value = false
+    // 刷新列表
+    await fetchOrders()
+  } catch (e) {
+    console.error('批量发货失败:', e)
+  } finally {
+    submitting.value = false
+  }
+}
+    
+// 处理退款申请（走 Pinia + API）
+const handleRefund = (order, isApproved) => {
+  if (!order) return
+      
+  const action = isApproved ? '同意' : '拒绝'
+      
+  ElMessageBox.confirm(
+    `确定要${action}该退款申请吗？`,
+    `${action}退款申请`,
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: isApproved ? 'warning' : 'info'
     }
-    
-    // 确认发货（走 Pinia + API）
-    const confirmShip = async () => {
-      if (!currentOrder.value) {
-        orderPromptMessages.showOrderNotFound()
-        return
-      }
-      
-      // 表单验证
-      if (!shipForm.company) {
-        orderPromptMessages.showLogisticsCompanyRequired()
-        return
-      }
-      
-      if (!shipForm.trackingNumber) {
-        orderPromptMessages.showLogisticsNumberRequired()
-        return
-      }
-      
-      submitting.value = true
-      try {
-        const res = await orderStore.shipOrder({
-          id: currentOrder.value.id,
-          logisticsCompany: shipForm.company,
-          logisticsNumber: shipForm.trackingNumber
-        })
-        showByCode(res?.code)
-        shipDialogVisible.value = false
-        // 成功后刷新列表，确保状态与后端一致
-        await fetchOrders()
-      } catch (e) {
-        console.error('发货失败:', e)
-      } finally {
-        submitting.value = false
-      }
-    }
-    
-    // 打开批量发货对话框
-    const openBatchShipDialog = () => {
-      if (!hasBatchSelection.value) {
-        orderPromptMessages.showShipSelectionRequired()
-        return
-      }
-      batchShipForm.company = ''
-      batchShipForm.trackingNumber = ''
-      batchShipDialogVisible.value = true
-    }
-    
-    // 批量发货确认
-    const confirmBatchShip = async () => {
-      if (!hasBatchSelection.value) {
-        orderPromptMessages.showShipSelectionRequired()
-        return
-      }
-      if (!batchShipForm.company) {
-        orderPromptMessages.showLogisticsCompanyRequired()
-        return
-      }
-      if (!batchShipForm.trackingNumber) {
-        orderPromptMessages.showLogisticsNumberRequired()
-        return
-      }
-      
-      submitting.value = true
-      try {
-        const res = await orderStore.batchShipOrders({
-          orderIds: selectedOrderIds.value,
-          logisticsCompany: batchShipForm.company,
-          logisticsNumber: batchShipForm.trackingNumber
-        })
-        showByCode(res?.code)
-        batchShipDialogVisible.value = false
-        // 刷新列表
-        await fetchOrders()
-      } catch (e) {
-        console.error('批量发货失败:', e)
-      } finally {
-        submitting.value = false
-      }
-    }
-    
-    // 处理退款申请（走 Pinia + API）
-    const handleRefund = (order, isApproved) => {
-      if (!order) return
-      
-      const action = isApproved ? '同意' : '拒绝'
-      
-      ElMessageBox.confirm(
-        `确定要${action}该退款申请吗？`,
-        `${action}退款申请`,
-        {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: isApproved ? 'warning' : 'info'
-        }
-      ).then(async () => {
-        submitting.value = true
-        try {
-          const res = await orderStore.processRefund({
-            orderId: order.id,
-            approve: isApproved,
-            reason: refundDetail.value?.reason || order.refund_reason || ''
-          })
-          showByCode(res?.code)
-          refundDialogVisible.value = false
-          refundDetail.value = null
-          // 重新加载订单列表，保持与后端数据一致
-          await fetchOrders()
-        } catch (e) {
-          console.error('处理退款失败:', e)
-        } finally {
-          submitting.value = false
-        }
-      }).catch(() => {
-        // 用户取消操作
+  ).then(async () => {
+    submitting.value = true
+    try {
+      const res = await orderStore.processRefund({
+        orderId: order.id,
+        approve: isApproved,
+        reason: refundDetail.value?.reason || order.refund_reason || ''
       })
+      showByCode(res?.code)
+      refundDialogVisible.value = false
+      refundDetail.value = null
+      // 重新加载订单列表，保持与后端数据一致
+      await fetchOrders()
+    } catch (e) {
+      console.error('处理退款失败:', e)
+    } finally {
+      submitting.value = false
     }
+  }).catch(() => {
+    // 用户取消操作
+  })
+}
     
-    // 获取收货人信息（当前阶段：仅显示占位，后续接入真实地址数据）
-    const getReceiverInfo = () => {
-      if (!currentOrder.value) return '无收货信息'
-      return currentOrder.value.receiver || '无收货信息'
+// 获取收货人信息（当前阶段：仅显示占位，后续接入真实地址数据）
+const getReceiverInfo = () => {
+  if (!currentOrder.value) return '无收货信息'
+  return currentOrder.value.receiver || '无收货信息'
+}
+    
+// 任务组D：加载订单统计数据
+const loadStatistics = async () => {
+  try {
+    const params = {}
+    if (statisticsDateRange.value && statisticsDateRange.value.length === 2) {
+      params.startDate = statisticsDateRange.value[0]
+      params.endDate = statisticsDateRange.value[1]
     }
+    const res = await orderStore.fetchOrderStatistics(params)
+    showByCode(res?.code)
+  } catch (error) {
+    console.error('加载统计数据失败:', error)
+  }
+}
     
-    // 任务组D：加载订单统计数据
-    const loadStatistics = async () => {
-      try {
-        const params = {}
-        if (statisticsDateRange.value && statisticsDateRange.value.length === 2) {
-          params.startDate = statisticsDateRange.value[0]
-          params.endDate = statisticsDateRange.value[1]
-        }
-        const res = await orderStore.fetchOrderStatistics(params)
-        showByCode(res?.code)
-      } catch (error) {
-        console.error('加载统计数据失败:', error)
-      }
-    }
+// 任务组D：统计日期范围变更处理
+const handleStatisticsDateChange = () => {
+  // 日期变更时自动重新加载统计数据
+  loadStatistics()
+}
     
-    // 任务组D：统计日期范围变更处理
-    const handleStatisticsDateChange = () => {
-      // 日期变更时自动重新加载统计数据
-      loadStatistics()
-    }
+// 任务组E：打开导出对话框
+const openExportDialog = () => {
+  exportForm.dateRange = []
+  exportForm.status = ''
+  exportForm.format = 'csv'
+  exportDialogVisible.value = true
+}
     
-    // 任务组E：打开导出对话框
-    const openExportDialog = () => {
-      exportForm.dateRange = []
-      exportForm.status = ''
-      exportForm.format = 'csv'
-      exportDialogVisible.value = true
-    }
-    
-    // 任务组E：确认导出
-    const confirmExport = async () => {
-      if (!exportForm.format) {
-        orderPromptMessages.showSelectExportFormat()
-        return
-      }
+// 任务组E：确认导出
+const confirmExport = async () => {
+  if (!exportForm.format) {
+    orderPromptMessages.showSelectExportFormat()
+    return
+  }
       
-      exporting.value = true
-      try {
-        const params = {
-          format: exportForm.format
-        }
-        
-        if (exportForm.dateRange && exportForm.dateRange.length === 2) {
-          params.startDate = exportForm.dateRange[0]
-          params.endDate = exportForm.dateRange[1]
-        }
-        
-        if (exportForm.status !== '') {
-          params.status = exportForm.status
-        }
-        
-        const res = await orderStore.exportOrders(params)
-        showByCode(res?.code)
-        exportDialogVisible.value = false
-      } catch (error) {
-        console.error('导出失败:', error)
-      } finally {
-        exporting.value = false
-      }
+  exporting.value = true
+  try {
+    const params = {
+      format: exportForm.format
     }
+        
+    if (exportForm.dateRange && exportForm.dateRange.length === 2) {
+      params.startDate = exportForm.dateRange[0]
+      params.endDate = exportForm.dateRange[1]
+    }
+        
+    if (exportForm.status !== '') {
+      params.status = exportForm.status
+    }
+        
+    const res = await orderStore.exportOrders(params)
+    showByCode(res?.code)
+    exportDialogVisible.value = false
+  } catch (error) {
+    console.error('导出失败:', error)
+  } finally {
+    exporting.value = false
+  }
+}
     
 // 初始化：从 URL 恢复筛选条件
 onMounted(() => {

@@ -4,7 +4,9 @@ import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
 import com.alipay.api.DefaultAlipayClient;
 import com.alipay.api.internal.util.AlipaySignature;
+import com.alipay.api.request.AlipayTradeQueryRequest;
 import com.alipay.api.request.AlipayTradePagePayRequest;
+import com.alipay.api.response.AlipayTradeQueryResponse;
 import com.shangnantea.config.AlipayConfig;
 import com.shangnantea.service.AlipayService;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
+import java.util.HashMap;
 
 /**
  * 支付宝支付服务实现
@@ -104,6 +107,31 @@ public class AlipayServiceImpl implements AlipayService {
         } catch (AlipayApiException e) {
             log.error("验证支付宝回调签名异常: {}", e.getMessage());
             throw new Exception("验证签名失败: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public Map<String, String> queryTrade(String outTradeNo) throws Exception {
+        try {
+            AlipayClient alipayClient = getAlipayClient();
+            AlipayTradeQueryRequest request = new AlipayTradeQueryRequest();
+            request.setBizContent(String.format("{\"out_trade_no\":\"%s\"}", outTradeNo));
+
+            AlipayTradeQueryResponse response = alipayClient.execute(request);
+            if (response == null || !response.isSuccess()) {
+                String subMsg = response == null ? "response is null" : response.getSubMsg();
+                throw new Exception("支付宝查单失败: " + subMsg);
+            }
+
+            Map<String, String> result = new HashMap<>();
+            result.put("trade_status", response.getTradeStatus());
+            result.put("trade_no", response.getTradeNo());
+            result.put("total_amount", response.getTotalAmount());
+            result.put("out_trade_no", response.getOutTradeNo());
+            return result;
+        } catch (AlipayApiException e) {
+            log.error("支付宝查单异常: outTradeNo={}, err={}", outTradeNo, e.getMessage());
+            throw new Exception("支付宝查单异常: " + e.getMessage());
         }
     }
 }

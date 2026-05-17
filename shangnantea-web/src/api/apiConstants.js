@@ -89,6 +89,7 @@ export const API = {
     CREATE: '/order/create',
     LIST: '/order/list',
     DETAIL: '/order/{id}',
+    PAYMENT_DETAIL: '/order/payment/{paymentId}',
     PAY: '/order/pay',
     CANCEL: '/order/cancel',
     CONFIRM: '/order/confirm',

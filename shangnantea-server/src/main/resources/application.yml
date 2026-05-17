@@ -88,7 +88,7 @@ app:
   # 注意：后端应用配置了 context-path: /api
   # 因此前端访问静态资源和接口时，真实前缀应为 http://localhost:8080/api
   # 这里用于生成文件访问 URL（/api/files/**），否则会出现 404
-  base-url: http://localhost:8080/api
+  base-url: https://tea.paku.uno/api
 
 # 支付宝配置（沙箱环境）
 alipay:

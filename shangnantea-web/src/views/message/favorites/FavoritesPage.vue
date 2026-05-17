@@ -242,7 +242,7 @@ const favoriteKey = (itemType, itemId) => `${itemType}:${String(itemId)}`
 // 当前登录用户的收藏集合（用于判断按钮状态）
 const viewerFavoriteSet = computed(() => {
   const set = new Set()
-  ;(viewerFavoriteList.value || []).forEach((item) => {
+  ;(viewerFavoriteList.value || []).forEach(item => {
     if (!item) return
     set.add(favoriteKey(item.itemType, item.itemId))
   })
@@ -277,360 +277,360 @@ const setLocallyFavorited = (itemType, itemId, favorited) => {
 // 使用被查看用户的收藏列表渲染（列表内容来自"他"）
 const favoriteList = computed(() => profileFavoriteList.value || [])
     
-    // 茶文化文章相关数据
-    const cultureSearchKeyword = ref('')
-    const cultureSortOption = ref('recent')
-    const cultureArticles = computed(() => {
-      return favoriteList.value
-        .filter(item => item.itemType === 'tea_article')
-        .map(item => ({
-          id: item.id,
-          articleId: item.itemId,
-          title: item.articleTitle || item.targetName || '未知文章',
-          coverImg: item.articleCoverImage || item.targetImage || 'https://via.placeholder.com/400x200?text=文章',
-          cover_image: item.articleCoverImage || item.targetImage || 'https://via.placeholder.com/400x200?text=文章',
-          summary: item.articleSummary || '',
-          publishTime: item.articlePublishTime || item.createTime,
-          favoriteTime: item.createTime,
-          viewCount: item.articleViewCount ?? 0
-        }))
-    })
+// 茶文化文章相关数据
+const cultureSearchKeyword = ref('')
+const cultureSortOption = ref('recent')
+const cultureArticles = computed(() => {
+  return favoriteList.value
+    .filter(item => item.itemType === 'tea_article')
+    .map(item => ({
+      id: item.id,
+      articleId: item.itemId,
+      title: item.articleTitle || item.targetName || '未知文章',
+      coverImg: item.articleCoverImage || item.targetImage || 'https://via.placeholder.com/400x200?text=文章',
+      cover_image: item.articleCoverImage || item.targetImage || 'https://via.placeholder.com/400x200?text=文章',
+      summary: item.articleSummary || '',
+      publishTime: item.articlePublishTime || item.createTime,
+      favoriteTime: item.createTime,
+      viewCount: item.articleViewCount ?? 0
+    }))
+})
     
-    // 筛选和排序茶文化文章
-    const filteredCultureArticles = computed(() => {
-      let result = [...cultureArticles.value]
+// 筛选和排序茶文化文章
+const filteredCultureArticles = computed(() => {
+  let result = [...cultureArticles.value]
       
-      // 搜索过滤
-      if (cultureSearchKeyword.value) {
-        const keyword = cultureSearchKeyword.value.toLowerCase()
-        result = result.filter(article => 
-          article.title.toLowerCase().includes(keyword) || 
+  // 搜索过滤
+  if (cultureSearchKeyword.value) {
+    const keyword = cultureSearchKeyword.value.toLowerCase()
+    result = result.filter(article => 
+      article.title.toLowerCase().includes(keyword) || 
           (article.summary && article.summary.toLowerCase().includes(keyword))
-        )
-      }
+    )
+  }
       
-      // 排序
-      if (cultureSortOption.value === 'recent') {
-        result.sort((a, b) => new Date(b.favoriteTime) - new Date(a.favoriteTime))
-      } else if (cultureSortOption.value === 'popular') {
-        result.sort((a, b) => b.viewCount - a.viewCount)
-      }
+  // 排序
+  if (cultureSortOption.value === 'recent') {
+    result.sort((a, b) => new Date(b.favoriteTime) - new Date(a.favoriteTime))
+  } else if (cultureSortOption.value === 'popular') {
+    result.sort((a, b) => b.viewCount - a.viewCount)
+  }
       
-      return result
-    })
+  return result
+})
     
-    // 茶叶商品相关数据
-    const productSearchKeyword = ref('')
-    const productSortOption = ref('recent')
-    const products = computed(() => {
-      return favoriteList.value
-        .filter(item => item.itemType === 'tea')
-        .map(item => ({
-          id: item.id,
-          teaId: item.itemId,
-          name: item.teaName || item.targetName || '未知茶叶',
-          image: item.teaMainImage || item.targetImage || 'https://via.placeholder.com/200x200?text=茶叶',
-          price: item.teaPrice ?? 0,
-          shopId: item.teaShopId || '',
-          shopName: item.teaShopName || '',
-          shopLogo: item.teaShopLogo || '',
-          favoriteTime: item.createTime
-        }))
-    })
+// 茶叶商品相关数据
+const productSearchKeyword = ref('')
+const productSortOption = ref('recent')
+const products = computed(() => {
+  return favoriteList.value
+    .filter(item => item.itemType === 'tea')
+    .map(item => ({
+      id: item.id,
+      teaId: item.itemId,
+      name: item.teaName || item.targetName || '未知茶叶',
+      image: item.teaMainImage || item.targetImage || 'https://via.placeholder.com/200x200?text=茶叶',
+      price: item.teaPrice ?? 0,
+      shopId: item.teaShopId || '',
+      shopName: item.teaShopName || '',
+      shopLogo: item.teaShopLogo || '',
+      favoriteTime: item.createTime
+    }))
+})
     
-    // 筛选和排序茶叶商品
-    const filteredProducts = computed(() => {
-      let result = [...products.value]
+// 筛选和排序茶叶商品
+const filteredProducts = computed(() => {
+  let result = [...products.value]
       
-      // 搜索过滤
-      if (productSearchKeyword.value) {
-        const keyword = productSearchKeyword.value.toLowerCase()
-        result = result.filter(product => 
-          product.name.toLowerCase().includes(keyword) || 
+  // 搜索过滤
+  if (productSearchKeyword.value) {
+    const keyword = productSearchKeyword.value.toLowerCase()
+    result = result.filter(product => 
+      product.name.toLowerCase().includes(keyword) || 
           (product.shopName && product.shopName.toLowerCase().includes(keyword))
-        )
-      }
+    )
+  }
       
-      // 排序
-      if (productSortOption.value === 'recent') {
-        result.sort((a, b) => new Date(b.favoriteTime) - new Date(a.favoriteTime))
-      } else if (productSortOption.value === 'priceAsc') {
-        result.sort((a, b) => a.price - b.price)
-      } else if (productSortOption.value === 'priceDesc') {
-        result.sort((a, b) => b.price - a.price)
-      }
+  // 排序
+  if (productSortOption.value === 'recent') {
+    result.sort((a, b) => new Date(b.favoriteTime) - new Date(a.favoriteTime))
+  } else if (productSortOption.value === 'priceAsc') {
+    result.sort((a, b) => a.price - b.price)
+  } else if (productSortOption.value === 'priceDesc') {
+    result.sort((a, b) => b.price - a.price)
+  }
       
-      return result
-    })
+  return result
+})
     
-    // 论坛帖子相关数据
-    const postSearchKeyword = ref('')
-    const postSortOption = ref('recent')
-    const posts = computed(() => {
-      return favoriteList.value
-        .filter(item => item.itemType === 'post')
-        .map(item => ({
-          id: item.id,
-          postId: item.itemId,
-          title: item.postTitle || item.targetName || '未知帖子',
-          content: item.postSummary || '',
-          userId: item.postUserId || '',
-          userName: item.postNickname || '',
-          userAvatar: item.postUserAvatar || '',
-          publishTime: item.postPublishTime || item.createTime,
-          favoriteTime: item.createTime,
-          viewCount: item.postViewCount ?? 0,
-          replyCount: item.postReplyCount ?? 0,
-          favoriteCount: item.postFavoriteCount ?? 0,
-          likeCount: item.postLikeCount ?? 0
-        }))
-    })
+// 论坛帖子相关数据
+const postSearchKeyword = ref('')
+const postSortOption = ref('recent')
+const posts = computed(() => {
+  return favoriteList.value
+    .filter(item => item.itemType === 'post')
+    .map(item => ({
+      id: item.id,
+      postId: item.itemId,
+      title: item.postTitle || item.targetName || '未知帖子',
+      content: item.postSummary || '',
+      userId: item.postUserId || '',
+      userName: item.postNickname || '',
+      userAvatar: item.postUserAvatar || '',
+      publishTime: item.postPublishTime || item.createTime,
+      favoriteTime: item.createTime,
+      viewCount: item.postViewCount ?? 0,
+      replyCount: item.postReplyCount ?? 0,
+      favoriteCount: item.postFavoriteCount ?? 0,
+      likeCount: item.postLikeCount ?? 0
+    }))
+})
     
-    // 筛选和排序论坛帖子
-    const filteredPosts = computed(() => {
-      let result = [...posts.value]
+// 筛选和排序论坛帖子
+const filteredPosts = computed(() => {
+  let result = [...posts.value]
       
-      // 搜索过滤
-      if (postSearchKeyword.value) {
-        const keyword = postSearchKeyword.value.toLowerCase()
-        result = result.filter(post => 
-          post.title.toLowerCase().includes(keyword) || 
+  // 搜索过滤
+  if (postSearchKeyword.value) {
+    const keyword = postSearchKeyword.value.toLowerCase()
+    result = result.filter(post => 
+      post.title.toLowerCase().includes(keyword) || 
           post.content.toLowerCase().includes(keyword)
-        )
-      }
+    )
+  }
       
-      // 排序
-      if (postSortOption.value === 'recent') {
-        result.sort((a, b) => new Date(b.favoriteTime) - new Date(a.favoriteTime))
-      } else if (postSortOption.value === 'hot') {
-        result.sort((a, b) => (b.viewCount + b.replyCount * 2) - (a.viewCount + a.replyCount * 2))
-      }
+  // 排序
+  if (postSortOption.value === 'recent') {
+    result.sort((a, b) => new Date(b.favoriteTime) - new Date(a.favoriteTime))
+  } else if (postSortOption.value === 'hot') {
+    result.sort((a, b) => (b.viewCount + b.replyCount * 2) - (a.viewCount + a.replyCount * 2))
+  }
       
-      return result
-    })
+  return result
+})
     
-    // 格式化日期
-    const formatDate = dateString => {
-      if (!dateString) return ''
+// 格式化日期
+const formatDate = dateString => {
+  if (!dateString) return ''
       
-      const date = new Date(dateString)
-      return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`
-    }
+  const date = new Date(dateString)
+  return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`
+}
     
-    // 跳转到文章详情
-    const goToArticleDetail = articleId => {
-      router.push(`/article/${articleId}`)
-    }
+// 跳转到文章详情
+const goToArticleDetail = articleId => {
+  router.push(`/article/${articleId}`)
+}
     
-    // 跳转到商品详情
-    const goToProductDetail = productId => {
-      router.push(`/tea/${productId}`)
-    }
+// 跳转到商品详情
+const goToProductDetail = productId => {
+  router.push(`/tea/${productId}`)
+}
     
-    // 跳转到店铺详情
-    const goToShopDetail = shopId => {
-      router.push(`/shop/${shopId}`)
-    }
+// 跳转到店铺详情
+const goToShopDetail = shopId => {
+  router.push(`/shop/${shopId}`)
+}
     
-    // 跳转到帖子详情
-    const goToPostDetail = postId => {
-      router.push(`/forum/${postId}`)
-    }
+// 跳转到帖子详情
+const goToPostDetail = postId => {
+  router.push(`/forum/${postId}`)
+}
     
-    // 跳转到用户主页
-    const goToUserProfile = userId => {
-      router.push(`/profile/${userId}`)
-    }
+// 跳转到用户主页
+const goToUserProfile = userId => {
+  router.push(`/profile/${userId}`)
+}
     
-    /**
+/**
      * 加入购物车
      * - 必须走真实 API / Pinia Action，返回 code 再用状态码消息系统提示
      * - 禁止在未调用接口时伪造成功码
      * - 如果没有选择规格，使用默认规格
      */
-    const addToCart = async teaId => {
-      try {
-        // 获取茶叶规格列表，找到默认规格
-        await teaStore.fetchTeaSpecifications(teaId)
-        const specs = teaStore.currentTeaSpecs || []
-        const defaultSpec = specs.find(spec => spec.isDefault === 1 || spec.isDefault === true)
+const addToCart = async teaId => {
+  try {
+    // 获取茶叶规格列表，找到默认规格
+    await teaStore.fetchTeaSpecifications(teaId)
+    const specs = teaStore.currentTeaSpecs || []
+    const defaultSpec = specs.find(spec => spec.isDefault === 1 || spec.isDefault === true)
         
-        if (!defaultSpec || !defaultSpec.id) {
-          // 如果没有默认规格，使用第一个规格作为默认规格
-          if (specs.length > 0 && specs[0].id) {
+    if (!defaultSpec || !defaultSpec.id) {
+      // 如果没有默认规格，使用第一个规格作为默认规格
+      if (specs.length > 0 && specs[0].id) {
         const res = await orderStore.addToCart({
           teaId: String(teaId),
           quantity: 1,
-              specificationId: specs[0].id
-            })
-            showByCode(res.code)
-            return
-          } else {
-            // 如果连规格都没有，显示错误
-            showByCode(3116) // 规格相关的错误码
-            return
-          }
-        }
-        
-        // 使用默认规格加入购物车
-        const res = await orderStore.addToCart({
-          teaId: String(teaId),
-          quantity: 1,
-          specificationId: defaultSpec.id
+          specificationId: specs[0].id
         })
         showByCode(res.code)
-      } catch (error) {
-        // 网络错误等由拦截器处理，这里仅保留开发日志
-        if (process.env.NODE_ENV === 'development') {
-          console.error('加入购物车失败:', error)
-        }
+        return
+      } else {
+        // 如果连规格都没有，显示错误
+        showByCode(3116) // 规格相关的错误码
+        return
       }
     }
+        
+    // 使用默认规格加入购物车
+    const res = await orderStore.addToCart({
+      teaId: String(teaId),
+      quantity: 1,
+      specificationId: defaultSpec.id
+    })
+    showByCode(res.code)
+  } catch (error) {
+    // 网络错误等由拦截器处理，这里仅保留开发日志
+    if (process.env.NODE_ENV === 'development') {
+      console.error('加入购物车失败:', error)
+    }
+  }
+}
     
-    /**
+/**
      * 切换收藏状态（乐观更新 + 延迟同步）
      * - 改变的是"当前登录用户"和"该项目"的关系
      * - 自己的列表：只更新按钮状态，不刷新列表（避免误操作导致项消失）
      * - 别人的列表：立即刷新 viewerFavoriteList，确保按钮状态准确
      */
-    const toggleFavorite = async (itemType, itemId, targetName = '', targetImage = '') => {
-      // 判断是否是查看自己的列表
-      const isSelf = currentUserId.value && profileUserId.value && String(profileUserId.value) === String(currentUserId.value)
+const toggleFavorite = async (itemType, itemId, targetName = '', targetImage = '') => {
+  // 判断是否是查看自己的列表
+  const isSelf = currentUserId.value && profileUserId.value && String(profileUserId.value) === String(currentUserId.value)
       
-      const currentlyFavorited = isLocallyFavorited(itemType, itemId)
-      // 先乐观更新UI，避免"接口成功但按钮样式不变"
-      setLocallyFavorited(itemType, itemId, !currentlyFavorited)
-      try {
-        if (currentlyFavorited) {
-          // 取消收藏
-          const res = await userStore.removeFavorite({
-            itemId: String(itemId),
-            itemType: itemType
-          })
-          showByCode(res.code)
-          // 如果失败，回滚UI状态
-          if (!(res.code === 2015 || String(res.code).startsWith('7'))) {
-            setLocallyFavorited(itemType, itemId, true)
-          } else {
-            // 操作成功
-            // 如果是别人的列表，立即刷新 viewerFavoriteList 确保按钮状态准确
-            if (!isSelf) {
-              try {
-                const resViewer = await getFavoriteList()
-                viewerFavoriteList.value = (resViewer.data || []).map(i => ({ ...i }))
-                // 刷新后清空本地状态，让 viewerFavoriteList 成为唯一数据源
-                delete localFavoriteState.value[favoriteKey(itemType, itemId)]
-              } catch (err) {
-                if (process.env.NODE_ENV === 'development') {
-                  console.error('刷新查看者收藏列表失败:', err)
-                }
-              }
+  const currentlyFavorited = isLocallyFavorited(itemType, itemId)
+  // 先乐观更新UI，避免"接口成功但按钮样式不变"
+  setLocallyFavorited(itemType, itemId, !currentlyFavorited)
+  try {
+    if (currentlyFavorited) {
+      // 取消收藏
+      const res = await userStore.removeFavorite({
+        itemId: String(itemId),
+        itemType: itemType
+      })
+      showByCode(res.code)
+      // 如果失败，回滚UI状态
+      if (!(res.code === 2015 || String(res.code).startsWith('7'))) {
+        setLocallyFavorited(itemType, itemId, true)
+      } else {
+        // 操作成功
+        // 如果是别人的列表，立即刷新 viewerFavoriteList 确保按钮状态准确
+        if (!isSelf) {
+          try {
+            const resViewer = await getFavoriteList()
+            viewerFavoriteList.value = (resViewer.data || []).map(i => ({ ...i }))
+            // 刷新后清空本地状态，让 viewerFavoriteList 成为唯一数据源
+            delete localFavoriteState.value[favoriteKey(itemType, itemId)]
+          } catch (err) {
+            if (process.env.NODE_ENV === 'development') {
+              console.error('刷新查看者收藏列表失败:', err)
             }
-            // 如果是自己的列表，保持 localFavoriteState 的更新，不刷新列表
-            // localFavoriteState 已经更新，按钮状态应该已经改变
-          }
-        } else {
-          // 添加收藏
-          const res = await userStore.addFavorite({
-            itemId: String(itemId),
-            itemType: itemType,
-            targetName: targetName,
-            targetImage: targetImage
-          })
-          showByCode(res.code)
-          // 如果失败，回滚UI状态
-          if (!(res.code === 2014 || String(res.code).startsWith('7'))) {
-            setLocallyFavorited(itemType, itemId, false)
-          } else {
-            // 操作成功
-            // 如果是别人的列表，立即刷新 viewerFavoriteList 确保按钮状态准确
-            if (!isSelf) {
-              try {
-                const resViewer = await getFavoriteList()
-                viewerFavoriteList.value = (resViewer.data || []).map(i => ({ ...i }))
-                // 刷新后清空本地状态，让 viewerFavoriteList 成为唯一数据源
-                delete localFavoriteState.value[favoriteKey(itemType, itemId)]
-              } catch (err) {
-                if (process.env.NODE_ENV === 'development') {
-                  console.error('刷新查看者收藏列表失败:', err)
-                }
-              }
-            }
-            // 如果是自己的列表，保持 localFavoriteState 的更新，不刷新列表
-            // localFavoriteState 已经更新，按钮状态应该已经改变
           }
         }
-      } catch (error) {
-        // 网络/异常：回滚UI
-        setLocallyFavorited(itemType, itemId, currentlyFavorited)
-        if (process.env.NODE_ENV === 'development') {
-          console.error('切换收藏状态失败:', error)
+        // 如果是自己的列表，保持 localFavoriteState 的更新，不刷新列表
+        // localFavoriteState 已经更新，按钮状态应该已经改变
+      }
+    } else {
+      // 添加收藏
+      const res = await userStore.addFavorite({
+        itemId: String(itemId),
+        itemType: itemType,
+        targetName: targetName,
+        targetImage: targetImage
+      })
+      showByCode(res.code)
+      // 如果失败，回滚UI状态
+      if (!(res.code === 2014 || String(res.code).startsWith('7'))) {
+        setLocallyFavorited(itemType, itemId, false)
+      } else {
+        // 操作成功
+        // 如果是别人的列表，立即刷新 viewerFavoriteList 确保按钮状态准确
+        if (!isSelf) {
+          try {
+            const resViewer = await getFavoriteList()
+            viewerFavoriteList.value = (resViewer.data || []).map(i => ({ ...i }))
+            // 刷新后清空本地状态，让 viewerFavoriteList 成为唯一数据源
+            delete localFavoriteState.value[favoriteKey(itemType, itemId)]
+          } catch (err) {
+            if (process.env.NODE_ENV === 'development') {
+              console.error('刷新查看者收藏列表失败:', err)
+            }
+          }
         }
+        // 如果是自己的列表，保持 localFavoriteState 的更新，不刷新列表
+        // localFavoriteState 已经更新，按钮状态应该已经改变
       }
     }
-    
-    // 兼容旧方法名（取消收藏）
-    const cancelFavorite = async (itemType, itemId) => {
-      await toggleFavorite(itemType, itemId)
+  } catch (error) {
+    // 网络/异常：回滚UI
+    setLocallyFavorited(itemType, itemId, currentlyFavorited)
+    if (process.env.NODE_ENV === 'development') {
+      console.error('切换收藏状态失败:', error)
     }
+  }
+}
     
-    /**
+// 兼容旧方法名（取消收藏）
+const cancelFavorite = async (itemType, itemId) => {
+  await toggleFavorite(itemType, itemId)
+}
+    
+/**
      * 加载收藏列表：同时加载两份数据
      * 1. 被查看用户的收藏列表（用于显示列表内容）
      * 2. 当前登录用户的收藏列表（用于判断按钮状态）
      * 注意：初始数据在 UserHomePage 的 loadUserData 中统一调用，这里只处理用户操作
      */
-    const loadFavoriteList = async () => {
-      // 如果未登录，不调用接口（避免退出登录时触发）
-      if (!userStore.isLoggedIn) {
-        profileFavoriteList.value = []
-        viewerFavoriteList.value = []
-        localFavoriteState.value = {}
-        return
-      }
+const loadFavoriteList = async () => {
+  // 如果未登录，不调用接口（避免退出登录时触发）
+  if (!userStore.isLoggedIn) {
+    profileFavoriteList.value = []
+    viewerFavoriteList.value = []
+    localFavoriteState.value = {}
+    return
+  }
       
-      // 参考统计接口的处理逻辑：判断主页是否可见
-      const isSelf = currentUserId.value && profileUserId.value && String(profileUserId.value) === String(currentUserId.value)
-      const profileVisible = messageStore.userProfile?.profileVisible !== false
+  // 参考统计接口的处理逻辑：判断主页是否可见
+  const isSelf = currentUserId.value && profileUserId.value && String(profileUserId.value) === String(currentUserId.value)
+  const profileVisible = messageStore.userProfile?.profileVisible !== false
       
-      // 仅在本人或对方允许查看时才请求收藏接口；否则直接置空并不发请求
-      if (!isSelf && !profileVisible) {
-        profileFavoriteList.value = []
-        viewerFavoriteList.value = []
-        localFavoriteState.value = {}
-        return
-      }
+  // 仅在本人或对方允许查看时才请求收藏接口；否则直接置空并不发请求
+  if (!isSelf && !profileVisible) {
+    profileFavoriteList.value = []
+    viewerFavoriteList.value = []
+    localFavoriteState.value = {}
+    return
+  }
       
-      try {
-        // 1) 被查看用户的收藏：用于渲染"他收藏了什么"
-        if (isSelf) {
-          // 看自己的主页：列表内容直接是当前登录用户
-          const resOwner = await getFavoriteList()
-          profileFavoriteList.value = (resOwner.data || []).map(i => ({ ...i }))
-        } else {
-          // 看别人的主页：获取对方的收藏列表
-          const resOwner = await getFavoriteList(null, profileUserId.value)
-          profileFavoriteList.value = (resOwner.data || []).map(i => ({ ...i }))
-        }
-
-        // 2) 当前登录用户的收藏：用于按钮状态（我是否收藏该条目）
-        // - 看别人的主页才需要单独再拉一份
-        if (!isSelf) {
-          const resViewer = await getFavoriteList()
-          viewerFavoriteList.value = (resViewer.data || []).map(i => ({ ...i }))
-        } else {
-          // 看自己：两份相同，但仍做快照拷贝，避免被后续 Pinia 状态变更影响
-          viewerFavoriteList.value = (profileFavoriteList.value || []).map(i => ({ ...i }))
-        }
-
-        // 切换用户/刷新时：清空本页的本地切换态，让"矫正"以最新后端结果为准
-        localFavoriteState.value = {}
-      } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          console.error('[开发调试] 加载收藏列表时发生意外错误：', error)
-        }
-      }
+  try {
+    // 1) 被查看用户的收藏：用于渲染"他收藏了什么"
+    if (isSelf) {
+      // 看自己的主页：列表内容直接是当前登录用户
+      const resOwner = await getFavoriteList()
+      profileFavoriteList.value = (resOwner.data || []).map(i => ({ ...i }))
+    } else {
+      // 看别人的主页：获取对方的收藏列表
+      const resOwner = await getFavoriteList(null, profileUserId.value)
+      profileFavoriteList.value = (resOwner.data || []).map(i => ({ ...i }))
     }
+
+    // 2) 当前登录用户的收藏：用于按钮状态（我是否收藏该条目）
+    // - 看别人的主页才需要单独再拉一份
+    if (!isSelf) {
+      const resViewer = await getFavoriteList()
+      viewerFavoriteList.value = (resViewer.data || []).map(i => ({ ...i }))
+    } else {
+      // 看自己：两份相同，但仍做快照拷贝，避免被后续 Pinia 状态变更影响
+      viewerFavoriteList.value = (profileFavoriteList.value || []).map(i => ({ ...i }))
+    }
+
+    // 切换用户/刷新时：清空本页的本地切换态，让"矫正"以最新后端结果为准
+    localFavoriteState.value = {}
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[开发调试] 加载收藏列表时发生意外错误：', error)
+    }
+  }
+}
     
 // 组件挂载时：等待 UserHomePage 的 loadUserData 完成，然后检查 profileVisible 再决定是否调用接口
 onMounted(async () => {
@@ -655,7 +655,7 @@ onMounted(async () => {
   
   // 仅在本人或对方允许查看时才请求收藏接口；否则直接置空并不发请求
   if (isSelf || profileVisible) {
-  loadFavoriteList()
+    loadFavoriteList()
   } else {
     profileFavoriteList.value = []
     viewerFavoriteList.value = []
@@ -668,7 +668,7 @@ onMounted(async () => {
  * @param {Object} product 收藏页茶叶卡片数据
  * @returns {boolean} 是否平台直售
  */
-const isPlatformTea = (product) => {
+const isPlatformTea = product => {
   const sid = product?.shopId
   return !sid || sid === '0' || sid === 'PLATFORM'
 }

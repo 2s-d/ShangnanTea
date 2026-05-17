@@ -124,6 +124,33 @@
           </div>
         </div>
 
+        <!-- 沙盒测试账号（仅测试环境使用） -->
+        <div class="checkout-section sandbox-account-section">
+          <div class="section-title">
+            <span>沙盒支付测试账号</span>
+          </div>
+          <div class="sandbox-account-box">
+            <div class="sandbox-row">
+              <span class="sandbox-label">账号：</span>
+              <el-input :model-value="sandboxBuyerAccount" readonly />
+              <el-button size="small" @click="copySandboxAccount">复制账号</el-button>
+            </div>
+            <div class="sandbox-row">
+              <span class="sandbox-label">登录密码：</span>
+              <el-input :model-value="sandboxLoginPassword" readonly />
+            </div>
+            <div class="sandbox-row">
+              <span class="sandbox-label">支付密码：</span>
+              <el-input :model-value="sandboxPayPassword" readonly />
+            </div>
+            <div class="sandbox-actions">
+              <el-button size="small" @click="copySandboxAll">
+                复制全部信息
+              </el-button>
+            </div>
+          </div>
+        </div>
+
         <!-- 金额信息 -->
         <div class="checkout-section amount-section">
           <div class="amount-item">
@@ -401,6 +428,26 @@ defineOptions({
     const canSubmitOrder = computed(() => {
       return selectedAddressId.value && orderItems.value.length > 0 && paymentMethod.value
     })
+
+    // 支付宝沙盒测试账号（便于测试人员直接使用）
+    const sandboxBuyerAccount = 'akobfq3779@sandbox.com'
+    const sandboxLoginPassword = '111111'
+    const sandboxPayPassword = '111111'
+
+    const copyText = async text => {
+      try {
+        await navigator.clipboard.writeText(text)
+        ElMessage.success('已复制到剪贴板')
+      } catch (e) {
+        ElMessage.warning('复制失败，请手动复制')
+      }
+    }
+
+    const copySandboxAccount = () => copyText(sandboxBuyerAccount)
+    const copySandboxAll = () =>
+      copyText(
+        `账号：${sandboxBuyerAccount}\n登录密码：${sandboxLoginPassword}\n支付密码：${sandboxPayPassword}`
+      )
     
     // 返回按钮
     const goBack = () => {
@@ -597,6 +644,31 @@ defineOptions({
   &:last-child {
     border-bottom: none;
   }
+}
+
+.sandbox-account-box {
+  background: #f8fbff;
+  border: 1px dashed #bcd7ff;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.sandbox-row {
+  display: grid;
+  grid-template-columns: 88px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.sandbox-label {
+  color: #606266;
+  font-size: 14px;
+}
+
+.sandbox-actions {
+  display: flex;
+  justify-content: flex-end;
 }
 
 // 收货地址区域适当压缩高度

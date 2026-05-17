@@ -213,343 +213,343 @@ const route = useRoute()
 const messageStore = useMessageStore()
 const userStore = useUserStore()
     
-    // 从路由参数获取用户ID和tab
-    // 路由格式：/profile/:userId?/:tab?
-    // 如果第一个参数是已知的tab（published等），则当作tab，userId为undefined
-    // 如果第一个参数不是已知的tab，则当作userId
-    const userId = computed(() => {
-      const firstParam = route.params.userId
-      const secondParam = route.params.tab
+// 从路由参数获取用户ID和tab
+// 路由格式：/profile/:userId?/:tab?
+// 如果第一个参数是已知的tab（published等），则当作tab，userId为undefined
+// 如果第一个参数不是已知的tab，则当作userId
+const userId = computed(() => {
+  const firstParam = route.params.userId
+  const secondParam = route.params.tab
       
-      // 如果第一个参数是已知的tab，则它是tab，userId为undefined
-      if (firstParam && componentMap[firstParam]) {
-        return 'current'
-      }
+  // 如果第一个参数是已知的tab，则它是tab，userId为undefined
+  if (firstParam && componentMap[firstParam]) {
+    return 'current'
+  }
       
-      // 如果第一个参数不是已知的tab，则它是userId
-      if (firstParam && firstParam !== 'current') {
-        return firstParam
-      }
+  // 如果第一个参数不是已知的tab，则它是userId
+  if (firstParam && firstParam !== 'current') {
+    return firstParam
+  }
       
-      // 默认返回current
-      return 'current'
-    })
+  // 默认返回current
+  return 'current'
+})
     
-    // 从路由参数获取tab
-    const routeTab = computed(() => {
-      const firstParam = route.params.userId
-      const secondParam = route.params.tab
+// 从路由参数获取tab
+const routeTab = computed(() => {
+  const firstParam = route.params.userId
+  const secondParam = route.params.tab
       
-      // 如果第一个参数是已知的tab，则它是tab
-      if (firstParam && componentMap[firstParam]) {
-        return firstParam
-      }
+  // 如果第一个参数是已知的tab，则它是tab
+  if (firstParam && componentMap[firstParam]) {
+    return firstParam
+  }
       
-      // 否则使用第二个参数作为tab
-      return secondParam
-    })
+  // 否则使用第二个参数作为tab
+  return secondParam
+})
     
-    // 从Pinia获取用户信息（优先使用消息模块返回的数据，不足部分用全局用户信息补全）
-    const userInfo = computed(() => {
-      const profile = messageStore.userProfile || {}
-      const base = userStore.userInfo || {}
-      // 确保 role 和 gender 都是数字类型
-      const role = profile.role != null ? Number(profile.role) : (base.role != null ? Number(base.role) : null)
-      const gender = profile.gender != null ? Number(profile.gender) : (base.gender != null ? Number(base.gender) : 0)
-      return {
-        id: profile.id || base.id || base.userId || '',
-        username: profile.username || base.username || '',
-        nickname: profile.nickname || base.nickname || '',
-        avatar: profile.avatar || base.avatar || '',
-        gender: gender,
-        bio: profile.bio || base.bio || '',
-        role: role,
-        currentLocation: profile.currentLocation || base.currentLocation || '',
-        registerTime: profile.registerTime || base.createTime || base.registerTime || null,
-        shopId: profile.shopId || base.shopId || null,
-        shopName: profile.shopName || base.shopName || null,
-        isFollowed: profile.isFollowed || false
-      }
-    })
+// 从Pinia获取用户信息（优先使用消息模块返回的数据，不足部分用全局用户信息补全）
+const userInfo = computed(() => {
+  const profile = messageStore.userProfile || {}
+  const base = userStore.userInfo || {}
+  // 确保 role 和 gender 都是数字类型
+  const role = profile.role != null ? Number(profile.role) : (base.role != null ? Number(base.role) : null)
+  const gender = profile.gender != null ? Number(profile.gender) : (base.gender != null ? Number(base.gender) : 0)
+  return {
+    id: profile.id || base.id || base.userId || '',
+    username: profile.username || base.username || '',
+    nickname: profile.nickname || base.nickname || '',
+    avatar: profile.avatar || base.avatar || '',
+    gender: gender,
+    bio: profile.bio || base.bio || '',
+    role: role,
+    currentLocation: profile.currentLocation || base.currentLocation || '',
+    registerTime: profile.registerTime || base.createTime || base.registerTime || null,
+    shopId: profile.shopId || base.shopId || null,
+    shopName: profile.shopName || base.shopName || null,
+    isFollowed: profile.isFollowed || false
+  }
+})
     
-    // 格式化现居地显示（使用 region.js 的工具函数）
-    const formattedLocation = computed(() => {
-      const location = userInfo.value.currentLocation
-      if (!location) return ''
-      return formatLocationDisplay(location)
-    })
+// 格式化现居地显示（使用 region.js 的工具函数）
+const formattedLocation = computed(() => {
+  const location = userInfo.value.currentLocation
+  if (!location) return ''
+  return formatLocationDisplay(location)
+})
     
-    // 从Pinia获取用户统计数据
-    const userStatistics = computed(() => messageStore.userStatistics || {
-      postCount: 0,
-      likeCount: 0,
-      favoriteCount: 0,
-      followingCount: 0,
-      followerCount: 0,
-      commentCount: 0
-    })
+// 从Pinia获取用户统计数据
+const userStatistics = computed(() => messageStore.userStatistics || {
+  postCount: 0,
+  likeCount: 0,
+  favoriteCount: 0,
+  followingCount: 0,
+  followerCount: 0,
+  commentCount: 0
+})
     
-    // 加载状态
-    const loading = computed(() => messageStore.loading)
+// 加载状态
+const loading = computed(() => messageStore.loading)
     
-    // 判断头像是否是 GIF 动图
-    const isGifAvatar = computed(() => {
-      const avatar = userInfo.value.avatar || ''
-      return avatar.toLowerCase().endsWith('.gif')
-    })
+// 判断头像是否是 GIF 动图
+const isGifAvatar = computed(() => {
+  const avatar = userInfo.value.avatar || ''
+  return avatar.toLowerCase().endsWith('.gif')
+})
     
-    // 当前登录用户ID（从全局用户信息里拿）
-    const currentUserId = computed(() => {
-      const base = userStore.userInfo || {}
-      return base.id || base.userId || null
-    })
+// 当前登录用户ID（从全局用户信息里拿）
+const currentUserId = computed(() => {
+  const base = userStore.userInfo || {}
+  return base.id || base.userId || null
+})
     
-    // 判断是否是查看自己的主页
-    const isOwnProfile = computed(() => {
-      // 路由参数显式指向 current 时，一定是自己的主页
-      if (userId.value === 'current' || !route.params.userId) {
-        return true
-      }
-      // 当路由上带的是实际用户ID时，如果与当前登录用户ID一致，也视为自己的主页
-      if (currentUserId.value && userId.value === currentUserId.value) {
-        return true
-      }
-      return false
-    })
+// 判断是否是查看自己的主页
+const isOwnProfile = computed(() => {
+  // 路由参数显式指向 current 时，一定是自己的主页
+  if (userId.value === 'current' || !route.params.userId) {
+    return true
+  }
+  // 当路由上带的是实际用户ID时，如果与当前登录用户ID一致，也视为自己的主页
+  if (currentUserId.value && userId.value === currentUserId.value) {
+    return true
+  }
+  return false
+})
 
-    // 是否允许查看当前用户的个人主页（自己永远允许）
-    const isProfileVisible = computed(() => {
-      if (isOwnProfile.value) return true
-      const profile = messageStore.userProfile || {}
-      // 后端没有返回该字段时默认可见
-      if (profile.profileVisible === undefined || profile.profileVisible === null) return true
-      return !!profile.profileVisible
-    })
+// 是否允许查看当前用户的个人主页（自己永远允许）
+const isProfileVisible = computed(() => {
+  if (isOwnProfile.value) return true
+  const profile = messageStore.userProfile || {}
+  // 后端没有返回该字段时默认可见
+  if (profile.profileVisible === undefined || profile.profileVisible === null) return true
+  return !!profile.profileVisible
+})
     
-    // 判断是否可以返回（检查是否有历史记录，且不是直接访问）
-    const canGoBack = computed(() => {
-      // 如果是从其他页面跳转过来的，可以返回
-      // 检查是否有referrer或者history.length > 1
-      if (typeof window !== 'undefined') {
-        // 如果有document.referrer且不是同源，或者history.length > 1，说明可以返回
-        return window.history.length > 1 || (document.referrer && !document.referrer.includes(window.location.origin))
-      }
-      return false
-    })
+// 判断是否可以返回（检查是否有历史记录，且不是直接访问）
+const canGoBack = computed(() => {
+  // 如果是从其他页面跳转过来的，可以返回
+  // 检查是否有referrer或者history.length > 1
+  if (typeof window !== 'undefined') {
+    // 如果有document.referrer且不是同源，或者history.length > 1，说明可以返回
+    return window.history.length > 1 || (document.referrer && !document.referrer.includes(window.location.origin))
+  }
+  return false
+})
     
-    // 返回上一页
-    const handleGoBack = () => {
-      router.back()
-    }
+// 返回上一页
+const handleGoBack = () => {
+  router.back()
+}
     
-    // 关注状态（从接口返回的isFollowed字段获取）
-    const isFollowing = computed(() => userInfo.value?.isFollowed || false)
+// 关注状态（从接口返回的isFollowed字段获取）
+const isFollowing = computed(() => userInfo.value?.isFollowed || false)
     
-    // 菜单项和对应组件映射
-    const menuOptions = {
-      published: '我的发布',
-      follows: '我的关注',
-      favorites: '我的收藏'
-    }
+// 菜单项和对应组件映射
+const menuOptions = {
+  published: '我的发布',
+  follows: '我的关注',
+  favorites: '我的收藏'
+}
     
-    // 组件映射
-    const componentMap = {
-      published: markRaw(PublishedContentPage),
-      follows: markRaw(FollowsPage),
-      favorites: markRaw(FavoritesPage)
-    }
+// 组件映射
+const componentMap = {
+  published: markRaw(PublishedContentPage),
+  follows: markRaw(FollowsPage),
+  favorites: markRaw(FavoritesPage)
+}
     
-    // 活动菜单（默认显示"发布"）
-    const activeMenu = ref('published')
-    // 当前显示的组件
-    const currentComponent = ref(componentMap.published)
+// 活动菜单（默认显示"发布"）
+const activeMenu = ref('published')
+// 当前显示的组件
+const currentComponent = ref(componentMap.published)
     
-    // 判断当前菜单是否有对应组件
-    const hasComponent = computed(() => {
-      return componentMap[activeMenu.value] !== undefined
-    })
+// 判断当前菜单是否有对应组件
+const hasComponent = computed(() => {
+  return componentMap[activeMenu.value] !== undefined
+})
     
-    // 从路由参数初始化activeMenu
-    onMounted(async () => {
-      const tab = routeTab.value
-      if (tab && componentMap[tab]) {
-        activeMenu.value = tab
-        currentComponent.value = componentMap[tab]
-      }
+// 从路由参数初始化activeMenu
+onMounted(async () => {
+  const tab = routeTab.value
+  if (tab && componentMap[tab]) {
+    activeMenu.value = tab
+    currentComponent.value = componentMap[tab]
+  }
       
-      // 加载用户信息
-      await loadUserData()
-    })
+  // 加载用户信息
+  await loadUserData()
+})
     
-    // 监听路由参数变化
-    watch(() => routeTab.value, newTab => {
-      if (newTab && componentMap[newTab]) {
-        activeMenu.value = newTab
-          currentComponent.value = componentMap[newTab]
-      }
-    })
+// 监听路由参数变化
+watch(() => routeTab.value, newTab => {
+  if (newTab && componentMap[newTab]) {
+    activeMenu.value = newTab
+    currentComponent.value = componentMap[newTab]
+  }
+})
     
-    // 监听用户ID变化
-    watch(() => userId.value, async () => {
-      await loadUserData()
-    })
+// 监听用户ID变化
+watch(() => userId.value, async () => {
+  await loadUserData()
+})
     
-    // 菜单选择处理
-    const handleMenuSelect = key => {
-      activeMenu.value = key
+// 菜单选择处理
+const handleMenuSelect = key => {
+  activeMenu.value = key
       
-      // 如果存在对应组件就设置，否则显示动态或开发中
-      if (componentMap[key]) {
-        currentComponent.value = componentMap[key]
-      } else {
-        currentComponent.value = null
-      }
+  // 如果存在对应组件就设置，否则显示动态或开发中
+  if (componentMap[key]) {
+    currentComponent.value = componentMap[key]
+  } else {
+    currentComponent.value = null
+  }
       
-      // 更新路由参数（不刷新页面），保留userId参数
-      const currentUserId = userId.value
-      if (currentUserId && currentUserId !== 'current') {
-      router.push({
-          path: `/profile/${currentUserId}/${key}`,
-          replace: true
-        })
-      } else {
-        router.push({
-          path: `/profile/current/${key}`,
-        replace: true
+  // 更新路由参数（不刷新页面），保留userId参数
+  const currentUserId = userId.value
+  if (currentUserId && currentUserId !== 'current') {
+    router.push({
+      path: `/profile/${currentUserId}/${key}`,
+      replace: true
+    })
+  } else {
+    router.push({
+      path: `/profile/current/${key}`,
+      replace: true
+    })
+  }
+}
+    
+// 处理编辑资料
+const handleEditProfile = () => {
+  router.push('/user/profile')
+}
+    
+// 处理关注/取消关注
+const handleFollow = async () => {
+  if (isOwnProfile.value) return // 自己的主页不需要关注
+      
+  try {
+    if (isFollowing.value) {
+      // 取消关注：直接传递 targetId 和 targetType
+      const res = await userStore.removeFollow({
+        targetId: userId.value,
+        targetType: 'user'
       })
-      }
+      showByCode(res.code)
+      // 重新加载用户信息以更新isFollowed状态
+      await loadUserData()
+    } else {
+      // 添加关注
+      const res = await userStore.addFollow({
+        targetId: userId.value,
+        targetType: 'user',
+        targetName: userInfo.value.nickname,
+        targetAvatar: userInfo.value.avatar
+      })
+      showByCode(res.code)
+      // 重新加载用户信息以更新isFollowed状态
+      await loadUserData()
     }
-    
-    // 处理编辑资料
-    const handleEditProfile = () => {
-      router.push('/user/profile')
+  } catch (error) {
+    console.error('关注操作失败:', error)
+  }
+}
+
+// 私信：个人主页场景只允许用户→用户私聊
+// 逻辑必须与 ChatPage.openContact 完全一致：先创建/恢复会话，再跳转并选中
+const handlePrivateMessage = async () => {
+  if (isOwnProfile.value) return
+  const targetId = userInfo.value.id
+  if (!targetId) {
+    console.warn('无法获取目标用户ID，暂时无法发起私信')
+    return
+  }
+  try {
+    const res = await messageStore.createChatSession({
+      targetId: String(targetId),
+      targetType: 'private'
+    })
+    if (!isSuccess(res.code)) {
+      showByCode(res.code)
+      return
     }
-    
-    // 处理关注/取消关注
-    const handleFollow = async () => {
-      if (isOwnProfile.value) return // 自己的主页不需要关注
-      
-      try {
-        if (isFollowing.value) {
-          // 取消关注：直接传递 targetId 和 targetType
-          const res = await userStore.removeFollow({
-            targetId: userId.value,
-            targetType: 'user'
-          })
-          showByCode(res.code)
-          // 重新加载用户信息以更新isFollowed状态
-          await loadUserData()
-        } else {
-          // 添加关注
-          const res = await userStore.addFollow({
-            targetId: userId.value,
-            targetType: 'user',
-            targetName: userInfo.value.nickname,
-            targetAvatar: userInfo.value.avatar
-          })
-          showByCode(res.code)
-          // 重新加载用户信息以更新isFollowed状态
-          await loadUserData()
-        }
-      } catch (error) {
-        console.error('关注操作失败:', error)
+    const sessionId = res.data?.id
+    // 跳转到消息页，并携带 sessionId 精确选中（避免仅靠 userId 匹配导致选不中）
+    router.push({
+      path: '/message/chat',
+      query: {
+        sessionId: sessionId ? String(sessionId) : undefined,
+        userId: String(targetId)
       }
+    })
+  } catch (e) {
+    console.error('发起私信失败:', e)
+  }
+}
+    
+// 跳转到店铺
+const goToShop = () => {
+  if (userInfo.value.shopId) {
+    router.push(`/shop/${userInfo.value.shopId}`)
+  }
+}
+    
+// 加载用户数据
+const loadUserData = async () => {
+  try {
+    let targetUserId = userId.value
+
+    // 当前用户主页：优先使用当前登录用户ID
+    if (targetUserId === 'current' || !targetUserId) {
+      // 如果全局用户信息还没初始化，先从后端拉一次
+      if (!userStore.userInfo) {
+        await userStore.getUserInfo()
+      }
+      targetUserId = userStore.userInfo?.id || userStore.userInfo?.userId
     }
 
-    // 私信：个人主页场景只允许用户→用户私聊
-    // 逻辑必须与 ChatPage.openContact 完全一致：先创建/恢复会话，再跳转并选中
-    const handlePrivateMessage = async () => {
-      if (isOwnProfile.value) return
-      const targetId = userInfo.value.id
-      if (!targetId) {
-        console.warn("无法获取目标用户ID，暂时无法发起私信")
-        return
-      }
-      try {
-        const res = await messageStore.createChatSession({
-          targetId: String(targetId),
-          targetType: 'private'
-        })
-        if (!isSuccess(res.code)) {
-          showByCode(res.code)
-          return
-        }
-        const sessionId = res.data?.id
-        // 跳转到消息页，并携带 sessionId 精确选中（避免仅靠 userId 匹配导致选不中）
-        router.push({
-          path: '/message/chat',
-          query: {
-            sessionId: sessionId ? String(sessionId) : undefined,
-            userId: String(targetId)
-          }
-        })
-      } catch (e) {
-        console.error('发起私信失败:', e)
-      }
+    if (!targetUserId) {
+      console.warn('加载用户数据失败：无法获取目标用户ID')
+      return
     }
-    
-    // 跳转到店铺
-    const goToShop = () => {
-      if (userInfo.value.shopId) {
-        router.push(`/shop/${userInfo.value.shopId}`)
-      }
-    }
-    
-    // 加载用户数据
-    const loadUserData = async () => {
-      try {
-        let targetUserId = userId.value
-
-        // 当前用户主页：优先使用当前登录用户ID
-        if (targetUserId === 'current' || !targetUserId) {
-          // 如果全局用户信息还没初始化，先从后端拉一次
-          if (!userStore.userInfo) {
-            await userStore.getUserInfo()
-          }
-          targetUserId = userStore.userInfo?.id || userStore.userInfo?.userId
-        }
-
-        if (!targetUserId) {
-          console.warn('加载用户数据失败：无法获取目标用户ID')
-          return
-        }
         
-        // 先加载主页基础信息（用于判断 profileVisible），再决定是否需要请求统计接口和内容接口
-        await messageStore.fetchUserProfile(targetUserId)
+    // 先加载主页基础信息（用于判断 profileVisible），再决定是否需要请求统计接口和内容接口
+    await messageStore.fetchUserProfile(targetUserId)
         
-        const isSelf = currentUserId.value && String(targetUserId) === String(currentUserId.value)
-        const profileVisible = messageStore.userProfile?.profileVisible !== false
+    const isSelf = currentUserId.value && String(targetUserId) === String(currentUserId.value)
+    const profileVisible = messageStore.userProfile?.profileVisible !== false
         
-        // 仅在本人或对方允许查看时才请求统计接口和内容接口；否则直接置零并不发请求
-        if (isSelf || profileVisible) {
-          await messageStore.fetchUserStatistics(targetUserId)
-          // 同时调用内容接口（参考统计接口的处理方式，在同一个判断中调用）
-          await messageStore.fetchUserPosts({ userId: targetUserId })
-          await messageStore.fetchUserReviews({ userId: targetUserId })
-        } else {
-          messageStore.userStatistics = {
-            postCount: 0,
-            likeCount: 0,
-            favoriteCount: 0,
-            followingCount: 0,
-            followerCount: 0,
-            commentCount: 0
-          }
-          // 主页不可见时，清空内容数据，不调用内容接口
-          messageStore.userPosts = []
-          messageStore.userReviews = []
-        }
-      } catch (error) {
-        console.error('加载用户数据失败：', error)
+    // 仅在本人或对方允许查看时才请求统计接口和内容接口；否则直接置零并不发请求
+    if (isSelf || profileVisible) {
+      await messageStore.fetchUserStatistics(targetUserId)
+      // 同时调用内容接口（参考统计接口的处理方式，在同一个判断中调用）
+      await messageStore.fetchUserPosts({ userId: targetUserId })
+      await messageStore.fetchUserReviews({ userId: targetUserId })
+    } else {
+      messageStore.userStatistics = {
+        postCount: 0,
+        likeCount: 0,
+        favoriteCount: 0,
+        followingCount: 0,
+        followerCount: 0,
+        commentCount: 0
       }
+      // 主页不可见时，清空内容数据，不调用内容接口
+      messageStore.userPosts = []
+      messageStore.userReviews = []
     }
+  } catch (error) {
+    console.error('加载用户数据失败：', error)
+  }
+}
     
-    // 格式化日期
-    const formatDate = date => {
-      if (!date) return ''
-      const d = new Date(date)
-      return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`
-    }
+// 格式化日期
+const formatDate = date => {
+  if (!date) return ''
+  const d = new Date(date)
+  return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`
+}
 
 // 默认图片
 const defaultImage = ''

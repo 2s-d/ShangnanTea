@@ -8,6 +8,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -456,18 +457,73 @@ public class FileUploadUtils {
         if (relativePath == null || relativePath.trim().isEmpty()) {
             return null;
         }
+
+        // 1. 路径标准化：清理历史完整URL/错误主机名，统一转换为相对路径
+        String normalizedPath = normalizeToRelativePath(relativePath);
+        if (normalizedPath == null || normalizedPath.trim().isEmpty()) {
+            return null;
+        }
         
         // 移除baseUrl末尾的斜杠
         if (baseUrl.endsWith("/")) {
             baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
         }
         
+        // 2. 若仍为完整URL（通常是第三方资源），直接返回
+        if (normalizedPath.startsWith("http://") || normalizedPath.startsWith("https://")) {
+            return normalizedPath;
+        }
+
         // 确保relativePath以斜杠开头
-        if (!relativePath.startsWith("/")) {
-            relativePath = "/" + relativePath;
+        if (!normalizedPath.startsWith("/")) {
+            normalizedPath = "/" + normalizedPath;
         }
         
-        return baseUrl + relativePath;
+        return baseUrl + normalizedPath;
+    }
+
+    /**
+     * 将任意图片路径标准化为相对路径：
+     * - 若包含 files/，优先截取为 files/...
+     * - 若是完整URL但不含 files/，尝试提取 path（去掉主机名）
+     * - 若是以 / 开头的相对路径，去掉前导 /
+     */
+    private static String normalizeToRelativePath(String rawPath) {
+        if (rawPath == null) {
+            return null;
+        }
+        String value = rawPath.trim();
+        if (value.isEmpty()) {
+            return null;
+        }
+
+        String lower = value.toLowerCase();
+        int filesIndex = lower.indexOf("files/");
+        if (filesIndex >= 0) {
+            return value.substring(filesIndex);
+        }
+
+        if (value.startsWith("http://") || value.startsWith("https://")) {
+            try {
+                URI uri = URI.create(value);
+                String path = uri.getPath();
+                if (path != null && !path.trim().isEmpty()) {
+                    String normalized = path.trim();
+                    while (normalized.startsWith("/")) {
+                        normalized = normalized.substring(1);
+                    }
+                    return normalized;
+                }
+            } catch (Exception ignore) {
+                // ignore
+            }
+            return value;
+        }
+
+        while (value.startsWith("/")) {
+            value = value.substring(1);
+        }
+        return value;
     }
     
     /**

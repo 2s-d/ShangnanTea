@@ -13,12 +13,7 @@
           <div class="header-title">认证申请列表</div>
         </div>
 
-        <el-table
-          :data="certList"
-          style="width: 100%"
-          v-loading="loading"
-          border
-        >
+        <el-table :data="certList" style="width: 100%" v-loading="loading" border>
           <el-table-column prop="id" label="ID" width="80" align="center" />
           <el-table-column prop="userId" label="用户ID" min-width="140" show-overflow-tooltip />
           <el-table-column prop="shopName" label="店铺名称" min-width="160" show-overflow-tooltip />
@@ -29,11 +24,7 @@
           </el-table-column>
           <el-table-column label="操作" width="120" fixed="right">
             <template #default="scope">
-              <el-button 
-                size="small" 
-                type="primary" 
-                @click="viewDetail(scope.row)"
-                :disabled="scope.row.status !== 0">
+              <el-button size="small" type="primary" @click="viewDetail(scope.row)" :disabled="scope.row.status !== 0">
                 查看
               </el-button>
             </template>
@@ -43,18 +34,9 @@
     </div>
 
     <!-- 审核弹窗 -->
-    <el-dialog
-      v-model="dialogVisible"
-      title="审核商家认证申请"
-      width="800px"
-      :close-on-click-modal="false">
-      <el-form
-        ref="auditFormRef"
-        :model="auditForm"
-        :rules="auditRules"
-        label-width="120px"
-        v-if="currentCert">
-        
+    <el-dialog v-model="dialogVisible" title="审核商家认证申请" width="800px" :close-on-click-modal="false">
+      <el-form ref="auditFormRef" :model="auditForm" :rules="auditRules" label-width="120px" v-if="currentCert">
+
         <!-- 认证信息展示 -->
         <el-divider content-position="left">个人信息</el-divider>
         <el-form-item label="用户ID">
@@ -86,29 +68,17 @@
 
         <el-divider content-position="left">证件照片</el-divider>
         <el-form-item label="身份证正面">
-          <SafeImage 
-            v-if="currentCert.idCardFront"
-            :src="currentCert.idCardFront"
-            type="banner"
-            alt="身份证正面"
+          <SafeImage v-if="currentCert.idCardFront" :src="currentCert.idCardFront" type="banner" alt="身份证正面"
             style="max-width: 300px; max-height: 200px; border: 1px solid #ddd; border-radius: 4px;" />
           <span v-else class="text-muted">暂无</span>
         </el-form-item>
         <el-form-item label="身份证背面">
-          <SafeImage 
-            v-if="currentCert.idCardBack"
-            :src="currentCert.idCardBack"
-            type="banner"
-            alt="身份证背面"
+          <SafeImage v-if="currentCert.idCardBack" :src="currentCert.idCardBack" type="banner" alt="身份证背面"
             style="max-width: 300px; max-height: 200px; border: 1px solid #ddd; border-radius: 4px;" />
           <span v-else class="text-muted">暂无</span>
         </el-form-item>
         <el-form-item label="营业执照">
-          <SafeImage 
-            v-if="currentCert.businessLicense"
-            :src="currentCert.businessLicense"
-            type="banner"
-            alt="营业执照"
+          <SafeImage v-if="currentCert.businessLicense" :src="currentCert.businessLicense" type="banner" alt="营业执照"
             style="max-width: 300px; max-height: 200px; border: 1px solid #ddd; border-radius: 4px;" />
           <span v-else class="text-muted">暂无</span>
         </el-form-item>
@@ -120,16 +90,8 @@
             <el-radio :label="2">拒绝</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item 
-          label="拒绝原因" 
-          prop="message"
-          v-if="auditForm.status === 2">
-          <el-input
-            v-model="auditForm.message"
-            type="textarea"
-            :rows="4"
-            placeholder="请输入拒绝原因（必填）"
-            maxlength="500"
+        <el-form-item label="拒绝原因" prop="message" v-if="auditForm.status === 2">
+          <el-input v-model="auditForm.message" type="textarea" :rows="4" placeholder="请输入拒绝原因（必填）" maxlength="500"
             show-word-limit />
         </el-form-item>
       </el-form>
@@ -137,10 +99,7 @@
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button 
-            type="primary" 
-            @click="handleAudit"
-            :loading="submitting">
+          <el-button type="primary" @click="handleAudit" :loading="submitting">
             提交审核
           </el-button>
         </div>
@@ -173,7 +132,7 @@ const auditRules = {
     { required: true, message: '请选择审核结果', trigger: 'change' }
   ],
   message: [
-    { 
+    {
       validator: (rule, value, callback) => {
         if (auditForm.value.status === 2 && (!value || !value.trim())) {
           callback(new Error('拒绝时必须填写拒绝原因'))
@@ -206,7 +165,7 @@ const loadData = async () => {
   }
 }
 
-const viewDetail = (row) => {
+const viewDetail = row => {
   if (row.status !== 0) {
     ElMessage.warning('该认证申请已审核，无法再次审核')
     return
@@ -219,7 +178,7 @@ const viewDetail = (row) => {
   dialogVisible.value = true
 }
 
-const getRegionText = (cert) => {
+const getRegionText = cert => {
   if (!cert) return ''
   const parts = []
   if (cert.province) parts.push(cert.province)
@@ -228,7 +187,7 @@ const getRegionText = (cert) => {
   return parts.length > 0 ? parts.join(' / ') : ''
 }
 
-const formatDate = (dateStr) => {
+const formatDate = dateStr => {
   if (!dateStr) return ''
   const date = new Date(dateStr)
   const year = date.getFullYear()
@@ -242,22 +201,22 @@ const formatDate = (dateStr) => {
 
 const handleAudit = async () => {
   if (!auditFormRef.value) return
-  
-  await auditFormRef.value.validate(async (valid) => {
+
+  await auditFormRef.value.validate(async valid => {
     if (!valid) return
-    
+
     if (!currentCert.value) {
       ElMessage.error('认证信息不存在')
       return
     }
-    
+
     try {
       submitting.value = true
       const res = await processCertification(currentCert.value.id, {
         status: auditForm.value.status,
         message: auditForm.value.status === 2 ? auditForm.value.message : null
       })
-      
+
       if (isSuccess(res.code)) {
         ElMessage.success(auditForm.value.status === 1 ? '审核通过' : '已拒绝该认证申请')
         dialogVisible.value = false

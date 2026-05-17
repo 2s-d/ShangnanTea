@@ -6,6 +6,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.http.CacheControl;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * Web MVC配置类
@@ -45,6 +48,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
         
         // 配置静态资源映射，用于访问上传的文件
         registry.addResourceHandler("/files/**")
-                .addResourceLocations("file:" + System.getProperty("user.dir") + "/files/");
+                .addResourceLocations("file:" + System.getProperty("user.dir") + "/files/")
+                // 上传文件名带时间戳+UUID，可安全开启长缓存，避免头像每次刷新都重复下载
+                .setCacheControl(CacheControl.maxAge(30, TimeUnit.DAYS).cachePublic());
     }
 } 

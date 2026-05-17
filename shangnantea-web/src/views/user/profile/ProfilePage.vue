@@ -132,216 +132,216 @@ const formData = reactive({
 // 省市二级联动数据
 const locationOptions = ref(provinceAndCityData)
     
-    const { rules: validationRules } = useFormValidation()
+const { rules: validationRules } = useFormValidation()
     
-    const validatePhone = (rule, value, callback) => {
-      if (value && !/^1[3-9]\d{9}$/.test(value)) {
-        callback(new Error('请输入正确的手机号码'))
-      } else {
-        callback()
-      }
-    }
+const validatePhone = (rule, value, callback) => {
+  if (value && !/^1[3-9]\d{9}$/.test(value)) {
+    callback(new Error('请输入正确的手机号码'))
+  } else {
+    callback()
+  }
+}
     
-    const validateEmail = (rule, value, callback) => {
-      if (value && !/^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/.test(value)) {
-        callback(new Error('请输入正确的邮箱地址'))
-      } else {
-        callback()
-      }
-    }
+const validateEmail = (rule, value, callback) => {
+  if (value && !/^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/.test(value)) {
+    callback(new Error('请输入正确的邮箱地址'))
+  } else {
+    callback()
+  }
+}
     
-    const disabledDate = time => {
-      return time.getTime() > Date.now()
-    }
+const disabledDate = time => {
+  return time.getTime() > Date.now()
+}
     
-    const rules = {
-      nickname: [
-        { max: 20, message: '昵称不能超过20个字符', trigger: 'blur' }
-      ],
-      phone: [
-        { validator: validatePhone, trigger: 'blur' }
-      ],
-      email: [
-        { validator: validateEmail, trigger: 'blur' }
-      ],
-      bio: [
-        { max: 200, message: '个人简介不能超过200个字符', trigger: 'blur' }
-      ]
-    }
+const rules = {
+  nickname: [
+    { max: 20, message: '昵称不能超过20个字符', trigger: 'blur' }
+  ],
+  phone: [
+    { validator: validatePhone, trigger: 'blur' }
+  ],
+  email: [
+    { validator: validateEmail, trigger: 'blur' }
+  ],
+  bio: [
+    { max: 200, message: '个人简介不能超过200个字符', trigger: 'blur' }
+  ]
+}
     
-    const userInfo = computed(() => {
-      return userStore.userInfo
-    })
+const userInfo = computed(() => {
+  return userStore.userInfo
+})
     
-    const handleInitForm = () => {
-      if (userInfo.value) {
-        formData.username = userInfo.value.username || ''
-        formData.nickname = userInfo.value.nickname || ''
-        formData.email = userInfo.value.email || ''
-        formData.phone = userInfo.value.phone || ''
-        formData.gender = userInfo.value.gender || 0
-        // 从 currentLocation 字符串解析为省市数组（格式：省code-市code 或 省名-市名）
-        formData.locationRegion = parseLocationToRegion(userInfo.value.currentLocation)
-        formData.birthday = userInfo.value.birthday || ''
-        formData.bio = userInfo.value.bio || ''
-      } else {
-        messageMessages.showUserDataIncomplete()
-      }
-    }
+const handleInitForm = () => {
+  if (userInfo.value) {
+    formData.username = userInfo.value.username || ''
+    formData.nickname = userInfo.value.nickname || ''
+    formData.email = userInfo.value.email || ''
+    formData.phone = userInfo.value.phone || ''
+    formData.gender = userInfo.value.gender || 0
+    // 从 currentLocation 字符串解析为省市数组（格式：省code-市code 或 省名-市名）
+    formData.locationRegion = parseLocationToRegion(userInfo.value.currentLocation)
+    formData.birthday = userInfo.value.birthday || ''
+    formData.bio = userInfo.value.bio || ''
+  } else {
+    messageMessages.showUserDataIncomplete()
+  }
+}
     
-    // 将 currentLocation 字符串解析为省市 code 数组
-    const parseLocationToRegion = locationStr => {
-      if (!locationStr) return []
-      // 格式：610000-610100 或 陕西-商洛
-      const parts = locationStr.split('-')
-      if (parts.length >= 2) {
-        return [parts[0], parts[1]]
-      }
-      return []
-    }
+// 将 currentLocation 字符串解析为省市 code 数组
+const parseLocationToRegion = locationStr => {
+  if (!locationStr) return []
+  // 格式：610000-610100 或 陕西-商洛
+  const parts = locationStr.split('-')
+  if (parts.length >= 2) {
+    return [parts[0], parts[1]]
+  }
+  return []
+}
     
-    // 将省市 code 数组转换为 currentLocation 字符串（存储 code）
-    const regionToLocationString = regionArr => {
-      if (!regionArr || regionArr.length < 2) return ''
-      return `${regionArr[0]}-${regionArr[1]}`
-    }
+// 将省市 code 数组转换为 currentLocation 字符串（存储 code）
+const regionToLocationString = regionArr => {
+  if (!regionArr || regionArr.length < 2) return ''
+  return `${regionArr[0]}-${regionArr[1]}`
+}
     
-    // 将省市 code 数组转换为中文显示（使用 region.js 的工具函数）
-    const formatLocationForDisplay = regionArr => {
-      if (!regionArr || regionArr.length < 2) return ''
-      const locationCode = `${regionArr[0]}-${regionArr[1]}`
-      return formatLocationDisplay(locationCode)
-    }
+// 将省市 code 数组转换为中文显示（使用 region.js 的工具函数）
+const formatLocationForDisplay = regionArr => {
+  if (!regionArr || regionArr.length < 2) return ''
+  const locationCode = `${regionArr[0]}-${regionArr[1]}`
+  return formatLocationDisplay(locationCode)
+}
     
-    const handleFetchUserInfo = async () => {
-      try {
-        loading.value = true
+const handleFetchUserInfo = async () => {
+  try {
+    loading.value = true
         
-        const response = await userStore.getUserInfo()
+    const response = await userStore.getUserInfo()
         
-        // 显示API响应消息（成功或失败都通过状态码映射显示）
-        showByCode(response.code)
+    // 显示API响应消息（成功或失败都通过状态码映射显示）
+    showByCode(response.code)
         
-        // 只有成功时才初始化表单
-        if (isSuccess(response.code)) {
-          handleInitForm()
-        }
-      } catch (error) {
-        // 前端异常处理，使用固定错误码
-        showByCode(7121) // 用户信息不完整
-      } finally {
-        loading.value = false
-      }
-    }
-    
-    const handleResetForm = () => {
-      userForm.value.resetFields()
+    // 只有成功时才初始化表单
+    if (isSuccess(response.code)) {
       handleInitForm()
     }
+  } catch (error) {
+    // 前端异常处理，使用固定错误码
+    showByCode(7121) // 用户信息不完整
+  } finally {
+    loading.value = false
+  }
+}
     
-    // 头像上传前验证
-    const beforeAvatarUpload = file => {
-      const isImage = file.type.startsWith('image/')
-      const isLt2M = file.size / 1024 / 1024 < 2
+const handleResetForm = () => {
+  userForm.value.resetFields()
+  handleInitForm()
+}
+    
+// 头像上传前验证
+const beforeAvatarUpload = file => {
+  const isImage = file.type.startsWith('image/')
+  const isLt2M = file.size / 1024 / 1024 < 2
       
-      if (!isImage) {
-        // 前端文件验证，使用 userMessages 是正确的（不涉及API调用）
-        userMessages.showAvatarFormatInvalid()
-        return false
-      }
-      if (!isLt2M) {
-        // 前端文件验证，使用 userMessages 是正确的（不涉及API调用）
-        userMessages.showAvatarSizeLimit()
-        return false
-      }
-      return true
-    }
+  if (!isImage) {
+    // 前端文件验证，使用 userMessages 是正确的（不涉及API调用）
+    userMessages.showAvatarFormatInvalid()
+    return false
+  }
+  if (!isLt2M) {
+    // 前端文件验证，使用 userMessages 是正确的（不涉及API调用）
+    userMessages.showAvatarSizeLimit()
+    return false
+  }
+  return true
+}
     
-    // 头像上传处理
-    // 任务A-5：使用Pinia uploadAvatar action
-    const handleAvatarUpload = async options => {
-      const file = options.file
-      if (!file) return
+// 头像上传处理
+// 任务A-5：使用Pinia uploadAvatar action
+const handleAvatarUpload = async options => {
+  const file = options.file
+  if (!file) return
       
-      try {
-        loading.value = true
+  try {
+    loading.value = true
         
-        // 上传头像
-        const uploadResponse = await userStore.uploadAvatar(file)
+    // 上传头像
+    const uploadResponse = await userStore.uploadAvatar(file)
         
-        // 显示API响应消息（成功或失败都通过状态码映射显示）
-        showByCode(uploadResponse.code)
+    // 显示API响应消息（成功或失败都通过状态码映射显示）
+    showByCode(uploadResponse.code)
         
-        // 只有成功时才刷新用户信息
-        if (isSuccess(uploadResponse.code)) {
-          const userInfoResponse = await userStore.getUserInfo()
-          if (isSuccess(userInfoResponse.code)) {
-            handleInitForm()
-          }
-        }
-      } catch (error) {
-        // 捕获意外的运行时错误（非API业务错误）
-        // API业务失败已通过 showByCode 显示，网络错误已在响应拦截器显示
-        if (process.env.NODE_ENV === 'development') {
-          console.error('[开发调试] 头像上传时发生意外错误：', error)
-        }
-      } finally {
-        loading.value = false
-      }
-    }
-    
-    const handleSaveUserInfo = async () => {
-      try {
-        await userForm.value.validate(async valid => {
-          if (!valid) return
-          
-          saving.value = true
-          loading.value = true
-          
-          // 将 locationRegion 数组转换为 currentLocation 字符串
-          const userData = {
-            ...userInfo.value,
-            ...formData,
-            currentLocation: regionToLocationString(formData.locationRegion)
-          }
-          // 删除前端专用的 locationRegion 字段，后端不需要
-          delete userData.locationRegion
-          
-          // 更新用户信息
-          const updateResponse = await userStore.updateUserInfo(userData)
-          
-          // 显示API响应消息（成功或失败都通过状态码映射显示）
-          showByCode(updateResponse.code)
-          
-          // 只有成功时才刷新用户信息
-          if (isSuccess(updateResponse.code)) {
-            const userInfoResponse = await userStore.getUserInfo()
-            if (isSuccess(userInfoResponse.code)) {
-              handleInitForm()
-            }
-          }
-        })
-      } catch (error) {
-        // 捕获意外的运行时错误（非API业务错误）
-        // API业务失败已通过 showByCode 显示，网络错误已在响应拦截器显示
-        if (process.env.NODE_ENV === 'development') {
-          console.error('[开发调试] 保存用户信息时发生意外错误：', error)
-        }
-      } finally {
-        saving.value = false
-        loading.value = false
-      }
-    }
-    
-    watch(() => userInfo.value, newVal => {
-      if (newVal) {
+    // 只有成功时才刷新用户信息
+    if (isSuccess(uploadResponse.code)) {
+      const userInfoResponse = await userStore.getUserInfo()
+      if (isSuccess(userInfoResponse.code)) {
         handleInitForm()
       }
-    }, { immediate: true, deep: true })
+    }
+  } catch (error) {
+    // 捕获意外的运行时错误（非API业务错误）
+    // API业务失败已通过 showByCode 显示，网络错误已在响应拦截器显示
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[开发调试] 头像上传时发生意外错误：', error)
+    }
+  } finally {
+    loading.value = false
+  }
+}
     
-    onMounted(() => {
-      handleFetchUserInfo()
+const handleSaveUserInfo = async () => {
+  try {
+    await userForm.value.validate(async valid => {
+      if (!valid) return
+          
+      saving.value = true
+      loading.value = true
+          
+      // 将 locationRegion 数组转换为 currentLocation 字符串
+      const userData = {
+        ...userInfo.value,
+        ...formData,
+        currentLocation: regionToLocationString(formData.locationRegion)
+      }
+      // 删除前端专用的 locationRegion 字段，后端不需要
+      delete userData.locationRegion
+          
+      // 更新用户信息
+      const updateResponse = await userStore.updateUserInfo(userData)
+          
+      // 显示API响应消息（成功或失败都通过状态码映射显示）
+      showByCode(updateResponse.code)
+          
+      // 只有成功时才刷新用户信息
+      if (isSuccess(updateResponse.code)) {
+        const userInfoResponse = await userStore.getUserInfo()
+        if (isSuccess(userInfoResponse.code)) {
+          handleInitForm()
+        }
+      }
     })
+  } catch (error) {
+    // 捕获意外的运行时错误（非API业务错误）
+    // API业务失败已通过 showByCode 显示，网络错误已在响应拦截器显示
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[开发调试] 保存用户信息时发生意外错误：', error)
+    }
+  } finally {
+    saving.value = false
+    loading.value = false
+  }
+}
+    
+watch(() => userInfo.value, newVal => {
+  if (newVal) {
+    handleInitForm()
+  }
+}, { immediate: true, deep: true })
+    
+onMounted(() => {
+  handleFetchUserInfo()
+})
 </script>
 
 <style lang="scss" scoped>

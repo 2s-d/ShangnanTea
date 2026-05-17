@@ -374,526 +374,526 @@ import teaMessages from '@/utils/promptMessages'
 defineOptions({
   name: 'TeaDetailPage'
 })
-    const teaStore = useTeaStore()
-    const userStore = useUserStore()
-    const orderStore = useOrderStore()
-    const messageStore = useMessageStore()
-    const router = useRouter()
-    const route = useRoute()
-    const loading = computed(() => teaStore.loading)
-    const submitting = ref(false)
-    const tea = computed(() => teaStore.currentTea)
-    const activeTab = ref('detail')
-    const selectedSpecId = ref(null)
-    const quantity = ref(1)
-    const currentImageIndex = ref(0)
-    // 收藏状态（从接口返回的isFavorited字段获取）
-    const isFavorite = computed(() => tea.value?.isFavorited || false)
-    const favoriteLoading = ref(false)
+const teaStore = useTeaStore()
+const userStore = useUserStore()
+const orderStore = useOrderStore()
+const messageStore = useMessageStore()
+const router = useRouter()
+const route = useRoute()
+const loading = computed(() => teaStore.loading)
+const submitting = ref(false)
+const tea = computed(() => teaStore.currentTea)
+const activeTab = ref('detail')
+const selectedSpecId = ref(null)
+const quantity = ref(1)
+const currentImageIndex = ref(0)
+// 收藏状态（从接口返回的isFavorited字段获取）
+const isFavorite = computed(() => tea.value?.isFavorited || false)
+const favoriteLoading = ref(false)
     
-    // 回复相关状态
-    const activeReplyId = ref(null) // 当前正在回复的评论ID
-    const replyContent = ref('') // 回复内容
-    const submittingReply = ref(false) // 提交回复的loading状态
+// 回复相关状态
+const activeReplyId = ref(null) // 当前正在回复的评论ID
+const replyContent = ref('') // 回复内容
+const submittingReply = ref(false) // 提交回复的loading状态
     
-    // 判断当前用户是否为商店所有者
-    const isShopOwner = computed(() => {
-      const currentUserId = userStore.userInfo?.id
-      return currentUserId && tea.value && currentUserId === tea.value.shopOwnerId
-    })
+// 判断当前用户是否为商店所有者
+const isShopOwner = computed(() => {
+  const currentUserId = userStore.userInfo?.id
+  return currentUserId && tea.value && currentUserId === tea.value.shopOwnerId
+})
 
-    // 店铺评分和简介（兼容多种字段命名）
-    const shopRatingDisplay = computed(() => {
-      const t = tea.value
-      const rating = t?.shopRating ?? t?.shop_rating ?? t?.shop?.rating
-      return rating || 0
-    })
-    const shopDescDisplay = computed(() => {
-      const t = tea.value
-      return t?.shopDesc || t?.shop_desc || t?.shop?.description || ''
-    })
+// 店铺评分和简介（兼容多种字段命名）
+const shopRatingDisplay = computed(() => {
+  const t = tea.value
+  const rating = t?.shopRating ?? t?.shop_rating ?? t?.shop?.rating
+  return rating || 0
+})
+const shopDescDisplay = computed(() => {
+  const t = tea.value
+  return t?.shopDesc || t?.shop_desc || t?.shop?.description || ''
+})
     
-    // 任务组B：评价相关数据
-    const teaReviews = computed(() => teaStore.teaReviews || [])
-    const reviewStats = computed(() => teaStore.reviewStats)
-    const reviewTotalCount = computed(() => teaStore.reviewPagination?.total || 0)
-    const reviewCurrentPage = computed(() => teaStore.reviewPagination?.currentPage || 1)
-    const reviewPageSize = computed(() => teaStore.reviewPagination?.pageSize || 10)
-    const averageRatingNumber = computed(() => {
-      if (reviewStats.value && reviewStats.value.averageRating) {
-        return parseFloat(reviewStats.value.averageRating)
-      }
-      return 0
-    })
+// 任务组B：评价相关数据
+const teaReviews = computed(() => teaStore.teaReviews || [])
+const reviewStats = computed(() => teaStore.reviewStats)
+const reviewTotalCount = computed(() => teaStore.reviewPagination?.total || 0)
+const reviewCurrentPage = computed(() => teaStore.reviewPagination?.currentPage || 1)
+const reviewPageSize = computed(() => teaStore.reviewPagination?.pageSize || 10)
+const averageRatingNumber = computed(() => {
+  if (reviewStats.value && reviewStats.value.averageRating) {
+    return parseFloat(reviewStats.value.averageRating)
+  }
+  return 0
+})
     
-    // 任务组C：规格相关数据
-    const teaSpecifications = computed(() => {
-      // 优先使用Pinia中的规格列表，如果没有则使用currentTea中的规格
-      const specs = teaStore.currentTeaSpecs || []
-      if (specs.length > 0) {
-        return specs
-      }
-      return tea.value?.specifications || []
-    })
+// 任务组C：规格相关数据
+const teaSpecifications = computed(() => {
+  // 优先使用Pinia中的规格列表，如果没有则使用currentTea中的规格
+  const specs = teaStore.currentTeaSpecs || []
+  if (specs.length > 0) {
+    return specs
+  }
+  return tea.value?.specifications || []
+})
     
-    // 显示回复表单
-    const showReplyForm = review => {
-      activeReplyId.value = review.id
-      replyContent.value = ''
-    }
+// 显示回复表单
+const showReplyForm = review => {
+  activeReplyId.value = review.id
+  replyContent.value = ''
+}
     
-    // 取消回复
-    const cancelReply = () => {
-      activeReplyId.value = null
-      replyContent.value = ''
-    }
+// 取消回复
+const cancelReply = () => {
+  activeReplyId.value = null
+  replyContent.value = ''
+}
     
-    // 提交回复
-    const submitReply = async review => {
-      if (!replyContent.value.trim()) {
-        teaMessages.prompt.showReplyEmpty()
-        return
-      }
+// 提交回复
+const submitReply = async review => {
+  if (!replyContent.value.trim()) {
+    teaMessages.prompt.showReplyEmpty()
+    return
+  }
       
-      submittingReply.value = true
+  submittingReply.value = true
       
+  try {
+    const response = await teaStore.replyReview({
+      reviewId: review.id,
+      reply: replyContent.value
+    })
+    showByCode(response.code)
+    activeReplyId.value = null
+    replyContent.value = ''
+  } catch (error) {
+    console.error('回复评价失败:', error)
+  } finally {
+    submittingReply.value = false
+  }
+}
+    
+// 茶叶评价不支持点赞功能（点赞仅支持评论回复、帖子、文章）
+// const handleLikeReview = async review => {
+//   try {
+//     if (review.isLiked) {
+//       // 取消点赞：直接传递targetId和targetType
+//       const response = await userStore.removeLike({
+//         targetId: String(review.id),
+//         targetType: 'review'
+//       })
+//       showByCode(response.code)
+//       // 重新加载评价列表以更新isLiked状态
+//       if (tea.value) {
+//         await teaStore.fetchTeaReviews({
+//           teaId: tea.value.id,
+//           page: reviewCurrentPage.value,
+//           pageSize: reviewPageSize.value
+//         })
+//       }
+//     } else {
+//       // 添加点赞
+//       const response = await userStore.addLike({
+//         targetId: String(review.id),
+//         targetType: 'review'
+//       })
+//       showByCode(response.code)
+//       // 重新加载评价列表以更新isLiked状态
+//       if (tea.value) {
+//         await teaStore.fetchTeaReviews({
+//           teaId: tea.value.id,
+//           page: reviewCurrentPage.value,
+//           pageSize: reviewPageSize.value
+//         })
+//       }
+//     }
+//   } catch (error) {
+//     console.error('点赞失败:', error)
+//   }
+// }
+    
+// 判断是否为评价所有者
+const isReviewOwner = review => {
+  const currentUserId = userStore.userInfo?.id || userStore.userInfo?.userId
+  const reviewUserId = review.userId
+  return currentUserId && reviewUserId && String(currentUserId) === String(reviewUserId)
+}
+    
+// 删除评价
+const handleDeleteReview = async reviewId => {
+  ElMessageBox.confirm(
+    '确定要删除该评价吗？删除后将无法恢复。',
+    '删除确认',
+    {
+      confirmButtonText: '确定删除',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }
+  )
+    .then(async () => {
       try {
-        const response = await teaStore.replyReview({
-          reviewId: review.id,
-          reply: replyContent.value
-        })
-        showByCode(response.code)
-        activeReplyId.value = null
-        replyContent.value = ''
-      } catch (error) {
-        console.error('回复评价失败:', error)
-      } finally {
-        submittingReply.value = false
-      }
-    }
-    
-    // 茶叶评价不支持点赞功能（点赞仅支持评论回复、帖子、文章）
-    // const handleLikeReview = async review => {
-    //   try {
-    //     if (review.isLiked) {
-    //       // 取消点赞：直接传递targetId和targetType
-    //       const response = await userStore.removeLike({
-    //         targetId: String(review.id),
-    //         targetType: 'review'
-    //       })
-    //       showByCode(response.code)
-    //       // 重新加载评价列表以更新isLiked状态
-    //       if (tea.value) {
-    //         await teaStore.fetchTeaReviews({
-    //           teaId: tea.value.id,
-    //           page: reviewCurrentPage.value,
-    //           pageSize: reviewPageSize.value
-    //         })
-    //       }
-    //     } else {
-    //       // 添加点赞
-    //       const response = await userStore.addLike({
-    //         targetId: String(review.id),
-    //         targetType: 'review'
-    //       })
-    //       showByCode(response.code)
-    //       // 重新加载评价列表以更新isLiked状态
-    //       if (tea.value) {
-    //         await teaStore.fetchTeaReviews({
-    //           teaId: tea.value.id,
-    //           page: reviewCurrentPage.value,
-    //           pageSize: reviewPageSize.value
-    //         })
-    //       }
-    //     }
-    //   } catch (error) {
-    //     console.error('点赞失败:', error)
-    //   }
-    // }
-    
-    // 判断是否为评价所有者
-    const isReviewOwner = review => {
-      const currentUserId = userStore.userInfo?.id || userStore.userInfo?.userId
-      const reviewUserId = review.userId
-      return currentUserId && reviewUserId && String(currentUserId) === String(reviewUserId)
-    }
-    
-    // 删除评价
-    const handleDeleteReview = async reviewId => {
-      ElMessageBox.confirm(
-        '确定要删除该评价吗？删除后将无法恢复。',
-        '删除确认',
-        {
-          confirmButtonText: '确定删除',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }
-      )
-        .then(async () => {
-          try {
-            const res = await teaStore.deleteTeaReview(reviewId)
-            showByCode(res.code)
-            // 重新加载评价列表和统计数据
-          if (tea.value) {
-              await Promise.all([
-                teaStore.fetchTeaReviews({
+        const res = await teaStore.deleteTeaReview(reviewId)
+        showByCode(res.code)
+        // 重新加载评价列表和统计数据
+        if (tea.value) {
+          await Promise.all([
+            teaStore.fetchTeaReviews({
               teaId: tea.value.id,
               page: reviewCurrentPage.value,
               pageSize: reviewPageSize.value
-                }),
-                teaStore.fetchReviewStats(tea.value.id)
-              ])
+            }),
+            teaStore.fetchReviewStats(tea.value.id)
+          ])
         }
       } catch (error) {
-            console.error('删除评价失败:', error)
-            showByCode(error?.response?.data?.code || 3130)
-          }
-        })
-        .catch(() => {
-          // 用户取消操作
-        })
-    }
-    
-    // 评价分页变化
-    const handleReviewPageChange = page => {
-      if (tea.value) {
-        teaStore.fetchTeaReviews({
-          teaId: tea.value.id,
-          page,
-          pageSize: reviewPageSize.value
-        })
+        console.error('删除评价失败:', error)
+        showByCode(error?.response?.data?.code || 3130)
       }
-    }
-    
-    // 格式化时间
-    const formatTime = time => {
-      if (!time) return ''
-      const date = new Date(time)
-      const now = new Date()
-      const diff = now - date
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-      
-      if (days === 0) {
-        const hours = Math.floor(diff / (1000 * 60 * 60))
-        if (hours === 0) {
-          const minutes = Math.floor(diff / (1000 * 60))
-          return minutes <= 0 ? '刚刚' : `${minutes}分钟前`
-        }
-        return `${hours}小时前`
-      } else if (days < 7) {
-        return `${days}天前`
-      } else {
-        return date.toLocaleDateString('zh-CN')
-      }
-    }
-    
-    // 茶叶分类（从 Pinia 获取）
-    const categories = computed(() => teaStore.categories || [])
-    
-    // 获取茶叶类别名称
-    const getCategoryName = categoryId => {
-      const category = categories.value.find(c => c.id === categoryId)
-      return category ? category.name : '未知分类'
-    }
-    
-    // 切换收藏状态
-    const toggleFavorite = async () => {
-      if (!tea.value) return
-      
-      favoriteLoading.value = true
-      try {
-        if (isFavorite.value) {
-          // 取消收藏：直接传递 itemId 和 itemType
-          const response = await userStore.removeFavorite({
-            itemId: tea.value.id,
-            itemType: 'tea'
-          })
-          showByCode(response.code)
-          // 重新加载茶叶详情以更新isFavorited状态
-          await teaStore.fetchTeaDetail(tea.value.id)
-        } else {
-          // 添加收藏
-          const response = await userStore.addFavorite({
-            itemId: tea.value.id,
-            itemType: 'tea',
-            targetName: tea.value.name,
-            targetImage: tea.value.mainImage || tea.value.images?.[0] || ''
-          })
-          showByCode(response.code)
-          // 重新加载茶叶详情以更新isFavorited状态
-          await teaStore.fetchTeaDetail(tea.value.id)
-        }
-      } catch (error) {
-        console.error('收藏操作失败:', error)
-      } finally {
-        favoriteLoading.value = false
-      }
-    }
-    
-    // 加载茶叶详情（生产版：走 Pinia）
-    const loadTeaDetail = async () => {
-      try {
-        const teaId = route.params.id
-        await teaStore.fetchTeaDetail(teaId)
-        
-        // 任务组B：同时加载评价列表和统计数据
-        // 任务组C：同时加载规格列表
-        // 任务组D：加载图片列表（如果后端返回的tea.images为空，则从Pinia获取）
-        // 任务组F：加载相似推荐
-        await Promise.all([
-          teaStore.fetchTeaReviews({ teaId, page: 1, pageSize: 10 }),
-          teaStore.fetchReviewStats(teaId),
-          teaStore.fetchTeaSpecifications(teaId),
-          teaStore.fetchRecommendTeas({ type: 'similar', teaId, count: 6 })
-        ])
-        
-        // 任务组D：如果当前茶叶的images为空，尝试从Pinia获取
-        if ((!teaStore.currentTea?.images || teaStore.currentTea.images.length === 0) && 
-            teaStore.teaImages && teaStore.teaImages.length > 0) {
-          teaStore.currentTea.images = teaStore.teaImages
-        }
-        
-        // 任务组C：设置默认规格（从Pinia的currentTeaSpecs获取）
-        const specs = teaStore.currentTeaSpecs || []
-        if (specs.length > 0) {
-        const defaultSpec = specs.find(spec => spec.isDefault === 1)
-        if (defaultSpec) {
-          selectedSpecId.value = defaultSpec.id
-          } else {
-            // 如果没有默认规格，选择第一个规格（即使库存为0也要选择，以便显示库存信息）
-          selectedSpecId.value = specs[0].id
-          }
-        } else {
-          // 如果没有规格，清空选择（库存为0时也应该能正常显示）
-          selectedSpecId.value = null
-        }
-      } catch (e) {
-        console.error('加载茶叶详情失败:', e)
-        // 加载失败时不清空 currentTea，避免页面空白（可能是网络问题，保留之前的数据）
-      }
-    }
-    
-    // 计算属性 - 是否为平台直售（兼容 shopId / shop_id 字段）
-    const isPlatformTea = computed(() => {
-      if (!tea.value) return false
-      const sid = tea.value.shopId || tea.value.shop_id
-      return sid === '0' || sid === 'PLATFORM'
     })
-
-    // 兼容后端返回的图片结构（可能是 string[] 或 {url}[]）
-    // 任务组D：图片列表（优先使用Pinia中的teaImages，如果没有则使用currentTea中的images）
-    const teaImages = computed(() => {
-      // 优先使用Pinia中的teaImages
-      const piniaImages = teaStore.teaImages || []
-      if (piniaImages.length > 0) {
-        // 按order排序，然后提取url
-        return piniaImages
-          .sort((a, b) => (a.order || 0) - (b.order || 0))
-          .map(img => img.url)
-          .filter(Boolean)
-      }
-      
-      // 如果没有Pinia数据，使用currentTea中的images
-      const imgs = tea.value?.images || []
-      if (!Array.isArray(imgs)) return []
-      if (imgs.length === 0) return []
-      if (typeof imgs[0] === 'string') return imgs
-      
-      // 如果是对象数组，按order排序后提取url
-      const imageObjects = imgs.filter(i => i && i.url)
-      if (imageObjects.length > 0) {
-        return imageObjects
-          .sort((a, b) => (a.order || 0) - (b.order || 0))
-          .map(i => i.url)
-          .filter(Boolean)
-      }
-      
-      return []
+    .catch(() => {
+      // 用户取消操作
     })
+}
     
-    // 计算属性 - 当前选中的规格
-    const selectedSpec = computed(() => {
-      if (!selectedSpecId.value) return null
-      return teaSpecifications.value.find(spec => spec.id === selectedSpecId.value)
+// 评价分页变化
+const handleReviewPageChange = page => {
+  if (tea.value) {
+    teaStore.fetchTeaReviews({
+      teaId: tea.value.id,
+      page,
+      pageSize: reviewPageSize.value
     })
+  }
+}
     
-    // 任务组C：规格选择变化处理
-    const handleSpecChange = specId => {
-      const spec = teaSpecifications.value.find(s => s.id === specId)
-      if (spec) {
-        teaStore.selectedSpec = spec
-      }
-    }
-    
-    // 任务组F：相似推荐数据
-    const similarTeas = computed(() => teaStore.recommendTeas || [])
-    
-    // 任务组F：跳转到茶叶详情页
-    const goToTeaDetail = teaId => {
-      router.push(`/tea/${teaId}`)
-    }
-    
-    // 计算属性 - 当前库存
-    const currentStock = computed(() => {
-      if (selectedSpec.value) {
-        return selectedSpec.value.stock
-      }
-      return tea.value ? tea.value.stock : 0
-    })
-    
-    // 计算属性 - 是否可以加入购物车
-    const canAddToCart = computed(() => {
-      return currentStock.value > 0
-    })
-    
-    // 加入购物车
-    const addToCart = async () => {
-      if (!canAddToCart.value) {
-        teaMessages.prompt.showSoldOut()
-        return
-      }
+// 格式化时间
+const formatTime = time => {
+  if (!time) return ''
+  const date = new Date(time)
+  const now = new Date()
+  const diff = now - date
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
       
-      // 如果有规格但未选择，提示选择规格
-      if (teaSpecifications.value.length > 0 && !selectedSpecId.value) {
-        teaMessages.prompt.showSelectSpec()
-        return
-      }
+  if (days === 0) {
+    const hours = Math.floor(diff / (1000 * 60 * 60))
+    if (hours === 0) {
+      const minutes = Math.floor(diff / (1000 * 60))
+      return minutes <= 0 ? '刚刚' : `${minutes}分钟前`
+    }
+    return `${hours}小时前`
+  } else if (days < 7) {
+    return `${days}天前`
+  } else {
+    return date.toLocaleDateString('zh-CN')
+  }
+}
+    
+// 茶叶分类（从 Pinia 获取）
+const categories = computed(() => teaStore.categories || [])
+    
+// 获取茶叶类别名称
+const getCategoryName = categoryId => {
+  const category = categories.value.find(c => c.id === categoryId)
+  return category ? category.name : '未知分类'
+}
+    
+// 切换收藏状态
+const toggleFavorite = async () => {
+  if (!tea.value) return
       
-      submitting.value = true
-      try {
-        // 生产版：通过 order 模块 action 走后端，传递规格ID
-        // 规格ID需要转换为String（后端DTO要求String类型）
-        // 如果茶叶没有规格，specificationId可以为null
-        const response = await orderStore.addToCart({ 
-          teaId: tea.value.id, 
-          quantity: quantity.value,
-          specificationId: selectedSpecId.value ? String(selectedSpecId.value) : null
-        })
-        showByCode(response.code)
-      } catch (error) {
-        console.error('加入购物车失败:', error)
-      } finally {
-        submitting.value = false
-      }
-    }
-    
-    // 立即购买：设置临时订单商品并跳转结算页
-    const buyNow = async () => {
-      if (!canAddToCart.value) {
-        teaMessages.prompt.showSoldOut()
-        return
-      }
-      
-      if (teaSpecifications.value.length > 0 && !selectedSpecId.value) {
-        teaMessages.prompt.showSelectSpec()
-        return
-      }
-      
-      try {
-        submitting.value = true
-        
-        // 构造“立即购买”临时商品数据（尽量与购物车项字段保持一致）
-        const spec = selectedSpec.value
-        const directItem = {
-          id: null, // 非购物车来源，无实际cartId
-          teaId: tea.value.id,
-          teaName: tea.value.name,
-          teaImage: tea.value.mainImage || (teaImages.value && teaImages.value[0]) || '',
-          specId: spec ? spec.id : null,
-          specName: spec ? spec.specName : null,
-          price: spec ? spec.price : tea.value.price,
-          quantity: quantity.value,
-          remark: '',
-          shopId: tea.value.shopId
-        }
-        
-        orderStore.setDirectBuyItem(directItem)
-        
-        router.push('/order/checkout?direct=1')
-      } catch (error) {
-        teaMessages.error.showBuyFailed(error?.message || '立即购买失败')
-      } finally {
-        submitting.value = false
-      }
-    }
-    
-    // 跳转到店铺详情
-    const goToShop = () => {
-      // 如果是平台直售茶叶，不进行跳转
-      if (isPlatformTea.value) {
-        return
-      }
-      
-      // 否则跳转到对应的店铺详情页
-      const shopId = tea.value?.shopId || tea.value?.shop_id
-      if (shopId) {
-        router.push(`/shop/${shopId}`)
-      }
-    }
-    
-    // 联系店铺客服
-    const contactShop = async () => {
-      const shopId = tea.value?.shopId || tea.value?.shop_id
-      if (!shopId) return
-
-      try {
-        // 必须与 ChatPage.openContact(店铺) 完全一致：先创建/恢复会话，再跳转并选中
-        const res = await messageStore.createChatSession({
-          targetId: String(shopId),
-          targetType: 'customer'
-        })
-        if (!isSuccess(res.code)) {
-          showByCode(res.code)
-          return
-        }
-        const sessionId = res.data?.id
-        router.push({
-          path: '/message/chat',
-          query: {
-            sessionId: sessionId ? String(sessionId) : undefined,
-            shopId: String(shopId)
-          }
-        })
-      } catch (e) {
-        if (process.env.NODE_ENV === 'development') {
-          console.error('[开发调试] 联系店铺客服失败：', e)
-        }
-      }
-    }
-    
-    // 返回上一页
-    const goBack = () => {
-      router.back()
-    }
-    
-    // 返回茶叶列表
-    const goToTeaList = () => {
-      router.push('/tea/list')
-    }
-    
-    // 跳转到用户主页
-    const goToUserProfile = userId => {
-      if (!userId) return
-      // 保存来源路由信息，用于导航栏高亮
-      router.push({
-        path: `/profile/${userId}`,
-        query: { from: route.path }
+  favoriteLoading.value = true
+  try {
+    if (isFavorite.value) {
+      // 取消收藏：直接传递 itemId 和 itemType
+      const response = await userStore.removeFavorite({
+        itemId: tea.value.id,
+        itemType: 'tea'
       })
+      showByCode(response.code)
+      // 重新加载茶叶详情以更新isFavorited状态
+      await teaStore.fetchTeaDetail(tea.value.id)
+    } else {
+      // 添加收藏
+      const response = await userStore.addFavorite({
+        itemId: tea.value.id,
+        itemType: 'tea',
+        targetName: tea.value.name,
+        targetImage: tea.value.mainImage || tea.value.images?.[0] || ''
+      })
+      showByCode(response.code)
+      // 重新加载茶叶详情以更新isFavorited状态
+      await teaStore.fetchTeaDetail(tea.value.id)
     }
+  } catch (error) {
+    console.error('收藏操作失败:', error)
+  } finally {
+    favoriteLoading.value = false
+  }
+}
     
-    const defaultAvatar = '@/assets/images/avatars/default.jpg'
-    
-    onMounted(() => {
-      teaStore.fetchCategories()
-      loadTeaDetail()
-    })
-
-    watch(
-      () => route.params.id,
-      () => {
-        loadTeaDetail()
+// 加载茶叶详情（生产版：走 Pinia）
+const loadTeaDetail = async () => {
+  try {
+    const teaId = route.params.id
+    await teaStore.fetchTeaDetail(teaId)
+        
+    // 任务组B：同时加载评价列表和统计数据
+    // 任务组C：同时加载规格列表
+    // 任务组D：加载图片列表（如果后端返回的tea.images为空，则从Pinia获取）
+    // 任务组F：加载相似推荐
+    await Promise.all([
+      teaStore.fetchTeaReviews({ teaId, page: 1, pageSize: 10 }),
+      teaStore.fetchReviewStats(teaId),
+      teaStore.fetchTeaSpecifications(teaId),
+      teaStore.fetchRecommendTeas({ type: 'similar', teaId, count: 6 })
+    ])
+        
+    // 任务组D：如果当前茶叶的images为空，尝试从Pinia获取
+    if ((!teaStore.currentTea?.images || teaStore.currentTea.images.length === 0) && 
+            teaStore.teaImages && teaStore.teaImages.length > 0) {
+      teaStore.currentTea.images = teaStore.teaImages
+    }
+        
+    // 任务组C：设置默认规格（从Pinia的currentTeaSpecs获取）
+    const specs = teaStore.currentTeaSpecs || []
+    if (specs.length > 0) {
+      const defaultSpec = specs.find(spec => spec.isDefault === 1)
+      if (defaultSpec) {
+        selectedSpecId.value = defaultSpec.id
+      } else {
+        // 如果没有默认规格，选择第一个规格（即使库存为0也要选择，以便显示库存信息）
+        selectedSpecId.value = specs[0].id
       }
-    )
+    } else {
+      // 如果没有规格，清空选择（库存为0时也应该能正常显示）
+      selectedSpecId.value = null
+    }
+  } catch (e) {
+    console.error('加载茶叶详情失败:', e)
+    // 加载失败时不清空 currentTea，避免页面空白（可能是网络问题，保留之前的数据）
+  }
+}
+    
+// 计算属性 - 是否为平台直售（兼容 shopId / shop_id 字段）
+const isPlatformTea = computed(() => {
+  if (!tea.value) return false
+  const sid = tea.value.shopId || tea.value.shop_id
+  return sid === '0' || sid === 'PLATFORM'
+})
+
+// 兼容后端返回的图片结构（可能是 string[] 或 {url}[]）
+// 任务组D：图片列表（优先使用Pinia中的teaImages，如果没有则使用currentTea中的images）
+const teaImages = computed(() => {
+  // 优先使用Pinia中的teaImages
+  const piniaImages = teaStore.teaImages || []
+  if (piniaImages.length > 0) {
+    // 按order排序，然后提取url
+    return piniaImages
+      .sort((a, b) => (a.order || 0) - (b.order || 0))
+      .map(img => img.url)
+      .filter(Boolean)
+  }
+      
+  // 如果没有Pinia数据，使用currentTea中的images
+  const imgs = tea.value?.images || []
+  if (!Array.isArray(imgs)) return []
+  if (imgs.length === 0) return []
+  if (typeof imgs[0] === 'string') return imgs
+      
+  // 如果是对象数组，按order排序后提取url
+  const imageObjects = imgs.filter(i => i && i.url)
+  if (imageObjects.length > 0) {
+    return imageObjects
+      .sort((a, b) => (a.order || 0) - (b.order || 0))
+      .map(i => i.url)
+      .filter(Boolean)
+  }
+      
+  return []
+})
+    
+// 计算属性 - 当前选中的规格
+const selectedSpec = computed(() => {
+  if (!selectedSpecId.value) return null
+  return teaSpecifications.value.find(spec => spec.id === selectedSpecId.value)
+})
+    
+// 任务组C：规格选择变化处理
+const handleSpecChange = specId => {
+  const spec = teaSpecifications.value.find(s => s.id === specId)
+  if (spec) {
+    teaStore.selectedSpec = spec
+  }
+}
+    
+// 任务组F：相似推荐数据
+const similarTeas = computed(() => teaStore.recommendTeas || [])
+    
+// 任务组F：跳转到茶叶详情页
+const goToTeaDetail = teaId => {
+  router.push(`/tea/${teaId}`)
+}
+    
+// 计算属性 - 当前库存
+const currentStock = computed(() => {
+  if (selectedSpec.value) {
+    return selectedSpec.value.stock
+  }
+  return tea.value ? tea.value.stock : 0
+})
+    
+// 计算属性 - 是否可以加入购物车
+const canAddToCart = computed(() => {
+  return currentStock.value > 0
+})
+    
+// 加入购物车
+const addToCart = async () => {
+  if (!canAddToCart.value) {
+    teaMessages.prompt.showSoldOut()
+    return
+  }
+      
+  // 如果有规格但未选择，提示选择规格
+  if (teaSpecifications.value.length > 0 && !selectedSpecId.value) {
+    teaMessages.prompt.showSelectSpec()
+    return
+  }
+      
+  submitting.value = true
+  try {
+    // 生产版：通过 order 模块 action 走后端，传递规格ID
+    // 规格ID需要转换为String（后端DTO要求String类型）
+    // 如果茶叶没有规格，specificationId可以为null
+    const response = await orderStore.addToCart({ 
+      teaId: tea.value.id, 
+      quantity: quantity.value,
+      specificationId: selectedSpecId.value ? String(selectedSpecId.value) : null
+    })
+    showByCode(response.code)
+  } catch (error) {
+    console.error('加入购物车失败:', error)
+  } finally {
+    submitting.value = false
+  }
+}
+    
+// 立即购买：设置临时订单商品并跳转结算页
+const buyNow = async () => {
+  if (!canAddToCart.value) {
+    teaMessages.prompt.showSoldOut()
+    return
+  }
+      
+  if (teaSpecifications.value.length > 0 && !selectedSpecId.value) {
+    teaMessages.prompt.showSelectSpec()
+    return
+  }
+      
+  try {
+    submitting.value = true
+        
+    // 构造“立即购买”临时商品数据（尽量与购物车项字段保持一致）
+    const spec = selectedSpec.value
+    const directItem = {
+      id: null, // 非购物车来源，无实际cartId
+      teaId: tea.value.id,
+      teaName: tea.value.name,
+      teaImage: tea.value.mainImage || (teaImages.value && teaImages.value[0]) || '',
+      specId: spec ? spec.id : null,
+      specName: spec ? spec.specName : null,
+      price: spec ? spec.price : tea.value.price,
+      quantity: quantity.value,
+      remark: '',
+      shopId: tea.value.shopId
+    }
+        
+    orderStore.setDirectBuyItem(directItem)
+        
+    router.push('/order/checkout?direct=1')
+  } catch (error) {
+    teaMessages.error.showBuyFailed(error?.message || '立即购买失败')
+  } finally {
+    submitting.value = false
+  }
+}
+    
+// 跳转到店铺详情
+const goToShop = () => {
+  // 如果是平台直售茶叶，不进行跳转
+  if (isPlatformTea.value) {
+    return
+  }
+      
+  // 否则跳转到对应的店铺详情页
+  const shopId = tea.value?.shopId || tea.value?.shop_id
+  if (shopId) {
+    router.push(`/shop/${shopId}`)
+  }
+}
+    
+// 联系店铺客服
+const contactShop = async () => {
+  const shopId = tea.value?.shopId || tea.value?.shop_id
+  if (!shopId) return
+
+  try {
+    // 必须与 ChatPage.openContact(店铺) 完全一致：先创建/恢复会话，再跳转并选中
+    const res = await messageStore.createChatSession({
+      targetId: String(shopId),
+      targetType: 'customer'
+    })
+    if (!isSuccess(res.code)) {
+      showByCode(res.code)
+      return
+    }
+    const sessionId = res.data?.id
+    router.push({
+      path: '/message/chat',
+      query: {
+        sessionId: sessionId ? String(sessionId) : undefined,
+        shopId: String(shopId)
+      }
+    })
+  } catch (e) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[开发调试] 联系店铺客服失败：', e)
+    }
+  }
+}
+    
+// 返回上一页
+const goBack = () => {
+  router.back()
+}
+    
+// 返回茶叶列表
+const goToTeaList = () => {
+  router.push('/tea/list')
+}
+    
+// 跳转到用户主页
+const goToUserProfile = userId => {
+  if (!userId) return
+  // 保存来源路由信息，用于导航栏高亮
+  router.push({
+    path: `/profile/${userId}`,
+    query: { from: route.path }
+  })
+}
+    
+const defaultAvatar = '@/assets/images/avatars/default.jpg'
+    
+onMounted(() => {
+  teaStore.fetchCategories()
+  loadTeaDetail()
+})
+
+watch(
+  () => route.params.id,
+  () => {
+    loadTeaDetail()
+  }
+)
 </script>
 
 <style lang="scss" scoped>

@@ -466,833 +466,833 @@ const router = useRouter()
 const messageStore = useMessageStore()
 const userStore = useUserStore()
     
-    // DOM引用
-    const messagesContainer = ref(null)
-    const imageInput = ref(null)
-    const searchBarRef = ref(null)
+// DOM引用
+const messagesContainer = ref(null)
+const imageInput = ref(null)
+const searchBarRef = ref(null)
     
-    // 搜索关键词（同时用于联系人/最近会话过滤 + 全局用户搜索）
-    const searchQuery = ref('')
-    const globalSearchResults = ref([])
-    const isSearchingUsers = ref(false)
-    const showSearchResults = ref(false)
+// 搜索关键词（同时用于联系人/最近会话过滤 + 全局用户搜索）
+const searchQuery = ref('')
+const globalSearchResults = ref([])
+const isSearchingUsers = ref(false)
+const showSearchResults = ref(false)
     
-    // 会话管理
-    const mockSessions = ref([])
-    const currentSessionId = ref(null)
-    const currentTargetUserId = ref(null)
-    const messagesMap = reactive({})
-    const messageInput = ref('')
-    const imageFile = ref(null)
-    const loadingMessages = ref(false)
-    const hasMoreMessages = ref(false)
-    const showEmojiPicker = ref(false)
-    const defaultAvatar = '/images/avatars/default.jpg'
-    const currentUserAvatar = computed(() => userStore.userInfo?.avatar || defaultAvatar)
+// 会话管理
+const mockSessions = ref([])
+const currentSessionId = ref(null)
+const currentTargetUserId = ref(null)
+const messagesMap = reactive({})
+const messageInput = ref('')
+const imageFile = ref(null)
+const loadingMessages = ref(false)
+const hasMoreMessages = ref(false)
+const showEmojiPicker = ref(false)
+const defaultAvatar = '/images/avatars/default.jpg'
+const currentUserAvatar = computed(() => userStore.userInfo?.avatar || defaultAvatar)
     
-    // 联系人（来自 /message/contacts）
-    const contacts = ref([])
-    const contactsExpanded = ref(true)
-    const recentExpanded = ref(true)
+// 联系人（来自 /message/contacts）
+const contacts = ref([])
+const contactsExpanded = ref(true)
+const recentExpanded = ref(true)
     
-    // 表情列表
-    const emojiList = [
-      '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', 
-      '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', 
-      '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩',
-      '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣',
-      '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬',
-      '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗',
-      '👋', '👍', '👎', '❤️', '💋', '👏', '🙏', '🤝', '💪', '✌️'
-    ]
+// 表情列表
+const emojiList = [
+  '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', 
+  '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', 
+  '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩',
+  '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣',
+  '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬',
+  '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗',
+  '👋', '👍', '👎', '❤️', '💋', '👏', '🙏', '🤝', '💪', '✌️'
+]
 
-    const getGroupKey = name => {
-        const s = (name || '').trim()
-        if (!s) return '#'
-        const ch = s[0].toUpperCase()
-        return /^[A-Z]$/.test(ch) ? ch : '#'
+const getGroupKey = name => {
+  const s = (name || '').trim()
+  if (!s) return '#'
+  const ch = s[0].toUpperCase()
+  return /^[A-Z]$/.test(ch) ? ch : '#'
+}
+    
+const filteredContacts = computed(() => {
+  const q = (searchQuery.value || '').trim().toLowerCase()
+  if (!q) return contacts.value
+  return contacts.value.filter(c => (c.name || '').toLowerCase().includes(q))
+})
+    
+const filteredContactGroups = computed(() => {
+  const map = new Map()
+  filteredContacts.value.forEach(c => {
+    const k = getGroupKey(c.name)
+    if (!map.has(k)) map.set(k, [])
+    map.get(k).push(c)
+  })
+  const keys = Array.from(map.keys()).sort((a, b) => {
+    if (a === '#') return 1
+    if (b === '#') return -1
+    return a.localeCompare(b)
+  })
+  return keys.map(k => ({
+    key: k,
+    items: map.get(k).sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+  }))
+})
+    
+const filteredContactCount = computed(() => filteredContacts.value.length)
+
+const fetchContacts = async () => {
+  try {
+    const res = await messageStore.fetchContacts()
+    if (!isSuccess(res.code)) {
+      showByCode(res.code)
+      contacts.value = []
+      return
     }
-    
-    const filteredContacts = computed(() => {
-        const q = (searchQuery.value || '').trim().toLowerCase()
-        if (!q) return contacts.value
-        return contacts.value.filter(c => (c.name || '').toLowerCase().includes(q))
+    const rawList = res.data || []
+    contacts.value = (Array.isArray(rawList) ? rawList : []).map(item => {
+      const type = item.type || 'user'
+      const ownerId = item.ownerId || null
+      const id = item.id
+      const chatPeerId = type === 'shop' ? ownerId : id
+      return {
+        key: `${item.type || 'user'}:${item.id}`,
+        id,
+        type,
+        name: item.name || '',
+        avatar: item.logo || item.avatar || defaultAvatar,
+        ownerId,
+        chatPeerId,
+        online: item.online === true
+      }
     })
-    
-    const filteredContactGroups = computed(() => {
-        const map = new Map()
-        filteredContacts.value.forEach(c => {
-            const k = getGroupKey(c.name)
-            if (!map.has(k)) map.set(k, [])
-            map.get(k).push(c)
-        })
-        const keys = Array.from(map.keys()).sort((a, b) => {
-            if (a === '#') return 1
-            if (b === '#') return -1
-            return a.localeCompare(b)
-        })
-        return keys.map(k => ({
-            key: k,
-            items: map.get(k).sort((a, b) => (a.name || '').localeCompare(b.name || ''))
-        }))
-    })
-    
-    const filteredContactCount = computed(() => filteredContacts.value.length)
-
-    const fetchContacts = async () => {
-        try {
-            const res = await messageStore.fetchContacts()
-            if (!isSuccess(res.code)) {
-                showByCode(res.code)
-                contacts.value = []
-                return
-            }
-            const rawList = res.data || []
-            contacts.value = (Array.isArray(rawList) ? rawList : []).map(item => {
-                const type = item.type || 'user'
-                const ownerId = item.ownerId || null
-                const id = item.id
-                const chatPeerId = type === 'shop' ? ownerId : id
-                return {
-                key: `${item.type || 'user'}:${item.id}`,
-                id,
-                type,
-                name: item.name || '',
-                avatar: item.logo || item.avatar || defaultAvatar,
-                ownerId,
-                chatPeerId,
-                online: item.online === true
-                }
-            })
-        } catch (e) {
-            if (process.env.NODE_ENV === 'development') {
-                console.error('[开发调试] 获取联系人列表失败：', e)
-            }
-        }
+  } catch (e) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[开发调试] 获取联系人列表失败：', e)
     }
+  }
+}
 
-    /**
+/**
      * 全局用户搜索
      * - 支持昵称模糊搜索
      * - 以 cy 开头时视为ID搜索（精确），由后端根据 keyword 规则处理
      */
-    const handleGlobalSearch = async () => {
-        const keyword = (searchQuery.value || '').trim()
-        if (!keyword) {
-            globalSearchResults.value = []
-            showSearchResults.value = false
-            return
-        }
+const handleGlobalSearch = async () => {
+  const keyword = (searchQuery.value || '').trim()
+  if (!keyword) {
+    globalSearchResults.value = []
+    showSearchResults.value = false
+    return
+  }
 
-        isSearchingUsers.value = true
-        try {
-            const params = { keyword, page: 1, pageSize: 10 }
-            const res = await messageStore.fetchSearchUsers(params)
-            if (!isSuccess(res.code)) {
-                showByCode(res.code)
-                globalSearchResults.value = []
-                showSearchResults.value = false
-                return
-            }
-            const list = Array.isArray(res.data) ? res.data : (res.data?.list || [])
-            globalSearchResults.value = list || []
-            showSearchResults.value = true
-        } finally {
-            isSearchingUsers.value = false
-        }
+  isSearchingUsers.value = true
+  try {
+    const params = { keyword, page: 1, pageSize: 10 }
+    const res = await messageStore.fetchSearchUsers(params)
+    if (!isSuccess(res.code)) {
+      showByCode(res.code)
+      globalSearchResults.value = []
+      showSearchResults.value = false
+      return
     }
+    const list = Array.isArray(res.data) ? res.data : (res.data?.list || [])
+    globalSearchResults.value = list || []
+    showSearchResults.value = true
+  } finally {
+    isSearchingUsers.value = false
+  }
+}
 
-    /**
+/**
      * 选择搜索结果用户，跳转到个人主页
      */
-    const handleSelectSearchUser = user => {
-        if (!user) return
-        const userId = user.id || user.userId
-        if (!userId) return
-        showSearchResults.value = false
-        router.push(`/profile/${userId}`)
-    }
+const handleSelectSearchUser = user => {
+  if (!user) return
+  const userId = user.id || user.userId
+  if (!userId) return
+  showSearchResults.value = false
+  router.push(`/profile/${userId}`)
+}
 
-        /**
+/**
      * 消息页仅以用户身份发起：点用户 → private + 用户ID；点店铺 → customer + 店铺ID
      * 单击/双击均打开或创建会话；列表删除为软隐藏，再次进入会恢复
      */
-    const openContact = async (contact) => {
-        if (!contact) return
+const openContact = async contact => {
+  if (!contact) return
 
-        let targetType
-        let targetId
+  let targetType
+  let targetId
 
-        if (contact.type === 'shop') {
-            targetType = 'customer'
-            targetId = contact.id
-        } else {
-            targetType = 'private'
-            targetId = contact.id || contact.chatPeerId
-        }
+  if (contact.type === 'shop') {
+    targetType = 'customer'
+    targetId = contact.id
+  } else {
+    targetType = 'private'
+    targetId = contact.id || contact.chatPeerId
+  }
 
-        if (!targetId) {
-            message.warning('无法识别联系人，无法打开会话')
-            return
-        }
+  if (!targetId) {
+    message.warning('无法识别联系人，无法打开会话')
+    return
+  }
 
-        const existing = mockSessions.value.find((session) => {
-            if (contact.type === 'shop') {
-                return session.targetType === 'shop' && String(session.shopId) === String(targetId)
-            }
-            return session.targetType === 'user' && String(session.receiverId) === String(targetId)
-        })
-        if (existing) {
-            selectSession(existing)
-            return
-        }
-
-        try {
-            const res = await messageStore.createChatSession({ targetId, targetType })
-            if (!isSuccess(res.code)) {
-                showByCode(res.code)
-                return
-            }
-            const sessionId = res.data && res.data.id
-            await fetchSessions()
-            if (sessionId) {
-                const created = mockSessions.value.find((s) => String(s.sessionId) === String(sessionId))
-                if (created) {
-                    selectSession(created)
-                    return
-                }
-            }
-            const created2 = mockSessions.value.find((s) => {
-                if (contact.type === 'shop') return s.targetType === 'shop' && String(s.shopId) === String(targetId)
-                return s.targetType === 'user' && String(s.receiverId) === String(targetId)
-            })
-            if (created2) selectSession(created2)
-        } catch (e) {
-            if (process.env.NODE_ENV === 'development') {
-                console.error('[开发调试] 打开联系人会话失败：', e)
-            }
-        }
+  const existing = mockSessions.value.find(session => {
+    if (contact.type === 'shop') {
+      return session.targetType === 'shop' && String(session.shopId) === String(targetId)
     }
-    // 获取所有会话列表（使用后端真实数据）
-    const fetchSessions = async () => {
-      try {
-        const response = await messageStore.fetchChatSessions()
-        
-        // 失败时提示并清空本地会话
-        if (!isSuccess(response.code)) {
-          showByCode(response.code)
-          mockSessions.value = []
-          currentSessionId.value = null
-          return
-        }
+    return session.targetType === 'user' && String(session.receiverId) === String(targetId)
+  })
+  if (existing) {
+    selectSession(existing)
+    return
+  }
 
-        // 从 Pinia 获取会话列表数据（后端已转换为VO结构）
-        const sessions = messageStore.chatSessions || []
+  try {
+    const res = await messageStore.createChatSession({ targetId, targetType })
+    if (!isSuccess(res.code)) {
+      showByCode(res.code)
+      return
+    }
+    const sessionId = res.data && res.data.id
+    await fetchSessions()
+    if (sessionId) {
+      const created = mockSessions.value.find(s => String(s.sessionId) === String(sessionId))
+      if (created) {
+        selectSession(created)
+        return
+      }
+    }
+    const created2 = mockSessions.value.find(s => {
+      if (contact.type === 'shop') return s.targetType === 'shop' && String(s.shopId) === String(targetId)
+      return s.targetType === 'user' && String(s.receiverId) === String(targetId)
+    })
+    if (created2) selectSession(created2)
+  } catch (e) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[开发调试] 打开联系人会话失败：', e)
+    }
+  }
+}
+// 获取所有会话列表（使用后端真实数据）
+const fetchSessions = async () => {
+  try {
+    const response = await messageStore.fetchChatSessions()
         
-        // 转换数据格式以匹配 UI 组件的期望格式：
-        // - receiverId 始终表示“对端用户”的 ID（targetUserId）
-        // - unreadCount 来自后端的未读字段
-        mockSessions.value = sessions.map(session => {
-          const targetId = session.targetUserId
-          const unreadCount = session.unreadCount ?? 0
-          const isCustomerService = session.sessionType === 'customer' || session.sessionType === 'shop'
+    // 失败时提示并清空本地会话
+    if (!isSuccess(response.code)) {
+      showByCode(response.code)
+      mockSessions.value = []
+      currentSessionId.value = null
+      return
+    }
+
+    // 从 Pinia 获取会话列表数据（后端已转换为VO结构）
+    const sessions = messageStore.chatSessions || []
+        
+    // 转换数据格式以匹配 UI 组件的期望格式：
+    // - receiverId 始终表示“对端用户”的 ID（targetUserId）
+    // - unreadCount 来自后端的未读字段
+    mockSessions.value = sessions.map(session => {
+      const targetId = session.targetUserId
+      const unreadCount = session.unreadCount ?? 0
+      const isCustomerService = session.sessionType === 'customer' || session.sessionType === 'shop'
           
-          // 店铺会话：显示店铺名称和店铺LOGO
-          // 用户会话：显示用户昵称和用户头像
-          // 名称展示规则（避免拼接“店铺xxx客服”这类噪声）：
-          // - 客服会话：优先店铺名，其次对端昵称/用户名，最后才用ID兜底
-          // - 私聊会话：优先对端昵称/用户名，最后用ID兜底
-          const isPlatformCustomerService =
+      // 店铺会话：显示店铺名称和店铺LOGO
+      // 用户会话：显示用户昵称和用户头像
+      // 名称展示规则（避免拼接“店铺xxx客服”这类噪声）：
+      // - 客服会话：优先店铺名，其次对端昵称/用户名，最后才用ID兜底
+      // - 私聊会话：优先对端昵称/用户名，最后用ID兜底
+      const isPlatformCustomerService =
             isCustomerService &&
             (String(session.shopId || '').toUpperCase() === 'PLATFORM' ||
              String(session.targetUserId || '') === 'cy100001')
 
-          let name
-          if (isPlatformCustomerService) {
-            // 平台客服会话：固定名称
-            name = '平台直售客服'
-          } else if (isCustomerService) {
-            name = session.shopName || session.targetNickname || session.targetUsername || `店铺${session.shopId || targetId}`
-          } else {
-            name = session.targetNickname || session.targetUsername || `用户${targetId}`
-          }
-          
-          // 店铺会话：使用店铺LOGO（shopAvatar），用户会话：使用用户头像（targetAvatar）
-          const avatar = isPlatformCustomerService
-            ? '/images/tea-logo.png'
-            : (isCustomerService
-                ? (session.shopAvatar || session.targetAvatar || `https://via.placeholder.com/50x50?text=店铺`)
-                : (session.targetAvatar || `https://via.placeholder.com/50x50?text=用户`))
-
-          return {
-            sessionId: session.id,
-            receiverId: targetId, // 对端用户ID（对于店铺会话，这是店主ID，但显示的是店铺信息）
-            targetType: isCustomerService ? 'shop' : 'user',
-            // 对于店铺会话，保存店铺ID（后端已返回）
-            shopId: isCustomerService ? (session.shopId || null) : null,
-            ownerId: isCustomerService ? targetId : null, // 店主ID（用于查询店铺）
-            name,
-            avatar,
-            lastMessage: session.lastMessage || '',
-            lastTime: session.lastMessageTime,
-            unreadCount,
-            isPinned: session.isPinned || false,
-            online: !!session.targetOnline,
-            raw: session
-          }
-        })
-
-        // 如果当前没有选中的会话，默认选中：优先未读，否则第一个
-        if (!currentSessionId.value && mockSessions.value.length > 0) {
-        const unreadSession = mockSessions.value.find(session => session.unreadCount > 0)
-          selectSession(unreadSession || mockSessions.value[0])
-        }
-      } catch (error) {
-        // 捕获意外的运行时错误（非 API 业务错误）
-        if (process.env.NODE_ENV === 'development') {
-          console.error('[开发调试] 获取会话列表时发生意外错误：', error)
-        }
-      }
-    }
-    
-    // 获取指定会话的消息列表
-    const fetchMessages = async (sessionId, isLoadMore = false) => {
-      if (!sessionId) return
-      
-      try {
-        loadingMessages.value = true
-
-        // 通过Pinia调用后端API获取聊天记录
-        const response = await messageStore.fetchChatHistory({
-          sessionId: sessionId,
-          params: {
-            page: 1,
-            pageSize: 50
-          }
-        })
-        
-        // 失败时仅提示错误，不打断页面其他逻辑
-        if (!isSuccess(response.code)) {
-        showByCode(response.code)
-          return
-        }
-        
-        // 只有成功时才更新消息列表
-          const history = response.data?.list || []
-          messagesMap[sessionId] = history.map(msg => ({
-            id: msg.id,
-            sessionId: sessionId,
-            content: msg.content,
-            type: msg.contentType || 'text',
-            createTime: msg.createTime,
-            status: msg.isRead ? 'read' : 'sent',
-            isSelf: String(msg.senderId) === String(userStore.userInfo?.id),
-            showTimeDivider: false
-          }))
-
-        return
-      } catch (error) {
-        // 捕获意外的运行时错误（非API业务错误）
-        if (process.env.NODE_ENV === 'development') {
-          console.error('[开发调试] 获取消息列表时发生意外错误：', error)
-        }
-      } finally {
-        loadingMessages.value = false
-      }
-    }
-    
-    // 标记会话为已读
-    const markSessionAsRead = sessionId => {
-      const session = mockSessions.value.find(s => s.sessionId === sessionId)
-      if (session && session.unreadCount > 0) {
-        session.unreadCount = 0
-        // 在实际项目中，这里应该调用后端API标记会话为已读
-      }
-    }
-    
-    // 加载更多消息
-    const loadMoreMessages = () => {
-      if (!currentSessionId.value || loadingMessages.value) return
-      fetchMessages(currentSessionId.value, true)
-    }
-    
-    // 选择会话
-    const selectSession = session => {
-      if (!session) return
-      
-      const sessionId = session.sessionId
-      if (currentSessionId.value === sessionId) return
-
-      if (process.env.NODE_ENV === 'development') {
-        console.info('[Chat] selectSession', {
-          sessionId,
-          targetType: session.targetType,
-          receiverId: session.receiverId,
-          shopId: session.shopId
-        })
-      }
-      
-      currentSessionId.value = sessionId
-      // 记录会话对端用户ID（用于拉取历史与发送消息）
-      currentTargetUserId.value = session.receiverId
-      
-      // 如果该会话的消息尚未加载，则加载消息
-      if (!messagesMap[sessionId]) {
-        fetchMessages(sessionId)
+      let name
+      if (isPlatformCustomerService) {
+        // 平台客服会话：固定名称
+        name = '平台直售客服'
+      } else if (isCustomerService) {
+        name = session.shopName || session.targetNickname || session.targetUsername || `店铺${session.shopId || targetId}`
       } else {
-        // 如果已加载，则标记为已读并滚动到底部
-        markSessionAsRead(sessionId)
-        nextTick(() => {
-          scrollToBottom()
-        })
+        name = session.targetNickname || session.targetUsername || `用户${targetId}`
       }
-    }
-    
-    // 删除会话
-    const deleteSession = async sessionId => {
-      try {
-        await ElMessageBox.confirm('确定要删除此会话吗？', '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        })
-        
-        // 调用Pinia action删除会话
-        const response = await messageStore.deleteChatSession(sessionId)
-        
-        // 显示API响应消息（成功或失败都通过状态码映射显示）
-        showByCode(response.code)
-        
-        // 成功时刷新会话列表
-        if (isSuccess(response.code)) {
-          await fetchSessions()
           
-          // 如果删除的是当前会话，清空当前会话
-          if (currentSessionId.value === sessionId) {
-            currentSessionId.value = null
-            currentTargetUserId.value = null
-          }
-        }
-      } catch (error) {
-        // 用户取消删除或操作失败
-        if (error !== 'cancel' && process.env.NODE_ENV === 'development') {
-          console.error('[开发调试] 删除会话时发生意外错误：', error)
-        }
-      }
-    }
-    
-    // 置顶/取消置顶会话
-    const togglePinSession = async sessionId => {
-      try {
-        const response = await messageStore.pinChatSession(sessionId)
-        
-        // 显示API响应消息（成功或失败都通过状态码映射显示）
-        showByCode(response.code)
-        
-        // 成功时刷新会话列表
-        if (isSuccess(response.code)) {
-          await fetchSessions()
-        }
-      } catch (error) {
-        // 捕获意外的运行时错误（非API业务错误）
-        if (process.env.NODE_ENV === 'development') {
-          console.error('[开发调试] 置顶会话时发生意外错误：', error)
-        }
-      }
-    }
-    
-    // 发送消息
-    const sendMessage = async () => {
-      // 发送过程中可能发生会话切换，这里对关键字段做快照，保证本次发送与刷新一致
-      const sessionIdSnapshot = currentSessionId.value
-      const receiverIdSnapshot = currentTargetUserId.value
+      // 店铺会话：使用店铺LOGO（shopAvatar），用户会话：使用用户头像（targetAvatar）
+      const avatar = isPlatformCustomerService
+        ? '/images/tea-logo.png'
+        : (isCustomerService
+          ? (session.shopAvatar || session.targetAvatar || 'https://via.placeholder.com/50x50?text=店铺')
+          : (session.targetAvatar || 'https://via.placeholder.com/50x50?text=用户'))
 
-      if (!sessionIdSnapshot) return
-      if (!messageInput.value.trim() && !imageFile.value) return
-      
-      try {
-        if (process.env.NODE_ENV === 'development') {
-          console.info('[Chat] sendMessage', {
-            sessionId: sessionIdSnapshot,
-            receiverId: receiverIdSnapshot,
-            contentType: imageFile.value ? 'image' : 'text'
-          })
-        }
-        const now = Date.now()
-        const messageId = `msg-${now}`
-        
-        let messageType = 'text'
-        let messageContent = messageInput.value.trim()
-        
-        // 如果有图片文件,则调用图片上传API
-        if (imageFile.value) {
-          messageType = 'image'
-          
-          // 调用图片上传API
-          const uploadResponse = await messageStore.sendImageMessage({
-            sessionId: sessionIdSnapshot,
-            receiverId: receiverIdSnapshot,
-            image: imageFile.value
-          })
-          
-          // 显示API响应消息
-          showByCode(uploadResponse.code)
-          
-          // 清空图片文件
-          imageFile.value = null
-          
-          // 成功时刷新消息列表
-          if (isSuccess(uploadResponse.code)) {
-            await fetchMessages(sessionIdSnapshot, false)
-            await nextTick()
-            scrollToBottom()
-          }
-          
-          return
-        }
-        
-        // 发送文本消息
-        if (!receiverIdSnapshot) {
-          message.warning('缺少会话目标用户ID，暂无法发送消息')
-          return
-        }
+      return {
+        sessionId: session.id,
+        receiverId: targetId, // 对端用户ID（对于店铺会话，这是店主ID，但显示的是店铺信息）
+        targetType: isCustomerService ? 'shop' : 'user',
+        // 对于店铺会话，保存店铺ID（后端已返回）
+        shopId: isCustomerService ? (session.shopId || null) : null,
+        ownerId: isCustomerService ? targetId : null, // 店主ID（用于查询店铺）
+        name,
+        avatar,
+        lastMessage: session.lastMessage || '',
+        lastTime: session.lastMessageTime,
+        unreadCount,
+        isPinned: session.isPinned || false,
+        online: !!session.targetOnline,
+        raw: session
+      }
+    })
 
-        const sendResponse = await messageStore.sendMessage({
-          sessionId: sessionIdSnapshot,
-          receiverId: receiverIdSnapshot,
-          content: messageContent,
-          type: messageType
-        })
+    // 如果当前没有选中的会话，默认选中：优先未读，否则第一个
+    if (!currentSessionId.value && mockSessions.value.length > 0) {
+      const unreadSession = mockSessions.value.find(session => session.unreadCount > 0)
+      selectSession(unreadSession || mockSessions.value[0])
+    }
+  } catch (error) {
+    // 捕获意外的运行时错误（非 API 业务错误）
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[开发调试] 获取会话列表时发生意外错误：', error)
+    }
+  }
+}
+    
+// 获取指定会话的消息列表
+const fetchMessages = async (sessionId, isLoadMore = false) => {
+  if (!sessionId) return
+      
+  try {
+    loadingMessages.value = true
+
+    // 通过Pinia调用后端API获取聊天记录
+    const response = await messageStore.fetchChatHistory({
+      sessionId: sessionId,
+      params: {
+        page: 1,
+        pageSize: 50
+      }
+    })
         
-        // 清空输入框
-        messageInput.value = ''
+    // 失败时仅提示错误，不打断页面其他逻辑
+    if (!isSuccess(response.code)) {
+      showByCode(response.code)
+      return
+    }
         
-        // 显示API响应消息（成功或失败都通过状态码映射显示）
-        showByCode(sendResponse.code)
+    // 只有成功时才更新消息列表
+    const history = response.data?.list || []
+    messagesMap[sessionId] = history.map(msg => ({
+      id: msg.id,
+      sessionId: sessionId,
+      content: msg.content,
+      type: msg.contentType || 'text',
+      createTime: msg.createTime,
+      status: msg.isRead ? 'read' : 'sent',
+      isSelf: String(msg.senderId) === String(userStore.userInfo?.id),
+      showTimeDivider: false
+    }))
+
+    return
+  } catch (error) {
+    // 捕获意外的运行时错误（非API业务错误）
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[开发调试] 获取消息列表时发生意外错误：', error)
+    }
+  } finally {
+    loadingMessages.value = false
+  }
+}
+    
+// 标记会话为已读
+const markSessionAsRead = sessionId => {
+  const session = mockSessions.value.find(s => s.sessionId === sessionId)
+  if (session && session.unreadCount > 0) {
+    session.unreadCount = 0
+    // 在实际项目中，这里应该调用后端API标记会话为已读
+  }
+}
+    
+// 加载更多消息
+const loadMoreMessages = () => {
+  if (!currentSessionId.value || loadingMessages.value) return
+  fetchMessages(currentSessionId.value, true)
+}
+    
+// 选择会话
+const selectSession = session => {
+  if (!session) return
+      
+  const sessionId = session.sessionId
+  if (currentSessionId.value === sessionId) return
+
+  if (process.env.NODE_ENV === 'development') {
+    console.info('[Chat] selectSession', {
+      sessionId,
+      targetType: session.targetType,
+      receiverId: session.receiverId,
+      shopId: session.shopId
+    })
+  }
+      
+  currentSessionId.value = sessionId
+  // 记录会话对端用户ID（用于拉取历史与发送消息）
+  currentTargetUserId.value = session.receiverId
+      
+  // 如果该会话的消息尚未加载，则加载消息
+  if (!messagesMap[sessionId]) {
+    fetchMessages(sessionId)
+  } else {
+    // 如果已加载，则标记为已读并滚动到底部
+    markSessionAsRead(sessionId)
+    nextTick(() => {
+      scrollToBottom()
+    })
+  }
+}
+    
+// 删除会话
+const deleteSession = async sessionId => {
+  try {
+    await ElMessageBox.confirm('确定要删除此会话吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
         
-        // 只有成功时才刷新消息列表
-        if (isSuccess(sendResponse.code)) {
-          await fetchMessages(sessionIdSnapshot, false)
-          await nextTick()
-          scrollToBottom()
-        }
-      } catch (error) {
-        // 捕获意外的运行时错误（非API业务错误）
-        // API业务失败已通过 showByCode 显示，网络错误已在响应拦截器显示
-        if (process.env.NODE_ENV === 'development') {
-          console.error('[开发调试] 发送消息时发生意外错误：', error)
-        }
-      }
-    }
-    
-    // 触发图片上传
-    const triggerImageUpload = () => {
-      if (!currentSessionId.value) return
-      if (imageInput.value) {
-        imageInput.value.click()
-      }
-    }
-    
-    // 处理图片上传
-    const handleImageUpload = event => {
-      const file = event.target.files[0]
-      if (!file) return
-      
-      // 检查文件类型
-      if (!file.type.startsWith('image/')) {
-        message.error('只能上传图片文件')
-        return
-      }
-      
-      // 检查文件大小，限制为5MB
-      if (file.size > 5 * 1024 * 1024) {
-        message.error('图片大小不能超过5MB')
-        return
-      }
-      
-      imageFile.value = file
-      sendMessage()
-      
-      // 清空input，以便于下次选择同一文件时也能触发change事件
-      event.target.value = ''
-    }
-    
-    // 滚动到底部
-    const scrollToBottom = () => {
-      if (messagesContainer.value) {
-        messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
-      }
-    }
-    
-    // 表情相关
-    const toggleEmojiPicker = () => {
-      showEmojiPicker.value = !showEmojiPicker.value
-    }
-    
-    const insertEmoji = emoji => {
-      messageInput.value += emoji
-    }
-    
-    // 阻止事件冒泡
-    const stopPropagation = event => {
-      event.stopPropagation()
-    }
-    
-    // 格式化时间
-    const formatTime = timestamp => {
-      if (!timestamp) return ''
-      
-      const date = new Date(timestamp)
-      const now = new Date()
-      const diff = now - date
-      
-      // 今天内的消息显示时:分
-      if (diff < 86400000 && date.getDate() === now.getDate()) {
-        return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
-      }
-      
-      // 昨天的消息
-      if (diff < 2 * 86400000 && date.getDate() === now.getDate() - 1) {
-        return '昨天'
-      }
-      
-      // 一周内的消息显示周几
-      if (diff < 7 * 86400000) {
-        const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
-        return weekdays[date.getDay()]
-      }
-      
-      // 更早的消息显示年-月-日
-      return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`
-    }
-    
-    // 格式化消息时间
-    const formatMessageTime = timestamp => {
-      if (!timestamp) return ''
-      
-      const date = new Date(timestamp)
-      return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
-    }
-    
-    // 跳转到用户/店铺个人主页
-    // 参数可以是 (targetId, targetType) 或 (session对象)
-    const goToUserProfile = (targetIdOrSession, targetType) => {
-      let targetId, targetTypeValue
-      
-      // 判断第一个参数是会话对象还是targetId
-      if (typeof targetIdOrSession === 'object' && targetIdOrSession !== null) {
-        // 是会话对象
-        const session = targetIdOrSession
-        targetId = session.receiverId || session.id
-        targetTypeValue = session.targetType
+    // 调用Pinia action删除会话
+    const response = await messageStore.deleteChatSession(sessionId)
         
-        // 对于店铺会话，targetId是店主ID，需要查询店铺ID
-        if (targetTypeValue === 'shop') {
-          // 如果有保存的店铺ID，直接使用
-          if (session.shopId) {
-            router.push(`/shop/${session.shopId}`)
-            return
-          }
-          // 否则，根据店主ID查询店铺ID（需要调用API）
-          // 这里先尝试从raw数据中获取，如果没有则使用ownerId查询
-          const ownerId = session.ownerId || session.receiverId
-          if (ownerId) {
-            // 暂时使用ownerId作为店铺ID（这是临时方案，应该调用API查询）
-            // TODO: 调用API根据ownerId查询店铺ID
-            router.push(`/shop/${ownerId}`)
-            return
-          }
-        }
-      } else {
-        // 是targetId和targetType
-        targetId = targetIdOrSession
-        targetTypeValue = targetType
-      }
-      
-      if (!targetId || !targetTypeValue) return
-      
-      if (targetTypeValue === 'shop') {
-        // 跳转到店铺详情页
-        router.push(`/shop/${targetId}`)
-      } else if (targetTypeValue === 'user') {
-        // 跳转到用户个人主页
-        router.push(`/profile/${targetId}`)
+    // 显示API响应消息（成功或失败都通过状态码映射显示）
+    showByCode(response.code)
+        
+    // 成功时刷新会话列表
+    if (isSuccess(response.code)) {
+      await fetchSessions()
+          
+      // 如果删除的是当前会话，清空当前会话
+      if (currentSessionId.value === sessionId) {
+        currentSessionId.value = null
+        currentTargetUserId.value = null
       }
     }
+  } catch (error) {
+    // 用户取消删除或操作失败
+    if (error !== 'cancel' && process.env.NODE_ENV === 'development') {
+      console.error('[开发调试] 删除会话时发生意外错误：', error)
+    }
+  }
+}
     
-    // 过滤会话列表
-    const filteredSessions = computed(() => {
-      if (!searchQuery.value.trim()) {
-        return mockSessions.value
-      }
+// 置顶/取消置顶会话
+const togglePinSession = async sessionId => {
+  try {
+    const response = await messageStore.pinChatSession(sessionId)
+        
+    // 显示API响应消息（成功或失败都通过状态码映射显示）
+    showByCode(response.code)
+        
+    // 成功时刷新会话列表
+    if (isSuccess(response.code)) {
+      await fetchSessions()
+    }
+  } catch (error) {
+    // 捕获意外的运行时错误（非API业务错误）
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[开发调试] 置顶会话时发生意外错误：', error)
+    }
+  }
+}
+    
+// 发送消息
+const sendMessage = async () => {
+  // 发送过程中可能发生会话切换，这里对关键字段做快照，保证本次发送与刷新一致
+  const sessionIdSnapshot = currentSessionId.value
+  const receiverIdSnapshot = currentTargetUserId.value
+
+  if (!sessionIdSnapshot) return
+  if (!messageInput.value.trim() && !imageFile.value) return
       
-      const query = searchQuery.value.toLowerCase()
-      return mockSessions.value.filter(session => {
-        return session.name.toLowerCase().includes(query) ||
-               (session.lastMessage && session.lastMessage.toLowerCase().includes(query))
+  try {
+    if (process.env.NODE_ENV === 'development') {
+      console.info('[Chat] sendMessage', {
+        sessionId: sessionIdSnapshot,
+        receiverId: receiverIdSnapshot,
+        contentType: imageFile.value ? 'image' : 'text'
       })
-    })
-    
-    // 是否存在任何会话
-    const hasSessions = computed(() => mockSessions.value.length > 0)
-    
-    // 当前会话
-    const currentSession = computed(() => {
-      return mockSessions.value.find(s => s.sessionId === currentSessionId.value) || null
-    })
-    
-    // 当前会话的消息列表
-    const currentMessages = computed(() => {
-      return messagesMap[currentSessionId.value] || []
-    })
-    
-    // 消息页路由仅用户身份：shopId->customer+店铺ID；userId->private+用户ID
-    // 初始化函数：根据路由参数自动打开特定会话（店铺 / 用户）
-    const initializeChatFromRouteParams = async () => {
-      const sessionId = route.query.sessionId
-      const shopId = route.query.shopId
-      const userId = route.query.userId
-
-      // 如果显式传了 sessionId，则直接按 sessionId 精确选中（个人主页私信/联系人创建会话后跳转）
-      if (sessionId) {
-        const existingBySessionId = mockSessions.value.find(s => String(s.sessionId) === String(sessionId))
-        if (existingBySessionId) {
-          selectSession(existingBySessionId)
-          return
-        }
+    }
+    const now = Date.now()
+    const messageId = `msg-${now}`
+        
+    let messageType = 'text'
+    let messageContent = messageInput.value.trim()
+        
+    // 如果有图片文件,则调用图片上传API
+    if (imageFile.value) {
+      messageType = 'image'
+          
+      // 调用图片上传API
+      const uploadResponse = await messageStore.sendImageMessage({
+        sessionId: sessionIdSnapshot,
+        receiverId: receiverIdSnapshot,
+        image: imageFile.value
+      })
+          
+      // 显示API响应消息
+      showByCode(uploadResponse.code)
+          
+      // 清空图片文件
+      imageFile.value = null
+          
+      // 成功时刷新消息列表
+      if (isSuccess(uploadResponse.code)) {
+        await fetchMessages(sessionIdSnapshot, false)
+        await nextTick()
+        scrollToBottom()
       }
+          
+      return
+    }
+        
+    // 发送文本消息
+    if (!receiverIdSnapshot) {
+      message.warning('缺少会话目标用户ID，暂无法发送消息')
+      return
+    }
+
+    const sendResponse = await messageStore.sendMessage({
+      sessionId: sessionIdSnapshot,
+      receiverId: receiverIdSnapshot,
+      content: messageContent,
+      type: messageType
+    })
+        
+    // 清空输入框
+    messageInput.value = ''
+        
+    // 显示API响应消息（成功或失败都通过状态码映射显示）
+    showByCode(sendResponse.code)
+        
+    // 只有成功时才刷新消息列表
+    if (isSuccess(sendResponse.code)) {
+      await fetchMessages(sessionIdSnapshot, false)
+      await nextTick()
+      scrollToBottom()
+    }
+  } catch (error) {
+    // 捕获意外的运行时错误（非API业务错误）
+    // API业务失败已通过 showByCode 显示，网络错误已在响应拦截器显示
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[开发调试] 发送消息时发生意外错误：', error)
+    }
+  }
+}
+    
+// 触发图片上传
+const triggerImageUpload = () => {
+  if (!currentSessionId.value) return
+  if (imageInput.value) {
+    imageInput.value.click()
+  }
+}
+    
+// 处理图片上传
+const handleImageUpload = event => {
+  const file = event.target.files[0]
+  if (!file) return
       
-      // 如果没有指定目标，仅在有会话但未选中时做一次默认选择
-      if (!shopId && !userId) {
-        if (!currentSessionId.value && mockSessions.value.length > 0) {
-          const unreadSession = mockSessions.value.find(session => session.unreadCount > 0)
-          selectSession(unreadSession || mockSessions.value[0])
-        }
+  // 检查文件类型
+  if (!file.type.startsWith('image/')) {
+    message.error('只能上传图片文件')
+    return
+  }
+      
+  // 检查文件大小，限制为5MB
+  if (file.size > 5 * 1024 * 1024) {
+    message.error('图片大小不能超过5MB')
+    return
+  }
+      
+  imageFile.value = file
+  sendMessage()
+      
+  // 清空input，以便于下次选择同一文件时也能触发change事件
+  event.target.value = ''
+}
+    
+// 滚动到底部
+const scrollToBottom = () => {
+  if (messagesContainer.value) {
+    messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
+  }
+}
+    
+// 表情相关
+const toggleEmojiPicker = () => {
+  showEmojiPicker.value = !showEmojiPicker.value
+}
+    
+const insertEmoji = emoji => {
+  messageInput.value += emoji
+}
+    
+// 阻止事件冒泡
+const stopPropagation = event => {
+  event.stopPropagation()
+}
+    
+// 格式化时间
+const formatTime = timestamp => {
+  if (!timestamp) return ''
+      
+  const date = new Date(timestamp)
+  const now = new Date()
+  const diff = now - date
+      
+  // 今天内的消息显示时:分
+  if (diff < 86400000 && date.getDate() === now.getDate()) {
+    return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
+  }
+      
+  // 昨天的消息
+  if (diff < 2 * 86400000 && date.getDate() === now.getDate() - 1) {
+    return '昨天'
+  }
+      
+  // 一周内的消息显示周几
+  if (diff < 7 * 86400000) {
+    const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+    return weekdays[date.getDay()]
+  }
+      
+  // 更早的消息显示年-月-日
+  return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`
+}
+    
+// 格式化消息时间
+const formatMessageTime = timestamp => {
+  if (!timestamp) return ''
+      
+  const date = new Date(timestamp)
+  return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
+}
+    
+// 跳转到用户/店铺个人主页
+// 参数可以是 (targetId, targetType) 或 (session对象)
+const goToUserProfile = (targetIdOrSession, targetType) => {
+  let targetId, targetTypeValue
+      
+  // 判断第一个参数是会话对象还是targetId
+  if (typeof targetIdOrSession === 'object' && targetIdOrSession !== null) {
+    // 是会话对象
+    const session = targetIdOrSession
+    targetId = session.receiverId || session.id
+    targetTypeValue = session.targetType
+        
+    // 对于店铺会话，targetId是店主ID，需要查询店铺ID
+    if (targetTypeValue === 'shop') {
+      // 如果有保存的店铺ID，直接使用
+      if (session.shopId) {
+        router.push(`/shop/${session.shopId}`)
         return
       }
-
-      const targetType = shopId ? 'customer' : 'private'
-      const targetId = shopId || userId
-
-      const findSessionByRoute = () => {
-        if (shopId) {
-          return mockSessions.value.find(s => s.targetType === 'shop' && String(s.shopId) === String(shopId))
-        }
-        return mockSessions.value.find(s => s.targetType === 'user' && String(s.receiverId) === String(userId))
-      }
-
-      const existing = findSessionByRoute()
-      // 严格参考“点击联系人”的会话创建/恢复逻辑：
-      // - 未创建：创建新会话并选中
-      // - 已存在：直接选中
-      // - 已存在但软删除：后端 createChatSession 会恢复为正常并返回，同样走“创建后刷新并选中”
-      if (existing) {
-        selectSession(existing)
+      // 否则，根据店主ID查询店铺ID（需要调用API）
+      // 这里先尝试从raw数据中获取，如果没有则使用ownerId查询
+      const ownerId = session.ownerId || session.receiverId
+      if (ownerId) {
+        // 暂时使用ownerId作为店铺ID（这是临时方案，应该调用API查询）
+        // TODO: 调用API根据ownerId查询店铺ID
+        router.push(`/shop/${ownerId}`)
         return
       }
-
-      try {
-        // 与 openContact 保持一致：创建/恢复 -> 刷新会话列表 -> 通过 sessionId 精确选中
-        const createRes = await messageStore.createChatSession({ targetId: String(targetId), targetType })
-        if (!isSuccess(createRes.code)) {
-          showByCode(createRes.code)
-          return
-        }
-
-        const createdSessionId = createRes.data?.id || createRes.data?.data?.id
-        await fetchSessions()
-
-        // 优先按 sessionId 精确定位；找不到再按路由规则兜底
-        const created = createdSessionId
-          ? mockSessions.value.find(s => String(s.sessionId) === String(createdSessionId))
-          : null
-        const created2 = created || findSessionByRoute()
-        if (created2) {
-          selectSession(created2)
-        }
-      } catch (e) {
-        if (process.env.NODE_ENV === 'development') {
-          console.error('[开发调试] 路由初始化创建会话失败：', e)
-        }
-      }
     }
+  } else {
+    // 是targetId和targetType
+    targetId = targetIdOrSession
+    targetTypeValue = targetType
+  }
+      
+  if (!targetId || !targetTypeValue) return
+      
+  if (targetTypeValue === 'shop') {
+    // 跳转到店铺详情页
+    router.push(`/shop/${targetId}`)
+  } else if (targetTypeValue === 'user') {
+    // 跳转到用户个人主页
+    router.push(`/profile/${targetId}`)
+  }
+}
     
-    // WebSocket 在线状态增量更新处理
-    const handleOnlineStatusUpdate = messageData => {
-        if (!messageData || messageData.type !== 'onlineStatus' || !messageData.userId) return
-        const targetId = messageData.userId
-        mockSessions.value.forEach(session => {
-            if (String(session.receiverId) === String(targetId)) {
-                session.online = !!messageData.online
-            }
-        })
-        contacts.value.forEach(contact => {
-            // user联系人：id=用户id；shop联系人：ownerId=店主id
-            const matchId = contact.type === 'shop' ? contact.ownerId : contact.id
-            if (String(matchId) === String(targetId)) {
-                contact.online = !!messageData.online
-            }
-        })
-    }
-
-    // 点击外部区域关闭搜索结果面板
-    const handleClickOutside = (event) => {
-        if (searchBarRef.value && !searchBarRef.value.contains(event.target)) {
-            showSearchResults.value = false
-        }
-    }
-
-    // WebSocket 聊天增量：收到chatMessage后，按会话刷新本地消息/未读
-    const handleChatMessagePush = (msg) => {
-      const data = msg?.data || {}
-      const sessionId = data.sessionId
-      if (!sessionId) return
-
-      // 当前选中的会话：直接重新拉一遍快照（简单稳定）
-      if (currentSessionId.value && currentSessionId.value === sessionId) {
-        fetchMessages(sessionId)
-      }
-
-      // 无论是否当前会话，都刷新会话列表，以更新未读数/最后一条消息
-      fetchSessions()
-    }
-
-    // 在组件挂载时初始化：先加载会话，再根据路由参数选择目标
-    onMounted(async () => {
-        await fetchContacts()
-        await fetchSessions()
-        await initializeChatFromRouteParams()
-        websocketManager.on('onlineStatus', handleOnlineStatusUpdate)
-        websocketManager.on('chatMessage', handleChatMessagePush)
-        // 添加点击外部区域监听器
-        document.addEventListener('click', handleClickOutside)
-    })
+// 过滤会话列表
+const filteredSessions = computed(() => {
+  if (!searchQuery.value.trim()) {
+    return mockSessions.value
+  }
+      
+  const query = searchQuery.value.toLowerCase()
+  return mockSessions.value.filter(session => {
+    return session.name.toLowerCase().includes(query) ||
+               (session.lastMessage && session.lastMessage.toLowerCase().includes(query))
+  })
+})
     
-    // 监听路由参数变化
-    watch(() => route.query.shopId, newShopId => {
-      if (newShopId) {
-        initializeChatFromRouteParams()
-      }
-    })
+// 是否存在任何会话
+const hasSessions = computed(() => mockSessions.value.length > 0)
     
-    // 监听 userId 路由参数变化
+// 当前会话
+const currentSession = computed(() => {
+  return mockSessions.value.find(s => s.sessionId === currentSessionId.value) || null
+})
+    
+// 当前会话的消息列表
+const currentMessages = computed(() => {
+  return messagesMap[currentSessionId.value] || []
+})
+    
+// 消息页路由仅用户身份：shopId->customer+店铺ID；userId->private+用户ID
+// 初始化函数：根据路由参数自动打开特定会话（店铺 / 用户）
+const initializeChatFromRouteParams = async () => {
+  const sessionId = route.query.sessionId
+  const shopId = route.query.shopId
+  const userId = route.query.userId
+
+  // 如果显式传了 sessionId，则直接按 sessionId 精确选中（个人主页私信/联系人创建会话后跳转）
+  if (sessionId) {
+    const existingBySessionId = mockSessions.value.find(s => String(s.sessionId) === String(sessionId))
+    if (existingBySessionId) {
+      selectSession(existingBySessionId)
+      return
+    }
+  }
+      
+  // 如果没有指定目标，仅在有会话但未选中时做一次默认选择
+  if (!shopId && !userId) {
+    if (!currentSessionId.value && mockSessions.value.length > 0) {
+      const unreadSession = mockSessions.value.find(session => session.unreadCount > 0)
+      selectSession(unreadSession || mockSessions.value[0])
+    }
+    return
+  }
+
+  const targetType = shopId ? 'customer' : 'private'
+  const targetId = shopId || userId
+
+  const findSessionByRoute = () => {
+    if (shopId) {
+      return mockSessions.value.find(s => s.targetType === 'shop' && String(s.shopId) === String(shopId))
+    }
+    return mockSessions.value.find(s => s.targetType === 'user' && String(s.receiverId) === String(userId))
+  }
+
+  const existing = findSessionByRoute()
+  // 严格参考“点击联系人”的会话创建/恢复逻辑：
+  // - 未创建：创建新会话并选中
+  // - 已存在：直接选中
+  // - 已存在但软删除：后端 createChatSession 会恢复为正常并返回，同样走“创建后刷新并选中”
+  if (existing) {
+    selectSession(existing)
+    return
+  }
+
+  try {
+    // 与 openContact 保持一致：创建/恢复 -> 刷新会话列表 -> 通过 sessionId 精确选中
+    const createRes = await messageStore.createChatSession({ targetId: String(targetId), targetType })
+    if (!isSuccess(createRes.code)) {
+      showByCode(createRes.code)
+      return
+    }
+
+    const createdSessionId = createRes.data?.id || createRes.data?.data?.id
+    await fetchSessions()
+
+    // 优先按 sessionId 精确定位；找不到再按路由规则兜底
+    const created = createdSessionId
+      ? mockSessions.value.find(s => String(s.sessionId) === String(createdSessionId))
+      : null
+    const created2 = created || findSessionByRoute()
+    if (created2) {
+      selectSession(created2)
+    }
+  } catch (e) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[开发调试] 路由初始化创建会话失败：', e)
+    }
+  }
+}
+    
+// WebSocket 在线状态增量更新处理
+const handleOnlineStatusUpdate = messageData => {
+  if (!messageData || messageData.type !== 'onlineStatus' || !messageData.userId) return
+  const targetId = messageData.userId
+  mockSessions.value.forEach(session => {
+    if (String(session.receiverId) === String(targetId)) {
+      session.online = !!messageData.online
+    }
+  })
+  contacts.value.forEach(contact => {
+    // user联系人：id=用户id；shop联系人：ownerId=店主id
+    const matchId = contact.type === 'shop' ? contact.ownerId : contact.id
+    if (String(matchId) === String(targetId)) {
+      contact.online = !!messageData.online
+    }
+  })
+}
+
+// 点击外部区域关闭搜索结果面板
+const handleClickOutside = event => {
+  if (searchBarRef.value && !searchBarRef.value.contains(event.target)) {
+    showSearchResults.value = false
+  }
+}
+
+// WebSocket 聊天增量：收到chatMessage后，按会话刷新本地消息/未读
+const handleChatMessagePush = msg => {
+  const data = msg?.data || {}
+  const sessionId = data.sessionId
+  if (!sessionId) return
+
+  // 当前选中的会话：直接重新拉一遍快照（简单稳定）
+  if (currentSessionId.value && currentSessionId.value === sessionId) {
+    fetchMessages(sessionId)
+  }
+
+  // 无论是否当前会话，都刷新会话列表，以更新未读数/最后一条消息
+  fetchSessions()
+}
+
+// 在组件挂载时初始化：先加载会话，再根据路由参数选择目标
+onMounted(async () => {
+  await fetchContacts()
+  await fetchSessions()
+  await initializeChatFromRouteParams()
+  websocketManager.on('onlineStatus', handleOnlineStatusUpdate)
+  websocketManager.on('chatMessage', handleChatMessagePush)
+  // 添加点击外部区域监听器
+  document.addEventListener('click', handleClickOutside)
+})
+    
+// 监听路由参数变化
+watch(() => route.query.shopId, newShopId => {
+  if (newShopId) {
+    initializeChatFromRouteParams()
+  }
+})
+    
+// 监听 userId 路由参数变化
 watch(() => route.query.userId, newUserId => {
   if (newUserId) {
     initializeChatFromRouteParams()
   }
 })
 
-    // 组件卸载时取消WebSocket监听和点击外部区域监听
-    onBeforeUnmount(() => {
-      websocketManager.off('onlineStatus', handleOnlineStatusUpdate)
-      websocketManager.off('chatMessage', handleChatMessagePush)
-      document.removeEventListener('click', handleClickOutside)
-    })
+// 组件卸载时取消WebSocket监听和点击外部区域监听
+onBeforeUnmount(() => {
+  websocketManager.off('onlineStatus', handleOnlineStatusUpdate)
+  websocketManager.off('chatMessage', handleChatMessagePush)
+  document.removeEventListener('click', handleClickOutside)
+})
 
-    // 引导按钮：跳转到茶叶商城
-    const goToTeaMall = () => {
-      router.push('/tea/mall')
-    }
+// 引导按钮：跳转到茶叶商城
+const goToTeaMall = () => {
+  router.push('/tea/mall')
+}
 </script>
 
 <style lang="scss" scoped>

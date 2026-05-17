@@ -12,24 +12,24 @@
  * @returns {Promise<Object>} 返回 API 响应信息
  */
 async function monitorApiCall(page, apiPath, method = 'GET') {
-  return new Promise((resolve) => {
-    const handler = async (response) => {
-      const url = response.url();
-      const reqMethod = response.request().method();
+  return new Promise(resolve => {
+    const handler = async response => {
+      const url = response.url()
+      const reqMethod = response.request().method()
       
       // 检查是否匹配目标 API
       if (url.includes(apiPath) && reqMethod === method) {
-        const status = response.status();
-        let responseData = null;
+        const status = response.status()
+        let responseData = null
         
         try {
-          responseData = await response.json();
+          responseData = await response.json()
         } catch (e) {
           // 非 JSON 响应
         }
         
         // 移除监听器
-        page.off('response', handler);
+        page.off('response', handler)
         
         resolve({
           url,
@@ -37,12 +37,12 @@ async function monitorApiCall(page, apiPath, method = 'GET') {
           status,
           data: responseData,
           success: status >= 200 && status < 300
-        });
+        })
       }
-    };
+    }
     
-    page.on('response', handler);
-  });
+    page.on('response', handler)
+  })
 }
 
 /**
@@ -56,11 +56,11 @@ async function waitForApi(page, apiPath, timeout = 10000) {
     await page.waitForResponse(
       response => response.url().includes(apiPath),
       { timeout }
-    );
-    return true;
+    )
+    return true
   } catch (error) {
-    console.error(`等待 API ${apiPath} 超时`);
-    return false;
+    console.error(`等待 API ${apiPath} 超时`)
+    return false
   }
 }
 
@@ -73,13 +73,13 @@ async function waitForApi(page, apiPath, timeout = 10000) {
  * @returns {Promise<Object>} API 响应信息
  */
 async function triggerAndMonitorApi(page, triggerAction, apiPath, method = 'GET') {
-  const apiPromise = monitorApiCall(page, apiPath, method);
-  await triggerAction();
-  return await apiPromise;
+  const apiPromise = monitorApiCall(page, apiPath, method)
+  await triggerAction()
+  return await apiPromise
 }
 
 module.exports = {
   monitorApiCall,
   waitForApi,
   triggerAndMonitorApi
-};
+}

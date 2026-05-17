@@ -180,7 +180,7 @@ export const useForumStore = defineStore('forum', () => {
       const res = await getBanners()
       // 统一Banner字段命名，兼容后端 BannerVO（imageUrl/linkUrl/sortOrder）以及旧数据字段
       const list = res.data || []
-      banners.value = (Array.isArray(list) ? list : []).map((b) => ({
+      banners.value = (Array.isArray(list) ? list : []).map(b => ({
         id: b.id,
         // 后端返回 imageUrl；旧实现可能是 image_url/url
         image_url: b.imageUrl || b.image_url || b.url || '',

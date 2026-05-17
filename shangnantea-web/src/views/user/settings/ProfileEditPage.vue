@@ -133,145 +133,145 @@ const handleProfileVisibilityChange = value => {
 // 个性化偏好设置（页面内编辑用副本；保存时统一走 Pinia）
 const preferences = reactive({ ...DEFAULT_USER_PREFERENCES })
     
-    // 应用主题设置
-    const applyThemeSettings = theme => {
-      // 获取html根元素
-      const htmlEl = document.documentElement
+// 应用主题设置
+const applyThemeSettings = theme => {
+  // 获取html根元素
+  const htmlEl = document.documentElement
       
-      // 移除所有可能的主题类
-      htmlEl.classList.remove('dark-mode', 'light-mode')
+  // 移除所有可能的主题类
+  htmlEl.classList.remove('dark-mode', 'light-mode')
       
-      // 根据设置添加对应的主题类
-      if (theme === 'dark') {
-        htmlEl.classList.add('dark-mode')
-        // 设置Element Plus的内置dark模式
-        htmlEl.setAttribute('data-theme', 'dark')
-      } else if (theme === 'light') {
-        htmlEl.classList.add('light-mode')
-        htmlEl.setAttribute('data-theme', 'light')
-      } else if (theme === 'auto') {
-        // 自动模式，根据系统颜色模式设置
-        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-          htmlEl.classList.add('dark-mode')
-          htmlEl.setAttribute('data-theme', 'dark')
-        } else {
-          htmlEl.classList.add('light-mode')
-          htmlEl.setAttribute('data-theme', 'light')
-        }
-      }
+  // 根据设置添加对应的主题类
+  if (theme === 'dark') {
+    htmlEl.classList.add('dark-mode')
+    // 设置Element Plus的内置dark模式
+    htmlEl.setAttribute('data-theme', 'dark')
+  } else if (theme === 'light') {
+    htmlEl.classList.add('light-mode')
+    htmlEl.setAttribute('data-theme', 'light')
+  } else if (theme === 'auto') {
+    // 自动模式，根据系统颜色模式设置
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      htmlEl.classList.add('dark-mode')
+      htmlEl.setAttribute('data-theme', 'dark')
+    } else {
+      htmlEl.classList.add('light-mode')
+      htmlEl.setAttribute('data-theme', 'light')
     }
+  }
+}
     
-    // 保存设置
-    const savePreferences = async () => {
-      try {
-        submitting.value = true
-        const payload = normalizeUserPreferences({
-          ...preferences,
-          profileVisible: profileVisibilitySelection.value.includes('yes')
-        })
-        const response = await userStore.saveUserPreferences(payload)
-        
-        // 显示API响应消息（成功或失败都通过状态码映射显示）
-        showByCode(response.code)
-        
-        // 只有成功时才应用设置
-        if (isSuccess(response.code)) {
-          // 应用主题设置
-          Object.assign(preferences, normalizeUserPreferences(response.data || payload))
-          syncProfileVisibilitySelection(preferences.profileVisible)
-          applyThemeSettings(preferences.themeMode)
-          
-          // 应用字体设置
-          document.documentElement.style.setProperty('--el-font-size-base', preferences.fontSize + 'px')
-          
-          // 如果设置了字体，应用字体设置
-          if (preferences.fontFamily) {
-            document.documentElement.style.setProperty('--el-font-family', preferences.fontFamily)
-            document.body.style.fontFamily = preferences.fontFamily
-          } else {
-            document.documentElement.style.removeProperty('--el-font-family')
-            document.body.style.fontFamily = ''
-          }
-        }
-      } catch (e) {
-        // 说明：在重构后的消息系统中，所有业务错误都通过状态码映射显示
-        // 
-        // 1. API业务失败：响应拦截器返回 {code: 错误码, data: null}
-        //    → 通过 showByCode(response.code) 显示（有状态码映射）
-        //    → 不会抛出异常，不会进入 catch
-        // 
-        // 2. 网络错误等：响应拦截器会显示错误消息并 reject
-        //    → Pinia action 没有 catch，会抛出异常
-        //    → 但响应拦截器已经显示了错误消息，这里不应该重复显示
-        // 
-        // 3. 真正的意外错误：如 DOM 操作失败、消息显示错误等
-        //    → 这些不是业务逻辑问题，不应该显示给用户
-        // 
-        // 结论：catch 块是冗余的，因为：
-        // - 业务失败已有状态码映射显示
-        // - 网络错误已在响应拦截器显示
-        // - 意外错误不应该显示给用户
-        // 
-        // 但保留 catch 块用于：
-        // - 确保 submitting 状态被重置（在 finally 中）
-        // - 开发环境记录意外错误用于调试
-        
-        console.error('[开发调试] 保存偏好设置时发生意外错误：', e)
-        
-      } finally {
-        submitting.value = false
-      }
-    }
-    
-    // 重置所有设置
-    const resetPreferences = () => {
-      Object.assign(preferences, DEFAULT_USER_PREFERENCES)
-      syncProfileVisibilitySelection(preferences.profileVisible)
-      
-      // 本地操作，使用 userMessages 是正确的（不涉及API调用）
-      userMessages.success.showSettingsRestored()
-    }
-
-    const syncProfileVisibilitySelection = profileVisible => {
-      profileVisibilitySelection.value = [profileVisible ? 'yes' : 'no']
-    }
-    
-    // 路由
-    const router = useRouter()
-    const goBack = () => {
-      router.back()
-    }
-    
-    onMounted(() => {
-      loading.value = true
-      const fetchPreferences = async () => {
-        try {
-          const response = await userStore.fetchUserPreferences()
-          
-          if (isSuccess(response.code)) {
-            const source = normalizeUserPreferences(response.data || userStore.preferences)
-            Object.assign(preferences, source || {})
-            syncProfileVisibilitySelection(preferences.profileVisible)
-            // 初始化时应用主题设置
-            applyThemeSettings(preferences.themeMode)
-            // 初始化时应用字体设置
-            document.documentElement.style.setProperty('--el-font-size-base', preferences.fontSize + 'px')
-            if (preferences.fontFamily) {
-              document.documentElement.style.setProperty('--el-font-family', preferences.fontFamily)
-              document.body.style.fontFamily = preferences.fontFamily
-            }
-          } else {
-            showByCode(response.code)
-          }
-        } catch (error) {
-          console.error('获取设置失败:', error)
-        } finally {
-          loading.value = false
-        }
-      }
-      
-      fetchPreferences()
+// 保存设置
+const savePreferences = async () => {
+  try {
+    submitting.value = true
+    const payload = normalizeUserPreferences({
+      ...preferences,
+      profileVisible: profileVisibilitySelection.value.includes('yes')
     })
+    const response = await userStore.saveUserPreferences(payload)
+        
+    // 显示API响应消息（成功或失败都通过状态码映射显示）
+    showByCode(response.code)
+        
+    // 只有成功时才应用设置
+    if (isSuccess(response.code)) {
+      // 应用主题设置
+      Object.assign(preferences, normalizeUserPreferences(response.data || payload))
+      syncProfileVisibilitySelection(preferences.profileVisible)
+      applyThemeSettings(preferences.themeMode)
+          
+      // 应用字体设置
+      document.documentElement.style.setProperty('--el-font-size-base', preferences.fontSize + 'px')
+          
+      // 如果设置了字体，应用字体设置
+      if (preferences.fontFamily) {
+        document.documentElement.style.setProperty('--el-font-family', preferences.fontFamily)
+        document.body.style.fontFamily = preferences.fontFamily
+      } else {
+        document.documentElement.style.removeProperty('--el-font-family')
+        document.body.style.fontFamily = ''
+      }
+    }
+  } catch (e) {
+    // 说明：在重构后的消息系统中，所有业务错误都通过状态码映射显示
+    // 
+    // 1. API业务失败：响应拦截器返回 {code: 错误码, data: null}
+    //    → 通过 showByCode(response.code) 显示（有状态码映射）
+    //    → 不会抛出异常，不会进入 catch
+    // 
+    // 2. 网络错误等：响应拦截器会显示错误消息并 reject
+    //    → Pinia action 没有 catch，会抛出异常
+    //    → 但响应拦截器已经显示了错误消息，这里不应该重复显示
+    // 
+    // 3. 真正的意外错误：如 DOM 操作失败、消息显示错误等
+    //    → 这些不是业务逻辑问题，不应该显示给用户
+    // 
+    // 结论：catch 块是冗余的，因为：
+    // - 业务失败已有状态码映射显示
+    // - 网络错误已在响应拦截器显示
+    // - 意外错误不应该显示给用户
+    // 
+    // 但保留 catch 块用于：
+    // - 确保 submitting 状态被重置（在 finally 中）
+    // - 开发环境记录意外错误用于调试
+        
+    console.error('[开发调试] 保存偏好设置时发生意外错误：', e)
+        
+  } finally {
+    submitting.value = false
+  }
+}
+    
+// 重置所有设置
+const resetPreferences = () => {
+  Object.assign(preferences, DEFAULT_USER_PREFERENCES)
+  syncProfileVisibilitySelection(preferences.profileVisible)
+      
+  // 本地操作，使用 userMessages 是正确的（不涉及API调用）
+  userMessages.success.showSettingsRestored()
+}
+
+const syncProfileVisibilitySelection = profileVisible => {
+  profileVisibilitySelection.value = [profileVisible ? 'yes' : 'no']
+}
+    
+// 路由
+const router = useRouter()
+const goBack = () => {
+  router.back()
+}
+    
+onMounted(() => {
+  loading.value = true
+  const fetchPreferences = async () => {
+    try {
+      const response = await userStore.fetchUserPreferences()
+          
+      if (isSuccess(response.code)) {
+        const source = normalizeUserPreferences(response.data || userStore.preferences)
+        Object.assign(preferences, source || {})
+        syncProfileVisibilitySelection(preferences.profileVisible)
+        // 初始化时应用主题设置
+        applyThemeSettings(preferences.themeMode)
+        // 初始化时应用字体设置
+        document.documentElement.style.setProperty('--el-font-size-base', preferences.fontSize + 'px')
+        if (preferences.fontFamily) {
+          document.documentElement.style.setProperty('--el-font-family', preferences.fontFamily)
+          document.body.style.fontFamily = preferences.fontFamily
+        }
+      } else {
+        showByCode(response.code)
+      }
+    } catch (error) {
+      console.error('获取设置失败:', error)
+    } finally {
+      loading.value = false
+    }
+  }
+      
+  fetchPreferences()
+})
 </script>
 
 <style lang="scss" scoped>

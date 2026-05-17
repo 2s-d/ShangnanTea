@@ -148,7 +148,7 @@ const localKey = (type, targetId) => `${type}:${String(targetId)}`
 
 const viewerFollowSet = computed(() => {
   const set = new Set()
-  ;(viewerFollowList.value || []).forEach((item) => {
+  ;(viewerFollowList.value || []).forEach(item => {
     if (!item) return
     set.add(localKey(item.targetType, item.targetId))
   })
@@ -191,347 +191,347 @@ const profileUserId = computed(() => {
   return firstParam
 })
     
-    // 筛选类型：user（用户）、shop（店铺）
-    const filterType = ref('user')
-    const searchKeyword = ref('')
-    const sortOption = ref('recent')
+// 筛选类型：user（用户）、shop（店铺）
+const filterType = ref('user')
+const searchKeyword = ref('')
+const sortOption = ref('recent')
     
-    // 使用本地快照渲染（避免取消关注立即从列表消失）
-    const followList = computed(() => localFollowList.value || [])
+// 使用本地快照渲染（避免取消关注立即从列表消失）
+const followList = computed(() => localFollowList.value || [])
     
-    // 关注的用户（从Pinia筛选）
-    const followedUsers = computed(() => {
-      return followList.value
-        .filter(item => item.targetType === 'user')
-        .map(item => ({
-          id: item.id,
-          userId: item.targetId,
-          nickname: item.targetName || '未知用户',
-          avatar: item.targetAvatar || 'https://via.placeholder.com/50x50?text=用户',
-          gender: 1, // 后端未提供，使用默认值
-          bio: '', // 后端未提供，使用默认值
-          followTime: item.createTime,
-          activeLevel: 5 // 后端未提供，使用默认值
-        }))
-    })
+// 关注的用户（从Pinia筛选）
+const followedUsers = computed(() => {
+  return followList.value
+    .filter(item => item.targetType === 'user')
+    .map(item => ({
+      id: item.id,
+      userId: item.targetId,
+      nickname: item.targetName || '未知用户',
+      avatar: item.targetAvatar || 'https://via.placeholder.com/50x50?text=用户',
+      gender: 1, // 后端未提供，使用默认值
+      bio: '', // 后端未提供，使用默认值
+      followTime: item.createTime,
+      activeLevel: 5 // 后端未提供，使用默认值
+    }))
+})
     
-    // 关注的店铺（从Pinia筛选）
-    const followedShops = computed(() => {
-      return followList.value
-        .filter(item => item.targetType === 'shop')
-        .map(item => ({
-          id: item.id,
-          shopId: item.targetId,
-          name: item.targetName || '未知店铺',
-          logo: item.targetLogo || item.targetAvatar || 'https://via.placeholder.com/50x50?text=店铺',
-          coverImage: item.targetAvatar || item.targetLogo || 'https://via.placeholder.com/300x100?text=店铺',
-          description: item.targetDescription || '暂无店铺介绍',
-          followTime: item.createTime,
-          popularity: 5 // 后端未提供，使用默认值
-        }))
-    })
+// 关注的店铺（从Pinia筛选）
+const followedShops = computed(() => {
+  return followList.value
+    .filter(item => item.targetType === 'shop')
+    .map(item => ({
+      id: item.id,
+      shopId: item.targetId,
+      name: item.targetName || '未知店铺',
+      logo: item.targetLogo || item.targetAvatar || 'https://via.placeholder.com/50x50?text=店铺',
+      coverImage: item.targetAvatar || item.targetLogo || 'https://via.placeholder.com/300x100?text=店铺',
+      description: item.targetDescription || '暂无店铺介绍',
+      followTime: item.createTime,
+      popularity: 5 // 后端未提供，使用默认值
+    }))
+})
     
-    // 过滤和排序用户
-    const filteredUsers = computed(() => {
-      let result = [...followedUsers.value]
+// 过滤和排序用户
+const filteredUsers = computed(() => {
+  let result = [...followedUsers.value]
       
-      // 搜索过滤
-      if (searchKeyword.value) {
-        const keyword = searchKeyword.value.toLowerCase()
-        result = result.filter(user => 
-          user.nickname.toLowerCase().includes(keyword) || 
+  // 搜索过滤
+  if (searchKeyword.value) {
+    const keyword = searchKeyword.value.toLowerCase()
+    result = result.filter(user => 
+      user.nickname.toLowerCase().includes(keyword) || 
           user.bio.toLowerCase().includes(keyword)
-        )
-      }
+    )
+  }
       
-      // 排序
-      if (sortOption.value === 'recent') {
-        result.sort((a, b) => new Date(b.followTime) - new Date(a.followTime))
-      } else if (sortOption.value === 'active') {
-        result.sort((a, b) => b.activeLevel - a.activeLevel)
-      }
+  // 排序
+  if (sortOption.value === 'recent') {
+    result.sort((a, b) => new Date(b.followTime) - new Date(a.followTime))
+  } else if (sortOption.value === 'active') {
+    result.sort((a, b) => b.activeLevel - a.activeLevel)
+  }
       
-      return result
-    })
+  return result
+})
     
-    // 过滤和排序店铺
-    const filteredShops = computed(() => {
-      let result = [...followedShops.value]
+// 过滤和排序店铺
+const filteredShops = computed(() => {
+  let result = [...followedShops.value]
       
-      // 搜索过滤
-      if (searchKeyword.value) {
-        const keyword = searchKeyword.value.toLowerCase()
-        result = result.filter(shop => 
-          shop.name.toLowerCase().includes(keyword) || 
+  // 搜索过滤
+  if (searchKeyword.value) {
+    const keyword = searchKeyword.value.toLowerCase()
+    result = result.filter(shop => 
+      shop.name.toLowerCase().includes(keyword) || 
           shop.description.toLowerCase().includes(keyword)
-        )
-      }
+    )
+  }
       
-      // 排序
-      if (sortOption.value === 'recent') {
-        result.sort((a, b) => new Date(b.followTime) - new Date(a.followTime))
-      } else if (sortOption.value === 'popular') {
-        result.sort((a, b) => b.popularity - a.popularity)
-      }
+  // 排序
+  if (sortOption.value === 'recent') {
+    result.sort((a, b) => new Date(b.followTime) - new Date(a.followTime))
+  } else if (sortOption.value === 'popular') {
+    result.sort((a, b) => b.popularity - a.popularity)
+  }
       
-      return result
-    })
+  return result
+})
     
-    // 处理筛选类型变化
-    const handleFilterChange = value => {
-      filterType.value = value
-      // 清空搜索关键词
-      searchKeyword.value = ''
-    }
+// 处理筛选类型变化
+const handleFilterChange = value => {
+  filterType.value = value
+  // 清空搜索关键词
+  searchKeyword.value = ''
+}
     
-    // 格式化日期
-    const formatDate = dateString => {
-      if (!dateString) return ''
+// 格式化日期
+const formatDate = dateString => {
+  if (!dateString) return ''
       
-      const date = new Date(dateString)
-      return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`
-    }
+  const date = new Date(dateString)
+  return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`
+}
     
-    // 跳转到用户主页
-    const goToUserProfile = userId => {
-      router.push(`/profile/${userId}`)
-    }
+// 跳转到用户主页
+const goToUserProfile = userId => {
+  router.push(`/profile/${userId}`)
+}
     
-    /**
+/**
      * 私信：关注页只允许“用户身份”发起用户→用户私聊
      */
-    const privateMessage = async (userId) => {
-      if (!userId) return
-      try {
-        // 与个人主页私信/联系人点击保持一致：先创建/恢复会话，再跳转并精确选中
-        const res = await messageStore.createChatSession({
-          targetId: String(userId),
-          targetType: 'private'
-        })
-        if (!isSuccess(res.code)) {
-          showByCode(res.code)
-          return
-        }
-        const sessionId = res.data?.id
-        router.push({
-          path: '/message/chat',
-          query: {
-            sessionId: sessionId ? String(sessionId) : undefined,
-            userId: String(userId)
-          }
-        })
-      } catch (e) {
-        if (process.env.NODE_ENV === 'development') {
-          console.error('[开发调试] 发起私信失败：', e)
-        }
-      }
+const privateMessage = async userId => {
+  if (!userId) return
+  try {
+    // 与个人主页私信/联系人点击保持一致：先创建/恢复会话，再跳转并精确选中
+    const res = await messageStore.createChatSession({
+      targetId: String(userId),
+      targetType: 'private'
+    })
+    if (!isSuccess(res.code)) {
+      showByCode(res.code)
+      return
     }
+    const sessionId = res.data?.id
+    router.push({
+      path: '/message/chat',
+      query: {
+        sessionId: sessionId ? String(sessionId) : undefined,
+        userId: String(userId)
+      }
+    })
+  } catch (e) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[开发调试] 发起私信失败：', e)
+    }
+  }
+}
     
-    // 切换关注用户（乐观更新 + 延迟同步）
-    const toggleFollowUser = async (user) => {
-      const userId = user?.userId
-      if (!userId) return
+// 切换关注用户（乐观更新 + 延迟同步）
+const toggleFollowUser = async user => {
+  const userId = user?.userId
+  if (!userId) return
       
-      // 判断是否是查看自己的列表
-      const isSelf = currentUserId.value && profileUserId.value && String(profileUserId.value) === String(currentUserId.value)
+  // 判断是否是查看自己的列表
+  const isSelf = currentUserId.value && profileUserId.value && String(profileUserId.value) === String(currentUserId.value)
       
-      const currentlyFollowed = isLocallyFollowed('user', userId)
-      // 先乐观更新UI，避免"接口成功但按钮样式不变"
-      setLocallyFollowed('user', userId, !currentlyFollowed)
-      try {
-        if (currentlyFollowed) {
-          const res = await userStore.removeFollow({ targetId: userId, targetType: 'user' })
-          showByCode(res.code)
-          // 2013: 已取消关注；2124: 关注记录不存在/已删除（幂等视为已取消）
-          if (!(res.code === 2013 || res.code === 2124)) {
-            setLocallyFollowed('user', userId, true)
-          } else {
-            // 操作成功：如果是别人的列表，立即刷新 viewerList 确保按钮状态准确
-            if (!isSelf) {
-              try {
-                const resViewer = await getFollowList()
-                viewerFollowList.value = (resViewer.data || []).map(i => ({ ...i }))
-              } catch (err) {
-                if (process.env.NODE_ENV === 'development') {
-                  console.error('刷新查看者关注列表失败:', err)
-                }
-              }
-            }
-          }
-        } else {
-          const res = await userStore.addFollow({
-            targetId: userId,
-            targetType: 'user',
-            targetName: user?.nickname,
-            targetAvatar: user?.avatar
-          })
-          showByCode(res.code)
-          // 2012: 已关注；如果后端返回其它成功码，也一律视为已关注
-          if (!(res.code === 2012 || String(res.code).startsWith('7'))) {
-            setLocallyFollowed('user', userId, false)
-          } else {
-            // 操作成功：如果是别人的列表，立即刷新 viewerList 确保按钮状态准确
-            if (!isSelf) {
-              try {
-                const resViewer = await getFollowList()
-                viewerFollowList.value = (resViewer.data || []).map(i => ({ ...i }))
-              } catch (err) {
-                if (process.env.NODE_ENV === 'development') {
-                  console.error('刷新查看者关注列表失败:', err)
-                }
-              }
+  const currentlyFollowed = isLocallyFollowed('user', userId)
+  // 先乐观更新UI，避免"接口成功但按钮样式不变"
+  setLocallyFollowed('user', userId, !currentlyFollowed)
+  try {
+    if (currentlyFollowed) {
+      const res = await userStore.removeFollow({ targetId: userId, targetType: 'user' })
+      showByCode(res.code)
+      // 2013: 已取消关注；2124: 关注记录不存在/已删除（幂等视为已取消）
+      if (!(res.code === 2013 || res.code === 2124)) {
+        setLocallyFollowed('user', userId, true)
+      } else {
+        // 操作成功：如果是别人的列表，立即刷新 viewerList 确保按钮状态准确
+        if (!isSelf) {
+          try {
+            const resViewer = await getFollowList()
+            viewerFollowList.value = (resViewer.data || []).map(i => ({ ...i }))
+          } catch (err) {
+            if (process.env.NODE_ENV === 'development') {
+              console.error('刷新查看者关注列表失败:', err)
             }
           }
         }
-      } catch (error) {
-        // 网络/异常：回滚UI
-        setLocallyFollowed('user', userId, currentlyFollowed)
-        if (process.env.NODE_ENV === 'development') console.error('关注用户切换失败:', error)
+      }
+    } else {
+      const res = await userStore.addFollow({
+        targetId: userId,
+        targetType: 'user',
+        targetName: user?.nickname,
+        targetAvatar: user?.avatar
+      })
+      showByCode(res.code)
+      // 2012: 已关注；如果后端返回其它成功码，也一律视为已关注
+      if (!(res.code === 2012 || String(res.code).startsWith('7'))) {
+        setLocallyFollowed('user', userId, false)
+      } else {
+        // 操作成功：如果是别人的列表，立即刷新 viewerList 确保按钮状态准确
+        if (!isSelf) {
+          try {
+            const resViewer = await getFollowList()
+            viewerFollowList.value = (resViewer.data || []).map(i => ({ ...i }))
+          } catch (err) {
+            if (process.env.NODE_ENV === 'development') {
+              console.error('刷新查看者关注列表失败:', err)
+            }
+          }
+        }
       }
     }
+  } catch (error) {
+    // 网络/异常：回滚UI
+    setLocallyFollowed('user', userId, currentlyFollowed)
+    if (process.env.NODE_ENV === 'development') console.error('关注用户切换失败:', error)
+  }
+}
 
-    // 兼容旧方法名
-    const unfollowUser = async (userId) => toggleFollowUser({ userId })
+// 兼容旧方法名
+const unfollowUser = async userId => toggleFollowUser({ userId })
     
-    // 跳转到店铺详情
-    const goToShopDetail = shopId => {
-      router.push(`/shop/${shopId}`)
+// 跳转到店铺详情
+const goToShopDetail = shopId => {
+  router.push(`/shop/${shopId}`)
+}
+    
+// 联系店铺客服（用户身份发起 customer 会话）
+// 必须与 ChatPage.openContact(店铺) 完全一致：先创建/恢复会话，再跳转并选中
+const contactShop = async shopId => {
+  if (!shopId) return
+  try {
+    const res = await messageStore.createChatSession({
+      targetId: String(shopId),
+      targetType: 'customer'
+    })
+    if (!isSuccess(res.code)) {
+      showByCode(res.code)
+      return
     }
-    
-    // 联系店铺客服（用户身份发起 customer 会话）
-    // 必须与 ChatPage.openContact(店铺) 完全一致：先创建/恢复会话，再跳转并选中
-    const contactShop = async (shopId) => {
-      if (!shopId) return
-      try {
-        const res = await messageStore.createChatSession({
-          targetId: String(shopId),
-          targetType: 'customer'
-        })
-        if (!isSuccess(res.code)) {
-          showByCode(res.code)
-          return
-        }
-        const sessionId = res.data?.id
-        router.push({
-          path: '/message/chat',
-          query: {
-            sessionId: sessionId ? String(sessionId) : undefined,
-            shopId: String(shopId)
-          }
-        })
-      } catch (e) {
-        if (process.env.NODE_ENV === 'development') {
-          console.error('[开发调试] 联系店铺客服失败：', e)
-        }
+    const sessionId = res.data?.id
+    router.push({
+      path: '/message/chat',
+      query: {
+        sessionId: sessionId ? String(sessionId) : undefined,
+        shopId: String(shopId)
       }
+    })
+  } catch (e) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[开发调试] 联系店铺客服失败：', e)
     }
+  }
+}
     
-    // 切换关注店铺（乐观更新 + 延迟同步）
-    const toggleFollowShop = async (shop) => {
-      const shopId = shop?.shopId
-      if (!shopId) return
+// 切换关注店铺（乐观更新 + 延迟同步）
+const toggleFollowShop = async shop => {
+  const shopId = shop?.shopId
+  if (!shopId) return
       
-      // 判断是否是查看自己的列表
-      const isSelf = currentUserId.value && profileUserId.value && String(profileUserId.value) === String(currentUserId.value)
+  // 判断是否是查看自己的列表
+  const isSelf = currentUserId.value && profileUserId.value && String(profileUserId.value) === String(currentUserId.value)
       
-      const currentlyFollowed = isLocallyFollowed('shop', shopId)
-      setLocallyFollowed('shop', shopId, !currentlyFollowed)
-      try {
-        if (currentlyFollowed) {
-          const res = await userStore.removeFollow({ targetId: shopId, targetType: 'shop' })
-          showByCode(res.code)
-          if (!(res.code === 2013 || res.code === 2124)) {
-            setLocallyFollowed('shop', shopId, true)
-          } else {
-            // 操作成功：如果是别人的列表，立即刷新 viewerList 确保按钮状态准确
-            if (!isSelf) {
-              try {
-                const resViewer = await getFollowList()
-                viewerFollowList.value = (resViewer.data || []).map(i => ({ ...i }))
-              } catch (err) {
-                if (process.env.NODE_ENV === 'development') {
-                  console.error('刷新查看者关注列表失败:', err)
-                }
-              }
-            }
-          }
-        } else {
-          const res = await userStore.addFollow({
-            targetId: shopId,
-            targetType: 'shop',
-            targetName: shop?.name,
-            targetAvatar: shop?.logo
-          })
-          showByCode(res.code)
-          if (!(res.code === 2012 || String(res.code).startsWith('7'))) {
-            setLocallyFollowed('shop', shopId, false)
-          } else {
-            // 操作成功：如果是别人的列表，立即刷新 viewerList 确保按钮状态准确
-            if (!isSelf) {
-              try {
-                const resViewer = await getFollowList()
-                viewerFollowList.value = (resViewer.data || []).map(i => ({ ...i }))
-              } catch (err) {
-                if (process.env.NODE_ENV === 'development') {
-                  console.error('刷新查看者关注列表失败:', err)
-                }
-              }
+  const currentlyFollowed = isLocallyFollowed('shop', shopId)
+  setLocallyFollowed('shop', shopId, !currentlyFollowed)
+  try {
+    if (currentlyFollowed) {
+      const res = await userStore.removeFollow({ targetId: shopId, targetType: 'shop' })
+      showByCode(res.code)
+      if (!(res.code === 2013 || res.code === 2124)) {
+        setLocallyFollowed('shop', shopId, true)
+      } else {
+        // 操作成功：如果是别人的列表，立即刷新 viewerList 确保按钮状态准确
+        if (!isSelf) {
+          try {
+            const resViewer = await getFollowList()
+            viewerFollowList.value = (resViewer.data || []).map(i => ({ ...i }))
+          } catch (err) {
+            if (process.env.NODE_ENV === 'development') {
+              console.error('刷新查看者关注列表失败:', err)
             }
           }
         }
-      } catch (error) {
-        setLocallyFollowed('shop', shopId, currentlyFollowed)
-        if (process.env.NODE_ENV === 'development') console.error('关注店铺切换失败:', error)
       }
-    }
-
-    // 兼容旧方法名
-    const unfollowShop = async (shopId) => toggleFollowShop({ shopId })
-    
-    // 返回首页
-    const goHome = () => {
-      router.push('/')
-    }
-    
-    // 加载关注列表（主页用户 + 当前登录用户）
-    // 注意：初始数据在 UserHomePage 的 loadUserData 中统一调用，这里只处理用户操作
-    const loadFollowList = async () => {
-      // 如果未登录，不调用接口（避免退出登录时触发）
-      if (!userStore.isLoggedIn) {
-        localFollowList.value = []
-        viewerFollowList.value = []
-        return
-      }
-      
-      // 参考统计接口的处理逻辑：判断主页是否可见
-      const isSelf = currentUserId.value && profileUserId.value && String(profileUserId.value) === String(currentUserId.value)
-      const profileVisible = messageStore.userProfile?.profileVisible !== false
-      
-      // 仅在本人或对方允许查看时才请求关注接口；否则直接置空并不发请求
-      if (!isSelf && !profileVisible) {
-        localFollowList.value = []
-        viewerFollowList.value = []
-        return
-      }
-      
-      try {
-        // 1) 主页用户的关注：用于渲染"他关注了谁/哪家店"
-        const resOwner = await getFollowList(null, profileUserId.value)
-        showByCode(resOwner.code)
-        localFollowList.value = (resOwner.data || []).map(i => ({ ...i }))
-
-        // 2) 当前登录用户的关注：用于按钮状态（我是否关注该条目）
-        const resViewer = await getFollowList()
-        viewerFollowList.value = (resViewer.data || []).map(i => ({ ...i }))
-      } catch (error) {
-        // 捕获意外的运行时错误（非API业务错误）
-        // API业务失败已通过 showByCode 显示，网络错误已在响应拦截器显示
-        // 这里只记录日志用于开发调试
-        if (process.env.NODE_ENV === 'development') {
-          console.error('[开发调试] 加载关注列表时发生意外错误：', error)
+    } else {
+      const res = await userStore.addFollow({
+        targetId: shopId,
+        targetType: 'shop',
+        targetName: shop?.name,
+        targetAvatar: shop?.logo
+      })
+      showByCode(res.code)
+      if (!(res.code === 2012 || String(res.code).startsWith('7'))) {
+        setLocallyFollowed('shop', shopId, false)
+      } else {
+        // 操作成功：如果是别人的列表，立即刷新 viewerList 确保按钮状态准确
+        if (!isSelf) {
+          try {
+            const resViewer = await getFollowList()
+            viewerFollowList.value = (resViewer.data || []).map(i => ({ ...i }))
+          } catch (err) {
+            if (process.env.NODE_ENV === 'development') {
+              console.error('刷新查看者关注列表失败:', err)
+            }
+          }
         }
       }
     }
+  } catch (error) {
+    setLocallyFollowed('shop', shopId, currentlyFollowed)
+    if (process.env.NODE_ENV === 'development') console.error('关注店铺切换失败:', error)
+  }
+}
+
+// 兼容旧方法名
+const unfollowShop = async shopId => toggleFollowShop({ shopId })
+    
+// 返回首页
+const goHome = () => {
+  router.push('/')
+}
+    
+// 加载关注列表（主页用户 + 当前登录用户）
+// 注意：初始数据在 UserHomePage 的 loadUserData 中统一调用，这里只处理用户操作
+const loadFollowList = async () => {
+  // 如果未登录，不调用接口（避免退出登录时触发）
+  if (!userStore.isLoggedIn) {
+    localFollowList.value = []
+    viewerFollowList.value = []
+    return
+  }
+      
+  // 参考统计接口的处理逻辑：判断主页是否可见
+  const isSelf = currentUserId.value && profileUserId.value && String(profileUserId.value) === String(currentUserId.value)
+  const profileVisible = messageStore.userProfile?.profileVisible !== false
+      
+  // 仅在本人或对方允许查看时才请求关注接口；否则直接置空并不发请求
+  if (!isSelf && !profileVisible) {
+    localFollowList.value = []
+    viewerFollowList.value = []
+    return
+  }
+      
+  try {
+    // 1) 主页用户的关注：用于渲染"他关注了谁/哪家店"
+    const resOwner = await getFollowList(null, profileUserId.value)
+    showByCode(resOwner.code)
+    localFollowList.value = (resOwner.data || []).map(i => ({ ...i }))
+
+    // 2) 当前登录用户的关注：用于按钮状态（我是否关注该条目）
+    const resViewer = await getFollowList()
+    viewerFollowList.value = (resViewer.data || []).map(i => ({ ...i }))
+  } catch (error) {
+    // 捕获意外的运行时错误（非API业务错误）
+    // API业务失败已通过 showByCode 显示，网络错误已在响应拦截器显示
+    // 这里只记录日志用于开发调试
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[开发调试] 加载关注列表时发生意外错误：', error)
+    }
+  }
+}
     
 // 组件挂载时：等待 UserHomePage 的 loadUserData 完成，然后检查 profileVisible 再决定是否调用接口
 onMounted(async () => {
@@ -555,7 +555,7 @@ onMounted(async () => {
   
   // 仅在本人或对方允许查看时才请求关注接口；否则直接置空并不发请求
   if (isSelf || profileVisible) {
-  loadFollowList()
+    loadFollowList()
   } else {
     localFollowList.value = []
     viewerFollowList.value = []
@@ -568,7 +568,7 @@ watch(() => profileUserId.value, async () => {
   if (!userStore.isLoggedIn) {
     localFollowList.value = []
     viewerFollowList.value = []
-  localFollowState.value = {}
+    localFollowState.value = {}
     return
   }
   
@@ -587,7 +587,7 @@ watch(() => profileUserId.value, async () => {
   
   // 仅在本人或对方允许查看时才请求关注接口；否则直接置空并不发请求
   if (isSelf || profileVisible) {
-  loadFollowList()
+    loadFollowList()
   } else {
     localFollowList.value = []
     viewerFollowList.value = []

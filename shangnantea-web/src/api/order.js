@@ -111,6 +111,19 @@ export function getOrderDetail(id) {
 }
 
 /**
+ * 根据支付单ID获取关联订单详情
+ * @param {string} paymentId 支付单ID（PM开头）
+ * @returns {Promise} 订单详情
+ */
+export function getOrderDetailByPaymentId(paymentId) {
+  const url = API.ORDER.PAYMENT_DETAIL.replace('{paymentId}', encodeURIComponent(paymentId))
+  return request({
+    url,
+    method: 'get'
+  })
+}
+
+/**
  * 任务组A：支付订单
  * @param {Object} data 支付数据 {orderId, paymentMethod}
  * @returns {Promise} 支付结果

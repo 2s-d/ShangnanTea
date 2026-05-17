@@ -268,256 +268,256 @@ import { orderPromptMessages } from '@/utils/promptMessages'
 defineOptions({
   name: 'TeaListPage'
 })
-    const teaStore = useTeaStore()
-    const orderStore = useOrderStore()
-    const router = useRouter()
-    const route = useRoute()
+const teaStore = useTeaStore()
+const orderStore = useOrderStore()
+const router = useRouter()
+const route = useRoute()
 
-    const searchQuery = ref('')
-    const sortOption = ref('default')
-    const viewMode = ref('grid')
-    // 标志：是否正在通过applyFilters更新，避免watch重复触发
-    const isApplyingFilters = ref(false)
-    // 保存上一次的query，用于判断是否只是翻页
-    const previousQuery = ref(null)
-    // 是否直接使用默认规格加入购物车（从全局orderStore读写，避免切页后丢失）
-    const useDefaultSpecOnAdd = computed({
-      get() {
-        return orderStore.useDefaultSpecOnAdd
-      },
-      set(val) {
-        orderStore.useDefaultSpecOnAdd = val
+const searchQuery = ref('')
+const sortOption = ref('default')
+const viewMode = ref('grid')
+// 标志：是否正在通过applyFilters更新，避免watch重复触发
+const isApplyingFilters = ref(false)
+// 保存上一次的query，用于判断是否只是翻页
+const previousQuery = ref(null)
+// 是否直接使用默认规格加入购物车（从全局orderStore读写，避免切页后丢失）
+const useDefaultSpecOnAdd = computed({
+  get() {
+    return orderStore.useDefaultSpecOnAdd
+  },
+  set(val) {
+    orderStore.useDefaultSpecOnAdd = val
+  }
+})
+// 筛选选项
+const filters = reactive({
+  categories: [],
+  priceRange: [0, 1000],
+  source: 'all',
+  rating: null
+})
+    
+// 从store获取分类数据
+const categoryOptions = computed(() => teaStore.categories)
+    
+// 从store获取茶叶列表
+const teas = computed(() => teaStore.teaList)
+const totalCount = computed(() => teaStore.pagination.total)
+const pageSize = computed(() => teaStore.pagination.pageSize)
+const currentPage = computed(() => teaStore.pagination.currentPage)
+const loading = computed(() => teaStore.loading)
+
+// 规格选择弹窗状态（用于从列表页加购物车时选择规格）
+const specDialogVisible = ref(false)
+const currentSpecTea = ref(null)
+const availableSpecs = ref([])
+const tempSelectedSpecId = ref(null)
+const tempSelectedSpecIds = ref([]) // 多选时的规格ID数组
+const selectMultipleSpecs = ref(false) // 是否选多款
+
+const selectedSpecName = computed(() => {
+  if (!tempSelectedSpecId.value || !availableSpecs.value.length) return ''
+  const spec = availableSpecs.value.find(s => s.id === tempSelectedSpecId.value)
+  return spec ? spec.specName : ''
+})
+
+const selectedSpecPrice = computed(() => {
+  if (!tempSelectedSpecId.value || !availableSpecs.value.length) return 0
+  const spec = availableSpecs.value.find(s => s.id === tempSelectedSpecId.value)
+  return spec ? spec.price : 0
+})
+    
+// 加载茶叶数据（提前定义，避免 watch 中调用时未定义）
+const loadTeas = async () => {
+  try {
+    // 解析排序选项
+    let sortBy = ''
+    let sortOrder = 'asc'
+    if (sortOption.value === 'sales') {
+      sortBy = 'sales'
+      sortOrder = 'desc'
+    } else if (sortOption.value === 'price_asc') {
+      sortBy = 'price'
+      sortOrder = 'asc'
+    } else if (sortOption.value === 'price_desc') {
+      sortBy = 'price'
+      sortOrder = 'desc'
+    } else if (sortOption.value === 'newest') {
+      sortBy = 'time'
+      sortOrder = 'desc'
+    }
+        
+    // 将UI筛选条件映射到 store.filters
+    // 任务组E：只显示上架茶叶（status=1）
+    // 商品来源筛选：platform 表示平台直售（shopId='PLATFORM'），all 表示全部（shopId=''）
+        
+    // 分类筛选逻辑：
+    // - 如果没选或全选了所有分类，不传递categoryIds（显示所有分类）
+    // - 如果选了部分分类，传递categoryIds数组（只显示选中的分类）
+    const totalCategories = categoryOptions.value.length
+    const selectedCount = filters.categories.length
+    let categoryFilter = ''
+        
+    if (selectedCount > 0 && selectedCount < totalCategories) {
+      // 选了部分分类，传递选中的分类ID数组
+      categoryFilter = filters.categories
+    }
+    // 如果 selectedCount === 0 或 selectedCount === totalCategories，categoryFilter 保持为空字符串（显示所有）
+        
+    await teaStore.updateFilters({
+      keyword: searchQuery.value,
+      category: categoryFilter,
+      priceRange: filters.priceRange,
+      origin: '', // 暂时不支持产地筛选
+      rating: filters.rating,
+      sortBy: sortBy,
+      sortOrder: sortOrder,
+      status: 1, // 任务组E：只显示上架茶叶
+      shopId: filters.source === 'platform' ? 'PLATFORM' : '' // 平台直售筛选
+    })
+  } catch (error) {
+    // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
+    if (process.env.NODE_ENV === 'development') {
+      console.error('加载茶叶列表失败:', error)
+    }
+  }
+}
+
+// 从后端获取某个茶叶的规格列表
+const fetchSpecsForTea = async teaId => {
+  const res = await teaStore.fetchTeaSpecifications(teaId)
+  const specs = res?.data || res || []
+  if (!specs || specs.length === 0) {
+    orderPromptMessages.showNoSpecAvailable()
+    return []
+  }
+  return specs
+}
+
+// 处理“加入购物车”（来自 TeaCard）
+const handleAddToCart = async tea => {
+  try {
+    // 先查询规格列表
+    const specs = await fetchSpecsForTea(tea.id)
+    if (!specs.length) return
+
+    // 找到默认规格（若无，则取第一个）
+    const defaultSpec = specs.find(s => s.isDefault === 1) || specs[0]
+
+    // 如果勾选了“默认规格”，直接加入购物车
+    if (useDefaultSpecOnAdd.value && defaultSpec) {
+      const res = await orderStore.addToCart({
+        teaId: tea.id,
+        quantity: 1,
+        specificationId: String(defaultSpec.id)
+      })
+      if (res && res.code) {
+        showByCode(res.code)
       }
-    })
-    // 筛选选项
-    const filters = reactive({
-      categories: [],
-      priceRange: [0, 1000],
-      source: 'all',
-      rating: null
-    })
-    
-    // 从store获取分类数据
-    const categoryOptions = computed(() => teaStore.categories)
-    
-    // 从store获取茶叶列表
-    const teas = computed(() => teaStore.teaList)
-    const totalCount = computed(() => teaStore.pagination.total)
-    const pageSize = computed(() => teaStore.pagination.pageSize)
-    const currentPage = computed(() => teaStore.pagination.currentPage)
-    const loading = computed(() => teaStore.loading)
-
-    // 规格选择弹窗状态（用于从列表页加购物车时选择规格）
-    const specDialogVisible = ref(false)
-    const currentSpecTea = ref(null)
-    const availableSpecs = ref([])
-    const tempSelectedSpecId = ref(null)
-    const tempSelectedSpecIds = ref([]) // 多选时的规格ID数组
-    const selectMultipleSpecs = ref(false) // 是否选多款
-
-    const selectedSpecName = computed(() => {
-      if (!tempSelectedSpecId.value || !availableSpecs.value.length) return ''
-      const spec = availableSpecs.value.find(s => s.id === tempSelectedSpecId.value)
-      return spec ? spec.specName : ''
-    })
-
-    const selectedSpecPrice = computed(() => {
-      if (!tempSelectedSpecId.value || !availableSpecs.value.length) return 0
-      const spec = availableSpecs.value.find(s => s.id === tempSelectedSpecId.value)
-      return spec ? spec.price : 0
-    })
-    
-    // 加载茶叶数据（提前定义，避免 watch 中调用时未定义）
-    const loadTeas = async () => {
-      try {
-        // 解析排序选项
-        let sortBy = ''
-        let sortOrder = 'asc'
-        if (sortOption.value === 'sales') {
-          sortBy = 'sales'
-          sortOrder = 'desc'
-        } else if (sortOption.value === 'price_asc') {
-          sortBy = 'price'
-          sortOrder = 'asc'
-        } else if (sortOption.value === 'price_desc') {
-          sortBy = 'price'
-          sortOrder = 'desc'
-        } else if (sortOption.value === 'newest') {
-          sortBy = 'time'
-          sortOrder = 'desc'
-        }
-        
-        // 将UI筛选条件映射到 store.filters
-        // 任务组E：只显示上架茶叶（status=1）
-        // 商品来源筛选：platform 表示平台直售（shopId='PLATFORM'），all 表示全部（shopId=''）
-        
-        // 分类筛选逻辑：
-        // - 如果没选或全选了所有分类，不传递categoryIds（显示所有分类）
-        // - 如果选了部分分类，传递categoryIds数组（只显示选中的分类）
-        const totalCategories = categoryOptions.value.length
-        const selectedCount = filters.categories.length
-        let categoryFilter = ''
-        
-        if (selectedCount > 0 && selectedCount < totalCategories) {
-          // 选了部分分类，传递选中的分类ID数组
-          categoryFilter = filters.categories
-        }
-        // 如果 selectedCount === 0 或 selectedCount === totalCategories，categoryFilter 保持为空字符串（显示所有）
-        
-        await teaStore.updateFilters({
-          keyword: searchQuery.value,
-          category: categoryFilter,
-          priceRange: filters.priceRange,
-          origin: '', // 暂时不支持产地筛选
-          rating: filters.rating,
-          sortBy: sortBy,
-          sortOrder: sortOrder,
-          status: 1, // 任务组E：只显示上架茶叶
-          shopId: filters.source === 'platform' ? 'PLATFORM' : '' // 平台直售筛选
-        })
-      } catch (error) {
-        // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
-        if (process.env.NODE_ENV === 'development') {
-          console.error('加载茶叶列表失败:', error)
-        }
-      }
+      return
     }
 
-    // 从后端获取某个茶叶的规格列表
-    const fetchSpecsForTea = async teaId => {
-      const res = await teaStore.fetchTeaSpecifications(teaId)
-      const specs = res?.data || res || []
-      if (!specs || specs.length === 0) {
-        orderPromptMessages.showNoSpecAvailable()
-        return []
-      }
-      return specs
+    // 否则弹出规格选择框
+    currentSpecTea.value = {
+      teaId: tea.id,
+      teaName: tea.name,
+      teaImage: tea.mainImage
     }
-
-    // 处理“加入购物车”（来自 TeaCard）
-    const handleAddToCart = async tea => {
-      try {
-        // 先查询规格列表
-        const specs = await fetchSpecsForTea(tea.id)
-        if (!specs.length) return
-
-        // 找到默认规格（若无，则取第一个）
-        const defaultSpec = specs.find(s => s.isDefault === 1) || specs[0]
-
-        // 如果勾选了“默认规格”，直接加入购物车
-        if (useDefaultSpecOnAdd.value && defaultSpec) {
-          const res = await orderStore.addToCart({
-            teaId: tea.id,
-            quantity: 1,
-            specificationId: String(defaultSpec.id)
-          })
-          if (res && res.code) {
-            showByCode(res.code)
-          }
-          return
-        }
-
-        // 否则弹出规格选择框
-        currentSpecTea.value = {
-          teaId: tea.id,
-          teaName: tea.name,
-          teaImage: tea.mainImage
-        }
-        availableSpecs.value = specs
-        tempSelectedSpecId.value = defaultSpec ? defaultSpec.id : specs[0].id
-        tempSelectedSpecIds.value = [] // 重置多选
-        selectMultipleSpecs.value = false // 重置选多款状态
-        specDialogVisible.value = true
-      } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          console.error('从列表加入购物车失败:', error)
-        }
-      }
+    availableSpecs.value = specs
+    tempSelectedSpecId.value = defaultSpec ? defaultSpec.id : specs[0].id
+    tempSelectedSpecIds.value = [] // 重置多选
+    selectMultipleSpecs.value = false // 重置选多款状态
+    specDialogVisible.value = true
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('从列表加入购物车失败:', error)
     }
+  }
+}
 
-    // 确认从列表页选择规格并加入购物车
-    const confirmSpecAddToCart = async () => {
-      if (!currentSpecTea.value) {
+// 确认从列表页选择规格并加入购物车
+const confirmSpecAddToCart = async () => {
+  if (!currentSpecTea.value) {
+    orderPromptMessages.showSpecRequired()
+    return
+  }
+      
+  try {
+    // 如果勾选了"选多款"，为每个选中的规格分别添加到购物车
+    if (selectMultipleSpecs.value) {
+      if (!tempSelectedSpecIds.value || tempSelectedSpecIds.value.length === 0) {
         orderPromptMessages.showSpecRequired()
         return
       }
-      
-      try {
-        // 如果勾选了"选多款"，为每个选中的规格分别添加到购物车
-        if (selectMultipleSpecs.value) {
-          if (!tempSelectedSpecIds.value || tempSelectedSpecIds.value.length === 0) {
-            orderPromptMessages.showSpecRequired()
-            return
-          }
-          // 批量添加
-          const promises = tempSelectedSpecIds.value.map(specId =>
-            orderStore.addToCart({
-              teaId: currentSpecTea.value.teaId,
-              quantity: 1,
-              specificationId: String(specId)
-            })
-          )
-          const results = await Promise.all(promises)
-          // 显示最后一个结果的消息
-          if (results.length > 0 && results[results.length - 1]?.code) {
-            showByCode(results[results.length - 1].code)
-          }
-        } else {
-          // 单选模式
-          if (!tempSelectedSpecId.value) {
-            orderPromptMessages.showSpecRequired()
-            return
-          }
-          const res = await orderStore.addToCart({
-            teaId: currentSpecTea.value.teaId,
-            quantity: 1,
-            specificationId: String(tempSelectedSpecId.value)
-          })
-          if (res && res.code) {
-            showByCode(res.code)
-          }
-        }
-        specDialogVisible.value = false
-        // 重置状态
-        selectMultipleSpecs.value = false
-        tempSelectedSpecIds.value = []
-      } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          console.error('加入购物车失败:', error)
-        }
+      // 批量添加
+      const promises = tempSelectedSpecIds.value.map(specId =>
+        orderStore.addToCart({
+          teaId: currentSpecTea.value.teaId,
+          quantity: 1,
+          specificationId: String(specId)
+        })
+      )
+      const results = await Promise.all(promises)
+      // 显示最后一个结果的消息
+      if (results.length > 0 && results[results.length - 1]?.code) {
+        showByCode(results[results.length - 1].code)
+      }
+    } else {
+      // 单选模式
+      if (!tempSelectedSpecId.value) {
+        orderPromptMessages.showSpecRequired()
+        return
+      }
+      const res = await orderStore.addToCart({
+        teaId: currentSpecTea.value.teaId,
+        quantity: 1,
+        specificationId: String(tempSelectedSpecId.value)
+      })
+      if (res && res.code) {
+        showByCode(res.code)
       }
     }
-    
-    // 同步筛选条件到URL
-    const updateQueryParams = () => {
-      const query = {
-        page: teaStore.pagination.currentPage,
-        sort: sortOption.value
-      }
-      
-      if (searchQuery.value) query.search = searchQuery.value
-      if (filters.categories.length > 0) query.categories = JSON.stringify(filters.categories)
-      if (filters.priceRange[0] !== 0 || filters.priceRange[1] !== 1000) {
-        query.price = JSON.stringify(filters.priceRange)
-      }
-      if (filters.source !== 'all') query.source = filters.source
-      if (filters.rating !== null) query.rating = filters.rating
-      
-      router.replace({ query })
+    specDialogVisible.value = false
+    // 重置状态
+    selectMultipleSpecs.value = false
+    tempSelectedSpecIds.value = []
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('加入购物车失败:', error)
     }
+  }
+}
     
-    // 监听路由参数变化
-    watch(
-      () => route.query,
-      async query => {
-        // 如果正在通过applyFilters更新，跳过watch触发（避免重复加载）
-        if (isApplyingFilters.value) {
-          previousQuery.value = { ...query }
-          return
-        }
+// 同步筛选条件到URL
+const updateQueryParams = () => {
+  const query = {
+    page: teaStore.pagination.currentPage,
+    sort: sortOption.value
+  }
+      
+  if (searchQuery.value) query.search = searchQuery.value
+  if (filters.categories.length > 0) query.categories = JSON.stringify(filters.categories)
+  if (filters.priceRange[0] !== 0 || filters.priceRange[1] !== 1000) {
+    query.price = JSON.stringify(filters.priceRange)
+  }
+  if (filters.source !== 'all') query.source = filters.source
+  if (filters.rating !== null) query.rating = filters.rating
+      
+  router.replace({ query })
+}
+    
+// 监听路由参数变化
+watch(
+  () => route.query,
+  async query => {
+    // 如果正在通过applyFilters更新，跳过watch触发（避免重复加载）
+    if (isApplyingFilters.value) {
+      previousQuery.value = { ...query }
+      return
+    }
         
-        // 判断是否只是翻页（其他筛选条件没变，只有页码变了）
-        const isOnlyPageChange = previousQuery.value && 
+    // 判断是否只是翻页（其他筛选条件没变，只有页码变了）
+    const isOnlyPageChange = previousQuery.value && 
           query.page !== previousQuery.value.page &&
           JSON.stringify({
             search: query.search || '',
@@ -535,202 +535,202 @@ defineOptions({
             rating: previousQuery.value.rating || ''
           })
         
-        // 如果只是翻页，直接设置页码并请求，不更新筛选条件
-        if (isOnlyPageChange) {
-          const targetPage = query.page ? parseInt(query.page) : 1
-          teaStore.setPage(targetPage)
-          previousQuery.value = { ...query }
-          return
-        }
-        
-        // 筛选条件变化了，更新所有筛选条件
-        if (query.search) searchQuery.value = query.search
-        else searchQuery.value = ''
-        
-        if (query.sort) sortOption.value = query.sort
-        else sortOption.value = 'default'
-        
-        if (query.categories) {
-          try {
-            filters.categories = JSON.parse(query.categories)
-          } catch (e) {
-            filters.categories = []
-          }
-        } else {
-          filters.categories = []
-        }
-        
-        if (query.price) {
-          try {
-            filters.priceRange = JSON.parse(query.price)
-          } catch (e) {
-            filters.priceRange = [0, 1000]
-          }
-        } else {
-          filters.priceRange = [0, 1000]
-        }
-        
-        // 商品来源：如果URL中有source参数则使用，否则重置为'all'
-        if (query.source) {
-          filters.source = query.source
-        } else {
-          filters.source = 'all'
-        }
-        
-        if (query.rating !== undefined && query.rating !== null && query.rating !== '') {
-          filters.rating = parseFloat(query.rating)
-        } else {
-          filters.rating = null
-        }
-        
-        // 统一加载数据（会重置页码为1）
-        await loadTeas()
-        
-        // 如果URL中有页码参数且不是1，恢复页码
-        const targetPage = query.page ? parseInt(query.page) : 1
-        if (targetPage !== 1) {
-          teaStore.setPage(targetPage)
-        }
-        
-        // 保存当前query
-        previousQuery.value = { ...query }
-      },
-      { immediate: true }
-    )
-    
-    // 页面跳转
-    const goToShopList = () => {
-      router.push('/shop/list')
+    // 如果只是翻页，直接设置页码并请求，不更新筛选条件
+    if (isOnlyPageChange) {
+      const targetPage = query.page ? parseInt(query.page) : 1
+      teaStore.setPage(targetPage)
+      previousQuery.value = { ...query }
+      return
     }
-    
-    // 搜索处理（原有方法，保留用于兼容）
-    const handleSearch = () => {
-      teaStore.setPage(1)
-      updateQueryParams()
-    }
-    
-    // 统一搜索组件的搜索处理
-    const handleSearchFromBar = ({ query, type }) => {
-      // SearchBar已经处理了跳转，这里只需要更新本地状态
-      searchQuery.value = query
-      // 由于SearchBar已经跳转到 /tea/mall?search=xxx，watch会自动触发数据加载
-    }
-    
-    // 应用筛选 - 直接应用，不再需要按钮
-    const applyFilters = async () => {
-      // 设置标志，防止watch重复触发
-      isApplyingFilters.value = true
+        
+    // 筛选条件变化了，更新所有筛选条件
+    if (query.search) searchQuery.value = query.search
+    else searchQuery.value = ''
+        
+    if (query.sort) sortOption.value = query.sort
+    else sortOption.value = 'default'
+        
+    if (query.categories) {
       try {
-        // 直接更新筛选条件并加载数据（updateFilters会重置页码为1）
-        await loadTeas()
-        // 然后同步URL参数（不会触发watch，因为isApplyingFilters=true）
-        updateQueryParams()
-      } finally {
-        // 延迟重置标志，确保URL更新完成
-        setTimeout(() => {
-          isApplyingFilters.value = false
-        }, 100)
+        filters.categories = JSON.parse(query.categories)
+      } catch (e) {
+        filters.categories = []
       }
-    }
-    
-    // 重置筛选
-    const resetFilters = async () => {
+    } else {
       filters.categories = []
-      filters.priceRange = [0, 1000]
-      filters.source = 'all'
-      filters.rating = null
-      searchQuery.value = ''
-      sortOption.value = 'default'
-      teaStore.setPage(1)
-      
-      // 重置Pinia筛选条件
-      await teaStore.resetFilters()
-      
-      // 清空URL参数
-      router.replace({ query: {} })
     }
-    
-    // 页面变化
-    const handlePageChange = page => {
-      // 只更新URL，让watch统一处理，避免重复请求
-      router.replace({ 
-        query: { 
-          ...route.query, 
-          page: page 
-        } 
-      })
-    }
-    
-    // 处理排序变更
-    const handleSortChange = () => {
-      teaStore.setPage(1)
-      updateQueryParams()
-      loadTeas()
-    }
-    
-    // 任务组F：热门推荐数据（完全按照首页的数据格式处理）
-    const popularTeas = computed(() => {
-      const source = Array.isArray(teaStore.recommendTeas) ? [...teaStore.recommendTeas] : []
-      const DISPLAY_COUNT = 6
-
-      // 如果推荐池大于展示数量，则随机抽取 DISPLAY_COUNT 条
-      let sampled = source
-      if (source.length > DISPLAY_COUNT) {
-        // Fisher-Yates 洗牌，避免修改原始数组
-        const shuffled = [...source]
-        for (let i = shuffled.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1))
-          ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
-        }
-        sampled = shuffled.slice(0, DISPLAY_COUNT)
+        
+    if (query.price) {
+      try {
+        filters.priceRange = JSON.parse(query.price)
+      } catch (e) {
+        filters.priceRange = [0, 1000]
       }
+    } else {
+      filters.priceRange = [0, 1000]
+    }
+        
+    // 商品来源：如果URL中有source参数则使用，否则重置为'all'
+    if (query.source) {
+      filters.source = query.source
+    } else {
+      filters.source = 'all'
+    }
+        
+    if (query.rating !== undefined && query.rating !== null && query.rating !== '') {
+      filters.rating = parseFloat(query.rating)
+    } else {
+      filters.rating = null
+    }
+        
+    // 统一加载数据（会重置页码为1）
+    await loadTeas()
+        
+    // 如果URL中有页码参数且不是1，恢复页码
+    const targetPage = query.page ? parseInt(query.page) : 1
+    if (targetPage !== 1) {
+      teaStore.setPage(targetPage)
+    }
+        
+    // 保存当前query
+    previousQuery.value = { ...query }
+  },
+  { immediate: true }
+)
+    
+// 页面跳转
+const goToShopList = () => {
+  router.push('/shop/list')
+}
+    
+// 搜索处理（原有方法，保留用于兼容）
+const handleSearch = () => {
+  teaStore.setPage(1)
+  updateQueryParams()
+}
+    
+// 统一搜索组件的搜索处理
+const handleSearchFromBar = ({ query, type }) => {
+  // SearchBar已经处理了跳转，这里只需要更新本地状态
+  searchQuery.value = query
+  // 由于SearchBar已经跳转到 /tea/mall?search=xxx，watch会自动触发数据加载
+}
+    
+// 应用筛选 - 直接应用，不再需要按钮
+const applyFilters = async () => {
+  // 设置标志，防止watch重复触发
+  isApplyingFilters.value = true
+  try {
+    // 直接更新筛选条件并加载数据（updateFilters会重置页码为1）
+    await loadTeas()
+    // 然后同步URL参数（不会触发watch，因为isApplyingFilters=true）
+    updateQueryParams()
+  } finally {
+    // 延迟重置标志，确保URL更新完成
+    setTimeout(() => {
+      isApplyingFilters.value = false
+    }, 100)
+  }
+}
+    
+// 重置筛选
+const resetFilters = async () => {
+  filters.categories = []
+  filters.priceRange = [0, 1000]
+  filters.source = 'all'
+  filters.rating = null
+  searchQuery.value = ''
+  sortOption.value = 'default'
+  teaStore.setPage(1)
+      
+  // 重置Pinia筛选条件
+  await teaStore.resetFilters()
+      
+  // 清空URL参数
+  router.replace({ query: {} })
+}
+    
+// 页面变化
+const handlePageChange = page => {
+  // 只更新URL，让watch统一处理，避免重复请求
+  router.replace({ 
+    query: { 
+      ...route.query, 
+      page: page 
+    } 
+  })
+}
+    
+// 处理排序变更
+const handleSortChange = () => {
+  teaStore.setPage(1)
+  updateQueryParams()
+  loadTeas()
+}
+    
+// 任务组F：热门推荐数据（完全按照首页的数据格式处理）
+const popularTeas = computed(() => {
+  const source = Array.isArray(teaStore.recommendTeas) ? [...teaStore.recommendTeas] : []
+  const DISPLAY_COUNT = 6
 
-      return sampled.map(item => {
-        // 后端返回格式：{ id, name, price, images: [], mainImage }
-        // 首页需要格式：{ id, name, price, image }
-        const images = Array.isArray(item.images) ? item.images : []
-        const image =
+  // 如果推荐池大于展示数量，则随机抽取 DISPLAY_COUNT 条
+  let sampled = source
+  if (source.length > DISPLAY_COUNT) {
+    // Fisher-Yates 洗牌，避免修改原始数组
+    const shuffled = [...source]
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+          ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+    }
+    sampled = shuffled.slice(0, DISPLAY_COUNT)
+  }
+
+  return sampled.map(item => {
+    // 后端返回格式：{ id, name, price, images: [], mainImage }
+    // 首页需要格式：{ id, name, price, image }
+    const images = Array.isArray(item.images) ? item.images : []
+    const image =
           (images.length > 0 && images[0]) ||
           item.mainImage ||
           ''
 
-        return {
-          id: item.id,
-          name: item.name,
-          price: item.price,
-          image
-        }
-      })
-    })
-    
-    // 任务组F：跳转到茶叶详情页
-    const goToTeaDetail = teaId => {
-      router.push(`/tea/${teaId}`)
+    return {
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      image
     }
+  })
+})
     
-    // 任务组F：加载热门推荐
-    const loadPopularTeas = async () => {
-      try {
-        await teaStore.fetchRecommendTeas({ type: 'popular', count: 6 })
-      } catch (error) {
-        // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
-        if (process.env.NODE_ENV === 'development') {
-          console.error('加载热门推荐失败:', error)
-        }
-      }
+// 任务组F：跳转到茶叶详情页
+const goToTeaDetail = teaId => {
+  router.push(`/tea/${teaId}`)
+}
+    
+// 任务组F：加载热门推荐
+const loadPopularTeas = async () => {
+  try {
+    await teaStore.fetchRecommendTeas({ type: 'popular', count: 6 })
+  } catch (error) {
+    // 网络错误已由API拦截器处理并显示消息，这里只记录日志用于开发调试
+    if (process.env.NODE_ENV === 'development') {
+      console.error('加载热门推荐失败:', error)
     }
+  }
+}
     
-    // 初始化
-    onMounted(async () => {
-      await teaStore.fetchCategories()
-      // 如果URL中有查询参数，会触发watch自动加载
-      // 如果没有查询参数，需要手动加载一次
-      if (!route.query.page && !route.query.search && !route.query.categories) {
-        await loadTeas()
-      }
-      // 任务组F：加载热门推荐
-      await loadPopularTeas()
-    })
+// 初始化
+onMounted(async () => {
+  await teaStore.fetchCategories()
+  // 如果URL中有查询参数，会触发watch自动加载
+  // 如果没有查询参数，需要手动加载一次
+  if (!route.query.page && !route.query.search && !route.query.categories) {
+    await loadTeas()
+  }
+  // 任务组F：加载热门推荐
+  await loadPopularTeas()
+})
 </script>
 
 <style lang="scss" scoped>

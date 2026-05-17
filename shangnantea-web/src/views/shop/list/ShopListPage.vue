@@ -122,193 +122,193 @@ import { showByCode } from '@/utils/apiMessages'
 defineOptions({
   name: 'ShopListPage'
 })
-    const shopStore = useShopStore()
-    const router = useRouter()
-    const route = useRoute()
+const shopStore = useShopStore()
+const router = useRouter()
+const route = useRoute()
 
-    // 任务组A：筛选条件
-    const searchQuery = ref('')
-    const sortOption = ref('default')
-    const ratingFilter = ref(null)
-    const salesFilter = ref(null)
-    const regionFilter = ref('')
-    const isApplyingQuery = ref(false)
+// 任务组A：筛选条件
+const searchQuery = ref('')
+const sortOption = ref('default')
+const ratingFilter = ref(null)
+const salesFilter = ref(null)
+const regionFilter = ref('')
+const isApplyingQuery = ref(false)
 
-    // 从store获取店铺列表/分页/加载态/筛选条件
-    const shops = computed(() => shopStore.shopList || [])
-    const totalCount = computed(() => shopStore.pagination.total || 0)
-    const currentPage = computed({
-      get: () => shopStore.pagination.currentPage || 1,
-      set: val => {
-        shopStore.pagination.currentPage = val
+// 从store获取店铺列表/分页/加载态/筛选条件
+const shops = computed(() => shopStore.shopList || [])
+const totalCount = computed(() => shopStore.pagination.total || 0)
+const currentPage = computed({
+  get: () => shopStore.pagination.currentPage || 1,
+  set: val => {
+    shopStore.pagination.currentPage = val
+  }
+})
+const pageSize = computed({
+  get: () => shopStore.pagination.pageSize || 10,
+  set: val => {
+    shopStore.pagination.pageSize = val
+  }
+})
+const loading = computed(() => shopStore.loading || false)
+const filters = computed(() => shopStore.filters || {})
+const shopTeasPreviewMap = computed(() => shopStore.shopTeasPreviewMap || {})
+const shopProductCountMap = computed(() => shopStore.shopProductCountMap || {})
+    
+// 获取指定店铺的茶叶
+const getShopTeas = shopId => {
+  return shopTeasPreviewMap.value[shopId] || []
+}
+    
+const getProductCount = shopId => {
+  const val = shopProductCountMap.value[shopId]
+  return typeof val === 'number' ? val : 0
+}
+    
+// 任务组A：加载店铺列表（使用Pinia）
+const loadShops = async () => {
+  try {
+    await shopStore.fetchShops({})
+    // 加载每个店铺的预览茶叶（最多2个），失败时忽略
+    shops.value.forEach(shop => {
+      if (shop && shop.id && !shopTeasPreviewMap.value[shop.id]) {
+        shopStore.fetchShopTeasPreview(shop.id, 2).catch(() => {})
       }
     })
-    const pageSize = computed({
-      get: () => shopStore.pagination.pageSize || 10,
-      set: val => {
-        shopStore.pagination.pageSize = val
+  } catch (error) {
+    console.error('加载店铺列表失败:', error)
+  }
+}
+    
+// 监听路由参数变化
+watch(
+  () => route.query,
+  async (query, oldQuery) => {
+    if (isApplyingQuery.value) {
+      return
+    }
+
+    const filterKeys = ['search', 'sort', 'rating', 'sales', 'region', 'size']
+    const isFilterSame = oldQuery ? filterKeys.every(k => (query?.[k] ?? '') === (oldQuery?.[k] ?? '')) : false
+
+    const nextPage = query.page ? (parseInt(query.page) || 1) : 1
+    const nextSize = query.size ? (parseInt(query.size) || pageSize.value) : pageSize.value
+
+    // URL -> 本地筛选状态
+    searchQuery.value = query.search ? String(query.search) : ''
+    sortOption.value = query.sort ? String(query.sort) : 'default'
+    ratingFilter.value = query.rating !== undefined ? (parseFloat(query.rating) || null) : null
+    salesFilter.value = query.sales !== undefined ? (parseInt(query.sales) || null) : null
+    regionFilter.value = query.region ? String(query.region) : ''
+
+    // 同步 pageSize（即使没展示 size 选择器，也允许 URL 带 size）
+    pageSize.value = nextSize
+
+    // sortOption -> store filters
+    let sortBy = 'default'
+    if (sortOption.value === 'rating') sortBy = 'rating'
+    else if (sortOption.value === 'sales') sortBy = 'salesCount'
+
+    const storeFilters = {
+      keyword: searchQuery.value,
+      rating: ratingFilter.value,
+      salesCount: salesFilter.value,
+      region: regionFilter.value,
+      sortBy,
+      sortOrder: 'desc'
+    }
+
+    if (isFilterSame && oldQuery && (String(query.page ?? '') !== String(oldQuery.page ?? ''))) {
+      // 仅翻页：不重置 filters
+      await shopStore.setPage({ page: nextPage, extraParams: {} })
+    } else {
+      // 筛选变更（或首次进入）：允许指定目标页
+      await shopStore.updateFilters(storeFilters, nextPage)
+    }
+
+    // 预览茶叶
+    shops.value.forEach(shop => {
+      if (shop && shop.id && !shopTeasPreviewMap.value[shop.id]) {
+        shopStore.fetchShopTeasPreview(shop.id, 2).catch(() => {})
       }
     })
-    const loading = computed(() => shopStore.loading || false)
-    const filters = computed(() => shopStore.filters || {})
-    const shopTeasPreviewMap = computed(() => shopStore.shopTeasPreviewMap || {})
-    const shopProductCountMap = computed(() => shopStore.shopProductCountMap || {})
+  },
+  { immediate: true }
+)
     
-    // 获取指定店铺的茶叶
-    const getShopTeas = shopId => {
-      return shopTeasPreviewMap.value[shopId] || []
-    }
-    
-    const getProductCount = shopId => {
-      const val = shopProductCountMap.value[shopId]
-      return typeof val === 'number' ? val : 0
-    }
-    
-    // 任务组A：加载店铺列表（使用Pinia）
-    const loadShops = async () => {
-      try {
-        await shopStore.fetchShops({})
-        // 加载每个店铺的预览茶叶（最多2个），失败时忽略
-        shops.value.forEach(shop => {
-          if (shop && shop.id && !shopTeasPreviewMap.value[shop.id]) {
-            shopStore.fetchShopTeasPreview(shop.id, 2).catch(() => {})
-          }
-        })
-      } catch (error) {
-        console.error('加载店铺列表失败:', error)
-      }
-    }
-    
-    // 监听路由参数变化
-    watch(
-      () => route.query,
-      async (query, oldQuery) => {
-        if (isApplyingQuery.value) {
-          return
-        }
-
-        const filterKeys = ['search', 'sort', 'rating', 'sales', 'region', 'size']
-        const isFilterSame = oldQuery ? filterKeys.every(k => (query?.[k] ?? '') === (oldQuery?.[k] ?? '')) : false
-
-        const nextPage = query.page ? (parseInt(query.page) || 1) : 1
-        const nextSize = query.size ? (parseInt(query.size) || pageSize.value) : pageSize.value
-
-        // URL -> 本地筛选状态
-        searchQuery.value = query.search ? String(query.search) : ''
-        sortOption.value = query.sort ? String(query.sort) : 'default'
-        ratingFilter.value = query.rating !== undefined ? (parseFloat(query.rating) || null) : null
-        salesFilter.value = query.sales !== undefined ? (parseInt(query.sales) || null) : null
-        regionFilter.value = query.region ? String(query.region) : ''
-
-        // 同步 pageSize（即使没展示 size 选择器，也允许 URL 带 size）
-        pageSize.value = nextSize
-
-        // sortOption -> store filters
-        let sortBy = 'default'
-        if (sortOption.value === 'rating') sortBy = 'rating'
-        else if (sortOption.value === 'sales') sortBy = 'salesCount'
-
-        const storeFilters = {
-          keyword: searchQuery.value,
-          rating: ratingFilter.value,
-          salesCount: salesFilter.value,
-          region: regionFilter.value,
-          sortBy,
-          sortOrder: 'desc'
-        }
-
-        if (isFilterSame && oldQuery && (String(query.page ?? '') !== String(oldQuery.page ?? ''))) {
-          // 仅翻页：不重置 filters
-          await shopStore.setPage({ page: nextPage, extraParams: {} })
-        } else {
-          // 筛选变更（或首次进入）：允许指定目标页
-          await shopStore.updateFilters(storeFilters, nextPage)
-        }
-
-        // 预览茶叶
-        shops.value.forEach(shop => {
-          if (shop && shop.id && !shopTeasPreviewMap.value[shop.id]) {
-            shopStore.fetchShopTeasPreview(shop.id, 2).catch(() => {})
-          }
-        })
-      },
-      { immediate: true }
-    )
-    
-    // 任务组A：同步筛选条件到URL
-    const updateQueryParams = () => {
-      const query = {
-        page: currentPage.value,
-        size: pageSize.value
-      }
+// 任务组A：同步筛选条件到URL
+const updateQueryParams = () => {
+  const query = {
+    page: currentPage.value,
+    size: pageSize.value
+  }
       
-      if (searchQuery.value) query.search = searchQuery.value
-      if (sortOption.value !== 'default') query.sort = sortOption.value
-      if (ratingFilter.value !== null) query.rating = ratingFilter.value
-      if (salesFilter.value !== null) query.sales = salesFilter.value
-      if (regionFilter.value) query.region = regionFilter.value
+  if (searchQuery.value) query.search = searchQuery.value
+  if (sortOption.value !== 'default') query.sort = sortOption.value
+  if (ratingFilter.value !== null) query.rating = ratingFilter.value
+  if (salesFilter.value !== null) query.sales = salesFilter.value
+  if (regionFilter.value) query.region = regionFilter.value
       
-      isApplyingQuery.value = true
-      router.replace({ query }).finally(() => {
-        isApplyingQuery.value = false
-      })
-    }
+  isApplyingQuery.value = true
+  router.replace({ query }).finally(() => {
+    isApplyingQuery.value = false
+  })
+}
     
-    // 任务组A：搜索处理（原有方法，保留用于兼容）
-    const handleSearch = () => {
-      currentPage.value = 1
-      updateQueryParams()
-    }
+// 任务组A：搜索处理（原有方法，保留用于兼容）
+const handleSearch = () => {
+  currentPage.value = 1
+  updateQueryParams()
+}
     
-    // 统一搜索组件的搜索处理
-    const handleSearchFromBar = ({ query, type }) => {
-      // SearchBar已经处理了跳转，这里只需要更新本地状态
-      searchQuery.value = query
-      // 由于SearchBar已经跳转到 /shop/list?search=xxx，watch会自动触发数据加载
-    }
+// 统一搜索组件的搜索处理
+const handleSearchFromBar = ({ query, type }) => {
+  // SearchBar已经处理了跳转，这里只需要更新本地状态
+  searchQuery.value = query
+  // 由于SearchBar已经跳转到 /shop/list?search=xxx，watch会自动触发数据加载
+}
     
-    // 任务组A：排序变更处理
-    const handleSortChange = () => {
-      currentPage.value = 1
-      updateQueryParams()
-    }
+// 任务组A：排序变更处理
+const handleSortChange = () => {
+  currentPage.value = 1
+  updateQueryParams()
+}
     
-    // 任务组A：筛选变更处理
-    const handleFilterChange = () => {
-      currentPage.value = 1
-      updateQueryParams()
-    }
+// 任务组A：筛选变更处理
+const handleFilterChange = () => {
+  currentPage.value = 1
+  updateQueryParams()
+}
     
-    // 任务组A：重置筛选条件
-    const handleResetFilters = () => {
-      searchQuery.value = ''
-      sortOption.value = 'default'
-      ratingFilter.value = null
-      salesFilter.value = null
-      regionFilter.value = ''
-      currentPage.value = 1
+// 任务组A：重置筛选条件
+const handleResetFilters = () => {
+  searchQuery.value = ''
+  sortOption.value = 'default'
+  ratingFilter.value = null
+  salesFilter.value = null
+  regionFilter.value = ''
+  currentPage.value = 1
 
-      isApplyingQuery.value = true
-      router.replace({ query: {} }).finally(() => {
-        isApplyingQuery.value = false
-      })
-    }
+  isApplyingQuery.value = true
+  router.replace({ query: {} }).finally(() => {
+    isApplyingQuery.value = false
+  })
+}
     
-    // 页面变化
-    const handlePageChange = page => {
-      currentPage.value = page
-      updateQueryParams()
-    }
+// 页面变化
+const handlePageChange = page => {
+  currentPage.value = page
+  updateQueryParams()
+}
     
-    // 跳转到茶叶列表
-    const goToTeaList = () => {
-      router.push('/tea/mall')
-    }
+// 跳转到茶叶列表
+const goToTeaList = () => {
+  router.push('/tea/mall')
+}
     
-    // 初始化
-    onMounted(() => {
-      // loadShops 会由 route.query watch 触发（immediate: true）
-    })
+// 初始化
+onMounted(() => {
+  // loadShops 会由 route.query watch 触发（immediate: true）
+})
 </script>
 
 <style lang="scss" scoped>

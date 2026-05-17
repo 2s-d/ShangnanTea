@@ -85,6 +85,14 @@ public interface OrderService {
      * @return 订单详情
      */
     Result<Object> getOrderDetail(String id);
+
+    /**
+     * 根据支付单ID获取关联订单详情
+     *
+     * @param paymentId 支付单ID（PM开头）
+     * @return 订单详情
+     */
+    Result<Object> getOrderDetailByPaymentId(String paymentId);
     
     /**
      * 支付订单

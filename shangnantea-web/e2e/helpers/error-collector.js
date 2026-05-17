@@ -13,26 +13,26 @@ const IGNORABLE_ERROR_PATTERNS = [
   /ElementPlus警告/i,
   /\[el-.*\].*deprecated/i,
   /hot-update/i
-];
+]
 
 /**
  * 检查错误是否应该被忽略
  */
 function shouldIgnoreError(errorMessage) {
-  return IGNORABLE_ERROR_PATTERNS.some(pattern => pattern.test(errorMessage));
+  return IGNORABLE_ERROR_PATTERNS.some(pattern => pattern.test(errorMessage))
 }
 
 /**
  * 错误去重（基于错误消息的前100个字符）
  */
 function deduplicateErrors(errors) {
-  const seen = new Set();
+  const seen = new Set()
   return errors.filter(error => {
-    const key = error.message.substring(0, 100);
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
+    const key = error.message.substring(0, 100)
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
 }
 
 /**
@@ -45,32 +45,32 @@ function setupErrorListeners(page, testName, errorArray) {
   // 1. 监听控制台错误
   page.on('console', msg => {
     if (msg.type() === 'error') {
-      const message = msg.text();
+      const message = msg.text()
       if (!shouldIgnoreError(message)) {
         // 尝试从控制台消息中提取更多信息
-        const location = msg.location();
+        const location = msg.location()
         const errorDetail = {
           test: testName,
           type: 'console',
           message,
           timestamp: new Date().toISOString()
-        };
+        }
         
         // 如果有位置信息，添加到错误详情中
         if (location && location.url) {
-          errorDetail.url = location.url;
-          errorDetail.line = location.lineNumber;
-          errorDetail.column = location.columnNumber;
+          errorDetail.url = location.url
+          errorDetail.line = location.lineNumber
+          errorDetail.column = location.columnNumber
         }
         
-        errorArray.push(errorDetail);
+        errorArray.push(errorDetail)
       }
     }
-  });
+  })
   
   // 2. 监听页面运行时错误
   page.on('pageerror', error => {
-    const message = error.message;
+    const message = error.message
     if (!shouldIgnoreError(message)) {
       errorArray.push({
         test: testName,
@@ -78,24 +78,24 @@ function setupErrorListeners(page, testName, errorArray) {
         message: `[Runtime Error] ${message}`,
         stack: error.stack,
         timestamp: new Date().toISOString()
-      });
+      })
     }
-  });
+  })
   
   // 3. 监听网络请求失败（包括 404）
   page.on('response', async response => {
-    const url = response.url();
-    const status = response.status();
+    const url = response.url()
+    const status = response.status()
     
     // 过滤掉 favicon.ico 和热更新请求
     if (url.includes('favicon.ico') || url.includes('hot-update')) {
-      return;
+      return
     }
     
     // 记录所有失败的请求（4xx, 5xx），包括静态资源
     if (status >= 400) {
-      const method = response.request().method();
-      const resourceType = response.request().resourceType();
+      const method = response.request().method()
+      const resourceType = response.request().resourceType()
       
       errorArray.push({
         test: testName,
@@ -103,9 +103,9 @@ function setupErrorListeners(page, testName, errorArray) {
         message: `[${status}] ${method} ${url}`,
         resourceType,
         timestamp: new Date().toISOString()
-      });
+      })
     }
-  });
+  })
 }
 
 /**
@@ -114,22 +114,22 @@ function setupErrorListeners(page, testName, errorArray) {
  * @returns {Object} 错误收集器对象
  */
 function createErrorCollector(moduleName) {
-  const errors = [];
+  const errors = []
   const stats = {
     moduleName,
     totalTests: 0,
     passedTests: 0,
     failedTests: 0,
     totalErrors: 0
-  };
+  }
   
   return {
     /**
      * 开始一个新测试
      */
     startTest(testName) {
-      stats.totalTests++;
-      const testErrors = [];
+      stats.totalTests++
+      const testErrors = []
       
       return {
         errors: testErrors,
@@ -138,33 +138,33 @@ function createErrorCollector(moduleName) {
          * 结束测试，统计结果
          */
         endTest() {
-          const uniqueErrors = deduplicateErrors(testErrors);
+          const uniqueErrors = deduplicateErrors(testErrors)
           
           if (uniqueErrors.length > 0) {
-            stats.failedTests++;
-            stats.totalErrors += uniqueErrors.length;
-            errors.push(...uniqueErrors);
+            stats.failedTests++
+            stats.totalErrors += uniqueErrors.length
+            errors.push(...uniqueErrors)
           } else {
-            stats.passedTests++;
+            stats.passedTests++
           }
           
-          return uniqueErrors;
+          return uniqueErrors
         }
-      };
+      }
     },
     
     /**
      * 获取统计信息
      */
     getStats() {
-      return { ...stats };
+      return { ...stats }
     },
     
     /**
      * 获取所有错误
      */
     getErrors() {
-      return [...errors];
+      return [...errors]
     },
     
     /**
@@ -175,9 +175,9 @@ function createErrorCollector(moduleName) {
         ...stats,
         errors: errors,
         timestamp: new Date().toISOString()
-      };
+      }
     }
-  };
+  }
 }
 
 module.exports = {
@@ -185,4 +185,4 @@ module.exports = {
   deduplicateErrors,
   setupErrorListeners,
   createErrorCollector
-};
+}

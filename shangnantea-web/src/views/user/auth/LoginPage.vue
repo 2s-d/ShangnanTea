@@ -218,7 +218,7 @@ onMounted(() => {
  * - admin:    333333 / 管理员(role=1)
  * 密码统一为 user1234
  */
-const fillDemoAccount = (type) => {
+const fillDemoAccount = type => {
   if (!type) return
   if (type === 'user') {
     loginForm.username = '111111'
@@ -255,7 +255,7 @@ let earDemoStopped = false
  *   - 'freeze': 强抖结束后进入静止（用于鼠标悬停）
  *   - 'blink':  强抖结束后恢复正常抖动（用于点击填充）
  */
-const triggerEarBoost = (nextState) => {
+const triggerEarBoost = nextState => {
   isEarBoost.value = false
   // 用 requestAnimationFrame 确保浏览器先应用上一次状态
   requestAnimationFrame(() => {
@@ -287,7 +287,7 @@ let dragStartY = 0
 let dragAvatarOriginOffsetX = 0
 let dragAvatarOriginOffsetY = 0
 
-const onAvatarMouseMove = (event) => {
+const onAvatarMouseMove = event => {
   if (!isDraggingAvatar) return
   const dx = event.clientX - dragStartX
   const dy = event.clientY - dragStartY
@@ -302,7 +302,7 @@ const onAvatarMouseUp = () => {
   window.removeEventListener('mouseup', onAvatarMouseUp)
 }
 
-const onAvatarMouseDown = (event) => {
+const onAvatarMouseDown = event => {
   isDraggingAvatar = true
   dragStartX = event.clientX
   dragStartY = event.clientY
@@ -312,7 +312,7 @@ const onAvatarMouseDown = (event) => {
   window.addEventListener('mouseup', onAvatarMouseUp)
 }
 
-const onAvatarWheel = (event) => {
+const onAvatarWheel = event => {
   const delta = event.deltaY
   const factor = delta > 0 ? 0.9 : 1.1
   let nextScale = avatarScale.value * factor
@@ -345,7 +345,7 @@ const handleDemoHoverOut = () => {
 }
 
 onMounted(() => {
-  const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
+  const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 
   ;(async () => {
     const patterns = [earPatternA, earPatternB, earPatternC]

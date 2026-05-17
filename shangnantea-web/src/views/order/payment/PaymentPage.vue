@@ -17,8 +17,8 @@
           
           <div class="order-info">
             <div class="info-item">
-              <span class="label">订单编号：</span>
-              <span class="value">{{ orderId }}</span>
+              <span class="label">支付单号：</span>
+              <span class="value">{{ paymentIdDisplay }}</span>
             </div>
             <div class="info-item">
               <span class="label">支付金额：</span>
@@ -31,9 +31,6 @@
           </div>
 
           <div class="action-buttons">
-            <el-button type="primary" size="large" @click="goToOrderDetail">
-              查看订单详情
-            </el-button>
             <el-button size="large" @click="goToOrderList">
               我的订单
             </el-button>
@@ -49,15 +46,15 @@
           <h2 class="result-title">支付失败</h2>
           <p class="result-desc">{{ failureReason }}</p>
           
-          <div class="order-info" v-if="orderId">
+          <div class="order-info" v-if="paymentIdDisplay">
             <div class="info-item">
-              <span class="label">订单编号：</span>
-              <span class="value">{{ orderId }}</span>
+              <span class="label">支付单号：</span>
+              <span class="value">{{ paymentIdDisplay }}</span>
             </div>
           </div>
 
           <div class="action-buttons">
-            <el-button type="primary" size="large" @click="retryPayment" v-if="orderId">
+            <el-button type="primary" size="large" @click="retryPayment" v-if="currentOrder?.id">
               重新支付
             </el-button>
             <el-button size="large" @click="goToOrderList">
@@ -91,14 +88,30 @@ const loading = ref(true)
 const paymentSuccess = ref(false)
 const failureReason = ref('支付已取消或支付失败，请重试')
 
-// 从URL获取订单ID
-const orderId = ref(route.query.orderId || route.query.out_trade_no || '')
+// URL里可能是订单ID(OD...)，也可能是支付单ID(PM...)
+const queryId = ref(route.query.orderId || route.query.out_trade_no || '')
+const isPaymentId = computed(() => String(queryId.value || '').startsWith('PM'))
+const orderId = computed(() => currentOrder.value?.id || '')
+const paymentIdDisplay = computed(() => {
+  // 优先显示 URL 中的 PM（支付宝回跳参数）
+  const fromQuery = String(queryId.value || '')
+  if (fromQuery.startsWith('PM')) return fromQuery
+  // 兜底显示订单详情中的 paymentId
+  return currentOrder.value?.paymentId || fromQuery
+})
 
 // 当前订单数据
 const currentOrder = computed(() => orderStore.currentOrder || {})
 
 const orderAmount = computed(() => {
-  return currentOrder.value.totalAmount || 0
+  // 后端详情字段是 totalPrice / paymentTotalAmount（不是 totalAmount）
+  const amount =
+    currentOrder.value?.paymentTotalAmount ??
+    currentOrder.value?.totalPrice ??
+    currentOrder.value?.totalAmount ??
+    0
+  const num = Number(amount)
+  return Number.isFinite(num) ? num : 0
 })
 
 const paymentTime = computed(() => {
@@ -117,7 +130,7 @@ const MAX_POLLING_COUNT = 10 // 最多轮询10次
  * 因为支付宝异步回调可能有延迟，需要轮询确认
  */
 const checkPaymentStatus = async () => {
-  if (!orderId.value) {
+  if (!queryId.value) {
     loading.value = false
     paymentSuccess.value = false
     failureReason.value = '订单信息丢失，请在"我的订单"中查看'
@@ -125,8 +138,12 @@ const checkPaymentStatus = async () => {
   }
 
   try {
-    // 获取订单详情
-    await orderStore.fetchOrderDetail(orderId.value)
+    // URL 是支付单ID时，走按 paymentId 查询；否则按 orderId 查询
+    if (isPaymentId.value) {
+      await orderStore.fetchOrderDetailByPaymentId(queryId.value)
+    } else {
+      await orderStore.fetchOrderDetail(queryId.value)
+    }
     
     const order = currentOrder.value
     
@@ -188,10 +205,6 @@ const stopPolling = () => {
   }
 }
 
-const goToOrderDetail = () => {
-  router.push(`/order/detail/${orderId.value}`)
-}
-
 const goToOrderList = () => {
   router.push('/order/list')
 }
@@ -202,7 +215,11 @@ const goToHome = () => {
 
 const retryPayment = () => {
   // 跳转回结算页面，重新发起支付
-  router.push(`/order/checkout?orderId=${orderId.value}`)
+  if (currentOrder.value?.id) {
+    router.push(`/order/checkout?orderId=${currentOrder.value.id}`)
+    return
+  }
+  router.push('/order/list')
 }
 
 onMounted(() => {

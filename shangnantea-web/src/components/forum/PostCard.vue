@@ -231,7 +231,7 @@ export default {
     }
     
     // 获取显示名称（使用昵称）
-    const getDisplayName = (post) => {
+    const getDisplayName = post => {
       if (!post) return '未知用户'
       return post.nickname || '未知用户'
     }

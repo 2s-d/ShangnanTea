@@ -306,268 +306,268 @@ import { shopPromptMessages } from '@/utils/promptMessages'
 defineOptions({
   name: 'ShopDetailPage'
 })
-    const shopStore = useShopStore()
-    const userStore = useUserStore()
-    const messageStore = useMessageStore()
-    const router = useRouter()
-    const route = useRoute()
-    const loading = computed(() => shopStore.loading)
-    const activeTab = ref('products')
-    const shop = computed(() => shopStore.currentShop)
-    const shopTeas = computed(() => shopStore.shopTeas || [])
-    // 任务组B：Banner和公告
-    const shopBanners = computed(() => shopStore.shopBanners || [])
-    const shopAnnouncements = computed(() => shopStore.shopAnnouncements || [])
+const shopStore = useShopStore()
+const userStore = useUserStore()
+const messageStore = useMessageStore()
+const router = useRouter()
+const route = useRoute()
+const loading = computed(() => shopStore.loading)
+const activeTab = ref('products')
+const shop = computed(() => shopStore.currentShop)
+const shopTeas = computed(() => shopStore.shopTeas || [])
+// 任务组B：Banner和公告
+const shopBanners = computed(() => shopStore.shopBanners || [])
+const shopAnnouncements = computed(() => shopStore.shopAnnouncements || [])
 
-    // 关注状态（从接口返回的isFollowed字段获取）
-    const isFollowing = computed(() => shop.value?.isFollowed || false)
-    const followLoading = ref(false)
-    const defaultLogo = '/placeholder-shop.jpg'
-    const defaultShopLogo = '/images/shops/default.jpg'
+// 关注状态（从接口返回的isFollowed字段获取）
+const isFollowing = computed(() => shop.value?.isFollowed || false)
+const followLoading = ref(false)
+const defaultLogo = '/placeholder-shop.jpg'
+const defaultShopLogo = '/images/shops/default.jpg'
     
-    // 店铺评价相关
-    const shopReviews = computed(() => shopStore.shopReviews || [])
-    const ratingSummary = computed(() => shopStore.shopRatingSummary || { rating: 0, ratingCount: 0, userRating: null })
-    // 顶部评分：优先使用 reviews 接口的汇总数据，兜底用店铺详情里的原始字段
-    const headerRating = computed(() => {
-      const summary = ratingSummary.value
-      const fromSummary = typeof summary.rating === 'number' ? summary.rating : 0
-      if (fromSummary && fromSummary > 0) return fromSummary
-      const raw = shop.value?.rating
-      return typeof raw === 'number' ? raw : 0
-    })
-    const headerRatingCount = computed(() => {
-      const summary = ratingSummary.value
-      if (summary && typeof summary.ratingCount === 'number' && summary.ratingCount > 0) {
-        return summary.ratingCount
-      }
-      const raw = shop.value?.rating_count ?? shop.value?.ratingCount
-      return typeof raw === 'number' ? raw : 0
-    })
-    const reviewPagination = computed(() => shopStore.reviewPagination)
-    const reviewForm = ref({
-      rating: 0,
-      content: ''
-    })
-    // 当前用户是否已有评分
-    const hasUserRating = computed(() => {
-      const ur = ratingSummary.value?.userRating
-      return typeof ur === 'number' && ur > 0
-    })
-    const reviewSubmitting = ref(false)
+// 店铺评价相关
+const shopReviews = computed(() => shopStore.shopReviews || [])
+const ratingSummary = computed(() => shopStore.shopRatingSummary || { rating: 0, ratingCount: 0, userRating: null })
+// 顶部评分：优先使用 reviews 接口的汇总数据，兜底用店铺详情里的原始字段
+const headerRating = computed(() => {
+  const summary = ratingSummary.value
+  const fromSummary = typeof summary.rating === 'number' ? summary.rating : 0
+  if (fromSummary && fromSummary > 0) return fromSummary
+  const raw = shop.value?.rating
+  return typeof raw === 'number' ? raw : 0
+})
+const headerRatingCount = computed(() => {
+  const summary = ratingSummary.value
+  if (summary && typeof summary.ratingCount === 'number' && summary.ratingCount > 0) {
+    return summary.ratingCount
+  }
+  const raw = shop.value?.rating_count ?? shop.value?.ratingCount
+  return typeof raw === 'number' ? raw : 0
+})
+const reviewPagination = computed(() => shopStore.reviewPagination)
+const reviewForm = ref({
+  rating: 0,
+  content: ''
+})
+// 当前用户是否已有评分
+const hasUserRating = computed(() => {
+  const ur = ratingSummary.value?.userRating
+  return typeof ur === 'number' && ur > 0
+})
+const reviewSubmitting = ref(false)
     
-    const loadShopDetail = async shopId => {
-      if (!shopId) return
+const loadShopDetail = async shopId => {
+  if (!shopId) return
 
-      if (shopId === 'PLATFORM' || shopId === '0') {
-        shopPromptMessages.showShopIdNotExist()
-        router.push('/shop/list')
-        return
-      }
+  if (shopId === 'PLATFORM' || shopId === '0') {
+    shopPromptMessages.showShopIdNotExist()
+    router.push('/shop/list')
+    return
+  }
 
-      try {
-        await shopStore.fetchShopDetail(shopId)
-        await shopStore.fetchShopTeas({ shopId, params: { page: 1, size: 20 } })
-        // 任务组B：加载Banner和公告
-        await shopStore.fetchShopBanners(shopId)
-        await shopStore.fetchShopAnnouncements(shopId)
-        // 注意：关注状态已由fetchShopDetail接口返回的isFollowed字段提供，无需单独调用checkFollowStatus
-        // 加载店铺评价
-        const res = await shopStore.fetchShopReviews({
-          shopId,
-          params: { page: 1, size: 10 }
-        })
-        // 根据后端返回的 userRating 初始化当前用户的评分
-        const data = res?.data
-        const ur = data?.userRating
-        reviewForm.value.rating = typeof ur === 'number' ? ur : 0
-      } catch (error) {
-        console.error('加载店铺详情失败:', error)
-      }
+  try {
+    await shopStore.fetchShopDetail(shopId)
+    await shopStore.fetchShopTeas({ shopId, params: { page: 1, size: 20 } })
+    // 任务组B：加载Banner和公告
+    await shopStore.fetchShopBanners(shopId)
+    await shopStore.fetchShopAnnouncements(shopId)
+    // 注意：关注状态已由fetchShopDetail接口返回的isFollowed字段提供，无需单独调用checkFollowStatus
+    // 加载店铺评价
+    const res = await shopStore.fetchShopReviews({
+      shopId,
+      params: { page: 1, size: 10 }
+    })
+    // 根据后端返回的 userRating 初始化当前用户的评分
+    const data = res?.data
+    const ur = data?.userRating
+    reviewForm.value.rating = typeof ur === 'number' ? ur : 0
+  } catch (error) {
+    console.error('加载店铺详情失败:', error)
+  }
+}
+    
+// 任务组B：Banner点击处理
+const handleBannerClick = banner => {
+  if (banner.linkUrl) {
+    router.push(banner.linkUrl)
+  }
+}
+    
+// 监听路由参数变化
+watch(
+  () => route.params.id,
+  shopId => {
+    if (shopId) {
+      loadShopDetail(shopId)
     }
-    
-    // 任务组B：Banner点击处理
-    const handleBannerClick = banner => {
-      if (banner.linkUrl) {
-        router.push(banner.linkUrl)
-      }
-    }
-    
-    // 监听路由参数变化
-    watch(
-      () => route.params.id,
-      shopId => {
-        if (shopId) {
-          loadShopDetail(shopId)
-        }
-      },
-      { immediate: true }
-    )
+  },
+  { immediate: true }
+)
 
-    const toggleFollow = async () => {
-      if (!shop.value) return
+const toggleFollow = async () => {
+  if (!shop.value) return
       
-      followLoading.value = true
-      try {
-        if (isFollowing.value) {
-          // 取消关注：直接传递 targetId 和 targetType
-          const response = await userStore.removeFollow({
-            targetId: shop.value.id,
-            targetType: 'shop'
-          })
-          showByCode(response.code)
-          // 重新加载店铺详情以更新isFollowed状态
-          await shopStore.fetchShopDetail(shop.value.id)
-        } else {
-          // 添加关注
-          const response = await userStore.addFollow({
-            targetId: shop.value.id,
-            targetType: 'shop',
-            targetName: shop.value.name,
-            targetAvatar: shop.value.logo
-          })
-          showByCode(response.code)
-          // 重新加载店铺详情以更新isFollowed状态
-          await shopStore.fetchShopDetail(shop.value.id)
-        }
-      } catch (error) {
-        console.error('关注操作失败:', error)
-      } finally {
-        followLoading.value = false
-      }
-    }
-
-    // 格式化时间
-    const formatTime = timeString => {
-      if (!timeString) return '未知'
-      const date = new Date(timeString)
-      return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
-    }
-
-    // 联系店铺客服
-    const contactShop = async () => {
-      const shopId = route.params.id
-      if (!shopId) return
-
-      try {
-        // 必须与 ChatPage.openContact(店铺) 完全一致：先创建/恢复会话，再跳转并选中
-        const res = await messageStore.createChatSession({
-          targetId: String(shopId),
-          targetType: 'customer'
-        })
-        if (!isSuccess(res.code)) {
-          showByCode(res.code)
-          return
-        }
-        const sessionId = res.data?.id
-        router.push({
-          path: '/message/chat',
-          query: {
-            sessionId: sessionId ? String(sessionId) : undefined,
-            shopId: String(shopId)
-          }
-        })
-      } catch (e) {
-        if (process.env.NODE_ENV === 'development') {
-          console.error('[开发调试] 联系店铺客服失败：', e)
-        }
-      }
-    }
-    
-    // 评价分页切换
-    const handleReviewPageChange = async page => {
-      const shopId = route.params.id
-      if (!shopId) return
-      try {
-        const res = await shopStore.fetchShopReviews({
-          shopId,
-          params: { page, size: reviewPagination.value.pageSize }
-        })
-        const data = res?.data
-        const ur = data?.userRating
-        reviewForm.value.rating = typeof ur === 'number' ? ur : 0
-      } catch (error) {
-        console.error('加载评价失败:', error)
-      }
-    }
-    
-    // 提交评价
-    const handleSubmitReview = async () => {
-      const shopId = route.params.id
-      if (!shopId) {
-        shopPromptMessages.showShopIdNotExist()
-        return
-      }
-      // 评分验证（评分是必须的）
-      if (reviewForm.value.rating === 0) {
-        shopPromptMessages.showReviewRatingRequired()
-        return
-      }
-      // 评价内容是可选的（店铺评分不需要详细内容）
-      
-      reviewSubmitting.value = true
-      try {
-        const response = await shopStore.submitShopReview({
-          shopId,
-          reviewData: {
-            rating: reviewForm.value.rating,
-            content: reviewForm.value.content.trim() || '', // 内容可选
-            images: []
-          }
-        })
-        showByCode(response.code)
-        // 重新加载评价列表与当前用户评分
-        const res = await shopStore.fetchShopReviews({
-          shopId,
-          params: { page: 1, size: reviewPagination.value.pageSize }
-        })
-        const data = res?.data
-        const ur = data?.userRating
-        reviewForm.value.rating = typeof ur === 'number' ? ur : 0
-        reviewForm.value.content = ''
-      } catch (error) {
-        console.error('提交评价失败:', error)
-      } finally {
-        reviewSubmitting.value = false
-      }
-    }
-    
-    // 图片预览
-    const handleImagePreview = img => {
-      // 可以添加图片预览功能
-      console.log('预览图片:', img)
-    }
-    
-    // 返回上一页
-    const goBack = () => {
-      router.back()
-    }
-    
-    // 返回店铺列表
-    const goToShopList = () => {
-      router.push('/shop/list')
-    }
-    
-    // 跳转到用户主页
-    const goToUserProfile = userId => {
-      if (!userId) return
-      // 保存来源路由信息，用于导航栏高亮
-      router.push({
-        path: `/profile/${userId}`,
-        query: { from: route.path }
+  followLoading.value = true
+  try {
+    if (isFollowing.value) {
+      // 取消关注：直接传递 targetId 和 targetType
+      const response = await userStore.removeFollow({
+        targetId: shop.value.id,
+        targetType: 'shop'
       })
+      showByCode(response.code)
+      // 重新加载店铺详情以更新isFollowed状态
+      await shopStore.fetchShopDetail(shop.value.id)
+    } else {
+      // 添加关注
+      const response = await userStore.addFollow({
+        targetId: shop.value.id,
+        targetType: 'shop',
+        targetName: shop.value.name,
+        targetAvatar: shop.value.logo
+      })
+      showByCode(response.code)
+      // 重新加载店铺详情以更新isFollowed状态
+      await shopStore.fetchShopDetail(shop.value.id)
     }
-    
-    onMounted(() => {
-      loadShopDetail(route.params.id)
-    })
+  } catch (error) {
+    console.error('关注操作失败:', error)
+  } finally {
+    followLoading.value = false
+  }
+}
 
-    watch(
-      () => route.params.id,
-      shopId => {
-        loadShopDetail(shopId)
+// 格式化时间
+const formatTime = timeString => {
+  if (!timeString) return '未知'
+  const date = new Date(timeString)
+  return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
+}
+
+// 联系店铺客服
+const contactShop = async () => {
+  const shopId = route.params.id
+  if (!shopId) return
+
+  try {
+    // 必须与 ChatPage.openContact(店铺) 完全一致：先创建/恢复会话，再跳转并选中
+    const res = await messageStore.createChatSession({
+      targetId: String(shopId),
+      targetType: 'customer'
+    })
+    if (!isSuccess(res.code)) {
+      showByCode(res.code)
+      return
+    }
+    const sessionId = res.data?.id
+    router.push({
+      path: '/message/chat',
+      query: {
+        sessionId: sessionId ? String(sessionId) : undefined,
+        shopId: String(shopId)
       }
-    )
+    })
+  } catch (e) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[开发调试] 联系店铺客服失败：', e)
+    }
+  }
+}
+    
+// 评价分页切换
+const handleReviewPageChange = async page => {
+  const shopId = route.params.id
+  if (!shopId) return
+  try {
+    const res = await shopStore.fetchShopReviews({
+      shopId,
+      params: { page, size: reviewPagination.value.pageSize }
+    })
+    const data = res?.data
+    const ur = data?.userRating
+    reviewForm.value.rating = typeof ur === 'number' ? ur : 0
+  } catch (error) {
+    console.error('加载评价失败:', error)
+  }
+}
+    
+// 提交评价
+const handleSubmitReview = async () => {
+  const shopId = route.params.id
+  if (!shopId) {
+    shopPromptMessages.showShopIdNotExist()
+    return
+  }
+  // 评分验证（评分是必须的）
+  if (reviewForm.value.rating === 0) {
+    shopPromptMessages.showReviewRatingRequired()
+    return
+  }
+  // 评价内容是可选的（店铺评分不需要详细内容）
+      
+  reviewSubmitting.value = true
+  try {
+    const response = await shopStore.submitShopReview({
+      shopId,
+      reviewData: {
+        rating: reviewForm.value.rating,
+        content: reviewForm.value.content.trim() || '', // 内容可选
+        images: []
+      }
+    })
+    showByCode(response.code)
+    // 重新加载评价列表与当前用户评分
+    const res = await shopStore.fetchShopReviews({
+      shopId,
+      params: { page: 1, size: reviewPagination.value.pageSize }
+    })
+    const data = res?.data
+    const ur = data?.userRating
+    reviewForm.value.rating = typeof ur === 'number' ? ur : 0
+    reviewForm.value.content = ''
+  } catch (error) {
+    console.error('提交评价失败:', error)
+  } finally {
+    reviewSubmitting.value = false
+  }
+}
+    
+// 图片预览
+const handleImagePreview = img => {
+  // 可以添加图片预览功能
+  console.log('预览图片:', img)
+}
+    
+// 返回上一页
+const goBack = () => {
+  router.back()
+}
+    
+// 返回店铺列表
+const goToShopList = () => {
+  router.push('/shop/list')
+}
+    
+// 跳转到用户主页
+const goToUserProfile = userId => {
+  if (!userId) return
+  // 保存来源路由信息，用于导航栏高亮
+  router.push({
+    path: `/profile/${userId}`,
+    query: { from: route.path }
+  })
+}
+    
+onMounted(() => {
+  loadShopDetail(route.params.id)
+})
+
+watch(
+  () => route.params.id,
+  shopId => {
+    loadShopDetail(shopId)
+  }
+)
 </script>
 
 <style lang="scss" scoped>

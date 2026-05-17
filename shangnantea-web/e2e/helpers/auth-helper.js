@@ -14,7 +14,7 @@ const MOCK_TOKENS = {
   
   // shop token: {"sub":"3","role":3,"username":"shop","exp":1893456000}
   shop: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzIiwicm9sZSI6MywidXNlcm5hbWUiOiJzaG9wIiwiZXhwIjoxODkzNDU2MDAwfQ.dGVzdF9zaWduYXR1cmVfZm9yX3Nob3A'
-};
+}
 
 /**
  * 模拟登录（通过设置 localStorage）
@@ -22,17 +22,17 @@ const MOCK_TOKENS = {
  * @param {string} role - 用户角色（admin, user, shop）
  */
 async function mockLogin(page, role = 'user') {
-  const mockToken = MOCK_TOKENS[role] || MOCK_TOKENS.user;
+  const mockToken = MOCK_TOKENS[role] || MOCK_TOKENS.user
   
   // 先访问登录页，确保页面已加载
-  await page.goto('/login', { waitUntil: 'domcontentloaded' });
+  await page.goto('/login', { waitUntil: 'domcontentloaded' })
   
   // 设置 token 到 localStorage
-  await page.evaluate((token) => {
-    localStorage.setItem('shangnantea_token', JSON.stringify(token));
-  }, mockToken);
+  await page.evaluate(token => {
+    localStorage.setItem('shangnantea_token', JSON.stringify(token))
+  }, mockToken)
   
-  return mockToken;
+  return mockToken
 }
 
 /**
@@ -41,8 +41,8 @@ async function mockLogin(page, role = 'user') {
  */
 async function clearAuth(page) {
   await page.evaluate(() => {
-    localStorage.removeItem('shangnantea_token');
-  });
+    localStorage.removeItem('shangnantea_token')
+  })
 }
 
 /**
@@ -52,9 +52,9 @@ async function clearAuth(page) {
  */
 async function getToken(page) {
   return await page.evaluate(() => {
-    const token = localStorage.getItem('shangnantea_token');
-    return token ? JSON.parse(token) : null;
-  });
+    const token = localStorage.getItem('shangnantea_token')
+    return token ? JSON.parse(token) : null
+  })
 }
 
 /**
@@ -63,8 +63,8 @@ async function getToken(page) {
  * @returns {Promise<boolean>} 是否已登录
  */
 async function isLoggedIn(page) {
-  const token = await getToken(page);
-  return !!token;
+  const token = await getToken(page)
+  return !!token
 }
 
 module.exports = {
@@ -73,4 +73,4 @@ module.exports = {
   clearAuth,
   getToken,
   isLoggedIn
-};
+}

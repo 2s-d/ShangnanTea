@@ -148,270 +148,270 @@ import { showByCode, isSuccess } from '@/utils/apiMessages'
 const router = useRouter()
 const messageStore = useMessageStore()
     
-    // 分页参数
-    const currentPage = ref(1)
-    const pageSize = ref(10)
-    const totalNotifications = ref(0)
+// 分页参数
+const currentPage = ref(1)
+const pageSize = ref(10)
+const totalNotifications = ref(0)
     
-    // 筛选参数
-    const readStatus = ref('all')
-    const typeFilter = ref('')
+// 筛选参数
+const readStatus = ref('all')
+const typeFilter = ref('')
     
-    // 展开详情状态
-    const expandedId = ref(null)
-    const detailMap = ref({})
+// 展开详情状态
+const expandedId = ref(null)
+const detailMap = ref({})
     
-    // 通知列表数据（以 Pinia 为单一数据源）
-    const notifications = computed(() => messageStore.messages || [])
-    const loading = computed(() => messageStore.loading)
+// 通知列表数据（以 Pinia 为单一数据源）
+const notifications = computed(() => messageStore.messages || [])
+const loading = computed(() => messageStore.loading)
     
-    // 获取通知列表
-    const fetchNotifications = async () => {
-      // 同步分页参数到 Pinia
-      if (messageStore.pagination) {
-        messageStore.pagination.currentPage = currentPage.value
-        messageStore.pagination.pageSize = pageSize.value
-      }
+// 获取通知列表
+const fetchNotifications = async () => {
+  // 同步分页参数到 Pinia
+  if (messageStore.pagination) {
+    messageStore.pagination.currentPage = currentPage.value
+    messageStore.pagination.pageSize = pageSize.value
+  }
 
-      const response = await messageStore.fetchNotifications({
-        readStatus: readStatus.value,
-        type: typeFilter.value
-      })
+  const response = await messageStore.fetchNotifications({
+    readStatus: readStatus.value,
+    type: typeFilter.value
+  })
       
-      // 显示API响应消息（成功或失败都通过状态码映射显示）
-      showByCode(response.code)
+  // 显示API响应消息（成功或失败都通过状态码映射显示）
+  showByCode(response.code)
       
-      // 只有成功时才更新总数
-      if (isSuccess(response.code)) {
-        totalNotifications.value = response.data?.total || 0
-      }
+  // 只有成功时才更新总数
+  if (isSuccess(response.code)) {
+    totalNotifications.value = response.data?.total || 0
+  }
+}
+    
+// 过滤通知
+const filteredNotifications = computed(() => {
+  let result = [...notifications.value]
+      
+  // 按已读/未读状态过滤
+  if (readStatus.value === 'read') {
+    result = result.filter(item => item.isRead === 1)
+  } else if (readStatus.value === 'unread') {
+    result = result.filter(item => item.isRead === 0)
+  }
+      
+  // 按类型过滤
+  if (typeFilter.value) {
+    result = result.filter(item => item.type === typeFilter.value)
+  }
+      
+  return result
+})
+    
+// 是否有未读通知
+const hasUnread = computed(() => {
+  return notifications.value.some(item => item.isRead === 0)
+})
+    
+// 标记单条通知为已读
+const markAsRead = async id => {
+  try {
+    const response = await messageStore.markNotificationAsRead(id)
+    showByCode(response.code)
+  } catch (error) {
+    console.error(error)
+  }
+}
+    
+// 标记所有通知为已读
+const markAllAsRead = async () => {
+  try {
+    const unreadIds = notifications.value.filter(item => item.isRead === 0).map(item => item.id)
+    if (!unreadIds.length) {
+      return
     }
-    
-    // 过滤通知
-    const filteredNotifications = computed(() => {
-      let result = [...notifications.value]
-      
-      // 按已读/未读状态过滤
-      if (readStatus.value === 'read') {
-        result = result.filter(item => item.isRead === 1)
-      } else if (readStatus.value === 'unread') {
-        result = result.filter(item => item.isRead === 0)
-      }
-      
-      // 按类型过滤
-      if (typeFilter.value) {
-        result = result.filter(item => item.type === typeFilter.value)
-      }
-      
-      return result
-    })
-    
-    // 是否有未读通知
-    const hasUnread = computed(() => {
-      return notifications.value.some(item => item.isRead === 0)
-    })
-    
-    // 标记单条通知为已读
-    const markAsRead = async id => {
-      try {
-        const response = await messageStore.markNotificationAsRead(id)
-        showByCode(response.code)
-      } catch (error) {
-        console.error(error)
-      }
-    }
-    
-    // 标记所有通知为已读
-    const markAllAsRead = async () => {
-      try {
-        const unreadIds = notifications.value.filter(item => item.isRead === 0).map(item => item.id)
-        if (!unreadIds.length) {
-          return
-        }
 
-        const response = await messageStore.batchMarkAsRead(unreadIds)
-        showByCode(response.code)
-      } catch (error) {
-        console.error(error)
-      }
-    }
+    const response = await messageStore.batchMarkAsRead(unreadIds)
+    showByCode(response.code)
+  } catch (error) {
+    console.error(error)
+  }
+}
     
-    // 删除单条通知
-    const deleteNotification = async id => {
-      try {
-        const response = await messageStore.deleteNotification(id)
-        showByCode(response.code)
-      } catch (error) {
-        console.error(error)
-      }
-    }
+// 删除单条通知
+const deleteNotification = async id => {
+  try {
+    const response = await messageStore.deleteNotification(id)
+    showByCode(response.code)
+  } catch (error) {
+    console.error(error)
+  }
+}
     
-    // 清空全部通知
-    const confirmDeleteAll = () => {
-      ElMessageBox.confirm('确定要清空所有通知吗？此操作不可恢复。', '确认操作', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        deleteAllNotifications()
-      }).catch(() => {
-        // 用户取消操作
-      })
-    }
+// 清空全部通知
+const confirmDeleteAll = () => {
+  ElMessageBox.confirm('确定要清空所有通知吗？此操作不可恢复。', '确认操作', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(() => {
+    deleteAllNotifications()
+  }).catch(() => {
+    // 用户取消操作
+  })
+}
     
-    // 删除所有通知
-    const deleteAllNotifications = async () => {
-      try {
-        const allIds = notifications.value.map(item => item.id)
-        if (!allIds.length) {
-          return
-        }
+// 删除所有通知
+const deleteAllNotifications = async () => {
+  try {
+    const allIds = notifications.value.map(item => item.id)
+    if (!allIds.length) {
+      return
+    }
 
-        const response = await messageStore.batchDeleteNotifications(allIds)
-        showByCode(response.code)
-      } catch (error) {
-        console.error(error)
-      }
-    }
+    const response = await messageStore.batchDeleteNotifications(allIds)
+    showByCode(response.code)
+  } catch (error) {
+    console.error(error)
+  }
+}
     
-    // 打开通知
-    const openNotification = async notification => {
-      // 1. 可跳转通知：统一按targetType路由
-      if (notification.type === 'post_reply') {
-          if (notification.isRead === 0) {
-            await markAsRead(notification.id)
-          }
+// 打开通知
+const openNotification = async notification => {
+  // 1. 可跳转通知：统一按targetType路由
+  if (notification.type === 'post_reply') {
+    if (notification.isRead === 0) {
+      await markAsRead(notification.id)
+    }
 
-        const targetType = notification.targetType
-        const targetId = notification.targetId
+    const targetType = notification.targetType
+    const targetId = notification.targetId
 
-        // 根据不同目标类型跳转到对应业务页面
-        switch (targetType) {
-          case 'post':
-            router.push({ name: 'ForumDetail', params: { id: targetId } })
-            break
-          case 'order':
-            router.push({ name: 'OrderDetail', params: { id: targetId } })
-            break
-          case 'tea':
-            router.push({ name: 'TeaDetail', params: { id: targetId } })
-            break
-          case 'shop':
-            router.push({ name: 'ShopDetail', params: { id: targetId } })
-            break
-          case 'user':
-            // 个人主页目前按当前用户路由设计，此处暂不区分，后续如有需要可扩展
-            router.push({ name: 'UserProfile', params: { tab: 'overview' } })
-            break
-          case 'chat_session':
-            router.push({ name: 'MessageChat', query: { sessionId: targetId } })
-            break
-          default:
-            // 无法识别的targetType，不做跳转
-            break
-        }
-        return
-      }
+    // 根据不同目标类型跳转到对应业务页面
+    switch (targetType) {
+    case 'post':
+      router.push({ name: 'ForumDetail', params: { id: targetId } })
+      break
+    case 'order':
+      router.push({ name: 'OrderDetail', params: { id: targetId } })
+      break
+    case 'tea':
+      router.push({ name: 'TeaDetail', params: { id: targetId } })
+      break
+    case 'shop':
+      router.push({ name: 'ShopDetail', params: { id: targetId } })
+      break
+    case 'user':
+      // 个人主页目前按当前用户路由设计，此处暂不区分，后续如有需要可扩展
+      router.push({ name: 'UserProfile', params: { tab: 'overview' } })
+      break
+    case 'chat_session':
+      router.push({ name: 'MessageChat', query: { sessionId: targetId } })
+      break
+    default:
+      // 无法识别的targetType，不做跳转
+      break
+    }
+    return
+  }
       
-      // 2. 其他类型（system_announcement、external_link）：展开详情框
-      // 如果点击的是已展开的通知，则收起
-      if (expandedId.value === notification.id) {
-        expandedId.value = null
-        return
-      }
+  // 2. 其他类型（system_announcement、external_link）：展开详情框
+  // 如果点击的是已展开的通知，则收起
+  if (expandedId.value === notification.id) {
+    expandedId.value = null
+    return
+  }
       
-      // 展开当前通知
-      expandedId.value = notification.id
+  // 展开当前通知
+  expandedId.value = notification.id
       
-      // 如果详情已加载，直接使用
-      if (detailMap.value[notification.id]) {
-        // 标记为已读（如果未读）
-        if (notification.isRead === 0) {
-          await markAsRead(notification.id)
-        }
-        return
-      }
+  // 如果详情已加载，直接使用
+  if (detailMap.value[notification.id]) {
+    // 标记为已读（如果未读）
+    if (notification.isRead === 0) {
+      await markAsRead(notification.id)
+    }
+    return
+  }
       
-      // 获取通知详情（后端会自动标记为已读）
-      try {
-        const res = await messageStore.fetchNotificationDetail(notification.id)
-        if (res.data) {
-          detailMap.value[notification.id] = res.data
-          // 同步本地未读状态
-          if (notification.isRead === 0) {
-            notification.isRead = 1
-            await messageStore.fetchUnreadCount()
-          }
-        }
-      } catch (error) {
-        console.error('获取通知详情失败:', error)
-        // 如果获取详情失败，使用列表数据
-        detailMap.value[notification.id] = notification
+  // 获取通知详情（后端会自动标记为已读）
+  try {
+    const res = await messageStore.fetchNotificationDetail(notification.id)
+    if (res.data) {
+      detailMap.value[notification.id] = res.data
+      // 同步本地未读状态
+      if (notification.isRead === 0) {
+        notification.isRead = 1
+        await messageStore.fetchUnreadCount()
       }
     }
+  } catch (error) {
+    console.error('获取通知详情失败:', error)
+    // 如果获取详情失败，使用列表数据
+    detailMap.value[notification.id] = notification
+  }
+}
     
-    // 切换页码
-    const handlePageChange = page => {
-      currentPage.value = page
-      fetchNotifications()
-    }
+// 切换页码
+const handlePageChange = page => {
+  currentPage.value = page
+  fetchNotifications()
+}
     
-    // 格式化时间
-    const formatDate = dateString => {
-      if (!dateString) return ''
+// 格式化时间
+const formatDate = dateString => {
+  if (!dateString) return ''
       
-      const date = new Date(dateString)
-      const now = new Date()
-      const diffTime = Math.abs(now - date)
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffTime = Math.abs(now - date)
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
       
-      if (diffDays < 1) {
-        // 当天显示时分
-        return `今天 ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
-      } else if (diffDays < 7) {
-        // 一周内显示天数
-        return `${diffDays}天前`
-      } else {
-        // 超过一周显示完整日期
-        return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`
-      }
-    }
+  if (diffDays < 1) {
+    // 当天显示时分
+    return `今天 ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
+  } else if (diffDays < 7) {
+    // 一周内显示天数
+    return `${diffDays}天前`
+  } else {
+    // 超过一周显示完整日期
+    return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`
+  }
+}
     
-    // 获取通知图标样式
-    const getNotificationIconClass = type => {
-      const classMap = {
-        post_reply: 'icon-forum',
-        system_announcement: 'icon-system',
-        external_link: 'icon-like'
-      }
+// 获取通知图标样式
+const getNotificationIconClass = type => {
+  const classMap = {
+    post_reply: 'icon-forum',
+    system_announcement: 'icon-system',
+    external_link: 'icon-like'
+  }
       
-      return classMap[type] || 'icon-default'
-    }
+  return classMap[type] || 'icon-default'
+}
     
-    // 获取类型标签
-    const getTypeLabel = type => {
-      const labelMap = {
-        post_reply: '帖子回复',
-        system_announcement: '系统公告',
-        external_link: '外部链接'
-      }
-      return labelMap[type] || '通知'
-    }
+// 获取类型标签
+const getTypeLabel = type => {
+  const labelMap = {
+    post_reply: '帖子回复',
+    system_announcement: '系统公告',
+    external_link: '外部链接'
+  }
+  return labelMap[type] || '通知'
+}
     
-    // 获取外部链接
-    const getExternalUrl = detail => {
-      try {
-        const extraData = detail && detail.extraData ? JSON.parse(detail.extraData) : null
-        return extraData && extraData.externalUrl ? extraData.externalUrl : ''
-      } catch {
-        return ''
-      }
-    }
+// 获取外部链接
+const getExternalUrl = detail => {
+  try {
+    const extraData = detail && detail.extraData ? JSON.parse(detail.extraData) : null
+    return extraData && extraData.externalUrl ? extraData.externalUrl : ''
+  } catch {
+    return ''
+  }
+}
     
-    // 初始化
-    onMounted(() => {
-      fetchNotifications()
-    })
+// 初始化
+onMounted(() => {
+  fetchNotifications()
+})
 
 // 筛选变化自动刷新（回到第一页）
 watch([readStatus, typeFilter], () => {

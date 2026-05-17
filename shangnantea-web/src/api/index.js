@@ -30,7 +30,7 @@ const getApiBaseUrl = () => {
 }
 
 // 自定义参数序列化函数，支持数组参数（Spring Boot格式：categoryIds=5&categoryIds=6）
-const paramsSerializer = (params) => {
+const paramsSerializer = params => {
   const searchParams = new URLSearchParams()
   
   for (const [key, value] of Object.entries(params)) {

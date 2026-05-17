@@ -98,16 +98,16 @@ class WebSocketManager {
         }
       }
 
-      this.ws.onmessage = (event) => {
+      this.ws.onmessage = event => {
         this.handleMessage(event.data)
       }
 
-      this.ws.onerror = (error) => {
+      this.ws.onerror = error => {
         console.error('[WebSocket] 连接错误:', error)
         this.isConnecting = false
       }
 
-      this.ws.onclose = (event) => {
+      this.ws.onclose = event => {
         console.log('[WebSocket] 连接关闭:', event.code, event.reason)
         this.isConnecting = false
         this.stopChannelHeartbeat()

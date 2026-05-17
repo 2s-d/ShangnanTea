@@ -26,4 +26,13 @@ public interface AlipayService {
      * @throws Exception 验证失败时抛出异常
      */
     boolean verifyNotify(Map<String, String> params) throws Exception;
+
+    /**
+     * 主动查询支付宝交易状态
+     *
+     * @param outTradeNo 商户订单号（本项目中通常为支付单ID）
+     * @return 查询结果（至少包含 trade_status、trade_no、total_amount）
+     * @throws Exception 查询失败时抛出异常
+     */
+    Map<String, String> queryTrade(String outTradeNo) throws Exception;
 }

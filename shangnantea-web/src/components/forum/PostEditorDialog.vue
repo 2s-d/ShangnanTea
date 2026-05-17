@@ -102,42 +102,42 @@ import { useForumStore } from '@/stores/forum'
 import { showByCode } from '@/utils/apiMessages'
 
 defineOptions({
-    name: 'PostEditorDialog'
+  name: 'PostEditorDialog'
 })
 
 const props = defineProps({
-    modelValue: {
-        type: Boolean,
-        required: true
-    },
-    mode: {
-        type: String,
-        default: 'create', // 'create' | 'edit'
-        validator: (v) => ['create', 'edit'].includes(v)
-    },
-    postId: {
-        type: [String, Number],
-        default: null
-    },
-    topicList: {
-        type: Array,
-        default: () => []
-    },
-    /**
+  modelValue: {
+    type: Boolean,
+    required: true
+  },
+  mode: {
+    type: String,
+    default: 'create', // 'create' | 'edit'
+    validator: v => ['create', 'edit'].includes(v)
+  },
+  postId: {
+    type: [String, Number],
+    default: null
+  },
+  topicList: {
+    type: Array,
+    default: () => []
+  },
+  /**
      * 打开弹窗时预填数据（编辑模式会优先用 postId 拉取详情覆盖它）
      * 支持字段：title, content, summary, topicId, coverImage
      */
-    initialData: {
-        type: Object,
-        default: () => ({})
-    },
-    /**
+  initialData: {
+    type: Object,
+    default: () => ({})
+  },
+  /**
      * 发布时默认选中的 topicId（比如当前处于某个版块）
      */
-    defaultTopicId: {
-        type: [String, Number, null],
-        default: null
-    }
+  defaultTopicId: {
+    type: [String, Number, null],
+    default: null
+  }
 })
 
 const emit = defineEmits(['update:modelValue', 'submitted'])
@@ -149,215 +149,215 @@ const submitting = ref(false)
 let quillInstance = null
 
 const postForm = reactive({
-    title: '',
-    topicId: null,
-    summary: '',
-    content: '',
-    coverImage: ''
+  title: '',
+  topicId: null,
+  summary: '',
+  content: '',
+  coverImage: ''
 })
 
 const dialogTitle = computed(() => (props.mode === 'edit' ? '编辑帖子' : '发布新帖'))
 const submitText = computed(() => (props.mode === 'edit' ? '保存' : '发布'))
 
 const postRules = {
-    title: [
-        { required: true, message: '请输入标题', trigger: 'blur' },
-        { min: 5, max: 100, message: '标题长度应为5-100字', trigger: 'blur' }
-    ],
-    topicId: [
-        { required: true, message: '请选择分类', trigger: 'change' }
-    ],
-    content: [
-        { required: true, message: '请输入内容', trigger: 'blur' }
-    ]
+  title: [
+    { required: true, message: '请输入标题', trigger: 'blur' },
+    { min: 5, max: 100, message: '标题长度应为5-100字', trigger: 'blur' }
+  ],
+  topicId: [
+    { required: true, message: '请选择分类', trigger: 'change' }
+  ],
+  content: [
+    { required: true, message: '请输入内容', trigger: 'blur' }
+  ]
 }
 
-const emitVisible = (val) => {
-    emit('update:modelValue', val)
+const emitVisible = val => {
+  emit('update:modelValue', val)
 }
 
-const onEditorReady = (quill) => {
-    quillInstance = quill
+const onEditorReady = quill => {
+  quillInstance = quill
 }
 
-const extractPlainText = (html) => {
-    if (!html) return ''
-    const div = document.createElement('div')
-    div.innerHTML = html
-    return div.textContent || div.innerText || ''
+const extractPlainText = html => {
+  if (!html) return ''
+  const div = document.createElement('div')
+  div.innerHTML = html
+  return div.textContent || div.innerText || ''
 }
 
-const extractImageUrls = (html) => {
-    if (!html) return []
-    const div = document.createElement('div')
-    div.innerHTML = html
-    const imgs = Array.from(div.querySelectorAll('img'))
-    const urls = imgs.map(img => img.getAttribute('src')).filter(u => !!u)
-    return Array.from(new Set(urls))
+const extractImageUrls = html => {
+  if (!html) return []
+  const div = document.createElement('div')
+  div.innerHTML = html
+  const imgs = Array.from(div.querySelectorAll('img'))
+  const urls = imgs.map(img => img.getAttribute('src')).filter(u => !!u)
+  return Array.from(new Set(urls))
 }
 
 const handleCoverUpload = async ({ file }) => {
-    if (!file) return
-    try {
-        const res = await forumStore.uploadPostImage(file)
-        if (res?.code) showByCode(res.code)
-        const url = res?.data?.url
-        const path = res?.data?.path
-        // 存库使用相对路径，预览仍然可以使用完整URL
-        if (path) {
-            postForm.coverImage = path
-        } else if (url) {
-            postForm.coverImage = url
-        }
-    } catch (e) {
-        ElMessage.error('封面上传失败，请重试')
+  if (!file) return
+  try {
+    const res = await forumStore.uploadPostImage(file)
+    if (res?.code) showByCode(res.code)
+    const url = res?.data?.url
+    const path = res?.data?.path
+    // 存库使用相对路径，预览仍然可以使用完整URL
+    if (path) {
+      postForm.coverImage = path
+    } else if (url) {
+      postForm.coverImage = url
     }
+  } catch (e) {
+    ElMessage.error('封面上传失败，请重试')
+  }
 }
 
 const handleEditorImageUpload = async () => {
-    if (!quillInstance) return
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.accept = 'image/*'
-    input.onchange = async () => {
-        const file = input.files && input.files[0]
-        if (!file) return
-        try {
-            const res = await forumStore.uploadPostImage(file)
-            if (res?.code) showByCode(res.code)
-            const url = res?.data?.url
-            if (!url) return
-            const range = quillInstance.getSelection(true)
-            const index = range && range.index != null ? range.index : quillInstance.getLength() - 1
-            quillInstance.insertEmbed(index, 'image', url)
-            quillInstance.setSelection(index + 1)
-            quillInstance.update()
-        } catch (e) {
-            ElMessage.error('图片上传失败，请重试')
-        }
+  if (!quillInstance) return
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.accept = 'image/*'
+  input.onchange = async () => {
+    const file = input.files && input.files[0]
+    if (!file) return
+    try {
+      const res = await forumStore.uploadPostImage(file)
+      if (res?.code) showByCode(res.code)
+      const url = res?.data?.url
+      if (!url) return
+      const range = quillInstance.getSelection(true)
+      const index = range && range.index != null ? range.index : quillInstance.getLength() - 1
+      quillInstance.insertEmbed(index, 'image', url)
+      quillInstance.setSelection(index + 1)
+      quillInstance.update()
+    } catch (e) {
+      ElMessage.error('图片上传失败，请重试')
     }
-    input.click()
+  }
+  input.click()
 }
 
 const postEditorOptions = computed(() => ({
-    theme: 'snow',
-    modules: {
-        toolbar: {
-            container: [
-                ['bold', 'italic', 'underline', 'strike'],
-                [{ header: 1 }, { header: 2 }],
-                [{ list: 'ordered' }, { list: 'bullet' }],
-                [{ indent: '-1' }, { indent: '+1' }],
-                [{ size: ['small', false, 'large', 'huge'] }],
-                [{ color: [] }, { background: [] }],
-                [{ align: [] }],
-                ['link', 'image'],
-                ['clean']
-            ],
-            handlers: {
-                image: handleEditorImageUpload
-            }
-        }
-    },
-    placeholder: '请输入帖子内容，可在正文中插入图片...'
+  theme: 'snow',
+  modules: {
+    toolbar: {
+      container: [
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ header: 1 }, { header: 2 }],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        [{ indent: '-1' }, { indent: '+1' }],
+        [{ size: ['small', false, 'large', 'huge'] }],
+        [{ color: [] }, { background: [] }],
+        [{ align: [] }],
+        ['link', 'image'],
+        ['clean']
+      ],
+      handlers: {
+        image: handleEditorImageUpload
+      }
+    }
+  },
+  placeholder: '请输入帖子内容，可在正文中插入图片...'
 }))
 
 const applyInitialData = () => {
-    const base = props.initialData || {}
-    postForm.title = base.title || ''
-    postForm.summary = base.summary || ''
-    postForm.content = base.content || ''
-    postForm.coverImage = base.coverImage || ''
-    postForm.topicId = base.topicId ?? (props.defaultTopicId && props.defaultTopicId !== 'all' ? props.defaultTopicId : null)
+  const base = props.initialData || {}
+  postForm.title = base.title || ''
+  postForm.summary = base.summary || ''
+  postForm.content = base.content || ''
+  postForm.coverImage = base.coverImage || ''
+  postForm.topicId = base.topicId ?? (props.defaultTopicId && props.defaultTopicId !== 'all' ? props.defaultTopicId : null)
 }
 
 const loadPostDetailForEdit = async () => {
-    if (props.mode !== 'edit') return
-    if (!props.postId) return
-    const res = await forumStore.fetchPostDetail(props.postId)
-    const post = res?.data || forumStore.currentPost || {}
-    // 后端字段：topicId/title/content/summary/coverImage
-    postForm.title = post.title || ''
-    postForm.summary = post.summary || ''
-    postForm.content = post.content || ''
-    postForm.coverImage = post.coverImage || ''
-    postForm.topicId = post.topicId ?? post.topic?.id ?? null
+  if (props.mode !== 'edit') return
+  if (!props.postId) return
+  const res = await forumStore.fetchPostDetail(props.postId)
+  const post = res?.data || forumStore.currentPost || {}
+  // 后端字段：topicId/title/content/summary/coverImage
+  postForm.title = post.title || ''
+  postForm.summary = post.summary || ''
+  postForm.content = post.content || ''
+  postForm.coverImage = post.coverImage || ''
+  postForm.topicId = post.topicId ?? post.topic?.id ?? null
 }
 
 watch(
-    () => props.modelValue,
-    async (visible) => {
-        if (!visible) return
-        // 打开弹窗：先填一轮初始数据，再在编辑模式下拉取详情覆盖
-        applyInitialData()
-        await nextTick()
-        if (props.mode === 'edit') {
-            try {
-                await loadPostDetailForEdit()
-            } catch (e) {
-                showByCode(6122)
-            }
-        }
+  () => props.modelValue,
+  async visible => {
+    if (!visible) return
+    // 打开弹窗：先填一轮初始数据，再在编辑模式下拉取详情覆盖
+    applyInitialData()
+    await nextTick()
+    if (props.mode === 'edit') {
+      try {
+        await loadPostDetailForEdit()
+      } catch (e) {
+        showByCode(6122)
+      }
     }
+  }
 )
 
 const handleSubmit = async () => {
-    if (!postFormRef.value) return
-    const valid = await postFormRef.value.validate().catch(() => false)
-    if (!valid) return
+  if (!postFormRef.value) return
+  const valid = await postFormRef.value.validate().catch(() => false)
+  if (!valid) return
 
-    submitting.value = true
-    try {
-        const imageUrls = extractImageUrls(postForm.content)
-        const plainText = extractPlainText(postForm.content)
-        const autoSummary = plainText.slice(0, 200)
+  submitting.value = true
+  try {
+    const imageUrls = extractImageUrls(postForm.content)
+    const plainText = extractPlainText(postForm.content)
+    const autoSummary = plainText.slice(0, 200)
 
-        const payload = {
-            title: postForm.title,
-            topicId: postForm.topicId ? parseInt(String(postForm.topicId), 10) : null,
-            content: postForm.content,
-            summary: postForm.summary || autoSummary || null,
-            coverImage: postForm.coverImage || (imageUrls.length > 0 ? imageUrls[0] : null),
-            images: imageUrls.length > 0 ? JSON.stringify(imageUrls) : null
-        }
-
-        let res
-        if (props.mode === 'edit') {
-            if (!props.postId) {
-                ElMessage.error('帖子ID缺失，无法保存')
-                return
-            }
-            res = await forumStore.updatePost(props.postId, payload)
-        } else {
-            res = await forumStore.createPost(payload)
-        }
-
-        if (res?.code) showByCode(res.code)
-
-        // 成功：create=6011（提交审核），edit=6012（更新成功）
-        if ((props.mode === 'create' && res?.code === 6011) || (props.mode === 'edit' && res?.code === 6012)) {
-            emit('submitted', { mode: props.mode, postId: props.postId || null })
-            emitVisible(false)
-        }
-    } finally {
-        submitting.value = false
+    const payload = {
+      title: postForm.title,
+      topicId: postForm.topicId ? parseInt(String(postForm.topicId), 10) : null,
+      content: postForm.content,
+      summary: postForm.summary || autoSummary || null,
+      coverImage: postForm.coverImage || (imageUrls.length > 0 ? imageUrls[0] : null),
+      images: imageUrls.length > 0 ? JSON.stringify(imageUrls) : null
     }
+
+    let res
+    if (props.mode === 'edit') {
+      if (!props.postId) {
+        ElMessage.error('帖子ID缺失，无法保存')
+        return
+      }
+      res = await forumStore.updatePost(props.postId, payload)
+    } else {
+      res = await forumStore.createPost(payload)
+    }
+
+    if (res?.code) showByCode(res.code)
+
+    // 成功：create=6011（提交审核），edit=6012（更新成功）
+    if ((props.mode === 'create' && res?.code === 6011) || (props.mode === 'edit' && res?.code === 6012)) {
+      emit('submitted', { mode: props.mode, postId: props.postId || null })
+      emitVisible(false)
+    }
+  } finally {
+    submitting.value = false
+  }
 }
 
 const resetState = () => {
-    quillInstance = null
-    if (postFormRef.value) {
-        postFormRef.value.resetFields()
-    }
-    postForm.title = ''
-    postForm.topicId = null
-    postForm.summary = ''
-    postForm.content = ''
-    postForm.coverImage = ''
+  quillInstance = null
+  if (postFormRef.value) {
+    postFormRef.value.resetFields()
+  }
+  postForm.title = ''
+  postForm.topicId = null
+  postForm.summary = ''
+  postForm.content = ''
+  postForm.coverImage = ''
 }
 
 const handleClose = () => {
-    resetState()
+  resetState()
 }
 </script>
 
