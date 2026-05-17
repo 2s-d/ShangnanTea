@@ -1,0 +1,62 @@
+name: Deploy ShangnanTea Web Frontend to Server
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'shangnantea-web/**'
+      - '.github/workflows/deploy-frontend.yml'
+
+jobs:
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Install frontend dependencies
+        working-directory: ./shangnantea-web
+        run: npm install
+      
+      - name: Build frontend
+        working-directory: ./shangnantea-web
+        run: npm run build
+        env:
+          NODE_ENV: production
+      
+      # 关键：打包时进入构建产物目录，确保解压后文件直接在 web root
+      - name: Pack frontend dist (flat for web root)
+        run: cd shangnantea-web/dist && tar czf ../../tea-frontend-dist.tar.gz .
+      
+      - name: Deploy frontend tarball to server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          port: ${{ secrets.SERVER_SSH_PORT }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          source: "tea-frontend-dist.tar.gz"
+          target: "/var/www/tea/"
+          overwrite: true
+      
+      - name: Extract frontend on server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          port: ${{ secrets.SERVER_SSH_PORT }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          command_timeout: 5m
+          script: |
+            set -e
+            cd /var/www/tea
+            tar xzf tea-frontend-dist.tar.gz
+            rm -f tea-frontend-dist.tar.gz
+            echo "✅ 商南茶城前端部署完成: $(date)"
